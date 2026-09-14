@@ -47182,6 +47182,9 @@ function publicUrl(origin, path2) {
 function formatQuantity(quantity) {
   return quantity.toLocaleString("th-TH", { maximumFractionDigits: 2 });
 }
+function formatBaht(amount) {
+  return Math.round(amount).toLocaleString("th-TH");
+}
 function itemLabel(item) {
   return item.description?.split("\xB7", 1)[0]?.trim() || "";
 }
@@ -47230,14 +47233,17 @@ function quoteSummary(lead, quoteUrl, title = "\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0
     "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23:",
     ...items,
     ...vat ? [
-      `\u0E22\u0E2D\u0E14\u0E01\u0E48\u0E2D\u0E19 VAT: ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`,
-      `VAT 7%: ${vatAmount.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17`,
-      `\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E2A\u0E38\u0E17\u0E18\u0E34: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`
-    ] : [`\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 (\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E27\u0E21 VAT): ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`],
-    `\u0E25\u0E34\u0E07\u0E01\u0E4C: ${quoteUrl}`
+      `\u0E22\u0E2D\u0E14\u0E01\u0E48\u0E2D\u0E19 VAT: ${typeof subtotal === "number" ? `${formatBaht(subtotal)} \u0E1A\u0E32\u0E17` : "-"}`,
+      `VAT 7%: ${formatBaht(vatAmount)} \u0E1A\u0E32\u0E17`,
+      `\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E2A\u0E38\u0E17\u0E18\u0E34: ${typeof total === "number" ? `${formatBaht(total)} \u0E1A\u0E32\u0E17` : "-"}`
+    ] : [`\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 (\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E27\u0E21 VAT): ${typeof subtotal === "number" ? `${formatBaht(subtotal)} \u0E1A\u0E32\u0E17` : "-"}`],
+    ...quoteUrl ? [`\u0E25\u0E34\u0E07\u0E01\u0E4C: ${quoteUrl}`] : ["(\u0E41\u0E19\u0E1A\u0E23\u0E39\u0E1B\u0E21\u0E32\u0E41\u0E25\u0E49\u0E27\u0E43\u0E19\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21\u0E19\u0E35\u0E49)"]
   ].join("\n");
 }
-async function sendTelegramText(text2) {
+function telegramReplyMarkup(button) {
+  return button ? { inline_keyboard: [[button]] } : void 0;
+}
+async function sendTelegramText(text2, button) {
   const token = process.env["TELEGRAM_BOT_TOKEN"];
   const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
   if (!token || !chatId) {
@@ -47247,7 +47253,7 @@ async function sendTelegramText(text2) {
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: text2 })
+      body: JSON.stringify({ chat_id: chatId, text: text2, ...button ? { reply_markup: telegramReplyMarkup(button) } : {} })
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok || payload?.ok === false) {
@@ -47259,7 +47265,7 @@ async function sendTelegramText(text2) {
     return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 Telegram \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48");
   }
 }
-async function sendTelegramPhoto(photoUrl, caption) {
+async function sendTelegramPhoto(photoUrl, caption, button) {
   const token = process.env["TELEGRAM_BOT_TOKEN"];
   const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
   if (!token || !chatId) {
@@ -47269,7 +47275,7 @@ async function sendTelegramPhoto(photoUrl, caption) {
     const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption })
+      body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption, ...button ? { reply_markup: telegramReplyMarkup(button) } : {} })
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok || payload?.ok === false) {
@@ -47303,16 +47309,20 @@ async function sendLineText(text2) {
 async function notifyQuote(lead, origin, quotePath) {
   const quoteUrl = publicUrl(origin, quotePath);
   const text2 = quoteSummary(lead, quoteUrl);
-  return configuredChannel() === "telegram" ? sendTelegramText(text2) : sendLineText(text2);
+  const button = { text: "\u0E40\u0E1B\u0E34\u0E14\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32", url: quoteUrl };
+  return configuredChannel() === "telegram" ? sendTelegramText(text2, button) : sendLineText(text2);
 }
 async function notifySketch(lead, origin, quotePath) {
   const photoPath = lead.sketchUrl;
   if (!photoPath) return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E44\u0E21\u0E48\u0E21\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19");
   const photoUrl = publicUrl(origin, photoPath);
-  const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
-  const caption = quoteSummary(lead, quoteUrl || photoUrl, "\u0E21\u0E35\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48");
-  if (configuredChannel() === "telegram") return sendTelegramPhoto(photoUrl, caption);
-  return sendLineText(`${caption}
+  const quoteUrl = quotePath ? publicUrl(origin, quotePath) : lead.quoteNumber ? publicUrl(origin, `/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`) : "";
+  const caption = quoteSummary(lead, quoteUrl, "\u0E21\u0E35\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48");
+  if (configuredChannel() === "telegram") {
+    const button = quoteUrl ? { text: "\u0E40\u0E1B\u0E34\u0E14\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32", url: quoteUrl } : { text: "\u0E40\u0E1B\u0E34\u0E14\u0E14\u0E39\u0E23\u0E39\u0E1B\u0E40\u0E15\u0E47\u0E21", url: photoUrl };
+    return sendTelegramPhoto(photoUrl, caption, button);
+  }
+  return sendLineText(quoteUrl ? caption : `${caption}
 \u0E44\u0E1F\u0E25\u0E4C: ${photoUrl}`);
 }
 

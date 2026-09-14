@@ -10,6 +10,7 @@ import {
   type CustomerDetails,
 } from "@/data/catalog";
 import {
+  counterBounds,
   createBasinPlacement,
   snapBasinPlacementPosition,
   studioEstimate,
@@ -29,6 +30,7 @@ import {
   type StudioOrderMode,
   type StudioState,
 } from "@/data/studio-model";
+import { StudioFootprint } from "./StudioFootprint";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -85,10 +87,6 @@ const initialState: StudioState = {
 function numericValue(value: string, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function displayMm(value: number) {
-  return value.toLocaleString("th-TH");
 }
 
 function StudioContactFields({ contact, setContact }: { contact: typeof emptyContact; setContact: Dispatch<SetStateAction<typeof emptyContact>> }) {
@@ -155,14 +153,15 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
 }
 
 function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
-  const maxRun = Math.max(1, state.dimensions.runAMm);
-  const maxDepth = Math.max(1, state.dimensions.depthMm);
+  const bounds = counterBounds(state.shape, state.dimensions);
+  const maxRun = Math.max(1, bounds.widthMm);
+  const maxDepth = Math.max(1, bounds.heightMm);
   const unsafeIds = new Set(unsafeBasinPlacements(state));
   const unknownDimensionIds = new Set(unknownBasinPlacements(state));
   const movePlacement = (id: string, xMm: number, yMm: number) => setState((current) => ({
     ...current,
     basinPlacements: current.basinPlacements.map((placement) => placement.id === id
-      ? { ...placement, ...snapBasinPlacementPosition(placement, xMm, yMm, current.dimensions) }
+      ? { ...placement, ...snapBasinPlacementPosition(placement, xMm, yMm, current.dimensions, current.shape) }
       : placement),
   }));
   const drop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -178,7 +177,7 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
         ...current,
         basinPlacements: [
           ...current.basinPlacements,
-          { ...placement, ...snapBasinPlacementPosition(placement, xMm, yMm, current.dimensions) },
+            { ...placement, ...snapBasinPlacementPosition(placement, xMm, yMm, current.dimensions, current.shape) },
         ],
       }));
       return;
@@ -193,12 +192,6 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
       );
     }
   };
-  const clearanceFrameStyle = {
-    left: `${(STUDIO_EDGE_CLEARANCE_MM / maxRun) * 100}%`,
-    right: `${(STUDIO_EDGE_CLEARANCE_MM / maxRun) * 100}%`,
-    top: `${(STUDIO_EDGE_CLEARANCE_MM / maxDepth) * 100}%`,
-    bottom: `${(STUDIO_EDGE_CLEARANCE_MM / maxDepth) * 100}%`,
-  };
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading"><div><p className="eyebrow">03 / 2D COUNTER LAYOUT</p><h3>วางอ่างบนผังเคาน์เตอร์</h3></div><span>หน่วย mm</span></div>
     <div className="studio-shape-tabs" role="tablist">{(["I", "L", "U"] as CounterShape[]).map((shape) => <button type="button" key={shape} className={state.shape === shape ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, shape }))} data-testid={`button-studio-shape-${shape}`}>{shape}-shape</button>)}</div>
@@ -210,12 +203,10 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
     </div>
     <label className="studio-checkbox"><input type="checkbox" checked={state.backsplash.enabled} onChange={(event) => setState((current) => ({ ...current, backsplash: { ...current.backsplash, enabled: event.target.checked } }))} /> เพิ่ม backsplash ด้านหลัง</label>
     {state.backsplash.enabled && <label className="studio-inline-field">ความสูง backsplash (mm)<input type="number" min="1" value={state.backsplash.heightMm} onChange={(event) => setState((current) => ({ ...current, backsplash: { enabled: true, heightMm: numericValue(event.target.value) } }))} data-testid="input-studio-backsplash-height" /></label>}
-    <div className={`studio-canvas studio-canvas--${state.shape} ${unsafeIds.size ? "studio-canvas--unsafe" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={drop} data-testid="studio-canvas" aria-label="ผังเคาน์เตอร์ 2D">
-      <span className="studio-canvas-label">{state.shape}-SHAPE · {displayMm(state.dimensions.runAMm)} × {displayMm(state.dimensions.depthMm)} mm</span>
-       {unsafeIds.size > 0 && <div className="studio-clearance-frame" style={clearanceFrameStyle} aria-hidden="true" />}
+     <StudioFootprint state={state} unsafe={unsafeIds.size > 0} onDragOver={(event) => event.preventDefault()} onDrop={drop} testId="studio-canvas" ariaLabel="ผังเคาน์เตอร์ 2D">
        {state.basinPlacements.map((placement) => <div key={placement.id} draggable className={`studio-placement ${unsafeIds.has(placement.id) ? "studio-placement--unsafe" : ""} ${unknownDimensionIds.has(placement.id) ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / maxRun) * 100}%`, top: `${(placement.yMm / maxDepth) * 100}%`, width: placement.widthMm === null ? "22%" : `${(placement.widthMm / maxRun) * 100}%`, height: placement.depthMm === null ? "22%" : `${(placement.depthMm / maxDepth) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>{unknownDimensionIds.has(placement.id) ? "แคตตาล็อกไม่ระบุขนาดหลุม" : "ลากเพื่อย้าย"}</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>)}
       {!state.basinPlacements.length && <span className="studio-canvas-empty">ลากอ่างที่เลือกมาวางที่นี่</span>}
-    </div>
+     </StudioFootprint>
      <p className="studio-canvas-hint"><GripVertical size={14} /> ระยะขอบเคาน์เตอร์ต้องเหลืออย่างน้อย {STUDIO_EDGE_CLEARANCE_MM} mm รอบอ่างทุกด้าน · เมื่อวางใกล้เส้น ระบบจะจัดให้พอดีอัตโนมัติ</p>
   </section>;
 }

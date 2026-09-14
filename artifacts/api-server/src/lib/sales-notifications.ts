@@ -49,6 +49,10 @@ function formatQuantity(quantity: number) {
   return quantity.toLocaleString("th-TH", { maximumFractionDigits: 2 });
 }
 
+function formatBaht(amount: number) {
+  return Math.round(amount).toLocaleString("th-TH");
+}
+
 function itemLabel(item: NotificationItem) {
   return item.description?.split("·", 1)[0]?.trim() || "";
 }
@@ -125,16 +129,25 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     ...items,
     ...(vat
       ? [
-          `ยอดก่อน VAT: ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} บาท` : "-"}`,
-          `VAT 7%: ${vatAmount.toLocaleString("th-TH")} บาท`,
-          `ยอดรวมสุทธิ: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} บาท` : "-"}`,
+          `ยอดก่อน VAT: ${typeof subtotal === "number" ? `${formatBaht(subtotal)} บาท` : "-"}`,
+          `VAT 7%: ${formatBaht(vatAmount)} บาท`,
+          `ยอดรวมสุทธิ: ${typeof total === "number" ? `${formatBaht(total)} บาท` : "-"}`,
         ]
-      : [`ยอดรวม (ยังไม่รวม VAT): ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} บาท` : "-"}`]),
-    `ลิงก์: ${quoteUrl}`,
+      : [`ยอดรวม (ยังไม่รวม VAT): ${typeof subtotal === "number" ? `${formatBaht(subtotal)} บาท` : "-"}`]),
+    ...(quoteUrl ? [`ลิงก์: ${quoteUrl}`] : ["(แนบรูปมาแล้วในข้อความนี้)"]),
   ].join("\n");
 }
 
-async function sendTelegramText(text: string): Promise<NotificationResult> {
+type TelegramButton = {
+  text: string;
+  url: string;
+};
+
+function telegramReplyMarkup(button?: TelegramButton) {
+  return button ? { inline_keyboard: [[button]] } : undefined;
+}
+
+async function sendTelegramText(text: string, button?: TelegramButton): Promise<NotificationResult> {
   const token = process.env["TELEGRAM_BOT_TOKEN"];
   const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
   if (!token || !chatId) {
@@ -144,7 +157,7 @@ async function sendTelegramText(text: string): Promise<NotificationResult> {
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text }),
+      body: JSON.stringify({ chat_id: chatId, text, ...(button ? { reply_markup: telegramReplyMarkup(button) } : {}) }),
     });
     const payload = await response.json().catch(() => null) as { ok?: boolean; description?: string } | null;
     if (!response.ok || payload?.ok === false) {
@@ -157,7 +170,7 @@ async function sendTelegramText(text: string): Promise<NotificationResult> {
   }
 }
 
-async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<NotificationResult> {
+async function sendTelegramPhoto(photoUrl: string, caption: string, button?: TelegramButton): Promise<NotificationResult> {
   const token = process.env["TELEGRAM_BOT_TOKEN"];
   const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
   if (!token || !chatId) {
@@ -167,7 +180,7 @@ async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<Not
     const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption }),
+      body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption, ...(button ? { reply_markup: telegramReplyMarkup(button) } : {}) }),
     });
     const payload = await response.json().catch(() => null) as { ok?: boolean; description?: string } | null;
     if (!response.ok || payload?.ok === false) {
@@ -203,7 +216,8 @@ async function sendLineText(text: string): Promise<NotificationResult> {
 export async function notifyQuote(lead: LeadNotificationData, origin: string, quotePath: string) {
   const quoteUrl = publicUrl(origin, quotePath);
   const text = quoteSummary(lead, quoteUrl);
-  return configuredChannel() === "telegram" ? sendTelegramText(text) : sendLineText(text);
+  const button = { text: "เปิดใบเสนอราคา", url: quoteUrl };
+  return configuredChannel() === "telegram" ? sendTelegramText(text, button) : sendLineText(text);
 }
 
 export async function notifySketch(
@@ -214,8 +228,17 @@ export async function notifySketch(
   const photoPath = lead.sketchUrl;
   if (!photoPath) return missingNotification("บันทึกแล้ว แต่ไม่มีไฟล์แบบร่างสำหรับส่งแจ้งเตือน");
   const photoUrl = publicUrl(origin, photoPath);
-  const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
-  const caption = quoteSummary(lead, quoteUrl || photoUrl, "มีแบบร่างใหม่");
-  if (configuredChannel() === "telegram") return sendTelegramPhoto(photoUrl, caption);
-  return sendLineText(`${caption}\nไฟล์: ${photoUrl}`);
+  const quoteUrl = quotePath
+    ? publicUrl(origin, quotePath)
+    : lead.quoteNumber
+      ? publicUrl(origin, `/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`)
+      : "";
+  const caption = quoteSummary(lead, quoteUrl, "มีแบบร่างใหม่");
+  if (configuredChannel() === "telegram") {
+    const button = quoteUrl
+      ? { text: "เปิดใบเสนอราคา", url: quoteUrl }
+      : { text: "เปิดดูรูปเต็ม", url: photoUrl };
+    return sendTelegramPhoto(photoUrl, caption, button);
+  }
+  return sendLineText(quoteUrl ? caption : `${caption}\nไฟล์: ${photoUrl}`);
 }

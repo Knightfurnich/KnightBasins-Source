@@ -28,7 +28,8 @@ import {
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { StudioPage, type StudioSubmission } from "@/components/StudioPage";
-import { unsafeBasinPlacements, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
+import { counterBounds, counterShapeLabel, unsafeBasinPlacements, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
+import { StudioFootprint } from "@/components/StudioFootprint";
 
 const emptyCustomer: CustomerDetails = { name: "", company: "", taxId: "", phone: "", email: "", purchasingDepartment: "", address: "", project: "", site: "", notes: "" };
 const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
@@ -457,22 +458,22 @@ function readSavedQuotePayload(value: unknown): SavedQuotePayload | null {
 }
 
 function StudioLayoutSnapshot({ state }: { state: StudioState }) {
-  const maxRun = Math.max(1, state.dimensions.runAMm);
-  const maxDepth = Math.max(1, state.dimensions.depthMm);
+  const bounds = counterBounds(state.shape, state.dimensions);
+  const maxRun = Math.max(1, bounds.widthMm);
+  const maxDepth = Math.max(1, bounds.heightMm);
   const unsafeIds = new Set(unsafeBasinPlacements(state));
   const formatPlacementCoordinate = (value: number) => Math.round(value).toLocaleString("th-TH");
   return <section className="studio-saved-layout" data-testid="saved-studio-layout">
     <div className="studio-saved-layout-heading">
       <div><p className="eyebrow">SAVED 2D STUDIO LAYOUT</p><h2>แบบที่บันทึกไว้</h2></div>
-      <span>{state.shape}-shape · {state.dimensions.runAMm} × {state.dimensions.depthMm} mm</span>
+       <span>{counterShapeLabel(state.shape, state.dimensions)}</span>
     </div>
     <div className="studio-saved-layout-meta">
       <span>หินที่ใช้คำนวณ: <strong>{stoneColorByName(state.activeStone).name} ({state.activeStone})</strong></span>
       <span>{state.backsplash.enabled ? `backsplash ${state.backsplash.heightMm} mm` : "ไม่มี backsplash"}</span>
       <span>{state.location === "bangkok-metro" ? "กรุงเทพฯ / ปริมณฑล" : "ต่างจังหวัด"}</span>
     </div>
-    <div className={`studio-canvas studio-canvas--${state.shape} studio-canvas--saved`} data-testid="saved-studio-canvas">
-      <span className="studio-canvas-label">{state.shape}-SHAPE · {state.dimensions.runAMm.toLocaleString("th-TH")} × {state.dimensions.depthMm.toLocaleString("th-TH")} mm</span>
+    <StudioFootprint state={state} className="studio-canvas--saved" unsafe={unsafeIds.size > 0} testId="saved-studio-canvas" ariaLabel="ผังเคาน์เตอร์ 2D ที่บันทึกไว้">
       {state.basinPlacements.map((placement) => {
         const unknown = placement.widthMm === null || placement.depthMm === null;
         return <div
@@ -490,7 +491,7 @@ function StudioLayoutSnapshot({ state }: { state: StudioState }) {
         </div>;
       })}
       {!state.basinPlacements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
-    </div>
+    </StudioFootprint>
     <p className="studio-saved-layout-note">ตำแหน่งอ่างเป็นแบบ read-only ที่บันทึกพร้อมใบเสนอราคา ไม่สามารถแก้ไขจากลิงก์นี้ได้</p>
   </section>;
 }

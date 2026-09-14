@@ -72,6 +72,11 @@ describe("sales notifications", () => {
     assert.match(requestBody, /VAT 7%: 3,990 บาท/);
     assert.match(requestBody, /ยอดรวมสุทธิ: 60,990 บาท/);
     assert.match(requestBody, /quote\/view\?quote=x/);
+    const payload = JSON.parse(requestBody) as { reply_markup?: { inline_keyboard?: Array<Array<{ text: string; url: string }>> } };
+    assert.deepEqual(payload.reply_markup?.inline_keyboard?.[0]?.[0], {
+      text: "เปิดใบเสนอราคา",
+      url: "https://example.com/quote/view?quote=x",
+    });
   });
 
   it("uses sendPhoto for sketch notifications", async () => {
@@ -83,11 +88,38 @@ describe("sales notifications", () => {
       requestBody = String(init?.body ?? "");
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     };
-    const result = await (await module()).notifySketch(lead, "https://example.com");
+    const result = await (await module()).notifySketch({ ...lead, quoteNumber: null }, "https://example.com");
     assert.equal(result.notificationStatus, "notified");
     assert.match(requestBody, /https:\/\/example.com\/api\/uploads\/sketch.png/);
     assert.match(requestBody, /KF002 Soft ×3 ชุด/);
     assert.match(requestBody, /ยอดรวมสุทธิ: 60,990 บาท/);
+    assert.match(requestBody, /แนบรูปมาแล้วในข้อความนี้/);
+    const payload = JSON.parse(requestBody) as { reply_markup?: { inline_keyboard?: Array<Array<{ text: string; url: string }>> } };
+    assert.deepEqual(payload.reply_markup?.inline_keyboard?.[0]?.[0], {
+      text: "เปิดดูรูปเต็ม",
+      url: "https://example.com/api/uploads/sketch.png",
+    });
+    assert.doesNotMatch(requestBody, /"ลิงก์":/);
+  });
+
+  it("keeps the quote link and quote button for a sketch that already has a quote", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const result = await (await module()).notifySketch(lead, "https://example.com");
+    assert.equal(result.notificationStatus, "notified");
+    assert.match(requestBody, /quote\/view\?quote=Sep%2026%20%2F%20US%20%2F%20123456/);
+    assert.doesNotMatch(requestBody, /แนบรูปมาแล้วในข้อความนี้/);
+    const payload = JSON.parse(requestBody) as { reply_markup?: { inline_keyboard?: Array<Array<{ text: string; url: string }>> } };
+    assert.deepEqual(payload.reply_markup?.inline_keyboard?.[0]?.[0], {
+      text: "เปิดใบเสนอราคา",
+      url: "https://example.com/quote/view?quote=Sep%2026%20%2F%20US%20%2F%20123456",
+    });
   });
 
   it("omits the VAT line when the quote does not charge VAT", async () => {
@@ -112,6 +144,33 @@ describe("sales notifications", () => {
     assert.equal(result.notificationStatus, "notified");
     assert.match(requestBody, /ยอดรวม \(ยังไม่รวม VAT\): 57,000 บาท/);
     assert.doesNotMatch(requestBody, /VAT 7%/);
+  });
+
+  it("rounds displayed baht values while keeping fractional source amounts valid", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const fractionalLead = {
+      ...lead,
+      studioData: {
+        ...lead.studioData,
+        subtotal: 70523.7,
+        vatAmount: 4936.659,
+        total: 75460.359,
+        vat: true,
+      },
+    };
+    const result = await (await module()).notifyQuote(fractionalLead, "https://example.com", "/quote/view?quote=x");
+    assert.equal(result.notificationStatus, "notified");
+    assert.match(requestBody, /ยอดก่อน VAT: 70,524 บาท/);
+    assert.match(requestBody, /VAT 7%: 4,937 บาท/);
+    assert.match(requestBody, /ยอดรวมสุทธิ: 75,460 บาท/);
+    assert.doesNotMatch(requestBody, /70,523\.7|4,936\.659|75,460\.359/);
   });
 
   it("returns a retryable saved-not-notified result when Telegram rejects a message", async () => {

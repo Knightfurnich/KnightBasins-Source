@@ -5,8 +5,12 @@ import {
   basinDimensionsForProduct,
   backsplashAreaSqM,
   clampBasinPlacementPosition,
+  counterClearanceRegions,
   createBasinPlacement,
   counterAreaSqM,
+  counterRegions,
+  counterShapeLabel,
+  placementFitsCounterShape,
   standardSheetWarning,
   studioEstimate,
   studioSubmissionValidationMessage,
@@ -34,6 +38,25 @@ test("counter area calculates I, L, and U footprints in square metres", () => {
   assert.equal(counterAreaSqM("I", { depthMm: 600, runAMm: 1800, runBMm: 0, runCMm: 0 }), 1.08);
   assert.equal(counterAreaSqM("L", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 0 }), 1.44);
   assert.equal(counterAreaSqM("U", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1000 }), 1.68);
+});
+
+test("L and U geometry use real counter legs, clearance regions, and shape labels", () => {
+  const dimensions = { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1200 };
+  assert.deepEqual(counterRegions("L", dimensions), [
+    { xMm: 0, yMm: 0, widthMm: 1800, heightMm: 600 },
+    { xMm: 0, yMm: 0, widthMm: 600, heightMm: 1200 },
+  ]);
+  assert.deepEqual(counterClearanceRegions("U", dimensions), [
+    { xMm: 50, yMm: 50, widthMm: 1700, heightMm: 500 },
+    { xMm: 50, yMm: 50, widthMm: 500, heightMm: 1100 },
+    { xMm: 1250, yMm: 50, widthMm: 500, heightMm: 1100 },
+  ]);
+  assert.equal(placementFitsCounterShape("L", dimensions, { xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }), true);
+  assert.equal(placementFitsCounterShape("L", dimensions, { xMm: 700, yMm: 700, widthMm: 500, depthMm: 400 }), false);
+  assert.equal(placementFitsCounterShape("U", dimensions, { xMm: 1250, yMm: 50, widthMm: 500, depthMm: 500 }), true);
+  assert.equal(counterShapeLabel("I", dimensions), "I-SHAPE · 1,800 × 600 mm");
+  assert.equal(counterShapeLabel("L", dimensions), "L-SHAPE · A 1,800 × B 1,200 × ลึก 600 mm");
+  assert.equal(counterShapeLabel("U", dimensions), "U-SHAPE · A 1,800 × B 1,200 × C 1,200 × ลึก 600 mm");
 });
 
 test("backsplash adds area without changing counter footprint", () => {

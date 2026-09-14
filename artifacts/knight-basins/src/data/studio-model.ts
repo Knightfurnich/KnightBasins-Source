@@ -78,6 +78,89 @@ export const STUDIO_MIN_STONE_COLORS = 2;
 export const STUDIO_MAX_BASINS = 2;
 export const STUDIO_MIN_BASINS = 1;
 
+export type CounterRegion = {
+  xMm: number;
+  yMm: number;
+  widthMm: number;
+  heightMm: number;
+};
+
+export function counterBounds(shape: CounterShape, dimensions: StudioDimensions) {
+  const depth = Math.max(0, dimensions.depthMm);
+  return {
+    widthMm: Math.max(0, dimensions.runAMm),
+    heightMm: shape === "I"
+      ? depth
+      : Math.max(depth, dimensions.runBMm, shape === "U" ? dimensions.runCMm : 0),
+  };
+}
+
+export function counterRegions(shape: CounterShape, dimensions: StudioDimensions): CounterRegion[] {
+  const depth = Math.max(0, dimensions.depthMm);
+  const runA = Math.max(0, dimensions.runAMm);
+  const runB = Math.max(0, dimensions.runBMm);
+  const runC = Math.max(0, dimensions.runCMm);
+  if (shape === "I") return [{ xMm: 0, yMm: 0, widthMm: runA, heightMm: depth }];
+  const regions: CounterRegion[] = [
+    { xMm: 0, yMm: 0, widthMm: runA, heightMm: depth },
+    { xMm: 0, yMm: 0, widthMm: depth, heightMm: runB },
+  ];
+  if (shape === "U") {
+    regions.push({
+      xMm: Math.max(0, runA - depth),
+      yMm: 0,
+      widthMm: depth,
+      heightMm: runC,
+    });
+  }
+  return regions;
+}
+
+export function counterClearanceRegions(shape: CounterShape, dimensions: StudioDimensions) {
+  return counterRegions(shape, dimensions)
+    .map((region) => ({
+      xMm: region.xMm + STUDIO_EDGE_CLEARANCE_MM,
+      yMm: region.yMm + STUDIO_EDGE_CLEARANCE_MM,
+      widthMm: region.widthMm - STUDIO_EDGE_CLEARANCE_MM * 2,
+      heightMm: region.heightMm - STUDIO_EDGE_CLEARANCE_MM * 2,
+    }))
+    .filter((region) => region.widthMm > 0 && region.heightMm > 0);
+}
+
+function displayMm(value: number) {
+  return Math.round(value).toLocaleString("th-TH");
+}
+
+export function counterShapeLabel(shape: CounterShape, dimensions: StudioDimensions) {
+  if (shape === "I") return `I-SHAPE · ${displayMm(dimensions.runAMm)} × ${displayMm(dimensions.depthMm)} mm`;
+  if (shape === "L") {
+    return `L-SHAPE · A ${displayMm(dimensions.runAMm)} × B ${displayMm(dimensions.runBMm)} × ลึก ${displayMm(dimensions.depthMm)} mm`;
+  }
+  return `U-SHAPE · A ${displayMm(dimensions.runAMm)} × B ${displayMm(dimensions.runBMm)} × C ${displayMm(dimensions.runCMm)} × ลึก ${displayMm(dimensions.depthMm)} mm`;
+}
+
+function placementFitsRegion(
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
+  region: CounterRegion,
+) {
+  return placement.widthMm !== null &&
+    placement.depthMm !== null &&
+    placement.xMm >= region.xMm - STUDIO_CLEARANCE_EPSILON_MM &&
+    placement.yMm >= region.yMm - STUDIO_CLEARANCE_EPSILON_MM &&
+    placement.xMm + placement.widthMm <= region.xMm + region.widthMm + STUDIO_CLEARANCE_EPSILON_MM &&
+    placement.yMm + placement.depthMm <= region.yMm + region.heightMm + STUDIO_CLEARANCE_EPSILON_MM;
+}
+
+export function placementFitsCounterShape(
+  shape: CounterShape,
+  dimensions: StudioDimensions,
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
+  clearance = true,
+) {
+  const regions = clearance ? counterClearanceRegions(shape, dimensions) : counterRegions(shape, dimensions);
+  return regions.some((region) => placementFitsRegion(placement, region));
+}
+
 function usableRuns(shape: CounterShape, dimensions: StudioDimensions) {
   const runs = [dimensions.runAMm];
   if (shape === "L" || shape === "U") runs.push(dimensions.runBMm);
@@ -111,18 +194,11 @@ export function basinDimensionsForProduct(product?: BasinProduct) {
 export function unsafeBasinPlacements(
   state: Pick<StudioState, "shape" | "dimensions" | "basinPlacements">,
 ) {
-  const maxX = Math.max(0, state.dimensions.runAMm);
-  const maxY = Math.max(0, state.dimensions.depthMm);
   return state.basinPlacements
     .filter((placement) =>
       placement.widthMm !== null &&
       placement.depthMm !== null &&
-      (
-        placement.xMm < STUDIO_EDGE_CLEARANCE_MM - STUDIO_CLEARANCE_EPSILON_MM ||
-        placement.yMm < STUDIO_EDGE_CLEARANCE_MM - STUDIO_CLEARANCE_EPSILON_MM ||
-        placement.xMm + placement.widthMm > maxX - STUDIO_EDGE_CLEARANCE_MM + STUDIO_CLEARANCE_EPSILON_MM ||
-        placement.yMm + placement.depthMm > maxY - STUDIO_EDGE_CLEARANCE_MM + STUDIO_CLEARANCE_EPSILON_MM
-      ),
+      !placementFitsCounterShape(state.shape, state.dimensions, placement),
     )
     .map((placement) => placement.id);
 }
@@ -139,16 +215,34 @@ export function clampBasinPlacementPosition(
   placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
   xMm: number,
   yMm: number,
-  dimensions: Pick<StudioDimensions, "runAMm" | "depthMm">,
+  dimensions: StudioDimensions,
+  shape: CounterShape = "I",
 ) {
-  const maxRun = Math.max(1, dimensions.runAMm);
-  const maxDepth = Math.max(1, dimensions.depthMm);
   const widthMm = placement.widthMm ?? 0;
   const depthMm = placement.depthMm ?? 0;
-  return {
-    xMm: Math.max(0, Math.min(maxRun - widthMm, xMm)),
-    yMm: Math.max(0, Math.min(maxDepth - depthMm, yMm)),
-  };
+  const regions = counterRegions(shape, dimensions)
+    .map((region) => ({
+      ...region,
+      widthMm: region.widthMm - widthMm,
+      heightMm: region.heightMm - depthMm,
+    }))
+    .filter((region) => region.widthMm >= 0 && region.heightMm >= 0);
+  const candidates = regions.map((region) => ({
+    xMm: Math.max(region.xMm, Math.min(region.xMm + region.widthMm, xMm)),
+    yMm: Math.max(region.yMm, Math.min(region.yMm + region.heightMm, yMm)),
+  }));
+  if (!candidates.length) {
+    const bounds = counterBounds(shape, dimensions);
+    return {
+      xMm: Math.max(0, Math.min(bounds.widthMm - widthMm, xMm)),
+      yMm: Math.max(0, Math.min(bounds.heightMm - depthMm, yMm)),
+    };
+  }
+  return candidates.reduce((closest, candidate) => {
+    const closestDistance = (closest.xMm - xMm) ** 2 + (closest.yMm - yMm) ** 2;
+    const candidateDistance = (candidate.xMm - xMm) ** 2 + (candidate.yMm - yMm) ** 2;
+    return candidateDistance < closestDistance ? candidate : closest;
+  });
 }
 
 function snapNearClearance(value: number, minimum: number, maximum: number) {
@@ -162,18 +256,29 @@ export function snapBasinPlacementPosition(
   placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
   xMm: number,
   yMm: number,
-  dimensions: Pick<StudioDimensions, "runAMm" | "depthMm">,
+  dimensions: StudioDimensions,
+  shape: CounterShape = "I",
 ) {
-  const clamped = clampBasinPlacementPosition(placement, xMm, yMm, dimensions);
-  const maxX = dimensions.runAMm - (placement.widthMm ?? 0) - STUDIO_EDGE_CLEARANCE_MM;
-  const maxY = dimensions.depthMm - (placement.depthMm ?? 0) - STUDIO_EDGE_CLEARANCE_MM;
+  const clamped = clampBasinPlacementPosition(placement, xMm, yMm, dimensions, shape);
+  const clearanceRegions = counterClearanceRegions(shape, dimensions);
+  const matchingRegion = clearanceRegions.find((region) =>
+    placement.widthMm !== null &&
+    placement.depthMm !== null &&
+    clamped.xMm >= region.xMm - STUDIO_SNAP_DISTANCE_MM &&
+    clamped.xMm <= region.xMm + region.widthMm - placement.widthMm + STUDIO_SNAP_DISTANCE_MM &&
+    clamped.yMm >= region.yMm - STUDIO_SNAP_DISTANCE_MM &&
+    clamped.yMm <= region.yMm + region.heightMm - placement.depthMm + STUDIO_SNAP_DISTANCE_MM,
+  );
+  if (!matchingRegion) return clamped;
+  const maxX = matchingRegion.xMm + matchingRegion.widthMm - (placement.widthMm ?? 0);
+  const maxY = matchingRegion.yMm + matchingRegion.heightMm - (placement.depthMm ?? 0);
   return {
     xMm: placement.widthMm === null
       ? clamped.xMm
-      : snapNearClearance(clamped.xMm, STUDIO_EDGE_CLEARANCE_MM, maxX),
+      : snapNearClearance(clamped.xMm, matchingRegion.xMm, maxX),
     yMm: placement.depthMm === null
       ? clamped.yMm
-      : snapNearClearance(clamped.yMm, STUDIO_EDGE_CLEARANCE_MM, maxY),
+      : snapNearClearance(clamped.yMm, matchingRegion.yMm, maxY),
   };
 }
 
