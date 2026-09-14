@@ -28,7 +28,7 @@ import {
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { StudioPage, type StudioSubmission } from "@/components/StudioPage";
-import type { StudioOrderMode } from "@/data/studio-model";
+import { unsafeBasinPlacements, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 
 const emptyCustomer: CustomerDetails = { name: "", company: "", taxId: "", phone: "", email: "", purchasingDepartment: "", address: "", project: "", site: "", notes: "" };
 const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
@@ -420,6 +420,160 @@ function FormalQuote({
   </section>;
 }
 
+type SavedStudioPayload = {
+  state: StudioState;
+  estimate: StudioEstimate;
+};
+
+function readSavedStudioPayload(value: unknown): SavedStudioPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (!record.state || typeof record.state !== "object" || !record.estimate || typeof record.estimate !== "object") return null;
+  return {
+    state: record.state as StudioState,
+    estimate: record.estimate as StudioEstimate,
+  };
+}
+
+function StudioLayoutSnapshot({ state }: { state: StudioState }) {
+  const maxRun = Math.max(1, state.dimensions.runAMm);
+  const maxDepth = Math.max(1, state.dimensions.depthMm);
+  const unsafeIds = new Set(unsafeBasinPlacements(state));
+  const formatPlacementCoordinate = (value: number) => Math.round(value).toLocaleString("th-TH");
+  return <section className="studio-saved-layout" data-testid="saved-studio-layout">
+    <div className="studio-saved-layout-heading">
+      <div><p className="eyebrow">SAVED 2D STUDIO LAYOUT</p><h2>แบบที่บันทึกไว้</h2></div>
+      <span>{state.shape}-shape · {state.dimensions.runAMm} × {state.dimensions.depthMm} mm</span>
+    </div>
+    <div className="studio-saved-layout-meta">
+      <span>หินที่ใช้คำนวณ: <strong>{stoneColorByName(state.activeStone).name} ({state.activeStone})</strong></span>
+      <span>{state.backsplash.enabled ? `backsplash ${state.backsplash.heightMm} mm` : "ไม่มี backsplash"}</span>
+      <span>{state.location === "bangkok-metro" ? "กรุงเทพฯ / ปริมณฑล" : "ต่างจังหวัด"}</span>
+    </div>
+    <div className={`studio-canvas studio-canvas--${state.shape} studio-canvas--saved`} data-testid="saved-studio-canvas">
+      <span className="studio-canvas-label">{state.shape}-SHAPE · {state.dimensions.runAMm.toLocaleString("th-TH")} × {state.dimensions.depthMm.toLocaleString("th-TH")} mm</span>
+      {state.basinPlacements.map((placement) => {
+        const unknown = placement.widthMm === null || placement.depthMm === null;
+        return <div
+          key={placement.id}
+          className={`studio-placement ${unsafeIds.has(placement.id) ? "studio-placement--unsafe" : ""} ${unknown ? "studio-placement--unknown" : ""}`}
+          style={{
+            left: `${(placement.xMm / maxRun) * 100}%`,
+            top: `${(placement.yMm / maxDepth) * 100}%`,
+            width: placement.widthMm === null ? "22%" : `${(placement.widthMm / maxRun) * 100}%`,
+            height: placement.depthMm === null ? "22%" : `${(placement.depthMm / maxDepth) * 100}%`,
+          }}
+        >
+          <strong>{placement.sku}</strong>
+          <small>{unknown ? "ขนาดหลุมไม่ระบุ" : `${formatPlacementCoordinate(placement.xMm)}, ${formatPlacementCoordinate(placement.yMm)} mm`}</small>
+        </div>;
+      })}
+      {!state.basinPlacements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
+    </div>
+    <p className="studio-saved-layout-note">ตำแหน่งอ่างเป็นแบบ read-only ที่บันทึกพร้อมใบเสนอราคา ไม่สามารถแก้ไขจากลิงก์นี้ได้</p>
+  </section>;
+}
+
+function SavedQuotePage() {
+  const [location, setLocation] = useLocation();
+  const quoteNumber = new URLSearchParams(window.location.search).get("quote") ?? "";
+  const { data: lead, isLoading, error } = useGetSavedQuote(
+    { quoteNumber },
+    { query: { enabled: Boolean(quoteNumber), retry: false, queryKey: ["saved-quote", quoteNumber] } },
+  );
+  const [copied, setCopied] = useState(false);
+
+  if (!quoteNumber) {
+    return <div className="page-wrap empty-state"><span className="empty-number">—</span><h3>ไม่พบเลขที่ใบเสนอราคา</h3><Link href="/quote" className="text-link">กลับไปสร้างใบเสนอราคา <ArrowRight size={15} /></Link></div>;
+  }
+  if (isLoading) {
+    return <div className="page-wrap empty-state" data-testid="status-saved-quote-loading"><span className="empty-number">…</span><h3>กำลังเปิดใบเสนอราคา</h3><p>กำลังโหลดแบบและตัวเลขที่บันทึกไว้</p></div>;
+  }
+  if (error || !lead) {
+    return <div className="page-wrap empty-state" data-testid="status-saved-quote-error"><span className="empty-number">404</span><h3>ไม่พบใบเสนอราคานี้</h3><p>ลิงก์อาจไม่ถูกต้อง หรือเอกสารยังไม่ได้บันทึก</p><Link href="/" className="text-link">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div>;
+  }
+  const saved = readSavedStudioPayload(lead.studioData);
+  if (!saved) {
+    return <div className="page-wrap empty-state" data-testid="status-saved-quote-invalid"><span className="empty-number">—</span><h3>เอกสารนี้ไม่มีแบบ 2D ที่บันทึกไว้</h3><Link href="/" className="text-link">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div>;
+  }
+
+  const { state, estimate } = saved;
+  const customer: CustomerDetails = {
+    name: lead.name ?? "",
+    company: lead.company ?? "",
+    taxId: "",
+    phone: lead.phone ?? "",
+    email: lead.email ?? "",
+    purchasingDepartment: "",
+    address: lead.address ?? "",
+    project: lead.project ?? "",
+    site: "",
+    notes: lead.notes ?? "",
+  };
+  const placements = state.basinPlacements.length
+    ? state.basinPlacements
+    : state.basinSkus.map((sku, index) => ({ sku, id: `${sku}-${index}`, xMm: 70, yMm: 70, ...(() => {
+      const product = productBySku(sku);
+      return product ? { widthMm: product.basinDimensions ? Number(product.basinDimensions.match(/\d+/)?.[0] ?? 0) || null : null, depthMm: product.basinDimensions ? Number(product.basinDimensions.match(/\d+/g)?.[1] ?? 0) || null : null } : { widthMm: null, depthMm: null };
+    })() }));
+  const basinCounts = new Map<string, number>();
+  placements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
+  const formalItems: FormalQuoteItem[] = [];
+  basinCounts.forEach((quantity, sku) => {
+    const product = productBySku(sku);
+    if (!product) return;
+    formalItems.push({
+      code: product.sku,
+      description: `${product.colorName} · ${product.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น"} · ${product.dimensions}${product.basinDimensions ? ` · หลุม ${product.basinDimensions}` : ""}`,
+      quantity,
+      unit: "ใบ",
+      unitPrice: product.priceTHB,
+      total: product.priceTHB * quantity,
+      videoUrl: product.videoUrl,
+    });
+  });
+  const requestedInstallation = placements.length * INSTALLATION_PRICE;
+  if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation });
+  if (estimate.stoneUnitPriceTHB !== null) {
+    const activeStone = stoneColorByName(state.activeStone);
+    formalItems.push({
+      code: activeStone.code,
+      description: `${activeStone.name} · ตัดและติดตั้งตามพื้นที่แบบ 2D`,
+      quantity: estimate.stoneAreaSqM,
+      unit: "ตร.ม.",
+      unitPrice: estimate.stoneUnitPriceTHB,
+      total: estimate.stoneTotalTHB,
+    });
+  }
+  if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB });
+  const issueDate = new Date(lead.createdAt);
+  const expiryDate = new Date(issueDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const format = state.quoteFormat ?? "US";
+  const subtotal = estimate.subtotalTHB ?? estimate.totalTHB;
+  const discountAmount = estimate.installationDiscountTHB ?? 0;
+  const grossSubtotal = subtotal + discountAmount;
+  const lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
+  const copyLink = async () => {
+    await navigator.clipboard?.writeText(window.location.href);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  };
+
+  return <div className="page-wrap quote-page saved-quote-page">
+    <section className="quote-heading saved-quote-heading">
+      <div><p className="eyebrow accent">SAVED QUOTATION / {lead.quoteNumber}</p><h1>ใบเสนอราคา<br /><em>พร้อมแบบที่บันทึกไว้</em></h1><p className="hero-copy">เอกสารนี้เปิดดูได้จากลิงก์เดิม และข้อมูลในแบบเป็น read-only</p></div>
+      <div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={() => window.print()} data-testid="button-print-saved-quote"><Printer size={15} /> พิมพ์ / PDF ทางการ</button></div>
+    </section>
+    <div className="saved-quote-actions">
+      <button className="button button--dark" onClick={copyLink} data-testid="button-copy-saved-quote-link">{copied ? <><Check size={15} /> คัดลอกลิงก์แล้ว</> : "คัดลอกลิงก์ใบเสนอราคา"}</button>
+      <button className="button button--outline" onClick={() => setLocation("/")} data-testid="button-saved-quote-home">กลับไปแคตตาล็อก</button>
+    </div>
+    <StudioLayoutSnapshot state={state} />
+    <FormalQuote format={format} quoteNumber={lead.quoteNumber ?? quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={estimate.vatAmountTHB ?? 0} total={estimate.totalTHB} vat={Boolean(state.vat)} />
+    <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>
+  </div>;
+}
+
 function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, vat, setVat, onSubmitQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; customer: CustomerDetails; setCustomer: Dispatch<SetStateAction<CustomerDetails>>; vat: boolean; setVat: Dispatch<SetStateAction<boolean>>; onSubmitQuote: () => void }) {
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -522,7 +676,7 @@ import AdminApp from "./admin/AdminApp";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import knightFurnichLogo from "@assets/Knightfurnich-logo_1789302266220.png";
-import { useGetCatalog, useUpsertLead } from "@workspace/api-client-react";
+import { useGetCatalog, useGetSavedQuote, useUpsertLead } from "@workspace/api-client-react";
 import { KnightSupport, LineLoginButton } from "@/components/KnightSupport";
 import OwnerWorkbench from "./admin/OwnerWorkbench";
 
@@ -581,7 +735,7 @@ function Storefront() {
   }, [remoteCatalog]);
   const addToQuote = (sku: string) => setCart((current) => current.some((line) => line.sku === sku) ? current.map((line) => line.sku === sku ? { ...line, quantity: line.quantity + 1 } : line) : [...current, { sku, quantity: 1, installationSelected: false }]);
   const syncLead = (status: "new_lead" | "selecting" | "quote_requested", source: string, details: Partial<CustomerDetails> & { productSkus?: string[]; orderMode?: StudioOrderMode; studioData?: unknown } = {}) => {
-    upsertLead.mutate({
+    return upsertLead.mutateAsync({
       data: {
         leadKey,
         status,
@@ -606,11 +760,13 @@ function Storefront() {
     setLocation("/quote");
   };
   const submitQuote = () => syncLead("quote_requested", "quote_builder");
-  const submitStudio = ({ state, estimate, contact }: StudioSubmission) => {
+  const submitStudio = async ({ state, estimate, contact }: StudioSubmission) => {
     setCustomer((current) => ({ ...current, ...contact }));
-    syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate } });
+    const lead = await syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate } });
+    if (!lead.quoteNumber) throw new Error("ระบบยังไม่ได้สร้างเลขที่ใบเสนอราคา");
+    setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`);
   };
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} />}</Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} />}</Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

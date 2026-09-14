@@ -10,6 +10,7 @@ WorkingDirectory=/opt/knight-basins
 EnvironmentFile=/etc/knight-basins/api.env
 Environment=NODE_ENV=production
 Environment=PORT=8080
+ExecStartPre=/usr/bin/bash /opt/knight-basins/deploy/hostinger/migrate.sh
 ExecStart=/usr/bin/node --enable-source-maps artifacts/api-server/dist/index.mjs
 Restart=on-failure
 RestartSec=5

@@ -215,7 +215,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
       setResult(estimate.unknownDimensionPlacements.length
         ? "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ"
         : estimate.unsafePlacements.length
-          ? "กรุณาแก้ไขระยะขอบสีแดงให้ห่างจากขอบอย่างน้อย 50 mm ก่อนส่งคำขอ"
+          ? "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ"
           : "กรุณาเลือกสินค้าและวางอ่างให้ครบก่อนส่งคำขอ");
       return;
     }
@@ -274,7 +274,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
         <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% ({formatTHB(estimate.vatAmountTHB)})</label>
         <div className="studio-total"><span>รวมประมาณการ</span><strong>{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ไม่หักพื้นที่หลุมอ่าง</small></div>
         {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
-        {estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> ระยะขอบอ่างต้องห่างจากขอบเคาน์เตอร์อย่างน้อย 50 mm จึงจะส่งคำขอได้</p>}
+         {estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> วางขอบอ่างบนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm จึงจะส่งคำขอได้</p>}
         {estimate.unknownDimensionPlacements.length > 0 && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> แคตตาล็อกไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ</p>}
         <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
         {result && <p className="studio-result" role="status">{result}</p>}

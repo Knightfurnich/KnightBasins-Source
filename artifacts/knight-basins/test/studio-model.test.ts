@@ -9,6 +9,7 @@ import {
   counterAreaSqM,
   standardSheetWarning,
   studioEstimate,
+  unsafeBasinPlacements,
   unknownBasinPlacements,
   type StudioState,
 } from "../src/data/studio-model.ts";
@@ -87,6 +88,16 @@ test("unsafe basin placement blocks final studio submission", () => {
   assert.equal(estimate.isValid, false);
 });
 
+test("exactly 50 mm of edge clearance is accepted", () => {
+  const state = {
+    ...baseState,
+    dimensions: { ...baseState.dimensions, depthMm: 600 },
+    basinPlacements: [{ ...baseState.basinPlacements[0], xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }],
+  };
+  assert.deepEqual(unsafeBasinPlacements(state), []);
+  assert.equal(studioEstimate(state, PRODUCTS).isValid, true);
+});
+
 test("three placed basin sets keep the shortlist limit but waive installation", () => {
   const estimate = studioEstimate({
     ...baseState,
@@ -124,4 +135,10 @@ test("catalog products without basin dimensions remain unknown instead of using 
   const estimate = studioEstimate({ ...baseState, basinSkus: ["KF029"], basinPlacements: [placement] }, PRODUCTS);
   assert.deepEqual(estimate.unknownDimensionPlacements, [placement.id]);
   assert.equal(estimate.isValid, false);
+});
+
+test("new basin placements start on the 50 mm clearance line", () => {
+  const placement = createBasinPlacement(PRODUCTS.find((item) => item.sku === "KF001")!, 0);
+  assert.equal(placement.xMm, 50);
+  assert.equal(placement.yMm, 50);
 });

@@ -33,8 +33,9 @@ sudo chown -R "$USER":"$USER" /var/www/knight-basins
 ```
 
 From the project machine, copy the generated storefront, API bundle, and
-deployment helpers. The API bundle is self-contained; the source checkout is
-only needed on the VPS for the Drizzle schema push.
+deployment helpers. The API bundle is self-contained. The deployment helpers
+include a PostgreSQL-only migration runner, so the VPS does not need Node,
+pnpm, or a source checkout to apply schema changes.
 
 ```bash
 rsync -avz --delete artifacts/knight-basins/dist/public/ \
@@ -48,9 +49,28 @@ rsync -avz deploy/hostinger/ \
   YOUR_VPS_USER@YOUR_VPS_HOST:/opt/knight-basins/deploy/hostinger/
 ```
 
-For the schema push, either keep a checkout of this repository at
-`/opt/knight-basins` or run the push from a matching checkout on the VPS. Do
-not copy `.env` files or credentials.
+Do not copy `.env` files or credentials. The systemd unit runs
+`deploy/hostinger/migrate.sh` as an `ExecStartPre` step before every API start
+or restart. It applies pending files from
+`deploy/hostinger/migrations/` in filename order and records completed files in
+`public.knight_basins_schema_migrations`. A migration failure prevents the API
+from starting with an incomplete schema.
+
+For the Docker Compose deployment, run the same helper from the VPS host before
+recreating the API container. When `psql` is not installed on the host, the
+helper automatically uses a temporary PostgreSQL client container in the
+`knightbasins-api` network namespace:
+
+```bash
+export KNIGHT_BASINS_API_CONTAINER=knightbasins-api
+export KNIGHT_BASINS_API_ENV_FILE=/docker/knightbasins/.env
+bash /docker/knightbasins/deploy/hostinger/migrate.sh
+unset KNIGHT_BASINS_API_CONTAINER KNIGHT_BASINS_API_ENV_FILE
+```
+
+Run this before `docker compose up -d --force-recreate api web`. The migration
+container is removed automatically and never stores credentials in the
+repository.
 
 ## 3. Add the Nginx site
 
@@ -106,15 +126,19 @@ sudo chown root:www-data /etc/knight-basins/api.env
 sudo chmod 0640 /etc/knight-basins/api.env
 ```
 
-URL-encode any reserved characters in the database password. Apply the
-Drizzle schema from the matching repository checkout:
+URL-encode any reserved characters in the database password. After installing
+or updating the systemd unit, reload it before the first start or restart:
 
 ```bash
-set -a
-source /etc/knight-basins/api.env
-set +a
-DATABASE_URL="$DATABASE_URL" pnpm --filter @workspace/db run push
+sudo systemctl daemon-reload
+sudo systemctl restart knight-basins-api
 ```
+
+The restart runs the migration runner before Node starts. The Docker Compose
+release command above runs the same migration runner before the containers are
+recreated. Future schema changes must add one new, independently idempotent
+`.sql` file under `deploy/hostinger/migrations/`; never edit an already-applied
+migration.
 
 The API seeds all current basin, installed-stone, and sheet-stone catalog rows
 before it starts listening. After starting it, `/api/catalog` is the

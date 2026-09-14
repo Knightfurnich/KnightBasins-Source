@@ -70,4 +70,4 @@ ALTER DEFAULT PRIVILEGES FOR ROLE :"db_user" IN SCHEMA public
 SQL
 
 echo "Provisioned PostgreSQL database '$DB_NAME' and restricted role '$DB_USER'."
-echo "Use a localhost-only DATABASE_URL for the API and run the schema push next."
+echo "Use a localhost-only DATABASE_URL for the API; the deploy migration runner will apply pending schema files."

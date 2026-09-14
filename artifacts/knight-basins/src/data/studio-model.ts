@@ -71,6 +71,7 @@ export type StudioEstimate = {
 };
 
 export const STUDIO_EDGE_CLEARANCE_MM = 50;
+const STUDIO_CLEARANCE_EPSILON_MM = 0.01;
 export const STUDIO_MAX_STONE_COLORS = 3;
 export const STUDIO_MIN_STONE_COLORS = 2;
 export const STUDIO_MAX_BASINS = 2;
@@ -116,10 +117,10 @@ export function unsafeBasinPlacements(
       placement.widthMm !== null &&
       placement.depthMm !== null &&
       (
-        placement.xMm < STUDIO_EDGE_CLEARANCE_MM ||
-        placement.yMm < STUDIO_EDGE_CLEARANCE_MM ||
-        placement.xMm + placement.widthMm > maxX - STUDIO_EDGE_CLEARANCE_MM ||
-        placement.yMm + placement.depthMm > maxY - STUDIO_EDGE_CLEARANCE_MM
+        placement.xMm < STUDIO_EDGE_CLEARANCE_MM - STUDIO_CLEARANCE_EPSILON_MM ||
+        placement.yMm < STUDIO_EDGE_CLEARANCE_MM - STUDIO_CLEARANCE_EPSILON_MM ||
+        placement.xMm + placement.widthMm > maxX - STUDIO_EDGE_CLEARANCE_MM + STUDIO_CLEARANCE_EPSILON_MM ||
+        placement.yMm + placement.depthMm > maxY - STUDIO_EDGE_CLEARANCE_MM + STUDIO_CLEARANCE_EPSILON_MM
       ),
     )
     .map((placement) => placement.id);
@@ -208,7 +209,7 @@ export function studioEstimate(
 
 export function createBasinPlacement(product: BasinProduct, index: number): BasinPlacement {
   const size = basinDimensionsForProduct(product);
-  return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, xMm: 70, yMm: 70, ...size };
+  return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, xMm: STUDIO_EDGE_CLEARANCE_MM, yMm: STUDIO_EDGE_CLEARANCE_MM, ...size };
 }
 
 export function studioStoneName(code: string) {
