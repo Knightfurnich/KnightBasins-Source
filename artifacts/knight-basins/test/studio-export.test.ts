@@ -85,6 +85,8 @@ test("DXF uses millimetre units and the exact v2 layer set without clearance geo
   assert.match(dxf, /VERIFY 90 DEGREE/);
   assert.match(dxf, new RegExp(STUDIO_EXPORT_NOTE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.doesNotMatch(dxf, /CLEARANCE|50 mm|COUNTER_OUTLINE/);
+  assert.match(dxf, /PIECE 1/);
+  assert.doesNotMatch(dxf, /\?/);
   assert.ok(dxfEntities(dxf).some((entity) => entity.type === "LWPOLYLINE" && dxfGroupValues(entity, "8").includes("PIECE_OUTLINE")));
 });
 

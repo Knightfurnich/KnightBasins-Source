@@ -47209,10 +47209,11 @@ function formatNotificationItems(items, fallbackSkus) {
       return [`- ${code}${label ? ` ${label}` : ""} \xD7${formatQuantity(quantity)} \u0E0A\u0E38\u0E14`];
     }
     if (itemKind(item) === "stone") {
-      const unit = item.unit?.trim() || "\u0E15\u0E23.\u0E21.";
-      return [`- \u0E2B\u0E34\u0E19 ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit}`];
+      const unit2 = item.unit?.trim() || "\u0E15\u0E23.\u0E21.";
+      return [`- \u0E2B\u0E34\u0E19 ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit2}`];
     }
-    return [];
+    const unit = item.unit?.trim() || "";
+    return [`- ${label || code}${unit ? ` ${formatQuantity(quantity)} ${unit}` : ""}`];
   });
   if (lines.length) return lines;
   return fallbackSkus.map((sku) => `- ${sku} \xD71 \u0E0A\u0E38\u0E14`);

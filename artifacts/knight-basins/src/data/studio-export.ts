@@ -184,7 +184,7 @@ export function studioExportDimensionsValid(state: Pick<StudioState, "pieces" | 
 export function createStudioDxf(state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">) {
   const model = createStudioExportModel(state);
   const entities: string[] = [];
-  model.pieces.forEach((piece) => {
+  model.pieces.forEach((piece, pieceIndex) => {
     piece.rectangles.forEach((rectangle) => entities.push(dxfRectangle("PIECE_OUTLINE", rectangle, piece.offsetY)));
     piece.joints.forEach((joint) => {
       entities.push(dxfLine("PANEL_JOINT", offsetPoint(joint.first.start, piece.offsetY), offsetPoint(joint.first.end, piece.offsetY)));
@@ -197,7 +197,7 @@ export function createStudioDxf(state: Pick<StudioState, "pieces" | "shape" | "d
     piece.rectangles.forEach((rectangle) => {
       entities.push(dxfTextEntity("DIMENSIONS", `${rectangle.widthMm} x ${rectangle.heightMm} mm`, offsetPoint({ xMm: rectangle.xMm + rectangle.widthMm / 2, yMm: rectangle.yMm + 24 }, piece.offsetY), 18));
     });
-    entities.push(dxfTextEntity("NOTE", dxfText(piece.piece.name), offsetPoint({ xMm: 0, yMm: -45 }, piece.offsetY), 24));
+    entities.push(dxfTextEntity("NOTE", `PIECE ${pieceIndex + 1}`, offsetPoint({ xMm: 0, yMm: -45 }, piece.offsetY), 24));
   });
   const pieceMap = new Map(model.pieces.map((piece) => [piece.piece.id, piece]));
   model.basins.forEach((basin) => {

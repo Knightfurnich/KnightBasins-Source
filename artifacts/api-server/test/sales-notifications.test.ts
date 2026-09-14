@@ -79,6 +79,41 @@ describe("sales notifications", () => {
     });
   });
 
+  it("keeps Studio service lines in the Telegram summary", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const studioLead = {
+      ...lead,
+      studioData: {
+        notification: {
+          items: [
+            { kind: "service" as const, code: "WORKPIECES", description: "3 ชิ้นงาน · 6 แผ่น", quantity: 3, unit: "ชิ้นงาน" },
+            { kind: "service" as const, code: "UPSTAND", description: "บัวยาว 4.59 ม.", quantity: 4.59, unit: "ม." },
+            { kind: "service" as const, code: "OPEN_EDGE", description: "ขอบเปิดยาว 1.24 ม.", quantity: 1.24, unit: "ม." },
+            { kind: "service" as const, code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: 1, unit: "ชุด" },
+            { kind: "service" as const, code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน" },
+          ],
+          subtotal: 57616,
+          vatAmount: 0,
+          total: 57616,
+          vat: false,
+        },
+      },
+    };
+    await (await module()).notifyQuote(studioLead, "https://example.com", "/quote/view?quote=x");
+    assert.match(requestBody, /3 ชิ้นงาน/);
+    assert.match(requestBody, /บัวยาว 4\.59 ม\./);
+    assert.match(requestBody, /ขอบเปิดยาว 1\.24 ม\./);
+    assert.match(requestBody, /ค่าติดตั้ง/);
+    assert.match(requestBody, /ค่าดำเนินการงานพื้นที่เล็ก/);
+  });
+
   it("uses sendPhoto for sketch notifications", async () => {
     process.env["NOTIFY_CHANNEL"] = "telegram";
     process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
