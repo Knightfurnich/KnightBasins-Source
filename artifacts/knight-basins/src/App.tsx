@@ -308,6 +308,7 @@ type FormalQuoteItem = {
   unitPrice: number;
   total: number;
   videoUrl?: string;
+  notificationKind?: "basin" | "stone" | "service";
 };
 
 type QuickQuoteSnapshot = {
@@ -579,10 +580,11 @@ function SavedQuotePage() {
         unitPrice: product.priceTHB,
         total: product.priceTHB * quantity,
         videoUrl: product.videoUrl,
+         notificationKind: "basin",
       });
     });
     const requestedInstallation = placements.length * INSTALLATION_PRICE;
-    if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation });
+     if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation, notificationKind: "service" });
     if (estimate.stoneUnitPriceTHB !== null) {
       const activeStone = stoneColorByName(state.activeStone);
       formalItems.push({
@@ -592,9 +594,10 @@ function SavedQuotePage() {
         unit: "ตร.ม.",
         unitPrice: estimate.stoneUnitPriceTHB,
         total: estimate.stoneTotalTHB,
+         notificationKind: "stone",
       });
     }
-    if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB });
+     if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB, notificationKind: "service" });
     format = state.quoteFormat ?? "US";
     subtotal = estimate.subtotalTHB ?? estimate.totalTHB;
     discountAmount = estimate.installationDiscountTHB ?? 0;
@@ -668,9 +671,10 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
       unitPrice: product.priceTHB,
       total: product.priceTHB * line.quantity,
       videoUrl: product.videoUrl,
+      notificationKind: "basin",
     };
   });
-  if (requestedInstallationCharge > 0) formalItems.push({ code: "INSTALL", description: quoteFormat === "OF" ? `ค่าติดตั้ง / ค่าแรง แยกรายจุด · ${customer.site || customer.project || "ตามแบบ"}` : "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: requestedInstallationCharge / INSTALLATION_PRICE, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallationCharge });
+   if (requestedInstallationCharge > 0) formalItems.push({ code: "INSTALL", description: quoteFormat === "OF" ? `ค่าติดตั้ง / ค่าแรง แยกรายจุด · ${customer.site || customer.project || "ตามแบบ"}` : "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: requestedInstallationCharge / INSTALLATION_PRICE, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallationCharge, notificationKind: "service" });
   stones.forEach((stone) => {
     const selectedStone = stoneColorByName(stone.color);
     const currentStoneUnitPrice = stoneUnitPrice(stone);
@@ -682,6 +686,7 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
       unit: stone.mode === "whole-sheet" ? "แผ่น" : "ตร.ม.",
       unitPrice: currentStoneUnitPrice,
       total: stoneTotal(stone),
+       notificationKind: "stone",
     });
   });
   const lineSummary = [
@@ -874,9 +879,9 @@ function Storefront() {
     const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
     setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}${notificationQuery}`);
   };
-  const submitStudio = async ({ state, estimate, contact }: StudioSubmission) => {
+  const submitStudio = async ({ state, estimate, contact, notification }: StudioSubmission) => {
     setCustomer((current) => ({ ...current, ...contact }));
-    const lead = await syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate } });
+    const lead = await syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification } });
     if (!lead.quoteNumber) throw new Error("ระบบยังไม่ได้สร้างเลขที่ใบเสนอราคา");
     setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`);
   };

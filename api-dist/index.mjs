@@ -47179,23 +47179,61 @@ function missingNotification(message) {
 function publicUrl(origin, path2) {
   return new URL(path2, origin.endsWith("/") ? origin : `${origin}/`).toString();
 }
-function quoteSummary(lead, quoteUrl) {
+function formatQuantity(quantity) {
+  return quantity.toLocaleString("th-TH", { maximumFractionDigits: 2 });
+}
+function itemLabel(item) {
+  return item.description?.split("\xB7", 1)[0]?.trim() || "";
+}
+function notificationItems(studio) {
+  const snapshot = studio?.notification;
+  const items = snapshot?.items ?? studio?.items ?? studio?.quickQuote?.items;
+  return Array.isArray(items) ? items : [];
+}
+function itemKind(item) {
+  if (item.kind || item.notificationKind) return item.kind ?? item.notificationKind;
+  if (item.code?.startsWith("KF")) return "basin";
+  if (item.unit === "\u0E15\u0E23.\u0E21." || item.unit === "\u0E41\u0E1C\u0E48\u0E19") return "stone";
+  return "service";
+}
+function formatNotificationItems(items, fallbackSkus) {
+  const lines = items.flatMap((item) => {
+    const code = item.code?.trim();
+    const quantity = typeof item.quantity === "number" && Number.isFinite(item.quantity) ? item.quantity : 1;
+    const label = itemLabel(item);
+    if (!code) return [];
+    if (itemKind(item) === "basin") {
+      return [`- ${code}${label ? ` ${label}` : ""} \xD7${formatQuantity(quantity)} \u0E0A\u0E38\u0E14`];
+    }
+    if (itemKind(item) === "stone") {
+      const unit = item.unit?.trim() || "\u0E15\u0E23.\u0E21.";
+      return [`- \u0E2B\u0E34\u0E19 ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit}`];
+    }
+    return [];
+  });
+  if (lines.length) return lines;
+  return fallbackSkus.map((sku) => `- ${sku} \xD71 \u0E0A\u0E38\u0E14`);
+}
+function quoteSummary(lead, quoteUrl, title = "\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32\u0E43\u0E2B\u0E21\u0E48") {
   const studio = lead.studioData;
-  const total = studio?.total ?? studio?.quickQuote?.total ?? studio?.estimate?.totalTHB;
-  const snapshotItems = studio?.items ?? studio?.quickQuote?.items;
-  const items = snapshotItems?.length ? snapshotItems.map((item) => `${item.code || "-"} x${item.quantity ?? 1} ${item.unit || ""} ${item.description || ""}`.trim()).join("\n") : [
-    ...(studio?.state?.basinSkus || []).map((sku) => `${sku} x1`),
-    studio?.state?.activeStone ? `\u0E2B\u0E34\u0E19 ${studio.state.activeStone}` : ""
-  ].filter(Boolean).join("\n");
+  const notification = studio?.notification;
+  const subtotal = notification?.subtotal ?? studio?.subtotal ?? studio?.quickQuote?.subtotal ?? studio?.estimate?.subtotalTHB;
+  const vatAmount = notification?.vatAmount ?? studio?.vatAmount ?? studio?.quickQuote?.vatAmount ?? studio?.estimate?.vatAmountTHB ?? 0;
+  const total = notification?.total ?? studio?.total ?? studio?.quickQuote?.total ?? studio?.estimate?.totalTHB ?? subtotal;
+  const vat = notification?.vat ?? studio?.vat ?? studio?.quickQuote?.vat ?? vatAmount > 0;
+  const items = formatNotificationItems(notificationItems(studio), lead.productSkus);
   return [
-    "Knight Basins: \u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32\u0E43\u0E2B\u0E21\u0E48",
+    `Knight Basins: ${title}`,
     `\u0E40\u0E25\u0E02\u0E17\u0E35\u0E48: ${lead.quoteNumber || "-"}`,
-    `\u0E1C\u0E39\u0E49\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D: ${lead.name || "-"}`,
+    `\u0E1C\u0E39\u0E49\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D: ${lead.name || "-"} \xB7 \u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23: ${lead.project || "-"}`,
     `\u0E42\u0E17\u0E23: ${lead.phone || "-"}`,
-    `\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23: ${lead.project || "-"}`,
     "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23:",
-    items || lead.productSkus.join(", ") || "-",
-    `\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`,
+    ...items,
+    ...vat ? [
+      `\u0E22\u0E2D\u0E14\u0E01\u0E48\u0E2D\u0E19 VAT: ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`,
+      `VAT 7%: ${vatAmount.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17`,
+      `\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E2A\u0E38\u0E17\u0E18\u0E34: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`
+    ] : [`\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 (\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E27\u0E21 VAT): ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`],
     `\u0E25\u0E34\u0E07\u0E01\u0E4C: ${quoteUrl}`
   ].join("\n");
 }
@@ -47272,14 +47310,7 @@ async function notifySketch(lead, origin, quotePath) {
   if (!photoPath) return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E44\u0E21\u0E48\u0E21\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19");
   const photoUrl = publicUrl(origin, photoPath);
   const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
-  const caption = [
-    "Knight Basins: \u0E21\u0E35\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48",
-    `\u0E1C\u0E39\u0E49\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D: ${lead.name || "-"}`,
-    `\u0E42\u0E17\u0E23: ${lead.phone || "-"}`,
-    `\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23: ${lead.project || "-"}`,
-    `\u0E2D\u0E48\u0E32\u0E07: ${lead.productSkus.join(", ") || "-"}`,
-    quoteUrl ? `\u0E25\u0E34\u0E07\u0E01\u0E4C\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32: ${quoteUrl}` : ""
-  ].filter(Boolean).join("\n");
+  const caption = quoteSummary(lead, quoteUrl || photoUrl, "\u0E21\u0E35\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48");
   if (configuredChannel() === "telegram") return sendTelegramPhoto(photoUrl, caption);
   return sendLineText(`${caption}
 \u0E44\u0E1F\u0E25\u0E4C: ${photoUrl}`);

@@ -35,8 +35,11 @@ const lead = {
   orderMode: "quick-purchase",
   studioData: {
     kind: "quick-purchase",
-    total: 71450,
-    items: [{ code: "KF001", description: "อ่างล้างหน้า", quantity: 3, unit: "ชุด" }],
+    subtotal: 57000,
+    vatAmount: 3990,
+    total: 60990,
+    vat: true,
+    items: [{ code: "KF002", description: "Soft · อ่างวางเคาน์เตอร์ · 600 × 800 × 200 mm · หลุม 350 × 500 × 130 mm", quantity: 3, unit: "ชุด", notificationKind: "basin" }],
   },
   sketchUrl: "/api/uploads/sketch.png",
 };
@@ -63,7 +66,11 @@ describe("sales notifications", () => {
     const result = await (await module()).notifyQuote(lead, "https://example.com", "/quote/view?quote=x");
     assert.equal(result.notificationStatus, "notified");
     assert.match(requestBody, /Sep 26/);
-    assert.match(requestBody, /71,450/);
+    assert.match(requestBody, /KF002 Soft ×3 ชุด/);
+    assert.doesNotMatch(requestBody, /600 × 800|หลุม 350/);
+    assert.match(requestBody, /ยอดก่อน VAT: 57,000 บาท/);
+    assert.match(requestBody, /VAT 7%: 3,990 บาท/);
+    assert.match(requestBody, /ยอดรวมสุทธิ: 60,990 บาท/);
     assert.match(requestBody, /quote\/view\?quote=x/);
   });
 
@@ -79,6 +86,32 @@ describe("sales notifications", () => {
     const result = await (await module()).notifySketch(lead, "https://example.com");
     assert.equal(result.notificationStatus, "notified");
     assert.match(requestBody, /https:\/\/example.com\/api\/uploads\/sketch.png/);
+    assert.match(requestBody, /KF002 Soft ×3 ชุด/);
+    assert.match(requestBody, /ยอดรวมสุทธิ: 60,990 บาท/);
+  });
+
+  it("omits the VAT line when the quote does not charge VAT", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const noVatLead = {
+      ...lead,
+      studioData: {
+        ...lead.studioData,
+        vat: false,
+        vatAmount: 0,
+        total: 57000,
+      },
+    };
+    const result = await (await module()).notifyQuote(noVatLead, "https://example.com", "/quote/view?quote=x");
+    assert.equal(result.notificationStatus, "notified");
+    assert.match(requestBody, /ยอดรวม \(ยังไม่รวม VAT\): 57,000 บาท/);
+    assert.doesNotMatch(requestBody, /VAT 7%/);
   });
 
   it("returns a retryable saved-not-notified result when Telegram rejects a message", async () => {

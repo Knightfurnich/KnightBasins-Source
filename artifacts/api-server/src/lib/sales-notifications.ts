@@ -16,6 +16,23 @@ type LeadNotificationData = {
   sketchUrl?: string | null;
 };
 
+type NotificationItem = {
+  kind?: "basin" | "stone" | "service";
+  notificationKind?: "basin" | "stone" | "service";
+  code?: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+};
+
+type NotificationSnapshot = {
+  items?: NotificationItem[];
+  subtotal?: number;
+  vatAmount?: number;
+  total?: number;
+  vat?: boolean;
+};
+
 function configuredChannel() {
   return process.env["NOTIFY_CHANNEL"]?.trim().toLowerCase() === "telegram" ? "telegram" : "line";
 }
@@ -28,31 +45,91 @@ function publicUrl(origin: string, path: string) {
   return new URL(path, origin.endsWith("/") ? origin : `${origin}/`).toString();
 }
 
-function quoteSummary(lead: LeadNotificationData, quoteUrl: string) {
+function formatQuantity(quantity: number) {
+  return quantity.toLocaleString("th-TH", { maximumFractionDigits: 2 });
+}
+
+function itemLabel(item: NotificationItem) {
+  return item.description?.split("·", 1)[0]?.trim() || "";
+}
+
+function notificationItems(studio: Record<string, unknown> | null) {
+  const snapshot = studio?.notification as NotificationSnapshot | undefined;
+  const items = snapshot?.items ?? (studio?.items as NotificationItem[] | undefined) ?? (studio?.quickQuote as { items?: NotificationItem[] } | undefined)?.items;
+  return Array.isArray(items) ? items : [];
+}
+
+function itemKind(item: NotificationItem) {
+  if (item.kind || item.notificationKind) return item.kind ?? item.notificationKind;
+  if (item.code?.startsWith("KF")) return "basin";
+  if (item.unit === "ตร.ม." || item.unit === "แผ่น") return "stone";
+  return "service";
+}
+
+function formatNotificationItems(items: NotificationItem[], fallbackSkus: string[]) {
+  const lines = items.flatMap((item) => {
+    const code = item.code?.trim();
+    const quantity = typeof item.quantity === "number" && Number.isFinite(item.quantity) ? item.quantity : 1;
+    const label = itemLabel(item);
+    if (!code) return [];
+    if (itemKind(item) === "basin") {
+      return [`- ${code}${label ? ` ${label}` : ""} ×${formatQuantity(quantity)} ชุด`];
+    }
+    if (itemKind(item) === "stone") {
+      const unit = item.unit?.trim() || "ตร.ม.";
+      return [`- หิน ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit}`];
+    }
+    return [];
+  });
+  if (lines.length) return lines;
+  return fallbackSkus.map((sku) => `- ${sku} ×1 ชุด`);
+}
+
+function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใบเสนอราคาใหม่") {
   const studio = lead.studioData as {
+    notification?: NotificationSnapshot;
+    subtotal?: number;
+    vatAmount?: number;
     total?: number;
-    items?: Array<{ code?: string; description?: string; quantity?: number; unit?: string }>;
-    quickQuote?: { total?: number; items?: Array<{ code?: string; description?: string; quantity?: number; unit?: string }> };
-    estimate?: { totalTHB?: number };
-    state?: { basinSkus?: string[]; activeStone?: string };
+    vat?: boolean;
+    items?: NotificationItem[];
+    quickQuote?: { subtotal?: number; vatAmount?: number; total?: number; vat?: boolean; items?: NotificationItem[] };
+    estimate?: { subtotalTHB?: number; vatAmountTHB?: number; totalTHB?: number };
   } | null;
-  const total = studio?.total ?? studio?.quickQuote?.total ?? studio?.estimate?.totalTHB;
-  const snapshotItems = studio?.items ?? studio?.quickQuote?.items;
-  const items = snapshotItems?.length
-    ? snapshotItems.map((item) => `${item.code || "-"} x${item.quantity ?? 1} ${item.unit || ""} ${item.description || ""}`.trim()).join("\n")
-    : [
-        ...(studio?.state?.basinSkus || []).map((sku) => `${sku} x1`),
-        studio?.state?.activeStone ? `หิน ${studio.state.activeStone}` : "",
-      ].filter(Boolean).join("\n");
+  const notification = studio?.notification;
+  const subtotal = notification?.subtotal
+    ?? studio?.subtotal
+    ?? studio?.quickQuote?.subtotal
+    ?? studio?.estimate?.subtotalTHB;
+  const vatAmount = notification?.vatAmount
+    ?? studio?.vatAmount
+    ?? studio?.quickQuote?.vatAmount
+    ?? studio?.estimate?.vatAmountTHB
+    ?? 0;
+  const total = notification?.total
+    ?? studio?.total
+    ?? studio?.quickQuote?.total
+    ?? studio?.estimate?.totalTHB
+    ?? subtotal;
+  const vat = notification?.vat
+    ?? studio?.vat
+    ?? studio?.quickQuote?.vat
+    ?? vatAmount > 0;
+  const items = formatNotificationItems(notificationItems(studio), lead.productSkus);
   return [
-    "Knight Basins: ใบเสนอราคาใหม่",
+    `Knight Basins: ${title}`,
     `เลขที่: ${lead.quoteNumber || "-"}`,
-    `ผู้ติดต่อ: ${lead.name || "-"}`,
+    `ผู้ติดต่อ: ${lead.name || "-"} · โครงการ: ${lead.project || "-"}`,
     `โทร: ${lead.phone || "-"}`,
-    `โครงการ: ${lead.project || "-"}`,
     "รายการ:",
-    items || lead.productSkus.join(", ") || "-",
-    `ยอดรวม: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} บาท` : "-"}`,
+    ...items,
+    ...(vat
+      ? [
+          `ยอดก่อน VAT: ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} บาท` : "-"}`,
+          `VAT 7%: ${vatAmount.toLocaleString("th-TH")} บาท`,
+          `ยอดรวมสุทธิ: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} บาท` : "-"}`,
+        ]
+      : [`ยอดรวม (ยังไม่รวม VAT): ${typeof subtotal === "number" ? `${subtotal.toLocaleString("th-TH")} บาท` : "-"}`]),
     `ลิงก์: ${quoteUrl}`,
   ].join("\n");
 }
@@ -138,14 +215,7 @@ export async function notifySketch(
   if (!photoPath) return missingNotification("บันทึกแล้ว แต่ไม่มีไฟล์แบบร่างสำหรับส่งแจ้งเตือน");
   const photoUrl = publicUrl(origin, photoPath);
   const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
-  const caption = [
-    "Knight Basins: มีแบบร่างใหม่",
-    `ผู้ติดต่อ: ${lead.name || "-"}`,
-    `โทร: ${lead.phone || "-"}`,
-    `โครงการ: ${lead.project || "-"}`,
-    `อ่าง: ${lead.productSkus.join(", ") || "-"}`,
-    quoteUrl ? `ลิงก์ใบเสนอราคา: ${quoteUrl}` : "",
-  ].filter(Boolean).join("\n");
+  const caption = quoteSummary(lead, quoteUrl || photoUrl, "มีแบบร่างใหม่");
   if (configuredChannel() === "telegram") return sendTelegramPhoto(photoUrl, caption);
   return sendLineText(`${caption}\nไฟล์: ${photoUrl}`);
 }

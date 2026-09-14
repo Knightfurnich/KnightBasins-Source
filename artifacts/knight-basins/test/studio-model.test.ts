@@ -9,6 +9,7 @@ import {
   counterAreaSqM,
   standardSheetWarning,
   studioEstimate,
+  studioSubmissionValidationMessage,
   snapBasinPlacementPosition,
   unsafeBasinPlacements,
   unknownBasinPlacements,
@@ -87,6 +88,32 @@ test("unsafe basin placement blocks final studio submission", () => {
   }, PRODUCTS);
   assert.deepEqual(estimate.unsafePlacements, ["basin-1"]);
   assert.equal(estimate.isValid, false);
+  assert.equal(
+    studioSubmissionValidationMessage({ ...baseState, basinPlacements: [{ ...baseState.basinPlacements[0], xMm: 10 }] }, estimate),
+    "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ",
+  );
+});
+
+test("studio submission explains when selected basin models are not all placed", () => {
+  const state = {
+    ...baseState,
+    basinSkus: ["KF001", "KF002"],
+    basinPlacements: [{ ...baseState.basinPlacements[0], sku: "KF001" }],
+  };
+  const estimate = studioEstimate(state, PRODUCTS);
+  assert.equal(
+    studioSubmissionValidationMessage(state, estimate),
+    "ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก 2 รุ่น · วางแล้ว 1 ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ",
+  );
+});
+
+test("studio submission explains when no basin has been placed", () => {
+  const state = { ...baseState, basinPlacements: [] };
+  const estimate = studioEstimate(state, PRODUCTS);
+  assert.equal(
+    studioSubmissionValidationMessage(state, estimate),
+    "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกไปวางบนผัง",
+  );
 });
 
 test("exactly 50 mm of edge clearance is accepted", () => {

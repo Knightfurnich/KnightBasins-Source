@@ -13,6 +13,7 @@ import {
   createBasinPlacement,
   snapBasinPlacementPosition,
   studioEstimate,
+  studioSubmissionValidationMessage,
   studioStoneName,
   STUDIO_EDGE_CLEARANCE_MM,
   STUDIO_MAX_BASINS,
@@ -42,6 +43,23 @@ export type StudioSubmission = {
   state: StudioState;
   estimate: StudioEstimate;
   contact: typeof emptyContact;
+  notification: StudioNotificationSnapshot;
+};
+
+export type StudioNotificationItem = {
+  kind: "basin" | "stone";
+  code: string;
+  description: string;
+  quantity: number;
+  unit: string;
+};
+
+export type StudioNotificationSnapshot = {
+  items: StudioNotificationItem[];
+  subtotal: number;
+  vatAmount: number;
+  total: number;
+  vat: boolean;
 };
 
 type StudioPageProps = {
@@ -211,12 +229,9 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const estimate = useMemo(() => studioEstimate(state, PRODUCTS), [state]);
   const activeStone = stoneColorByName(state.activeStone);
   const submitStudio = async () => {
-    if (!estimate.isValid) {
-      setResult(estimate.unknownDimensionPlacements.length
-        ? "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ"
-        : estimate.unsafePlacements.length
-          ? "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ"
-          : "กรุณาเลือกสินค้าและวางอ่างให้ครบก่อนส่งคำขอ");
+    const validationMessage = studioSubmissionValidationMessage(state, estimate);
+    if (validationMessage) {
+      setResult(validationMessage);
       return;
     }
     if (!contact.name.trim() || !contact.phone.trim() || !contact.project.trim() || !contact.address.trim()) {
@@ -226,7 +241,33 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     setSubmitting(true);
     setResult("");
     try {
-      await onSubmitStudio({ state, estimate, contact });
+      const basinCounts = new Map<string, number>();
+      state.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
+      const notificationItems: StudioNotificationItem[] = Array.from(basinCounts.entries()).flatMap(([sku, quantity]) => {
+        const product = productBySku(sku);
+        return product ? [{ kind: "basin", code: product.sku, description: product.colorName, quantity, unit: "ชุด" }] : [];
+      });
+      if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) {
+        notificationItems.push({
+          kind: "stone",
+          code: activeStone.code,
+          description: activeStone.name,
+          quantity: estimate.stoneAreaSqM,
+          unit: "ตร.ม.",
+        });
+      }
+      await onSubmitStudio({
+        state,
+        estimate,
+        contact,
+        notification: {
+          items: notificationItems,
+          subtotal: estimate.subtotalTHB,
+          vatAmount: estimate.vatAmountTHB,
+          total: estimate.totalTHB,
+          vat: state.vat,
+        },
+      });
     } catch (error) {
       setResult(error instanceof Error ? error.message : "สร้างใบเสนอราคาไม่สำเร็จ กรุณาลองอีกครั้ง");
     } finally {

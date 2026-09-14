@@ -234,6 +234,38 @@ export function studioEstimate(
   };
 }
 
+export function studioSubmissionValidationMessage(
+  state: StudioState,
+  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements">,
+) {
+  const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
+  const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
+  const hasInvalidCounterDimensions = [state.dimensions.depthMm, state.dimensions.runAMm]
+    .concat(state.shape === "I" ? [] : state.dimensions.runBMm)
+    .concat(state.shape === "U" ? state.dimensions.runCMm : [])
+    .some((value) => !Number.isFinite(value) || value <= 0);
+
+  if (state.basinPlacements.length === 0) {
+    return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกไปวางบนผัง";
+  }
+  if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) {
+    return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
+  }
+  if (estimate.unknownDimensionPlacements.length > 0) {
+    return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
+  }
+  if (estimate.unsafePlacements.length > 0) {
+    return "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ";
+  }
+  if (hasInvalidCounterDimensions) {
+    return "ขนาดเคาน์เตอร์ไม่ถูกต้อง กรุณาตรวจสอบความลึกและความยาวของเคาน์เตอร์ให้มากกว่า 0 mm";
+  }
+  if (!estimate.isValid) {
+    return "กรุณาตรวจสอบข้อมูลแบบและวัสดุก่อนส่งคำขอ";
+  }
+  return null;
+}
+
 export function createBasinPlacement(product: BasinProduct, index: number): BasinPlacement {
   const size = basinDimensionsForProduct(product);
   return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, xMm: STUDIO_EDGE_CLEARANCE_MM, yMm: STUDIO_EDGE_CLEARANCE_MM, ...size };
