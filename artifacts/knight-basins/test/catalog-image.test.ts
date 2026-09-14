@@ -1,1 +1,67 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBiYXNpblByb2R1Y3RGcm9tQ2F0YWxvZyB9IGZyb20gIi4uL3NyYy9kYXRhL2NhdGFsb2cudHMiOwoKZGVzY3JpYmUoInN0b3JlZnJvbnQgYmFzaW4gaW1hZ2UgbWFwcGluZyIsICgpID0+IHsKICBpdCgicHJlc2VydmVzIGEgc2F2ZWQgaW1hZ2VVcmwgZnJvbSB0aGUgYWN0aXZlIGNhdGFsb2cgcmVzcG9uc2UiLCAoKSA9PiB7CiAgICBjb25zdCBwcm9kdWN0ID0gYmFzaW5Qcm9kdWN0RnJvbUNhdGFsb2coewogICAgICBza3U6ICJLRjAwMSIsCiAgICAgIGNvbG9yQ29kZTogIlZTMzExIiwKICAgICAgY29sb3JOYW1lOiAiU2hpbmUiLAogICAgICBwcmljZVRIQjogMTkwMDAsCiAgICAgIGNhdGVnb3J5OiAiY291bnRlciBiYXNpbiIsCiAgICAgIGRpbWVuc2lvbnM6ICI2MDAgw5cgODAwIMOXIDIwMCBtbSIsCiAgICAgIGJhc2luRGltZW5zaW9uczogIjM1MCDDlyA1MDAgw5cgMTMwIG1tIiwKICAgICAgaW1hZ2VUb25lOiAiI2RmZTRkZiIsCiAgICAgIGltYWdlVXJsOiAiaHR0cHM6Ly91cGxvYWRzLmV4YW1wbGUudGVzdC9jYXRhbG9nL2NhdGFsb2ctbWFiYy5wbmc/dj1tYWJjIiwKICAgIH0pOwoKICAgIGFzc2VydC5lcXVhbChwcm9kdWN0LmltYWdlVXJsLCAiaHR0cHM6Ly91cGxvYWRzLmV4YW1wbGUudGVzdC9jYXRhbG9nL2NhdGFsb2ctbWFiYy5wbmc/dj1tYWJjIik7CiAgfSk7CgogIGl0KCJ1c2VzIHRoZSBleGlzdGluZyBiYXNpbiB2aXN1YWwgd2hlbiBhbiBpbWFnZSBVUkwgaXMgYWJzZW50IiwgKCkgPT4gewogICAgY29uc3QgcHJvZHVjdCA9IGJhc2luUHJvZHVjdEZyb21DYXRhbG9nKHsKICAgICAgc2t1OiAiS0YwMDEiLAogICAgICBjb2xvckNvZGU6ICJWUzMxMSIsCiAgICAgIGNvbG9yTmFtZTogIlNoaW5lIiwKICAgICAgcHJpY2VUSEI6IDE5MDAwLAogICAgICBjYXRlZ29yeTogImNvdW50ZXIgYmFzaW4iLAogICAgICBkaW1lbnNpb25zOiAiNjAwIMOXIDgwMCDDlyAyMDAgbW0iLAogICAgICBpbWFnZVRvbmU6ICIjZGZlNGRmIiwKICAgICAgaW1hZ2VVcmw6ICIgICIsCiAgICB9KTsKCiAgICBhc3NlcnQuZXF1YWwocHJvZHVjdC5pbWFnZVVybCwgdW5kZWZpbmVkKTsKICAgIGFzc2VydC5lcXVhbChwcm9kdWN0LmltYWdlVG9uZSwgIiNkZmU0ZGYiKTsKICB9KTsKfSk7
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { basinProductFromCatalog, removeStoneSelection, toggleBasinSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
+
+describe("storefront basin image mapping", () => {
+  it("preserves a saved imageUrl from the active catalog response", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF001",
+      colorCode: "VS311",
+      colorName: "Shine",
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      basinDimensions: "350 × 500 × 130 mm",
+      imageTone: "#dfe4df",
+      imageUrl: "https://uploads.example.test/catalog/catalog-mabc.png?v=mabc",
+    });
+
+    assert.equal(product.imageUrl, "https://uploads.example.test/catalog/catalog-mabc.png?v=mabc");
+  });
+
+  it("uses the existing basin visual when an image URL is absent", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF001",
+      colorCode: "VS311",
+      colorName: "Shine",
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      imageTone: "#dfe4df",
+      imageUrl: "  ",
+    });
+
+    assert.equal(product.imageUrl, undefined);
+    assert.equal(product.imageTone, "#dfe4df");
+  });
+});
+
+describe("storefront multi-selection state", () => {
+  it("toggles basin SKUs without changing existing quantities or duplicating lines", () => {
+    const first = toggleBasinSelection([], "KF001");
+    const second = toggleBasinSelection(first, "KF002");
+    assert.deepEqual(second.map((line) => line.sku), ["KF001", "KF002"]);
+    assert.equal(toggleBasinSelection(second, "KF001").length, 1);
+    assert.equal(toggleBasinSelection(second, "KF002")[0]?.sku, "KF001");
+    assert.equal(toggleBasinSelection(first, "KF001").length, 0);
+  });
+
+  it("keeps stone configurations independent while replacing only the edited color", () => {
+    const bw: StoneConfig = { enabled: true, mode: "whole-sheet", color: "BW010", quantity: 2, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 };
+    const nw: StoneConfig = { ...bw, color: "NW013", quantity: 1 };
+    const installedBw = { ...bw, mode: "installed" as const, widthCm: 120, lengthCm: 240 };
+    const selected = upsertStoneSelection(upsertStoneSelection([], bw), nw);
+    const edited = upsertStoneSelection(selected, installedBw);
+    assert.deepEqual(edited.map((stone) => stone.color), ["NW013", "BW010"]);
+    assert.equal(edited.find((stone) => stone.color === "NW013")?.quantity, 1);
+    assert.equal(edited.find((stone) => stone.color === "BW010")?.mode, "installed");
+    assert.equal(edited.find((stone) => stone.color === "BW010")?.unitPrice, 7500);
+  });
+
+  it("removes only the requested stone color", () => {
+    const bw: StoneConfig = { enabled: true, mode: "whole-sheet", color: "BW010", quantity: 2, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 };
+    const nw: StoneConfig = { ...bw, color: "NW013" };
+    const selected = removeStoneSelection([bw, nw], "BW010");
+    assert.deepEqual(selected, [nw]);
+  });
+});

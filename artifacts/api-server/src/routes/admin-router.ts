@@ -1,1 +1,396 @@
-aW1wb3J0IHsKICBiYXNpbkNhdGVnb3JpZXMsCiAgYmFzaW5QcmljZXMsCiAgaW5zdGFsbGVkU3RvbmVDYXRlZ29yaWVzLAogIGluc3RhbGxlZFN0b25lUHJpY2VzLAogIHNoZWV0U3RvbmVQcmljZXMsCiAgY3VzdG9tZXJMZWFkcywKfSBmcm9tICJAd29ya3NwYWNlL2RiL3NjaGVtYSI7CmltcG9ydCB7CiAgQ3JlYXRlQWRtaW5CYXNpbkJvZHksCiAgQ3JlYXRlQWRtaW5CYXNpbkNhdGVnb3J5Qm9keSwKICBDcmVhdGVBZG1pbkluc3RhbGxlZFN0b25lQ2F0ZWdvcnlCb2R5LAogIENyZWF0ZUFkbWluSW5zdGFsbGVkU3RvbmVCb2R5LAogIENyZWF0ZUFkbWluU2Vzc2lvbkJvZHksCiAgQ3JlYXRlQWRtaW5TaGVldFN0b25lQm9keSwKICBVcGRhdGVBZG1pbkJhc2luQm9keSwKICBVcGRhdGVBZG1pbkJhc2luQ2F0ZWdvcnlCb2R5LAogIFVwZGF0ZUFkbWluSW5zdGFsbGVkU3RvbmVDYXRlZ29yeUJvZHksCiAgVXBkYXRlQWRtaW5JbnN0YWxsZWRTdG9uZUJvZHksCiAgVXBkYXRlQWRtaW5TaGVldFN0b25lQm9keSwKICBVcGRhdGVBZG1pbkxlYWRCb2R5LAp9IGZyb20gIkB3b3Jrc3BhY2UvYXBpLXpvZCI7CmltcG9ydCB7IGFzYywgZGVzYywgZXEgfSBmcm9tICJkcml6emxlLW9ybSI7CmltcG9ydCB7IFJvdXRlciwgdHlwZSBSZXNwb25zZSwgdHlwZSBJUm91dGVyIH0gZnJvbSAiZXhwcmVzcyI7CmltcG9ydCB7CiAgYWRtaW5Db29raWVPcHRpb25zLAogIGFkbWluUGFzc3dvcmRNYXRjaGVzLAogIENPT0tJRV9OQU1FLAogIGNyZWF0ZUFkbWluVG9rZW4sCiAgaXNBZG1pblRva2VuVmFsaWQsCiAgcmVxdWlyZUFkbWluLAp9IGZyb20gIi4uL21pZGRsZXdhcmVzL2FkbWluLWF1dGgiOwppbXBvcnQgeyBub3JtYWxpemVCYXNpbkZpZWxkcywgd2l0aEJhc2luQ2F0ZWdvcnksIHdpdGhCYXNpbk1lZGlhLCB3aXRoU3RvbmVNZWRpYSB9IGZyb20gIi4uL2xpYi9jYXRhbG9nLW1lZGlhIjsKaW1wb3J0IHsKICBjbGVhbnVwVW5yZWZlcmVuY2VkVXBsb2FkZWRJbWFnZXMsCiAgcmVhZE11bHRpcGFydEltYWdlLAogIHJlYWRNdWx0aXBhcnRWaWRlbywKICBzYXZlVXBsb2FkZWRJbWFnZSwKICBzYXZlVXBsb2FkZWRWaWRlbywKfSBmcm9tICIuLi9saWIvaW1hZ2UtdXBsb2FkIjsKCmV4cG9ydCB0eXBlIEFkbWluRGF0YWJhc2UgPSB7CiAgc2VsZWN0OiAoLi4uYXJnczogYW55W10pID0+IGFueTsKICBpbnNlcnQ6ICguLi5hcmdzOiBhbnlbXSkgPT4gYW55OwogIHVwZGF0ZTogKC4uLmFyZ3M6IGFueVtdKSA9PiBhbnk7Cn07CgpmdW5jdGlvbiBpZEZyb20odmFsdWU6IHN0cmluZykgewogIGNvbnN0IGlkID0gTnVtYmVyKHZhbHVlKTsKICByZXR1cm4gTnVtYmVyLmlzSW50ZWdlcihpZCkgJiYgaWQgPiAwID8gaWQgOiBudWxsOwp9CgpmdW5jdGlvbiBpbnZhbGlkKHJlczogUmVzcG9uc2UsIG1lc3NhZ2U6IHN0cmluZywgZGV0YWlscz86IHVua25vd24pIHsKICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBtZXNzYWdlLCBkZXRhaWxzIH0pOwp9Cgphc3luYyBmdW5jdGlvbiBjYXRhbG9nSW1hZ2VVcmxzKGRhdGFiYXNlOiBBZG1pbkRhdGFiYXNlKSB7CiAgY29uc3QgW2Jhc2lucywgaW5zdGFsbGVkU3RvbmVzLCBzaGVldFN0b25lc10gPSBhd2FpdCBQcm9taXNlLmFsbChbCiAgICBkYXRhYmFzZS5zZWxlY3QoeyBpbWFnZVVybDogYmFzaW5QcmljZXMuaW1hZ2VVcmwsIHZpZGVvVXJsOiBiYXNpblByaWNlcy52aWRlb1VybCB9KS5mcm9tKGJhc2luUHJpY2VzKSwKICAgIGRhdGFiYXNlLnNlbGVjdCh7IGltYWdlVXJsOiBpbnN0YWxsZWRTdG9uZVByaWNlcy5pbWFnZVVybCB9KS5mcm9tKGluc3RhbGxlZFN0b25lUHJpY2VzKSwKICAgIGRhdGFiYXNlLnNlbGVjdCh7IGltYWdlVXJsOiBzaGVldFN0b25lUHJpY2VzLmltYWdlVXJsIH0pLmZyb20oc2hlZXRTdG9uZVByaWNlcyksCiAgXSk7CgogIHJldHVybiBbCiAgICAuLi5iYXNpbnMuZmxhdE1hcCgocm93OiB7IGltYWdlVXJsPzogdW5rbm93bjsgdmlkZW9Vcmw/OiB1bmtub3duIH0pID0+IFtyb3cuaW1hZ2VVcmwsIHJvdy52aWRlb1VybF0pLAogICAgLi4uaW5zdGFsbGVkU3RvbmVzLm1hcCgocm93OiB7IGltYWdlVXJsPzogdW5rbm93biB9KSA9PiByb3cuaW1hZ2VVcmwpLAogICAgLi4uc2hlZXRTdG9uZXMubWFwKChyb3c6IHsgaW1hZ2VVcmw/OiB1bmtub3duIH0pID0+IHJvdy5pbWFnZVVybCksCiAgXTsKfQoKYXN5bmMgZnVuY3Rpb24gYmFzaW5DYXRlZ29yeVJvd3MoZGF0YWJhc2U6IEFkbWluRGF0YWJhc2UpIHsKICByZXR1cm4gZGF0YWJhc2UKICAgIC5zZWxlY3QoKQogICAgLmZyb20oYmFzaW5DYXRlZ29yaWVzKQogICAgLm9yZGVyQnkoYXNjKGJhc2luQ2F0ZWdvcmllcy5zb3J0T3JkZXIpLCBhc2MoYmFzaW5DYXRlZ29yaWVzLmlkKSk7Cn0KCmZ1bmN0aW9uIGlzRHVwbGljYXRlQ2F0ZWdvcnkoZXJyb3I6IHVua25vd24pIHsKICByZXR1cm4gQm9vbGVhbihlcnJvciAmJiB0eXBlb2YgZXJyb3IgPT09ICJvYmplY3QiICYmIChlcnJvciBhcyB7IGNvZGU/OiB1bmtub3duIH0pLmNvZGUgPT09ICIyMzUwNSIpOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlQWRtaW5Sb3V0ZXIoZGF0YWJhc2U6IEFkbWluRGF0YWJhc2UpOiBJUm91dGVyIHsKICBjb25zdCByb3V0ZXI6IElSb3V0ZXIgPSBSb3V0ZXIoKTsKCiAgcm91dGVyLmdldCgiL2FkbWluL3Nlc3Npb24iLCAocmVxLCByZXMpID0+IHsKICAgIHJlcy5qc29uKHsgYXV0aGVudGljYXRlZDogaXNBZG1pblRva2VuVmFsaWQocmVxLmNvb2tpZXM/LltDT09LSUVfTkFNRV0pIH0pOwogIH0pOwoKICByb3V0ZXIucG9zdCgiL2FkbWluL3Nlc3Npb24iLCAocmVxLCByZXMpID0+IHsKICAgIGNvbnN0IHBhcnNlZCA9IENyZWF0ZUFkbWluU2Vzc2lvbkJvZHkuc2FmZVBhcnNlKHJlcS5ib2R5KTsKICAgIGlmICghcGFyc2VkLnN1Y2Nlc3MpIHJldHVybiBpbnZhbGlkKHJlcywgIkludmFsaWQgbG9naW4iLCBwYXJzZWQuZXJyb3IuZmxhdHRlbigpKTsKICAgIGlmICghcHJvY2Vzcy5lbnZbIkFETUlOX1BBU1NXT1JEIl0pIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNTAzKS5qc29uKHsgbWVzc2FnZTogIkFkbWluIGFjY2VzcyBpcyBub3QgY29uZmlndXJlZCIgfSk7CiAgICB9CiAgICBpZiAoIWFkbWluUGFzc3dvcmRNYXRjaGVzKHBhcnNlZC5kYXRhLnBhc3N3b3JkKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBtZXNzYWdlOiAiSW5jb3JyZWN0IHBhc3N3b3JkIiB9KTsKICAgIH0KICAgIHJlcy5jb29raWUoQ09PS0lFX05BTUUsIGNyZWF0ZUFkbWluVG9rZW4oKSwgYWRtaW5Db29raWVPcHRpb25zKCkpOwogICAgcmV0dXJuIHJlcy5qc29uKHsgYXV0aGVudGljYXRlZDogdHJ1ZSB9KTsKICB9KTsKCiAgcm91dGVyLmRlbGV0ZSgiL2FkbWluL3Nlc3Npb24iLCAoX3JlcSwgcmVzKSA9PiB7CiAgICByZXMuY2xlYXJDb29raWUoQ09PS0lFX05BTUUsIHsgcGF0aDogIi8iIH0pOwogICAgcmVzLnN0YXR1cygyMDQpLmVuZCgpOwogIH0pOwoKICByb3V0ZXIudXNlKCIvYWRtaW4iLCByZXF1aXJlQWRtaW4pOwoKICByb3V0ZXIuZ2V0KCIvYWRtaW4vbGVhZHMiLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCBsZWFkcyA9IGF3YWl0IGRhdGFiYXNlLnNlbGVjdCgpLmZyb20oY3VzdG9tZXJMZWFkcykub3JkZXJCeShkZXNjKGN1c3RvbWVyTGVhZHMudXBkYXRlZEF0KSwgZGVzYyhjdXN0b21lckxlYWRzLmlkKSk7CiAgICAgIHJldHVybiByZXMuanNvbihsZWFkcyk7CiAgICB9IGNhdGNoIChlcnJvcikgewogICAgICByZXR1cm4gbmV4dChlcnJvcik7CiAgICB9CiAgfSk7CgogIHJvdXRlci5wYXRjaCgiL2FkbWluL2xlYWRzLzppZCIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogICAgY29uc3QgaWQgPSBpZEZyb20ocmVxLnBhcmFtcy5pZCk7CiAgICBjb25zdCBwYXJzZWQgPSBVcGRhdGVBZG1pbkxlYWRCb2R5LnNhZmVQYXJzZShyZXEuYm9keSk7CiAgICBpZiAoIWlkIHx8ICFwYXJzZWQuc3VjY2VzcykgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBsZWFkIGRhdGEiLCBwYXJzZWQuc3VjY2VzcyA/IHVuZGVmaW5lZCA6IHBhcnNlZC5lcnJvci5mbGF0dGVuKCkpOwogICAgdHJ5IHsKICAgICAgY29uc3QgW3VwZGF0ZWRdID0gYXdhaXQgZGF0YWJhc2UKICAgICAgICAudXBkYXRlKGN1c3RvbWVyTGVhZHMpCiAgICAgICAgLnNldCh7IHN0YXR1czogcGFyc2VkLmRhdGEuc3RhdHVzLCBub3RlczogcGFyc2VkLmRhdGEubm90ZXMsIHVwZGF0ZWRBdDogbmV3IERhdGUoKSB9KQogICAgICAgIC53aGVyZShlcShjdXN0b21lckxlYWRzLmlkLCBpZCkpCiAgICAgICAgLnJldHVybmluZygpOwogICAgICByZXR1cm4gdXBkYXRlZCA/IHJlcy5qc29uKHVwZGF0ZWQpIDogcmVzLnN0YXR1cyg0MDQpLmpzb24oeyBtZXNzYWdlOiAiTGVhZCBub3QgZm91bmQiIH0pOwogICAgfSBjYXRjaCAoZXJyb3IpIHsKICAgICAgcmV0dXJuIG5leHQoZXJyb3IpOwogICAgfQogIH0pOwoKICByb3V0ZXIucG9zdCgiL2FkbWluL3VwbG9hZCIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogICAgdHJ5IHsKICAgICAgY29uc3QgaW1hZ2UgPSBhd2FpdCByZWFkTXVsdGlwYXJ0SW1hZ2UocmVxKTsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoMjAxKS5qc29uKGF3YWl0IHNhdmVVcGxvYWRlZEltYWdlKGltYWdlKSk7CiAgICB9IGNhdGNoIChlcnJvcikgewogICAgICBpZiAoZXJyb3IgaW5zdGFuY2VvZiBFcnJvciAmJiAvcmVxdWlyZWR8aW52YWxpZHxjaG9vc2V8YWxsb3dlZHxsYXJnZS9pLnRlc3QoZXJyb3IubWVzc2FnZSkpIHsKICAgICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBtZXNzYWdlOiBlcnJvci5tZXNzYWdlIH0pOwogICAgICB9CiAgICAgIHJldHVybiBuZXh0KGVycm9yKTsKICAgIH0KICB9KTsKCiAgcm91dGVyLnBvc3QoIi9hZG1pbi91cGxvYWQvdmlkZW8iLCBhc3luYyAocmVxLCByZXMsIG5leHQpID0+IHsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHZpZGVvID0gYXdhaXQgcmVhZE11bHRpcGFydFZpZGVvKHJlcSk7CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDIwMSkuanNvbihhd2FpdCBzYXZlVXBsb2FkZWRWaWRlbyh2aWRlbykpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsKICAgICAgaWYgKGVycm9yIGluc3RhbmNlb2YgRXJyb3IgJiYgL3JlcXVpcmVkfGludmFsaWR8Y2hvb3NlfGFsbG93ZWR8bGFyZ2UvaS50ZXN0KGVycm9yLm1lc3NhZ2UpKSB7CiAgICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgbWVzc2FnZTogZXJyb3IubWVzc2FnZSB9KTsKICAgICAgfQogICAgICByZXR1cm4gbmV4dChlcnJvcik7CiAgICB9CiAgfSk7CgogIHJvdXRlci5wb3N0KCIvYWRtaW4vdXBsb2Fkcy9jbGVhbnVwIiwgYXN5bmMgKF9yZXEsIHJlcywgbmV4dCkgPT4gewogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgY2xlYW51cFVucmVmZXJlbmNlZFVwbG9hZGVkSW1hZ2VzKGF3YWl0IGNhdGFsb2dJbWFnZVVybHMoZGF0YWJhc2UpKTsKICAgICAgcmV0dXJuIHJlcy5qc29uKHJlc3VsdCk7CiAgICB9IGNhdGNoIChlcnJvcikgewogICAgICByZXR1cm4gbmV4dChlcnJvcik7CiAgICB9CiAgfSk7CgogIHJvdXRlci5nZXQoIi9hZG1pbi9iYXNpbnMiLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCBiYXNpbnMgPSBhd2FpdCBkYXRhYmFzZS5zZWxlY3QoKS5mcm9tKGJhc2luUHJpY2VzKS5vcmRlckJ5KGFzYyhiYXNpblByaWNlcy5zb3J0T3JkZXIpLCBhc2MoYmFzaW5QcmljZXMuaWQpKTsKICAgICAgY29uc3QgY2F0ZWdvcmllcyA9IHR5cGVvZiBkYXRhYmFzZS5zZWxlY3QgPT09ICJmdW5jdGlvbiIgPyBhd2FpdCBiYXNpbkNhdGVnb3J5Um93cyhkYXRhYmFzZSkgOiBbXTsKICAgICAgcmVzLmpzb24oYmFzaW5zLm1hcCgoYmFzaW46IGFueSkgPT4gd2l0aEJhc2luQ2F0ZWdvcnkod2l0aEJhc2luTWVkaWEoYmFzaW4pLCBjYXRlZ29yaWVzKSkpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5wb3N0KCIvYWRtaW4vYmFzaW5zIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBwYXJzZWQgPSBDcmVhdGVBZG1pbkJhc2luQm9keS5zYWZlUGFyc2UocmVxLmJvZHkpOwogICAgaWYgKCFwYXJzZWQuc3VjY2VzcykgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBiYXNpbiBkYXRhIiwgcGFyc2VkLmVycm9yLmZsYXR0ZW4oKSk7CiAgICB0cnkgewogICAgICBjb25zdCBub3JtYWxpemVkID0gbm9ybWFsaXplQmFzaW5GaWVsZHMocGFyc2VkLmRhdGEpOwogICAgICBjb25zdCBkYXRhID0geyAuLi5wYXJzZWQuZGF0YSB9OwogICAgICBpZiAodHlwZW9mIHBhcnNlZC5kYXRhLmNhdGVnb3J5SWQgPT09ICJudW1iZXIiKSB7CiAgICAgICAgY29uc3QgW2NhdGVnb3J5XSA9IGF3YWl0IGRhdGFiYXNlLnNlbGVjdCgpLmZyb20oYmFzaW5DYXRlZ29yaWVzKS53aGVyZShlcShiYXNpbkNhdGVnb3JpZXMuaWQsIHBhcnNlZC5kYXRhLmNhdGVnb3J5SWQpKTsKICAgICAgICBpZiAoIWNhdGVnb3J5KSByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBtZXNzYWdlOiAiQmFzaW4gY2F0ZWdvcnkgbm90IGZvdW5kIiB9KTsKICAgICAgICBpZiAoIWNhdGVnb3J5LmFjdGl2ZSkgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgbWVzc2FnZTogIkFyY2hpdmVkIGJhc2luIGNhdGVnb3JpZXMgY2Fubm90IGJlIGFzc2lnbmVkIHRvIG5ldyBiYXNpbnMiIH0pOwogICAgICAgIGRhdGEuY2F0ZWdvcnkgPSBjYXRlZ29yeS5uYW1lOwogICAgICB9CiAgICAgIGNvbnN0IFtjcmVhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLmluc2VydChiYXNpblByaWNlcykudmFsdWVzKHsKICAgICAgICAuLi5kYXRhLAogICAgICAgIC4uLih0eXBlb2YgcGFyc2VkLmRhdGEuY2F0ZWdvcnlJZCA9PT0gIm51bWJlciIgPyB7IGNhdGVnb3J5SWQ6IHBhcnNlZC5kYXRhLmNhdGVnb3J5SWQsIGNhdGVnb3J5OiBkYXRhLmNhdGVnb3J5IH0gOiB7fSksCiAgICAgICAgZGltZW5zaW9uczogbm9ybWFsaXplZC5kaW1lbnNpb25zLAogICAgICAgIGJhc2luRGltZW5zaW9uczogbm9ybWFsaXplZC5iYXNpbkRpbWVuc2lvbnMsCiAgICAgICAgYm93bE1tOiBub3JtYWxpemVkLmJvd2xNbSwKICAgICAgfSkucmV0dXJuaW5nKCk7CiAgICAgIGNvbnN0IGNhdGVnb3JpZXMgPSB0eXBlb2YgZGF0YWJhc2Uuc2VsZWN0ID09PSAiZnVuY3Rpb24iID8gYXdhaXQgYmFzaW5DYXRlZ29yeVJvd3MoZGF0YWJhc2UpIDogW107CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDIwMSkuanNvbih3aXRoQmFzaW5DYXRlZ29yeSh3aXRoQmFzaW5NZWRpYShjcmVhdGVkKSwgY2F0ZWdvcmllcykpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5wdXQoIi9hZG1pbi9iYXNpbnMvOmlkIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBpZCA9IGlkRnJvbShyZXEucGFyYW1zLmlkKTsKICAgIGNvbnN0IHBhcnNlZCA9IFVwZGF0ZUFkbWluQmFzaW5Cb2R5LnNhZmVQYXJzZShyZXEuYm9keSk7CiAgICBpZiAoIWlkIHx8ICFwYXJzZWQuc3VjY2VzcykgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBiYXNpbiBkYXRhIik7CiAgICB0cnkgewogICAgICBjb25zdCBub3JtYWxpemVkID0gbm9ybWFsaXplQmFzaW5GaWVsZHMocGFyc2VkLmRhdGEpOwogICAgICBjb25zdCBkYXRhID0geyAuLi5wYXJzZWQuZGF0YSB9OwogICAgICBpZiAodHlwZW9mIHBhcnNlZC5kYXRhLmNhdGVnb3J5SWQgPT09ICJudW1iZXIiKSB7CiAgICAgICAgY29uc3QgW2NhdGVnb3J5XSA9IGF3YWl0IGRhdGFiYXNlLnNlbGVjdCgpLmZyb20oYmFzaW5DYXRlZ29yaWVzKS53aGVyZShlcShiYXNpbkNhdGVnb3JpZXMuaWQsIHBhcnNlZC5kYXRhLmNhdGVnb3J5SWQpKTsKICAgICAgICBpZiAoIWNhdGVnb3J5KSByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBtZXNzYWdlOiAiQmFzaW4gY2F0ZWdvcnkgbm90IGZvdW5kIiB9KTsKICAgICAgICBjb25zdCBbY3VycmVudF0gPSBhd2FpdCBkYXRhYmFzZS5zZWxlY3QoKS5mcm9tKGJhc2luUHJpY2VzKS53aGVyZShlcShiYXNpblByaWNlcy5pZCwgaWQpKTsKICAgICAgICBpZiAoIWNhdGVnb3J5LmFjdGl2ZSAmJiBjdXJyZW50Py5jYXRlZ29yeUlkICE9PSBjYXRlZ29yeS5pZCkgewogICAgICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgbWVzc2FnZTogIkFyY2hpdmVkIGJhc2luIGNhdGVnb3JpZXMgY2Fubm90IGJlIG5ld2x5IGFzc2lnbmVkIiB9KTsKICAgICAgICB9CiAgICAgICAgZGF0YS5jYXRlZ29yeSA9IGNhdGVnb3J5Lm5hbWU7CiAgICAgIH0KICAgICAgY29uc3QgW3VwZGF0ZWRdID0gYXdhaXQgZGF0YWJhc2UudXBkYXRlKGJhc2luUHJpY2VzKS5zZXQoewogICAgICAgIC4uLmRhdGEsCiAgICAgICAgLi4uKHR5cGVvZiBwYXJzZWQuZGF0YS5jYXRlZ29yeUlkID09PSAibnVtYmVyIiA/IHsgY2F0ZWdvcnlJZDogcGFyc2VkLmRhdGEuY2F0ZWdvcnlJZCwgY2F0ZWdvcnk6IGRhdGEuY2F0ZWdvcnkgfSA6IHt9KSwKICAgICAgICBkaW1lbnNpb25zOiBub3JtYWxpemVkLmRpbWVuc2lvbnMsCiAgICAgICAgYmFzaW5EaW1lbnNpb25zOiBub3JtYWxpemVkLmJhc2luRGltZW5zaW9ucywKICAgICAgICBib3dsTW06IG5vcm1hbGl6ZWQuYm93bE1tLAogICAgICAgIHVwZGF0ZWRBdDogbmV3IERhdGUoKSwKICAgICAgfSkud2hlcmUoZXEoYmFzaW5QcmljZXMuaWQsIGlkKSkucmV0dXJuaW5nKCk7CiAgICAgIGlmICghdXBkYXRlZCkgcmV0dXJuIHJlcy5zdGF0dXMoNDA0KS5qc29uKHsgbWVzc2FnZTogIkJhc2luIG5vdCBmb3VuZCIgfSk7CiAgICAgIGNvbnN0IGNhdGVnb3JpZXMgPSB0eXBlb2YgZGF0YWJhc2Uuc2VsZWN0ID09PSAiZnVuY3Rpb24iID8gYXdhaXQgYmFzaW5DYXRlZ29yeVJvd3MoZGF0YWJhc2UpIDogW107CiAgICAgIHJldHVybiByZXMuanNvbih3aXRoQmFzaW5DYXRlZ29yeSh3aXRoQmFzaW5NZWRpYSh1cGRhdGVkKSwgY2F0ZWdvcmllcykpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5kZWxldGUoIi9hZG1pbi9iYXNpbnMvOmlkIiwgYXN5bmMgKF9yZXEsIHJlcykgPT4gewogICAgcmVzLnN0YXR1cyg0MDUpLmpzb24oeyBtZXNzYWdlOiAiUGVybWFuZW50IGRlbGV0aW9uIGlzIGRpc2FibGVkLiBTZXQgYWN0aXZlPWZhbHNlIHRvIGFyY2hpdmUgdGhpcyBpdGVtLiIgfSk7CiAgfSk7CgogIHJvdXRlci5nZXQoIi9hZG1pbi9iYXNpbi1jYXRlZ29yaWVzIiwgYXN5bmMgKF9yZXEsIHJlcywgbmV4dCkgPT4gewogICAgdHJ5IHsKICAgICAgcmV0dXJuIHJlcy5qc29uKGF3YWl0IGJhc2luQ2F0ZWdvcnlSb3dzKGRhdGFiYXNlKSk7CiAgICB9IGNhdGNoIChlcnJvcikgeyByZXR1cm4gbmV4dChlcnJvcik7IH0KICB9KTsKCiAgcm91dGVyLnBvc3QoIi9hZG1pbi9iYXNpbi1jYXRlZ29yaWVzIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBwYXJzZWQgPSBDcmVhdGVBZG1pbkJhc2luQ2F0ZWdvcnlCb2R5LnNhZmVQYXJzZShyZXEuYm9keSk7CiAgICBpZiAoIXBhcnNlZC5zdWNjZXNzIHx8ICFwYXJzZWQuZGF0YS5uYW1lLnRyaW0oKSkgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBiYXNpbiBjYXRlZ29yeSBkYXRhIiwgcGFyc2VkLnN1Y2Nlc3MgPyB1bmRlZmluZWQgOiBwYXJzZWQuZXJyb3IuZmxhdHRlbigpKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtjcmVhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLmluc2VydChiYXNpbkNhdGVnb3JpZXMpLnZhbHVlcyh7IC4uLnBhcnNlZC5kYXRhLCBuYW1lOiBwYXJzZWQuZGF0YS5uYW1lLnRyaW0oKSB9KS5yZXR1cm5pbmcoKTsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoMjAxKS5qc29uKGNyZWF0ZWQpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsKICAgICAgaWYgKGlzRHVwbGljYXRlQ2F0ZWdvcnkoZXJyb3IpKSByZXR1cm4gcmVzLnN0YXR1cyg0MDkpLmpzb24oeyBtZXNzYWdlOiAiQSBjYXRlZ29yeSB3aXRoIHRoaXMgbmFtZSBhbHJlYWR5IGV4aXN0cyIgfSk7CiAgICAgIHJldHVybiBuZXh0KGVycm9yKTsKICAgIH0KICB9KTsKCiAgcm91dGVyLnB1dCgiL2FkbWluL2Jhc2luLWNhdGVnb3JpZXMvOmlkIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBpZCA9IGlkRnJvbShyZXEucGFyYW1zLmlkKTsKICAgIGNvbnN0IHBhcnNlZCA9IFVwZGF0ZUFkbWluQmFzaW5DYXRlZ29yeUJvZHkuc2FmZVBhcnNlKHJlcS5ib2R5KTsKICAgIGlmICghaWQgfHwgIXBhcnNlZC5zdWNjZXNzIHx8ICFwYXJzZWQuZGF0YS5uYW1lLnRyaW0oKSkgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBiYXNpbiBjYXRlZ29yeSBkYXRhIiwgcGFyc2VkLnN1Y2Nlc3MgPyB1bmRlZmluZWQgOiBwYXJzZWQuZXJyb3IuZmxhdHRlbigpKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFt1cGRhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLnVwZGF0ZShiYXNpbkNhdGVnb3JpZXMpCiAgICAgICAgLnNldCh7IC4uLnBhcnNlZC5kYXRhLCBuYW1lOiBwYXJzZWQuZGF0YS5uYW1lLnRyaW0oKSwgdXBkYXRlZEF0OiBuZXcgRGF0ZSgpIH0pCiAgICAgICAgLndoZXJlKGVxKGJhc2luQ2F0ZWdvcmllcy5pZCwgaWQpKQogICAgICAgIC5yZXR1cm5pbmcoKTsKICAgICAgaWYgKCF1cGRhdGVkKSByZXR1cm4gcmVzLnN0YXR1cyg0MDQpLmpzb24oeyBtZXNzYWdlOiAiQmFzaW4gY2F0ZWdvcnkgbm90IGZvdW5kIiB9KTsKICAgICAgcmV0dXJuIHJlcy5qc29uKHVwZGF0ZWQpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsKICAgICAgaWYgKGlzRHVwbGljYXRlQ2F0ZWdvcnkoZXJyb3IpKSByZXR1cm4gcmVzLnN0YXR1cyg0MDkpLmpzb24oeyBtZXNzYWdlOiAiQSBjYXRlZ29yeSB3aXRoIHRoaXMgbmFtZSBhbHJlYWR5IGV4aXN0cyIgfSk7CiAgICAgIHJldHVybiBuZXh0KGVycm9yKTsKICAgIH0KICB9KTsKCiAgcm91dGVyLmRlbGV0ZSgiL2FkbWluL2Jhc2luLWNhdGVnb3JpZXMvOmlkIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBpZCA9IGlkRnJvbShyZXEucGFyYW1zLmlkKTsKICAgIGlmICghaWQpIHJldHVybiBpbnZhbGlkKHJlcywgIkludmFsaWQgYmFzaW4gY2F0ZWdvcnkgaWQiKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFt1cGRhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLnVwZGF0ZShiYXNpbkNhdGVnb3JpZXMpCiAgICAgICAgLnNldCh7IGFjdGl2ZTogZmFsc2UsIHVwZGF0ZWRBdDogbmV3IERhdGUoKSB9KQogICAgICAgIC53aGVyZShlcShiYXNpbkNhdGVnb3JpZXMuaWQsIGlkKSkKICAgICAgICAucmV0dXJuaW5nKCk7CiAgICAgIGlmICghdXBkYXRlZCkgcmV0dXJuIHJlcy5zdGF0dXMoNDA0KS5qc29uKHsgbWVzc2FnZTogIkJhc2luIGNhdGVnb3J5IG5vdCBmb3VuZCIgfSk7CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDIwNCkuZW5kKCk7CiAgICB9IGNhdGNoIChlcnJvcikgeyByZXR1cm4gbmV4dChlcnJvcik7IH0KICB9KTsKCiAgcm91dGVyLmdldCgiL2FkbWluL2luc3RhbGxlZC1zdG9uZXMiLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCBzdG9uZXMgPSBhd2FpdCBkYXRhYmFzZS5zZWxlY3QoKS5mcm9tKGluc3RhbGxlZFN0b25lUHJpY2VzKS5vcmRlckJ5KGFzYyhpbnN0YWxsZWRTdG9uZVByaWNlcy5zb3J0T3JkZXIpLCBhc2MoaW5zdGFsbGVkU3RvbmVQcmljZXMuaWQpKTsKICAgICAgcmVzLmpzb24oc3RvbmVzLm1hcCh3aXRoU3RvbmVNZWRpYSkpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5nZXQoIi9hZG1pbi9pbnN0YWxsZWQtc3RvbmUtY2F0ZWdvcmllcyIsIGFzeW5jIChfcmVxLCByZXMsIG5leHQpID0+IHsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGNhdGVnb3JpZXMgPSBhd2FpdCBkYXRhYmFzZQogICAgICAgIC5zZWxlY3QoKQogICAgICAgIC5mcm9tKGluc3RhbGxlZFN0b25lQ2F0ZWdvcmllcykKICAgICAgICAub3JkZXJCeShhc2MoaW5zdGFsbGVkU3RvbmVDYXRlZ29yaWVzLnNvcnRPcmRlciksIGFzYyhpbnN0YWxsZWRTdG9uZUNhdGVnb3JpZXMuaWQpKTsKICAgICAgcmVzLmpzb24oY2F0ZWdvcmllcyk7CiAgICB9IGNhdGNoIChlcnJvcikgeyByZXR1cm4gbmV4dChlcnJvcik7IH0KICB9KTsKCiAgcm91dGVyLnBvc3QoIi9hZG1pbi9pbnN0YWxsZWQtc3RvbmUtY2F0ZWdvcmllcyIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogICAgY29uc3QgcGFyc2VkID0gQ3JlYXRlQWRtaW5JbnN0YWxsZWRTdG9uZUNhdGVnb3J5Qm9keS5zYWZlUGFyc2UocmVxLmJvZHkpOwogICAgaWYgKCFwYXJzZWQuc3VjY2VzcyB8fCAhcGFyc2VkLmRhdGEubmFtZS50cmltKCkpIHJldHVybiBpbnZhbGlkKHJlcywgIkludmFsaWQgaW5zdGFsbGVkIHN0b25lIGNhdGVnb3J5IGRhdGEiLCBwYXJzZWQuc3VjY2VzcyA/IHVuZGVmaW5lZCA6IHBhcnNlZC5lcnJvci5mbGF0dGVuKCkpOwogICAgdHJ5IHsKICAgICAgY29uc3QgW2NyZWF0ZWRdID0gYXdhaXQgZGF0YWJhc2UuaW5zZXJ0KGluc3RhbGxlZFN0b25lQ2F0ZWdvcmllcykudmFsdWVzKHsgLi4ucGFyc2VkLmRhdGEsIG5hbWU6IHBhcnNlZC5kYXRhLm5hbWUudHJpbSgpIH0pLnJldHVybmluZygpOwogICAgICByZXR1cm4gcmVzLnN0YXR1cygyMDEpLmpzb24oY3JlYXRlZCk7CiAgICB9IGNhdGNoIChlcnJvcikgewogICAgICBpZiAoaXNEdXBsaWNhdGVDYXRlZ29yeShlcnJvcikpIHJldHVybiByZXMuc3RhdHVzKDQwOSkuanNvbih7IG1lc3NhZ2U6ICJBIGNhdGVnb3J5IHdpdGggdGhpcyBuYW1lIGFscmVhZHkgZXhpc3RzIiB9KTsKICAgICAgcmV0dXJuIG5leHQoZXJyb3IpOwogICAgfQogIH0pOwoKICByb3V0ZXIucHV0KCIvYWRtaW4vaW5zdGFsbGVkLXN0b25lLWNhdGVnb3JpZXMvOmlkIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBpZCA9IGlkRnJvbShyZXEucGFyYW1zLmlkKTsKICAgIGNvbnN0IHBhcnNlZCA9IFVwZGF0ZUFkbWluSW5zdGFsbGVkU3RvbmVDYXRlZ29yeUJvZHkuc2FmZVBhcnNlKHJlcS5ib2R5KTsKICAgIGlmICghaWQgfHwgIXBhcnNlZC5zdWNjZXNzIHx8ICFwYXJzZWQuZGF0YS5uYW1lLnRyaW0oKSkgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBpbnN0YWxsZWQgc3RvbmUgY2F0ZWdvcnkgZGF0YSIsIHBhcnNlZC5zdWNjZXNzID8gdW5kZWZpbmVkIDogcGFyc2VkLmVycm9yLmZsYXR0ZW4oKSk7CiAgICB0cnkgewogICAgICBjb25zdCBbdXBkYXRlZF0gPSBhd2FpdCBkYXRhYmFzZQogICAgICAgIC51cGRhdGUoaW5zdGFsbGVkU3RvbmVDYXRlZ29yaWVzKQogICAgICAgIC5zZXQoeyAuLi5wYXJzZWQuZGF0YSwgbmFtZTogcGFyc2VkLmRhdGEubmFtZS50cmltKCksIHVwZGF0ZWRBdDogbmV3IERhdGUoKSB9KQogICAgICAgIC53aGVyZShlcShpbnN0YWxsZWRTdG9uZUNhdGVnb3JpZXMuaWQsIGlkKSkKICAgICAgICAucmV0dXJuaW5nKCk7CiAgICAgIHJldHVybiB1cGRhdGVkID8gcmVzLmpzb24odXBkYXRlZCkgOiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICJJbnN0YWxsZWQgc3RvbmUgY2F0ZWdvcnkgbm90IGZvdW5kIiB9KTsKICAgIH0gY2F0Y2ggKGVycm9yKSB7CiAgICAgIGlmIChpc0R1cGxpY2F0ZUNhdGVnb3J5KGVycm9yKSkgcmV0dXJuIHJlcy5zdGF0dXMoNDA5KS5qc29uKHsgbWVzc2FnZTogIkEgY2F0ZWdvcnkgd2l0aCB0aGlzIG5hbWUgYWxyZWFkeSBleGlzdHMiIH0pOwogICAgICByZXR1cm4gbmV4dChlcnJvcik7CiAgICB9CiAgfSk7CgogIHJvdXRlci5kZWxldGUoIi9hZG1pbi9pbnN0YWxsZWQtc3RvbmUtY2F0ZWdvcmllcy86aWQiLCBhc3luYyAocmVxLCByZXMsIG5leHQpID0+IHsKICAgIGNvbnN0IGlkID0gaWRGcm9tKHJlcS5wYXJhbXMuaWQpOwogICAgaWYgKCFpZCkgcmV0dXJuIGludmFsaWQocmVzLCAiSW52YWxpZCBpbnN0YWxsZWQgc3RvbmUgY2F0ZWdvcnkgaWQiKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFt1cGRhdGVkXSA9IGF3YWl0IGRhdGFiYXNlCiAgICAgICAgLnVwZGF0ZShpbnN0YWxsZWRTdG9uZUNhdGVnb3JpZXMpCiAgICAgICAgLnNldCh7IGFjdGl2ZTogZmFsc2UsIHVwZGF0ZWRBdDogbmV3IERhdGUoKSB9KQogICAgICAgIC53aGVyZShlcShpbnN0YWxsZWRTdG9uZUNhdGVnb3JpZXMuaWQsIGlkKSk7CiAgICAgIGlmICghdXBkYXRlZCkgcmV0dXJuIHJlcy5zdGF0dXMoNDA0KS5qc29uKHsgbWVzc2FnZTogIkluc3RhbGxlZCBzdG9uZSBjYXRlZ29yeSBub3QgZm91bmQiIH0pOwogICAgICByZXR1cm4gcmVzLnN0YXR1cygyMDQpLmVuZCgpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5wb3N0KCIvYWRtaW4vaW5zdGFsbGVkLXN0b25lcyIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogICAgY29uc3QgcGFyc2VkID0gQ3JlYXRlQWRtaW5JbnN0YWxsZWRTdG9uZUJvZHkuc2FmZVBhcnNlKHJlcS5ib2R5KTsKICAgIGlmICghcGFyc2VkLnN1Y2Nlc3MpIHJldHVybiBpbnZhbGlkKHJlcywgIkludmFsaWQgaW5zdGFsbGVkIHN0b25lIGRhdGEiLCBwYXJzZWQuZXJyb3IuZmxhdHRlbigpKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtjcmVhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLmluc2VydChpbnN0YWxsZWRTdG9uZVByaWNlcykudmFsdWVzKHBhcnNlZC5kYXRhKS5yZXR1cm5pbmcoKTsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoMjAxKS5qc29uKHdpdGhTdG9uZU1lZGlhKGNyZWF0ZWQpKTsKICAgIH0gY2F0Y2ggKGVycm9yKSB7IHJldHVybiBuZXh0KGVycm9yKTsgfQogIH0pOwoKICByb3V0ZXIucHV0KCIvYWRtaW4vaW5zdGFsbGVkLXN0b25lcy86aWQiLCBhc3luYyAocmVxLCByZXMsIG5leHQpID0+IHsKICAgIGNvbnN0IGlkID0gaWRGcm9tKHJlcS5wYXJhbXMuaWQpOwogICAgY29uc3QgcGFyc2VkID0gVXBkYXRlQWRtaW5JbnN0YWxsZWRTdG9uZUJvZHkuc2FmZVBhcnNlKHJlcS5ib2R5KTsKICAgIGlmICghaWQgfHwgIXBhcnNlZC5zdWNjZXNzKSByZXR1cm4gaW52YWxpZChyZXMsICJJbnZhbGlkIGluc3RhbGxlZCBzdG9uZSBkYXRhIik7CiAgICB0cnkgewogICAgICBjb25zdCBbdXBkYXRlZF0gPSBhd2FpdCBkYXRhYmFzZS51cGRhdGUoaW5zdGFsbGVkU3RvbmVQcmljZXMpLnNldCh7IC4uLnBhcnNlZC5kYXRhLCB1cGRhdGVkQXQ6IG5ldyBEYXRlKCkgfSkud2hlcmUoZXEoaW5zdGFsbGVkU3RvbmVQcmljZXMuaWQsIGlkKSkucmV0dXJuaW5nKCk7CiAgICAgIHJldHVybiB1cGRhdGVkID8gcmVzLmpzb24od2l0aFN0b25lTWVkaWEodXBkYXRlZCkpIDogcmVzLnN0YXR1cyg0MDQpLmpzb24oeyBtZXNzYWdlOiAiSW5zdGFsbGVkIHN0b25lIG5vdCBmb3VuZCIgfSk7CiAgICB9IGNhdGNoIChlcnJvcikgeyByZXR1cm4gbmV4dChlcnJvcik7IH0KICB9KTsKCiAgcm91dGVyLmRlbGV0ZSgiL2FkbWluL2luc3RhbGxlZC1zdG9uZXMvOmlkIiwgYXN5bmMgKF9yZXEsIHJlcykgPT4gewogICAgcmVzLnN0YXR1cyg0MDUpLmpzb24oeyBtZXNzYWdlOiAiUGVybWFuZW50IGRlbGV0aW9uIGlzIGRpc2FibGVkLiBTZXQgYWN0aXZlPWZhbHNlIHRvIGFyY2hpdmUgdGhpcyBpdGVtLiIgfSk7CiAgfSk7CgogIHJvdXRlci5nZXQoIi9hZG1pbi9zaGVldC1zdG9uZXMiLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCBzdG9uZXMgPSBhd2FpdCBkYXRhYmFzZS5zZWxlY3QoKS5mcm9tKHNoZWV0U3RvbmVQcmljZXMpLm9yZGVyQnkoYXNjKHNoZWV0U3RvbmVQcmljZXMuc29ydE9yZGVyKSwgYXNjKHNoZWV0U3RvbmVQcmljZXMuaWQpKTsKICAgICAgcmVzLmpzb24oc3RvbmVzLm1hcCh3aXRoU3RvbmVNZWRpYSkpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5wb3N0KCIvYWRtaW4vc2hlZXQtc3RvbmVzIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBwYXJzZWQgPSBDcmVhdGVBZG1pblNoZWV0U3RvbmVCb2R5LnNhZmVQYXJzZShyZXEuYm9keSk7CiAgICBpZiAoIXBhcnNlZC5zdWNjZXNzKSByZXR1cm4gaW52YWxpZChyZXMsICJJbnZhbGlkIHNoZWV0IHN0b25lIGRhdGEiLCBwYXJzZWQuZXJyb3IuZmxhdHRlbigpKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtjcmVhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLmluc2VydChzaGVldFN0b25lUHJpY2VzKS52YWx1ZXMocGFyc2VkLmRhdGEpLnJldHVybmluZygpOwogICAgICByZXR1cm4gcmVzLnN0YXR1cygyMDEpLmpzb24od2l0aFN0b25lTWVkaWEoY3JlYXRlZCkpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsgcmV0dXJuIG5leHQoZXJyb3IpOyB9CiAgfSk7CgogIHJvdXRlci5wdXQoIi9hZG1pbi9zaGVldC1zdG9uZXMvOmlkIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBpZCA9IGlkRnJvbShyZXEucGFyYW1zLmlkKTsKICAgIGNvbnN0IHBhcnNlZCA9IFVwZGF0ZUFkbWluU2hlZXRTdG9uZUJvZHkuc2FmZVBhcnNlKHJlcS5ib2R5KTsKICAgIGlmICghaWQgfHwgIXBhcnNlZC5zdWNjZXNzKSByZXR1cm4gaW52YWxpZChyZXMsICJJbnZhbGlkIHNoZWV0IHN0b25lIGRhdGEiKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFt1cGRhdGVkXSA9IGF3YWl0IGRhdGFiYXNlLnVwZGF0ZShzaGVldFN0b25lUHJpY2VzKS5zZXQoeyAuLi5wYXJzZWQuZGF0YSwgdXBkYXRlZEF0OiBuZXcgRGF0ZSgpIH0pLndoZXJlKGVxKHNoZWV0U3RvbmVQcmljZXMuaWQsIGlkKSkucmV0dXJuaW5nKCk7CiAgICAgIHJldHVybiB1cGRhdGVkID8gcmVzLmpzb24od2l0aFN0b25lTWVkaWEodXBkYXRlZCkpIDogcmVzLnN0YXR1cyg0MDQpLmpzb24oeyBtZXNzYWdlOiAiU2hlZXQgc3RvbmUgbm90IGZvdW5kIiB9KTsKICAgIH0gY2F0Y2ggKGVycm9yKSB7IHJldHVybiBuZXh0KGVycm9yKTsgfQogIH0pOwoKICByb3V0ZXIuZGVsZXRlKCIvYWRtaW4vc2hlZXQtc3RvbmVzLzppZCIsIGFzeW5jIChfcmVxLCByZXMpID0+IHsKICAgIHJlcy5zdGF0dXMoNDA1KS5qc29uKHsgbWVzc2FnZTogIlBlcm1hbmVudCBkZWxldGlvbiBpcyBkaXNhYmxlZC4gU2V0IGFjdGl2ZT1mYWxzZSB0byBhcmNoaXZlIHRoaXMgaXRlbS4iIH0pOwogIH0pOwoKICByZXR1cm4gcm91dGVyOwp9
+import {
+  basinCategories,
+  basinPrices,
+  installedStoneCategories,
+  installedStonePrices,
+  sheetStonePrices,
+  customerLeads,
+} from "@workspace/db/schema";
+import {
+  CreateAdminBasinBody,
+  CreateAdminBasinCategoryBody,
+  CreateAdminInstalledStoneCategoryBody,
+  CreateAdminInstalledStoneBody,
+  CreateAdminSessionBody,
+  CreateAdminSheetStoneBody,
+  UpdateAdminBasinBody,
+  UpdateAdminBasinCategoryBody,
+  UpdateAdminInstalledStoneCategoryBody,
+  UpdateAdminInstalledStoneBody,
+  UpdateAdminSheetStoneBody,
+  UpdateAdminLeadBody,
+} from "@workspace/api-zod";
+import { asc, desc, eq } from "drizzle-orm";
+import { Router, type Response, type IRouter } from "express";
+import {
+  adminCookieOptions,
+  adminPasswordMatches,
+  COOKIE_NAME,
+  createAdminToken,
+  isAdminTokenValid,
+  requireAdmin,
+} from "../middlewares/admin-auth";
+import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+import {
+  cleanupUnreferencedUploadedImages,
+  readMultipartImage,
+  readMultipartVideo,
+  saveUploadedImage,
+  saveUploadedVideo,
+} from "../lib/image-upload";
+
+export type AdminDatabase = {
+  select: (...args: any[]) => any;
+  insert: (...args: any[]) => any;
+  update: (...args: any[]) => any;
+};
+
+function idFrom(value: string) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function invalid(res: Response, message: string, details?: unknown) {
+  return res.status(400).json({ message, details });
+}
+
+async function catalogImageUrls(database: AdminDatabase) {
+  const [basins, installedStones, sheetStones, leads] = await Promise.all([
+    database.select({ imageUrl: basinPrices.imageUrl, videoUrl: basinPrices.videoUrl }).from(basinPrices),
+    database.select({ imageUrl: installedStonePrices.imageUrl }).from(installedStonePrices),
+    database.select({ imageUrl: sheetStonePrices.imageUrl }).from(sheetStonePrices),
+    database.select({ sketchUrl: customerLeads.sketchUrl }).from(customerLeads),
+  ]);
+
+  return [
+    ...basins.flatMap((row: { imageUrl?: unknown; videoUrl?: unknown }) => [row.imageUrl, row.videoUrl]),
+    ...installedStones.map((row: { imageUrl?: unknown }) => row.imageUrl),
+    ...sheetStones.map((row: { imageUrl?: unknown }) => row.imageUrl),
+    ...leads.map((row: { sketchUrl?: unknown }) => row.sketchUrl),
+  ];
+}
+
+async function basinCategoryRows(database: AdminDatabase) {
+  return database
+    .select()
+    .from(basinCategories)
+    .orderBy(asc(basinCategories.sortOrder), asc(basinCategories.id));
+}
+
+function isDuplicateCategory(error: unknown) {
+  return Boolean(error && typeof error === "object" && (error as { code?: unknown }).code === "23505");
+}
+
+export function createAdminRouter(database: AdminDatabase): IRouter {
+  const router: IRouter = Router();
+
+  router.get("/admin/session", (req, res) => {
+    res.json({ authenticated: isAdminTokenValid(req.cookies?.[COOKIE_NAME]) });
+  });
+
+  router.post("/admin/session", (req, res) => {
+    const parsed = CreateAdminSessionBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "Invalid login", parsed.error.flatten());
+    if (!process.env["ADMIN_PASSWORD"]) {
+      return res.status(503).json({ message: "Admin access is not configured" });
+    }
+    if (!adminPasswordMatches(parsed.data.password)) {
+      return res.status(401).json({ message: "Incorrect password" });
+    }
+    res.cookie(COOKIE_NAME, createAdminToken(), adminCookieOptions());
+    return res.json({ authenticated: true });
+  });
+
+  router.delete("/admin/session", (_req, res) => {
+    res.clearCookie(COOKIE_NAME, { path: "/" });
+    res.status(204).end();
+  });
+
+  router.use("/admin", requireAdmin);
+
+  router.get("/admin/leads", async (_req, res, next) => {
+    try {
+      const leads = await database.select().from(customerLeads).orderBy(desc(customerLeads.updatedAt), desc(customerLeads.id));
+      return res.json(leads);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.patch("/admin/leads/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminLeadBody.safeParse(req.body);
+    if (!id || !parsed.success) return invalid(res, "Invalid lead data", parsed.success ? undefined : parsed.error.flatten());
+    try {
+      const [updated] = await database
+        .update(customerLeads)
+        .set({ status: parsed.data.status, notes: parsed.data.notes, updatedAt: new Date() })
+        .where(eq(customerLeads.id, id))
+        .returning();
+      return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/upload", async (req, res, next) => {
+    try {
+      const image = await readMultipartImage(req);
+      return res.status(201).json(await saveUploadedImage(image));
+    } catch (error) {
+      if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) {
+        return res.status(400).json({ message: error.message });
+      }
+      return next(error);
+    }
+  });
+
+  router.post("/admin/upload/video", async (req, res, next) => {
+    try {
+      const video = await readMultipartVideo(req);
+      return res.status(201).json(await saveUploadedVideo(video));
+    } catch (error) {
+      if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) {
+        return res.status(400).json({ message: error.message });
+      }
+      return next(error);
+    }
+  });
+
+  router.post("/admin/uploads/cleanup", async (_req, res, next) => {
+    try {
+      const result = await cleanupUnreferencedUploadedImages(await catalogImageUrls(database));
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/basins", async (_req, res, next) => {
+    try {
+      const basins = await database.select().from(basinPrices).orderBy(asc(basinPrices.sortOrder), asc(basinPrices.id));
+      const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
+      res.json(basins.map((basin: any) => withBasinCategory(withBasinMedia(basin), categories)));
+    } catch (error) { return next(error); }
+  });
+
+  router.post("/admin/basins", async (req, res, next) => {
+    const parsed = CreateAdminBasinBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "Invalid basin data", parsed.error.flatten());
+    try {
+      const normalized = normalizeBasinFields(parsed.data);
+      const data = { ...parsed.data };
+      if (typeof parsed.data.categoryId === "number") {
+        const [category] = await database.select().from(basinCategories).where(eq(basinCategories.id, parsed.data.categoryId));
+        if (!category) return res.status(400).json({ message: "Basin category not found" });
+        if (!category.active) return res.status(400).json({ message: "Archived basin categories cannot be assigned to new basins" });
+        data.category = category.name;
+      }
+      const [created] = await database.insert(basinPrices).values({
+        ...data,
+        ...(typeof parsed.data.categoryId === "number" ? { categoryId: parsed.data.categoryId, category: data.category } : {}),
+        dimensions: normalized.dimensions,
+        basinDimensions: normalized.basinDimensions,
+        bowlMm: normalized.bowlMm,
+      }).returning();
+      const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
+      return res.status(201).json(withBasinCategory(withBasinMedia(created), categories));
+    } catch (error) { return next(error); }
+  });
+
+  router.put("/admin/basins/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminBasinBody.safeParse(req.body);
+    if (!id || !parsed.success) return invalid(res, "Invalid basin data");
+    try {
+      const normalized = normalizeBasinFields(parsed.data);
+      const data = { ...parsed.data };
+      if (typeof parsed.data.categoryId === "number") {
+        const [category] = await database.select().from(basinCategories).where(eq(basinCategories.id, parsed.data.categoryId));
+        if (!category) return res.status(400).json({ message: "Basin category not found" });
+        const [current] = await database.select().from(basinPrices).where(eq(basinPrices.id, id));
+        if (!category.active && current?.categoryId !== category.id) {
+          return res.status(400).json({ message: "Archived basin categories cannot be newly assigned" });
+        }
+        data.category = category.name;
+      }
+      const [updated] = await database.update(basinPrices).set({
+        ...data,
+        ...(typeof parsed.data.categoryId === "number" ? { categoryId: parsed.data.categoryId, category: data.category } : {}),
+        dimensions: normalized.dimensions,
+        basinDimensions: normalized.basinDimensions,
+        bowlMm: normalized.bowlMm,
+        updatedAt: new Date(),
+      }).where(eq(basinPrices.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Basin not found" });
+      const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
+      return res.json(withBasinCategory(withBasinMedia(updated), categories));
+    } catch (error) { return next(error); }
+  });
+
+  router.delete("/admin/basins/:id", async (_req, res) => {
+    res.status(405).json({ message: "Permanent deletion is disabled. Set active=false to archive this item." });
+  });
+
+  router.get("/admin/basin-categories", async (_req, res, next) => {
+    try {
+      return res.json(await basinCategoryRows(database));
+    } catch (error) { return next(error); }
+  });
+
+  router.post("/admin/basin-categories", async (req, res, next) => {
+    const parsed = CreateAdminBasinCategoryBody.safeParse(req.body);
+    if (!parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid basin category data", parsed.success ? undefined : parsed.error.flatten());
+    try {
+      const [created] = await database.insert(basinCategories).values({ ...parsed.data, name: parsed.data.name.trim() }).returning();
+      return res.status(201).json(created);
+    } catch (error) {
+      if (isDuplicateCategory(error)) return res.status(409).json({ message: "A category with this name already exists" });
+      return next(error);
+    }
+  });
+
+  router.put("/admin/basin-categories/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminBasinCategoryBody.safeParse(req.body);
+    if (!id || !parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid basin category data", parsed.success ? undefined : parsed.error.flatten());
+    try {
+      const [updated] = await database.update(basinCategories)
+        .set({ ...parsed.data, name: parsed.data.name.trim(), updatedAt: new Date() })
+        .where(eq(basinCategories.id, id))
+        .returning();
+      if (!updated) return res.status(404).json({ message: "Basin category not found" });
+      return res.json(updated);
+    } catch (error) {
+      if (isDuplicateCategory(error)) return res.status(409).json({ message: "A category with this name already exists" });
+      return next(error);
+    }
+  });
+
+  router.delete("/admin/basin-categories/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid basin category id");
+    try {
+      const [updated] = await database.update(basinCategories)
+        .set({ active: false, updatedAt: new Date() })
+        .where(eq(basinCategories.id, id))
+        .returning();
+      if (!updated) return res.status(404).json({ message: "Basin category not found" });
+      return res.status(204).end();
+    } catch (error) { return next(error); }
+  });
+
+  router.get("/admin/installed-stones", async (_req, res, next) => {
+    try {
+      const stones = await database.select().from(installedStonePrices).orderBy(asc(installedStonePrices.sortOrder), asc(installedStonePrices.id));
+      res.json(stones.map(withStoneMedia));
+    } catch (error) { return next(error); }
+  });
+
+  router.get("/admin/installed-stone-categories", async (_req, res, next) => {
+    try {
+      const categories = await database
+        .select()
+        .from(installedStoneCategories)
+        .orderBy(asc(installedStoneCategories.sortOrder), asc(installedStoneCategories.id));
+      res.json(categories);
+    } catch (error) { return next(error); }
+  });
+
+  router.post("/admin/installed-stone-categories", async (req, res, next) => {
+    const parsed = CreateAdminInstalledStoneCategoryBody.safeParse(req.body);
+    if (!parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid installed stone category data", parsed.success ? undefined : parsed.error.flatten());
+    try {
+      const [created] = await database.insert(installedStoneCategories).values({ ...parsed.data, name: parsed.data.name.trim() }).returning();
+      return res.status(201).json(created);
+    } catch (error) {
+      if (isDuplicateCategory(error)) return res.status(409).json({ message: "A category with this name already exists" });
+      return next(error);
+    }
+  });
+
+  router.put("/admin/installed-stone-categories/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminInstalledStoneCategoryBody.safeParse(req.body);
+    if (!id || !parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid installed stone category data", parsed.success ? undefined : parsed.error.flatten());
+    try {
+      const [updated] = await database
+        .update(installedStoneCategories)
+        .set({ ...parsed.data, name: parsed.data.name.trim(), updatedAt: new Date() })
+        .where(eq(installedStoneCategories.id, id))
+        .returning();
+      return updated ? res.json(updated) : res.status(404).json({ message: "Installed stone category not found" });
+    } catch (error) {
+      if (isDuplicateCategory(error)) return res.status(409).json({ message: "A category with this name already exists" });
+      return next(error);
+    }
+  });
+
+  router.delete("/admin/installed-stone-categories/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid installed stone category id");
+    try {
+      const [updated] = await database
+        .update(installedStoneCategories)
+        .set({ active: false, updatedAt: new Date() })
+        .where(eq(installedStoneCategories.id, id));
+      if (!updated) return res.status(404).json({ message: "Installed stone category not found" });
+      return res.status(204).end();
+    } catch (error) { return next(error); }
+  });
+
+  router.post("/admin/installed-stones", async (req, res, next) => {
+    const parsed = CreateAdminInstalledStoneBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "Invalid installed stone data", parsed.error.flatten());
+    try {
+      const [created] = await database.insert(installedStonePrices).values(parsed.data).returning();
+      return res.status(201).json(withStoneMedia(created));
+    } catch (error) { return next(error); }
+  });
+
+  router.put("/admin/installed-stones/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminInstalledStoneBody.safeParse(req.body);
+    if (!id || !parsed.success) return invalid(res, "Invalid installed stone data");
+    try {
+      const [updated] = await database.update(installedStonePrices).set({ ...parsed.data, updatedAt: new Date() }).where(eq(installedStonePrices.id, id)).returning();
+      return updated ? res.json(withStoneMedia(updated)) : res.status(404).json({ message: "Installed stone not found" });
+    } catch (error) { return next(error); }
+  });
+
+  router.delete("/admin/installed-stones/:id", async (_req, res) => {
+    res.status(405).json({ message: "Permanent deletion is disabled. Set active=false to archive this item." });
+  });
+
+  router.get("/admin/sheet-stones", async (_req, res, next) => {
+    try {
+      const stones = await database.select().from(sheetStonePrices).orderBy(asc(sheetStonePrices.sortOrder), asc(sheetStonePrices.id));
+      res.json(stones.map(withStoneMedia));
+    } catch (error) { return next(error); }
+  });
+
+  router.post("/admin/sheet-stones", async (req, res, next) => {
+    const parsed = CreateAdminSheetStoneBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "Invalid sheet stone data", parsed.error.flatten());
+    try {
+      const [created] = await database.insert(sheetStonePrices).values(parsed.data).returning();
+      return res.status(201).json(withStoneMedia(created));
+    } catch (error) { return next(error); }
+  });
+
+  router.put("/admin/sheet-stones/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminSheetStoneBody.safeParse(req.body);
+    if (!id || !parsed.success) return invalid(res, "Invalid sheet stone data");
+    try {
+      const [updated] = await database.update(sheetStonePrices).set({ ...parsed.data, updatedAt: new Date() }).where(eq(sheetStonePrices.id, id)).returning();
+      return updated ? res.json(withStoneMedia(updated)) : res.status(404).json({ message: "Sheet stone not found" });
+    } catch (error) { return next(error); }
+  });
+
+  router.delete("/admin/sheet-stones/:id", async (_req, res) => {
+    res.status(405).json({ message: "Permanent deletion is disabled. Set active=false to archive this item." });
+  });
+
+  return router;
+}

@@ -1,1 +1,281 @@
-aW1wb3J0IHsgcmFuZG9tQnl0ZXMgfSBmcm9tICJub2RlOmNyeXB0byI7CmltcG9ydCB7IG1rZGlyLCByZWFkZGlyLCBzdGF0LCB1bmxpbmssIHdyaXRlRmlsZSB9IGZyb20gIm5vZGU6ZnMvcHJvbWlzZXMiOwppbXBvcnQgcGF0aCBmcm9tICJub2RlOnBhdGgiOwppbXBvcnQgdHlwZSB7IFJlcXVlc3QgfSBmcm9tICJleHByZXNzIjsKCmV4cG9ydCBjb25zdCBNQVhfSU1BR0VfVVBMT0FEX0JZVEVTID0gMTAgKiAxMDI0ICogMTAyNDsKZXhwb3J0IGNvbnN0IE1BWF9WSURFT19VUExPQURfQllURVMgPSAxMDAgKiAxMDI0ICogMTAyNDsKZXhwb3J0IGNvbnN0IERFRkFVTFRfVVBMT0FEX1JFVEVOVElPTl9IT1VSUyA9IDI0OwpleHBvcnQgY29uc3QgVVBMT0FEX0RJUiA9IHByb2Nlc3MuZW52WyJVUExPQURfRElSIl0gPz8gcGF0aC5yZXNvbHZlKHByb2Nlc3MuY3dkKCksICJ1cGxvYWRzIik7CmNvbnN0IFBVQkxJQ19VUExPQURfT1JJR0lOID0KICBwcm9jZXNzLmVudlsiUFVCTElDX1VQTE9BRF9PUklHSU4iXSA/PyAiaHR0cHM6Ly9rbmlnaHRiYXNpbnMuc3J2MTk2NDQ3My5oc3Rnci5jbG91ZC9hcGkvdXBsb2FkcyI7CmNvbnN0IFVQTE9BRF9SRVRFTlRJT05fSE9VUlMgPSBwYXJzZVJldGVudGlvbkhvdXJzKHByb2Nlc3MuZW52WyJVUExPQURfUkVURU5USU9OX0hPVVJTIl0pOwoKY29uc3QgTUlNRV9FWFRFTlNJT05TOiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+ID0gewogICJpbWFnZS9qcGVnIjogImpwZyIsCiAgImltYWdlL3BuZyI6ICJwbmciLAogICJpbWFnZS93ZWJwIjogIndlYnAiLAogICJpbWFnZS9naWYiOiAiZ2lmIiwKICAidmlkZW8vbXA0IjogIm1wNCIsCiAgInZpZGVvL3dlYm0iOiAid2VibSIsCiAgInZpZGVvL3F1aWNrdGltZSI6ICJtb3YiLAp9OwoKY29uc3QgTUFOQUdFRF9GSUxFTkFNRSA9IC9eY2F0YWxvZy1bYS16MC05XSstW2EtZjAtOV17MTZ9XC4oPzpqcGd8cG5nfHdlYnB8Z2lmfG1wNHx3ZWJtfG1vdikkL2k7CgpleHBvcnQgdHlwZSBVcGxvYWRlZE1lZGlhID0gewogIGJ1ZmZlcjogQnVmZmVyOwogIGNvbnRlbnRUeXBlOiBzdHJpbmc7CiAgb3JpZ2luYWxOYW1lOiBzdHJpbmc7Cn07CgpleHBvcnQgdHlwZSBVcGxvYWRlZEltYWdlID0gVXBsb2FkZWRNZWRpYTsKZXhwb3J0IHR5cGUgVXBsb2FkZWRWaWRlbyA9IFVwbG9hZGVkTWVkaWE7CgpleHBvcnQgdHlwZSBVcGxvYWRlZEltYWdlQ2xlYW51cFJlc3VsdCA9IHsKICByZXRlbnRpb25Ib3VyczogbnVtYmVyOwogIHNjYW5uZWQ6IG51bWJlcjsKICByZW1vdmVkOiBzdHJpbmdbXTsKICBza2lwcGVkUmVmZXJlbmNlZDogbnVtYmVyOwogIHNraXBwZWRUb29OZXc6IG51bWJlcjsKfTsKCmZ1bmN0aW9uIHBhcnNlUmV0ZW50aW9uSG91cnModmFsdWU6IHN0cmluZyB8IHVuZGVmaW5lZCkgewogIGlmICghdmFsdWUpIHJldHVybiBERUZBVUxUX1VQTE9BRF9SRVRFTlRJT05fSE9VUlM7CiAgY29uc3QgcGFyc2VkID0gTnVtYmVyKHZhbHVlKTsKICByZXR1cm4gTnVtYmVyLmlzRmluaXRlKHBhcnNlZCkgJiYgcGFyc2VkID49IDEgPyBwYXJzZWQgOiBERUZBVUxUX1VQTE9BRF9SRVRFTlRJT05fSE9VUlM7Cn0KCmZ1bmN0aW9uIHB1YmxpY1VwbG9hZFBhdGgoKSB7CiAgdHJ5IHsKICAgIHJldHVybiBuZXcgVVJMKFBVQkxJQ19VUExPQURfT1JJR0lOKS5wYXRobmFtZS5yZXBsYWNlKC9cLyskLywgIiIpOwogIH0gY2F0Y2ggewogICAgdGhyb3cgbmV3IEVycm9yKCJQVUJMSUNfVVBMT0FEX09SSUdJTiBtdXN0IGJlIGEgdmFsaWQgVVJMIik7CiAgfQp9CgpmdW5jdGlvbiBmaWxlbmFtZUZyb21VcGxvYWRVcmwodmFsdWU6IHVua25vd24pIHsKICBpZiAodHlwZW9mIHZhbHVlICE9PSAic3RyaW5nIiB8fCAhdmFsdWUudHJpbSgpKSByZXR1cm4gdW5kZWZpbmVkOwoKICBsZXQgcGFyc2VkOiBVUkw7CiAgbGV0IG9yaWdpbjogVVJMOwogIHRyeSB7CiAgICBwYXJzZWQgPSBuZXcgVVJMKHZhbHVlKTsKICAgIG9yaWdpbiA9IG5ldyBVUkwoUFVCTElDX1VQTE9BRF9PUklHSU4pOwogIH0gY2F0Y2ggewogICAgcmV0dXJuIHVuZGVmaW5lZDsKICB9CgogIGNvbnN0IGZpbGVuYW1lID0gcGFyc2VkLnBhdGhuYW1lLnNsaWNlKHB1YmxpY1VwbG9hZFBhdGgoKS5sZW5ndGggKyAxKTsKICBpZiAoCiAgICBwYXJzZWQub3JpZ2luICE9PSBvcmlnaW4ub3JpZ2luIHx8CiAgICBwYXJzZWQucGF0aG5hbWUgIT09IGAke3B1YmxpY1VwbG9hZFBhdGgoKX0vJHtmaWxlbmFtZX1gIHx8CiAgICBmaWxlbmFtZS5pbmNsdWRlcygiLyIpCiAgKSB7CiAgICByZXR1cm4gdW5kZWZpbmVkOwogIH0KCiAgcmV0dXJuIE1BTkFHRURfRklMRU5BTUUudGVzdChmaWxlbmFtZSkgPyBmaWxlbmFtZSA6IHVuZGVmaW5lZDsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVwbG9hZFJldGVudGlvbkhvdXJzKCkgewogIHJldHVybiBVUExPQURfUkVURU5USU9OX0hPVVJTOwp9CgovKioKICogUmVtb3ZlIG9ubHkgb2xkLCBnZW5lcmF0ZWQgdXBsb2FkIGZpbGVzIHRoYXQgYXJlIG5vdCByZWZlcmVuY2VkIGJ5IGEgY2F0YWxvZyByb3cuCiAqCiAqIFRoZSBjYWxsZXIgbXVzdCBwcm92aWRlIGltYWdlVXJsIHZhbHVlcyBmcm9tIGV2ZXJ5IGNhdGFsb2cgdGFibGUuIFRoZSBVUkwgaXMKICogY29udmVydGVkIGJhY2sgdG8gYSBmaWxlbmFtZSBvbmx5IHdoZW4gaXQgbWF0Y2hlcyB0aGlzIHNlcnZpY2UncyBjb25maWd1cmVkCiAqIHB1YmxpYyB1cGxvYWQgb3JpZ2luLCBzbyBjZW50cmFsL3N0YXRpYyBjYXRhbG9nIG1lZGlhIGlzIG5ldmVyIGNvbnNpZGVyZWQuCiAqLwpleHBvcnQgYXN5bmMgZnVuY3Rpb24gY2xlYW51cFVucmVmZXJlbmNlZFVwbG9hZGVkSW1hZ2VzKAogIHJlZmVyZW5jZWRVcmxzOiBJdGVyYWJsZTx1bmtub3duPiwKICBvcHRpb25zOiB7IG5vdz86IG51bWJlcjsgcmV0ZW50aW9uSG91cnM/OiBudW1iZXIgfSA9IHt9LAopOiBQcm9taXNlPFVwbG9hZGVkSW1hZ2VDbGVhbnVwUmVzdWx0PiB7CiAgY29uc3QgcmVmZXJlbmNlZEZpbGVuYW1lcyA9IG5ldyBTZXQoCiAgICBBcnJheS5mcm9tKHJlZmVyZW5jZWRVcmxzLCBmaWxlbmFtZUZyb21VcGxvYWRVcmwpLmZpbHRlcigKICAgICAgKGZpbGVuYW1lKTogZmlsZW5hbWUgaXMgc3RyaW5nID0+IEJvb2xlYW4oZmlsZW5hbWUpLAogICAgKSwKICApOwogIGNvbnN0IHJldGVudGlvbkhvdXJzID0gb3B0aW9ucy5yZXRlbnRpb25Ib3VycyA/PyBVUExPQURfUkVURU5USU9OX0hPVVJTOwogIGNvbnN0IHJldGVudGlvbk1zID0gcmV0ZW50aW9uSG91cnMgKiA2MCAqIDYwICogMTAwMDsKICBjb25zdCBub3cgPSBvcHRpb25zLm5vdyA/PyBEYXRlLm5vdygpOwogIGNvbnN0IHJlc3VsdDogVXBsb2FkZWRJbWFnZUNsZWFudXBSZXN1bHQgPSB7CiAgICByZXRlbnRpb25Ib3VycywKICAgIHNjYW5uZWQ6IDAsCiAgICByZW1vdmVkOiBbXSwKICAgIHNraXBwZWRSZWZlcmVuY2VkOiAwLAogICAgc2tpcHBlZFRvb05ldzogMCwKICB9OwoKICBsZXQgZW50cmllczsKICB0cnkgewogICAgZW50cmllcyA9IGF3YWl0IHJlYWRkaXIoVVBMT0FEX0RJUiwgeyB3aXRoRmlsZVR5cGVzOiB0cnVlIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICBpZiAoKGVycm9yIGFzIE5vZGVKUy5FcnJub0V4Y2VwdGlvbikuY29kZSA9PT0gIkVOT0VOVCIpIHJldHVybiByZXN1bHQ7CiAgICB0aHJvdyBlcnJvcjsKICB9CgogIGZvciAoY29uc3QgZW50cnkgb2YgZW50cmllcykgewogICAgaWYgKCFlbnRyeS5pc0ZpbGUoKSB8fCAhTUFOQUdFRF9GSUxFTkFNRS50ZXN0KGVudHJ5Lm5hbWUpKSBjb250aW51ZTsKICAgIHJlc3VsdC5zY2FubmVkICs9IDE7CgogICAgaWYgKHJlZmVyZW5jZWRGaWxlbmFtZXMuaGFzKGVudHJ5Lm5hbWUpKSB7CiAgICAgIHJlc3VsdC5za2lwcGVkUmVmZXJlbmNlZCArPSAxOwogICAgICBjb250aW51ZTsKICAgIH0KCiAgICBjb25zdCBmaWxlUGF0aCA9IHBhdGguam9pbihVUExPQURfRElSLCBlbnRyeS5uYW1lKTsKICAgIGNvbnN0IGZpbGVTdGF0cyA9IGF3YWl0IHN0YXQoZmlsZVBhdGgpOwogICAgaWYgKG5vdyAtIGZpbGVTdGF0cy5tdGltZU1zIDwgcmV0ZW50aW9uTXMpIHsKICAgICAgcmVzdWx0LnNraXBwZWRUb29OZXcgKz0gMTsKICAgICAgY29udGludWU7CiAgICB9CgogICAgYXdhaXQgdW5saW5rKGZpbGVQYXRoKTsKICAgIHJlc3VsdC5yZW1vdmVkLnB1c2goZW50cnkubmFtZSk7CiAgfQoKICByZXR1cm4gcmVzdWx0Owp9CgpmdW5jdGlvbiBoZWFkZXJWYWx1ZShoZWFkZXJzOiBzdHJpbmcsIG5hbWU6IHN0cmluZykgewogIGNvbnN0IGxpbmUgPSBoZWFkZXJzLnNwbGl0KCJcclxuIikuZmluZCgoaXRlbSkgPT4gaXRlbS50b0xvd2VyQ2FzZSgpLnN0YXJ0c1dpdGgoYCR7bmFtZS50b0xvd2VyQ2FzZSgpfTpgKSk7CiAgcmV0dXJuIGxpbmU/LnNsaWNlKGxpbmUuaW5kZXhPZigiOiIpICsgMSkudHJpbSgpID8/ICIiOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gcmVhZE11bHRpcGFydE1lZGlhKAogIHJlcTogUmVxdWVzdCwKICBraW5kOiAiaW1hZ2UiIHwgInZpZGVvIiwKKTogUHJvbWlzZTxVcGxvYWRlZE1lZGlhPiB7CiAgY29uc3QgaXNJbWFnZSA9IGtpbmQgPT09ICJpbWFnZSI7CiAgY29uc3QgbWF4Qnl0ZXMgPSBpc0ltYWdlID8gTUFYX0lNQUdFX1VQTE9BRF9CWVRFUyA6IE1BWF9WSURFT19VUExPQURfQllURVM7CiAgY29uc3QgbGFiZWwgPSBpc0ltYWdlID8gImltYWdlIiA6ICJ2aWRlbyI7CiAgY29uc3QgYWxsb3dlZCA9IGlzSW1hZ2UKICAgID8gIk9ubHkgSlBHLCBQTkcsIFdFQlAsIGFuZCBHSUYgaW1hZ2VzIGFyZSBhbGxvd2VkIgogICAgOiAiT25seSBNUDQsIFdFQk0sIGFuZCBNT1YgdmlkZW9zIGFyZSBhbGxvd2VkIjsKICBjb25zdCBjb250ZW50VHlwZSA9IHJlcS5oZWFkZXJzWyJjb250ZW50LXR5cGUiXSA/PyAiIjsKICBjb25zdCBib3VuZGFyeU1hdGNoID0gY29udGVudFR5cGUubWF0Y2goL2JvdW5kYXJ5PSg/OiIoW14iXSspInwoW147XSspKS9pKTsKICBpZiAoIWJvdW5kYXJ5TWF0Y2gpIHRocm93IG5ldyBFcnJvcihgQSBtdWx0aXBhcnQgJHtsYWJlbH0gZmlsZSBpcyByZXF1aXJlZGApOwoKICBjb25zdCBjaHVua3M6IEJ1ZmZlcltdID0gW107CiAgbGV0IHRvdGFsID0gMDsKICBmb3IgYXdhaXQgKGNvbnN0IGNodW5rIG9mIHJlcSkgewogICAgY29uc3QgYnVmZmVyID0gQnVmZmVyLmlzQnVmZmVyKGNodW5rKSA/IGNodW5rIDogQnVmZmVyLmZyb20oY2h1bmspOwogICAgdG90YWwgKz0gYnVmZmVyLmxlbmd0aDsKICAgIGlmICh0b3RhbCA+IG1heEJ5dGVzICsgMTAyNCAqIDEwMjQpIHsKICAgICAgdGhyb3cgbmV3IEVycm9yKGlzSW1hZ2UgPyAiSW1hZ2UgaXMgdG9vIGxhcmdlLiBNYXhpbXVtIHNpemUgaXMgMTAgTUIiIDogIlZpZGVvIGlzIHRvbyBsYXJnZS4gTWF4aW11bSBzaXplIGlzIDEwMCBNQiIpOwogICAgfQogICAgY2h1bmtzLnB1c2goYnVmZmVyKTsKICB9CgogIGNvbnN0IGJvZHkgPSBCdWZmZXIuY29uY2F0KGNodW5rcyk7CiAgY29uc3QgYm91bmRhcnkgPSBCdWZmZXIuZnJvbShgLS0ke2JvdW5kYXJ5TWF0Y2hbMV0gPz8gYm91bmRhcnlNYXRjaFsyXX1gKTsKICBjb25zdCBzdGFydCA9IGJvZHkuaW5kZXhPZihib3VuZGFyeSk7CiAgY29uc3QgaGVhZGVyU3RhcnQgPSBzdGFydCArIGJvdW5kYXJ5Lmxlbmd0aCArIDI7CiAgY29uc3QgaGVhZGVyRW5kID0gYm9keS5pbmRleE9mKEJ1ZmZlci5mcm9tKCJcclxuXHJcbiIpLCBoZWFkZXJTdGFydCk7CiAgaWYgKHN0YXJ0IDwgMCB8fCBoZWFkZXJFbmQgPCAwKSB0aHJvdyBuZXcgRXJyb3IoIkludmFsaWQgbXVsdGlwYXJ0IHVwbG9hZCIpOwoKICBjb25zdCBoZWFkZXJzID0gYm9keS5zdWJhcnJheShoZWFkZXJTdGFydCwgaGVhZGVyRW5kKS50b1N0cmluZygidXRmOCIpOwogIGNvbnN0IHBhcnRFbmQgPSBib2R5LmluZGV4T2YoYm91bmRhcnksIGhlYWRlckVuZCArIDQpOwogIGlmIChwYXJ0RW5kIDwgMCkgdGhyb3cgbmV3IEVycm9yKCJJbnZhbGlkIG11bHRpcGFydCB1cGxvYWQiKTsKCiAgY29uc3QgZmlsZUJ1ZmZlciA9IGJvZHkuc3ViYXJyYXkoaGVhZGVyRW5kICsgNCwgcGFydEVuZCAtIDIpOwogIGNvbnN0IHBhcnRUeXBlID0gaGVhZGVyVmFsdWUoaGVhZGVycywgImNvbnRlbnQtdHlwZSIpLnRvTG93ZXJDYXNlKCk7CiAgY29uc3QgZGlzcG9zaXRpb24gPSBoZWFkZXJWYWx1ZShoZWFkZXJzLCAiY29udGVudC1kaXNwb3NpdGlvbiIpOwogIGNvbnN0IGZpZWxkTWF0Y2ggPSBkaXNwb3NpdGlvbi5tYXRjaCgvbmFtZT0iKFteIl0qKSIvaSk7CiAgY29uc3QgbmFtZU1hdGNoID0gZGlzcG9zaXRpb24ubWF0Y2goL2ZpbGVuYW1lPSIoW14iXSopIi9pKTsKICBpZiAoZmllbGRNYXRjaD8uWzFdICE9PSAiZmlsZSIgfHwgIW5hbWVNYXRjaD8uWzFdKSB0aHJvdyBuZXcgRXJyb3IoaXNJbWFnZSA/ICJDaG9vc2UgYW4gaW1hZ2UgZmlsZSIgOiAiQ2hvb3NlIGEgdmlkZW8gZmlsZSIpOwogIGlmICghTUlNRV9FWFRFTlNJT05TW3BhcnRUeXBlXSB8fCAoaXNJbWFnZSA/ICFwYXJ0VHlwZS5zdGFydHNXaXRoKCJpbWFnZS8iKSA6ICFwYXJ0VHlwZS5zdGFydHNXaXRoKCJ2aWRlby8iKSkpIHsKICAgIHRocm93IG5ldyBFcnJvcihhbGxvd2VkKTsKICB9CiAgaWYgKGZpbGVCdWZmZXIubGVuZ3RoID09PSAwIHx8IGZpbGVCdWZmZXIubGVuZ3RoID4gbWF4Qnl0ZXMpIHsKICAgIHRocm93IG5ldyBFcnJvcihpc0ltYWdlID8gIkltYWdlIGlzIHRvbyBsYXJnZS4gTWF4aW11bSBzaXplIGlzIDEwIE1CIiA6ICJWaWRlbyBpcyB0b28gbGFyZ2UuIE1heGltdW0gc2l6ZSBpcyAxMDAgTUIiKTsKICB9CgogIHJldHVybiB7IGJ1ZmZlcjogZmlsZUJ1ZmZlciwgY29udGVudFR5cGU6IHBhcnRUeXBlLCBvcmlnaW5hbE5hbWU6IG5hbWVNYXRjaFsxXSB9Owp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gcmVhZE11bHRpcGFydEltYWdlKHJlcTogUmVxdWVzdCk6IFByb21pc2U8VXBsb2FkZWRJbWFnZT4gewogIHJldHVybiByZWFkTXVsdGlwYXJ0TWVkaWEocmVxLCAiaW1hZ2UiKTsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHJlYWRNdWx0aXBhcnRWaWRlbyhyZXE6IFJlcXVlc3QpOiBQcm9taXNlPFVwbG9hZGVkVmlkZW8+IHsKICByZXR1cm4gcmVhZE11bHRpcGFydE1lZGlhKHJlcSwgInZpZGVvIik7Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlVXBsb2FkZWRNZWRpYShtZWRpYTogVXBsb2FkZWRNZWRpYSkgewogIGNvbnN0IGV4dGVuc2lvbiA9IE1JTUVfRVhURU5TSU9OU1ttZWRpYS5jb250ZW50VHlwZV07CiAgY29uc3QgdmVyc2lvbiA9IERhdGUubm93KCkudG9TdHJpbmcoMzYpOwogIGNvbnN0IHRva2VuID0gcmFuZG9tQnl0ZXMoOCkudG9TdHJpbmcoImhleCIpOwogIGNvbnN0IGZpbGVuYW1lID0gYGNhdGFsb2ctJHt2ZXJzaW9ufS0ke3Rva2VufS4ke2V4dGVuc2lvbn1gOwogIGF3YWl0IG1rZGlyKFVQTE9BRF9ESVIsIHsgcmVjdXJzaXZlOiB0cnVlIH0pOwogIGF3YWl0IHdyaXRlRmlsZShwYXRoLmpvaW4oVVBMT0FEX0RJUiwgZmlsZW5hbWUpLCBtZWRpYS5idWZmZXIsIHsgZmxhZzogInd4IiB9KTsKCiAgcmV0dXJuIHsKICAgIGZpbGVuYW1lLAogICAgY29udGVudFR5cGU6IG1lZGlhLmNvbnRlbnRUeXBlLAogICAgc2l6ZTogbWVkaWEuYnVmZmVyLmxlbmd0aCwKICAgIG9yaWdpbmFsTmFtZTogbWVkaWEub3JpZ2luYWxOYW1lLAogICAgdmVyc2lvbiwKICAgIHVybDogYCR7UFVCTElDX1VQTE9BRF9PUklHSU4ucmVwbGFjZSgvXC8kLywgIiIpfS8ke2ZpbGVuYW1lfT92PSR7dmVyc2lvbn1gLAogIH07Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlVXBsb2FkZWRJbWFnZShpbWFnZTogVXBsb2FkZWRJbWFnZSkgewogIHJldHVybiBzYXZlVXBsb2FkZWRNZWRpYShpbWFnZSk7Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlVXBsb2FkZWRWaWRlbyh2aWRlbzogVXBsb2FkZWRWaWRlbykgewogIHJldHVybiBzYXZlVXBsb2FkZWRNZWRpYSh2aWRlbyk7Cn0=
+import { randomBytes } from "node:crypto";
+import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import type { Request } from "express";
+
+export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_VIDEO_UPLOAD_BYTES = 100 * 1024 * 1024;
+export const DEFAULT_UPLOAD_RETENTION_HOURS = 24;
+export const UPLOAD_DIR = process.env["UPLOAD_DIR"] ?? path.resolve(process.cwd(), "uploads");
+const PUBLIC_UPLOAD_ORIGIN =
+  process.env["PUBLIC_UPLOAD_ORIGIN"] ?? "https://knightbasins.srv1964473.hstgr.cloud/api/uploads";
+const UPLOAD_RETENTION_HOURS = parseRetentionHours(process.env["UPLOAD_RETENTION_HOURS"]);
+
+const MIME_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+};
+
+const MANAGED_FILENAME = /^(?:catalog|sketch)-[a-z0-9]+-[a-f0-9]{16}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/i;
+
+export type UploadedMedia = {
+  buffer: Buffer;
+  contentType: string;
+  originalName: string;
+};
+
+export type UploadedImage = UploadedMedia;
+export type UploadedVideo = UploadedMedia;
+
+export type UploadedImageCleanupResult = {
+  retentionHours: number;
+  scanned: number;
+  removed: string[];
+  skippedReferenced: number;
+  skippedTooNew: number;
+};
+
+function parseRetentionHours(value: string | undefined) {
+  if (!value) return DEFAULT_UPLOAD_RETENTION_HOURS;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 1 ? parsed : DEFAULT_UPLOAD_RETENTION_HOURS;
+}
+
+function publicUploadPath() {
+  try {
+    return new URL(PUBLIC_UPLOAD_ORIGIN).pathname.replace(/\/+$/, "");
+  } catch {
+    throw new Error("PUBLIC_UPLOAD_ORIGIN must be a valid URL");
+  }
+}
+
+function filenameFromUploadUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+
+  let parsed: URL;
+  let origin: URL;
+  try {
+    parsed = new URL(value);
+    origin = new URL(PUBLIC_UPLOAD_ORIGIN);
+  } catch {
+    return undefined;
+  }
+
+  const filename = parsed.pathname.slice(publicUploadPath().length + 1);
+  if (
+    parsed.origin !== origin.origin ||
+    parsed.pathname !== `${publicUploadPath()}/${filename}` ||
+    filename.includes("/")
+  ) {
+    return undefined;
+  }
+
+  return MANAGED_FILENAME.test(filename) ? filename : undefined;
+}
+
+export function uploadRetentionHours() {
+  return UPLOAD_RETENTION_HOURS;
+}
+
+/**
+ * Remove only old, generated upload files that are not referenced by a catalog row.
+ *
+ * The caller must provide imageUrl values from every catalog table. The URL is
+ * converted back to a filename only when it matches this service's configured
+ * public upload origin, so central/static catalog media is never considered.
+ */
+export async function cleanupUnreferencedUploadedImages(
+  referencedUrls: Iterable<unknown>,
+  options: { now?: number; retentionHours?: number } = {},
+): Promise<UploadedImageCleanupResult> {
+  const referencedFilenames = new Set(
+    Array.from(referencedUrls, filenameFromUploadUrl).filter(
+      (filename): filename is string => Boolean(filename),
+    ),
+  );
+  const retentionHours = options.retentionHours ?? UPLOAD_RETENTION_HOURS;
+  const retentionMs = retentionHours * 60 * 60 * 1000;
+  const now = options.now ?? Date.now();
+  const result: UploadedImageCleanupResult = {
+    retentionHours,
+    scanned: 0,
+    removed: [],
+    skippedReferenced: 0,
+    skippedTooNew: 0,
+  };
+
+  let entries;
+  try {
+    entries = await readdir(UPLOAD_DIR, { withFileTypes: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return result;
+    throw error;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !MANAGED_FILENAME.test(entry.name)) continue;
+    result.scanned += 1;
+
+    if (referencedFilenames.has(entry.name)) {
+      result.skippedReferenced += 1;
+      continue;
+    }
+
+    const filePath = path.join(UPLOAD_DIR, entry.name);
+    const fileStats = await stat(filePath);
+    if (now - fileStats.mtimeMs < retentionMs) {
+      result.skippedTooNew += 1;
+      continue;
+    }
+
+    await unlink(filePath);
+    result.removed.push(entry.name);
+  }
+
+  return result;
+}
+
+function headerValue(headers: string, name: string) {
+  const line = headers.split("\r\n").find((item) => item.toLowerCase().startsWith(`${name.toLowerCase()}:`));
+  return line?.slice(line.indexOf(":") + 1).trim() ?? "";
+}
+
+export async function readMultipartMedia(
+  req: Request,
+  kind: "image" | "video",
+): Promise<UploadedMedia> {
+  const isImage = kind === "image";
+  const maxBytes = isImage ? MAX_IMAGE_UPLOAD_BYTES : MAX_VIDEO_UPLOAD_BYTES;
+  const label = isImage ? "image" : "video";
+  const allowed = isImage
+    ? "Only JPG, PNG, WEBP, and GIF images are allowed"
+    : "Only MP4, WEBM, and MOV videos are allowed";
+  const contentType = req.headers["content-type"] ?? "";
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!boundaryMatch) throw new Error(`A multipart ${label} file is required`);
+
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buffer.length;
+    if (total > maxBytes + 1024 * 1024) {
+      throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
+    }
+    chunks.push(buffer);
+  }
+
+  const body = Buffer.concat(chunks);
+  const boundary = Buffer.from(`--${boundaryMatch[1] ?? boundaryMatch[2]}`);
+  const start = body.indexOf(boundary);
+  const headerStart = start + boundary.length + 2;
+  const headerEnd = body.indexOf(Buffer.from("\r\n\r\n"), headerStart);
+  if (start < 0 || headerEnd < 0) throw new Error("Invalid multipart upload");
+
+  const headers = body.subarray(headerStart, headerEnd).toString("utf8");
+  const partEnd = body.indexOf(boundary, headerEnd + 4);
+  if (partEnd < 0) throw new Error("Invalid multipart upload");
+
+  const fileBuffer = body.subarray(headerEnd + 4, partEnd - 2);
+  const partType = headerValue(headers, "content-type").toLowerCase();
+  const disposition = headerValue(headers, "content-disposition");
+  const fieldMatch = disposition.match(/name="([^"]*)"/i);
+  const nameMatch = disposition.match(/filename="([^"]*)"/i);
+  if (fieldMatch?.[1] !== "file" || !nameMatch?.[1]) throw new Error(isImage ? "Choose an image file" : "Choose a video file");
+  if (!MIME_EXTENSIONS[partType] || (isImage ? !partType.startsWith("image/") : !partType.startsWith("video/"))) {
+    throw new Error(allowed);
+  }
+  if (fileBuffer.length === 0 || fileBuffer.length > maxBytes) {
+    throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
+  }
+
+  return { buffer: fileBuffer, contentType: partType, originalName: nameMatch[1] };
+}
+
+export async function readMultipartImage(req: Request): Promise<UploadedImage> {
+  return readMultipartMedia(req, "image");
+}
+
+export async function readMultipartVideo(req: Request): Promise<UploadedVideo> {
+  return readMultipartMedia(req, "video");
+}
+
+export async function readMultipartForm(req: Request, kind: "image" | "video") {
+  const isImage = kind === "image";
+  const maxBytes = isImage ? MAX_IMAGE_UPLOAD_BYTES : MAX_VIDEO_UPLOAD_BYTES;
+  const contentType = req.headers["content-type"] ?? "";
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!boundaryMatch) throw new Error(`A multipart ${isImage ? "image" : "video"} file is required`);
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buffer.length;
+    if (total > maxBytes + 1024 * 1024) throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
+    chunks.push(buffer);
+  }
+  const body = Buffer.concat(chunks);
+  const boundary = Buffer.from(`--${boundaryMatch[1] ?? boundaryMatch[2]}`);
+  const fields: Record<string, string> = {};
+  let cursor = 0;
+  let media: UploadedMedia | undefined;
+  while (cursor < body.length) {
+    const start = body.indexOf(boundary, cursor);
+    if (start < 0) break;
+    const headerStart = start + boundary.length + 2;
+    if (body.subarray(start + boundary.length, start + boundary.length + 2).toString() === "--") break;
+    const headerEnd = body.indexOf(Buffer.from("\r\n\r\n"), headerStart);
+    if (headerEnd < 0) break;
+    const partEnd = body.indexOf(boundary, headerEnd + 4);
+    if (partEnd < 0) break;
+    const headers = body.subarray(headerStart, headerEnd).toString("utf8");
+    const content = body.subarray(headerEnd + 4, partEnd - 2);
+    const disposition = headerValue(headers, "content-disposition");
+    const fieldName = disposition.match(/name="([^"]*)"/i)?.[1];
+    const fileName = disposition.match(/filename="([^"]*)"/i)?.[1];
+    if (fieldName === "file" && fileName) {
+      const partType = headerValue(headers, "content-type").toLowerCase();
+      if (!MIME_EXTENSIONS[partType] || (isImage ? !partType.startsWith("image/") : !partType.startsWith("video/"))) {
+        throw new Error(isImage ? "Only JPG, PNG, WEBP, and GIF images are allowed" : "Only MP4, WEBM, and MOV videos are allowed");
+      }
+      if (content.length === 0 || content.length > maxBytes) throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
+      media = { buffer: content, contentType: partType, originalName: fileName };
+    } else if (fieldName) {
+      fields[fieldName] = content.toString("utf8");
+    }
+    cursor = partEnd;
+  }
+  if (!media) throw new Error(isImage ? "Choose an image file" : "Choose a video file");
+  return { media, fields };
+}
+
+export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog") {
+  const extension = MIME_EXTENSIONS[media.contentType];
+  const version = Date.now().toString(36);
+  const token = randomBytes(8).toString("hex");
+  const filename = `${prefix}-${version}-${token}.${extension}`;
+  await mkdir(UPLOAD_DIR, { recursive: true });
+  await writeFile(path.join(UPLOAD_DIR, filename), media.buffer, { flag: "wx" });
+
+  return {
+    filename,
+    contentType: media.contentType,
+    size: media.buffer.length,
+    originalName: media.originalName,
+    version,
+    url: `${PUBLIC_UPLOAD_ORIGIN.replace(/\/$/, "")}/${filename}?v=${version}`,
+  };
+}
+
+export async function saveUploadedImage(image: UploadedImage) {
+  return saveUploadedMedia(image);
+}
+
+export async function saveUploadedVideo(video: UploadedVideo) {
+  return saveUploadedMedia(video);
+}

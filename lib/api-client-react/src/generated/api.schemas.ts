@@ -1,1 +1,469 @@
-LyoqCiAqIEdlbmVyYXRlZCBieSBvcnZhbCB2OC4yMC4wIPCfjboKICogRG8gbm90IGVkaXQgbWFudWFsbHkuCiAqIEFwaQogKiBBUEkgc3BlY2lmaWNhdGlvbgogKiBPcGVuQVBJIHNwZWMgdmVyc2lvbjogMC4xLjAKICovCmV4cG9ydCB0eXBlIEhlYWx0aFN0YXR1c0xpbmVMb2dpbkNhbGxiYWNrRW52aXJvbm1lbnQgPSB0eXBlb2YgSGVhbHRoU3RhdHVzTGluZUxvZ2luQ2FsbGJhY2tFbnZpcm9ubWVudFtrZXlvZiB0eXBlb2YgSGVhbHRoU3RhdHVzTGluZUxvZ2luQ2FsbGJhY2tFbnZpcm9ubWVudF07CgoKZXhwb3J0IGNvbnN0IEhlYWx0aFN0YXR1c0xpbmVMb2dpbkNhbGxiYWNrRW52aXJvbm1lbnQgPSB7CiAgcHJvZHVjdGlvbjogJ3Byb2R1Y3Rpb24nLAogIGRldmVsb3BtZW50OiAnZGV2ZWxvcG1lbnQnLAogIGludmFsaWQ6ICdpbnZhbGlkJywKICBtaXNzaW5nOiAnbWlzc2luZycsCn0gYXMgY29uc3Q7CgpleHBvcnQgdHlwZSBIZWFsdGhTdGF0dXNMaW5lTG9naW5DYWxsYmFja1JlYXNvbiA9IHR5cGVvZiBIZWFsdGhTdGF0dXNMaW5lTG9naW5DYWxsYmFja1JlYXNvbltrZXlvZiB0eXBlb2YgSGVhbHRoU3RhdHVzTGluZUxvZ2luQ2FsbGJhY2tSZWFzb25dOwoKCmV4cG9ydCBjb25zdCBIZWFsdGhTdGF0dXNMaW5lTG9naW5DYWxsYmFja1JlYXNvbiA9IHsKICBjb25maWd1cmVkOiAnY29uZmlndXJlZCcsCiAgbWlzc2luZzogJ21pc3NpbmcnLAogIG1hbGZvcm1lZDogJ21hbGZvcm1lZCcsCiAgbm90X2h0dHBzOiAnbm90X2h0dHBzJywKICB1bmV4cGVjdGVkX2hvc3Q6ICd1bmV4cGVjdGVkX2hvc3QnLAogIHVuZXhwZWN0ZWRfcGF0aDogJ3VuZXhwZWN0ZWRfcGF0aCcsCiAgdW5leHBlY3RlZF9mb3JtYXQ6ICd1bmV4cGVjdGVkX2Zvcm1hdCcsCn0gYXMgY29uc3Q7CgpleHBvcnQgdHlwZSBIZWFsdGhTdGF0dXNMaW5lTG9naW4gPSB7CiAgcmVhZHk6IGJvb2xlYW47CiAgY2hhbm5lbENvbmZpZ3VyZWQ6IGJvb2xlYW47CiAgc2VjcmV0Q29uZmlndXJlZDogYm9vbGVhbjsKICBjYWxsYmFja1VybENvbmZpZ3VyZWQ6IGJvb2xlYW47CiAgY2FsbGJhY2tVcmxWYWxpZDogYm9vbGVhbjsKICBjYWxsYmFja0Vudmlyb25tZW50OiBIZWFsdGhTdGF0dXNMaW5lTG9naW5DYWxsYmFja0Vudmlyb25tZW50OwogIGNhbGxiYWNrUmVhc29uOiBIZWFsdGhTdGF0dXNMaW5lTG9naW5DYWxsYmFja1JlYXNvbjsKfTsKCmV4cG9ydCBpbnRlcmZhY2UgSGVhbHRoU3RhdHVzIHsKICBzdGF0dXM6IHN0cmluZzsKICBsaW5lTG9naW46IEhlYWx0aFN0YXR1c0xpbmVMb2dpbjsKfQoKZXhwb3J0IGludGVyZmFjZSBBZG1pblNlc3Npb24gewogIGF1dGhlbnRpY2F0ZWQ6IGJvb2xlYW47Cn0KCmV4cG9ydCBpbnRlcmZhY2UgQmFzaW5QcmljZUlucHV0IHsKICAvKioKICAgICAqIEBtaW5MZW5ndGggMQogICAgICogQG1heExlbmd0aCAzMgogICAgICovCiAgc2t1OiBzdHJpbmc7CiAgLyoqCiAgICAgKiBAbWluTGVuZ3RoIDEKICAgICAqIEBtYXhMZW5ndGggNjQKICAgICAqLwogIGNvbG9yQ29kZTogc3RyaW5nOwogIC8qKgogICAgICogQG1pbkxlbmd0aCAxCiAgICAgKiBAbWF4TGVuZ3RoIDE2MAogICAgICovCiAgY29sb3JOYW1lOiBzdHJpbmc7CiAgLyoqIEBtaW5pbXVtIDAgKi8KICBwcmljZVRIQjogbnVtYmVyOwogIC8qKgogICAgICogQG1pbkxlbmd0aCAxCiAgICAgKiBAbWF4TGVuZ3RoIDEyMAogICAgICovCiAgY2F0ZWdvcnk6IHN0cmluZzsKICAvKioKICAgICAqIEBtaW5pbXVtIDEKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgY2F0ZWdvcnlJZD86IG51bWJlciB8IG51bGw7CiAgLyoqCiAgICAgKiBAbWluTGVuZ3RoIDEKICAgICAqIEBtYXhMZW5ndGggMTYwCiAgICAgKi8KICBkaW1lbnNpb25zOiBzdHJpbmc7CiAgLyoqCiAgICAgKiBAbWF4TGVuZ3RoIDE2MAogICAgICogQG51bGxhYmxlCiAgICAgKi8KICBiYXNpbkRpbWVuc2lvbnM/OiBzdHJpbmcgfCBudWxsOwogIC8qKgogICAgICogQG1heExlbmd0aCAxNjAKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgYm93bE1tPzogc3RyaW5nIHwgbnVsbDsKICAvKioKICAgICAqIEBtaW5MZW5ndGggMQogICAgICogQG1heExlbmd0aCAyNAogICAgICovCiAgaW1hZ2VUb25lOiBzdHJpbmc7CiAgLyoqCiAgICAgKiBAbWF4TGVuZ3RoIDIwMDAKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgaW1hZ2VVcmw/OiBzdHJpbmcgfCBudWxsOwogIC8qKgogICAgICogQG1heExlbmd0aCAyMDAwCiAgICAgKiBAbnVsbGFibGUKICAgICAqLwogIHZpZGVvVXJsPzogc3RyaW5nIHwgbnVsbDsKICBhY3RpdmU6IGJvb2xlYW47CiAgc29ydE9yZGVyOiBudW1iZXI7Cn0KCmV4cG9ydCBpbnRlcmZhY2UgUmVjb3JkTWV0YWRhdGEgewogIGlkOiBudW1iZXI7CiAgY3JlYXRlZEF0OiBzdHJpbmc7CiAgdXBkYXRlZEF0OiBzdHJpbmc7Cn0KCmV4cG9ydCB0eXBlIEJhc2luUHJpY2UgPSBCYXNpblByaWNlSW5wdXQgJiBSZWNvcmRNZXRhZGF0YSAmICh7CiAgaW1hZ2VVcmw6IHN0cmluZzsKICB2aWRlb1VybDogc3RyaW5nOwogIC8qKiBAbnVsbGFibGUgKi8KICB1cGxvYWRlZFZpZGVvVXJsOiBzdHJpbmcgfCBudWxsOwogIC8qKiBAbnVsbGFibGUgKi8KICBjYXRlZ29yeUlkPzogbnVtYmVyIHwgbnVsbDsKfSk7CgpleHBvcnQgaW50ZXJmYWNlIEJhc2luQ2F0ZWdvcnlJbnB1dCB7CiAgLyoqCiAgICAgKiBAbWluTGVuZ3RoIDEKICAgICAqIEBtYXhMZW5ndGggMTIwCiAgICAgKi8KICBuYW1lOiBzdHJpbmc7CiAgYWN0aXZlOiBib29sZWFuOwogIHNvcnRPcmRlcjogbnVtYmVyOwp9CgpleHBvcnQgdHlwZSBCYXNpbkNhdGVnb3J5ID0gQmFzaW5DYXRlZ29yeUlucHV0ICYgUmVjb3JkTWV0YWRhdGE7CgpleHBvcnQgaW50ZXJmYWNlIFVwbG9hZGVkTWVkaWEgewogIGZpbGVuYW1lOiBzdHJpbmc7CiAgY29udGVudFR5cGU6IHN0cmluZzsKICBzaXplOiBudW1iZXI7CiAgb3JpZ2luYWxOYW1lOiBzdHJpbmc7CiAgdmVyc2lvbjogc3RyaW5nOwogIHVybDogc3RyaW5nOwp9CgpleHBvcnQgaW50ZXJmYWNlIEluc3RhbGxlZFN0b25lUHJpY2VJbnB1dCB7CiAgLyoqCiAgICAgKiBAbWluTGVuZ3RoIDEKICAgICAqIEBtYXhMZW5ndGggNjQKICAgICAqLwogIGNvZGU6IHN0cmluZzsKICAvKioKICAgICAqIEBtaW5MZW5ndGggMQogICAgICogQG1heExlbmd0aCAxNjAKICAgICAqLwogIG5hbWU6IHN0cmluZzsKICAvKiogQG1pbmltdW0gMCAqLwogIHByaWNlUGVyU3FtVEhCOiBudW1iZXI7CiAgLyoqCiAgICAgKiBAbWluaW11bSAxCiAgICAgKiBAbnVsbGFibGUKICAgICAqLwogIGNhdGVnb3J5SWQ6IG51bWJlciB8IG51bGw7CiAgLyoqCiAgICAgKiBAbWluTGVuZ3RoIDEKICAgICAqIEBtYXhMZW5ndGggMjQKICAgICAqLwogIHRvbmU6IHN0cmluZzsKICAvKioKICAgICAqIEBtYXhMZW5ndGggMjAwMAogICAgICogQG51bGxhYmxlCiAgICAgKi8KICBpbWFnZVVybD86IHN0cmluZyB8IG51bGw7CiAgYWxpYXNlczogc3RyaW5nW107CiAgYWN0aXZlOiBib29sZWFuOwogIHNvcnRPcmRlcjogbnVtYmVyOwp9CgpleHBvcnQgdHlwZSBJbnN0YWxsZWRTdG9uZVByaWNlID0gSW5zdGFsbGVkU3RvbmVQcmljZUlucHV0ICYgUmVjb3JkTWV0YWRhdGEgJiB7CiAgaW1hZ2VVcmw6IHN0cmluZzsKfTsKCmV4cG9ydCBpbnRlcmZhY2UgSW5zdGFsbGVkU3RvbmVDYXRlZ29yeUlucHV0IHsKICAvKioKICAgICAqIEBtaW5MZW5ndGggMQogICAgICogQG1heExlbmd0aCAxMjAKICAgICAqLwogIG5hbWU6IHN0cmluZzsKICBhY3RpdmU6IGJvb2xlYW47CiAgc29ydE9yZGVyOiBudW1iZXI7Cn0KCmV4cG9ydCB0eXBlIEluc3RhbGxlZFN0b25lQ2F0ZWdvcnkgPSBJbnN0YWxsZWRTdG9uZUNhdGVnb3J5SW5wdXQgJiBSZWNvcmRNZXRhZGF0YTsKCmV4cG9ydCBpbnRlcmZhY2UgU2hlZXRTdG9uZVByaWNlSW5wdXQgewogIC8qKgogICAgICogQG1pbkxlbmd0aCAxCiAgICAgKiBAbWF4TGVuZ3RoIDY0CiAgICAgKi8KICBjb2RlOiBzdHJpbmc7CiAgLyoqCiAgICAgKiBAbWluTGVuZ3RoIDEKICAgICAqIEBtYXhMZW5ndGggMTYwCiAgICAgKi8KICBuYW1lOiBzdHJpbmc7CiAgLyoqIEBtaW5pbXVtIDAgKi8KICBiYXNlUHJpY2VUSEI6IG51bWJlcjsKICAvKiogQG1pbmltdW0gMCAqLwogIHByaWNlMTBQbHVzVEhCOiBudW1iZXI7CiAgLyoqIEBtaW5pbXVtIDAgKi8KICBwcmljZTUwUGx1c1RIQjogbnVtYmVyOwogIC8qKgogICAgICogQG1pbkxlbmd0aCAxCiAgICAgKiBAbWF4TGVuZ3RoIDI0CiAgICAgKi8KICB0b25lOiBzdHJpbmc7CiAgLyoqCiAgICAgKiBAbWF4TGVuZ3RoIDIwMDAKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgaW1hZ2VVcmw/OiBzdHJpbmcgfCBudWxsOwogIGFsaWFzZXM6IHN0cmluZ1tdOwogIGFjdGl2ZTogYm9vbGVhbjsKICBzb3J0T3JkZXI6IG51bWJlcjsKfQoKZXhwb3J0IHR5cGUgU2hlZXRTdG9uZVByaWNlID0gU2hlZXRTdG9uZVByaWNlSW5wdXQgJiBSZWNvcmRNZXRhZGF0YSAmIHsKICBpbWFnZVVybDogc3RyaW5nOwp9OwoKZXhwb3J0IGludGVyZmFjZSBDYXRhbG9nIHsKICBiYXNpbnM6IEJhc2luUHJpY2VbXTsKICBjYXRlZ29yaWVzOiBCYXNpbkNhdGVnb3J5W107CiAgaW5zdGFsbGVkU3RvbmVzOiBJbnN0YWxsZWRTdG9uZVByaWNlW107CiAgc2hlZXRTdG9uZXM6IFNoZWV0U3RvbmVQcmljZVtdOwp9CgpleHBvcnQgaW50ZXJmYWNlIFN1cHBvcnRDaGF0SW5wdXQgewogIC8qKgogICAgICogQG1pbkxlbmd0aCAxCiAgICAgKiBAbWF4TGVuZ3RoIDUwMAogICAgICovCiAgbWVzc2FnZTogc3RyaW5nOwp9CgpleHBvcnQgdHlwZSBTdXBwb3J0Q2hhdFJlc3BvbnNlTWF0Y2hlZFR5cGUgPSB0eXBlb2YgU3VwcG9ydENoYXRSZXNwb25zZU1hdGNoZWRUeXBlW2tleW9mIHR5cGVvZiBTdXBwb3J0Q2hhdFJlc3BvbnNlTWF0Y2hlZFR5cGVdOwoKCmV4cG9ydCBjb25zdCBTdXBwb3J0Q2hhdFJlc3BvbnNlTWF0Y2hlZFR5cGUgPSB7CiAgYmFzaW46ICdiYXNpbicsCiAgc3RvbmU6ICdzdG9uZScsCiAgbm9uZTogJ25vbmUnLAp9IGFzIGNvbnN0OwoKZXhwb3J0IGludGVyZmFjZSBTdXBwb3J0Q2F0YWxvZ0l0ZW0gewogIGNvZGU6IHN0cmluZzsKICBuYW1lOiBzdHJpbmc7CiAgY2F0ZWdvcnk6IHN0cmluZzsKICBwcmljZVRIQjogbnVtYmVyOwogIGRpbWVuc2lvbnM6IHN0cmluZzsKICAvKiogQG51bGxhYmxlICovCiAgYmFzaW5EaW1lbnNpb25zPzogc3RyaW5nIHwgbnVsbDsKfQoKZXhwb3J0IGludGVyZmFjZSBTdXBwb3J0Q2hhdFJlc3BvbnNlIHsKICByZXBseTogc3RyaW5nOwogIG1hdGNoZWRUeXBlOiBTdXBwb3J0Q2hhdFJlc3BvbnNlTWF0Y2hlZFR5cGU7CiAgLyoqIEBudWxsYWJsZSAqLwogIG1hdGNoZWRDb2RlPzogc3RyaW5nIHwgbnVsbDsKICBjb21wYXJlSXRlbXM/OiBTdXBwb3J0Q2F0YWxvZ0l0ZW1bXTsKfQoKZXhwb3J0IHR5cGUgTGVhZElucHV0U3RhdHVzID0gdHlwZW9mIExlYWRJbnB1dFN0YXR1c1trZXlvZiB0eXBlb2YgTGVhZElucHV0U3RhdHVzXTsKCgpleHBvcnQgY29uc3QgTGVhZElucHV0U3RhdHVzID0gewogIG5ld19sZWFkOiAnbmV3X2xlYWQnLAogIHNlbGVjdGluZzogJ3NlbGVjdGluZycsCiAgcXVvdGVfcmVxdWVzdGVkOiAncXVvdGVfcmVxdWVzdGVkJywKICBjbG9zZWQ6ICdjbG9zZWQnLAp9IGFzIGNvbnN0OwoKZXhwb3J0IGludGVyZmFjZSBMZWFkSW5wdXQgewogIC8qKgogICAgICogQG1pbkxlbmd0aCAxMgogICAgICogQG1heExlbmd0aCAxMjAKICAgICAqLwogIGxlYWRLZXk6IHN0cmluZzsKICBzdGF0dXM6IExlYWRJbnB1dFN0YXR1czsKICAvKiogQG1heExlbmd0aCA2NCAqLwogIHNvdXJjZTogc3RyaW5nOwogIC8qKgogICAgICogQG1heExlbmd0aCAxNjAKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgbmFtZT86IHN0cmluZyB8IG51bGw7CiAgLyoqCiAgICAgKiBAbWF4TGVuZ3RoIDIwMAogICAgICogQG51bGxhYmxlCiAgICAgKi8KICBjb21wYW55Pzogc3RyaW5nIHwgbnVsbDsKICAvKioKICAgICAqIEBtYXhMZW5ndGggNjQKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgcGhvbmU/OiBzdHJpbmcgfCBudWxsOwogIC8qKgogICAgICogQG1heExlbmd0aCAyNDAKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgZW1haWw/OiBzdHJpbmcgfCBudWxsOwogIC8qKgogICAgICogQG1heExlbmd0aCAyNDAKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgcHJvamVjdD86IHN0cmluZyB8IG51bGw7CiAgLyoqIEBudWxsYWJsZSAqLwogIGFkZHJlc3M/OiBzdHJpbmcgfCBudWxsOwogIC8qKiBAbnVsbGFibGUgKi8KICBub3Rlcz86IHN0cmluZyB8IG51bGw7CiAgLyoqCiAgICAgKiBAbWF4SXRlbXMgMjAKICAgICAqIEBpdGVtcy5tYXhMZW5ndGggMzIKICAgICAqLwogIHByb2R1Y3RTa3VzOiBzdHJpbmdbXTsKICAvKioKICAgICAqIEBtYXhMZW5ndGggNjQKICAgICAqIEBudWxsYWJsZQogICAgICovCiAgcXVvdGVOdW1iZXI/OiBzdHJpbmcgfCBudWxsOwp9CgpleHBvcnQgdHlwZSBBZG1pbkxlYWRVcGRhdGVJbnB1dFN0YXR1cyA9IHR5cGVvZiBBZG1pbkxlYWRVcGRhdGVJbnB1dFN0YXR1c1trZXlvZiB0eXBlb2YgQWRtaW5MZWFkVXBkYXRlSW5wdXRTdGF0dXNdOwoKCmV4cG9ydCBjb25zdCBBZG1pbkxlYWRVcGRhdGVJbnB1dFN0YXR1cyA9IHsKICBuZXdfbGVhZDogJ25ld19sZWFkJywKICBzZWxlY3Rpbmc6ICdzZWxlY3RpbmcnLAogIHF1b3RlX3JlcXVlc3RlZDogJ3F1b3RlX3JlcXVlc3RlZCcsCiAgY2xvc2VkOiAnY2xvc2VkJywKfSBhcyBjb25zdDsKCmV4cG9ydCBpbnRlcmZhY2UgQWRtaW5MZWFkVXBkYXRlSW5wdXQgewogIHN0YXR1czogQWRtaW5MZWFkVXBkYXRlSW5wdXRTdGF0dXM7CiAgLyoqIEBudWxsYWJsZSAqLwogIG5vdGVzPzogc3RyaW5nIHwgbnVsbDsKfQoKZXhwb3J0IHR5cGUgQ3VzdG9tZXJMZWFkU3RhdHVzID0gdHlwZW9mIEN1c3RvbWVyTGVhZFN0YXR1c1trZXlvZiB0eXBlb2YgQ3VzdG9tZXJMZWFkU3RhdHVzXTsKCgpleHBvcnQgY29uc3QgQ3VzdG9tZXJMZWFkU3RhdHVzID0gewogIG5ld19sZWFkOiAnbmV3X2xlYWQnLAogIHNlbGVjdGluZzogJ3NlbGVjdGluZycsCiAgcXVvdGVfcmVxdWVzdGVkOiAncXVvdGVfcmVxdWVzdGVkJywKICBjbG9zZWQ6ICdjbG9zZWQnLAp9IGFzIGNvbnN0OwoKZXhwb3J0IGludGVyZmFjZSBDdXN0b21lckxlYWQgewogIGlkOiBudW1iZXI7CiAgbGVhZEtleTogc3RyaW5nOwogIHN0YXR1czogQ3VzdG9tZXJMZWFkU3RhdHVzOwogIHNvdXJjZTogc3RyaW5nOwogIC8qKiBAbnVsbGFibGUgKi8KICBuYW1lPzogc3RyaW5nIHwgbnVsbDsKICAvKiogQG51bGxhYmxlICovCiAgY29tcGFueT86IHN0cmluZyB8IG51bGw7CiAgLyoqIEBudWxsYWJsZSAqLwogIHBob25lPzogc3RyaW5nIHwgbnVsbDsKICAvKiogQG51bGxhYmxlICovCiAgZW1haWw/OiBzdHJpbmcgfCBudWxsOwogIC8qKiBAbnVsbGFibGUgKi8KICBwcm9qZWN0Pzogc3RyaW5nIHwgbnVsbDsKICAvKiogQG51bGxhYmxlICovCiAgYWRkcmVzcz86IHN0cmluZyB8IG51bGw7CiAgLyoqIEBudWxsYWJsZSAqLwogIG5vdGVzPzogc3RyaW5nIHwgbnVsbDsKICBwcm9kdWN0U2t1czogc3RyaW5nW107CiAgLyoqIEBudWxsYWJsZSAqLwogIHF1b3RlTnVtYmVyPzogc3RyaW5nIHwgbnVsbDsKICBjcmVhdGVkQXQ6IHN0cmluZzsKICB1cGRhdGVkQXQ6IHN0cmluZzsKfQoKZXhwb3J0IGludGVyZmFjZSBMaW5lQXV0aFVzZXIgewogIHVzZXJJZDogc3RyaW5nOwogIGRpc3BsYXlOYW1lOiBzdHJpbmc7CiAgLyoqIEBudWxsYWJsZSAqLwogIHBpY3R1cmVVcmw/OiBzdHJpbmcgfCBudWxsOwp9CgpleHBvcnQgaW50ZXJmYWNlIExpbmVBdXRoU3RhdHVzIHsKICBjb25maWd1cmVkOiBib29sZWFuOwogIGF1dGhlbnRpY2F0ZWQ6IGJvb2xlYW47CiAgdXNlcjogTGluZUF1dGhVc2VyIHwgbnVsbDsKfQoKZXhwb3J0IHR5cGUgQ3JlYXRlQWRtaW5TZXNzaW9uQm9keSA9IHsKICAvKiogQG1pbkxlbmd0aCA4ICovCiAgcGFzc3dvcmQ6IHN0cmluZzsKfTsKCmV4cG9ydCB0eXBlIFVwbG9hZEFkbWluQmFzaW5WaWRlb0JvZHkgPSB7CiAgZmlsZTogc3RyaW5nOwp9OwoK
+/**
+ * Generated by orval v8.20.0 🍺
+ * Do not edit manually.
+ * Api
+ * API specification
+ * OpenAPI spec version: 0.1.0
+ */
+export type HealthStatusLineLoginCallbackEnvironment = typeof HealthStatusLineLoginCallbackEnvironment[keyof typeof HealthStatusLineLoginCallbackEnvironment];
+
+
+export const HealthStatusLineLoginCallbackEnvironment = {
+  production: 'production',
+  development: 'development',
+  invalid: 'invalid',
+  missing: 'missing',
+} as const;
+
+export type HealthStatusLineLoginCallbackReason = typeof HealthStatusLineLoginCallbackReason[keyof typeof HealthStatusLineLoginCallbackReason];
+
+
+export const HealthStatusLineLoginCallbackReason = {
+  configured: 'configured',
+  missing: 'missing',
+  malformed: 'malformed',
+  not_https: 'not_https',
+  unexpected_host: 'unexpected_host',
+  unexpected_path: 'unexpected_path',
+  unexpected_format: 'unexpected_format',
+} as const;
+
+export type HealthStatusLineLogin = {
+  ready: boolean;
+  channelConfigured: boolean;
+  secretConfigured: boolean;
+  callbackUrlConfigured: boolean;
+  callbackUrlValid: boolean;
+  callbackEnvironment: HealthStatusLineLoginCallbackEnvironment;
+  callbackReason: HealthStatusLineLoginCallbackReason;
+};
+
+export interface HealthStatus {
+  status: string;
+  lineLogin: HealthStatusLineLogin;
+}
+
+export interface AdminSession {
+  authenticated: boolean;
+}
+
+export interface BasinPriceInput {
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  sku: string;
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  colorCode: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  colorName: string;
+  /** @minimum 0 */
+  priceTHB: number;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  category: string;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  categoryId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  dimensions: string;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  basinDimensions?: string | null;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  bowlMm?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 24
+     */
+  imageTone: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  imageUrl?: string | null;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  videoUrl?: string | null;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface RecordMetadata {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type BasinPrice = BasinPriceInput & RecordMetadata & ({
+  imageUrl: string;
+  videoUrl: string;
+  /** @nullable */
+  uploadedVideoUrl: string | null;
+  /** @nullable */
+  categoryId?: number | null;
+});
+
+export interface BasinCategoryInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+export type BasinCategory = BasinCategoryInput & RecordMetadata;
+
+export interface UploadedMedia {
+  filename: string;
+  contentType: string;
+  size: number;
+  originalName: string;
+  version: string;
+  url: string;
+}
+
+export interface InstalledStonePriceInput {
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  code: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @minimum 0 */
+  pricePerSqmTHB: number;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  categoryId: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 24
+     */
+  tone: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  imageUrl?: string | null;
+  aliases: string[];
+  active: boolean;
+  sortOrder: number;
+}
+
+export type InstalledStonePrice = InstalledStonePriceInput & RecordMetadata & {
+  imageUrl: string;
+};
+
+export interface InstalledStoneCategoryInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+export type InstalledStoneCategory = InstalledStoneCategoryInput & RecordMetadata;
+
+export interface SheetStonePriceInput {
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  code: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @minimum 0 */
+  basePriceTHB: number;
+  /** @minimum 0 */
+  price10PlusTHB: number;
+  /** @minimum 0 */
+  price50PlusTHB: number;
+  /**
+     * @minLength 1
+     * @maxLength 24
+     */
+  tone: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  imageUrl?: string | null;
+  aliases: string[];
+  active: boolean;
+  sortOrder: number;
+}
+
+export type SheetStonePrice = SheetStonePriceInput & RecordMetadata & {
+  imageUrl: string;
+};
+
+export interface Catalog {
+  basins: BasinPrice[];
+  categories: BasinCategory[];
+  installedStones: InstalledStonePrice[];
+  sheetStones: SheetStonePrice[];
+}
+
+export interface SupportChatInput {
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  message: string;
+}
+
+export type SupportChatResponseMatchedType = typeof SupportChatResponseMatchedType[keyof typeof SupportChatResponseMatchedType];
+
+
+export const SupportChatResponseMatchedType = {
+  basin: 'basin',
+  stone: 'stone',
+  none: 'none',
+} as const;
+
+export interface SupportCatalogItem {
+  code: string;
+  name: string;
+  category: string;
+  priceTHB: number;
+  dimensions: string;
+  /** @nullable */
+  basinDimensions?: string | null;
+}
+
+export interface SupportChatResponse {
+  reply: string;
+  matchedType: SupportChatResponseMatchedType;
+  /** @nullable */
+  matchedCode?: string | null;
+  compareItems?: SupportCatalogItem[];
+}
+
+export type LeadInputStatus = typeof LeadInputStatus[keyof typeof LeadInputStatus];
+
+
+export const LeadInputStatus = {
+  new_lead: 'new_lead',
+  selecting: 'selecting',
+  quote_requested: 'quote_requested',
+  closed: 'closed',
+} as const;
+
+export type LeadInputOrderMode = typeof LeadInputOrderMode[keyof typeof LeadInputOrderMode];
+
+
+export const LeadInputOrderMode = {
+  'quick-purchase': 'quick-purchase',
+  studio: 'studio',
+  sketch: 'sketch',
+} as const;
+
+/**
+ * @nullable
+ */
+export type LeadInputStudioData = { [key: string]: unknown } | null;
+
+export interface LeadInput {
+  /**
+     * @minLength 12
+     * @maxLength 120
+     */
+  leadKey: string;
+  status: LeadInputStatus;
+  /** @maxLength 64 */
+  source: string;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  name?: string | null;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  company?: string | null;
+  /**
+     * @maxLength 64
+     * @nullable
+     */
+  phone?: string | null;
+  /**
+     * @maxLength 240
+     * @nullable
+     */
+  email?: string | null;
+  /**
+     * @maxLength 240
+     * @nullable
+     */
+  project?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  /**
+     * @maxItems 20
+     * @items.maxLength 32
+     */
+  productSkus: string[];
+  /**
+     * @maxLength 64
+     * @nullable
+     */
+  quoteNumber?: string | null;
+  orderMode?: LeadInputOrderMode;
+  /** @nullable */
+  studioData?: LeadInputStudioData;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  sketchUrl?: string | null;
+}
+
+export type AdminLeadUpdateInputStatus = typeof AdminLeadUpdateInputStatus[keyof typeof AdminLeadUpdateInputStatus];
+
+
+export const AdminLeadUpdateInputStatus = {
+  new_lead: 'new_lead',
+  selecting: 'selecting',
+  quote_requested: 'quote_requested',
+  closed: 'closed',
+} as const;
+
+export interface AdminLeadUpdateInput {
+  status: AdminLeadUpdateInputStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];
+
+
+export const CustomerLeadStatus = {
+  new_lead: 'new_lead',
+  selecting: 'selecting',
+  quote_requested: 'quote_requested',
+  closed: 'closed',
+} as const;
+
+export type CustomerLeadOrderMode = typeof CustomerLeadOrderMode[keyof typeof CustomerLeadOrderMode];
+
+
+export const CustomerLeadOrderMode = {
+  'quick-purchase': 'quick-purchase',
+  studio: 'studio',
+  sketch: 'sketch',
+} as const;
+
+/**
+ * @nullable
+ */
+export type CustomerLeadStudioData = { [key: string]: unknown } | null;
+
+export interface CustomerLead {
+  id: number;
+  leadKey: string;
+  status: CustomerLeadStatus;
+  source: string;
+  /** @nullable */
+  name?: string | null;
+  /** @nullable */
+  company?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  project?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  productSkus: string[];
+  /** @nullable */
+  quoteNumber?: string | null;
+  orderMode?: CustomerLeadOrderMode;
+  /** @nullable */
+  studioData?: CustomerLeadStudioData;
+  /** @nullable */
+  sketchUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SketchLeadResponseNotificationStatus = typeof SketchLeadResponseNotificationStatus[keyof typeof SketchLeadResponseNotificationStatus];
+
+
+export const SketchLeadResponseNotificationStatus = {
+  notified: 'notified',
+  saved_not_notified: 'saved_not_notified',
+} as const;
+
+export interface SketchLeadResponse {
+  lead: CustomerLead;
+  notificationStatus: SketchLeadResponseNotificationStatus;
+}
+
+export interface LineAuthUser {
+  userId: string;
+  displayName: string;
+  /** @nullable */
+  pictureUrl?: string | null;
+}
+
+export interface LineAuthStatus {
+  configured: boolean;
+  authenticated: boolean;
+  user: LineAuthUser | null;
+}
+
+export type CreateAdminSessionBody = {
+  /** @minLength 8 */
+  password: string;
+};
+
+export type UploadAdminBasinVideoBody = {
+  file: string;
+};
+
+export type SubmitSketchLeadBody = {
+  /** Uploaded image file supplied as multipart content */
+  file: string;
+  /** JSON-encoded LeadInput metadata */
+  metadata: string;
+};
+

@@ -1,1 +1,290 @@
-ZXhwb3J0IHR5cGUgQmFzaW5DYXRlZ29yeSA9ICJjb3VudGVyIGJhc2luIiB8ICJ0YWxsIHZlcnRpY2FsIHdhc2hiYXNpbiIgfCAoc3RyaW5nICYge30pOwoKZXhwb3J0IHR5cGUgQmFzaW5Qcm9kdWN0ID0gewogIHNrdTogc3RyaW5nOwogIGNvbG9yQ29kZTogc3RyaW5nOwogIGNvbG9yTmFtZTogc3RyaW5nOwogIHByaWNlVEhCOiBudW1iZXI7CiAgY2F0ZWdvcnk6IHN0cmluZzsKICBkaW1lbnNpb25zOiBzdHJpbmc7CiAgYmFzaW5EaW1lbnNpb25zPzogc3RyaW5nOwogIGltYWdlVG9uZTogc3RyaW5nOwogIGltYWdlVXJsPzogc3RyaW5nOwogIHZpZGVvVXJsPzogc3RyaW5nOwp9OwoKZXhwb3J0IHR5cGUgUXVvdGVCYXNpbkxpbmUgPSB7CiAgc2t1OiBzdHJpbmc7CiAgcXVhbnRpdHk6IG51bWJlcjsKICBpbnN0YWxsYXRpb25TZWxlY3RlZDogYm9vbGVhbjsKfTsKCmV4cG9ydCB0eXBlIFN0b25lQ29uZmlnID0gewogIGVuYWJsZWQ6IGJvb2xlYW47CiAgbW9kZTogIndob2xlLXNoZWV0IiB8ICJpbnN0YWxsZWQiOwogIGNvbG9yOiBzdHJpbmc7CiAgcXVhbnRpdHk6IG51bWJlcjsKICB3aWR0aENtOiBudW1iZXI7CiAgbGVuZ3RoQ206IG51bWJlcjsKICBhcmVhU3FNOiBudW1iZXI7CiAgdW5pdFByaWNlOiBudW1iZXI7CiAgaW5zdGFsbGF0aW9uUHJpY2U6IG51bWJlcjsKfTsKCmV4cG9ydCB0eXBlIEN1c3RvbWVyRGV0YWlscyA9IHsKICBuYW1lOiBzdHJpbmc7CiAgY29tcGFueTogc3RyaW5nOwogIHBob25lOiBzdHJpbmc7CiAgZW1haWw6IHN0cmluZzsKICBhZGRyZXNzOiBzdHJpbmc7CiAgcHJvamVjdDogc3RyaW5nOwogIG5vdGVzOiBzdHJpbmc7Cn07CgpleHBvcnQgY29uc3QgSU5TVEFMTEFUSU9OX1BSSUNFID0gNTAwMDsKZXhwb3J0IGNvbnN0IFZBVF9SQVRFID0gMC4wNzsKZXhwb3J0IGNvbnN0IFNUT05FX1NIRUVUX1NJWkUgPSAiMC43NiDDlyAzLjYwIG0iOwpleHBvcnQgY29uc3QgU1RPTkVfU0hFRVRfVEhJQ0tORVNTID0gIuC4q+C4meC4siAxMiBtbSI7CmV4cG9ydCBjb25zdCBTVE9ORV9HTFVFX1BSSUNFID0gNTAwOwpleHBvcnQgY29uc3QgU1RPTkVfSU5TVEFMTEVEX01JTl9CQU5HS09LX1NRTSA9IDU7CmV4cG9ydCBjb25zdCBTVE9ORV9JTlNUQUxMRURfTUlOX1BST1ZJTkNFX1NRTSA9IDEwOwpleHBvcnQgY29uc3QgU1RPTkVfU01BTExfSk9CX0JBTkdLT0tfRkVFID0gNTAwMDsKZXhwb3J0IGNvbnN0IFNUT05FX1NNQUxMX0pPQl9QUk9WSU5DRV9GRUUgPSA4MDAwOwoKZXhwb3J0IHR5cGUgU3RvbmVDb2xvciA9IHsKICBuYW1lOiBzdHJpbmc7CiAgY29kZTogc3RyaW5nOwogIHRvbmU6IHN0cmluZzsKICBzaGVldFByaWNlVEhCOiBudW1iZXIgfCBudWxsOwogIGluc3RhbGxlZFByaWNlVEhCOiBudW1iZXIgfCBudWxsOwogIGRvY3VtZW50Q29kZXM6IHN0cmluZ1tdOwogIGltYWdlVXJsPzogc3RyaW5nOwp9OwoKLyoqCiAqIFRoZSB0d28gYXR0YWNoZWQgcHJpY2UgZG9jdW1lbnRzIHVzZSBzbGlnaHRseSBkaWZmZXJlbnQgc3BlbGxpbmdzIGZvciBhIGZldwogKiBwcm9kdWN0cy4gVGhlIGNhbm9uaWNhbCBjb2RlIGlzIHRoZSBvbmUgdXNlZCBieSB0aGUgaW5zdGFsbGVkLXByaWNlIGNhdGFsb2c7CiAqIGRvY3VtZW50Q29kZXMga2VlcHMgdGhlIHNvdXJjZSBzcGVsbGluZyBzZWFyY2hhYmxlIHdpdGhvdXQgbWVyZ2luZyBwcm9kdWN0cwogKiB3aG9zZSBjb2RlcyBhcmUgZ2VudWluZWx5IGRpZmZlcmVudCAoZm9yIGV4YW1wbGUgTkIwOTEgYW5kIE5CMDkxRikuCiAqCiAqIEEgbnVsbCBwcmljZSBtZWFucyB0aGF0IHRoZSBzb3VyY2UgZG9jdW1lbnQgZG9lcyBub3QgbGlzdCB0aGF0IGV4YWN0IGNvZGUuCiAqIFNob3dpbmcgaXQgYXMgdW5hdmFpbGFibGUgaXMgc2FmZXIgdGhhbiBzaWxlbnRseSBpbnZlbnRpbmcgYSBwcmljZS4KICovCmNvbnN0IHN0b25lQ2F0YWxvZ1Jvd3M6IEFycmF5PFtzdHJpbmcsIHN0cmluZywgbnVtYmVyIHwgbnVsbCwgbnVtYmVyIHwgbnVsbCwgc3RyaW5nLCBzdHJpbmdbXT9dPiA9IFsKICBbIkJXMDEwIiwgIkJyaWdodCBXaGl0ZSIsIDU5MDAsIDc1MDAsICIjZjVmM2ViIl0sCiAgWyJNVTAxMCIsICJFdmVybW9pbiBVbHRyYSBCcmlnaHQiLCA3NTAwLCA3NTAwLCAiI2ZiZmFmNCIsIFsiTVUgMDEwIiwgIkV2ZXJtaW9uIFVsdHJhIEJyaWdodCJdXSwKICBbIkVHNTAxIiwgIkdsYXJpbmcgV2hpdGUiLCA5MDAwLCA4NTAwLCAiI2RmZTVlOCIsIFsiRUcgNTAxIl1dLAogIFsiQUw2NDUiLCAiQXNwZW4gTGlseSIsIDkwMDAsIDg1MDAsICIjZjVmMGU5IiwgWyJBTCA2NDUiXV0sCiAgWyJBUzYxMCIsICJBc3BlbiBTbm93IiwgOTAwMCwgODUwMCwgIiNlOGU5ZTUiLCBbIkFTIDYxMCJdXSwKICBbIlNPNDIzIiwgIlNhbmRlZCBPbnl4IiwgOTAwMCwgODUwMCwgIiMzNDM3MzYiLCBbIlNPIDQyMyJdXSwKICBbIlNINDI4IiwgIlNhbmRlZCBIZXJvbiIsIDkwMDAsIDg1MDAsICIjYTRhYWE2IiwgWyJTSCA0MjgiXV0sCiAgWyJTRzQyMCIsICJTYW5kZWQgR3JleSIsIDkwMDAsIDg1MDAsICIjYjdiYmIzIiwgWyJTRyA0MjAiXV0sCiAgWyJTSTQxNCIsICJTYW5kZWQgSWNpY2xlIiwgOTAwMCwgODUwMCwgIiNmMWYwZWIiLCBbIlNJIDQxNCJdXSwKICBbIlNTNDQwIiwgIlNhbmRlZCBTYWhhcmEiLCA5MDAwLCA4NTAwLCAiI2M3YzNiOCIsIFsiU1MgNDQwIl1dLAogIFsiU0M0NTciLCAiU2FuZGVkIENoZXN0bnV0IiwgOTAwMCwgODUwMCwgIiM4MDZmNjQiLCBbIlNDIDQ1NyJdXSwKICBbIlNWNDMwIiwgIlNhbmRlZCBWZXJtaWxsaW9uIiwgOTAwMCwgODUwMCwgIiNhODk1N2YiLCBbIlNWIDQzMCJdXSwKICBbIkVHNTk1IiwgIk1ldGFsbGljIEdhbGF4eSIsIDk1MDAsIDg1MDAsICIjMWMxZDFhIiwgWyJFRyA1OTUiXV0sCiAgWyJOVDk3MCIsICJCb2xvZ25hIFRlcnJhenpvIiwgOTAwMCwgODUwMCwgIiNlOGU3ZGMiLCBbIk5UIDk3MCJdXSwKICBbIlBTODIwIiwgIlBlYmJsZSBTYXJhdG9nYSIsIDk1MDAsIDg1MDAsICIjZDJjZWM3IiwgWyJQUyA4MjAiXV0sCiAgWyJRUzI4OCIsICJRdWFycnkgU3RhcnJlZCIsIDk1MDAsIG51bGwsICIjNTI1NjVlIiwgWyJRUyAyODgiXV0sCiAgWyJWQzExMCIsICJDb3R0b24gV2hpdGUiLCAxMjAwMCwgOTUwMCwgIiNmN2Y4ZjMiLCBbIlZDIDExMCIsICJTdXByZW1lIENvdHRvbiBXaGl0ZSJdXSwKICBbIlZMMzQzIiwgIkxhdHRlIENyZWFtIiwgMTIwMDAsIDk1MDAsICIjZWVlNmRiIiwgWyJWTCAzNDMiLCAiU3VwcmVtZSBMYXR0ZSBDcmVhbSJdXSwKICBbIlZSMzIyIiwgIlJvdG9yIENsb3VkIiwgMTIwMDAsIDk1MDAsICIjZGZlMmU1IiwgWyJWUiAzMjIiLCAiU3VwcmVtZSBSb3RvciBDbG91ZCJdXSwKICBbIlZPMTcxIiwgIk9jZWFuIFZpZXciLCAxMjAwMCwgOTUwMCwgIiNkZWRiZDEiLCBbIlZPIDE3MSIsICJTdXByZW1lIE9jZWFuIFZpZXciXV0sCiAgWyJWRjExMyIsICJGbHV4IiwgMTIwMDAsIDk1MDAsICIjYmZjMmJkIiwgWyJWRiAxMTMiLCAiU3VwcmVtZSBGbHV4Il1dLAogIFsiVkwzMTIiLCAiUHJlbWllcmUgTGFyZ28iLCAxMjAwMCwgOTUwMCwgIiNmMWYyZWYiLCBbIlZMIDMxMiIsICJTdXByZW1lIExhcmdvIl1dLAogIFsiVk0xMTQiLCAiTW9ybmluZyBTa3kiLCAxMjAwMCwgOTUwMCwgIiNlZGYxZWQiLCBbIlZNIDExNCIsICJTdXByZW1lIE1vcm5pbmcgU2t5Il1dLAogIFsiVkYzNDUiLCAiRmxhdCBXaGl0ZSIsIDEyMDAwLCA5NTAwLCAiI2YxZWNlMCIsIFsiVkYgMzQ1IiwgIlN1cHJlbWUgRmxhdCBXaGl0ZSJdXSwKICBbIlZBMzExIiwgIkFyY3RpYyBXaGl0ZSIsIDEyMDAwLCA5NTAwLCAiI2U4ZWRmMCIsIFsiVkEgMzExIiwgIlN1cHJlbWUgQXJjdGljIFdoaXRlIl1dLAogIFsiVkQxNzUiLCAiRGFuZGVsaW9uIiwgMTIwMDAsIG51bGwsICIjYWViNWI1IiwgWyJWRCAxNzUiLCAiU3VwcmVtZSBEYW5kZWxpb24iXV0sCiAgWyJWVjM3NSIsICJWaXZhY2UiLCAxMjAwMCwgOTUwMCwgIiNlZWU5ZGYiLCBbIlZWIDM3NSIsICJBcmlhIFZpdmFjZSJdXSwKICBbIlZEMzgyIiwgIkRyaWZ0IiwgMTIwMDAsIDk1MDAsICIjYmJiY2I1IiwgWyJWRCAzODIiLCAiQXJpYSBEcmlmdCJdXSwKICBbIlZTMzExIiwgIlNoaW5lIiwgMTIwMDAsIDk1MDAsICIjZDlkYWQ2IiwgWyJWUyAzMTEiLCAiQXJpYSBTaGluZSJdXSwKICBbIlZTMzUxIiwgIlNvZnQiLCAxMjAwMCwgOTUwMCwgIiNlOGUyZDgiLCBbIlZTIDM1MSIsICJBcmlhIFNvZnQiXV0sCiAgWyJWUzM4NSIsICJTbGF0ZSIsIDEyMDAwLCA5NTAwLCAiIzc3N2E3OCIsIFsiVlMgMzg1IiwgIkFyaWEgU2xhdGUiXV0sCiAgWyJWMzQyIiwgIldoaXNwZXIiLCAxMjAwMCwgOTUwMCwgIiNkOWQxYzIiLCBbIlZXMzQyIiwgIlZXIDM0MiJdXSwKICBbIlZEMzQ1IiwgIkR1c2siLCAxMjAwMCwgOTUwMCwgIiNkNmM1YWIiLCBbIlZEIDM0NSIsICJBcmlhIER1c2siXV0sCiAgWyJWVjM1MSIsICJWZWlsIiwgMTIwMDAsIDk1MDAsICIjZThlMWRiIiwgWyJWViAzNTEiLCAiQXJpYSBWZWlsIl1dLAogIFsiUFQ4NTciLCAiUGViYmxlIFRlcnJhaW4iLCA5NTAwLCA4NTAwLCAiIzdmNjI0OSIsIFsiUFQgODU3Il1dLAogIFsiTlcwMTMiLCAiTmVvIFdoaXRlIiwgNDkwMCwgNzUwMCwgIiNmYmZiZjciXSwKICBbIkRVMTIxIiwgIkR1ZXNlIiwgNzAwMCwgODUwMCwgIiNjOGJjYWEiXSwKICBbIk5CMDkxRiIsICJOZW8gQmxhY2sgRmFjYWRlIiwgNzAwMCwgbnVsbCwgIiMwODBhMDkiLCBbIk5CIDA5MUYiXV0sCiAgWyJDVzAxMyIsICJDYW1lbGxpYSBXaGl0ZSIsIDcwMDAsIDc1MDAsICIjZTVkZWQyIiwgWyJDVyAwMTMiXV0sCiAgWyJFMDg1IiwgIkV2ZXJlc3QiLCA4MDAwLCA4NTAwLCAiI2Q2ZDdkMCIsIFsiRSAwODUiXV0sCiAgWyJHQzcxNCIsICJHbGFsZXQgQ3J5c3RhbHMiLCA4MDAwLCA4NTAwLCAiI2U4ZWFlNiJdLAogIFsiR0kwMTciLCAiR2xhbGV0IEljZSIsIDgwMDAsIDg1MDAsICIjZTFlNWUyIl0sCiAgWyJHRzg4NCIsICJHbGFsZXQgR3JleSIsIDgwMDAsIDg1MDAsICIjNmM3MDczIl0sCiAgWyJHRzg4NChOKSIsICJHbGFsZXQgR3JleSAoTikiLCA4MDAwLCBudWxsLCAiIzQ1NDk0ZCIsIFsiR0c4ODQgKE4pIl1dLAogIFsiTUIwMjUiLCAiTWlzdCBCZWVjaCIsIDgwMDAsIDg1MDAsICIjZTFkYmNkIl0sCiAgWyJNQzAxNiIsICJNaXN0IENvbmNyZXRlIiwgODAwMCwgODUwMCwgIiM4NTg3ODMiXSwKICBbIkdFMTE4IiwgIkdsYWxldCBFYm9ueSIsIDgwMDAsIDg1MDAsICIjMjUyNzI3Il0sCiAgWyJHVDAxMCIsICJHcmlnaW8gVGVycmF6em8iLCA4MDAwLCA4NTAwLCAiI2UyZTRkZiIsIFsiR3JpZ2lvIFRhcnJhenpvIl1dLAogIFsiQ1Q5NzAiLCAiQ2hlc3MgVGVycmF6em8iLCA4MDAwLCBudWxsLCAiI2Q4ZDdkMSJdLAogIFsiQ1Q5ODEiLCAiQ2xheSBUZXJyYXp6byIsIDgwMDAsIG51bGwsICIjYTdhMmE4Il0sCiAgWyJCVDAxMCIsICJCYXNhbHQgVGVycmF6em8iLCA4MDAwLCA4NTAwLCAiIzI5MmIyYiJdLAogIFsiQlI4MTZPIiwgIkJsYWNrIFJpdmVyIiwgOTUwMCwgOTUwMCwgIiMxMDExMTIiLCBbIkJSODE2IiwgIkJSIDgxNiJdXSwKICBbIktaODAyIiwgIlplbiBBdXR1bW4iLCA5NTAwLCA5NTAwLCAiI2I4YjBhNSJdLAogIFsiS1o4MDJOIiwgIlplbiBBdXR1bW4gTmV3IiwgOTUwMCwgOTUwMCwgIiNjNWM4YzUiLCBbIktaODAyKE4pIiwgIktaIDgwMk4iXV0sCiAgWyJNUzExMiIsICJNYWhvZ2FueSBTdG9uZSIsIDk1MDAsIDk1MDAsICIjOWI3NjU5Il0sCiAgWyJWVzIxMyIsICJWZW5hIFdoaXRlIiwgOTUwMCwgOTUwMCwgIiNmMWYxZTkiXSwKICBbIlJXMzE2IiwgIlJpdmVyIFdoaXRlIiwgOTUwMCwgOTUwMCwgIiNlNWU1ZGMiXSwKICBbIkNPNTIxTSIsICJDbG91ZCBPbnl4IiwgOTUwMCwgOTUwMCwgIiNlNGU3ZTIiLCBbIkNPIDUyMU0iXV0sCiAgWyJDUzUzMk0iLCAiQ2FzY2FkZSBTbG9wZSIsIDk1MDAsIDk1MDAsICIjZGJlYWY4IiwgWyJDUyA1MzJNIl1dLAogIFsiSEo1MjRNIiwgIkhvbmV5IEphZGUiLCA5NTAwLCA5NTAwLCAiI2M4YjljMCIsIFsiSEogNTI0TSIsICJIb25lciBKYWRlIiwgIkhvbmV5IEphZGYiXV0sCiAgWyJKRzUzMk0iLCAiSmFkZSBHb2xkZHVzdCIsIDk1MDAsIDk1MDAsICIjYWRjNjljIiwgWyJKRyA1MzJNIl1dLAogIFsiU1c1MzRNIiwgIlN0YXJyeSBXaGl0ZSIsIDk1MDAsIDk1MDAsICIjZThlOGUyIiwgWyJTVyA1MzRNIl1dLAogIFsiVlcwNTAiLCAiVmVuZSBXaGl0ZSIsIDk1MDAsIDk1MDAsICIjZjVmMmViIiwgWyJWVyAwNTAiXV0sCiAgWyJXSDExMiIsICJXaXRjaCBIYXplbCIsIDk1MDAsIDk1MDAsICIjZDBjNmI2IiwgWyJXSDEyMiIsICJXSCAxMjIiLCAiV0ggMTEyIl1dLAogIFsiV1cwMDEiLCAiV2F2ZSBXaGl0ZSIsIDk1MDAsIG51bGwsICIjZThlN2RmIiwgWyJXVyAwMDEiXV0sCiAgWyJPTTM5MSIsICJPY2VhbiBNYXJibGUiLCA5NTAwLCBudWxsLCAiI2JjYjliMSIsIFsiT00gMzkxIl1dLAogIFsiQkw0NjEiLCAiQm9sZCBMaW5lcyIsIDk1MDAsIDk1MDAsICIjZjJlZWU1IiwgWyJCTCA0NjEiXV0sCiAgWyJTTDUzMSIsICJTYW5keSBMaW5lcyIsIDk1MDAsIDk1MDAsICIjZjBlZWU5IiwgWyJTTCA1MzEiXV0sCiAgWyJNTTU0MSIsICJNZXRhbGxpYyBNYXJibGUiLCA5NTAwLCBudWxsLCAiI2U4ZWVlYSIsIFsiTU0gNTQxIl1dLAogIFsiTUU2NDIiLCAiTWlzdCBFZ2ciLCA4MDAwLCA4NTAwLCAiI2Q3ZDlkMyIsIFsiTUUgNjQyIl1dLAogIFsiQVAxMDAiLCAiQXBleCIsIDgwMDAsIDg1MDAsICIjZGRkNWM0IiwgWyJBUCAxMDAiXV0sCiAgWyJOQTE2MCIsICJOYXZpcyIsIDgwMDAsIDg1MDAsICIjZTFlMWQ4IiwgWyJOQSAxNjAiXV0sCiAgWyJSQzQ2OSIsICJSb2NrIENsaWZmcyIsIDEyMDAwLCA5NTAwLCAiI2UyZGVkNCIsIFsiUkMgNDY5Il1dLAogIFsiTkIwOTEiLCAiTmVvIEJsYWNrIiwgbnVsbCwgODUwMCwgIiMwOTBhMDkiXSwKICBbIktaNjk1IiwgIlplbiBHcmV5IiwgbnVsbCwgODUwMCwgIiNjOGNkZDYiXSwKICBbIkFJNjEyIiwgIkFzcGVuIEljZWJlcmciLCBudWxsLCA4NTAwLCAiI2U0ZTVlMCJdLAogIFsiQUE2MjUiLCAiQXNwZW4gQWxkZXIiLCBudWxsLCA4NTAwLCAiI2FlYjdjMiJdLAogIFsiUVM4MjJOIiwgIlF1YXJyeSBTdGFycmVkIiwgbnVsbCwgODUwMCwgIiM1MjU2NWUiXSwKICBbIlZMMTU1IiwgIkxvYW0iLCBudWxsLCA5NTAwLCAiIzhlNzc2NiJdLAogIFsiVkQxMjYiLCAiRGF3biIsIG51bGwsIDk1MDAsICIjZTFlMmRkIl0sCl07CgpleHBvcnQgY29uc3QgU1RPTkVfQ09MT1JTOiBTdG9uZUNvbG9yW10gPSBzdG9uZUNhdGFsb2dSb3dzLm1hcCgoW2NvZGUsIG5hbWUsIHNoZWV0UHJpY2VUSEIsIGluc3RhbGxlZFByaWNlVEhCLCB0b25lLCBkb2N1bWVudENvZGVzXSkgPT4gKHsKICBjb2RlLAogIG5hbWUsCiAgdG9uZSwKICBzaGVldFByaWNlVEhCLAogIGluc3RhbGxlZFByaWNlVEhCLAogIGRvY3VtZW50Q29kZXM6IGRvY3VtZW50Q29kZXMgPz8gW10sCn0pKTsKCmV4cG9ydCBjb25zdCBzdG9uZUNvbG9yQnlOYW1lID0gKGlkZW50aWZpZXI6IHN0cmluZykgPT4gewogIGNvbnN0IG5vcm1hbGl6ZWQgPSBpZGVudGlmaWVyLnRyaW0oKS50b0xvd2VyQ2FzZSgpOwogIHJldHVybiBTVE9ORV9DT0xPUlMuZmluZCgoY29sb3IpID0+CiAgICBbY29sb3IubmFtZSwgY29sb3IuY29kZSwgLi4uY29sb3IuZG9jdW1lbnRDb2Rlc10uc29tZSgodmFsdWUpID0+IHZhbHVlLnRvTG93ZXJDYXNlKCkgPT09IG5vcm1hbGl6ZWQpLAogICkgPz8gU1RPTkVfQ09MT1JTWzBdOwp9OwoKZXhwb3J0IGNvbnN0IHN0b25lU2hlZXRVbml0UHJpY2UgPSAoY29sb3JJZGVudGlmaWVyOiBzdHJpbmcsIHF1YW50aXR5OiBudW1iZXIpID0+IHsKICBjb25zdCBjb2xvciA9IHN0b25lQ29sb3JCeU5hbWUoY29sb3JJZGVudGlmaWVyKTsKICBpZiAoY29sb3Iuc2hlZXRQcmljZVRIQiA9PT0gbnVsbCkgcmV0dXJuIG51bGw7CiAgY29uc3QgcHJvbW90aW9uRXhjbHVkZWQgPSBbIkJXMDEwIiwgIk5XMDEzIl0uaW5jbHVkZXMoY29sb3IuY29kZSk7CiAgaWYgKHF1YW50aXR5ID49IDUwICYmICFwcm9tb3Rpb25FeGNsdWRlZCkgcmV0dXJuIE1hdGgucm91bmQoY29sb3Iuc2hlZXRQcmljZVRIQiAqIDAuOTUpOwogIGlmIChxdWFudGl0eSA+PSAxMCAmJiAhcHJvbW90aW9uRXhjbHVkZWQpIHJldHVybiBNYXRoLm1heCgwLCBjb2xvci5zaGVldFByaWNlVEhCIC0gMjAwKTsKICByZXR1cm4gY29sb3Iuc2hlZXRQcmljZVRIQjsKfTsKCmV4cG9ydCBjb25zdCBzdG9uZUluc3RhbGxlZFVuaXRQcmljZSA9IChjb2xvcklkZW50aWZpZXI6IHN0cmluZykgPT4KICBzdG9uZUNvbG9yQnlOYW1lKGNvbG9ySWRlbnRpZmllcikuaW5zdGFsbGVkUHJpY2VUSEI7Cgpjb25zdCBjb3VudGVyRGltcyA9IHsgZGltZW5zaW9uczogIjYwMCDDlyA4MDAgw5cgMjAwIG1tIiwgYmFzaW5EaW1lbnNpb25zOiAiMzUwIMOXIDUwMCDDlyAxMzAgbW0iIH07CmNvbnN0IGNvdW50ZXJXaWRlRGltcyA9IHsgZGltZW5zaW9uczogIjYwMCDDlyA4MDAgw5cgMjAwIG1tIiwgYmFzaW5EaW1lbnNpb25zOiAiNDAwIMOXIDUwMCDDlyAxMzAgbW0iIH07CgpleHBvcnQgY29uc3QgQkFTSU5fUFJPRFVDVFM6IEJhc2luUHJvZHVjdFtdID0gWwogIFsiS0YwMDEiLCAiVlMzMTEiLCAiU2hpbmUiLCAxOTAwMCwgY291bnRlckRpbXNdLAogIFsiS0YwMDIiLCAiVlMzNTEiLCAiU29mdCIsIDE5MDAwLCBjb3VudGVyRGltc10sCiAgWyJLRjAwMyIsICJSVzMxNiIsICJSaXZlciBXaGl0ZSIsIDE5MDAwLCBjb3VudGVyRGltc10sCiAgWyJLRjAwNCIsICJWVzA1MCIsICJXZW5lIFdoaXRlIiwgMTkwMDAsIGNvdW50ZXJEaW1zXSwKICBbIktGMDA1IiwgIkhKNTI0TSIsICJIb25lciBKYWRlIiwgMTkwMDAsIGNvdW50ZXJEaW1zXSwKICBbIktGMDA2IiwgIlJXMzE2IiwgIlJpdmVyIFdoaXRlIiwgMTkwMDAsIGNvdW50ZXJEaW1zXSwKICBbIktGMDA3IiwgIlZMMzQzIiwgIkxhdHRlIENyZWFtIiwgMTkwMDAsIGNvdW50ZXJEaW1zXSwKICBbIktGMDA4IiwgIlNJNDE0IiwgIlNhbmRlZCBJY2ljZSIsIDE3MDAwLCBjb3VudGVyRGltc10sCiAgWyJLRjAwOSIsICJOQjA5MSIsICJOZW8gQmxhY2siLCAxNzAwMCwgY291bnRlckRpbXNdLAogIFsiS0YwMTAiLCAiTkEwMTYiLCAiTmF2aXMiLCAxNzAwMCwgY291bnRlckRpbXNdLAogIFsiS0YwMTEiLCAiVkQzODIiLCAiRHJpZnQiLCAxOTAwMCwgY291bnRlcldpZGVEaW1zXSwKICBbIktGMDEyIiwgIkNTNTIyTSIsICJDYXNjYWRlIFNsb3BlIiwgMTkwMDAsIGNvdW50ZXJXaWRlRGltc10sCiAgWyJLRjAxMyIsICJXUjMyMiIsICJSb3RvciBDbG91ZCIsIDE5MDAwLCBjb3VudGVyV2lkZURpbXNdLAogIFsiS0YwMTQiLCAiRUc1MDEiLCAiR2xhcmluZyBXaGl0ZSIsIDE3MDAwLCBjb3VudGVyV2lkZURpbXNdLAogIFsiS0YwMTUiLCAiR0c4ODQiLCAiR2xhbGV0IEdyZXkiLCAyMDAwMCwgY291bnRlcldpZGVEaW1zXSwKICBbIktGMDE2IiwgIktaODAyIiwgIlplbiBBdXR1bW4iLCAxOTAwMCwgY291bnRlcldpZGVEaW1zXSwKICBbIktGMDE3IiwgIktaODAyTiIsICJaZW4gQXV0dW1uIE5ldyIsIDE5MDAwLCBjb3VudGVyV2lkZURpbXNdLAogIFsiS0YwMTgiLCAiR0kwMTciLCAiR2xhbGV0IEljZSIsIDE3MDAwLCBjb3VudGVyV2lkZURpbXNdLApdLm1hcCgoW3NrdSwgY29sb3JDb2RlLCBjb2xvck5hbWUsIHByaWNlVEhCLCBkaW1zXSwgaW5kZXgpID0+ICh7CiAgc2t1OiBza3UgYXMgc3RyaW5nLAogIGNvbG9yQ29kZTogY29sb3JDb2RlIGFzIHN0cmluZywKICBjb2xvck5hbWU6IGNvbG9yTmFtZSBhcyBzdHJpbmcsCiAgcHJpY2VUSEI6IHByaWNlVEhCIGFzIG51bWJlciwKICBjYXRlZ29yeTogImNvdW50ZXIgYmFzaW4iIGFzIEJhc2luQ2F0ZWdvcnksCiAgZGltZW5zaW9uczogKGRpbXMgYXMgdHlwZW9mIGNvdW50ZXJEaW1zKS5kaW1lbnNpb25zLAogIGJhc2luRGltZW5zaW9uczogKGRpbXMgYXMgdHlwZW9mIGNvdW50ZXJEaW1zKS5iYXNpbkRpbWVuc2lvbnMsCiAgaW1hZ2VUb25lOiBbIiNkZmU0ZGYiLCAiI2QyZDBjOSIsICIjYzZjZGM5IiwgIiNlY2U3ZGIiLCAiIzllYWE5YSIsICIjZDVkYWQzIl1baW5kZXggJSA2XSwKfSkpOwoKY29uc3QgdGFsbFByb2R1Y3RzOiBBcnJheTxbc3RyaW5nLCBzdHJpbmcsIHN0cmluZywgbnVtYmVyLCBzdHJpbmcsIHN0cmluZyB8IHVuZGVmaW5lZF0+ID0gWwogIFsiS0YwMTkiLCAiVkQzNDUiLCAiRHVzayIsIDI0MDAwLCAiNDAwIMOXIDQwMCDDlyA4NTAgbW0iLCAiMzUwIMOXIDM1MCDDlyAxNTAgbW0iXSwKICBbIktGMDIwIiwgIlZTMzg1IiwgIlNsYXRlIiwgMjQwMDAsICI0MDAgw5cgNDAwIMOXIDg1MCBtbSIsICIzNTAgw5cgMzUwIMOXIDE1MCBtbSJdLAogIFsiS0YwMjEiLCAiS1o4MDJOIiwgIlplbiBBdXR1bW4gTmV3IiwgMjUwMDAsICI0MDAgw5cgNDAwIMOXIDg1MCBtbSIsICIzNTAgw5cgMzUwIMOXIDE1MCBtbSJdLAogIFsiS0YwMjIiLCAiTlcwMTMiLCAiTmVvIFdoaXRlIiwgMjQwMDAsICI0MDAgw5cgNDAwIMOXIDg1MCBtbSIsICIzNTAgw5cgMzUwIMOXIDE1MCBtbSJdLAogIFsiS0YwMjMiLCAiV0gxMTIiLCAiV2l0Y2ggSGF6ZWwiLCAyNjAwMCwgIjQwMCDDlyA0MDAgw5cgODUwIG1tIiwgIsOYMzUwIMOXIDE1MCBtbSJdLAogIFsiS0YwMjQiLCAiVjM0MiIsICJXaGlzcGVyIiwgMjUwMDAsICI0MDAgw5cgNDAwIMOXIDg1MCBtbSIsICLDmDM1MCDDlyAxNTAgbW0iXSwKICBbIktGMDI1IiwgIk5CMDkxIiwgIk5lbyBCbGFjayIsIDI0MDAwLCAiNDAwIMOXIDQwMCDDlyA4NTAgbW0iLCAiw5gzNTAgw5cgMTUwIG1tIl0sCiAgWyJLRjAyNiIsICJOVzAxMyIsICJOZW8gV2hpdGUiLCAyNDAwMCwgIjQwMCDDlyA0MDAgw5cgODUwIG1tIiwgIsOYMzUwIMOXIDE1MCBtbSJdLAogIFsiS0YwMjciLCAiU1c1MzRNIiwgIlN0YXJyeSBXaGl0ZSIsIDI4MDAwLCAiNDAwIMOXIDYwMCDDlyA4NTAgbW0iLCAiMzcwIMOXIDU3MCDDlyAxNTAgbW0iXSwKICBbIktGMDI4IiwgIlZWMzUxIiwgIlZlaWwiLCAzMjAwMCwgIjQwMCDDlyA2MDAgw5cgODUwIG1tIiwgIjM3MCDDlyA1NzAgw5cgMTUwIG1tIl0sCiAgWyJLRjAyOSIsICJFRzU5NSIsICJNZXRhbGxpYyBHYWxheHkiLCAxNjAwMCwgIjQwMCDDlyA0MDAgw5cgMTAwMCBtbSIsIHVuZGVmaW5lZF0sCiAgWyJLRjAzMCIsICJHVDAxMCIsICJHcmlnaW8gVGVycmF6em8iLCAxNjAwMCwgIjQwMCDDlyA0MDAgw5cgMTAwMCBtbSIsIHVuZGVmaW5lZF0sCl07CgpleHBvcnQgY29uc3QgVEFMTF9QUk9EVUNUUzogQmFzaW5Qcm9kdWN0W10gPSB0YWxsUHJvZHVjdHMubWFwKChbc2t1LCBjb2xvckNvZGUsIGNvbG9yTmFtZSwgcHJpY2VUSEIsIGRpbWVuc2lvbnMsIGJhc2luRGltZW5zaW9uc10sIGluZGV4KSA9PiAoewogIHNrdSwgY29sb3JDb2RlLCBjb2xvck5hbWUsIHByaWNlVEhCLAogIGNhdGVnb3J5OiAidGFsbCB2ZXJ0aWNhbCB3YXNoYmFzaW4iLAogIGRpbWVuc2lvbnMsIGJhc2luRGltZW5zaW9ucywKICBpbWFnZVRvbmU6IFsiIzcxNzc3OSIsICIjZGZlMGQ3IiwgIiNhNTliODQiLCAiI2U2ZTJkNSIsICIjNGQ1MDUwIiwgIiNjYWM5YzAiXVtpbmRleCAlIDZdLAp9KSk7CgpleHBvcnQgY29uc3QgUFJPRFVDVFMgPSBbLi4uQkFTSU5fUFJPRFVDVFMsIC4uLlRBTExfUFJPRFVDVFNdOwpleHBvcnQgY29uc3QgcHJvZHVjdEJ5U2t1ID0gKHNrdTogc3RyaW5nKSA9PiBQUk9EVUNUUy5maW5kKChwcm9kdWN0KSA9PiBwcm9kdWN0LnNrdSA9PT0gc2t1KTsKCmV4cG9ydCBmdW5jdGlvbiBiYXNpblByb2R1Y3RGcm9tQ2F0YWxvZyhpdGVtOiB7CiAgc2t1OiBzdHJpbmc7CiAgY29sb3JDb2RlOiBzdHJpbmc7CiAgY29sb3JOYW1lOiBzdHJpbmc7CiAgcHJpY2VUSEI6IG51bWJlcjsKICBjYXRlZ29yeTogc3RyaW5nOwogIGRpbWVuc2lvbnM6IHN0cmluZzsKICBiYXNpbkRpbWVuc2lvbnM/OiBzdHJpbmcgfCBudWxsOwogIGltYWdlVG9uZTogc3RyaW5nOwogIGltYWdlVXJsPzogc3RyaW5nIHwgbnVsbDsKICB2aWRlb1VybD86IHN0cmluZyB8IG51bGw7Cn0pOiBCYXNpblByb2R1Y3QgewogIHJldHVybiB7CiAgICBza3U6IGl0ZW0uc2t1LAogICAgY29sb3JDb2RlOiBpdGVtLmNvbG9yQ29kZSwKICAgIGNvbG9yTmFtZTogaXRlbS5jb2xvck5hbWUsCiAgICBwcmljZVRIQjogaXRlbS5wcmljZVRIQiwKICAgIGNhdGVnb3J5OiBpdGVtLmNhdGVnb3J5IGFzIEJhc2luQ2F0ZWdvcnksCiAgICBkaW1lbnNpb25zOiBpdGVtLmRpbWVuc2lvbnMsCiAgICBiYXNpbkRpbWVuc2lvbnM6IGl0ZW0uYmFzaW5EaW1lbnNpb25zID8/IHVuZGVmaW5lZCwKICAgIGltYWdlVG9uZTogaXRlbS5pbWFnZVRvbmUsCiAgICBpbWFnZVVybDogaXRlbS5pbWFnZVVybD8udHJpbSgpIHx8IHVuZGVmaW5lZCwKICAgIHZpZGVvVXJsOiBpdGVtLnZpZGVvVXJsID8/IHVuZGVmaW5lZCwKICB9Owp9CgpleHBvcnQgY29uc3QgZm9ybWF0VEhCID0gKGFtb3VudDogbnVtYmVyKSA9PgogIG5ldyBJbnRsLk51bWJlckZvcm1hdCgidGgtVEgiLCB7IHN0eWxlOiAiY3VycmVuY3kiLCBjdXJyZW5jeTogIlRIQiIsIG1heGltdW1GcmFjdGlvbkRpZ2l0czogMCB9KS5mb3JtYXQoYW1vdW50KTs=
+export type BasinCategory = "counter basin" | "tall vertical washbasin" | (string & {});
+
+export type BasinProduct = {
+  sku: string;
+  colorCode: string;
+  colorName: string;
+  priceTHB: number;
+  category: string;
+  dimensions: string;
+  basinDimensions?: string;
+  imageTone: string;
+  imageUrl?: string;
+  videoUrl?: string;
+};
+
+export type QuoteBasinLine = {
+  sku: string;
+  quantity: number;
+  installationSelected: boolean;
+};
+
+export type StoneConfig = {
+  enabled: boolean;
+  mode: "whole-sheet" | "installed";
+  color: string;
+  quantity: number;
+  widthCm: number;
+  lengthCm: number;
+  areaSqM: number;
+  unitPrice: number;
+  installationPrice: number;
+};
+
+export type CustomerDetails = {
+  name: string;
+  company: string;
+  taxId: string;
+  phone: string;
+  email: string;
+  purchasingDepartment: string;
+  address: string;
+  project: string;
+  site: string;
+  notes: string;
+};
+
+export const INSTALLATION_PRICE = 5000;
+export const VAT_RATE = 0.07;
+export const STONE_SHEET_SIZE = "0.76 × 3.60 m";
+export const STONE_SHEET_THICKNESS = "หนา 12 mm";
+export const STONE_GLUE_PRICE = 500;
+export const STONE_INSTALLED_MIN_BANGKOK_SQM = 5;
+export const STONE_INSTALLED_MIN_PROVINCE_SQM = 10;
+export const STONE_SMALL_JOB_BANGKOK_FEE = 5000;
+export const STONE_SMALL_JOB_PROVINCE_FEE = 8000;
+
+export type StoneColor = {
+  name: string;
+  code: string;
+  tone: string;
+  sheetPriceTHB: number | null;
+  installedPriceTHB: number | null;
+  documentCodes: string[];
+  imageUrl?: string;
+};
+
+/**
+ * The two attached price documents use slightly different spellings for a few
+ * products. The canonical code is the one used by the installed-price catalog;
+ * documentCodes keeps the source spelling searchable without merging products
+ * whose codes are genuinely different (for example NB091 and NB091F).
+ *
+ * A null price means that the source document does not list that exact code.
+ * Showing it as unavailable is safer than silently inventing a price.
+ */
+const stoneCatalogRows: Array<[string, string, number | null, number | null, string, string[]?]> = [
+  ["BW010", "Bright White", 5900, 7500, "#f5f3eb"],
+  ["MU010", "Evermoin Ultra Bright", 7500, 7500, "#fbfaf4", ["MU 010", "Evermion Ultra Bright"]],
+  ["EG501", "Glaring White", 9000, 8500, "#dfe5e8", ["EG 501"]],
+  ["AL645", "Aspen Lily", 9000, 8500, "#f5f0e9", ["AL 645"]],
+  ["AS610", "Aspen Snow", 9000, 8500, "#e8e9e5", ["AS 610"]],
+  ["SO423", "Sanded Onyx", 9000, 8500, "#343736", ["SO 423"]],
+  ["SH428", "Sanded Heron", 9000, 8500, "#a4aaa6", ["SH 428"]],
+  ["SG420", "Sanded Grey", 9000, 8500, "#b7bbb3", ["SG 420"]],
+  ["SI414", "Sanded Icicle", 9000, 8500, "#f1f0eb", ["SI 414"]],
+  ["SS440", "Sanded Sahara", 9000, 8500, "#c7c3b8", ["SS 440"]],
+  ["SC457", "Sanded Chestnut", 9000, 8500, "#806f64", ["SC 457"]],
+  ["SV430", "Sanded Vermillion", 9000, 8500, "#a8957f", ["SV 430"]],
+  ["EG595", "Metallic Galaxy", 9500, 8500, "#1c1d1a", ["EG 595"]],
+  ["NT970", "Bologna Terrazzo", 9000, 8500, "#e8e7dc", ["NT 970"]],
+  ["PS820", "Pebble Saratoga", 9500, 8500, "#d2cec7", ["PS 820"]],
+  ["QS288", "Quarry Starred", 9500, null, "#52565e", ["QS 288"]],
+  ["VC110", "Cotton White", 12000, 9500, "#f7f8f3", ["VC 110", "Supreme Cotton White"]],
+  ["VL343", "Latte Cream", 12000, 9500, "#eee6db", ["VL 343", "Supreme Latte Cream"]],
+  ["VR322", "Rotor Cloud", 12000, 9500, "#dfe2e5", ["VR 322", "Supreme Rotor Cloud"]],
+  ["VO171", "Ocean View", 12000, 9500, "#dedbd1", ["VO 171", "Supreme Ocean View"]],
+  ["VF113", "Flux", 12000, 9500, "#bfc2bd", ["VF 113", "Supreme Flux"]],
+  ["VL312", "Premiere Largo", 12000, 9500, "#f1f2ef", ["VL 312", "Supreme Largo"]],
+  ["VM114", "Morning Sky", 12000, 9500, "#edf1ed", ["VM 114", "Supreme Morning Sky"]],
+  ["VF345", "Flat White", 12000, 9500, "#f1ece0", ["VF 345", "Supreme Flat White"]],
+  ["VA311", "Arctic White", 12000, 9500, "#e8edf0", ["VA 311", "Supreme Arctic White"]],
+  ["VD175", "Dandelion", 12000, null, "#aeb5b5", ["VD 175", "Supreme Dandelion"]],
+  ["VV375", "Vivace", 12000, 9500, "#eee9df", ["VV 375", "Aria Vivace"]],
+  ["VD382", "Drift", 12000, 9500, "#bbbcb5", ["VD 382", "Aria Drift"]],
+  ["VS311", "Shine", 12000, 9500, "#d9dad6", ["VS 311", "Aria Shine"]],
+  ["VS351", "Soft", 12000, 9500, "#e8e2d8", ["VS 351", "Aria Soft"]],
+  ["VS385", "Slate", 12000, 9500, "#777a78", ["VS 385", "Aria Slate"]],
+  ["V342", "Whisper", 12000, 9500, "#d9d1c2", ["VW342", "VW 342"]],
+  ["VD345", "Dusk", 12000, 9500, "#d6c5ab", ["VD 345", "Aria Dusk"]],
+  ["VV351", "Veil", 12000, 9500, "#e8e1db", ["VV 351", "Aria Veil"]],
+  ["PT857", "Pebble Terrain", 9500, 8500, "#7f6249", ["PT 857"]],
+  ["NW013", "Neo White", 4900, 7500, "#fbfbf7"],
+  ["DU121", "Duese", 7000, 8500, "#c8bcaa"],
+  ["NB091F", "Neo Black Facade", 7000, null, "#080a09", ["NB 091F"]],
+  ["CW013", "Camellia White", 7000, 7500, "#e5ded2", ["CW 013"]],
+  ["E085", "Everest", 8000, 8500, "#d6d7d0", ["E 085"]],
+  ["GC714", "Glalet Crystals", 8000, 8500, "#e8eae6"],
+  ["GI017", "Glalet Ice", 8000, 8500, "#e1e5e2"],
+  ["GG884", "Glalet Grey", 8000, 8500, "#6c7073"],
+  ["GG884(N)", "Glalet Grey (N)", 8000, null, "#45494d", ["GG884 (N)"]],
+  ["MB025", "Mist Beech", 8000, 8500, "#e1dbcd"],
+  ["MC016", "Mist Concrete", 8000, 8500, "#858783"],
+  ["GE118", "Glalet Ebony", 8000, 8500, "#252727"],
+  ["GT010", "Grigio Terrazzo", 8000, 8500, "#e2e4df", ["Grigio Tarrazzo"]],
+  ["CT970", "Chess Terrazzo", 8000, null, "#d8d7d1"],
+  ["CT981", "Clay Terrazzo", 8000, null, "#a7a2a8"],
+  ["BT010", "Basalt Terrazzo", 8000, 8500, "#292b2b"],
+  ["BR816O", "Black River", 9500, 9500, "#101112", ["BR816", "BR 816"]],
+  ["KZ802", "Zen Autumn", 9500, 9500, "#b8b0a5"],
+  ["KZ802N", "Zen Autumn New", 9500, 9500, "#c5c8c5", ["KZ802(N)", "KZ 802N"]],
+  ["MS112", "Mahogany Stone", 9500, 9500, "#9b7659"],
+  ["VW213", "Vena White", 9500, 9500, "#f1f1e9"],
+  ["RW316", "River White", 9500, 9500, "#e5e5dc"],
+  ["CO521M", "Cloud Onyx", 9500, 9500, "#e4e7e2", ["CO 521M"]],
+  ["CS532M", "Cascade Slope", 9500, 9500, "#dbeaf8", ["CS 532M"]],
+  ["HJ524M", "Honey Jade", 9500, 9500, "#c8b9c0", ["HJ 524M", "Honer Jade", "Honey Jadf"]],
+  ["JG532M", "Jade Golddust", 9500, 9500, "#adc69c", ["JG 532M"]],
+  ["SW534M", "Starry White", 9500, 9500, "#e8e8e2", ["SW 534M"]],
+  ["VW050", "Vene White", 9500, 9500, "#f5f2eb", ["VW 050"]],
+  ["WH112", "Witch Hazel", 9500, 9500, "#d0c6b6", ["WH122", "WH 122", "WH 112"]],
+  ["WW001", "Wave White", 9500, null, "#e8e7df", ["WW 001"]],
+  ["OM391", "Ocean Marble", 9500, null, "#bcb9b1", ["OM 391"]],
+  ["BL461", "Bold Lines", 9500, 9500, "#f2eee5", ["BL 461"]],
+  ["SL531", "Sandy Lines", 9500, 9500, "#f0eee9", ["SL 531"]],
+  ["MM541", "Metallic Marble", 9500, null, "#e8eeea", ["MM 541"]],
+  ["ME642", "Mist Egg", 8000, 8500, "#d7d9d3", ["ME 642"]],
+  ["AP100", "Apex", 8000, 8500, "#ddd5c4", ["AP 100"]],
+  ["NA160", "Navis", 8000, 8500, "#e1e1d8", ["NA 160"]],
+  ["RC469", "Rock Cliffs", 12000, 9500, "#e2ded4", ["RC 469"]],
+  ["NB091", "Neo Black", null, 8500, "#090a09"],
+  ["KZ695", "Zen Grey", null, 8500, "#c8cdd6"],
+  ["AI612", "Aspen Iceberg", null, 8500, "#e4e5e0"],
+  ["AA625", "Aspen Alder", null, 8500, "#aeb7c2"],
+  ["QS822N", "Quarry Starred", null, 8500, "#52565e"],
+  ["VL155", "Loam", null, 9500, "#8e7766"],
+  ["VD126", "Dawn", null, 9500, "#e1e2dd"],
+];
+
+export const STONE_COLORS: StoneColor[] = stoneCatalogRows.map(([code, name, sheetPriceTHB, installedPriceTHB, tone, documentCodes]) => ({
+  code,
+  name,
+  tone,
+  sheetPriceTHB,
+  installedPriceTHB,
+  documentCodes: documentCodes ?? [],
+}));
+
+export const stoneColorByName = (identifier: string) => {
+  const normalized = identifier.trim().toLowerCase();
+  return STONE_COLORS.find((color) =>
+    [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase() === normalized),
+  ) ?? STONE_COLORS[0];
+};
+
+export const stoneSheetUnitPrice = (colorIdentifier: string, quantity: number) => {
+  const color = stoneColorByName(colorIdentifier);
+  if (color.sheetPriceTHB === null) return null;
+  const promotionExcluded = ["BW010", "NW013"].includes(color.code);
+  if (quantity >= 50 && !promotionExcluded) return Math.round(color.sheetPriceTHB * 0.95);
+  if (quantity >= 10 && !promotionExcluded) return Math.max(0, color.sheetPriceTHB - 200);
+  return color.sheetPriceTHB;
+};
+
+export const stoneInstalledUnitPrice = (colorIdentifier: string) =>
+  stoneColorByName(colorIdentifier).installedPriceTHB;
+
+export function toggleBasinSelection(lines: QuoteBasinLine[], sku: string): QuoteBasinLine[] {
+  return lines.some((line) => line.sku === sku)
+    ? lines.filter((line) => line.sku !== sku)
+    : [...lines, { sku, quantity: 1, installationSelected: false }];
+}
+
+export function upsertStoneSelection(stones: StoneConfig[], incoming: StoneConfig): StoneConfig[] {
+  const next = stones.filter((stone) => stone.color !== incoming.color);
+  const unitPrice = incoming.mode === "whole-sheet"
+    ? stoneSheetUnitPrice(incoming.color, incoming.quantity)
+    : stoneInstalledUnitPrice(incoming.color);
+  return [...next, { ...incoming, enabled: true, unitPrice: unitPrice ?? 0, installationPrice: 0 }];
+}
+
+export function removeStoneSelection(stones: StoneConfig[], color: string): StoneConfig[] {
+  return stones.filter((stone) => stone.color !== color);
+}
+
+const counterDims = { dimensions: "600 × 800 × 200 mm", basinDimensions: "350 × 500 × 130 mm" };
+const counterWideDims = { dimensions: "600 × 800 × 200 mm", basinDimensions: "400 × 500 × 130 mm" };
+
+export const BASIN_PRODUCTS: BasinProduct[] = [
+  ["KF001", "VS311", "Shine", 19000, counterDims],
+  ["KF002", "VS351", "Soft", 19000, counterDims],
+  ["KF003", "RW316", "River White", 19000, counterDims],
+  ["KF004", "VW050", "Wene White", 19000, counterDims],
+  ["KF005", "HJ524M", "Honer Jade", 19000, counterDims],
+  ["KF006", "RW316", "River White", 19000, counterDims],
+  ["KF007", "VL343", "Latte Cream", 19000, counterDims],
+  ["KF008", "SI414", "Sanded Icice", 17000, counterDims],
+  ["KF009", "NB091", "Neo Black", 17000, counterDims],
+  ["KF010", "NA016", "Navis", 17000, counterDims],
+  ["KF011", "VD382", "Drift", 19000, counterWideDims],
+  ["KF012", "CS522M", "Cascade Slope", 19000, counterWideDims],
+  ["KF013", "WR322", "Rotor Cloud", 19000, counterWideDims],
+  ["KF014", "EG501", "Glaring White", 17000, counterWideDims],
+  ["KF015", "GG884", "Glalet Grey", 20000, counterWideDims],
+  ["KF016", "KZ802", "Zen Autumn", 19000, counterWideDims],
+  ["KF017", "KZ802N", "Zen Autumn New", 19000, counterWideDims],
+  ["KF018", "GI017", "Glalet Ice", 17000, counterWideDims],
+].map(([sku, colorCode, colorName, priceTHB, dims], index) => ({
+  sku: sku as string,
+  colorCode: colorCode as string,
+  colorName: colorName as string,
+  priceTHB: priceTHB as number,
+  category: "counter basin" as BasinCategory,
+  dimensions: (dims as typeof counterDims).dimensions,
+  basinDimensions: (dims as typeof counterDims).basinDimensions,
+  imageTone: ["#dfe4df", "#d2d0c9", "#c6cdc9", "#ece7db", "#9eaa9a", "#d5dad3"][index % 6],
+}));
+
+const tallProducts: Array<[string, string, string, number, string, string | undefined]> = [
+  ["KF019", "VD345", "Dusk", 24000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
+  ["KF020", "VS385", "Slate", 24000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
+  ["KF021", "KZ802N", "Zen Autumn New", 25000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
+  ["KF022", "NW013", "Neo White", 24000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
+  ["KF023", "WH112", "Witch Hazel", 26000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
+  ["KF024", "V342", "Whisper", 25000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
+  ["KF025", "NB091", "Neo Black", 24000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
+  ["KF026", "NW013", "Neo White", 24000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
+  ["KF027", "SW534M", "Starry White", 28000, "400 × 600 × 850 mm", "370 × 570 × 150 mm"],
+  ["KF028", "VV351", "Veil", 32000, "400 × 600 × 850 mm", "370 × 570 × 150 mm"],
+  ["KF029", "EG595", "Metallic Galaxy", 16000, "400 × 400 × 1000 mm", undefined],
+  ["KF030", "GT010", "Grigio Terrazzo", 16000, "400 × 400 × 1000 mm", undefined],
+];
+
+export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, colorName, priceTHB, dimensions, basinDimensions], index) => ({
+  sku, colorCode, colorName, priceTHB,
+  category: "tall vertical washbasin",
+  dimensions, basinDimensions,
+  imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
+}));
+
+export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
+export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
+
+export function basinProductFromCatalog(item: {
+  sku: string;
+  colorCode: string;
+  colorName: string;
+  priceTHB: number;
+  category: string;
+  dimensions: string;
+  basinDimensions?: string | null;
+  imageTone: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+}): BasinProduct {
+  return {
+    sku: item.sku,
+    colorCode: item.colorCode,
+    colorName: item.colorName,
+    priceTHB: item.priceTHB,
+    category: item.category as BasinCategory,
+    dimensions: item.dimensions,
+    basinDimensions: item.basinDimensions ?? undefined,
+    imageTone: item.imageTone,
+    imageUrl: item.imageUrl?.trim() || undefined,
+    videoUrl: item.videoUrl ?? undefined,
+  };
+}
+
+export const formatTHB = (amount: number) =>
+  new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(amount);

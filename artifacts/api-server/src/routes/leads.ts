@@ -1,1 +1,134 @@
-aW1wb3J0IHsgY3VzdG9tZXJMZWFkcyB9IGZyb20gIkB3b3Jrc3BhY2UvZGIvc2NoZW1hIjsKaW1wb3J0IHsgVXBzZXJ0TGVhZEJvZHkgfSBmcm9tICJAd29ya3NwYWNlL2FwaS16b2QiOwppbXBvcnQgeyBkYiB9IGZyb20gIkB3b3Jrc3BhY2UvZGIiOwppbXBvcnQgeyBSb3V0ZXIsIHR5cGUgSVJvdXRlciwgdHlwZSBSZXNwb25zZSB9IGZyb20gImV4cHJlc3MiOwppbXBvcnQgeyBzcWwgfSBmcm9tICJkcml6emxlLW9ybSI7Cgpjb25zdCByb3V0ZXI6IElSb3V0ZXIgPSBSb3V0ZXIoKTsKCmZ1bmN0aW9uIGludmFsaWQocmVzOiBSZXNwb25zZSwgbWVzc2FnZTogc3RyaW5nLCBkZXRhaWxzPzogdW5rbm93bikgewogIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IG1lc3NhZ2UsIGRldGFpbHMgfSk7Cn0KCnJvdXRlci5wb3N0KCIvbGVhZHMiLCBhc3luYyAocmVxLCByZXMsIG5leHQpID0+IHsKICBjb25zdCBwYXJzZWQgPSBVcHNlcnRMZWFkQm9keS5zYWZlUGFyc2UocmVxLmJvZHkpOwogIGlmICghcGFyc2VkLnN1Y2Nlc3MpIHJldHVybiBpbnZhbGlkKHJlcywgIkludmFsaWQgbGVhZCBkYXRhIiwgcGFyc2VkLmVycm9yLmZsYXR0ZW4oKSk7CgogIHRyeSB7CiAgICBjb25zdCBzdGF0dXNQcmlvcml0eSA9IHsKICAgICAgbmV3X2xlYWQ6IDAsCiAgICAgIHNlbGVjdGluZzogMSwKICAgICAgcXVvdGVfcmVxdWVzdGVkOiAyLAogICAgICBjbG9zZWQ6IDMsCiAgICB9IGFzIGNvbnN0OwogICAgY29uc3QgcmVxdWVzdGVkUHJpb3JpdHkgPSBzdGF0dXNQcmlvcml0eVtwYXJzZWQuZGF0YS5zdGF0dXNdOwogICAgY29uc3QgW2xlYWRdID0gYXdhaXQgZGIKICAgICAgLmluc2VydChjdXN0b21lckxlYWRzKQogICAgICAudmFsdWVzKHBhcnNlZC5kYXRhKQogICAgICAub25Db25mbGljdERvVXBkYXRlKHsKICAgICAgICB0YXJnZXQ6IGN1c3RvbWVyTGVhZHMubGVhZEtleSwKICAgICAgICBzZXQ6IHsKICAgICAgICAgIHN0YXR1czogc3FsYENBU0UgV0hFTiAke2N1c3RvbWVyTGVhZHMuc3RhdHVzfSA9ICdjbG9zZWQnIE9SICR7Y3VzdG9tZXJMZWFkcy5zdGF0dXN9ID0gJ3F1b3RlX3JlcXVlc3RlZCcgQU5EICR7cmVxdWVzdGVkUHJpb3JpdHl9IDwgMiBPUiAke2N1c3RvbWVyTGVhZHMuc3RhdHVzfSA9ICdzZWxlY3RpbmcnIEFORCAke3JlcXVlc3RlZFByaW9yaXR5fSA8IDEgVEhFTiAke2N1c3RvbWVyTGVhZHMuc3RhdHVzfSBFTFNFICR7cGFyc2VkLmRhdGEuc3RhdHVzfSBFTkRgLAogICAgICAgICAgc291cmNlOiBwYXJzZWQuZGF0YS5zb3VyY2UsCiAgICAgICAgICBuYW1lOiBwYXJzZWQuZGF0YS5uYW1lLAogICAgICAgICAgY29tcGFueTogcGFyc2VkLmRhdGEuY29tcGFueSwKICAgICAgICAgIHBob25lOiBwYXJzZWQuZGF0YS5waG9uZSwKICAgICAgICAgIGVtYWlsOiBwYXJzZWQuZGF0YS5lbWFpbCwKICAgICAgICAgIHByb2plY3Q6IHBhcnNlZC5kYXRhLnByb2plY3QsCiAgICAgICAgICBhZGRyZXNzOiBwYXJzZWQuZGF0YS5hZGRyZXNzLAogICAgICAgICAgbm90ZXM6IHBhcnNlZC5kYXRhLm5vdGVzLAogICAgICAgICAgcHJvZHVjdFNrdXM6IHBhcnNlZC5kYXRhLnByb2R1Y3RTa3VzLAogICAgICAgICAgcXVvdGVOdW1iZXI6IHBhcnNlZC5kYXRhLnF1b3RlTnVtYmVyLAogICAgICAgICAgdXBkYXRlZEF0OiBuZXcgRGF0ZSgpLAogICAgICAgIH0sCiAgICAgIH0pCiAgICAgIC5yZXR1cm5pbmcoKTsKCiAgICByZXR1cm4gcmVzLmpzb24obGVhZCk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIHJldHVybiBuZXh0KGVycm9yKTsKICB9Cn0pOwoKZXhwb3J0IGRlZmF1bHQgcm91dGVyOw==
+import { customerLeads } from "@workspace/db/schema";
+import { UpsertLeadBody } from "@workspace/api-zod";
+import { db } from "@workspace/db";
+import { Router, type IRouter, type Response } from "express";
+import { sql } from "drizzle-orm";
+import { logger } from "../lib/logger";
+import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
+
+const router: IRouter = Router();
+
+function invalid(res: Response, message: string, details?: unknown) {
+  return res.status(400).json({ message, details });
+}
+
+router.post("/leads", async (req, res, next) => {
+  const parsed = UpsertLeadBody.safeParse(req.body);
+  if (!parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
+
+  try {
+    const statusPriority = {
+      new_lead: 0,
+      selecting: 1,
+      quote_requested: 2,
+      closed: 3,
+    } as const;
+    const requestedPriority = statusPriority[parsed.data.status];
+    const [lead] = await db
+      .insert(customerLeads)
+      .values(parsed.data)
+      .onConflictDoUpdate({
+        target: customerLeads.leadKey,
+        set: {
+          status: sql`CASE WHEN ${customerLeads.status} = 'closed' OR ${customerLeads.status} = 'quote_requested' AND ${requestedPriority} < 2 OR ${customerLeads.status} = 'selecting' AND ${requestedPriority} < 1 THEN ${customerLeads.status} ELSE ${parsed.data.status} END`,
+          source: parsed.data.source,
+          name: parsed.data.name,
+          company: parsed.data.company,
+          phone: parsed.data.phone,
+          email: parsed.data.email,
+          project: parsed.data.project,
+          address: parsed.data.address,
+          notes: parsed.data.notes,
+          productSkus: parsed.data.productSkus,
+          quoteNumber: parsed.data.quoteNumber,
+           orderMode: parsed.data.orderMode,
+           studioData: parsed.data.studioData,
+           sketchUrl: parsed.data.sketchUrl,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return res.json(lead);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+async function notifySalesTeam(lead: { name: string | null; phone: string | null; project: string | null; productSkus: string[]; sketchUrl: string | null }) {
+  const accessToken = process.env["LINE_MESSAGING_ACCESS_TOKEN"] ?? process.env["LINE_CHANNEL_ACCESS_TOKEN"];
+  const destination = process.env["LINE_SALES_DESTINATION_ID"];
+  if (!accessToken || !destination) return false;
+  try {
+    const response = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: destination,
+        messages: [{
+          type: "text",
+          text: [
+            "Knight Basins: มีแบบร่างใหม่",
+            `ผู้ติดต่อ: ${lead.name || "-"}`,
+            `โทร: ${lead.phone || "-"}`,
+            `โครงการ: ${lead.project || "-"}`,
+            `อ่าง: ${lead.productSkus.join(", ") || "-"}`,
+            `ไฟล์: ${lead.sketchUrl || "-"}`,
+          ].join("\n"),
+        }],
+      }),
+    });
+    if (!response.ok) throw new Error(`LINE push returned ${response.status}`);
+    return true;
+  } catch (error) {
+    logger.warn({ error: error instanceof Error ? error.message : "unknown" }, "Sketch lead LINE notification failed");
+    return false;
+  }
+}
+
+router.post("/leads/sketch", async (req, res, next) => {
+  try {
+    const { media, fields } = await readMultipartForm(req, "image");
+    let metadata: unknown;
+    try {
+      metadata = JSON.parse(fields.metadata ?? "");
+    } catch {
+      return invalid(res, "Sketch lead metadata must be valid JSON");
+    }
+    const parsed = UpsertLeadBody.safeParse(metadata);
+    if (!parsed.success || parsed.data.orderMode !== "sketch") {
+      return invalid(res, "Invalid sketch lead data", parsed.success ? undefined : parsed.error.flatten());
+    }
+    const upload = await saveUploadedMedia(media, "sketch");
+    const [lead] = await db
+      .insert(customerLeads)
+      .values({ ...parsed.data, sketchUrl: upload.url, orderMode: "sketch" })
+      .onConflictDoUpdate({
+        target: customerLeads.leadKey,
+        set: {
+          status: parsed.data.status,
+          source: parsed.data.source,
+          orderMode: "sketch",
+          name: parsed.data.name,
+          company: parsed.data.company,
+          phone: parsed.data.phone,
+          email: parsed.data.email,
+          project: parsed.data.project,
+          address: parsed.data.address,
+          notes: parsed.data.notes,
+          productSkus: parsed.data.productSkus,
+          studioData: parsed.data.studioData,
+          sketchUrl: upload.url,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    const notified = await notifySalesTeam(lead);
+    return res.status(201).json({ lead, notificationStatus: notified ? "notified" : "saved_not_notified" });
+  } catch (error) {
+    if (error instanceof Error && /required|invalid|choose|allowed|large|metadata/i.test(error.message)) return invalid(res, error.message);
+    return next(error);
+  }
+});
+
+export default router;
