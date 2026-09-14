@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
+  counterClipPath,
   counterBounds,
   counterClearanceRegions,
   counterRegions,
@@ -43,10 +44,14 @@ export function StudioFootprint({
   const bounds = counterBounds(state.shape, state.dimensions);
   const regions = counterRegions(state.shape, state.dimensions);
   const clearanceRegions = counterClearanceRegions(state.shape, state.dimensions);
+  const clipPath = counterClipPath(state.shape, state.dimensions);
   return (
     <div
       className={`studio-canvas studio-canvas--${state.shape} ${unsafe ? "studio-canvas--unsafe" : ""} ${className}`}
-      style={{ aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}` }}
+      style={{
+        aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}`,
+        clipPath,
+      }}
       onDragOver={onDragOver}
       onDrop={onDrop}
       data-testid={testId}

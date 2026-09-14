@@ -140,3 +140,101 @@ mtime_ms = 1789361186625
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/e9fa6f9d-7716-4414-96e1-0e57acbe6fe3/a8360404-06ec-45ed-b3c4-467f00ab3236"
 storage_version_token = "1789361396050603"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "KXLk5MWcHV3FtnFCYhZrG"
+uri = "file://screenshots/release-guard-normal.jpg"
+type = "image"
+title = "Release guard normal storefront evidence"
+description = "Preview after the guarded production build and workflow restart; the storefront mounted normally with no browser errors."
+logical_id = "2e2f5d41-06a9-4027-bc08-ad871c8eb254"
+content_hash = "sha256:fea56196a53296fd4fab9ea6401455ca467259d4cd672a461d85330b30da1c98"
+size = 82134
+mtime_ms = 1789382075888
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/2e2f5d41-06a9-4027-bc08-ad871c8eb254/16098151-1b64-4420-845c-8d4bd69bb785"
+storage_version_token = "1789382086689246"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "2pRi-QZ10YUdQC0E4Lv-O"
+uri = "file://screenshots/knight-shapes/l-studio.png"
+type = "image"
+title = "L-shape — 2D Studio"
+description = "L-shape 1,800 × 1,200 × ลึก 600 mm rendered with the real two-leg footprint and 50 mm clearance lines."
+logical_id = "61056814-0430-413f-86e5-e2db342bcb59"
+content_hash = "sha256:ed8fbbadd09796271314c552ff475cfb57e8d77773bf1ce6ecc1ec7ef9a6e486"
+size = 29581
+mtime_ms = 1789393575803
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/61056814-0430-413f-86e5-e2db342bcb59/cb7f6c4d-87a1-4f5d-bdaf-fc3ffb7bb019"
+storage_version_token = "1789393850877288"
+content_type = "image/png"
+
+[[outputs]]
+id = "3uLScwoLC3_0uiRpn4YWO"
+uri = "file://screenshots/knight-shapes/u-studio.png"
+type = "image"
+title = "U-shape — 2D Studio"
+description = "U-shape 1,800 × 1,200 × 1,200 × ลึก 600 mm rendered with the real three-leg footprint and 50 mm clearance lines."
+logical_id = "36af0ecf-13f3-4955-9ac2-7a18ddf0ca8c"
+content_hash = "sha256:9918c916ec6869e99696ac8532dcf92f745c777b7a5caba603365a69801f9830"
+size = 29937
+mtime_ms = 1789393576495
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/36af0ecf-13f3-4955-9ac2-7a18ddf0ca8c/2c4c95f0-a94a-4529-8c0f-bc3d8e66bff3"
+storage_version_token = "1789393852539958"
+content_type = "image/png"
+
+[[outputs]]
+id = "JjhrgpRAz7xhRmudzAmnD"
+uri = "file://screenshots/knight-shapes/l-saved-quote.png"
+type = "image"
+title = "L-shape — saved quote"
+description = "Saved quote view reuses the same L-shaped footprint, label, basin placement, and clearance geometry."
+logical_id = "d1aff72d-dd74-4685-8f3e-9154378bc957"
+content_hash = "sha256:ede0f3ba8ea131ca480d6d3f247db1eea60ba811afed4bc843b4e3740b55b66c"
+size = 98843
+mtime_ms = 1789393577623
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/d1aff72d-dd74-4685-8f3e-9154378bc957/a6d1aa3b-658e-4771-9d59-b9057f03467c"
+storage_version_token = "1789393854342308"
+content_type = "image/png"
+
+[[outputs]]
+id = "TURZHKoclVUnza788alUV"
+uri = "file://screenshots/knight-shapes/u-saved-quote.png"
+type = "image"
+title = "U-shape — saved quote"
+description = "Saved quote view reuses the same U-shaped footprint, label, basin placement, and clearance geometry."
+logical_id = "7b3368cd-8fcf-40b9-bce3-b53cc2aa1c50"
+content_hash = "sha256:bc4bc4ee224478a180442f2cef66cdbd891fb0149b3c52c608f9949ab10d1802"
+size = 104106
+mtime_ms = 1789393579055
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/7b3368cd-8fcf-40b9-bce3-b53cc2aa1c50/7df7d057-eff3-4754-a0f2-89694c8d11ad"
+storage_version_token = "1789393855935244"
+content_type = "image/png"
+
+[[outputs]]
+id = "Z5spXnIAcUFqby_mtsmeG"
+uri = "file://screenshots/knight-shapes/l-printed-quote-layout.png"
+type = "image"
+title = "L-shape — printed quote"
+description = "Print/PDF media view keeps the actual L-shaped layout."
+logical_id = "a5d1df25-a4a0-4a4c-8d09-d87cf5a09fff"
+content_hash = "sha256:cc002519ea85be6e07f4e38160a346aca455b077fb83d30fd07411b30e506d70"
+size = 128383
+mtime_ms = 1789393578103
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/a5d1df25-a4a0-4a4c-8d09-d87cf5a09fff/98a06214-5579-414b-a3ad-ca2ba8483bf6"
+storage_version_token = "1789393857476081"
+content_type = "image/png"
+
+[[outputs]]
+id = "dDLPbOgkPlFuNnvgUjkPd"
+uri = "file://screenshots/knight-shapes/u-printed-quote-layout.png"
+type = "image"
+title = "U-shape — printed quote"
+description = "Print/PDF media view keeps the actual U-shaped layout."
+logical_id = "2c68b1f1-8859-40ec-a605-0c7138cbdbc7"
+content_hash = "sha256:6640d08acf4a4a81620702e4b053bfe471b51994fd4d1d4aded81d89687dd592"
+size = 132870
+mtime_ms = 1789393579699
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/2c68b1f1-8859-40ec-a605-0c7138cbdbc7/f70aa04b-fad4-4dd3-aece-cad8d91a220f"
+storage_version_token = "1789393859029301"
+content_type = "image/png"

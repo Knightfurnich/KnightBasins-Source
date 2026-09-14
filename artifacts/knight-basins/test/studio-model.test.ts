@@ -6,6 +6,7 @@ import {
   backsplashAreaSqM,
   clampBasinPlacementPosition,
   counterClearanceRegions,
+  counterClipPath,
   createBasinPlacement,
   counterAreaSqM,
   counterRegions,
@@ -54,6 +55,14 @@ test("L and U geometry use real counter legs, clearance regions, and shape label
   assert.equal(placementFitsCounterShape("L", dimensions, { xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }), true);
   assert.equal(placementFitsCounterShape("L", dimensions, { xMm: 700, yMm: 700, widthMm: 500, depthMm: 400 }), false);
   assert.equal(placementFitsCounterShape("U", dimensions, { xMm: 1250, yMm: 50, widthMm: 500, depthMm: 500 }), true);
+  assert.equal(
+    counterClipPath("L", dimensions),
+    "polygon(0 0, 100% 0, 100% 50%, 33.33333333333333% 50%, 33.33333333333333% 100%, 0 100%)",
+  );
+  assert.equal(
+    counterClipPath("U", dimensions),
+    "polygon(0 0, 100% 0, 100% 100%, 66.66666666666666% 100%, 66.66666666666666% 50%, 33.33333333333333% 50%, 33.33333333333333% 100%, 0 100%)",
+  );
   assert.equal(counterShapeLabel("I", dimensions), "I-SHAPE · 1,800 × 600 mm");
   assert.equal(counterShapeLabel("L", dimensions), "L-SHAPE · A 1,800 × B 1,200 × ลึก 600 mm");
   assert.equal(counterShapeLabel("U", dimensions), "U-SHAPE · A 1,800 × B 1,200 × C 1,200 × ลึก 600 mm");

@@ -116,6 +116,29 @@ export function counterRegions(shape: CounterShape, dimensions: StudioDimensions
   return regions;
 }
 
+function dimensionPercent(valueMm: number, totalMm: number) {
+  return `${Math.max(0, Math.min(100, (valueMm / Math.max(1, totalMm)) * 100))}%`;
+}
+
+export function counterClipPath(shape: CounterShape, dimensions: StudioDimensions) {
+  const bounds = counterBounds(shape, dimensions);
+  if (shape === "I") return "polygon(0 0, 100% 0, 100% 100%, 0 100%)";
+
+  const depth = Math.max(0, dimensions.depthMm);
+  const leftLegWidth = Math.min(depth, bounds.widthMm);
+  const topLegHeight = dimensionPercent(depth, bounds.heightMm);
+  const leftLegEdge = dimensionPercent(leftLegWidth, bounds.widthMm);
+
+  if (shape === "L") {
+    return `polygon(0 0, 100% 0, 100% ${topLegHeight}, ${leftLegEdge} ${topLegHeight}, ${leftLegEdge} 100%, 0 100%)`;
+  }
+
+  const rightLegEdge = dimensionPercent(Math.max(0, bounds.widthMm - leftLegWidth), bounds.widthMm);
+  const leftLegBottom = dimensionPercent(Math.max(depth, dimensions.runBMm), bounds.heightMm);
+  const rightLegBottom = dimensionPercent(Math.max(depth, dimensions.runCMm), bounds.heightMm);
+  return `polygon(0 0, 100% 0, 100% ${rightLegBottom}, ${rightLegEdge} ${rightLegBottom}, ${rightLegEdge} ${topLegHeight}, ${leftLegEdge} ${topLegHeight}, ${leftLegEdge} ${leftLegBottom}, 0 ${leftLegBottom})`;
+}
+
 export function counterClearanceRegions(shape: CounterShape, dimensions: StudioDimensions) {
   return counterRegions(shape, dimensions)
     .map((region) => ({
