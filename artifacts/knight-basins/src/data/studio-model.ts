@@ -72,6 +72,7 @@ export type StudioEstimate = {
 
 export const STUDIO_EDGE_CLEARANCE_MM = 50;
 const STUDIO_CLEARANCE_EPSILON_MM = 0.01;
+export const STUDIO_SNAP_DISTANCE_MM = 5;
 export const STUDIO_MAX_STONE_COLORS = 3;
 export const STUDIO_MIN_STONE_COLORS = 2;
 export const STUDIO_MAX_BASINS = 2;
@@ -147,6 +148,32 @@ export function clampBasinPlacementPosition(
   return {
     xMm: Math.max(0, Math.min(maxRun - widthMm, xMm)),
     yMm: Math.max(0, Math.min(maxDepth - depthMm, yMm)),
+  };
+}
+
+function snapNearClearance(value: number, minimum: number, maximum: number) {
+  if (maximum < minimum) return value;
+  if (Math.abs(value - minimum) <= STUDIO_SNAP_DISTANCE_MM) return minimum;
+  if (Math.abs(value - maximum) <= STUDIO_SNAP_DISTANCE_MM) return maximum;
+  return value;
+}
+
+export function snapBasinPlacementPosition(
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
+  xMm: number,
+  yMm: number,
+  dimensions: Pick<StudioDimensions, "runAMm" | "depthMm">,
+) {
+  const clamped = clampBasinPlacementPosition(placement, xMm, yMm, dimensions);
+  const maxX = dimensions.runAMm - (placement.widthMm ?? 0) - STUDIO_EDGE_CLEARANCE_MM;
+  const maxY = dimensions.depthMm - (placement.depthMm ?? 0) - STUDIO_EDGE_CLEARANCE_MM;
+  return {
+    xMm: placement.widthMm === null
+      ? clamped.xMm
+      : snapNearClearance(clamped.xMm, STUDIO_EDGE_CLEARANCE_MM, maxX),
+    yMm: placement.depthMm === null
+      ? clamped.yMm
+      : snapNearClearance(clamped.yMm, STUDIO_EDGE_CLEARANCE_MM, maxY),
   };
 }
 
