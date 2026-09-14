@@ -11,7 +11,7 @@ import {
 } from "@/data/catalog";
 import {
   createBasinPlacement,
-  clampBasinPlacementPosition,
+  snapBasinPlacementPosition,
   studioEstimate,
   studioStoneName,
   STUDIO_EDGE_CLEARANCE_MM,
@@ -144,7 +144,7 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
   const movePlacement = (id: string, xMm: number, yMm: number) => setState((current) => ({
     ...current,
     basinPlacements: current.basinPlacements.map((placement) => placement.id === id
-      ? { ...placement, ...clampBasinPlacementPosition(placement, xMm, yMm, current.dimensions) }
+      ? { ...placement, ...snapBasinPlacementPosition(placement, xMm, yMm, current.dimensions) }
       : placement),
   }));
   const drop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -160,7 +160,7 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
         ...current,
         basinPlacements: [
           ...current.basinPlacements,
-          { ...placement, ...clampBasinPlacementPosition(placement, xMm, yMm, current.dimensions) },
+          { ...placement, ...snapBasinPlacementPosition(placement, xMm, yMm, current.dimensions) },
         ],
       }));
       return;
@@ -198,7 +198,7 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
        {state.basinPlacements.map((placement) => <div key={placement.id} draggable className={`studio-placement ${unsafeIds.has(placement.id) ? "studio-placement--unsafe" : ""} ${unknownDimensionIds.has(placement.id) ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / maxRun) * 100}%`, top: `${(placement.yMm / maxDepth) * 100}%`, width: placement.widthMm === null ? "22%" : `${(placement.widthMm / maxRun) * 100}%`, height: placement.depthMm === null ? "22%" : `${(placement.depthMm / maxDepth) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>{unknownDimensionIds.has(placement.id) ? "แคตตาล็อกไม่ระบุขนาดหลุม" : "ลากเพื่อย้าย"}</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>)}
       {!state.basinPlacements.length && <span className="studio-canvas-empty">ลากอ่างที่เลือกมาวางที่นี่</span>}
     </div>
-     <p className="studio-canvas-hint"><GripVertical size={14} /> ระยะขอบเคาน์เตอร์ต้องเหลืออย่างน้อย {STUDIO_EDGE_CLEARANCE_MM} mm รอบอ่างทุกด้าน</p>
+     <p className="studio-canvas-hint"><GripVertical size={14} /> ระยะขอบเคาน์เตอร์ต้องเหลืออย่างน้อย {STUDIO_EDGE_CLEARANCE_MM} mm รอบอ่างทุกด้าน · เมื่อวางใกล้เส้น ระบบจะจัดให้พอดีอัตโนมัติ</p>
   </section>;
 }
 

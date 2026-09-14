@@ -9,6 +9,7 @@ import {
   counterAreaSqM,
   standardSheetWarning,
   studioEstimate,
+  snapBasinPlacementPosition,
   unsafeBasinPlacements,
   unknownBasinPlacements,
   type StudioState,
@@ -122,6 +123,27 @@ test("new basin positions are clamped from the actual drop point", () => {
   assert.notDeepEqual(
     clampBasinPlacementPosition(placement, 100, 100, { runAMm: 1800, depthMm: 600 }),
     clampBasinPlacementPosition(placement, 1200, 80, { runAMm: 1800, depthMm: 600 }),
+  );
+});
+
+test("basin positions snap to an exact clearance edge when dropped within 5 mm", () => {
+  assert.deepEqual(
+    snapBasinPlacementPosition(
+      { widthMm: 500, depthMm: 500 },
+      51.8,
+      50.63,
+      { runAMm: 1800, depthMm: 600 },
+    ),
+    { xMm: 50, yMm: 50 },
+  );
+  assert.deepEqual(
+    snapBasinPlacementPosition(
+      { widthMm: 500, depthMm: 500 },
+      56,
+      60,
+      { runAMm: 1800, depthMm: 650 },
+    ),
+    { xMm: 56, yMm: 60 },
   );
 });
 
