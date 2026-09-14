@@ -1351,6 +1351,16 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-placement small { font: 8px var(--sans); opacity: .8; }
 .studio-placement button { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 18px; height: 18px; color: white; background: rgba(0,0,0,.2); }
 .studio-canvas-hint { display: flex; align-items: center; gap: 5px; margin: 10px 0 0; color: var(--ink-soft); font-size: 10px; }
+.saved-quote-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: -12px 0 24px; }
+.studio-saved-layout { margin: 0 auto 28px; padding: 25px; background: #fff; border: 1px solid #cad9e3; box-shadow: 0 12px 32px rgba(21, 62, 94, .08); }
+.studio-saved-layout-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.studio-saved-layout-heading h2 { margin: 3px 0 0; color: var(--ink); font-size: 23px; }
+.studio-saved-layout-heading > span { color: var(--ink-soft); font: 10px var(--mono); }
+.studio-saved-layout-meta { display: flex; flex-wrap: wrap; gap: 16px; padding: 14px 0 0; color: var(--ink-soft); font-size: 10px; }
+.studio-saved-layout-meta strong { color: var(--ink); }
+.studio-canvas--saved { margin-top: 18px; min-height: 390px; cursor: default; }
+.studio-canvas--saved .studio-placement { cursor: default; }
+.studio-saved-layout-note { margin: 10px 0 0; color: var(--ink-soft); font-size: 10px; }
 .studio-sketch-panel { margin-top: 18px; }
 .studio-file-drop { position: relative; display: grid; place-items: center; gap: 8px; min-height: 220px; padding: 24px; color: var(--brand-blue); border: 1px dashed #82bfd8; background: #f2fafd; text-align: center; cursor: pointer; }
 .studio-file-drop strong { color: var(--ink); font-size: 13px; }
@@ -1409,7 +1419,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 @media print {
   body { background: white; }
   .quote-page { max-width: none; padding: 0; color: #111; }
-  .quote-editor, .source-note { display: none !important; }
+  .quote-editor, .saved-quote-actions, .source-note { display: none !important; }
+  .studio-saved-layout { margin: 0 0 24px; padding: 0; border: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
+  .studio-saved-layout-heading { padding-top: 0; }
+  .studio-canvas--saved { min-height: 320px; }
   .formal-quote-sheet { display: block; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; box-shadow: none; }
   .formal-quote-header, .formal-quote-title, .formal-customer-grid, .formal-quote-bottom, .formal-quote-signature { break-inside: avoid; page-break-inside: avoid; }
   .formal-quote-table-wrap { overflow: visible; }

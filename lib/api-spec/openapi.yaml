@@ -16,6 +16,8 @@ tags:
     description: Protected catalog administration
   - name: support
     description: Product support assistant
+  - name: quotes
+    description: Public saved quotations
   - name: customer-auth
     description: Customer identity
 paths:
@@ -433,6 +435,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerLead"
+  /quotes:
+    get:
+      operationId: getSavedQuote
+      tags: [quotes]
+      summary: Get a saved studio quotation by quote number
+      parameters:
+        - name: quoteNumber
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+      responses:
+        "200":
+          description: Saved quotation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerLead"
+        "404":
+          description: Quote not found
+  /quotes/notify:
+    post:
+      operationId: notifySavedQuote
+      tags: [quotes]
+      summary: Send a saved quotation to the configured sales channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotifyQuoteInput"
+      responses:
+        "200":
+          description: Quote notification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteNotificationResponse"
+        "404":
+          description: Quote not found
   /leads/sketch:
     post:
       operationId: submitSketchLead
@@ -793,6 +836,19 @@ components:
         sketchUrl: { type: [string, "null"] }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+    NotifyQuoteInput:
+      type: object
+      required: [quoteNumber]
+      properties:
+        quoteNumber: { type: string, maxLength: 64 }
+    QuoteNotificationResponse:
+      type: object
+      required: [notificationStatus, message]
+      properties:
+        notificationStatus:
+          type: string
+          enum: [notified, saved_not_notified]
+        message: { type: string }
     SketchLeadResponse:
       type: object
       required: [lead, notificationStatus]
@@ -802,6 +858,7 @@ components:
         notificationStatus:
           type: string
           enum: [notified, saved_not_notified]
+        message: { type: string }
     LineAuthUser:
       type: object
       required: [userId, displayName]

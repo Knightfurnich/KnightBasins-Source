@@ -23932,7 +23932,7 @@ var require_lib3 = __commonJS({
         }
       }
       function configureOrigin(options, req) {
-        var requestOrigin = req.headers.origin, headers = [], isAllowed;
+        var requestOrigin2 = req.headers.origin, headers = [], isAllowed;
         if (!options.origin || options.origin === "*") {
           headers.push([{
             key: "Access-Control-Allow-Origin",
@@ -23948,10 +23948,10 @@ var require_lib3 = __commonJS({
             value: "Origin"
           }]);
         } else {
-          isAllowed = isOriginAllowed(requestOrigin, options.origin);
+          isAllowed = isOriginAllowed(requestOrigin2, options.origin);
           headers.push([{
             key: "Access-Control-Allow-Origin",
-            value: isAllowed ? requestOrigin : false
+            value: isAllowed ? requestOrigin2 : false
           }]);
           headers.push([{
             key: "Vary",
@@ -38548,6 +38548,14 @@ var GetSavedQuoteResponse = objectType({
   "createdAt": coerce.date(),
   "updatedAt": coerce.date()
 });
+var notifySavedQuoteBodyQuoteNumberMax = 64;
+var NotifySavedQuoteBody = objectType({
+  "quoteNumber": stringType().max(notifySavedQuoteBodyQuoteNumberMax)
+});
+var NotifySavedQuoteResponse = objectType({
+  "notificationStatus": enumType(["notified", "saved_not_notified"]),
+  "message": stringType()
+});
 var SubmitSketchLeadBody = objectType({
   "file": stringType().describe("Uploaded image file supplied as multipart content"),
   "metadata": stringType().describe("JSON-encoded LeadInput metadata")
@@ -38573,7 +38581,8 @@ var SubmitSketchLeadResponse = objectType({
     "createdAt": coerce.date(),
     "updatedAt": coerce.date()
   }),
-  "notificationStatus": enumType(["notified", "saved_not_notified"])
+  "notificationStatus": enumType(["notified", "saved_not_notified"]),
+  "message": stringType().optional()
 });
 var ListAdminLeadsResponseItem = objectType({
   "id": numberType(),
@@ -47137,23 +47146,121 @@ var line_auth_default = router4;
 // src/routes/leads.ts
 var import_express6 = __toESM(require_express2(), 1);
 
-// src/lib/logger.ts
-var import_pino = __toESM(require_pino(), 1);
-var isProduction = process.env.NODE_ENV === "production";
-var logger = (0, import_pino.default)({
-  level: process.env.LOG_LEVEL ?? "info",
-  redact: [
-    "req.headers.authorization",
-    "req.headers.cookie",
-    "res.headers['set-cookie']"
-  ],
-  ...isProduction ? {} : {
-    transport: {
-      target: "pino-pretty",
-      options: { colorize: true }
-    }
+// src/lib/sales-notifications.ts
+function configuredChannel() {
+  return process.env["NOTIFY_CHANNEL"]?.trim().toLowerCase() === "telegram" ? "telegram" : "line";
+}
+function missingNotification(message) {
+  return { notificationStatus: "saved_not_notified", message };
+}
+function publicUrl(origin, path2) {
+  return new URL(path2, origin.endsWith("/") ? origin : `${origin}/`).toString();
+}
+function quoteSummary(lead, quoteUrl) {
+  const studio = lead.studioData;
+  const total = studio?.total ?? studio?.quickQuote?.total ?? studio?.estimate?.totalTHB;
+  const snapshotItems = studio?.items ?? studio?.quickQuote?.items;
+  const items = snapshotItems?.length ? snapshotItems.map((item) => `${item.code || "-"} x${item.quantity ?? 1} ${item.unit || ""} ${item.description || ""}`.trim()).join("\n") : [
+    ...(studio?.state?.basinSkus || []).map((sku) => `${sku} x1`),
+    studio?.state?.activeStone ? `\u0E2B\u0E34\u0E19 ${studio.state.activeStone}` : ""
+  ].filter(Boolean).join("\n");
+  return [
+    "Knight Basins: \u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32\u0E43\u0E2B\u0E21\u0E48",
+    `\u0E40\u0E25\u0E02\u0E17\u0E35\u0E48: ${lead.quoteNumber || "-"}`,
+    `\u0E1C\u0E39\u0E49\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D: ${lead.name || "-"}`,
+    `\u0E42\u0E17\u0E23: ${lead.phone || "-"}`,
+    `\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23: ${lead.project || "-"}`,
+    "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23:",
+    items || lead.productSkus.join(", ") || "-",
+    `\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21: ${typeof total === "number" ? `${total.toLocaleString("th-TH")} \u0E1A\u0E32\u0E17` : "-"}`,
+    `\u0E25\u0E34\u0E07\u0E01\u0E4C: ${quoteUrl}`
+  ].join("\n");
+}
+async function sendTelegramText(text2) {
+  const token = process.env["TELEGRAM_BOT_TOKEN"];
+  const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
+  if (!token || !chatId) {
+    return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 Telegram \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32 token \u0E2B\u0E23\u0E37\u0E2D chat ID");
   }
-});
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: text2 })
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.description || `Telegram sendMessage returned ${response.status}`);
+    }
+    return { notificationStatus: "notified", message: "\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 Telegram \u0E41\u0E25\u0E49\u0E27" };
+  } catch (error) {
+    console.warn("Telegram text notification failed", error instanceof Error ? error.message : "unknown");
+    return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 Telegram \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48");
+  }
+}
+async function sendTelegramPhoto(photoUrl, caption) {
+  const token = process.env["TELEGRAM_BOT_TOKEN"];
+  const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
+  if (!token || !chatId) {
+    return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 Telegram \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32 token \u0E2B\u0E23\u0E37\u0E2D chat ID");
+  }
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption })
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.description || `Telegram sendPhoto returned ${response.status}`);
+    }
+    return { notificationStatus: "notified", message: "\u0E2A\u0E48\u0E07\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E40\u0E02\u0E49\u0E32 Telegram \u0E41\u0E25\u0E49\u0E27" };
+  } catch (error) {
+    console.warn("Telegram photo notification failed", error instanceof Error ? error.message : "unknown");
+    return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E2A\u0E48\u0E07\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E40\u0E02\u0E49\u0E32 Telegram \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48");
+  }
+}
+async function sendLineText(text2) {
+  const accessToken = process.env["LINE_MESSAGING_ACCESS_TOKEN"] ?? process.env["LINE_CHANNEL_ACCESS_TOKEN"];
+  const destination = process.env["LINE_SALES_DESTINATION_ID"];
+  if (!accessToken || !destination) {
+    return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 LINE \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32 channel \u0E2B\u0E23\u0E37\u0E2D\u0E1B\u0E25\u0E32\u0E22\u0E17\u0E32\u0E07");
+  }
+  try {
+    const response = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ to: destination, messages: [{ type: "text", text: text2 }] })
+    });
+    if (!response.ok) throw new Error(`LINE push returned ${response.status}`);
+    return { notificationStatus: "notified", message: "\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 LINE \u0E41\u0E25\u0E49\u0E27" };
+  } catch (error) {
+    console.warn("LINE text notification failed", error instanceof Error ? error.message : "unknown");
+    return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19 LINE \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E01\u0E23\u0E38\u0E13\u0E32\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48");
+  }
+}
+async function notifyQuote(lead, origin, quotePath) {
+  const quoteUrl = publicUrl(origin, quotePath);
+  const text2 = quoteSummary(lead, quoteUrl);
+  return configuredChannel() === "telegram" ? sendTelegramText(text2) : sendLineText(text2);
+}
+async function notifySketch(lead, origin, quotePath) {
+  const photoPath = lead.sketchUrl;
+  if (!photoPath) return missingNotification("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27 \u0E41\u0E15\u0E48\u0E44\u0E21\u0E48\u0E21\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E2A\u0E48\u0E07\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19");
+  const photoUrl = publicUrl(origin, photoPath);
+  const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
+  const caption = [
+    "Knight Basins: \u0E21\u0E35\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48",
+    `\u0E1C\u0E39\u0E49\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D: ${lead.name || "-"}`,
+    `\u0E42\u0E17\u0E23: ${lead.phone || "-"}`,
+    `\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23: ${lead.project || "-"}`,
+    `\u0E2D\u0E48\u0E32\u0E07: ${lead.productSkus.join(", ") || "-"}`,
+    quoteUrl ? `\u0E25\u0E34\u0E07\u0E01\u0E4C\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32: ${quoteUrl}` : ""
+  ].filter(Boolean).join("\n");
+  if (configuredChannel() === "telegram") return sendTelegramPhoto(photoUrl, caption);
+  return sendLineText(`${caption}
+\u0E44\u0E1F\u0E25\u0E4C: ${photoUrl}`);
+}
 
 // src/routes/leads.ts
 var router5 = (0, import_express6.Router)();
@@ -47208,7 +47315,7 @@ router5.get("/quotes", async (req, res, next) => {
   if (!quoteNumber) return invalid2(res, "quoteNumber is required");
   try {
     const [lead] = await db.select().from(customerLeads).where(eq(customerLeads.quoteNumber, quoteNumber)).limit(1);
-    if (!lead || lead.orderMode !== "studio" || !lead.studioData) {
+    if (!lead || !["studio", "quick-purchase"].includes(lead.orderMode) || !lead.studioData) {
       return res.status(404).json({ message: "Quote not found" });
     }
     return res.json(lead);
@@ -47216,36 +47323,24 @@ router5.get("/quotes", async (req, res, next) => {
     return next(error);
   }
 });
-async function notifySalesTeam(lead) {
-  const accessToken = process.env["LINE_MESSAGING_ACCESS_TOKEN"] ?? process.env["LINE_CHANNEL_ACCESS_TOKEN"];
-  const destination = process.env["LINE_SALES_DESTINATION_ID"];
-  if (!accessToken || !destination) return false;
-  try {
-    const response = await fetch("https://api.line.me/v2/bot/message/push", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        to: destination,
-        messages: [{
-          type: "text",
-          text: [
-            "Knight Basins: \u0E21\u0E35\u0E41\u0E1A\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48",
-            `\u0E1C\u0E39\u0E49\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D: ${lead.name || "-"}`,
-            `\u0E42\u0E17\u0E23: ${lead.phone || "-"}`,
-            `\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23: ${lead.project || "-"}`,
-            `\u0E2D\u0E48\u0E32\u0E07: ${lead.productSkus.join(", ") || "-"}`,
-            `\u0E44\u0E1F\u0E25\u0E4C: ${lead.sketchUrl || "-"}`
-          ].join("\n")
-        }]
-      })
-    });
-    if (!response.ok) throw new Error(`LINE push returned ${response.status}`);
-    return true;
-  } catch (error) {
-    logger.warn({ error: error instanceof Error ? error.message : "unknown" }, "Sketch lead LINE notification failed");
-    return false;
-  }
+function requestOrigin(req) {
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  return `${forwardedProto || req.protocol}://${req.get("host") || "localhost"}`;
 }
+router5.post("/quotes/notify", async (req, res, next) => {
+  const quoteNumber = typeof req.body?.quoteNumber === "string" ? req.body.quoteNumber.trim() : "";
+  if (!quoteNumber) return invalid2(res, "quoteNumber is required");
+  try {
+    const [lead] = await db.select().from(customerLeads).where(eq(customerLeads.quoteNumber, quoteNumber)).limit(1);
+    if (!lead || !["studio", "quick-purchase"].includes(lead.orderMode) || !lead.studioData) {
+      return res.status(404).json({ message: "Quote not found" });
+    }
+    const result = await notifyQuote(lead, requestOrigin(req), `/quote/view?quote=${encodeURIComponent(quoteNumber)}`);
+    return res.json(result);
+  } catch (error) {
+    return next(error);
+  }
+});
 router5.post("/leads/sketch", async (req, res, next) => {
   try {
     const { media, fields } = await readMultipartForm(req, "image");
@@ -47279,8 +47374,12 @@ router5.post("/leads/sketch", async (req, res, next) => {
         updatedAt: /* @__PURE__ */ new Date()
       }
     }).returning();
-    const notified = await notifySalesTeam(lead);
-    return res.status(201).json({ lead, notificationStatus: notified ? "notified" : "saved_not_notified" });
+    const result = await notifySketch(
+      lead,
+      requestOrigin(req),
+      lead.quoteNumber ? `/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}` : void 0
+    );
+    return res.status(201).json({ lead, ...result });
   } catch (error) {
     if (error instanceof Error && /required|invalid|choose|allowed|large|metadata/i.test(error.message)) return invalid2(res, error.message);
     return next(error);
@@ -47297,6 +47396,24 @@ router6.use(support_default);
 router6.use(line_auth_default);
 router6.use(leads_default);
 var routes_default = router6;
+
+// src/lib/logger.ts
+var import_pino = __toESM(require_pino(), 1);
+var isProduction = process.env.NODE_ENV === "production";
+var logger = (0, import_pino.default)({
+  level: process.env.LOG_LEVEL ?? "info",
+  redact: [
+    "req.headers.authorization",
+    "req.headers.cookie",
+    "res.headers['set-cookie']"
+  ],
+  ...isProduction ? {} : {
+    transport: {
+      target: "pino-pretty",
+      options: { colorize: true }
+    }
+  }
+});
 
 // src/app.ts
 var app = (0, import_express8.default)();

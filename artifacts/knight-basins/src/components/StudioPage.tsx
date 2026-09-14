@@ -247,7 +247,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };
       if (!response.ok) throw new Error(payload.message || "ส่งไฟล์ไม่สำเร็จ");
-      setResult(payload.notificationStatus === "notified" ? "ส่งแบบร่างเรียบร้อยแล้ว ทีมขายได้รับการแจ้งเตือนทาง LINE" : "บันทึกแบบร่างเรียบร้อยแล้ว แต่ยังไม่ได้แจ้งเตือน LINE ทีมขายจะติดตามจากระบบ");
+      setResult(payload.message || (payload.notificationStatus === "notified" ? "ส่งแบบร่างเรียบร้อยแล้ว ทีมขายได้รับการแจ้งเตือน" : "บันทึกแบบร่างเรียบร้อยแล้ว แต่ยังไม่ได้แจ้งเตือน ทีมขายจะติดตามจากระบบ"));
       setSketchFile(null);
     } catch (error) {
       setResult(error instanceof Error ? error.message : "ส่งไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง");

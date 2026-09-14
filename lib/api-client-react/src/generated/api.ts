@@ -29,6 +29,7 @@ import type {
   Catalog,
   CreateAdminSessionBody,
   CustomerLead,
+  GetSavedQuoteParams,
   HealthStatus,
   InstalledStoneCategory,
   InstalledStoneCategoryInput,
@@ -36,6 +37,8 @@ import type {
   InstalledStonePriceInput,
   LeadInput,
   LineAuthStatus,
+  NotifyQuoteInput,
+  QuoteNotificationResponse,
   SheetStonePrice,
   SheetStonePriceInput,
   SketchLeadResponse,
@@ -2115,6 +2118,161 @@ export const useUpsertLead = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpsertLeadMutationOptions(options));
+    }
+
+export const getGetSavedQuoteUrl = (params: GetSavedQuoteParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/quotes?${stringifiedParams}` : `/api/quotes`
+}
+
+/**
+ * @summary Get a saved studio quotation by quote number
+ */
+export const getSavedQuote = async (params: GetSavedQuoteParams, options?: RequestInit): Promise<CustomerLead> => {
+
+  return customFetch<CustomerLead>(getGetSavedQuoteUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSavedQuoteQueryKey = (params?: GetSavedQuoteParams,) => {
+    return [
+    `/api/quotes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSavedQuoteQueryOptions = <TData = Awaited<ReturnType<typeof getSavedQuote>>, TError = ErrorType<void>>(params: GetSavedQuoteParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedQuote>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSavedQuoteQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSavedQuote>>> = ({ signal }) => getSavedQuote(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSavedQuote>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSavedQuoteQueryResult = NonNullable<Awaited<ReturnType<typeof getSavedQuote>>>
+export type GetSavedQuoteQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a saved studio quotation by quote number
+ */
+
+export function useGetSavedQuote<TData = Awaited<ReturnType<typeof getSavedQuote>>, TError = ErrorType<void>>(
+ params: GetSavedQuoteParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedQuote>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSavedQuoteQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getNotifySavedQuoteUrl = () => {
+
+
+
+
+  return `/api/quotes/notify`
+}
+
+/**
+ * @summary Send a saved quotation to the configured sales channel
+ */
+export const notifySavedQuote = async (notifyQuoteInput: NotifyQuoteInput, options?: RequestInit): Promise<QuoteNotificationResponse> => {
+
+  return customFetch<QuoteNotificationResponse>(getNotifySavedQuoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(notifyQuoteInput)
+  }
+);}
+
+
+
+
+
+export const getNotifySavedQuoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifySavedQuote>>, TError,{data: BodyType<NotifyQuoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof notifySavedQuote>>, TError,{data: BodyType<NotifyQuoteInput>}, TContext> => {
+
+const mutationKey = ['notifySavedQuote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof notifySavedQuote>>, {data: BodyType<NotifyQuoteInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  notifySavedQuote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NotifySavedQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof notifySavedQuote>>>
+    export type NotifySavedQuoteMutationBody = BodyType<NotifyQuoteInput>
+    export type NotifySavedQuoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Send a saved quotation to the configured sales channel
+ */
+export const useNotifySavedQuote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notifySavedQuote>>, TError,{data: BodyType<NotifyQuoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof notifySavedQuote>>,
+        TError,
+        {data: BodyType<NotifyQuoteInput>},
+        TContext
+      > => {
+      return useMutation(getNotifySavedQuoteMutationOptions(options));
     }
 
 export const getSubmitSketchLeadUrl = () => {

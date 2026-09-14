@@ -425,6 +425,24 @@ export interface CustomerLead {
   updatedAt: string;
 }
 
+export interface NotifyQuoteInput {
+  /** @maxLength 64 */
+  quoteNumber: string;
+}
+
+export type QuoteNotificationResponseNotificationStatus = typeof QuoteNotificationResponseNotificationStatus[keyof typeof QuoteNotificationResponseNotificationStatus];
+
+
+export const QuoteNotificationResponseNotificationStatus = {
+  notified: 'notified',
+  saved_not_notified: 'saved_not_notified',
+} as const;
+
+export interface QuoteNotificationResponse {
+  notificationStatus: QuoteNotificationResponseNotificationStatus;
+  message: string;
+}
+
 export type SketchLeadResponseNotificationStatus = typeof SketchLeadResponseNotificationStatus[keyof typeof SketchLeadResponseNotificationStatus];
 
 
@@ -436,6 +454,7 @@ export const SketchLeadResponseNotificationStatus = {
 export interface SketchLeadResponse {
   lead: CustomerLead;
   notificationStatus: SketchLeadResponseNotificationStatus;
+  message?: string;
 }
 
 export interface LineAuthUser {
@@ -458,6 +477,13 @@ export type CreateAdminSessionBody = {
 
 export type UploadAdminBasinVideoBody = {
   file: string;
+};
+
+export type GetSavedQuoteParams = {
+/**
+ * @maxLength 64
+ */
+quoteNumber: string;
 };
 
 export type SubmitSketchLeadBody = {

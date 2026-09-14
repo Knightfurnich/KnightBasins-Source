@@ -2,9 +2,9 @@ import { customerLeads } from "@workspace/db/schema";
 import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
-import { sql } from "drizzle-orm";
-import { logger } from "../lib/logger";
+import { eq, sql } from "drizzle-orm";
 import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
+import { notifyQuote, notifySketch } from "../lib/sales-notifications";
 
 const router: IRouter = Router();
 
@@ -12,11 +12,23 @@ function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
 
+function createQuoteNumber() {
+  const month = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit" }).format(new Date());
+  const serial = String(Date.now()).slice(-6);
+  return `${month} / US / ${serial}`;
+}
+
 router.post("/leads", async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
   if (!parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
 
   try {
+    const [existing] = await db
+      .select({ quoteNumber: customerLeads.quoteNumber })
+      .from(customerLeads)
+      .where(eq(customerLeads.leadKey, parsed.data.leadKey))
+      .limit(1);
+    const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? createQuoteNumber() : null);
     const statusPriority = {
       new_lead: 0,
       selecting: 1,
@@ -26,7 +38,7 @@ router.post("/leads", async (req, res, next) => {
     const requestedPriority = statusPriority[parsed.data.status];
     const [lead] = await db
       .insert(customerLeads)
-      .values(parsed.data)
+      .values({ ...parsed.data, quoteNumber })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
         set: {
@@ -40,7 +52,7 @@ router.post("/leads", async (req, res, next) => {
           address: parsed.data.address,
           notes: parsed.data.notes,
           productSkus: parsed.data.productSkus,
-          quoteNumber: parsed.data.quoteNumber,
+           quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
            orderMode: parsed.data.orderMode,
            studioData: parsed.data.studioData,
            sketchUrl: parsed.data.sketchUrl,
@@ -55,36 +67,48 @@ router.post("/leads", async (req, res, next) => {
   }
 });
 
-async function notifySalesTeam(lead: { name: string | null; phone: string | null; project: string | null; productSkus: string[]; sketchUrl: string | null }) {
-  const accessToken = process.env["LINE_MESSAGING_ACCESS_TOKEN"] ?? process.env["LINE_CHANNEL_ACCESS_TOKEN"];
-  const destination = process.env["LINE_SALES_DESTINATION_ID"];
-  if (!accessToken || !destination) return false;
+router.get("/quotes", async (req, res, next) => {
+  const quoteNumber = typeof req.query.quoteNumber === "string" ? req.query.quoteNumber.trim() : "";
+  if (!quoteNumber) return invalid(res, "quoteNumber is required");
+
   try {
-    const response = await fetch("https://api.line.me/v2/bot/message/push", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        to: destination,
-        messages: [{
-          type: "text",
-          text: [
-            "Knight Basins: มีแบบร่างใหม่",
-            `ผู้ติดต่อ: ${lead.name || "-"}`,
-            `โทร: ${lead.phone || "-"}`,
-            `โครงการ: ${lead.project || "-"}`,
-            `อ่าง: ${lead.productSkus.join(", ") || "-"}`,
-            `ไฟล์: ${lead.sketchUrl || "-"}`,
-          ].join("\n"),
-        }],
-      }),
-    });
-    if (!response.ok) throw new Error(`LINE push returned ${response.status}`);
-    return true;
+    const [lead] = await db
+      .select()
+      .from(customerLeads)
+      .where(eq(customerLeads.quoteNumber, quoteNumber))
+      .limit(1);
+    if (!lead || !["studio", "quick-purchase"].includes(lead.orderMode) || !lead.studioData) {
+      return res.status(404).json({ message: "Quote not found" });
+    }
+    return res.json(lead);
   } catch (error) {
-    logger.warn({ error: error instanceof Error ? error.message : "unknown" }, "Sketch lead LINE notification failed");
-    return false;
+    return next(error);
   }
+});
+
+function requestOrigin(req: { protocol: string; get(name: string): string | undefined }) {
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  return `${forwardedProto || req.protocol}://${req.get("host") || "localhost"}`;
 }
+
+router.post("/quotes/notify", async (req, res, next) => {
+  const quoteNumber = typeof req.body?.quoteNumber === "string" ? req.body.quoteNumber.trim() : "";
+  if (!quoteNumber) return invalid(res, "quoteNumber is required");
+  try {
+    const [lead] = await db
+      .select()
+      .from(customerLeads)
+      .where(eq(customerLeads.quoteNumber, quoteNumber))
+      .limit(1);
+    if (!lead || !["studio", "quick-purchase"].includes(lead.orderMode) || !lead.studioData) {
+      return res.status(404).json({ message: "Quote not found" });
+    }
+    const result = await notifyQuote(lead, requestOrigin(req), `/quote/view?quote=${encodeURIComponent(quoteNumber)}`);
+    return res.json(result);
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.post("/leads/sketch", async (req, res, next) => {
   try {
@@ -123,8 +147,12 @@ router.post("/leads/sketch", async (req, res, next) => {
         },
       })
       .returning();
-    const notified = await notifySalesTeam(lead);
-    return res.status(201).json({ lead, notificationStatus: notified ? "notified" : "saved_not_notified" });
+    const result = await notifySketch(
+      lead,
+      requestOrigin(req),
+      lead.quoteNumber ? `/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}` : undefined,
+    );
+    return res.status(201).json({ lead, ...result });
   } catch (error) {
     if (error instanceof Error && /required|invalid|choose|allowed|large|metadata/i.test(error.message)) return invalid(res, error.message);
     return next(error);

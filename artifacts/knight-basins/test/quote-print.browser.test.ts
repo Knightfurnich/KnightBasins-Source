@@ -210,7 +210,7 @@ describe("long formal quote print flow", () => {
     await setTextInput(browser.page, "input-customer-project", "โครงการหลายรายการ");
     await clickTestId(browser.page, "button-generate-quote");
     await waitFor(
-      () => browser.page.evaluate('document.querySelector(\'[data-testid="formal-quote-sheet"]\') !== null'),
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"]\') !== null'),
       Boolean,
       "formal quote",
     );

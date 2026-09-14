@@ -310,6 +310,19 @@ type FormalQuoteItem = {
   videoUrl?: string;
 };
 
+type QuickQuoteSnapshot = {
+  kind: "quick-purchase";
+  quoteFormat: QuoteFormat;
+  customer: CustomerDetails;
+  items: FormalQuoteItem[];
+  grossSubtotal: number;
+  discountAmount: number;
+  subtotal: number;
+  vatAmount: number;
+  total: number;
+  vat: boolean;
+};
+
 const COMPANY_DETAILS = {
   name: "บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่)",
   taxId: "0-1355-53014-11-4",
@@ -421,15 +434,22 @@ function FormalQuote({
 }
 
 type SavedStudioPayload = {
+  kind: "studio";
   state: StudioState;
   estimate: StudioEstimate;
 };
 
-function readSavedStudioPayload(value: unknown): SavedStudioPayload | null {
+type SavedQuotePayload = SavedStudioPayload | QuickQuoteSnapshot;
+
+function readSavedQuotePayload(value: unknown): SavedQuotePayload | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
+  if (record.kind === "quick-purchase" && Array.isArray(record.items) && record.customer && typeof record.customer === "object") {
+    return record as unknown as QuickQuoteSnapshot;
+  }
   if (!record.state || typeof record.state !== "object" || !record.estimate || typeof record.estimate !== "object") return null;
   return {
+    kind: "studio",
     state: record.state as StudioState,
     estimate: record.estimate as StudioEstimate,
   };
@@ -482,6 +502,8 @@ function SavedQuotePage() {
     { query: { enabled: Boolean(quoteNumber), retry: false, queryKey: ["saved-quote", quoteNumber] } },
   );
   const [copied, setCopied] = useState(false);
+  const notifyMutation = useNotifySavedQuote();
+  const [notificationMessage, setNotificationMessage] = useState(() => new URLSearchParams(window.location.search).get("notification") ?? "");
 
   if (!quoteNumber) {
     return <div className="page-wrap empty-state"><span className="empty-number">—</span><h3>ไม่พบเลขที่ใบเสนอราคา</h3><Link href="/quote" className="text-link">กลับไปสร้างใบเสนอราคา <ArrowRight size={15} /></Link></div>;
@@ -492,91 +514,136 @@ function SavedQuotePage() {
   if (error || !lead) {
     return <div className="page-wrap empty-state" data-testid="status-saved-quote-error"><span className="empty-number">404</span><h3>ไม่พบใบเสนอราคานี้</h3><p>ลิงก์อาจไม่ถูกต้อง หรือเอกสารยังไม่ได้บันทึก</p><Link href="/" className="text-link">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div>;
   }
-  const saved = readSavedStudioPayload(lead.studioData);
+  const saved = readSavedQuotePayload(lead.studioData);
   if (!saved) {
-    return <div className="page-wrap empty-state" data-testid="status-saved-quote-invalid"><span className="empty-number">—</span><h3>เอกสารนี้ไม่มีแบบ 2D ที่บันทึกไว้</h3><Link href="/" className="text-link">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div>;
+    return <div className="page-wrap empty-state" data-testid="status-saved-quote-invalid"><span className="empty-number">—</span><h3>เอกสารนี้ไม่มี snapshot ที่บันทึกไว้</h3><Link href="/" className="text-link">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div>;
   }
 
-  const { state, estimate } = saved;
-  const customer: CustomerDetails = {
-    name: lead.name ?? "",
-    company: lead.company ?? "",
-    taxId: "",
-    phone: lead.phone ?? "",
-    email: lead.email ?? "",
-    purchasingDepartment: "",
-    address: lead.address ?? "",
-    project: lead.project ?? "",
-    site: "",
-    notes: lead.notes ?? "",
-  };
-  const placements = state.basinPlacements.length
-    ? state.basinPlacements
-    : state.basinSkus.map((sku, index) => ({ sku, id: `${sku}-${index}`, xMm: 70, yMm: 70, ...(() => {
-      const product = productBySku(sku);
-      return product ? { widthMm: product.basinDimensions ? Number(product.basinDimensions.match(/\d+/)?.[0] ?? 0) || null : null, depthMm: product.basinDimensions ? Number(product.basinDimensions.match(/\d+/g)?.[1] ?? 0) || null : null } : { widthMm: null, depthMm: null };
-    })() }));
-  const basinCounts = new Map<string, number>();
-  placements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
-  const formalItems: FormalQuoteItem[] = [];
-  basinCounts.forEach((quantity, sku) => {
-    const product = productBySku(sku);
-    if (!product) return;
-    formalItems.push({
-      code: product.sku,
-      description: `${product.colorName} · ${product.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น"} · ${product.dimensions}${product.basinDimensions ? ` · หลุม ${product.basinDimensions}` : ""}`,
-      quantity,
-      unit: "ใบ",
-      unitPrice: product.priceTHB,
-      total: product.priceTHB * quantity,
-      videoUrl: product.videoUrl,
-    });
-  });
-  const requestedInstallation = placements.length * INSTALLATION_PRICE;
-  if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation });
-  if (estimate.stoneUnitPriceTHB !== null) {
-    const activeStone = stoneColorByName(state.activeStone);
-    formalItems.push({
-      code: activeStone.code,
-      description: `${activeStone.name} · ตัดและติดตั้งตามพื้นที่แบบ 2D`,
-      quantity: estimate.stoneAreaSqM,
-      unit: "ตร.ม.",
-      unitPrice: estimate.stoneUnitPriceTHB,
-      total: estimate.stoneTotalTHB,
-    });
-  }
-  if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB });
   const issueDate = new Date(lead.createdAt);
   const expiryDate = new Date(issueDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const format = state.quoteFormat ?? "US";
-  const subtotal = estimate.subtotalTHB ?? estimate.totalTHB;
-  const discountAmount = estimate.installationDiscountTHB ?? 0;
-  const grossSubtotal = subtotal + discountAmount;
-  const lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
+  let state: StudioState | null = null;
+  let customer: CustomerDetails;
+  let formalItems: FormalQuoteItem[];
+  let format: QuoteFormat;
+  let grossSubtotal: number;
+  let discountAmount: number;
+  let subtotal: number;
+  let vatAmount: number;
+  let total: number;
+  let vat: boolean;
+  let lineSummary: string;
+
+  if (saved.kind === "quick-purchase") {
+    customer = saved.customer;
+    formalItems = saved.items;
+    format = saved.quoteFormat;
+    grossSubtotal = saved.grossSubtotal;
+    discountAmount = saved.discountAmount;
+    subtotal = saved.subtotal;
+    vatAmount = saved.vatAmount;
+    total = saved.total;
+    vat = saved.vat;
+    lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${saved.customer.project || ""}\nยอดรวม ${formatTHB(saved.total)}`;
+  } else {
+    state = saved.state;
+    const estimate = saved.estimate;
+    customer = {
+      name: lead.name ?? "",
+      company: lead.company ?? "",
+      taxId: "",
+      phone: lead.phone ?? "",
+      email: lead.email ?? "",
+      purchasingDepartment: "",
+      address: lead.address ?? "",
+      project: lead.project ?? "",
+      site: "",
+      notes: lead.notes ?? "",
+    };
+    const placements = state.basinPlacements.length
+      ? state.basinPlacements
+      : state.basinSkus.map((sku, index) => ({ sku, id: `${sku}-${index}`, xMm: 70, yMm: 70, ...(() => {
+        const product = productBySku(sku);
+        return product ? { widthMm: product.basinDimensions ? Number(product.basinDimensions.match(/\d+/)?.[0] ?? 0) || null : null, depthMm: product.basinDimensions ? Number(product.basinDimensions.match(/\d+/g)?.[1] ?? 0) || null : null } : { widthMm: null, depthMm: null };
+      })() }));
+    const basinCounts = new Map<string, number>();
+    placements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
+    formalItems = [];
+    basinCounts.forEach((quantity, sku) => {
+      const product = productBySku(sku);
+      if (!product) return;
+      formalItems.push({
+        code: product.sku,
+        description: `${product.colorName} · ${product.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น"} · ${product.dimensions}${product.basinDimensions ? ` · หลุม ${product.basinDimensions}` : ""}`,
+        quantity,
+        unit: "ใบ",
+        unitPrice: product.priceTHB,
+        total: product.priceTHB * quantity,
+        videoUrl: product.videoUrl,
+      });
+    });
+    const requestedInstallation = placements.length * INSTALLATION_PRICE;
+    if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation });
+    if (estimate.stoneUnitPriceTHB !== null) {
+      const activeStone = stoneColorByName(state.activeStone);
+      formalItems.push({
+        code: activeStone.code,
+        description: `${activeStone.name} · ตัดและติดตั้งตามพื้นที่แบบ 2D`,
+        quantity: estimate.stoneAreaSqM,
+        unit: "ตร.ม.",
+        unitPrice: estimate.stoneUnitPriceTHB,
+        total: estimate.stoneTotalTHB,
+      });
+    }
+    if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB });
+    format = state.quoteFormat ?? "US";
+    subtotal = estimate.subtotalTHB ?? estimate.totalTHB;
+    discountAmount = estimate.installationDiscountTHB ?? 0;
+    grossSubtotal = subtotal + discountAmount;
+    vatAmount = estimate.vatAmountTHB ?? 0;
+    total = estimate.totalTHB;
+    vat = Boolean(state.vat);
+    lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
+  }
+  const savedQuoteNumber = lead.quoteNumber ?? quoteNumber;
   const copyLink = async () => {
     await navigator.clipboard?.writeText(window.location.href);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
+  const sendNotification = async () => {
+    setNotificationMessage("กำลังส่งแจ้งเตือน...");
+    try {
+      const result = await notifyMutation.mutateAsync({ data: { quoteNumber: savedQuoteNumber } });
+      setNotificationMessage(result.message);
+    } catch (error) {
+      setNotificationMessage(error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่");
+    }
+  };
 
-  return <div className="page-wrap quote-page saved-quote-page">
+  return <div className="page-wrap quote-page saved-quote-page" data-testid="saved-quote-page">
     <section className="quote-heading saved-quote-heading">
       <div><p className="eyebrow accent">SAVED QUOTATION / {lead.quoteNumber}</p><h1>ใบเสนอราคา<br /><em>พร้อมแบบที่บันทึกไว้</em></h1><p className="hero-copy">เอกสารนี้เปิดดูได้จากลิงก์เดิม และข้อมูลในแบบเป็น read-only</p></div>
       <div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={() => window.print()} data-testid="button-print-saved-quote"><Printer size={15} /> พิมพ์ / PDF ทางการ</button></div>
     </section>
+    <div className="quote-editor saved-quote-editor">
     <div className="saved-quote-actions">
       <button className="button button--dark" onClick={copyLink} data-testid="button-copy-saved-quote-link">{copied ? <><Check size={15} /> คัดลอกลิงก์แล้ว</> : "คัดลอกลิงก์ใบเสนอราคา"}</button>
+      <button className="button button--accent" onClick={sendNotification} disabled={notifyMutation.isPending} data-testid="button-send-saved-quote-notification">{notifyMutation.isPending ? "กำลังส่ง..." : "ส่งเข้า Telegram"}</button>
       <button className="button button--outline" onClick={() => setLocation("/")} data-testid="button-saved-quote-home">กลับไปแคตตาล็อก</button>
     </div>
-    <StudioLayoutSnapshot state={state} />
-    <FormalQuote format={format} quoteNumber={lead.quoteNumber ?? quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={estimate.vatAmountTHB ?? 0} total={estimate.totalTHB} vat={Boolean(state.vat)} />
+    {notificationMessage && <p className="studio-result" role="status" data-testid="status-saved-quote-notification">{notificationMessage}</p>}
+    </div>
+    {state && <StudioLayoutSnapshot state={state} />}
+    <FormalQuote format={format} quoteNumber={savedQuoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} />
     <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>
   </div>;
 }
 
-function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, vat, setVat, onSubmitQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; customer: CustomerDetails; setCustomer: Dispatch<SetStateAction<CustomerDetails>>; vat: boolean; setVat: Dispatch<SetStateAction<boolean>>; onSubmitQuote: () => void }) {
+function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, vat, setVat, onSubmitQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; customer: CustomerDetails; setCustomer: Dispatch<SetStateAction<CustomerDetails>>; vat: boolean; setVat: Dispatch<SetStateAction<boolean>>; onSubmitQuote: (snapshot: QuickQuoteSnapshot, notify?: boolean) => Promise<void> }) {
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [quoteFormat, setQuoteFormat] = useStored<QuoteFormat>("knight-quote-format", "US");
   const [quoteSerial] = useStored("knight-quote-serial", String(Math.floor(1000 + Math.random() * 8999)));
   const issueDate = useMemo(() => new Date(), []);
@@ -634,10 +701,33 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   };
   const updateLine = (sku: string, changes: Partial<QuoteBasinLine>) => setCart((lines) => lines.map((line) => line.sku === sku ? { ...line, ...changes } : line).filter((line) => line.quantity > 0));
   const removeStone = (color: string) => setStones((current) => removeStoneSelection(current, color));
-  const generateQuote = () => {
+  const snapshot: QuickQuoteSnapshot = {
+    kind: "quick-purchase",
+    quoteFormat,
+    customer,
+    items: formalItems,
+    grossSubtotal,
+    discountAmount: installationDiscount,
+    subtotal,
+    vatAmount,
+    total,
+    vat,
+  };
+  const saveQuote = async (notify = false) => {
     if (!canGenerate) return;
     setSubmitted(true);
-    onSubmitQuote();
+    setSaveError("");
+    setSaving(true);
+    try {
+      await onSubmitQuote(snapshot, notify);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "บันทึกใบเสนอราคาไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const generateQuote = () => {
+    void saveQuote();
   };
   const printQuote = () => {
     if (!canGenerate) {
@@ -645,7 +735,7 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
       return;
     }
     setSubmitted(true);
-    onSubmitQuote();
+    void saveQuote();
     window.setTimeout(() => window.print(), 80);
   };
   const customerFields: Array<{ key: keyof CustomerDetails; label: string; placeholder: string; required?: boolean }> = [
@@ -660,6 +750,10 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   ];
   return <div className="page-wrap quote-page">
     <div className="quote-editor">
+      <div className="saved-quote-actions quote-notification-actions">
+        <button className="button button--accent" onClick={() => void saveQuote(true)} disabled={saving || !canGenerate} data-testid="button-send-quote-notification">{saving ? "กำลังบันทึก..." : "บันทึกและส่งเข้า Telegram"}</button>
+        {saveError && <span className="summary-warning" role="alert" data-testid="status-quote-save-error">{saveError}</span>}
+      </div>
       <section className="quote-heading"><div><p className="eyebrow accent">QUOTE BUILDER / {quoteNumber}</p><h1>จากรายการ<br /><em>สู่ตัวเลขที่ชัดเจน</em></h1><p className="hero-copy">ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทางการสำหรับโปรเจกต์ของคุณ</p></div><div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={printQuote} data-testid="button-print-quote"><Printer size={15} /> พิมพ์ / PDF ทางการ</button></div></section>
       <section className="quote-format-panel"><div><p className="eyebrow">DOCUMENT FORMAT</p><strong>เลือกรูปแบบใบเสนอราคา</strong><small>US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จุดติดตั้ง</small></div><div className="quote-format-switch"><button className={quoteFormat === "US" ? "is-active" : ""} onClick={() => setQuoteFormat("US")} data-testid="button-quote-format-us"><span>US</span><small>พื้นที่ / แผ่น</small></button><button className={quoteFormat === "OF" ? "is-active" : ""} onClick={() => setQuoteFormat("OF")} data-testid="button-quote-format-of"><span>OF</span><small>รายห้อง / จุด</small></button></div></section>
       <div className="quote-layout"><section className="quote-main"><div className="quote-block"><div className="block-header"><div><p className="eyebrow">01 / BASINS</p><h2>รายการอ่างล้างหน้า</h2></div><Link href="/" className="text-link" data-testid="link-add-more">เพิ่มรายการ <Plus size={15} /></Link></div>{cart.length ? cart.map((line) => { const product = productBySku(line.sku)!; return <div className="quote-line" key={line.sku} data-testid={`row-quote-${line.sku}`}><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={product.category === "tall vertical washbasin"} /><div className="quote-line-name"><span className="eyebrow">{product.sku} / {product.colorCode}</span><strong>{product.colorName}</strong><small>{product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง"} · {product.dimensions}</small></div><div className="line-quantity"><button onClick={() => updateLine(line.sku, { quantity: line.quantity - 1 })} aria-label={`ลดจำนวน ${line.sku}`} data-testid={`button-quantity-minus-${line.sku}`}><Minus size={13} /></button><span data-testid={`text-quantity-${line.sku}`}>{line.quantity}</span><button onClick={() => updateLine(line.sku, { quantity: line.quantity + 1 })} aria-label={`เพิ่มจำนวน ${line.sku}`} data-testid={`button-quantity-plus-${line.sku}`}><Plus size={13} /></button></div><label className="install-toggle"><input type="checkbox" checked={line.installationSelected} onChange={(event) => updateLine(line.sku, { installationSelected: event.target.checked })} data-testid={`input-installation-${line.sku}`} /><span />ติดตั้ง</label><strong className="line-price">{formatTHB(product.priceTHB * line.quantity)}</strong><button className="icon-button" onClick={() => setCart((lines) => lines.filter((item) => item.sku !== line.sku))} aria-label={`ลบ ${line.sku}`} data-testid={`button-remove-${line.sku}`}><Trash2 size={15} /></button></div>; }) : <div className="quote-empty" data-testid="status-quote-empty"><ShoppingBag size={22} /><p>ยังไม่มีสินค้าในใบเสนอราคา</p><Link href="/" className="text-link" data-testid="link-empty-catalog">เลือกจากแคตตาล็อก <ArrowRight size={15} /></Link></div>}<div className="install-note">ค่าติดตั้งอ่าง <strong>5,000 บาท/ชุด</strong> · ฟรีค่าดำเนินการติดตั้งเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</div></div>
@@ -676,7 +770,7 @@ import AdminApp from "./admin/AdminApp";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import knightFurnichLogo from "@assets/Knightfurnich-logo_1789302266220.png";
-import { useGetCatalog, useGetSavedQuote, useUpsertLead } from "@workspace/api-client-react";
+import { useGetCatalog, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
 import { KnightSupport, LineLoginButton } from "@/components/KnightSupport";
 import OwnerWorkbench from "./admin/OwnerWorkbench";
 
@@ -710,6 +804,7 @@ function Storefront() {
   const [leadKey] = useStored("knight-lead-key", `lead-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const [, setLocation] = useLocation();
   const upsertLead = useUpsertLead();
+  const notifyQuoteMutation = useNotifySavedQuote();
   useEffect(() => {
     if (!remoteCatalog) return;
      PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
@@ -759,7 +854,26 @@ function Storefront() {
     leadEvent("selecting", skus);
     setLocation("/quote");
   };
-  const submitQuote = () => syncLead("quote_requested", "quote_builder");
+  const submitQuote = async (snapshot: QuickQuoteSnapshot, notify = false) => {
+    const lead = await syncLead("quote_requested", "quote_builder", {
+      ...snapshot.customer,
+      productSkus: cart.map((line) => line.sku),
+      orderMode: "quick-purchase",
+      studioData: snapshot,
+    });
+    if (!lead.quoteNumber) throw new Error("ระบบยังไม่ได้สร้างเลขที่ใบเสนอราคา");
+    let notificationMessage = "";
+    if (notify) {
+      try {
+        const result = await notifyQuoteMutation.mutateAsync({ data: { quoteNumber: lead.quoteNumber } });
+        notificationMessage = result.message;
+      } catch (error) {
+        notificationMessage = error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่";
+      }
+    }
+    const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
+    setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}${notificationQuery}`);
+  };
   const submitStudio = async ({ state, estimate, contact }: StudioSubmission) => {
     setCustomer((current) => ({ ...current, ...contact }));
     const lead = await syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate } });

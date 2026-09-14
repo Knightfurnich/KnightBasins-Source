@@ -1128,6 +1128,56 @@ export const UpsertLeadResponse = zod.object({
 
 
 /**
+ * @summary Get a saved studio quotation by quote number
+ */
+export const getSavedQuoteQueryQuoteNumberMax = 64;
+
+
+
+export const GetSavedQuoteQueryParams = zod.object({
+  "quoteNumber": zod.coerce.string().max(getSavedQuoteQueryQuoteNumberMax)
+})
+
+export const GetSavedQuoteResponse = zod.object({
+  "id": zod.number(),
+  "leadKey": zod.string(),
+  "status": zod.enum(['new_lead', 'selecting', 'quote_requested', 'closed']),
+  "source": zod.string(),
+  "name": zod.string().nullish(),
+  "company": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "project": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "productSkus": zod.array(zod.string()),
+  "quoteNumber": zod.string().nullish(),
+  "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
+  "studioData": zod.record(zod.string(), zod.unknown()).nullish(),
+  "sketchUrl": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Send a saved quotation to the configured sales channel
+ */
+export const notifySavedQuoteBodyQuoteNumberMax = 64;
+
+
+
+export const NotifySavedQuoteBody = zod.object({
+  "quoteNumber": zod.string().max(notifySavedQuoteBodyQuoteNumberMax)
+})
+
+export const NotifySavedQuoteResponse = zod.object({
+  "notificationStatus": zod.enum(['notified', 'saved_not_notified']),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Save a hand-sketch lead with its uploaded image
  */
 export const SubmitSketchLeadBody = zod.object({
@@ -1156,7 +1206,8 @@ export const SubmitSketchLeadResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),
-  "notificationStatus": zod.enum(['notified', 'saved_not_notified'])
+  "notificationStatus": zod.enum(['notified', 'saved_not_notified']),
+  "message": zod.string().optional()
 })
 
 
