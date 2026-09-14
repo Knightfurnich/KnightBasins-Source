@@ -3,234 +3,161 @@ import test from "node:test";
 import { PRODUCTS } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
-  backsplashAreaSqM,
-  clampBasinPlacementPosition,
-  counterClearanceRegions,
-  counterClipPath,
-  counterDimensionsValid,
   createBasinPlacement,
-  counterAreaSqM,
-  counterRegions,
-  counterShapeLabel,
-  placementFitsCounterShape,
-  standardSheetWarning,
+  pieceOverlapWarnings,
+  pieceBounds,
+  snapStudioRectanglePosition,
+  studioAreaSqM,
+  studioEdgeTotals,
   studioEstimate,
+  studioPieceJoints,
+  studioRectangleSize,
+  studioStateDimensionsValid,
   studioSubmissionValidationMessage,
-  snapBasinPlacementPosition,
-  unsafeBasinPlacements,
+  touchingRectangleKeys,
   unknownBasinPlacements,
+  type StudioPiece,
   type StudioState,
 } from "../src/data/studio-model.ts";
 
-const baseState: StudioState = {
+const rectangle = (id: string, overrides: Partial<StudioPiece["rectangles"][number]> = {}) => ({
+  id,
+  widthMm: 1000,
+  lengthMm: 600,
+  xMm: 0,
+  yMm: 0,
+  rotation: 0 as const,
+  ...overrides,
+});
+
+const piece = (rectangles = [rectangle("r1")], sideStatuses: Record<string, "upstand" | "open-edge" | "wall-flush" | "normal"> = {}): StudioPiece => ({
+  id: "piece-1",
+  name: "ชิ้นงาน 1",
+  rectangles,
+  sideStatuses,
+});
+
+const baseState = (overrides: Partial<StudioState> = {}): StudioState => ({
   mode: "studio",
   shape: "I",
-  dimensions: { depthMm: 600, runAMm: 1800, runBMm: 0, runCMm: 0 },
-  backsplash: { enabled: false, heightMm: 100 },
+  dimensions: { depthMm: 600, runAMm: 1000, runBMm: 0, runCMm: 0 },
+  pieces: [piece([rectangle("r1", { widthMm: 1800 })])],
+  activePieceId: "piece-1",
+  backsplash: { enabled: false, heightMm: 120 },
+  upstandHeightMm: 120,
+  openEdgePricePerMTHB: 0,
+  discountTHB: 0,
   location: "bangkok-metro",
   vat: false,
   quoteFormat: "US",
   stoneColors: ["BW010", "MU010"],
   activeStone: "BW010",
   basinSkus: ["KF001"],
-  basinPlacements: [{ id: "basin-1", sku: "KF001", xMm: 100, yMm: 100, widthMm: 500, depthMm: 500 }],
-};
-
-test("counter area calculates I, L, and U footprints in square metres", () => {
-  assert.equal(counterAreaSqM("I", { depthMm: 600, runAMm: 1800, runBMm: 0, runCMm: 0 }), 1.08);
-  assert.equal(counterAreaSqM("L", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 0 }), 1.44);
-  assert.equal(counterAreaSqM("U", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1000 }), 1.68);
+  basinPlacements: [{ id: "basin-1", sku: "KF001", pieceId: "piece-1", xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }],
+  ...overrides,
 });
 
-test("L and U geometry use real counter legs, clearance regions, and shape labels", () => {
-  const dimensions = { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1200 };
-  assert.deepEqual(counterRegions("L", dimensions), [
-    { xMm: 0, yMm: 0, widthMm: 1800, heightMm: 600 },
-    { xMm: 0, yMm: 0, widthMm: 600, heightMm: 1200 },
-  ]);
-  assert.deepEqual(counterClearanceRegions("U", dimensions), [
-    { xMm: 50, yMm: 50, widthMm: 1700, heightMm: 500 },
-    { xMm: 50, yMm: 50, widthMm: 500, heightMm: 1100 },
-    { xMm: 1250, yMm: 50, widthMm: 500, heightMm: 1100 },
-  ]);
-  assert.equal(placementFitsCounterShape("L", dimensions, { xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }), true);
-  assert.equal(placementFitsCounterShape("L", dimensions, { xMm: 700, yMm: 700, widthMm: 500, depthMm: 400 }), false);
-  assert.equal(placementFitsCounterShape("U", dimensions, { xMm: 1250, yMm: 50, widthMm: 500, depthMm: 500 }), true);
-  assert.equal(
-    counterClipPath("L", dimensions),
-    "polygon(0 0, 100% 0, 100% 50%, 33.33333333333333% 50%, 33.33333333333333% 100%, 0 100%)",
-  );
-  assert.equal(
-    counterClipPath("U", dimensions),
-    "polygon(0 0, 100% 0, 100% 100%, 66.66666666666666% 100%, 66.66666666666666% 50%, 33.33333333333333% 50%, 33.33333333333333% 100%, 0 100%)",
-  );
-  assert.equal(counterShapeLabel("I", dimensions), "I-SHAPE · 1,800 × 600 mm");
-  assert.equal(counterShapeLabel("L", dimensions), "L-SHAPE · A 1,800 × B 1,200 × ลึก 600 mm");
-  assert.equal(counterShapeLabel("U", dimensions), "U-SHAPE · A 1,800 × B 1,200 × C 1,200 × ลึก 600 mm");
+test("rectangle layouts calculate additive area and preserve stepped/notched geometry", () => {
+  const pieces = [piece([rectangle("a", { widthMm: 1800 }), rectangle("b", { xMm: 1800, yMm: 0, widthMm: 600, lengthMm: 400 }), rectangle("c", { xMm: 1800, yMm: 400, widthMm: 400, lengthMm: 500 })])];
+  assert.equal(studioAreaSqM(pieces), 1.52);
+  assert.deepEqual(pieceBounds(pieces[0]), { widthMm: 2400, heightMm: 900 });
+  assert.deepEqual(studioRectangleSize(rectangle("rotated", { rotation: 90, widthMm: 400, lengthMm: 900 })), { widthMm: 900, heightMm: 400 });
 });
 
-test("L and U dimensions must leave room for actual perpendicular legs", () => {
-  assert.equal(counterDimensionsValid("I", { depthMm: 600, runAMm: 1, runBMm: 0, runCMm: 0 }), true);
-  assert.equal(counterDimensionsValid("L", { depthMm: 600, runAMm: 600, runBMm: 1200, runCMm: 0 }), false);
-  assert.equal(counterDimensionsValid("L", { depthMm: 600, runAMm: 1800, runBMm: 600, runCMm: 0 }), false);
-  assert.equal(counterDimensionsValid("L", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 0 }), true);
-  assert.equal(counterDimensionsValid("U", { depthMm: 600, runAMm: 1200, runBMm: 1200, runCMm: 1200 }), false);
-  assert.equal(counterDimensionsValid("U", { depthMm: 600, runAMm: 1800, runBMm: 600, runCMm: 1200 }), false);
-  assert.equal(counterDimensionsValid("U", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1200 }), true);
+test("overlapping rectangles warn but are still counted additively", () => {
+  const layout = piece([rectangle("a"), rectangle("b", { xMm: 500, yMm: 100 })]);
+  assert.deepEqual(pieceOverlapWarnings(layout), ["a:b"]);
+  assert.equal(studioAreaSqM([layout]), 1.2);
+  assert.equal(studioEstimate(baseState({ pieces: [layout] }), PRODUCTS).isValid, false);
 });
 
-test("backsplash adds area without changing counter footprint", () => {
-  const dimensions = { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 0 };
-  assert.equal(backsplashAreaSqM("L", dimensions, { enabled: true, heightMm: 100 }), 0.3);
-  assert.equal(backsplashAreaSqM("L", dimensions, { enabled: false, heightMm: 100 }), 0);
+test("touching edges create joints, snap within tolerance, and exclude shared length from edge totals", () => {
+  const layout = piece([
+    rectangle("a", { widthMm: 1000 }),
+    rectangle("b", { xMm: 1000, widthMm: 800 }),
+  ], {
+    "a:right": "wall-flush",
+    "b:left": "wall-flush",
+    "a:bottom": "upstand",
+    "a:top": "open-edge",
+  });
+  assert.deepEqual(studioPieceJoints(layout).map((joint) => joint.lengthMm), [600]);
+  assert.deepEqual(touchingRectangleKeys(layout, "a", "right"), ["a:right", "b:left"]);
+  assert.deepEqual(snapStudioRectanglePosition(layout, "b", 1008, 2), { xMm: 1000, yMm: 0 });
+  const totals = studioEdgeTotals([layout]);
+  assert.equal(totals.upstandLengthMm, 1000);
+  assert.equal(totals.openEdgeLengthMm, 1000);
 });
 
-test("standard sheet warning catches depth and run overages", () => {
-  assert.equal(standardSheetWarning("I", { depthMm: 760, runAMm: 3600, runBMm: 0, runCMm: 0 }), false);
-  assert.equal(standardSheetWarning("I", { depthMm: 761, runAMm: 3600, runBMm: 0, runCMm: 0 }), true);
-  assert.equal(standardSheetWarning("L", { depthMm: 600, runAMm: 3601, runBMm: 1200, runCMm: 0 }), true);
+test("new model enforces one to three pieces and one to six valid rectangles", () => {
+  assert.equal(studioStateDimensionsValid(baseState()), true);
+  assert.equal(studioStateDimensionsValid(baseState({ pieces: [] })), false);
+  assert.equal(studioStateDimensionsValid(baseState({ pieces: Array.from({ length: 4 }, (_, index) => ({ ...piece(), id: `piece-${index}` })) })), false);
+  assert.equal(studioStateDimensionsValid(baseState({ pieces: [piece(Array.from({ length: 7 }, (_, index) => rectangle(`r${index}`)))] })), false);
+  assert.equal(studioStateDimensionsValid(baseState({ pieces: [piece([rectangle("bad", { widthMm: 0 })])] })), false);
 });
 
-test("studio estimate includes backsplash and basin installation, never a cut-out fee", () => {
-  const estimate = studioEstimate({
-    ...baseState,
-    backsplash: { enabled: true, heightMm: 100 },
-  }, PRODUCTS);
-  assert.equal(estimate.counterAreaSqM, 1.08);
-  assert.equal(estimate.stoneAreaSqM, 1.26);
-  assert.equal(estimate.basinSubtotalTHB, 19000);
-  assert.equal(estimate.installationChargeTHB, 5000);
-  assert.equal(estimate.totalTHB, estimate.stoneTotalTHB + 24000 + 5000);
+test("estimate prices upstand and open edge, applies discount before VAT, and rounds line items", () => {
+  const state = baseState({
+    pieces: [piece([rectangle("r1", { widthMm: 1001, lengthMm: 600 })], { "r1:top": "upstand", "r1:right": "open-edge" })],
+    basinPlacements: [{ id: "basin-1", sku: "KF001", pieceId: "piece-1", xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }],
+    openEdgePricePerMTHB: 123.45,
+    discountTHB: 1000,
+    vat: true,
+  });
+  const estimate = studioEstimate(state, PRODUCTS);
+  assert.equal(estimate.counterAreaSqM, 0.6006);
+  assert.equal(estimate.upstandLengthM, 1.001);
+  assert.equal(estimate.openEdgeLengthM, 0.6);
+  assert.equal(estimate.upstandTotalTHB, 901);
+  assert.equal(estimate.openEdgeTotalTHB, 74);
+  assert.equal(estimate.discountTHB, 1000);
+  assert.equal(estimate.vatAmountTHB, Math.round(estimate.subtotalTHB * 0.07));
+  assert.equal(estimate.totalTHB, estimate.subtotalTHB + estimate.vatAmountTHB);
 });
 
-test("studio estimate matches the saved-quote acceptance example", () => {
-  const estimate = studioEstimate({
-    ...baseState,
-    activeStone: "BW010",
-    basinSkus: ["KF001"],
-    backsplash: { enabled: true, heightMm: 100 },
-    basinPlacements: [
-      { ...baseState.basinPlacements[0], id: "basin-1", xMm: 70, yMm: 50 },
-      { ...baseState.basinPlacements[0], id: "basin-2", xMm: 620, yMm: 50 },
-      { ...baseState.basinPlacements[0], id: "basin-3", xMm: 1170, yMm: 50 },
-    ],
-  }, PRODUCTS);
-  assert.equal(estimate.stoneAreaSqM, 1.26);
-  assert.equal(estimate.stoneTotalTHB, 9450);
-  assert.equal(estimate.basinSubtotalTHB, 57000);
-  assert.equal(estimate.installationChargeTHB, 0);
-  assert.equal(estimate.smallJobFeeTHB, 5000);
-  assert.equal(estimate.totalTHB, 71450);
-  assert.equal(estimate.isValid, true);
+test("blank upstand and open-edge prices warn without silently charging", () => {
+  const estimate = studioEstimate(baseState({
+    pieces: [piece([rectangle("r1")], { "r1:top": "upstand", "r1:right": "open-edge" })],
+    upstandHeightMm: null,
+    openEdgePricePerMTHB: null,
+  }), PRODUCTS);
+  assert.equal(estimate.upstandTotalTHB, 0);
+  assert.equal(estimate.openEdgeTotalTHB, 0);
+  assert.equal(estimate.upstandHeightMissing, true);
+  assert.equal(estimate.openEdgePriceMissing, true);
+  assert.match(estimate.warnings.join(" "), /ความสูงบัว/);
+  assert.match(estimate.warnings.join(" "), /ราคาขอบเปิด/);
 });
 
-test("unsafe basin placement blocks final studio submission", () => {
-  const estimate = studioEstimate({
-    ...baseState,
-    basinPlacements: [{ ...baseState.basinPlacements[0], xMm: 10 }],
-  }, PRODUCTS);
-  assert.deepEqual(estimate.unsafePlacements, ["basin-1"]);
+test("open-edge price rejects negative values and more than two decimals", () => {
+  const estimate = studioEstimate(baseState({ openEdgePricePerMTHB: 12.345 }), PRODUCTS);
+  assert.equal(estimate.openEdgePriceInvalid, true);
   assert.equal(estimate.isValid, false);
-  assert.equal(
-    studioSubmissionValidationMessage({ ...baseState, basinPlacements: [{ ...baseState.basinPlacements[0], xMm: 10 }] }, estimate),
-    "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ",
-  );
+  assert.match(estimate.warnings.join(" "), /ทศนิยมไม่เกิน 2/);
 });
 
-test("studio submission explains when selected basin models are not all placed", () => {
-  const state = {
-    ...baseState,
-    basinSkus: ["KF001", "KF002"],
-    basinPlacements: [{ ...baseState.basinPlacements[0], sku: "KF001" }],
-  };
-  const estimate = studioEstimate(state, PRODUCTS);
-  assert.equal(
-    studioSubmissionValidationMessage(state, estimate),
-    "ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก 2 รุ่น · วางแล้ว 1 ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ",
-  );
+test("9,500 stone rates hand off to sales instead of entering automatic totals", () => {
+  const estimate = studioEstimate(baseState({ activeStone: "MU010" }), PRODUCTS);
+  assert.equal(estimate.sheetCutPriceWarning, false);
+  const sheetCutEstimate = studioEstimate(baseState({ activeStone: "BR816O" }), PRODUCTS);
+  assert.equal(sheetCutEstimate.stoneUnitPriceTHB, 9500);
+  assert.equal(sheetCutEstimate.stoneTotalTHB, 0);
+  assert.match(sheetCutEstimate.warnings.join(" "), /แผ่นตัด/);
 });
 
-test("studio submission explains when no basin has been placed", () => {
-  const state = { ...baseState, basinPlacements: [] };
-  const estimate = studioEstimate(state, PRODUCTS);
-  assert.equal(
-    studioSubmissionValidationMessage(state, estimate),
-    "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกไปวางบนผัง",
-  );
+test("submission no longer mentions an edge-clearance rule", () => {
+  const estimate = studioEstimate(baseState({ basinPlacements: [] }), PRODUCTS);
+  const message = studioSubmissionValidationMessage({ ...baseState(), basinPlacements: [] }, estimate);
+  assert.equal(message, "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง");
+  assert.doesNotMatch(message, /50/);
 });
 
-test("exactly 50 mm of edge clearance is accepted", () => {
-  const state = {
-    ...baseState,
-    dimensions: { ...baseState.dimensions, depthMm: 600 },
-    basinPlacements: [{ ...baseState.basinPlacements[0], xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }],
-  };
-  assert.deepEqual(unsafeBasinPlacements(state), []);
-  assert.equal(studioEstimate(state, PRODUCTS).isValid, true);
-});
-
-test("three placed basin sets keep the shortlist limit but waive installation", () => {
-  const estimate = studioEstimate({
-    ...baseState,
-    basinPlacements: [
-      { ...baseState.basinPlacements[0], xMm: 70, yMm: 50 },
-      { ...baseState.basinPlacements[0], id: "basin-2", xMm: 620, yMm: 50 },
-      { ...baseState.basinPlacements[0], id: "basin-3", xMm: 1170, yMm: 50 },
-    ],
-  }, PRODUCTS);
-  assert.equal(estimate.basinSubtotalTHB, 57000);
-  assert.equal(estimate.installationChargeTHB, 0);
-  assert.equal(estimate.installationDiscountTHB, 15000);
-  assert.equal(estimate.isValid, true);
-});
-
-test("new basin positions are clamped from the actual drop point", () => {
-  const placement = { widthMm: 500, depthMm: 500 };
-  assert.deepEqual(
-    clampBasinPlacementPosition(placement, 1200, 80, { runAMm: 1800, depthMm: 600 }),
-    { xMm: 1200, yMm: 80 },
-  );
-  assert.notDeepEqual(
-    clampBasinPlacementPosition(placement, 100, 100, { runAMm: 1800, depthMm: 600 }),
-    clampBasinPlacementPosition(placement, 1200, 80, { runAMm: 1800, depthMm: 600 }),
-  );
-});
-
-test("basin positions snap to an exact clearance edge when dropped within 5 mm", () => {
-  assert.deepEqual(
-    snapBasinPlacementPosition(
-      { widthMm: 500, depthMm: 500 },
-      51.8,
-      50.63,
-      { runAMm: 1800, depthMm: 600 },
-    ),
-    { xMm: 50, yMm: 50 },
-  );
-  assert.deepEqual(
-    snapBasinPlacementPosition(
-      { widthMm: 500, depthMm: 500 },
-      56,
-      60,
-      { runAMm: 1800, depthMm: 650 },
-    ),
-    { xMm: 56, yMm: 60 },
-  );
-});
-
-test("catalog products without basin dimensions remain unknown instead of using guessed sizes", () => {
+test("catalog products without basin dimensions remain unknown", () => {
   const product = PRODUCTS.find((item) => item.sku === "KF029");
   assert.ok(product);
+  const placement = createBasinPlacement(product, 0, "piece-1");
   assert.deepEqual(basinDimensionsForProduct(product), { widthMm: null, depthMm: null });
-  const placement = createBasinPlacement(product, 0);
-  assert.deepEqual({ widthMm: placement.widthMm, depthMm: placement.depthMm }, { widthMm: null, depthMm: null });
+  assert.deepEqual({ widthMm: placement.widthMm, depthMm: placement.depthMm, xMm: placement.xMm, yMm: placement.yMm }, { widthMm: null, depthMm: null, xMm: 0, yMm: 0 });
   assert.deepEqual(unknownBasinPlacements({ basinPlacements: [placement] }), [placement.id]);
-  const estimate = studioEstimate({ ...baseState, basinSkus: ["KF029"], basinPlacements: [placement] }, PRODUCTS);
-  assert.deepEqual(estimate.unknownDimensionPlacements, [placement.id]);
-  assert.equal(estimate.isValid, false);
-});
-
-test("new basin placements start on the 50 mm clearance line", () => {
-  const placement = createBasinPlacement(PRODUCTS.find((item) => item.sku === "KF001")!, 0);
-  assert.equal(placement.xMm, 50);
-  assert.equal(placement.yMm, 50);
 });

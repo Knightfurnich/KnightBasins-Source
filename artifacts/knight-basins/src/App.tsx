@@ -27,8 +27,8 @@ import {
   type StoneConfig,
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
-import { StudioPage, type StudioSubmission } from "@/components/StudioPage";
-import { counterBounds, counterShapeLabel, unsafeBasinPlacements, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
+import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } from "@/components/StudioPage";
+import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 import { downloadStudioDxf, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
 
@@ -440,6 +440,7 @@ type SavedStudioPayload = {
   kind: "studio";
   state: StudioState;
   estimate: StudioEstimate;
+  notification?: StudioNotificationSnapshot;
 };
 
 type SavedQuotePayload = SavedStudioPayload | QuickQuoteSnapshot;
@@ -455,49 +456,39 @@ function readSavedQuotePayload(value: unknown): SavedQuotePayload | null {
     kind: "studio",
     state: record.state as StudioState,
     estimate: record.estimate as StudioEstimate,
+    notification: record.notification as StudioNotificationSnapshot | undefined,
   };
 }
 
 function StudioLayoutSnapshot({ state, quoteNumber }: { state: StudioState; quoteNumber: string }) {
-  const bounds = counterBounds(state.shape, state.dimensions);
-  const maxRun = Math.max(1, bounds.widthMm);
-  const maxDepth = Math.max(1, bounds.heightMm);
-  const unsafeIds = new Set(unsafeBasinPlacements(state));
+  const pieces = studioPieces(state);
   const formatPlacementCoordinate = (value: number) => Math.round(value).toLocaleString("th-TH");
   const exportReady = studioExportDimensionsValid(state);
   const exportFile = async (format: "dxf" | "pdf") => {
     if (format === "dxf") await downloadStudioDxf(state, quoteNumber || "studio-layout");
-    else printStudioLayout(studioPrintTitle(quoteNumber || "studio-layout", state.shape));
+    else printStudioLayout(studioPrintTitle(quoteNumber || "studio-layout", pieces.length));
   };
   return <section className="studio-saved-layout studio-print-layout" data-testid="saved-studio-layout">
     <div className="studio-saved-layout-heading">
       <div><p className="eyebrow">SAVED 2D STUDIO LAYOUT</p><h2>แบบที่บันทึกไว้</h2></div>
-       <span>{counterShapeLabel(state.shape, state.dimensions)}</span>
+       <span>{pieces.length} ชิ้นงาน · {pieces.reduce((sum, piece) => sum + piece.rectangles.length, 0)} แผ่น</span>
     </div>
     <div className="studio-saved-layout-meta">
       <span>หินที่ใช้คำนวณ: <strong>{stoneColorByName(state.activeStone).name} ({state.activeStone})</strong></span>
       <span>{state.backsplash.enabled ? `backsplash ${state.backsplash.heightMm} mm` : "ไม่มี backsplash"}</span>
       <span>{state.location === "bangkok-metro" ? "กรุงเทพฯ / ปริมณฑล" : "ต่างจังหวัด"}</span>
     </div>
-    <StudioFootprint state={state} className="studio-canvas--saved" unsafe={unsafeIds.size > 0} testId="saved-studio-canvas" ariaLabel="ผังเคาน์เตอร์ 2D ที่บันทึกไว้">
-      {state.basinPlacements.map((placement) => {
-        const unknown = placement.widthMm === null || placement.depthMm === null;
-        return <div
-          key={placement.id}
-          className={`studio-placement ${unsafeIds.has(placement.id) ? "studio-placement--unsafe" : ""} ${unknown ? "studio-placement--unknown" : ""}`}
-          style={{
-            left: `${(placement.xMm / maxRun) * 100}%`,
-            top: `${(placement.yMm / maxDepth) * 100}%`,
-            width: placement.widthMm === null ? "22%" : `${(placement.widthMm / maxRun) * 100}%`,
-            height: placement.depthMm === null ? "22%" : `${(placement.depthMm / maxDepth) * 100}%`,
-          }}
-        >
-          <strong>{placement.sku}</strong>
-          <small>{unknown ? "ขนาดหลุมไม่ระบุ" : `${formatPlacementCoordinate(placement.xMm)}, ${formatPlacementCoordinate(placement.yMm)} mm`}</small>
-        </div>;
-      })}
-      {!state.basinPlacements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
-    </StudioFootprint>
+    <div className="studio-saved-piece-list">{pieces.map((piece) => {
+      const bounds = pieceBounds(piece);
+      const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? pieces[0]?.id) === piece.id);
+      return <div className="studio-saved-piece" key={piece.id}><h3>{piece.name}</h3><StudioFootprint piece={piece} className="studio-canvas--saved" testId={`saved-studio-canvas-${piece.id}`} ariaLabel={`ผัง ${piece.name} ที่บันทึกไว้`}>
+        {placements.map((placement) => {
+          const unknown = placement.widthMm === null || placement.depthMm === null;
+          return <div key={placement.id} className={`studio-placement ${unknown ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : `${formatPlacementCoordinate(placement.xMm)}, ${formatPlacementCoordinate(placement.yMm)} mm`}</small></div>;
+        })}
+        {!placements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
+      </StudioFootprint></div>;
+    })}</div>
     <div className="studio-saved-layout-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("dxf")} data-testid="button-download-saved-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("pdf")} data-testid="button-download-saved-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button></div>
     <p className="studio-saved-layout-note">ตำแหน่งอ่างเป็นแบบ read-only ที่บันทึกพร้อมใบเสนอราคา ไม่สามารถแก้ไขจากลิงก์นี้ได้</p>
     <p className="studio-print-warning">{STUDIO_PRINT_NOTE}</p>
@@ -594,27 +585,69 @@ function SavedQuotePage() {
     });
     const requestedInstallation = placements.length * INSTALLATION_PRICE;
      if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation, notificationKind: "service" });
-    if (estimate.stoneUnitPriceTHB !== null) {
-      const activeStone = stoneColorByName(state.activeStone);
-      formalItems.push({
-        code: activeStone.code,
-        description: `${activeStone.name} · ตัดและติดตั้งตามพื้นที่แบบ 2D`,
-        quantity: estimate.stoneAreaSqM,
-        unit: "ตร.ม.",
-        unitPrice: estimate.stoneUnitPriceTHB,
-        total: estimate.stoneTotalTHB,
+     if (estimate.stoneUnitPriceTHB !== null) {
+       const activeStone = stoneColorByName(state.activeStone);
+       formalItems.push({
+         code: activeStone.code,
+         description: `${activeStone.name} · พื้นที่แผ่นรวมตามแบบ`,
+         quantity: estimate.counterAreaSqM ?? estimate.stoneAreaSqM,
+         unit: "ตร.ม.",
+         unitPrice: estimate.stoneUnitPriceTHB,
+         total: Math.max(0, (estimate.stoneTotalTHB ?? 0) - (estimate.upstandTotalTHB ?? 0)),
          notificationKind: "stone",
-      });
-    }
+       });
+       if ((estimate.upstandLengthM ?? 0) > 0) {
+         formalItems.push({
+           code: "UPSTAND",
+           description: `บัว ${estimate.upstandLengthM.toFixed(2)} ม. · สูง ${state.upstandHeightMm ?? "ไม่ระบุ"} มม.`,
+           quantity: estimate.upstandLengthM,
+           unit: "ม.",
+           unitPrice: estimate.upstandTotalTHB && estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0,
+           total: estimate.upstandTotalTHB ?? 0,
+           notificationKind: "service",
+         });
+       }
+     }
+     if ((estimate.openEdgeLengthM ?? 0) > 0) {
+       formalItems.push({
+         code: "OPEN-EDGE",
+         description: `ขอบเปิด ${estimate.openEdgeLengthM.toFixed(2)} ม. · ${estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : estimate.openEdgeUnitPriceTHB === null ? "รอทีมขายกรอกราคา" : "ราคาต่อเมตร"}`,
+         quantity: estimate.openEdgeLengthM,
+         unit: "ม.",
+         unitPrice: estimate.openEdgeUnitPriceTHB ?? 0,
+         total: estimate.openEdgeTotalTHB ?? 0,
+         notificationKind: "service",
+       });
+     }
+     formalItems.push({
+       code: "WORKPIECES",
+       description: `${estimate.pieceCount ?? 1} ชิ้นงาน · ${estimate.rectangleCount ?? 0} แผ่น`,
+       quantity: estimate.pieceCount ?? 1,
+       unit: "ชิ้นงาน",
+       unitPrice: 0,
+       total: 0,
+       notificationKind: "service",
+     });
      if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB, notificationKind: "service" });
+     if (saved.notification) {
+       formalItems = saved.notification.items.map((item) => ({
+         code: item.code,
+         description: item.description,
+         quantity: item.quantity,
+         unit: item.unit,
+         unitPrice: item.unitPriceTHB ?? 0,
+         total: item.totalTHB ?? Math.round(item.quantity * (item.unitPriceTHB ?? 0)),
+         notificationKind: item.kind,
+       }));
+     }
     format = state.quoteFormat ?? "US";
-    subtotal = estimate.subtotalTHB ?? estimate.totalTHB;
-    discountAmount = estimate.installationDiscountTHB ?? 0;
-    grossSubtotal = subtotal + discountAmount;
-    vatAmount = estimate.vatAmountTHB ?? 0;
-    total = estimate.totalTHB;
-    vat = Boolean(state.vat);
-    lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
+     subtotal = saved.notification?.subtotal ?? estimate.subtotalTHB ?? estimate.totalTHB;
+      discountAmount = saved.notification?.discountAmount ?? (estimate.installationDiscountTHB ?? 0) + (estimate.discountTHB ?? 0);
+      grossSubtotal = saved.notification?.grossSubtotal ?? estimate.grossSubtotalTHB ?? subtotal + discountAmount;
+     vatAmount = saved.notification?.vatAmount ?? estimate.vatAmountTHB ?? 0;
+     total = saved.notification?.total ?? estimate.totalTHB;
+     vat = saved.notification?.vat ?? Boolean(state.vat);
+     lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nชิ้นงาน ${estimate.pieceCount ?? 1} ชิ้น · บัว ${estimate.upstandLengthM?.toFixed(2) ?? "0.00"} ม. · ขอบ ${estimate.openEdgeLengthM?.toFixed(2) ?? "0.00"} ม.\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
   }
   const savedQuoteNumber = lead.quoteNumber ?? quoteNumber;
   const copyLink = async () => {

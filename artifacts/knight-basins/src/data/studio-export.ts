@@ -1,18 +1,26 @@
 import { productBySku } from "./catalog.ts";
 import {
   counterBounds,
-  counterClearanceRegions,
   counterDimensionsValid,
   counterRegions,
-  type CounterRegion,
+  studioPieceEdges,
+  studioPieceJoints,
+  studioPieces,
+  studioRectangleSize,
+  studioStateDimensionsValid,
   type CounterShape,
-  type StudioDimensions,
+  type StudioEdge,
+  type StudioPiece,
+  type StudioRectangle,
   type StudioState,
 } from "./studio-model.ts";
 
 export const STUDIO_EXPORT_LAYERS = [
-  "COUNTER_OUTLINE",
-  "CLEARANCE_50",
+  "PIECE_OUTLINE",
+  "PANEL_JOINT",
+  "UPSTAND",
+  "OPEN_EDGE",
+  "WALL_FLUSH",
   "BASIN_HOLES",
   "BASIN_LABELS",
   "DIMENSIONS",
@@ -22,18 +30,13 @@ export const STUDIO_EXPORT_LAYERS = [
 export const STUDIO_EXPORT_NOTE = "REFERENCE DRAWING ONLY - NOT FOR PRODUCTION OR CNC. VERIFY ON SITE BEFORE FABRICATION.";
 export const STUDIO_PRINT_NOTE = "แบบอ้างอิงเพื่อการนำเสนอ ไม่ใช่แบบผลิตหรือแบบ CNC — ต้องตรวจสอบหน้างานก่อนผลิต";
 const PLACEHOLDER_LABEL_BOX = { widthMm: 180, heightMm: 70 };
+const PIECE_GAP_MM = 450;
 
 export type StudioExportPoint = { xMm: number; yMm: number };
-export type StudioExportRectangle = StudioExportPoint & { widthMm: number; heightMm: number };
-export type StudioExportDimension = {
-  label: "A" | "B" | "C" | "ลึก";
-  valueMm: number;
-  start: StudioExportPoint;
-  end: StudioExportPoint;
-  text: StudioExportPoint;
-};
+export type StudioExportRectangle = StudioExportPoint & { widthMm: number; heightMm: number; rectangleId: string; pieceId: string };
 export type StudioExportBasin = {
   sku: string;
+  pieceId: string;
   xMm: number;
   yMm: number;
   widthMm: number | null;
@@ -43,88 +46,26 @@ export type StudioExportBasin = {
   unknownDimensions: boolean;
 };
 
-export type StudioExportModel = {
-  shape: CounterShape;
-  dimensions: StudioDimensions;
+export type StudioExportPiece = {
+  piece: StudioPiece;
   bounds: { widthMm: number; heightMm: number };
-  outline: StudioExportPoint[];
-  counterRegions: CounterRegion[];
-  clearanceRegions: CounterRegion[];
+  rectangles: StudioExportRectangle[];
+  edges: StudioEdge[];
+  joints: ReturnType<typeof studioPieceJoints>;
+  offsetY: number;
+};
+
+export type StudioExportModel = {
+  pieces: StudioExportPiece[];
   basins: StudioExportBasin[];
-  dimensionsAnnotations: StudioExportDimension[];
   note: string;
+  pieceCount: number;
+  rectangleCount: number;
+  totalAreaSqM: number;
 };
 
 function positive(value: number) {
   return Number.isFinite(value) ? Math.max(0, value) : 0;
-}
-
-/**
- * Returns the single outline used by the Studio canvas and DXF. Regions remain
- * available separately for clearance because their overlap is intentional.
- */
-export function counterOutlinePoints(shape: CounterShape, dimensions: StudioDimensions): StudioExportPoint[] {
-  const depth = positive(dimensions.depthMm);
-  const runA = positive(dimensions.runAMm);
-  const runB = positive(dimensions.runBMm);
-  const runC = positive(dimensions.runCMm);
-  if (shape === "I") return [{ xMm: 0, yMm: 0 }, { xMm: runA, yMm: 0 }, { xMm: runA, yMm: depth }, { xMm: 0, yMm: depth }];
-  if (shape === "L") {
-    return [
-      { xMm: 0, yMm: 0 }, { xMm: runA, yMm: 0 }, { xMm: runA, yMm: depth },
-      { xMm: Math.min(depth, runA), yMm: depth }, { xMm: Math.min(depth, runA), yMm: runB }, { xMm: 0, yMm: runB },
-    ];
-  }
-  const left = Math.min(depth, runA);
-  const right = Math.max(left, runA - depth);
-  return [
-    { xMm: 0, yMm: 0 }, { xMm: runA, yMm: 0 }, { xMm: runA, yMm: runC },
-    { xMm: right, yMm: runC }, { xMm: right, yMm: depth }, { xMm: left, yMm: depth },
-    { xMm: left, yMm: runB }, { xMm: 0, yMm: runB },
-  ];
-}
-
-function dimensionAnnotations(shape: CounterShape, dimensions: StudioDimensions, bounds: { widthMm: number; heightMm: number }) {
-  const offset = Math.max(80, Math.min(180, Math.round(Math.max(dimensions.depthMm, 1) * 0.2)));
-  const annotations: StudioExportDimension[] = [
-    { label: "A", valueMm: dimensions.runAMm, start: { xMm: 0, yMm: -offset }, end: { xMm: dimensions.runAMm, yMm: -offset }, text: { xMm: dimensions.runAMm / 2, yMm: -offset - 25 } },
-    { label: "ลึก", valueMm: dimensions.depthMm, start: { xMm: -offset, yMm: 0 }, end: { xMm: -offset, yMm: dimensions.depthMm }, text: { xMm: -offset - 25, yMm: dimensions.depthMm / 2 } },
-  ];
-  if (shape !== "I") annotations.push({ label: "B", valueMm: dimensions.runBMm, start: { xMm: -offset, yMm: 0 }, end: { xMm: -offset, yMm: dimensions.runBMm }, text: { xMm: -offset - 25, yMm: dimensions.runBMm / 2 } });
-  if (shape === "U") annotations.push({ label: "C", valueMm: dimensions.runCMm, start: { xMm: bounds.widthMm + offset, yMm: 0 }, end: { xMm: bounds.widthMm + offset, yMm: dimensions.runCMm }, text: { xMm: bounds.widthMm + offset + 25, yMm: dimensions.runCMm / 2 } });
-  return annotations;
-}
-
-export function createStudioExportModel(state: Pick<StudioState, "shape" | "dimensions" | "basinPlacements">): StudioExportModel {
-  const bounds = counterBounds(state.shape, state.dimensions);
-  return {
-    shape: state.shape,
-    dimensions: state.dimensions,
-    bounds,
-    outline: counterOutlinePoints(state.shape, state.dimensions),
-    counterRegions: counterRegions(state.shape, state.dimensions),
-    clearanceRegions: counterClearanceRegions(state.shape, state.dimensions),
-    basins: state.basinPlacements.map((placement) => {
-      const product = productBySku(placement.sku);
-      const unknownDimensions = placement.widthMm === null || placement.depthMm === null;
-      return {
-        sku: placement.sku,
-        xMm: placement.xMm,
-        yMm: placement.yMm,
-        widthMm: placement.widthMm,
-        heightMm: placement.depthMm,
-        label: unknownDimensions ? "แคตตาล็อกไม่ระบุขนาดหลุม" : `${placement.widthMm} × ${placement.depthMm} mm`,
-        dxfLabel: unknownDimensions ? "CUTOUT SIZE NOT SPECIFIED IN CATALOG" : `${placement.widthMm} x ${placement.depthMm} mm`,
-        unknownDimensions,
-      };
-    }),
-    dimensionsAnnotations: dimensionAnnotations(state.shape, state.dimensions, bounds),
-    note: STUDIO_EXPORT_NOTE,
-  };
-}
-
-export function studioExportDimensionsValid(state: Pick<StudioState, "shape" | "dimensions">) {
-  return counterDimensionsValid(state.shape, state.dimensions);
 }
 
 function dxfNumber(value: number) {
@@ -132,7 +73,11 @@ function dxfNumber(value: number) {
 }
 
 function dxfText(value: string) {
-  return value.replace(/\r?\n/g, " ").replace(/\\/g, "\\\\");
+  return value.replace(/[^\x00-\x7F]/g, "?").replace(/\r?\n/g, " ").replace(/\\/g, "\\\\");
+}
+
+function offsetPoint(point: StudioExportPoint, offsetY: number): StudioExportPoint {
+  return { xMm: point.xMm, yMm: point.yMm + offsetY };
 }
 
 function dxfLine(layer: string, start: StudioExportPoint, end: StudioExportPoint) {
@@ -143,13 +88,14 @@ function dxfPolyline(layer: string, points: StudioExportPoint[], closed = false)
   return ["0", "LWPOLYLINE", "8", layer, "90", String(points.length), "70", closed ? "1" : "0", ...points.flatMap((point) => ["10", dxfNumber(point.xMm), "20", dxfNumber(point.yMm)])].join("\n");
 }
 
-function dxfRectangle(layer: string, rectangle: StudioExportRectangle, closed = true) {
-  return dxfPolyline(layer, [
+function dxfRectangle(layer: string, rectangle: StudioExportRectangle | (StudioExportPoint & { widthMm: number; heightMm: number }), offsetY = 0, closed = true) {
+  const points = [
     { xMm: rectangle.xMm, yMm: rectangle.yMm },
     { xMm: rectangle.xMm + rectangle.widthMm, yMm: rectangle.yMm },
     { xMm: rectangle.xMm + rectangle.widthMm, yMm: rectangle.yMm + rectangle.heightMm },
     { xMm: rectangle.xMm, yMm: rectangle.yMm + rectangle.heightMm },
-  ], closed);
+  ].map((point) => offsetPoint(point, offsetY));
+  return dxfPolyline(layer, points, closed);
 }
 
 function dxfTextEntity(layer: string, value: string, position: StudioExportPoint, heightMm: number) {
@@ -169,38 +115,112 @@ function dxfHeader() {
     "0", "LTYPE", "2", "DASHED", "70", "0", "3", "Dashed line", "72", "65", "73", "2", "40", "12", "49", "6", "49", "-6",
     "0", "ENDTAB",
     "0", "TABLE", "2", "LAYER", "70", String(STUDIO_EXPORT_LAYERS.length),
-    ...STUDIO_EXPORT_LAYERS.flatMap((layer) => ["0", "LAYER", "2", layer, "70", "0", "62", "7", "6", layer === "CLEARANCE_50" ? "DASHED" : "CONTINUOUS"]),
+    ...STUDIO_EXPORT_LAYERS.flatMap((layer) => ["0", "LAYER", "2", layer, "70", "0", "62", "7", "6", layer === "PANEL_JOINT" ? "DASHED" : "CONTINUOUS"]),
     "0", "ENDTAB",
     "0", "ENDSEC",
   ].join("\n");
 }
 
-export function createStudioDxf(state: Pick<StudioState, "shape" | "dimensions" | "basinPlacements">) {
+function edgeLayer(edge: StudioEdge) {
+  if (edge.status === "upstand") return "UPSTAND";
+  if (edge.status === "open-edge") return "OPEN_EDGE";
+  if (edge.status === "wall-flush") return "WALL_FLUSH";
+  return null;
+}
+
+export function createStudioExportModel(state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">): StudioExportModel {
+  const pieces = studioPieces(state);
+  let offsetY = 0;
+  const exportPieces = pieces.map((piece) => {
+    const bounds = piece.rectangles.reduce((current, rectangle) => {
+      const size = studioRectangleSize(rectangle);
+      return { widthMm: Math.max(current.widthMm, rectangle.xMm + size.widthMm), heightMm: Math.max(current.heightMm, rectangle.yMm + size.heightMm) };
+    }, { widthMm: 1, heightMm: 1 });
+    const exportPiece: StudioExportPiece = {
+      piece,
+      bounds,
+      rectangles: piece.rectangles.map((rectangle) => {
+        const size = studioRectangleSize(rectangle);
+        return { pieceId: piece.id, rectangleId: rectangle.id, xMm: rectangle.xMm, yMm: rectangle.yMm, widthMm: size.widthMm, heightMm: size.heightMm };
+      }),
+      edges: studioPieceEdges(piece),
+      joints: studioPieceJoints(piece),
+      offsetY,
+    };
+    offsetY += bounds.heightMm + PIECE_GAP_MM;
+    return exportPiece;
+  });
+  const pieceMap = new Map(exportPieces.map((piece) => [piece.piece.id, piece]));
+  const basins = state.basinPlacements.map((placement) => {
+    const piece = pieceMap.get(placement.pieceId ?? pieces[0]?.id) ?? exportPieces[0];
+    const product = productBySku(placement.sku);
+    const unknownDimensions = placement.widthMm === null || placement.depthMm === null;
+    return {
+      pieceId: piece?.piece.id ?? "",
+      sku: placement.sku,
+      xMm: placement.xMm,
+      yMm: placement.yMm,
+      widthMm: placement.widthMm,
+      heightMm: placement.depthMm,
+      label: unknownDimensions ? "แคตตาล็อกไม่ระบุขนาดหลุม" : `${placement.widthMm} × ${placement.depthMm} mm`,
+      dxfLabel: unknownDimensions ? "CUTOUT SIZE NOT SPECIFIED IN CATALOG" : `${placement.widthMm} x ${placement.depthMm} mm`,
+      unknownDimensions,
+    };
+  });
+  return {
+    pieces: exportPieces,
+    basins,
+    note: STUDIO_EXPORT_NOTE,
+    pieceCount: pieces.length,
+    rectangleCount: pieces.reduce((sum, piece) => sum + piece.rectangles.length, 0),
+    totalAreaSqM: exportPieces.reduce((sum, piece) => sum + piece.rectangles.reduce((area, rectangle) => area + rectangle.widthMm * rectangle.heightMm / 1_000_000, 0), 0),
+  };
+}
+
+export function studioExportDimensionsValid(state: Pick<StudioState, "pieces" | "shape" | "dimensions">) {
+  return state.pieces?.length ? studioStateDimensionsValid(state) : counterDimensionsValid(state.shape, state.dimensions);
+}
+
+export function createStudioDxf(state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">) {
   const model = createStudioExportModel(state);
-  const entities: string[] = [dxfPolyline("COUNTER_OUTLINE", model.outline, true)];
-  model.clearanceRegions.forEach((region) => entities.push(dxfRectangle("CLEARANCE_50", region)));
+  const entities: string[] = [];
+  model.pieces.forEach((piece) => {
+    piece.rectangles.forEach((rectangle) => entities.push(dxfRectangle("PIECE_OUTLINE", rectangle, piece.offsetY)));
+    piece.joints.forEach((joint) => {
+      entities.push(dxfLine("PANEL_JOINT", offsetPoint(joint.first.start, piece.offsetY), offsetPoint(joint.first.end, piece.offsetY)));
+      entities.push(dxfTextEntity("NOTE", "PANEL JOINT - VERIFY 90 DEGREE", offsetPoint(joint.first.start, piece.offsetY + 35), 18));
+    });
+    piece.edges.forEach((edge) => {
+      const layer = edgeLayer(edge);
+      if (layer && edge.exposedLengthMm > 0) entities.push(dxfLine(layer, offsetPoint(edge.start, piece.offsetY), offsetPoint(edge.end, piece.offsetY)));
+    });
+    piece.rectangles.forEach((rectangle) => {
+      entities.push(dxfTextEntity("DIMENSIONS", `${rectangle.widthMm} x ${rectangle.heightMm} mm`, offsetPoint({ xMm: rectangle.xMm + rectangle.widthMm / 2, yMm: rectangle.yMm + 24 }, piece.offsetY), 18));
+    });
+    entities.push(dxfTextEntity("NOTE", dxfText(piece.piece.name), offsetPoint({ xMm: 0, yMm: -45 }, piece.offsetY), 24));
+  });
+  const pieceMap = new Map(model.pieces.map((piece) => [piece.piece.id, piece]));
   model.basins.forEach((basin) => {
+    const piece = pieceMap.get(basin.pieceId);
+    const offsetY = piece?.offsetY ?? 0;
     if (!basin.unknownDimensions && basin.widthMm !== null && basin.heightMm !== null) {
-      entities.push(dxfRectangle("BASIN_HOLES", { xMm: basin.xMm, yMm: basin.yMm, widthMm: basin.widthMm, heightMm: basin.heightMm }));
-      entities.push(dxfTextEntity("BASIN_LABELS", basin.sku, { xMm: basin.xMm, yMm: basin.yMm + basin.heightMm + 35 }, 28));
-      entities.push(dxfTextEntity("BASIN_LABELS", basin.dxfLabel, { xMm: basin.xMm, yMm: basin.yMm - 35 }, 18));
+      entities.push(dxfRectangle("BASIN_HOLES", { xMm: basin.xMm, yMm: basin.yMm, widthMm: basin.widthMm, heightMm: basin.heightMm }, offsetY));
     } else {
-      entities.push(dxfRectangle("BASIN_LABELS", { ...basin, ...PLACEHOLDER_LABEL_BOX }));
-      entities.push(dxfTextEntity("BASIN_LABELS", basin.sku, { xMm: basin.xMm, yMm: basin.yMm + PLACEHOLDER_LABEL_BOX.heightMm + 35 }, 28));
-      entities.push(dxfTextEntity("BASIN_LABELS", basin.dxfLabel, { xMm: basin.xMm, yMm: basin.yMm - 35 }, 18));
+      entities.push(dxfRectangle("BASIN_LABELS", { xMm: basin.xMm, yMm: basin.yMm, ...PLACEHOLDER_LABEL_BOX }, offsetY));
     }
+    entities.push(dxfTextEntity("BASIN_LABELS", basin.sku, offsetPoint({ xMm: basin.xMm, yMm: basin.yMm + (basin.heightMm ?? PLACEHOLDER_LABEL_BOX.heightMm) + 35 }, offsetY), 28));
+    entities.push(dxfTextEntity("BASIN_LABELS", basin.dxfLabel, offsetPoint({ xMm: basin.xMm, yMm: basin.yMm - 35 }, offsetY), 18));
   });
-  model.dimensionsAnnotations.forEach((dimension) => {
-    entities.push(dxfLine("DIMENSIONS", dimension.start, dimension.end));
-    entities.push(dxfTextEntity("DIMENSIONS", `${dimension.label === "ลึก" ? "DEPTH" : dimension.label} ${dimension.valueMm} mm`, dimension.text, 22));
-  });
-  entities.push(dxfTextEntity("NOTE", model.note, { xMm: 0, yMm: model.bounds.heightMm + 240 }, 24));
+  const exportBottom = model.pieces.reduce((max, piece) => Math.max(max, piece.offsetY + piece.bounds.heightMm), 0);
+  entities.push(dxfTextEntity("NOTE", model.note, { xMm: 0, yMm: exportBottom + 100 }, 24));
   return `${dxfHeader()}\n0\nSECTION\n2\nENTITIES\n${entities.join("\n")}\n0\nENDSEC\n0\nEOF\n`;
 }
 
-export function studioPrintTitle(value: string, shape: CounterShape) {
+export function studioPrintTitle(value: string, pieceCountOrShape: number | CounterShape) {
   const safe = value.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "studio-layout";
-  return `KF-Basins-${safe}-${shape}`;
+  return typeof pieceCountOrShape === "number"
+    ? `KF-Basins-${safe}-${pieceCountOrShape}ชิ้น`
+    : `KF-Basins-${safe}-${pieceCountOrShape}`;
 }
 
 export function printStudioLayout(title: string) {
@@ -220,17 +240,17 @@ export function printStudioLayout(title: string) {
   }, 0);
 }
 
-export function safeStudioExportName(value: string, shape: CounterShape, extension: "dxf" | "pdf") {
+export function safeStudioExportName(value: string, pieceCount: number, extension: "dxf" | "pdf") {
   const safe = value.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "studio-layout";
-  return `${safe}-${shape}.${extension}`;
+  return `${safe}-${pieceCount}ชิ้น.${extension}`;
 }
 
-export async function downloadStudioDxf(state: Pick<StudioState, "shape" | "dimensions" | "basinPlacements">, name: string) {
+export async function downloadStudioDxf(state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">, name: string) {
   const blob = new Blob([createStudioDxf(state)], { type: "application/dxf" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = safeStudioExportName(name, state.shape, "dxf");
+  link.download = safeStudioExportName(name, studioPieces(state).length, "dxf");
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }

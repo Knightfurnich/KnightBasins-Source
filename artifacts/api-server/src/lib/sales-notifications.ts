@@ -83,7 +83,8 @@ function formatNotificationItems(items: NotificationItem[], fallbackSkus: string
       const unit = item.unit?.trim() || "ตร.ม.";
       return [`- หิน ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit}`];
     }
-    return [];
+    const unit = item.unit?.trim() || "";
+    return [`- ${label || code}${unit ? ` ${formatQuantity(quantity)} ${unit}` : ""}`];
   });
   if (lines.length) return lines;
   return fallbackSkus.map((sku) => `- ${sku} ×1 ชุด`);

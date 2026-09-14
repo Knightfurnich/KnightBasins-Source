@@ -315,7 +315,7 @@ describe("long formal quote print flow", () => {
       "Studio print action",
     );
     assert.equal(printStatus, true);
-    assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-I");
+    assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
   });
 
   it("keeps Studio export actions on a saved quote snapshot", async () => {
@@ -370,6 +370,6 @@ describe("long formal quote print flow", () => {
       Boolean,
       "saved Studio print action",
     ), true);
-    assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-I$/);
+    assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-\d+ชิ้น$/);
   });
 });

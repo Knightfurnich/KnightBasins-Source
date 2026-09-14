@@ -11,15 +11,35 @@ import {
 } from "./catalog.ts";
 
 export type StudioOrderMode = "quick-purchase" | "studio" | "sketch";
+/** Kept for reading old I/L/U quote snapshots only. New Studio layouts use rectangles. */
 export type CounterShape = "I" | "L" | "U";
 export type StudioLocation = "bangkok-metro" | "province";
 export type StudioQuoteFormat = "US" | "OF";
+export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "normal";
+export type RectangleRotation = 0 | 90;
 
 export type StudioDimensions = {
   depthMm: number;
   runAMm: number;
   runBMm: number;
   runCMm: number;
+};
+
+export type StudioRectangle = {
+  id: string;
+  widthMm: number;
+  lengthMm: number;
+  xMm: number;
+  yMm: number;
+  rotation: RectangleRotation;
+  label?: string;
+};
+
+export type StudioPiece = {
+  id: string;
+  name: string;
+  rectangles: StudioRectangle[];
+  sideStatuses: Record<string, SideStatus>;
 };
 
 export type BacksplashConfig = {
@@ -30,6 +50,7 @@ export type BacksplashConfig = {
 export type BasinPlacement = {
   id: string;
   sku: string;
+  pieceId?: string;
   xMm: number;
   yMm: number;
   widthMm: number | null;
@@ -38,9 +59,15 @@ export type BasinPlacement = {
 
 export type StudioState = {
   mode: StudioOrderMode;
+  /** Legacy fields remain optional at runtime so old saved quotes can render. */
   shape: CounterShape;
   dimensions: StudioDimensions;
+  pieces?: StudioPiece[];
+  activePieceId?: string;
   backsplash: BacksplashConfig;
+  upstandHeightMm?: number | null;
+  openEdgePricePerMTHB?: number | null;
+  discountTHB?: number;
   location: StudioLocation;
   vat: boolean;
   quoteFormat: StudioQuoteFormat;
@@ -51,32 +78,49 @@ export type StudioState = {
 };
 
 export type StudioEstimate = {
+  pieceCount: number;
+  rectangleCount: number;
   counterAreaSqM: number;
   backsplashAreaSqM: number;
+  upstandAreaSqM: number;
+  upstandLengthM: number;
+  openEdgeLengthM: number;
   stoneAreaSqM: number;
   stoneUnitPriceTHB: number | null;
   stoneTotalTHB: number;
+  upstandTotalTHB: number;
+  openEdgeUnitPriceTHB: number | null;
+  openEdgeTotalTHB: number;
   basinSubtotalTHB: number;
   installationChargeTHB: number;
   installationDiscountTHB: number;
+  discountTHB: number;
   smallJobFeeTHB: number;
+  grossSubtotalTHB: number;
   subtotalTHB: number;
   vatAmountTHB: number;
   totalTHB: number;
   standardSheetWarning: boolean;
   standardSheetMessage: string;
+  sheetCutPriceWarning: boolean;
+  upstandHeightMissing: boolean;
+  openEdgePriceMissing: boolean;
+  openEdgePriceInvalid: boolean;
+  overlapWarnings: string[];
   unsafePlacements: string[];
   unknownDimensionPlacements: string[];
+  warnings: string[];
   isValid: boolean;
 };
 
-export const STUDIO_EDGE_CLEARANCE_MM = 50;
-const STUDIO_CLEARANCE_EPSILON_MM = 0.01;
-export const STUDIO_SNAP_DISTANCE_MM = 5;
+export const STUDIO_MAX_PIECES = 3;
+export const STUDIO_MAX_RECTANGLES = 6;
 export const STUDIO_MAX_STONE_COLORS = 3;
 export const STUDIO_MIN_STONE_COLORS = 2;
 export const STUDIO_MAX_BASINS = 2;
 export const STUDIO_MIN_BASINS = 1;
+export const STUDIO_SNAP_DISTANCE_MM = 12;
+const STUDIO_EPSILON_MM = 0.01;
 
 export type CounterRegion = {
   xMm: number;
@@ -85,143 +129,224 @@ export type CounterRegion = {
   heightMm: number;
 };
 
-export function counterBounds(shape: CounterShape, dimensions: StudioDimensions) {
-  const depth = Math.max(0, dimensions.depthMm);
-  return {
-    widthMm: Math.max(0, dimensions.runAMm),
-    heightMm: shape === "I"
-      ? depth
-      : Math.max(depth, dimensions.runBMm, shape === "U" ? dimensions.runCMm : 0),
-  };
+export type StudioRectangleSize = {
+  widthMm: number;
+  heightMm: number;
+};
+
+export type StudioEdge = {
+  pieceId: string;
+  rectangleId: string;
+  side: "top" | "right" | "bottom" | "left";
+  key: string;
+  start: { xMm: number; yMm: number };
+  end: { xMm: number; yMm: number };
+  lengthMm: number;
+  exposedLengthMm: number;
+  status: SideStatus;
+};
+
+export type StudioEdgeJoint = {
+  first: StudioEdge;
+  second: StudioEdge;
+  lengthMm: number;
+};
+
+export function sideStatusKey(rectangleId: string, side: StudioEdge["side"]) {
+  return `${rectangleId}:${side}`;
 }
 
-export function counterDimensionsValid(shape: CounterShape, dimensions: StudioDimensions) {
-  const depth = dimensions.depthMm;
-  const runA = dimensions.runAMm;
-  const runB = dimensions.runBMm;
-  const runC = dimensions.runCMm;
-  if (![depth, runA].every((value) => Number.isFinite(value) && value > 0)) return false;
-  if (shape === "I") return true;
-  if (![runB].every((value) => Number.isFinite(value) && value > 0)) return false;
-  if (shape === "L") return runA > depth && runB > depth;
-  return runA > depth * 2 &&
-    runB > depth &&
-    Number.isFinite(runC) &&
-    runC > depth;
+export function studioRectangleSize(rectangle: StudioRectangle): StudioRectangleSize {
+  return rectangle.rotation === 90
+    ? { widthMm: rectangle.lengthMm, heightMm: rectangle.widthMm }
+    : { widthMm: rectangle.widthMm, heightMm: rectangle.lengthMm };
 }
 
-export function counterRegions(shape: CounterShape, dimensions: StudioDimensions): CounterRegion[] {
-  const depth = Math.max(0, dimensions.depthMm);
-  const runA = Math.max(0, dimensions.runAMm);
-  const runB = Math.max(0, dimensions.runBMm);
-  const runC = Math.max(0, dimensions.runCMm);
-  if (shape === "I") return [{ xMm: 0, yMm: 0, widthMm: runA, heightMm: depth }];
-  const regions: CounterRegion[] = [
-    { xMm: 0, yMm: 0, widthMm: runA, heightMm: depth },
-    { xMm: 0, yMm: 0, widthMm: depth, heightMm: runB },
+export function studioRectangleAreaSqM(rectangle: Pick<StudioRectangle, "widthMm" | "lengthMm">) {
+  return Math.max(0, rectangle.widthMm) * Math.max(0, rectangle.lengthMm) / 1_000_000;
+}
+
+export function pieceBounds(piece: StudioPiece) {
+  return piece.rectangles.reduce((bounds, rectangle) => {
+    const size = studioRectangleSize(rectangle);
+    return {
+      widthMm: Math.max(bounds.widthMm, rectangle.xMm + size.widthMm),
+      heightMm: Math.max(bounds.heightMm, rectangle.yMm + size.heightMm),
+    };
+  }, { widthMm: 1, heightMm: 1 });
+}
+
+export function studioPieceAreaSqM(piece: StudioPiece) {
+  return piece.rectangles.reduce((sum, rectangle) => sum + studioRectangleAreaSqM(rectangle), 0);
+}
+
+export function studioAreaSqM(pieces: StudioPiece[]) {
+  return pieces.reduce((sum, piece) => sum + studioPieceAreaSqM(piece), 0);
+}
+
+export function rectangleOverlaps(first: StudioRectangle, second: StudioRectangle) {
+  const a = studioRectangleSize(first);
+  const b = studioRectangleSize(second);
+  const overlapWidth = Math.min(first.xMm + a.widthMm, second.xMm + b.widthMm) - Math.max(first.xMm, second.xMm);
+  const overlapHeight = Math.min(first.yMm + a.heightMm, second.yMm + b.heightMm) - Math.max(first.yMm, second.yMm);
+  return overlapWidth > STUDIO_EPSILON_MM && overlapHeight > STUDIO_EPSILON_MM;
+}
+
+export function pieceOverlapWarnings(piece: StudioPiece) {
+  const warnings: string[] = [];
+  for (let firstIndex = 0; firstIndex < piece.rectangles.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < piece.rectangles.length; secondIndex += 1) {
+      const first = piece.rectangles[firstIndex];
+      const second = piece.rectangles[secondIndex];
+      if (rectangleOverlaps(first, second)) warnings.push(`${first.id}:${second.id}`);
+    }
+  }
+  return warnings;
+}
+
+function rangesOverlap(startA: number, endA: number, startB: number, endB: number) {
+  return Math.max(0, Math.min(endA, endB) - Math.max(startA, startB));
+}
+
+function rawRectangleEdges(piece: StudioPiece, rectangle: StudioRectangle): StudioEdge[] {
+  const size = studioRectangleSize(rectangle);
+  const x = rectangle.xMm;
+  const y = rectangle.yMm;
+  const status = (side: StudioEdge["side"]) => piece.sideStatuses[sideStatusKey(rectangle.id, side)] ?? "normal";
+  return [
+    { pieceId: piece.id, rectangleId: rectangle.id, side: "top", key: sideStatusKey(rectangle.id, "top"), start: { xMm: x, yMm: y }, end: { xMm: x + size.widthMm, yMm: y }, lengthMm: size.widthMm, exposedLengthMm: size.widthMm, status: status("top") },
+    { pieceId: piece.id, rectangleId: rectangle.id, side: "right", key: sideStatusKey(rectangle.id, "right"), start: { xMm: x + size.widthMm, yMm: y }, end: { xMm: x + size.widthMm, yMm: y + size.heightMm }, lengthMm: size.heightMm, exposedLengthMm: size.heightMm, status: status("right") },
+    { pieceId: piece.id, rectangleId: rectangle.id, side: "bottom", key: sideStatusKey(rectangle.id, "bottom"), start: { xMm: x, yMm: y + size.heightMm }, end: { xMm: x + size.widthMm, yMm: y + size.heightMm }, lengthMm: size.widthMm, exposedLengthMm: size.widthMm, status: status("bottom") },
+    { pieceId: piece.id, rectangleId: rectangle.id, side: "left", key: sideStatusKey(rectangle.id, "left"), start: { xMm: x, yMm: y }, end: { xMm: x, yMm: y + size.heightMm }, lengthMm: size.heightMm, exposedLengthMm: size.heightMm, status: status("left") },
   ];
-  if (shape === "U") {
-    regions.push({
-      xMm: Math.max(0, runA - depth),
-      yMm: 0,
-      widthMm: depth,
-      heightMm: runC,
-    });
+}
+
+function opposingSides(first: StudioEdge, second: StudioEdge) {
+  return (first.side === "left" && second.side === "right") ||
+    (first.side === "right" && second.side === "left") ||
+    (first.side === "top" && second.side === "bottom") ||
+    (first.side === "bottom" && second.side === "top");
+}
+
+function sharedLength(first: StudioEdge, second: StudioEdge) {
+  if (!opposingSides(first, second)) return 0;
+  if (first.side === "left" || first.side === "right") {
+    if (Math.abs(first.start.xMm - second.start.xMm) > STUDIO_EPSILON_MM) return 0;
+    return rangesOverlap(first.start.yMm, first.end.yMm, second.start.yMm, second.end.yMm);
   }
-  return regions;
+  if (Math.abs(first.start.yMm - second.start.yMm) > STUDIO_EPSILON_MM) return 0;
+  return rangesOverlap(first.start.xMm, first.end.xMm, second.start.xMm, second.end.xMm);
 }
 
-function dimensionPercent(valueMm: number, totalMm: number) {
-  return `${Math.max(0, Math.min(100, (valueMm / Math.max(1, totalMm)) * 100))}%`;
+export function studioPieceEdges(piece: StudioPiece) {
+  const edges = piece.rectangles.flatMap((rectangle) => rawRectangleEdges(piece, rectangle));
+  return edges.map((edge) => ({
+    ...edge,
+    exposedLengthMm: Math.max(0, edge.lengthMm - edges.reduce((sum, other) => sum + (other.rectangleId === edge.rectangleId ? 0 : sharedLength(edge, other)), 0)),
+  }));
 }
 
-export function counterClipPath(shape: CounterShape, dimensions: StudioDimensions) {
-  const bounds = counterBounds(shape, dimensions);
-  if (shape === "I") return "polygon(0 0, 100% 0, 100% 100%, 0 100%)";
-
-  const depth = Math.max(0, dimensions.depthMm);
-  const leftLegWidth = Math.min(depth, bounds.widthMm);
-  const topLegHeight = dimensionPercent(depth, bounds.heightMm);
-  const leftLegEdge = dimensionPercent(leftLegWidth, bounds.widthMm);
-
-  if (shape === "L") {
-    return `polygon(0 0, 100% 0, 100% ${topLegHeight}, ${leftLegEdge} ${topLegHeight}, ${leftLegEdge} 100%, 0 100%)`;
+export function studioPieceJoints(piece: StudioPiece): StudioEdgeJoint[] {
+  const edges = studioPieceEdges(piece);
+  const joints: StudioEdgeJoint[] = [];
+  for (let firstIndex = 0; firstIndex < edges.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < edges.length; secondIndex += 1) {
+      const lengthMm = sharedLength(edges[firstIndex], edges[secondIndex]);
+      if (lengthMm > STUDIO_EPSILON_MM) joints.push({ first: edges[firstIndex], second: edges[secondIndex], lengthMm });
+    }
   }
-
-  const rightLegEdge = dimensionPercent(Math.max(0, bounds.widthMm - leftLegWidth), bounds.widthMm);
-  const leftLegBottom = dimensionPercent(Math.max(depth, dimensions.runBMm), bounds.heightMm);
-  const rightLegBottom = dimensionPercent(Math.max(depth, dimensions.runCMm), bounds.heightMm);
-  return `polygon(0 0, 100% 0, 100% ${rightLegBottom}, ${rightLegEdge} ${rightLegBottom}, ${rightLegEdge} ${topLegHeight}, ${leftLegEdge} ${topLegHeight}, ${leftLegEdge} ${leftLegBottom}, 0 ${leftLegBottom})`;
+  return joints;
 }
 
-export function counterClearanceRegions(shape: CounterShape, dimensions: StudioDimensions) {
-  return counterRegions(shape, dimensions)
-    .map((region) => ({
-      xMm: region.xMm + STUDIO_EDGE_CLEARANCE_MM,
-      yMm: region.yMm + STUDIO_EDGE_CLEARANCE_MM,
-      widthMm: region.widthMm - STUDIO_EDGE_CLEARANCE_MM * 2,
-      heightMm: region.heightMm - STUDIO_EDGE_CLEARANCE_MM * 2,
-    }))
-    .filter((region) => region.widthMm > 0 && region.heightMm > 0);
+export function studioEdgeTotals(pieces: StudioPiece[]) {
+  return pieces.flatMap(studioPieceEdges).reduce((totals, edge) => {
+    if (edge.status === "upstand") totals.upstandLengthMm += edge.exposedLengthMm;
+    if (edge.status === "open-edge") totals.openEdgeLengthMm += edge.exposedLengthMm;
+    return totals;
+  }, { upstandLengthMm: 0, openEdgeLengthMm: 0 });
 }
 
-function displayMm(value: number) {
-  return Math.round(value).toLocaleString("th-TH");
+export function studioSideStatusLabel(status: SideStatus) {
+  return {
+    upstand: "ติดบัว",
+    "open-edge": "ขอบเปิด",
+    "wall-flush": "ชิดผนัง",
+    normal: "ปกติ",
+  }[status];
 }
 
-export function counterShapeLabel(shape: CounterShape, dimensions: StudioDimensions) {
-  if (shape === "I") return `I-SHAPE · ${displayMm(dimensions.runAMm)} × ${displayMm(dimensions.depthMm)} mm`;
-  if (shape === "L") {
-    return `L-SHAPE · A ${displayMm(dimensions.runAMm)} × B ${displayMm(dimensions.runBMm)} × ลึก ${displayMm(dimensions.depthMm)} mm`;
-  }
-  return `U-SHAPE · A ${displayMm(dimensions.runAMm)} × B ${displayMm(dimensions.runBMm)} × C ${displayMm(dimensions.runCMm)} × ลึก ${displayMm(dimensions.depthMm)} mm`;
+export function studioSideStatuses(piece: StudioPiece, rectangleId: string) {
+  return (["top", "right", "bottom", "left"] as const).map((side) => ({
+    side,
+    key: sideStatusKey(rectangleId, side),
+    label: side === "top" ? "บน" : side === "right" ? "ขวา" : side === "bottom" ? "ล่าง" : "ซ้าย",
+    status: piece.sideStatuses[sideStatusKey(rectangleId, side)] ?? "normal",
+  }));
 }
 
-function placementFitsRegion(
-  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
-  region: CounterRegion,
-) {
-  return placement.widthMm !== null &&
-    placement.depthMm !== null &&
-    placement.xMm >= region.xMm - STUDIO_CLEARANCE_EPSILON_MM &&
-    placement.yMm >= region.yMm - STUDIO_CLEARANCE_EPSILON_MM &&
-    placement.xMm + placement.widthMm <= region.xMm + region.widthMm + STUDIO_CLEARANCE_EPSILON_MM &&
-    placement.yMm + placement.depthMm <= region.yMm + region.heightMm + STUDIO_CLEARANCE_EPSILON_MM;
+export function touchingRectangleKeys(piece: StudioPiece, rectangleId: string, side: StudioEdge["side"]) {
+  const edge = studioPieceEdges(piece).find((candidate) => candidate.rectangleId === rectangleId && candidate.side === side);
+  if (!edge) return [sideStatusKey(rectangleId, side)];
+  return studioPieceEdges(piece)
+    .filter((candidate) => candidate.key === edge.key || sharedLength(edge, candidate) > STUDIO_EPSILON_MM)
+    .map((candidate) => candidate.key);
 }
 
-export function placementFitsCounterShape(
-  shape: CounterShape,
-  dimensions: StudioDimensions,
-  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
-  clearance = true,
-) {
-  const regions = clearance ? counterClearanceRegions(shape, dimensions) : counterRegions(shape, dimensions);
-  return regions.some((region) => placementFitsRegion(placement, region));
+export function snapStudioRectanglePosition(piece: StudioPiece, rectangleId: string, xMm: number, yMm: number) {
+  const moving = piece.rectangles.find((rectangle) => rectangle.id === rectangleId);
+  if (!moving) return { xMm, yMm };
+  const movingSize = studioRectangleSize(moving);
+  let nextX = xMm;
+  let nextY = yMm;
+  piece.rectangles.filter((rectangle) => rectangle.id !== rectangleId).forEach((other) => {
+    const otherSize = studioRectangleSize(other);
+    const xCandidates = [other.xMm - movingSize.widthMm, other.xMm + otherSize.widthMm];
+    const yCandidates = [other.yMm - movingSize.heightMm, other.yMm + otherSize.heightMm];
+    xCandidates.forEach((candidate) => { if (Math.abs(nextX - candidate) <= STUDIO_SNAP_DISTANCE_MM) nextX = candidate; });
+    yCandidates.forEach((candidate) => { if (Math.abs(nextY - candidate) <= STUDIO_SNAP_DISTANCE_MM) nextY = candidate; });
+    if (Math.abs(nextX - other.xMm) <= STUDIO_SNAP_DISTANCE_MM) nextX = other.xMm;
+    if (Math.abs(nextY - other.yMm) <= STUDIO_SNAP_DISTANCE_MM) nextY = other.yMm;
+  });
+  return { xMm: Math.max(0, Math.round(nextX)), yMm: Math.max(0, Math.round(nextY)) };
 }
 
-function usableRuns(shape: CounterShape, dimensions: StudioDimensions) {
-  const runs = [dimensions.runAMm];
-  if (shape === "L" || shape === "U") runs.push(dimensions.runBMm);
-  if (shape === "U") runs.push(dimensions.runCMm);
-  return runs;
+export function studioPieces(state: Pick<StudioState, "pieces" | "shape" | "dimensions">): StudioPiece[] {
+  if (state.pieces !== undefined) return state.pieces;
+  const depth = Math.max(0, state.dimensions.depthMm);
+  const runA = Math.max(0, state.dimensions.runAMm);
+  const runB = Math.max(0, state.dimensions.runBMm);
+  const runC = Math.max(0, state.dimensions.runCMm);
+  const legacyRectangles: StudioRectangle[] = [
+    { id: "legacy-a", widthMm: runA, lengthMm: depth, xMm: 0, yMm: 0, rotation: 0 },
+  ];
+  if (state.shape !== "I") legacyRectangles.push({ id: "legacy-b", widthMm: depth, lengthMm: runB, xMm: 0, yMm: 0, rotation: 0 });
+  if (state.shape === "U") legacyRectangles.push({ id: "legacy-c", widthMm: depth, lengthMm: runC, xMm: Math.max(0, runA - depth), yMm: 0, rotation: 0 });
+  return [{ id: "legacy-piece-1", name: "ชิ้นงาน 1", rectangles: legacyRectangles, sideStatuses: {} }];
 }
 
-export function counterAreaSqM(shape: CounterShape, dimensions: StudioDimensions) {
-  const depth = Math.max(0, dimensions.depthMm);
-  const runs = usableRuns(shape, dimensions).map((run) => Math.max(0, run));
-  const overlapCount = shape === "I" ? 0 : shape === "L" ? 1 : 2;
-  return Math.max(0, (runs.reduce((sum, run) => sum + run * depth, 0) - overlapCount * depth * depth) / 1_000_000);
+export function studioPieceById(state: Pick<StudioState, "pieces" | "shape" | "dimensions">, pieceId?: string) {
+  const pieces = studioPieces(state);
+  return pieces.find((piece) => piece.id === pieceId) ?? pieces[0];
 }
 
-export function backsplashAreaSqM(shape: CounterShape, dimensions: StudioDimensions, backsplash: BacksplashConfig) {
-  if (!backsplash.enabled || backsplash.heightMm <= 0) return 0;
-  const totalRunMm = usableRuns(shape, dimensions).reduce((sum, run) => sum + Math.max(0, run), 0);
-  return (totalRunMm * backsplash.heightMm) / 1_000_000;
-}
-
-export function standardSheetWarning(shape: CounterShape, dimensions: StudioDimensions) {
-  const runs = usableRuns(shape, dimensions);
-  return runs.some((run) => run > 3600) || dimensions.depthMm > 760;
+export function studioStateDimensionsValid(state: Pick<StudioState, "pieces" | "shape" | "dimensions">) {
+  const pieces = studioPieces(state);
+  return pieces.length >= 1 &&
+    pieces.length <= STUDIO_MAX_PIECES &&
+    pieces.every((piece) =>
+      piece.rectangles.length >= 1 &&
+      piece.rectangles.length <= STUDIO_MAX_RECTANGLES &&
+      piece.rectangles.every((rectangle) =>
+        Number.isFinite(rectangle.widthMm) &&
+        Number.isFinite(rectangle.lengthMm) &&
+        rectangle.widthMm > 0 &&
+        rectangle.lengthMm > 0 &&
+        Number.isFinite(rectangle.xMm) &&
+        Number.isFinite(rectangle.yMm) &&
+        rectangle.xMm >= 0 &&
+        rectangle.yMm >= 0,
+      ),
+    );
 }
 
 export function basinDimensionsForProduct(product?: BasinProduct) {
@@ -229,21 +354,35 @@ export function basinDimensionsForProduct(product?: BasinProduct) {
   return { widthMm: values[0] ?? null, depthMm: values[1] ?? null };
 }
 
-export function unsafeBasinPlacements(
-  state: Pick<StudioState, "shape" | "dimensions" | "basinPlacements">,
+function placementFitsRectangle(placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">, rectangle: StudioRectangle) {
+  if (placement.widthMm === null || placement.depthMm === null) return true;
+  const size = studioRectangleSize(rectangle);
+  return placement.xMm >= rectangle.xMm - STUDIO_EPSILON_MM &&
+    placement.yMm >= rectangle.yMm - STUDIO_EPSILON_MM &&
+    placement.xMm + placement.widthMm <= rectangle.xMm + size.widthMm + STUDIO_EPSILON_MM &&
+    placement.yMm + placement.depthMm <= rectangle.yMm + size.heightMm + STUDIO_EPSILON_MM;
+}
+
+export function placementFitsStudioPiece(piece: StudioPiece, placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">) {
+  return piece.rectangles.some((rectangle) => placementFitsRectangle(placement, rectangle));
+}
+
+export function placementFitsCounterShape(
+  shape: CounterShape,
+  dimensions: StudioDimensions,
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
 ) {
+  return placementFitsStudioPiece(studioPieces({ shape, dimensions })[0], placement);
+}
+
+export function unsafeBasinPlacements(state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">) {
   return state.basinPlacements
-    .filter((placement) =>
-      placement.widthMm !== null &&
-      placement.depthMm !== null &&
-      !placementFitsCounterShape(state.shape, state.dimensions, placement),
-    )
+    .filter((placement) => placement.widthMm !== null && placement.depthMm !== null)
+    .filter((placement) => !placementFitsStudioPiece(studioPieceById(state, placement.pieceId), placement))
     .map((placement) => placement.id);
 }
 
-export function unknownBasinPlacements(
-  state: Pick<StudioState, "basinPlacements">,
-) {
+export function unknownBasinPlacements(state: Pick<StudioState, "basinPlacements">) {
   return state.basinPlacements
     .filter((placement) => placement.widthMm === null || placement.depthMm === null)
     .map((placement) => placement.id);
@@ -256,38 +395,17 @@ export function clampBasinPlacementPosition(
   dimensions: StudioDimensions,
   shape: CounterShape = "I",
 ) {
+  const piece = studioPieces({ shape, dimensions })[0];
   const widthMm = placement.widthMm ?? 0;
   const depthMm = placement.depthMm ?? 0;
-  const regions = counterRegions(shape, dimensions)
-    .map((region) => ({
-      ...region,
-      widthMm: region.widthMm - widthMm,
-      heightMm: region.heightMm - depthMm,
-    }))
-    .filter((region) => region.widthMm >= 0 && region.heightMm >= 0);
-  const candidates = regions.map((region) => ({
-    xMm: Math.max(region.xMm, Math.min(region.xMm + region.widthMm, xMm)),
-    yMm: Math.max(region.yMm, Math.min(region.yMm + region.heightMm, yMm)),
-  }));
-  if (!candidates.length) {
-    const bounds = counterBounds(shape, dimensions);
+  const candidates = piece.rectangles.map((rectangle) => {
+    const size = studioRectangleSize(rectangle);
     return {
-      xMm: Math.max(0, Math.min(bounds.widthMm - widthMm, xMm)),
-      yMm: Math.max(0, Math.min(bounds.heightMm - depthMm, yMm)),
+      xMm: Math.max(rectangle.xMm, Math.min(rectangle.xMm + size.widthMm - widthMm, xMm)),
+      yMm: Math.max(rectangle.yMm, Math.min(rectangle.yMm + size.heightMm - depthMm, yMm)),
     };
-  }
-  return candidates.reduce((closest, candidate) => {
-    const closestDistance = (closest.xMm - xMm) ** 2 + (closest.yMm - yMm) ** 2;
-    const candidateDistance = (candidate.xMm - xMm) ** 2 + (candidate.yMm - yMm) ** 2;
-    return candidateDistance < closestDistance ? candidate : closest;
-  });
-}
-
-function snapNearClearance(value: number, minimum: number, maximum: number) {
-  if (maximum < minimum) return value;
-  if (Math.abs(value - minimum) <= STUDIO_SNAP_DISTANCE_MM) return minimum;
-  if (Math.abs(value - maximum) <= STUDIO_SNAP_DISTANCE_MM) return maximum;
-  return value;
+  }).filter((candidate) => Number.isFinite(candidate.xMm) && Number.isFinite(candidate.yMm));
+  return candidates[0] ?? { xMm: Math.max(0, xMm), yMm: Math.max(0, yMm) };
 }
 
 export function snapBasinPlacementPosition(
@@ -297,121 +415,212 @@ export function snapBasinPlacementPosition(
   dimensions: StudioDimensions,
   shape: CounterShape = "I",
 ) {
-  const clamped = clampBasinPlacementPosition(placement, xMm, yMm, dimensions, shape);
-  const clearanceRegions = counterClearanceRegions(shape, dimensions);
-  const matchingRegion = clearanceRegions.find((region) =>
-    placement.widthMm !== null &&
-    placement.depthMm !== null &&
-    clamped.xMm >= region.xMm - STUDIO_SNAP_DISTANCE_MM &&
-    clamped.xMm <= region.xMm + region.widthMm - placement.widthMm + STUDIO_SNAP_DISTANCE_MM &&
-    clamped.yMm >= region.yMm - STUDIO_SNAP_DISTANCE_MM &&
-    clamped.yMm <= region.yMm + region.heightMm - placement.depthMm + STUDIO_SNAP_DISTANCE_MM,
-  );
-  if (!matchingRegion) return clamped;
-  const maxX = matchingRegion.xMm + matchingRegion.widthMm - (placement.widthMm ?? 0);
-  const maxY = matchingRegion.yMm + matchingRegion.heightMm - (placement.depthMm ?? 0);
+  return clampBasinPlacementPosition(placement, xMm, yMm, dimensions, shape);
+}
+
+function usableRuns(shape: CounterShape, dimensions: StudioDimensions) {
+  const runs = [dimensions.runAMm];
+  if (shape === "L" || shape === "U") runs.push(dimensions.runBMm);
+  if (shape === "U") runs.push(dimensions.runCMm);
+  return runs;
+}
+
+/** Legacy helpers retained for old test fixtures and quote snapshots. */
+export function counterBounds(shape: CounterShape, dimensions: StudioDimensions) {
+  const depth = Math.max(0, dimensions.depthMm);
   return {
-    xMm: placement.widthMm === null
-      ? clamped.xMm
-      : snapNearClearance(clamped.xMm, matchingRegion.xMm, maxX),
-    yMm: placement.depthMm === null
-      ? clamped.yMm
-      : snapNearClearance(clamped.yMm, matchingRegion.yMm, maxY),
+    widthMm: Math.max(0, dimensions.runAMm),
+    heightMm: shape === "I" ? depth : Math.max(depth, dimensions.runBMm, shape === "U" ? dimensions.runCMm : 0),
   };
 }
 
-export function studioEstimate(
-  state: StudioState,
-  products: BasinProduct[],
-): StudioEstimate {
-  const counterArea = counterAreaSqM(state.shape, state.dimensions);
-  const backsplashArea = backsplashAreaSqM(state.shape, state.dimensions, state.backsplash);
-  const stoneArea = counterArea + backsplashArea;
+export function counterRegions(shape: CounterShape, dimensions: StudioDimensions): CounterRegion[] {
+  const depth = Math.max(0, dimensions.depthMm);
+  const runA = Math.max(0, dimensions.runAMm);
+  const runB = Math.max(0, dimensions.runBMm);
+  const runC = Math.max(0, dimensions.runCMm);
+  if (shape === "I") return [{ xMm: 0, yMm: 0, widthMm: runA, heightMm: depth }];
+  const regions: CounterRegion[] = [
+    { xMm: 0, yMm: 0, widthMm: runA, heightMm: depth },
+    { xMm: 0, yMm: 0, widthMm: depth, heightMm: runB },
+  ];
+  if (shape === "U") regions.push({ xMm: Math.max(0, runA - depth), yMm: 0, widthMm: depth, heightMm: runC });
+  return regions;
+}
+
+export function counterClipPath(shape: CounterShape, dimensions: StudioDimensions) {
+  const bounds = counterBounds(shape, dimensions);
+  if (shape === "I") return "polygon(0 0, 100% 0, 100% 100%, 0 100%)";
+  const depth = Math.max(0, dimensions.depthMm);
+  const leftLegWidth = Math.min(depth, bounds.widthMm);
+  const topLegHeight = `${Math.max(0, Math.min(100, (depth / Math.max(1, bounds.heightMm)) * 100))}%`;
+  const leftLegEdge = `${Math.max(0, Math.min(100, (leftLegWidth / Math.max(1, bounds.widthMm)) * 100))}%`;
+  if (shape === "L") return `polygon(0 0, 100% 0, 100% ${topLegHeight}, ${leftLegEdge} ${topLegHeight}, ${leftLegEdge} 100%, 0 100%)`;
+  const rightLegEdge = `${Math.max(0, Math.min(100, ((bounds.widthMm - leftLegWidth) / Math.max(1, bounds.widthMm)) * 100))}%`;
+  const leftLegBottom = `${Math.max(0, Math.min(100, (Math.max(depth, dimensions.runBMm) / Math.max(1, bounds.heightMm)) * 100))}%`;
+  const rightLegBottom = `${Math.max(0, Math.min(100, (Math.max(depth, dimensions.runCMm) / Math.max(1, bounds.heightMm)) * 100))}%`;
+  return `polygon(0 0, 100% 0, 100% ${rightLegBottom}, ${rightLegEdge} ${rightLegBottom}, ${rightLegEdge} ${topLegHeight}, ${leftLegEdge} ${topLegHeight}, ${leftLegEdge} ${leftLegBottom}, 0 ${leftLegBottom})`;
+}
+
+export function counterShapeLabel(shape: CounterShape, dimensions: StudioDimensions) {
+  const display = (value: number) => Math.round(value).toLocaleString("th-TH");
+  if (shape === "I") return `I-SHAPE · ${display(dimensions.runAMm)} × ${display(dimensions.depthMm)} mm`;
+  if (shape === "L") return `L-SHAPE · A ${display(dimensions.runAMm)} × B ${display(dimensions.runBMm)} × ลึก ${display(dimensions.depthMm)} mm`;
+  return `U-SHAPE · A ${display(dimensions.runAMm)} × B ${display(dimensions.runBMm)} × C ${display(dimensions.runCMm)} × ลึก ${display(dimensions.depthMm)} mm`;
+}
+
+export function counterAreaSqM(shape: CounterShape, dimensions: StudioDimensions) {
+  const depth = Math.max(0, dimensions.depthMm);
+  const runs = usableRuns(shape, dimensions).map((run) => Math.max(0, run));
+  const overlapCount = shape === "I" ? 0 : shape === "L" ? 1 : 2;
+  return Math.max(0, (runs.reduce((sum, run) => sum + run * depth, 0) - overlapCount * depth * depth) / 1_000_000);
+}
+
+export function backsplashAreaSqM(shape: CounterShape, dimensions: StudioDimensions, backsplash: BacksplashConfig) {
+  if (!backsplash.enabled || backsplash.heightMm <= 0) return 0;
+  const totalRunMm = usableRuns(shape, dimensions).reduce((sum, run) => sum + Math.max(0, run), 0);
+  return totalRunMm * backsplash.heightMm / 1_000_000;
+}
+
+export function standardSheetWarning(shape: CounterShape, dimensions: StudioDimensions) {
+  return usableRuns(shape, dimensions).some((run) => run > 3600) || dimensions.depthMm > 760;
+}
+
+export function counterDimensionsValid(shape: CounterShape, dimensions: StudioDimensions) {
+  const values = [dimensions.depthMm, dimensions.runAMm];
+  if (shape !== "I") values.push(dimensions.runBMm);
+  if (shape === "U") values.push(dimensions.runCMm);
+  return values.every((value) => Number.isFinite(value) && value > 0);
+}
+
+function roundBaht(value: number) {
+  return Math.round(Math.max(0, value));
+}
+
+function legacyStudioStatePieces(state: StudioState) {
+  return studioPieces(state);
+}
+
+export function studioEstimate(state: StudioState, products: BasinProduct[]): StudioEstimate {
+  const pieces = legacyStudioStatePieces(state);
+  const rectangles = pieces.flatMap((piece) => piece.rectangles);
+  const isNewLayout = state.pieces !== undefined;
+  const counterArea = isNewLayout ? studioAreaSqM(pieces) : counterAreaSqM(state.shape, state.dimensions);
+  const edgeTotals = isNewLayout ? studioEdgeTotals(pieces) : { upstandLengthMm: 0, openEdgeLengthMm: 0 };
+  const upstandHeight = state.upstandHeightMm ?? (isNewLayout ? null : state.backsplash.enabled ? state.backsplash.heightMm : null);
+  const upstandArea = upstandHeight !== null && Number.isFinite(upstandHeight) && upstandHeight > 0
+    ? edgeTotals.upstandLengthMm * upstandHeight / 1_000_000
+    : 0;
+  const backsplashArea = isNewLayout ? 0 : backsplashAreaSqM(state.shape, state.dimensions, state.backsplash);
+  const stoneArea = counterArea + upstandArea + backsplashArea;
   const price = stoneInstalledUnitPrice(state.activeStone);
-  const stoneTotal = price === null ? 0 : Math.round(stoneArea * price);
+  const sheetCutPriceWarning = price === 9500;
+  const stoneTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(counterArea * price) + roundBaht((upstandArea + backsplashArea) * price);
+  const upstandTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(upstandArea * price);
   const basinSetSkus = state.basinPlacements.length ? state.basinPlacements.map((placement) => placement.sku) : state.basinSkus;
   const basins = basinSetSkus.map((sku) => products.find((product) => product.sku === sku)).filter(Boolean) as BasinProduct[];
-  const basinSubtotal = basins.reduce((sum, product) => sum + product.priceTHB, 0);
-  const requestedInstallation = basins.length * INSTALLATION_PRICE;
+  const basinSubtotal = basins.reduce((sum, product) => sum + roundBaht(product.priceTHB), 0);
+  const requestedInstallation = roundBaht(basins.length * INSTALLATION_PRICE);
   const installationDiscount = basins.length >= 3 ? requestedInstallation : 0;
   const installationCharge = requestedInstallation - installationDiscount;
+  const openEdgePrice = state.openEdgePricePerMTHB ?? null;
+  const openEdgeTotal = openEdgePrice !== null && openEdgePrice >= 0
+    ? roundBaht((edgeTotals.openEdgeLengthMm / 1000) * openEdgePrice)
+    : 0;
   const minimumArea = state.location === "bangkok-metro" ? STONE_INSTALLED_MIN_BANGKOK_SQM : STONE_INSTALLED_MIN_PROVINCE_SQM;
   const smallJobFee = price !== null && stoneArea > 0 && stoneArea < minimumArea
     ? state.location === "bangkok-metro" ? STONE_SMALL_JOB_BANGKOK_FEE : STONE_SMALL_JOB_PROVINCE_FEE
     : 0;
-  const subtotal = stoneTotal + basinSubtotal + installationCharge + smallJobFee;
-  const vatAmount = state.vat ? Math.round(subtotal * 0.07) : 0;
-  const unsafe = unsafeBasinPlacements(state);
+  const discountTHB = roundBaht(state.discountTHB ?? 0);
+  const grossSubtotal = stoneTotal + openEdgeTotal + basinSubtotal + requestedInstallation + smallJobFee;
+  const subtotal = Math.max(0, grossSubtotal - discountTHB - installationDiscount);
+  const vatAmount = state.vat ? roundBaht(subtotal * 0.07) : 0;
+  const total = subtotal + vatAmount;
+  const overlapWarnings = pieces.flatMap((piece) => pieceOverlapWarnings(piece).map((pair) => `${piece.name}: ${pair}`));
+  const unsafe = isNewLayout ? state.basinPlacements.filter((placement) => {
+    const piece = studioPieceById(state, placement.pieceId);
+    return placement.widthMm !== null && placement.depthMm !== null && !placementFitsStudioPiece(piece, placement);
+  }).map((placement) => placement.id) : [];
   const unknownDimensions = unknownBasinPlacements(state);
-  const sheetWarning = standardSheetWarning(state.shape, state.dimensions);
-  const standardSheetMessage = sheetWarning
-    ? `บางช่วงยาวหรือมีความลึกเกินแผ่นมาตรฐาน ${STONE_SHEET_SIZE} ต้องตรวจสอบการต่อแผ่นกับทีมขาย`
-    : "";
+  const upstandHeightMissing = isNewLayout && (state.upstandHeightMm === null || state.upstandHeightMm === undefined);
+  const openEdgePriceMissing = isNewLayout && edgeTotals.openEdgeLengthMm > 0 && openEdgePrice === null;
+  const openEdgePriceInvalid = isNewLayout && openEdgePrice !== null && (!Number.isFinite(openEdgePrice) || openEdgePrice < 0 || Math.round(openEdgePrice * 100) !== openEdgePrice);
+  const sheetWarning = isNewLayout
+    ? rectangles.some((rectangle) => Math.min(rectangle.widthMm, rectangle.lengthMm) > 760 || Math.max(rectangle.widthMm, rectangle.lengthMm) > 3680)
+    : standardSheetWarning(state.shape, state.dimensions);
+  const warnings = [
+    ...(sheetCutPriceWarning ? ["สีลายหินอ่อนคิดตามแผ่นตัด ทีมขายจะคิดให้"] : []),
+    ...(upstandHeightMissing ? ["ยังไม่ได้ระบุความสูงบัว จึงยังไม่คิดเงินบัว"] : []),
+    ...(openEdgePriceMissing ? ["ยังไม่ได้ระบุราคาขอบเปิดต่อเมตร"] : []),
+     ...(openEdgePriceInvalid ? ["ราคาขอบเปิดต้องไม่ติดลบและมีทศนิยมไม่เกิน 2 ตำแหน่ง"] : []),
+    ...(overlapWarnings.length ? ["มีสี่เหลี่ยมซ้อนกัน พื้นที่ยังคิดตามแผ่นเต็มแต่ต้องตรวจสอบแบบ"] : []),
+  ];
   return {
+    pieceCount: pieces.length,
+    rectangleCount: rectangles.length,
     counterAreaSqM: counterArea,
     backsplashAreaSqM: backsplashArea,
+    upstandAreaSqM: upstandArea,
+    upstandLengthM: edgeTotals.upstandLengthMm / 1000,
+    openEdgeLengthM: edgeTotals.openEdgeLengthMm / 1000,
     stoneAreaSqM: stoneArea,
     stoneUnitPriceTHB: price,
     stoneTotalTHB: stoneTotal,
+    upstandTotalTHB: upstandTotal,
+    openEdgeUnitPriceTHB: openEdgePrice,
+    openEdgeTotalTHB: openEdgeTotal,
     basinSubtotalTHB: basinSubtotal,
     installationChargeTHB: installationCharge,
     installationDiscountTHB: installationDiscount,
+    discountTHB,
     smallJobFeeTHB: smallJobFee,
+    grossSubtotalTHB: grossSubtotal,
     subtotalTHB: subtotal,
     vatAmountTHB: vatAmount,
-    totalTHB: subtotal + vatAmount,
+    totalTHB: total,
     standardSheetWarning: sheetWarning,
-    standardSheetMessage,
+    standardSheetMessage: sheetWarning ? `บางแผ่นเกินขนาดมาตรฐาน ${STONE_SHEET_SIZE} ต้องตรวจสอบการต่อแผ่นกับทีมขาย` : "",
+    sheetCutPriceWarning,
+    upstandHeightMissing,
+    openEdgePriceMissing,
+    openEdgePriceInvalid,
+    overlapWarnings,
     unsafePlacements: unsafe,
     unknownDimensionPlacements: unknownDimensions,
+    warnings,
     isValid: state.stoneColors.length >= STUDIO_MIN_STONE_COLORS &&
       state.stoneColors.length <= STUDIO_MAX_STONE_COLORS &&
       state.basinSkus.length >= STUDIO_MIN_BASINS &&
       state.basinSkus.length <= STUDIO_MAX_BASINS &&
       state.basinPlacements.length >= state.basinSkus.length &&
       price !== null &&
+      !openEdgePriceInvalid &&
+      !overlapWarnings.length &&
       !unsafe.length &&
       !unknownDimensions.length &&
-      counterDimensionsValid(state.shape, state.dimensions),
+      studioStateDimensionsValid(state),
   };
 }
 
 export function studioSubmissionValidationMessage(
   state: StudioState,
-  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements">,
+  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid">,
 ) {
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
-  const hasInvalidCounterDimensions = !counterDimensionsValid(state.shape, state.dimensions);
-
-  if (state.basinPlacements.length === 0) {
-    return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกไปวางบนผัง";
-  }
-  if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) {
-    return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
-  }
-  if (estimate.unknownDimensionPlacements.length > 0) {
-    return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
-  }
-  if (estimate.unsafePlacements.length > 0) {
-    return "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ";
-  }
-  if (hasInvalidCounterDimensions) {
-    return state.shape === "U"
-      ? "ขนาด U-SHAPE ต้องให้ A มากกว่า 2 เท่าความลึก และ B/C มากกว่าความลึก"
-      : state.shape === "L"
-        ? "ขนาด L-SHAPE ต้องให้ A และ B มากกว่าความลึก"
-        : "ขนาดเคาน์เตอร์ไม่ถูกต้อง กรุณาตรวจสอบความลึกและความยาวของเคาน์เตอร์ให้มากกว่า 0 mm";
-  }
-  if (!estimate.isValid) {
-    return "กรุณาตรวจสอบข้อมูลแบบและวัสดุก่อนส่งคำขอ";
-  }
+  if (state.basinPlacements.length === 0) return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง";
+  if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
+  if (estimate.unknownDimensionPlacements.length > 0) return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
+  if (estimate.overlapWarnings.length > 0) return "มีสี่เหลี่ยมซ้อนกัน กรุณาขยับแผ่นให้ไม่ซ้อนกันก่อนส่งคำขอ";
+  if (estimate.unsafePlacements.length > 0) return "กรุณาวางอ่างให้อยู่ภายในสี่เหลี่ยมของชิ้นงาน";
+  if (estimate.openEdgePriceInvalid) return "ราคาขอบเปิดติดลบไม่ได้";
+  if (!estimate.isValid) return "กรุณาตรวจสอบจำนวนชิ้นงาน จำนวนแผ่น ขนาดแผ่น และข้อมูลวัสดุก่อนส่งคำขอ";
   return null;
 }
 
-export function createBasinPlacement(product: BasinProduct, index: number): BasinPlacement {
+export function createBasinPlacement(product: BasinProduct, index: number, pieceId?: string): BasinPlacement {
   const size = basinDimensionsForProduct(product);
-  return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, xMm: STUDIO_EDGE_CLEARANCE_MM, yMm: STUDIO_EDGE_CLEARANCE_MM, ...size };
+  return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, pieceId, xMm: 0, yMm: 0, ...size };
 }
 
 export function studioStoneName(code: string) {

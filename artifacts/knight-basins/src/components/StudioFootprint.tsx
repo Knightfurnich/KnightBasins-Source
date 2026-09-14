@@ -1,15 +1,15 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
-  counterClipPath,
-  counterBounds,
-  counterClearanceRegions,
-  counterRegions,
-  counterShapeLabel,
-  type StudioState,
+  pieceBounds,
+  studioPieceEdges,
+  studioPieceJoints,
+  studioRectangleSize,
+  studioSideStatusLabel,
+  type StudioPiece,
 } from "@/data/studio-model";
 
 type StudioFootprintProps = {
-  state: Pick<StudioState, "shape" | "dimensions">;
+  piece: StudioPiece;
   className?: string;
   testId?: string;
   ariaLabel?: string;
@@ -19,20 +19,20 @@ type StudioFootprintProps = {
   children?: ReactNode;
 };
 
-function regionStyle(
-  region: { xMm: number; yMm: number; widthMm: number; heightMm: number },
-  bounds: { widthMm: number; heightMm: number },
-): CSSProperties {
+function rectangleStyle(piece: StudioPiece, rectangle: StudioPiece["rectangles"][number], bounds: { widthMm: number; heightMm: number }): CSSProperties {
+  const size = studioRectangleSize(rectangle);
   return {
-    left: `${(region.xMm / Math.max(1, bounds.widthMm)) * 100}%`,
-    top: `${(region.yMm / Math.max(1, bounds.heightMm)) * 100}%`,
-    width: `${(region.widthMm / Math.max(1, bounds.widthMm)) * 100}%`,
-    height: `${(region.heightMm / Math.max(1, bounds.heightMm)) * 100}%`,
+    left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`,
+    top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`,
+    width: `${(size.widthMm / Math.max(1, bounds.widthMm)) * 100}%`,
+    height: `${(size.heightMm / Math.max(1, bounds.heightMm)) * 100}%`,
+    ["--piece-rotation" as string]: `${rectangle.rotation}deg`,
+    ["--piece-status-top" as string]: studioSideStatusLabel(piece.sideStatuses[`${rectangle.id}:top`] ?? "normal"),
   };
 }
 
 export function StudioFootprint({
-  state,
+  piece,
   className = "",
   testId,
   ariaLabel,
@@ -41,39 +41,42 @@ export function StudioFootprint({
   onDrop,
   children,
 }: StudioFootprintProps) {
-  const bounds = counterBounds(state.shape, state.dimensions);
-  const regions = counterRegions(state.shape, state.dimensions);
-  const clearanceRegions = counterClearanceRegions(state.shape, state.dimensions);
-  const clipPath = counterClipPath(state.shape, state.dimensions);
+  const bounds = pieceBounds(piece);
+  const joints = studioPieceJoints(piece);
   return (
     <div
-      className={`studio-canvas studio-canvas--${state.shape} ${unsafe ? "studio-canvas--unsafe" : ""} ${className}`}
-      style={{
-        aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}`,
-        clipPath,
-      }}
+      className={`studio-canvas studio-piece-canvas ${unsafe ? "studio-canvas--unsafe" : ""} ${className}`}
+      style={{ aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}` }}
       onDragOver={onDragOver}
       onDrop={onDrop}
       data-testid={testId}
       aria-label={ariaLabel}
     >
-      {regions.map((region, index) => (
+      {piece.rectangles.map((rectangle) => (
         <div
-          key={`counter-region-${index}`}
-          className="studio-counter-region"
-          style={regionStyle(region, bounds)}
-          aria-hidden="true"
-        />
+          key={rectangle.id}
+          className="studio-piece-rectangle"
+          style={rectangleStyle(piece, rectangle, bounds)}
+          aria-label={`${rectangle.widthMm} × ${rectangle.lengthMm} mm`}
+        >
+          <span className="studio-piece-size">{rectangle.widthMm} × {rectangle.lengthMm}</span>
+        </div>
       ))}
-      {clearanceRegions.map((region, index) => (
-        <div
-          key={`clearance-region-${index}`}
-          className="studio-clearance-region"
-          style={regionStyle(region, bounds)}
-          aria-hidden="true"
-        />
-      ))}
-      <span className="studio-canvas-label">{counterShapeLabel(state.shape, state.dimensions)}</span>
+      {joints.map((joint) => {
+        const vertical = joint.first.side === "left" || joint.first.side === "right";
+        const xMm = vertical ? joint.first.start.xMm : Math.max(joint.first.start.xMm, joint.second.start.xMm);
+        const yMm = vertical ? Math.max(joint.first.start.yMm, joint.second.start.yMm) : joint.first.start.yMm;
+        const jointStyle: CSSProperties = {
+          left: `${(xMm / Math.max(1, bounds.widthMm)) * 100}%`,
+          top: `${(yMm / Math.max(1, bounds.heightMm)) * 100}%`,
+          ...(vertical
+            ? { height: `${(joint.lengthMm / Math.max(1, bounds.heightMm)) * 100}%` }
+            : { width: `${(joint.lengthMm / Math.max(1, bounds.widthMm)) * 100}%` }),
+        };
+        return <span key={`${joint.first.key}-${joint.second.key}`} className={`studio-panel-joint ${vertical ? "is-vertical" : "is-horizontal"}`} style={jointStyle} title="ต่อแผ่นแล้วต้องได้ฉาก 90°" aria-label="ต่อแผ่นแล้วต้องได้ฉาก 90°" />;
+      })}
+      <span className="studio-canvas-label">{piece.name}</span>
+      <span className="studio-joint-note">ต่อแผ่นแล้วต้องได้ฉาก 90°</span>
       {children}
     </div>
   );
