@@ -95,6 +95,21 @@ export function counterBounds(shape: CounterShape, dimensions: StudioDimensions)
   };
 }
 
+export function counterDimensionsValid(shape: CounterShape, dimensions: StudioDimensions) {
+  const depth = dimensions.depthMm;
+  const runA = dimensions.runAMm;
+  const runB = dimensions.runBMm;
+  const runC = dimensions.runCMm;
+  if (![depth, runA].every((value) => Number.isFinite(value) && value > 0)) return false;
+  if (shape === "I") return true;
+  if (![runB].every((value) => Number.isFinite(value) && value > 0)) return false;
+  if (shape === "L") return runA > depth && runB > depth;
+  return runA > depth * 2 &&
+    runB > depth &&
+    Number.isFinite(runC) &&
+    runC > depth;
+}
+
 export function counterRegions(shape: CounterShape, dimensions: StudioDimensions): CounterRegion[] {
   const depth = Math.max(0, dimensions.depthMm);
   const runA = Math.max(0, dimensions.runAMm);
@@ -357,8 +372,7 @@ export function studioEstimate(
       price !== null &&
       !unsafe.length &&
       !unknownDimensions.length &&
-      state.dimensions.depthMm > 0 &&
-      usableRuns(state.shape, state.dimensions).every((run) => run > 0),
+      counterDimensionsValid(state.shape, state.dimensions),
   };
 }
 
@@ -368,10 +382,7 @@ export function studioSubmissionValidationMessage(
 ) {
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
-  const hasInvalidCounterDimensions = [state.dimensions.depthMm, state.dimensions.runAMm]
-    .concat(state.shape === "I" ? [] : state.dimensions.runBMm)
-    .concat(state.shape === "U" ? state.dimensions.runCMm : [])
-    .some((value) => !Number.isFinite(value) || value <= 0);
+  const hasInvalidCounterDimensions = !counterDimensionsValid(state.shape, state.dimensions);
 
   if (state.basinPlacements.length === 0) {
     return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกไปวางบนผัง";
@@ -386,7 +397,11 @@ export function studioSubmissionValidationMessage(
     return "กรุณาขยับอ่างให้ขอบอยู่บนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอ ให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm ก่อนส่งคำขอ";
   }
   if (hasInvalidCounterDimensions) {
-    return "ขนาดเคาน์เตอร์ไม่ถูกต้อง กรุณาตรวจสอบความลึกและความยาวของเคาน์เตอร์ให้มากกว่า 0 mm";
+    return state.shape === "U"
+      ? "ขนาด U-SHAPE ต้องให้ A มากกว่า 2 เท่าความลึก และ B/C มากกว่าความลึก"
+      : state.shape === "L"
+        ? "ขนาด L-SHAPE ต้องให้ A และ B มากกว่าความลึก"
+        : "ขนาดเคาน์เตอร์ไม่ถูกต้อง กรุณาตรวจสอบความลึกและความยาวของเคาน์เตอร์ให้มากกว่า 0 mm";
   }
   if (!estimate.isValid) {
     return "กรุณาตรวจสอบข้อมูลแบบและวัสดุก่อนส่งคำขอ";

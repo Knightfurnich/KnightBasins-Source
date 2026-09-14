@@ -7,6 +7,7 @@ import {
   clampBasinPlacementPosition,
   counterClearanceRegions,
   counterClipPath,
+  counterDimensionsValid,
   createBasinPlacement,
   counterAreaSqM,
   counterRegions,
@@ -66,6 +67,16 @@ test("L and U geometry use real counter legs, clearance regions, and shape label
   assert.equal(counterShapeLabel("I", dimensions), "I-SHAPE · 1,800 × 600 mm");
   assert.equal(counterShapeLabel("L", dimensions), "L-SHAPE · A 1,800 × B 1,200 × ลึก 600 mm");
   assert.equal(counterShapeLabel("U", dimensions), "U-SHAPE · A 1,800 × B 1,200 × C 1,200 × ลึก 600 mm");
+});
+
+test("L and U dimensions must leave room for actual perpendicular legs", () => {
+  assert.equal(counterDimensionsValid("I", { depthMm: 600, runAMm: 1, runBMm: 0, runCMm: 0 }), true);
+  assert.equal(counterDimensionsValid("L", { depthMm: 600, runAMm: 600, runBMm: 1200, runCMm: 0 }), false);
+  assert.equal(counterDimensionsValid("L", { depthMm: 600, runAMm: 1800, runBMm: 600, runCMm: 0 }), false);
+  assert.equal(counterDimensionsValid("L", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 0 }), true);
+  assert.equal(counterDimensionsValid("U", { depthMm: 600, runAMm: 1200, runBMm: 1200, runCMm: 1200 }), false);
+  assert.equal(counterDimensionsValid("U", { depthMm: 600, runAMm: 1800, runBMm: 600, runCMm: 1200 }), false);
+  assert.equal(counterDimensionsValid("U", { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1200 }), true);
 });
 
 test("backsplash adds area without changing counter footprint", () => {

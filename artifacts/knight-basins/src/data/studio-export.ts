@@ -2,6 +2,7 @@ import { productBySku } from "./catalog.ts";
 import {
   counterBounds,
   counterClearanceRegions,
+  counterDimensionsValid,
   counterRegions,
   type CounterRegion,
   type CounterShape,
@@ -123,10 +124,7 @@ export function createStudioExportModel(state: Pick<StudioState, "shape" | "dime
 }
 
 export function studioExportDimensionsValid(state: Pick<StudioState, "shape" | "dimensions">) {
-  const values = [state.dimensions.depthMm, state.dimensions.runAMm];
-  if (state.shape !== "I") values.push(state.dimensions.runBMm);
-  if (state.shape === "U") values.push(state.dimensions.runCMm);
-  return values.every((value) => Number.isFinite(value) && value > 0);
+  return counterDimensionsValid(state.shape, state.dimensions);
 }
 
 function dxfNumber(value: number) {
