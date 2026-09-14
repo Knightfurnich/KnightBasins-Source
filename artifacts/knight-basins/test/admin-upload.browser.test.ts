@@ -1,1 +1,315 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBhZnRlciwgYmVmb3JlLCBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBta2R0ZW1wLCBybSwgd3JpdGVGaWxlIH0gZnJvbSAibm9kZTpmcy9wcm9taXNlcyI7CmltcG9ydCBvcyBmcm9tICJub2RlOm9zIjsKaW1wb3J0IHBhdGggZnJvbSAibm9kZTpwYXRoIjsKaW1wb3J0IHsgc3Bhd24sIHR5cGUgQ2hpbGRQcm9jZXNzIH0gZnJvbSAibm9kZTpjaGlsZF9wcm9jZXNzIjsKaW1wb3J0IG5ldCBmcm9tICJub2RlOm5ldCI7Cgpjb25zdCBiYXNlVXJsID0gcHJvY2Vzcy5lbnZbIkJST1dTRVJfVEVTVF9CQVNFX1VSTCJdID8/ICJodHRwOi8vMTI3LjAuMC4xOjgwIjsKY29uc3QgYWRtaW5QYXNzd29yZCA9IHByb2Nlc3MuZW52WyJBRE1JTl9QQVNTV09SRCJdOwpjb25zdCBjaHJvbWl1bVBhdGggPSBwcm9jZXNzLmVudlsiQ0hST01JVU1fQklOIl0gPz8gIi9yZXBsL3Rvb2xzL2Jpbi9jaHJvbWl1bSI7Cgp0eXBlIENkcEV2ZW50ID0gewogIG1ldGhvZDogc3RyaW5nOwogIHBhcmFtczogUmVjb3JkPHN0cmluZywgdW5rbm93bj47Cn07CgpjbGFzcyBDZHBQYWdlIHsKICBwcml2YXRlIHJlYWRvbmx5IHNvY2tldDogV2ViU29ja2V0OwogIHByaXZhdGUgbmV4dENvbW1hbmRJZCA9IDA7CiAgcHJpdmF0ZSByZWFkb25seSBwZW5kaW5nID0gbmV3IE1hcDxudW1iZXIsIHsKICAgIHJlc29sdmU6ICh2YWx1ZTogUmVjb3JkPHN0cmluZywgdW5rbm93bj4pID0+IHZvaWQ7CiAgICByZWplY3Q6IChlcnJvcjogRXJyb3IpID0+IHZvaWQ7CiAgfT4oKTsKICBwcml2YXRlIHJlYWRvbmx5IGV2ZW50TGlzdGVuZXJzID0gbmV3IE1hcDxzdHJpbmcsIEFycmF5PChwYXJhbXM6IFJlY29yZDxzdHJpbmcsIHVua25vd24+KSA9PiB2b2lkPj4oKTsKCiAgcHJpdmF0ZSBjb25zdHJ1Y3Rvcihzb2NrZXQ6IFdlYlNvY2tldCkgewogICAgdGhpcy5zb2NrZXQgPSBzb2NrZXQ7CiAgICBzb2NrZXQuYWRkRXZlbnRMaXN0ZW5lcigibWVzc2FnZSIsIChldmVudCkgPT4gewogICAgICBjb25zdCBtZXNzYWdlID0gSlNPTi5wYXJzZShTdHJpbmcoZXZlbnQuZGF0YSkpIGFzIHsKICAgICAgICBpZD86IG51bWJlcjsKICAgICAgICByZXN1bHQ/OiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPjsKICAgICAgICBlcnJvcj86IHsgbWVzc2FnZT86IHN0cmluZyB9OwogICAgICAgIG1ldGhvZD86IHN0cmluZzsKICAgICAgICBwYXJhbXM/OiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPjsKICAgICAgfTsKCiAgICAgIGlmIChtZXNzYWdlLmlkICE9PSB1bmRlZmluZWQpIHsKICAgICAgICBjb25zdCByZXF1ZXN0ID0gdGhpcy5wZW5kaW5nLmdldChtZXNzYWdlLmlkKTsKICAgICAgICBpZiAoIXJlcXVlc3QpIHJldHVybjsKICAgICAgICB0aGlzLnBlbmRpbmcuZGVsZXRlKG1lc3NhZ2UuaWQpOwogICAgICAgIGlmIChtZXNzYWdlLmVycm9yKSB7CiAgICAgICAgICByZXF1ZXN0LnJlamVjdChuZXcgRXJyb3IobWVzc2FnZS5lcnJvci5tZXNzYWdlID8/ICJDaHJvbWUgRGV2VG9vbHMgY29tbWFuZCBmYWlsZWQiKSk7CiAgICAgICAgfSBlbHNlIHsKICAgICAgICAgIHJlcXVlc3QucmVzb2x2ZShtZXNzYWdlLnJlc3VsdCA/PyB7fSk7CiAgICAgICAgfQogICAgICAgIHJldHVybjsKICAgICAgfQoKICAgICAgaWYgKG1lc3NhZ2UubWV0aG9kKSB7CiAgICAgICAgZm9yIChjb25zdCBsaXN0ZW5lciBvZiB0aGlzLmV2ZW50TGlzdGVuZXJzLmdldChtZXNzYWdlLm1ldGhvZCkgPz8gW10pIHsKICAgICAgICAgIGxpc3RlbmVyKG1lc3NhZ2UucGFyYW1zID8/IHt9KTsKICAgICAgICB9CiAgICAgIH0KICAgIH0pOwogIH0KCiAgc3RhdGljIGFzeW5jIGNvbm5lY3Qod2ViU29ja2V0VXJsOiBzdHJpbmcpIHsKICAgIGNvbnN0IHNvY2tldCA9IG5ldyBXZWJTb2NrZXQod2ViU29ja2V0VXJsKTsKICAgIGF3YWl0IG5ldyBQcm9taXNlPHZvaWQ+KChyZXNvbHZlLCByZWplY3QpID0+IHsKICAgICAgc29ja2V0LmFkZEV2ZW50TGlzdGVuZXIoIm9wZW4iLCAoKSA9PiByZXNvbHZlKCksIHsgb25jZTogdHJ1ZSB9KTsKICAgICAgc29ja2V0LmFkZEV2ZW50TGlzdGVuZXIoImVycm9yIiwgKCkgPT4gcmVqZWN0KG5ldyBFcnJvcigiQ291bGQgbm90IGNvbm5lY3QgdG8gQ2hyb21pdW0iKSksIHsgb25jZTogdHJ1ZSB9KTsKICAgIH0pOwogICAgcmV0dXJuIG5ldyBDZHBQYWdlKHNvY2tldCk7CiAgfQoKICBvbihtZXRob2Q6IHN0cmluZywgbGlzdGVuZXI6IChwYXJhbXM6IFJlY29yZDxzdHJpbmcsIHVua25vd24+KSA9PiB2b2lkKSB7CiAgICBjb25zdCBsaXN0ZW5lcnMgPSB0aGlzLmV2ZW50TGlzdGVuZXJzLmdldChtZXRob2QpID8/IFtdOwogICAgbGlzdGVuZXJzLnB1c2gobGlzdGVuZXIpOwogICAgdGhpcy5ldmVudExpc3RlbmVycy5zZXQobWV0aG9kLCBsaXN0ZW5lcnMpOwogIH0KCiAgY29tbWFuZChtZXRob2Q6IHN0cmluZywgcGFyYW1zOiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiA9IHt9KSB7CiAgICBjb25zdCBpZCA9ICsrdGhpcy5uZXh0Q29tbWFuZElkOwogICAgcmV0dXJuIG5ldyBQcm9taXNlPFJlY29yZDxzdHJpbmcsIHVua25vd24+PigocmVzb2x2ZSwgcmVqZWN0KSA9PiB7CiAgICAgIHRoaXMucGVuZGluZy5zZXQoaWQsIHsgcmVzb2x2ZSwgcmVqZWN0IH0pOwogICAgICB0aGlzLnNvY2tldC5zZW5kKEpTT04uc3RyaW5naWZ5KHsgaWQsIG1ldGhvZCwgcGFyYW1zIH0pKTsKICAgIH0pOwogIH0KCiAgYXN5bmMgZXZhbHVhdGU8VD4oZXhwcmVzc2lvbjogc3RyaW5nKSB7CiAgICBjb25zdCByZXN1bHQgPSBhd2FpdCB0aGlzLmNvbW1hbmQoIlJ1bnRpbWUuZXZhbHVhdGUiLCB7CiAgICAgIGV4cHJlc3Npb24sCiAgICAgIGF3YWl0UHJvbWlzZTogdHJ1ZSwKICAgICAgcmV0dXJuQnlWYWx1ZTogdHJ1ZSwKICAgIH0pOwogICAgY29uc3QgZXhjZXB0aW9uRGV0YWlscyA9IHJlc3VsdFsiZXhjZXB0aW9uRGV0YWlscyJdOwogICAgaWYgKGV4Y2VwdGlvbkRldGFpbHMpIHRocm93IG5ldyBFcnJvcihgQnJvd3NlciBldmFsdWF0aW9uIGZhaWxlZDogJHtKU09OLnN0cmluZ2lmeShleGNlcHRpb25EZXRhaWxzKX1gKTsKICAgIGNvbnN0IHJlbW90ZU9iamVjdCA9IHJlc3VsdFsicmVzdWx0Il0gYXMgeyB2YWx1ZT86IFQgfSB8IHVuZGVmaW5lZDsKICAgIHJldHVybiByZW1vdGVPYmplY3Q/LnZhbHVlIGFzIFQ7CiAgfQoKICBhc3luYyBjbG9zZSgpIHsKICAgIHRoaXMuc29ja2V0LmNsb3NlKCk7CiAgfQp9Cgphc3luYyBmdW5jdGlvbiBmcmVlUG9ydCgpIHsKICBjb25zdCBzZXJ2ZXIgPSBuZXQuY3JlYXRlU2VydmVyKCk7CiAgYXdhaXQgbmV3IFByb21pc2U8dm9pZD4oKHJlc29sdmUsIHJlamVjdCkgPT4gewogICAgc2VydmVyLm9uY2UoImVycm9yIiwgcmVqZWN0KTsKICAgIHNlcnZlci5saXN0ZW4oMCwgIjEyNy4wLjAuMSIsICgpID0+IHJlc29sdmUoKSk7CiAgfSk7CiAgY29uc3QgYWRkcmVzcyA9IHNlcnZlci5hZGRyZXNzKCk7CiAgaWYgKCFhZGRyZXNzIHx8IHR5cGVvZiBhZGRyZXNzID09PSAic3RyaW5nIikgdGhyb3cgbmV3IEVycm9yKCJDb3VsZCBub3QgcmVzZXJ2ZSBhIGJyb3dzZXIgZGVidWdnaW5nIHBvcnQiKTsKICBjb25zdCBwb3J0ID0gYWRkcmVzcy5wb3J0OwogIGF3YWl0IG5ldyBQcm9taXNlPHZvaWQ+KChyZXNvbHZlLCByZWplY3QpID0+IHNlcnZlci5jbG9zZSgoZXJyb3IpID0+IGVycm9yID8gcmVqZWN0KGVycm9yKSA6IHJlc29sdmUoKSkpOwogIHJldHVybiBwb3J0Owp9Cgphc3luYyBmdW5jdGlvbiB3YWl0Rm9yPFQ+KHJlYWQ6ICgpID0+IFByb21pc2U8VD4sIHByZWRpY2F0ZTogKHZhbHVlOiBUKSA9PiBib29sZWFuLCBsYWJlbDogc3RyaW5nKSB7CiAgY29uc3QgZGVhZGxpbmUgPSBEYXRlLm5vdygpICsgMTVfMDAwOwogIGxldCBsYXN0VmFsdWU6IFQgfCB1bmRlZmluZWQ7CiAgd2hpbGUgKERhdGUubm93KCkgPCBkZWFkbGluZSkgewogICAgbGFzdFZhbHVlID0gYXdhaXQgcmVhZCgpOwogICAgaWYgKHByZWRpY2F0ZShsYXN0VmFsdWUpKSByZXR1cm4gbGFzdFZhbHVlOwogICAgYXdhaXQgbmV3IFByb21pc2UoKHJlc29sdmUpID0+IHNldFRpbWVvdXQocmVzb2x2ZSwgMTAwKSk7CiAgfQogIHRocm93IG5ldyBFcnJvcihgVGltZWQgb3V0IHdhaXRpbmcgZm9yICR7bGFiZWx9OiAke0pTT04uc3RyaW5naWZ5KGxhc3RWYWx1ZSl9YCk7Cn0KCmFzeW5jIGZ1bmN0aW9uIGNsaWNrQnV0dG9uKHBhZ2U6IENkcFBhZ2UsIHRleHQ6IHN0cmluZykgewogIGNvbnN0IGNsaWNrZWQgPSBhd2FpdCBwYWdlLmV2YWx1YXRlKGAoKCkgPT4gewogICAgY29uc3QgYnV0dG9uID0gWy4uLmRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoImJ1dHRvbiIpXS5maW5kKChpdGVtKSA9PgogICAgICBpdGVtLnRleHRDb250ZW50Py5pbmNsdWRlcygke0pTT04uc3RyaW5naWZ5KHRleHQpfSkKICAgICk7CiAgICBpZiAoIWJ1dHRvbikgcmV0dXJuIGZhbHNlOwogICAgYnV0dG9uLmNsaWNrKCk7CiAgICByZXR1cm4gdHJ1ZTsKICB9KSgpYCk7CiAgYXNzZXJ0LmVxdWFsKGNsaWNrZWQsIHRydWUsIGBDb3VsZCBub3QgZmluZCBidXR0b24gY29udGFpbmluZyAiJHt0ZXh0fSJgKTsKfQoKYXN5bmMgZnVuY3Rpb24gc2V0VGV4dElucHV0KHBhZ2U6IENkcFBhZ2UsIHNlbGVjdG9yOiBzdHJpbmcsIHZhbHVlOiBzdHJpbmcpIHsKICBjb25zdCBjaGFuZ2VkID0gYXdhaXQgcGFnZS5ldmFsdWF0ZShgKCgpID0+IHsKICAgIGNvbnN0IGlucHV0ID0gZG9jdW1lbnQucXVlcnlTZWxlY3Rvcigke0pTT04uc3RyaW5naWZ5KHNlbGVjdG9yKX0pOwogICAgaWYgKCEoaW5wdXQgaW5zdGFuY2VvZiBIVE1MSW5wdXRFbGVtZW50KSkgcmV0dXJuIGZhbHNlOwogICAgY29uc3Qgc2V0dGVyID0gT2JqZWN0LmdldE93blByb3BlcnR5RGVzY3JpcHRvcihIVE1MSW5wdXRFbGVtZW50LnByb3RvdHlwZSwgInZhbHVlIik/LnNldDsKICAgIHNldHRlcj8uY2FsbChpbnB1dCwgJHtKU09OLnN0cmluZ2lmeSh2YWx1ZSl9KTsKICAgIGlucHV0LmRpc3BhdGNoRXZlbnQobmV3IEV2ZW50KCJpbnB1dCIsIHsgYnViYmxlczogdHJ1ZSB9KSk7CiAgICBpbnB1dC5kaXNwYXRjaEV2ZW50KG5ldyBFdmVudCgiY2hhbmdlIiwgeyBidWJibGVzOiB0cnVlIH0pKTsKICAgIHJldHVybiB0cnVlOwogIH0pKClgKTsKICBhc3NlcnQuZXF1YWwoY2hhbmdlZCwgdHJ1ZSwgYENvdWxkIG5vdCBmaW5kIGlucHV0ICR7c2VsZWN0b3J9YCk7Cn0KCmFzeW5jIGZ1bmN0aW9uIHNldEZpbGVJbnB1dChwYWdlOiBDZHBQYWdlLCBmaWxlUGF0aDogc3RyaW5nKSB7CiAgY29uc3QgZG9jdW1lbnRSZXN1bHQgPSBhd2FpdCBwYWdlLmNvbW1hbmQoIkRPTS5nZXREb2N1bWVudCIpOwogIGNvbnN0IHJvb3QgPSBkb2N1bWVudFJlc3VsdFsicm9vdCJdIGFzIHsgbm9kZUlkOiBudW1iZXIgfTsKICBjb25zdCBxdWVyeVJlc3VsdCA9IGF3YWl0IHBhZ2UuY29tbWFuZCgiRE9NLnF1ZXJ5U2VsZWN0b3IiLCB7CiAgICBub2RlSWQ6IHJvb3Qubm9kZUlkLAogICAgc2VsZWN0b3I6ICdpbnB1dFt0eXBlPSJmaWxlIl0nLAogIH0pOwogIGNvbnN0IG5vZGVJZCA9IHF1ZXJ5UmVzdWx0WyJub2RlSWQiXSBhcyBudW1iZXI7CiAgYXNzZXJ0Lm9rKG5vZGVJZCwgIkNvdWxkIG5vdCBmaW5kIHRoZSBpbWFnZSBmaWxlIGlucHV0Iik7CiAgYXdhaXQgcGFnZS5jb21tYW5kKCJET00uc2V0RmlsZUlucHV0RmlsZXMiLCB7IG5vZGVJZCwgZmlsZXM6IFtmaWxlUGF0aF0gfSk7Cn0KCmFzeW5jIGZ1bmN0aW9uIGxhdW5jaEJyb3dzZXIoKSB7CiAgY29uc3QgZGVidWdnaW5nUG9ydCA9IGF3YWl0IGZyZWVQb3J0KCk7CiAgY29uc3QgcHJvZmlsZURpcmVjdG9yeSA9IGF3YWl0IG1rZHRlbXAocGF0aC5qb2luKG9zLnRtcGRpcigpLCAia25pZ2h0LWJhc2lucy1icm93c2VyLSIpKTsKICBjb25zdCBwcm9jZXNzID0gc3Bhd24oY2hyb21pdW1QYXRoLCBbCiAgICAiLS1oZWFkbGVzcz1uZXciLAogICAgIi0tbm8tc2FuZGJveCIsCiAgICAiLS1kaXNhYmxlLWdwdSIsCiAgICAiLS1kaXNhYmxlLWRldi1zaG0tdXNhZ2UiLAogICAgIi0tcmVtb3RlLWFsbG93LW9yaWdpbnM9KiIsCiAgICBgLS1yZW1vdGUtZGVidWdnaW5nLXBvcnQ9JHtkZWJ1Z2dpbmdQb3J0fWAsCiAgICBgLS11c2VyLWRhdGEtZGlyPSR7cHJvZmlsZURpcmVjdG9yeX1gLAogICAgImFib3V0OmJsYW5rIiwKICBdLCB7IHN0ZGlvOiAiaWdub3JlIiB9KTsKCiAgY29uc3QgZGVhZGxpbmUgPSBEYXRlLm5vdygpICsgMTVfMDAwOwogIGxldCB3ZWJTb2NrZXRVcmwgPSAiIjsKICB3aGlsZSAoRGF0ZS5ub3coKSA8IGRlYWRsaW5lKSB7CiAgICB0cnkgewogICAgICBjb25zdCByZXNwb25zZSA9IGF3YWl0IGZldGNoKGBodHRwOi8vMTI3LjAuMC4xOiR7ZGVidWdnaW5nUG9ydH0vanNvbi9saXN0YCk7CiAgICAgIGNvbnN0IHRhcmdldHMgPSBhd2FpdCByZXNwb25zZS5qc29uKCkgYXMgQXJyYXk8eyB0eXBlPzogc3RyaW5nOyB3ZWJTb2NrZXREZWJ1Z2dlclVybD86IHN0cmluZyB9PjsKICAgICAgd2ViU29ja2V0VXJsID0gdGFyZ2V0cy5maW5kKCh0YXJnZXQpID0+IHRhcmdldC50eXBlID09PSAicGFnZSIpPy53ZWJTb2NrZXREZWJ1Z2dlclVybCA/PyAiIjsKICAgICAgaWYgKHdlYlNvY2tldFVybCkgYnJlYWs7CiAgICB9IGNhdGNoIHsKICAgICAgLy8gQ2hyb21pdW0gaXMgc3RpbGwgc3RhcnRpbmcuCiAgICB9CiAgICBhd2FpdCBuZXcgUHJvbWlzZSgocmVzb2x2ZSkgPT4gc2V0VGltZW91dChyZXNvbHZlLCAxMDApKTsKICB9CgogIGlmICghd2ViU29ja2V0VXJsKSB7CiAgICBwcm9jZXNzLmtpbGwoIlNJR1RFUk0iKTsKICAgIGF3YWl0IHJtKHByb2ZpbGVEaXJlY3RvcnksIHsgZm9yY2U6IHRydWUsIHJlY3Vyc2l2ZTogdHJ1ZSB9KTsKICAgIHRocm93IG5ldyBFcnJvcigiQ2hyb21pdW0gZGlkIG5vdCBleHBvc2UgYSBkZWJ1Z2dpbmcgcGFnZSIpOwogIH0KCiAgcmV0dXJuIHsKICAgIHBhZ2U6IGF3YWl0IENkcFBhZ2UuY29ubmVjdCh3ZWJTb2NrZXRVcmwpLAogICAgcHJvY2VzcywKICAgIHByb2ZpbGVEaXJlY3RvcnksCiAgfTsKfQoKYXN5bmMgZnVuY3Rpb24gc3RvcEJyb3dzZXIoYnJvd3NlcjogewogIHBhZ2U6IENkcFBhZ2U7CiAgcHJvY2VzczogQ2hpbGRQcm9jZXNzOwogIHByb2ZpbGVEaXJlY3Rvcnk6IHN0cmluZzsKfSkgewogIGF3YWl0IGJyb3dzZXIucGFnZS5jbG9zZSgpOwogIGlmIChicm93c2VyLnByb2Nlc3MuZXhpdENvZGUgPT09IG51bGwgJiYgYnJvd3Nlci5wcm9jZXNzLnNpZ25hbENvZGUgPT09IG51bGwpIHsKICAgIGNvbnN0IGV4aXRlZCA9IG5ldyBQcm9taXNlPHZvaWQ+KChyZXNvbHZlKSA9PiB7CiAgICAgIGJyb3dzZXIucHJvY2Vzcy5vbmNlKCJleGl0IiwgKCkgPT4gcmVzb2x2ZSgpKTsKICAgIH0pOwogICAgYnJvd3Nlci5wcm9jZXNzLmtpbGwoIlNJR1RFUk0iKTsKICAgIGF3YWl0IFByb21pc2UucmFjZShbCiAgICAgIGV4aXRlZCwKICAgICAgbmV3IFByb21pc2U8dm9pZD4oKHJlc29sdmUpID0+IHNldFRpbWVvdXQocmVzb2x2ZSwgMl8wMDApKSwKICAgIF0pOwogIH0KICBpZiAoYnJvd3Nlci5wcm9jZXNzLmV4aXRDb2RlID09PSBudWxsICYmIGJyb3dzZXIucHJvY2Vzcy5zaWduYWxDb2RlID09PSBudWxsKSB7CiAgICBicm93c2VyLnByb2Nlc3Mua2lsbCgiU0lHS0lMTCIpOwogIH0KICBhd2FpdCBybShicm93c2VyLnByb2ZpbGVEaXJlY3RvcnksIHsKICAgIGZvcmNlOiB0cnVlLAogICAgcmVjdXJzaXZlOiB0cnVlLAogICAgbWF4UmV0cmllczogMTAsCiAgICByZXRyeURlbGF5OiAxMDAsCiAgfSk7Cn0KCmRlc2NyaWJlKCJhZG1pbiBpbWFnZSB1cGxvYWQgYnJvd3NlciBmbG93IiwgKCkgPT4gewogIGxldCBicm93c2VyOiBBd2FpdGVkPFJldHVyblR5cGU8dHlwZW9mIGxhdW5jaEJyb3dzZXI+PjsKICBsZXQgZml4dHVyZURpcmVjdG9yeSA9ICIiOwoKICBiZWZvcmUoYXN5bmMgKCkgPT4gewogICAgaWYgKCFhZG1pblBhc3N3b3JkKSB0aHJvdyBuZXcgRXJyb3IoIkFETUlOX1BBU1NXT1JEIGlzIHJlcXVpcmVkIGZvciB0aGUgYnJvd3NlciB1cGxvYWQgdGVzdCIpOwogICAgZml4dHVyZURpcmVjdG9yeSA9IGF3YWl0IG1rZHRlbXAocGF0aC5qb2luKG9zLnRtcGRpcigpLCAia25pZ2h0LWJhc2lucy11cGxvYWQtZml4dHVyZXMtIikpOwogICAgYXdhaXQgd3JpdGVGaWxlKHBhdGguam9pbihmaXh0dXJlRGlyZWN0b3J5LCAidW5zdXBwb3J0ZWQudHh0IiksICJub3QgYW4gaW1hZ2UiKTsKICAgIGF3YWl0IHdyaXRlRmlsZShwYXRoLmpvaW4oZml4dHVyZURpcmVjdG9yeSwgInN1cHBvcnRlZC5wbmciKSwgImJyb3dzZXIgcG5nIGZpeHR1cmUiKTsKICAgIGJyb3dzZXIgPSBhd2FpdCBsYXVuY2hCcm93c2VyKCk7CiAgICBhd2FpdCBicm93c2VyLnBhZ2UuY29tbWFuZCgiUnVudGltZS5lbmFibGUiKTsKICAgIGF3YWl0IGJyb3dzZXIucGFnZS5jb21tYW5kKCJQYWdlLmVuYWJsZSIpOwogICAgYXdhaXQgYnJvd3Nlci5wYWdlLmNvbW1hbmQoIkRPTS5lbmFibGUiKTsKICAgIGF3YWl0IGJyb3dzZXIucGFnZS5jb21tYW5kKCJOZXR3b3JrLmVuYWJsZSIpOwogIH0pOwoKICBhZnRlcihhc3luYyAoKSA9PiB7CiAgICBpZiAoYnJvd3NlcikgYXdhaXQgc3RvcEJyb3dzZXIoYnJvd3Nlcik7CiAgICBpZiAoZml4dHVyZURpcmVjdG9yeSkgYXdhaXQgcm0oZml4dHVyZURpcmVjdG9yeSwgeyBmb3JjZTogdHJ1ZSwgcmVjdXJzaXZlOiB0cnVlIH0pOwogIH0pOwoKICBpdCgibG9ncyBpbiB0aHJvdWdoIHRoZSBhZG1pbiBVSSwgc2hvd3MgdmFsaWRhdGlvbiBlcnJvcnMsIGFuZCBwcmV2aWV3cyB0aGUgc2F2ZWQgdXBsb2FkIFVSTCIsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHVwbG9hZFJlcXVlc3RzOiBBcnJheTx7IG1ldGhvZD86IHN0cmluZzsgY29udGVudFR5cGU/OiBzdHJpbmc7IHN0YXR1cz86IG51bWJlciB9PiA9IFtdOwogICAgYnJvd3Nlci5wYWdlLm9uKCJOZXR3b3JrLnJlcXVlc3RXaWxsQmVTZW50IiwgKHBhcmFtcykgPT4gewogICAgICBjb25zdCByZXF1ZXN0ID0gcGFyYW1zWyJyZXF1ZXN0Il0gYXMgeyB1cmw/OiBzdHJpbmc7IG1ldGhvZD86IHN0cmluZzsgaGVhZGVycz86IFJlY29yZDxzdHJpbmcsIHN0cmluZz4gfSB8IHVuZGVmaW5lZDsKICAgICAgaWYgKCFyZXF1ZXN0Py51cmw/LmVuZHNXaXRoKCIvYXBpL2FkbWluL3VwbG9hZCIpKSByZXR1cm47CiAgICAgIHVwbG9hZFJlcXVlc3RzLnB1c2goewogICAgICAgIG1ldGhvZDogcmVxdWVzdC5tZXRob2QsCiAgICAgICAgY29udGVudFR5cGU6IE9iamVjdC5lbnRyaWVzKHJlcXVlc3QuaGVhZGVycyA/PyB7fSkuZmluZCgoW2tleV0pID0+IGtleS50b0xvd2VyQ2FzZSgpID09PSAiY29udGVudC10eXBlIik/LlsxXSwKICAgICAgfSk7CiAgICB9KTsKICAgIGJyb3dzZXIucGFnZS5vbigiTmV0d29yay5yZXNwb25zZVJlY2VpdmVkIiwgKHBhcmFtcykgPT4gewogICAgICBjb25zdCByZXNwb25zZSA9IHBhcmFtc1sicmVzcG9uc2UiXSBhcyB7IHVybD86IHN0cmluZzsgc3RhdHVzPzogbnVtYmVyIH0gfCB1bmRlZmluZWQ7CiAgICAgIGlmICghcmVzcG9uc2U/LnVybD8uZW5kc1dpdGgoIi9hcGkvYWRtaW4vdXBsb2FkIikpIHJldHVybjsKICAgICAgY29uc3QgcmVxdWVzdCA9IHVwbG9hZFJlcXVlc3RzW3VwbG9hZFJlcXVlc3RzLmxlbmd0aCAtIDFdOwogICAgICBpZiAocmVxdWVzdCkgcmVxdWVzdC5zdGF0dXMgPSByZXNwb25zZS5zdGF0dXM7CiAgICB9KTsKCiAgICBhd2FpdCBicm93c2VyLnBhZ2UuY29tbWFuZCgiUGFnZS5uYXZpZ2F0ZSIsIHsgdXJsOiBgJHtiYXNlVXJsfS9hZG1pbi9iYXNpbnNgIH0pOwogICAgYXdhaXQgd2FpdEZvcigKICAgICAgKCkgPT4gYnJvd3Nlci5wYWdlLmV2YWx1YXRlKCdkb2N1bWVudC5xdWVyeVNlbGVjdG9yKFwnaW5wdXRbdHlwZT0icGFzc3dvcmQiXVwnKSAhPT0gbnVsbCcpLAogICAgICBCb29sZWFuLAogICAgICAiYWRtaW4gbG9naW4gZm9ybSIsCiAgICApOwogICAgYXdhaXQgc2V0VGV4dElucHV0KGJyb3dzZXIucGFnZSwgJ2lucHV0W3R5cGU9InBhc3N3b3JkIl0nLCBhZG1pblBhc3N3b3JkISk7CiAgICBhd2FpdCBjbGlja0J1dHRvbihicm93c2VyLnBhZ2UsICLguYDguILguYnguLLguKrguLnguYjguKPguLDguJrguJoiKTsKICAgIGF3YWl0IHdhaXRGb3IoCiAgICAgICgpID0+IGJyb3dzZXIucGFnZS5ldmFsdWF0ZSgnZG9jdW1lbnQuYm9keS5pbm5lclRleHQuaW5jbHVkZXMoIuC4iOC4seC4lOC4geC4suC4o+C4reC5iOC4suC4h+C4peC5ieC4suC4h+C4q+C4meC5ieC4siIpJyksCiAgICAgIEJvb2xlYW4sCiAgICAgICJhdXRoZW50aWNhdGVkIGJhc2luIG1hbmFnZXIiLAogICAgKTsKCiAgICBhd2FpdCBjbGlja0J1dHRvbihicm93c2VyLnBhZ2UsICLguYDguJ7guLTguYjguKHguKPguLLguKLguIHguLLguKPguYPguKvguKHguYgiKTsKICAgIGF3YWl0IHdhaXRGb3IoCiAgICAgICgpID0+IGJyb3dzZXIucGFnZS5ldmFsdWF0ZSgnZG9jdW1lbnQucXVlcnlTZWxlY3RvcihcJ2lucHV0W3R5cGU9ImZpbGUiXVwnKSAhPT0gbnVsbCcpLAogICAgICBCb29sZWFuLAogICAgICAiaW1hZ2UgdXBsb2FkIGZpZWxkIiwKICAgICk7CgogICAgYXdhaXQgc2V0RmlsZUlucHV0KGJyb3dzZXIucGFnZSwgcGF0aC5qb2luKGZpeHR1cmVEaXJlY3RvcnksICJ1bnN1cHBvcnRlZC50eHQiKSk7CiAgICBhd2FpdCB3YWl0Rm9yKAogICAgICAoKSA9PiBicm93c2VyLnBhZ2UuZXZhbHVhdGUoJ2RvY3VtZW50LmJvZHkuaW5uZXJUZXh0LmluY2x1ZGVzKCJPbmx5IEpQRywgUE5HLCBXRUJQLCBhbmQgR0lGIGltYWdlcyBhcmUgYWxsb3dlZCIpJyksCiAgICAgIEJvb2xlYW4sCiAgICAgICJ1bnN1cHBvcnRlZCBmaWxlIHZhbGlkYXRpb24gZXJyb3IiLAogICAgKTsKCiAgICBhd2FpdCBzZXRGaWxlSW5wdXQoYnJvd3Nlci5wYWdlLCBwYXRoLmpvaW4oZml4dHVyZURpcmVjdG9yeSwgInN1cHBvcnRlZC5wbmciKSk7CiAgICBhd2FpdCB3YWl0Rm9yKAogICAgICAoKSA9PiBicm93c2VyLnBhZ2UuZXZhbHVhdGUoJ2RvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoXCdpbWdbYWx0PSLguJXguLHguKfguK3guKLguYjguLLguIfguKPguLnguJvguKDguLLguJ7guKrguLTguJnguITguYnguLIiXVwnKT8uZ2V0QXR0cmlidXRlKCJzcmMiKT8uaW5jbHVkZXMoIi9hcGkvdXBsb2Fkcy8iKSA/PyBmYWxzZScpLAogICAgICBCb29sZWFuLAogICAgICAidXBsb2FkZWQgVVJMIHByZXZpZXciLAogICAgKTsKCiAgICBjb25zdCBwcmV2aWV3ID0gYXdhaXQgYnJvd3Nlci5wYWdlLmV2YWx1YXRlKGAoKCkgPT4gewogICAgICBjb25zdCBpbWFnZSA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoJ2ltZ1thbHQ9IuC4leC4seC4p+C4reC4ouC5iOC4suC4h+C4o+C4ueC4m+C4oOC4suC4nuC4quC4tOC4meC4hOC5ieC4siJdJyk7CiAgICAgIHJldHVybiB7CiAgICAgICAgc3JjOiBpbWFnZT8uZ2V0QXR0cmlidXRlKCJzcmMiKSA/PyAiIiwKICAgICAgICB0ZXh0OiBkb2N1bWVudC5ib2R5LmlubmVyVGV4dCwKICAgICAgfTsKICAgIH0pKClgKTsKICAgIGFzc2VydC5tYXRjaChwcmV2aWV3LnNyYywgL1wvYXBpXC91cGxvYWRzXC9jYXRhbG9nLVthLXowLTldKy1bYS1mMC05XXsxNn1cLnBuZ1w/dj1bYS16MC05XSskLyk7CiAgICBhc3NlcnQubWF0Y2gocHJldmlldy50ZXh0LCAvXC9hcGlcL3VwbG9hZHNcL2NhdGFsb2ctLyk7CgogICAgYXNzZXJ0LmVxdWFsKHVwbG9hZFJlcXVlc3RzLmxlbmd0aCwgMik7CiAgICBhc3NlcnQuZGVlcEVxdWFsKHVwbG9hZFJlcXVlc3RzLm1hcCgocmVxdWVzdCkgPT4gcmVxdWVzdC5zdGF0dXMpLCBbNDAwLCAyMDFdKTsKICAgIGFzc2VydC5vayh1cGxvYWRSZXF1ZXN0cy5ldmVyeSgocmVxdWVzdCkgPT4gcmVxdWVzdC5tZXRob2QgPT09ICJQT1NUIikpOwogICAgYXNzZXJ0Lm9rKHVwbG9hZFJlcXVlc3RzLmV2ZXJ5KChyZXF1ZXN0KSA9PiByZXF1ZXN0LmNvbnRlbnRUeXBlPy50b0xvd2VyQ2FzZSgpLnN0YXJ0c1dpdGgoIm11bHRpcGFydC9mb3JtLWRhdGE7IikpKTsKICB9KTsKfSk7
+import assert from "node:assert/strict";
+import { after, before, describe, it } from "node:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { spawn, type ChildProcess } from "node:child_process";
+import net from "node:net";
+
+const baseUrl = process.env["BROWSER_TEST_BASE_URL"] ?? "http://127.0.0.1:80";
+const adminPassword = process.env["ADMIN_PASSWORD"];
+const chromiumPath = process.env["CHROMIUM_BIN"] ?? "/repl/tools/bin/chromium";
+
+type CdpEvent = {
+  method: string;
+  params: Record<string, unknown>;
+};
+
+class CdpPage {
+  private readonly socket: WebSocket;
+  private nextCommandId = 0;
+  private readonly pending = new Map<number, {
+    resolve: (value: Record<string, unknown>) => void;
+    reject: (error: Error) => void;
+  }>();
+  private readonly eventListeners = new Map<string, Array<(params: Record<string, unknown>) => void>>();
+
+  private constructor(socket: WebSocket) {
+    this.socket = socket;
+    socket.addEventListener("message", (event) => {
+      const message = JSON.parse(String(event.data)) as {
+        id?: number;
+        result?: Record<string, unknown>;
+        error?: { message?: string };
+        method?: string;
+        params?: Record<string, unknown>;
+      };
+
+      if (message.id !== undefined) {
+        const request = this.pending.get(message.id);
+        if (!request) return;
+        this.pending.delete(message.id);
+        if (message.error) {
+          request.reject(new Error(message.error.message ?? "Chrome DevTools command failed"));
+        } else {
+          request.resolve(message.result ?? {});
+        }
+        return;
+      }
+
+      if (message.method) {
+        for (const listener of this.eventListeners.get(message.method) ?? []) {
+          listener(message.params ?? {});
+        }
+      }
+    });
+  }
+
+  static async connect(webSocketUrl: string) {
+    const socket = new WebSocket(webSocketUrl);
+    await new Promise<void>((resolve, reject) => {
+      socket.addEventListener("open", () => resolve(), { once: true });
+      socket.addEventListener("error", () => reject(new Error("Could not connect to Chromium")), { once: true });
+    });
+    return new CdpPage(socket);
+  }
+
+  on(method: string, listener: (params: Record<string, unknown>) => void) {
+    const listeners = this.eventListeners.get(method) ?? [];
+    listeners.push(listener);
+    this.eventListeners.set(method, listeners);
+  }
+
+  command(method: string, params: Record<string, unknown> = {}) {
+    const id = ++this.nextCommandId;
+    return new Promise<Record<string, unknown>>((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      this.socket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+
+  async evaluate<T>(expression: string) {
+    const result = await this.command("Runtime.evaluate", {
+      expression,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    const exceptionDetails = result["exceptionDetails"];
+    if (exceptionDetails) throw new Error(`Browser evaluation failed: ${JSON.stringify(exceptionDetails)}`);
+    const remoteObject = result["result"] as { value?: T } | undefined;
+    return remoteObject?.value as T;
+  }
+
+  async close() {
+    this.socket.close();
+  }
+}
+
+async function freePort() {
+  const server = net.createServer();
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => resolve());
+  });
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("Could not reserve a browser debugging port");
+  const port = address.port;
+  await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  return port;
+}
+
+async function waitFor<T>(read: () => Promise<T>, predicate: (value: T) => boolean, label: string) {
+  const deadline = Date.now() + 15_000;
+  let lastValue: T | undefined;
+  while (Date.now() < deadline) {
+    lastValue = await read();
+    if (predicate(lastValue)) return lastValue;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(lastValue)}`);
+}
+
+async function clickButton(page: CdpPage, text: string) {
+  const clicked = await page.evaluate(`(() => {
+    const button = [...document.querySelectorAll("button")].find((item) =>
+      item.textContent?.includes(${JSON.stringify(text)})
+    );
+    if (!button) return false;
+    button.click();
+    return true;
+  })()`);
+  assert.equal(clicked, true, `Could not find button containing "${text}"`);
+}
+
+async function setTextInput(page: CdpPage, selector: string, value: string) {
+  const changed = await page.evaluate(`(() => {
+    const input = document.querySelector(${JSON.stringify(selector)});
+    if (!(input instanceof HTMLInputElement)) return false;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    setter?.call(input, ${JSON.stringify(value)});
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  })()`);
+  assert.equal(changed, true, `Could not find input ${selector}`);
+}
+
+async function setFileInput(page: CdpPage, filePath: string) {
+  const documentResult = await page.command("DOM.getDocument");
+  const root = documentResult["root"] as { nodeId: number };
+  const queryResult = await page.command("DOM.querySelector", {
+    nodeId: root.nodeId,
+    selector: 'input[type="file"]',
+  });
+  const nodeId = queryResult["nodeId"] as number;
+  assert.ok(nodeId, "Could not find the image file input");
+  await page.command("DOM.setFileInputFiles", { nodeId, files: [filePath] });
+}
+
+async function launchBrowser() {
+  const debuggingPort = await freePort();
+  const profileDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-browser-"));
+  const process = spawn(chromiumPath, [
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--remote-allow-origins=*",
+    `--remote-debugging-port=${debuggingPort}`,
+    `--user-data-dir=${profileDirectory}`,
+    "about:blank",
+  ], { stdio: "ignore" });
+
+  const deadline = Date.now() + 15_000;
+  let webSocketUrl = "";
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${debuggingPort}/json/list`);
+      const targets = await response.json() as Array<{ type?: string; webSocketDebuggerUrl?: string }>;
+      webSocketUrl = targets.find((target) => target.type === "page")?.webSocketDebuggerUrl ?? "";
+      if (webSocketUrl) break;
+    } catch {
+      // Chromium is still starting.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  if (!webSocketUrl) {
+    process.kill("SIGTERM");
+    await rm(profileDirectory, { force: true, recursive: true });
+    throw new Error("Chromium did not expose a debugging page");
+  }
+
+  return {
+    page: await CdpPage.connect(webSocketUrl),
+    process,
+    profileDirectory,
+  };
+}
+
+async function stopBrowser(browser: {
+  page: CdpPage;
+  process: ChildProcess;
+  profileDirectory: string;
+}) {
+  await browser.page.close();
+  if (browser.process.exitCode === null && browser.process.signalCode === null) {
+    const exited = new Promise<void>((resolve) => {
+      browser.process.once("exit", () => resolve());
+    });
+    browser.process.kill("SIGTERM");
+    await Promise.race([
+      exited,
+      new Promise<void>((resolve) => setTimeout(resolve, 2_000)),
+    ]);
+  }
+  if (browser.process.exitCode === null && browser.process.signalCode === null) {
+    browser.process.kill("SIGKILL");
+  }
+  await rm(browser.profileDirectory, {
+    force: true,
+    recursive: true,
+    maxRetries: 10,
+    retryDelay: 100,
+  });
+}
+
+describe("admin image upload browser flow", () => {
+  let browser: Awaited<ReturnType<typeof launchBrowser>>;
+  let fixtureDirectory = "";
+
+  before(async () => {
+    if (!adminPassword) throw new Error("ADMIN_PASSWORD is required for the browser upload test");
+    fixtureDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-upload-fixtures-"));
+    await writeFile(path.join(fixtureDirectory, "unsupported.txt"), "not an image");
+    await writeFile(path.join(fixtureDirectory, "supported.png"), "browser png fixture");
+    browser = await launchBrowser();
+    await browser.page.command("Runtime.enable");
+    await browser.page.command("Page.enable");
+    await browser.page.command("DOM.enable");
+    await browser.page.command("Network.enable");
+  });
+
+  after(async () => {
+    if (browser) await stopBrowser(browser);
+    if (fixtureDirectory) await rm(fixtureDirectory, { force: true, recursive: true });
+  });
+
+  it("logs in through the admin UI, shows validation errors, and previews the saved upload URL", async () => {
+    const uploadRequests: Array<{ method?: string; contentType?: string; status?: number }> = [];
+    browser.page.on("Network.requestWillBeSent", (params) => {
+      const request = params["request"] as { url?: string; method?: string; headers?: Record<string, string> } | undefined;
+      if (!request?.url?.endsWith("/api/admin/upload")) return;
+      uploadRequests.push({
+        method: request.method,
+        contentType: Object.entries(request.headers ?? {}).find(([key]) => key.toLowerCase() === "content-type")?.[1],
+      });
+    });
+    browser.page.on("Network.responseReceived", (params) => {
+      const response = params["response"] as { url?: string; status?: number } | undefined;
+      if (!response?.url?.endsWith("/api/admin/upload")) return;
+      const request = uploadRequests[uploadRequests.length - 1];
+      if (request) request.status = response.status;
+    });
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/admin/basins` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'input[type="password"]\') !== null'),
+      Boolean,
+      "admin login form",
+    );
+    await setTextInput(browser.page, 'input[type="password"]', adminPassword!);
+    await clickButton(browser.page, "เข้าสู่ระบบ");
+    await waitFor(
+      () => browser.page.evaluate('document.body.innerText.includes("จัดการอ่างล้างหน้า")'),
+      Boolean,
+      "authenticated basin manager",
+    );
+
+    await clickButton(browser.page, "เพิ่มรายการใหม่");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'input[type="file"]\') !== null'),
+      Boolean,
+      "image upload field",
+    );
+
+    await setFileInput(browser.page, path.join(fixtureDirectory, "unsupported.txt"));
+    await waitFor(
+      () => browser.page.evaluate('document.body.innerText.includes("Only JPG, PNG, WEBP, and GIF images are allowed")'),
+      Boolean,
+      "unsupported file validation error",
+    );
+
+    await setFileInput(browser.page, path.join(fixtureDirectory, "supported.png"));
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'img[alt="ตัวอย่างรูปภาพสินค้า"]\')?.getAttribute("src")?.includes("/api/uploads/") ?? false'),
+      Boolean,
+      "uploaded URL preview",
+    );
+
+    const preview = await browser.page.evaluate(`(() => {
+      const image = document.querySelector('img[alt="ตัวอย่างรูปภาพสินค้า"]');
+      return {
+        src: image?.getAttribute("src") ?? "",
+        text: document.body.innerText,
+      };
+    })()`);
+    assert.match(preview.src, /\/api\/uploads\/catalog-[a-z0-9]+-[a-f0-9]{16}\.png\?v=[a-z0-9]+$/);
+    assert.match(preview.text, /\/api\/uploads\/catalog-/);
+
+    assert.equal(uploadRequests.length, 2);
+    assert.deepEqual(uploadRequests.map((request) => request.status), [400, 201]);
+    assert.ok(uploadRequests.every((request) => request.method === "POST"));
+    assert.ok(uploadRequests.every((request) => request.contentType?.toLowerCase().startsWith("multipart/form-data;")));
+  });
+});

@@ -1,1 +1,17 @@
-ZnVuY3Rpb24gbm9ybWFsaXplKHZhbHVlOiBzdHJpbmcpIHsKICByZXR1cm4gdmFsdWUKICAgIC50cmltKCkKICAgIC50b0xvY2FsZUxvd2VyQ2FzZSgidGgtVEgiKQogICAgLnJlcGxhY2UoL1teXHB7TH1ccHtNfVxwe059XSsvZ3UsICIgIikKICAgIC5yZXBsYWNlKC9ccysvZywgIiAiKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHN1cHBvcnRRdWVyeU1hdGNoZXModmFsdWU6IHN0cmluZywgcXVlcnk6IHN0cmluZykgewogIGNvbnN0IG5vcm1hbGl6ZWRWYWx1ZSA9IG5vcm1hbGl6ZSh2YWx1ZSk7CiAgY29uc3Qgbm9ybWFsaXplZFF1ZXJ5ID0gbm9ybWFsaXplKHF1ZXJ5KTsKCiAgaWYgKCFub3JtYWxpemVkVmFsdWUgfHwgIW5vcm1hbGl6ZWRRdWVyeSkgcmV0dXJuIGZhbHNlOwogIHJldHVybiBub3JtYWxpemVkVmFsdWUgPT09IG5vcm1hbGl6ZWRRdWVyeQogICAgfHwgbm9ybWFsaXplZFZhbHVlLmluY2x1ZGVzKG5vcm1hbGl6ZWRRdWVyeSkKICAgIHx8IG5vcm1hbGl6ZWRRdWVyeS5pbmNsdWRlcyhub3JtYWxpemVkVmFsdWUpOwp9
+function normalize(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase("th-TH")
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ");
+}
+
+export function supportQueryMatches(value: string, query: string) {
+  const normalizedValue = normalize(value);
+  const normalizedQuery = normalize(query);
+
+  if (!normalizedValue || !normalizedQuery) return false;
+  return normalizedValue === normalizedQuery
+    || normalizedValue.includes(normalizedQuery)
+    || normalizedQuery.includes(normalizedValue);
+}

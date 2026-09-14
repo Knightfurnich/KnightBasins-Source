@@ -1,1 +1,15 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBzdXBwb3J0UXVlcnlNYXRjaGVzIH0gZnJvbSAiLi4vc3JjL2xpYi9zdXBwb3J0LXNlYXJjaC50cyI7CgpkZXNjcmliZSgiS25pZ2h0U3VwcG9ydCBjYXRhbG9nIHNlYXJjaCIsICgpID0+IHsKICBpdCgibWF0Y2hlcyBhIFNLVSB3aGVuIHRoZSBjdXN0b21lciBhZGRzIGEgcmVxdWVzdCBzdWNoIGFzIHByaWNlIiwgKCkgPT4gewogICAgYXNzZXJ0LmVxdWFsKHN1cHBvcnRRdWVyeU1hdGNoZXMoIktGMDIwIiwgImtmMDIwIOC4o+C4suC4hOC4siIpLCB0cnVlKTsKICAgIGFzc2VydC5lcXVhbChzdXBwb3J0UXVlcnlNYXRjaGVzKCJLRjAyMCIsICLguILguK3guKPguLLguITguLIga2YwMjAiKSwgdHJ1ZSk7CiAgfSk7CgogIGl0KCJtYXRjaGVzIHByb2R1Y3QgbmFtZXMgYW5kIHJlamVjdHMgdW5yZWxhdGVkIGNhdGFsb2cgaXRlbXMiLCAoKSA9PiB7CiAgICBhc3NlcnQuZXF1YWwoc3VwcG9ydFF1ZXJ5TWF0Y2hlcygiTmVvIFdoaXRlIiwgIuC4guC4reC4guC5ieC4reC4oeC4ueC4pSBuZW8gd2hpdGUiKSwgdHJ1ZSk7CiAgICBhc3NlcnQuZXF1YWwoc3VwcG9ydFF1ZXJ5TWF0Y2hlcygiS0YwMjAiLCAia2YwMjEg4Lij4Liy4LiE4LiyIiksIGZhbHNlKTsKICB9KTsKfSk7
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { supportQueryMatches } from "../src/lib/support-search.ts";
+
+describe("KnightSupport catalog search", () => {
+  it("matches a SKU when the customer adds a request such as price", () => {
+    assert.equal(supportQueryMatches("KF020", "kf020 ราคา"), true);
+    assert.equal(supportQueryMatches("KF020", "ขอราคา kf020"), true);
+  });
+
+  it("matches product names and rejects unrelated catalog items", () => {
+    assert.equal(supportQueryMatches("Neo White", "ขอข้อมูล neo white"), true);
+    assert.equal(supportQueryMatches("KF020", "kf021 ราคา"), false);
+  });
+});

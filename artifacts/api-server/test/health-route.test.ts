@@ -1,1 +1,128 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBhZnRlciwgYmVmb3JlLCBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBmaWxlVVJMVG9QYXRoIH0gZnJvbSAibm9kZTp1cmwiOwppbXBvcnQgeyBMSU5FX1BST0RVQ1RJT05fQ0FMTEJBQ0tfVVJMIH0gZnJvbSAiLi4vc3JjL2xpYi9saW5lLWNvbmZpZy50cyI7CmltcG9ydCB7CiAgaW1wb3J0VHlwZVNjcmlwdE1vZHVsZSwKICBzZXJ2ZVR5cGVTY3JpcHRSb3V0ZSwKfSBmcm9tICIuL3JvdXRlLWhhcm5lc3MudHMiOwoKdHlwZSBIZWFsdGhDaGVja1NjaGVtYU1vZHVsZSA9IHsKICBIZWFsdGhDaGVja1Jlc3BvbnNlOiB7CiAgICBzYWZlUGFyc2U6ICh2YWx1ZTogdW5rbm93bikgPT4geyBzdWNjZXNzOiBib29sZWFuIH07CiAgfTsKfTsKCmNvbnN0IE9SSUdJTkFMX0VOViA9IHsKICBOT0RFX0VOVjogcHJvY2Vzcy5lbnZbIk5PREVfRU5WIl0sCiAgTElORV9DSEFOTkVMX0lEOiBwcm9jZXNzLmVudlsiTElORV9DSEFOTkVMX0lEIl0sCiAgTElORV9DSEFOTkVMX1NFQ1JFVDogcHJvY2Vzcy5lbnZbIkxJTkVfQ0hBTk5FTF9TRUNSRVQiXSwKICBMSU5FX0NBTExCQUNLX1VSTDogcHJvY2Vzcy5lbnZbIkxJTkVfQ0FMTEJBQ0tfVVJMIl0sCn07Cgpjb25zdCBoZWFsdGhSb3V0ZSA9IGZpbGVVUkxUb1BhdGgoCiAgbmV3IFVSTCgiLi4vc3JjL3JvdXRlcy9oZWFsdGgudHMiLCBpbXBvcnQubWV0YS51cmwpLAopOwpjb25zdCBoZWFsdGhTY2hlbWEgPSBmaWxlVVJMVG9QYXRoKAogIG5ldyBVUkwoIi4uLy4uLy4uL2xpYi9hcGktem9kL3NyYy9pbmRleC50cyIsIGltcG9ydC5tZXRhLnVybCksCik7CgpmdW5jdGlvbiBzZXRMaW5lRW52aXJvbm1lbnQodmFsdWVzOiB7CiAgbm9kZUVudjogc3RyaW5nOwogIGNoYW5uZWxJZD86IHN0cmluZzsKICBjaGFubmVsU2VjcmV0Pzogc3RyaW5nOwogIGNhbGxiYWNrVXJsPzogc3RyaW5nOwp9KSB7CiAgcHJvY2Vzcy5lbnZbIk5PREVfRU5WIl0gPSB2YWx1ZXMubm9kZUVudjsKICBwcm9jZXNzLmVudlsiTElORV9DSEFOTkVMX0lEIl0gPSB2YWx1ZXMuY2hhbm5lbElkOwogIHByb2Nlc3MuZW52WyJMSU5FX0NIQU5ORUxfU0VDUkVUIl0gPSB2YWx1ZXMuY2hhbm5lbFNlY3JldDsKICBwcm9jZXNzLmVudlsiTElORV9DQUxMQkFDS19VUkwiXSA9IHZhbHVlcy5jYWxsYmFja1VybDsKfQoKZnVuY3Rpb24gcmVzdG9yZUVudmlyb25tZW50KCkgewogIGZvciAoY29uc3QgW2tleSwgdmFsdWVdIG9mIE9iamVjdC5lbnRyaWVzKE9SSUdJTkFMX0VOVikpIHsKICAgIGlmICh2YWx1ZSA9PT0gdW5kZWZpbmVkKSB7CiAgICAgIGRlbGV0ZSBwcm9jZXNzLmVudltrZXldOwogICAgfSBlbHNlIHsKICAgICAgcHJvY2Vzcy5lbnZba2V5XSA9IHZhbHVlOwogICAgfQogIH0KfQoKYmVmb3JlKCgpID0+IHsKICBkZWxldGUgcHJvY2Vzcy5lbnZbIk5PREVfRU5WIl07CiAgZGVsZXRlIHByb2Nlc3MuZW52WyJMSU5FX0NIQU5ORUxfSUQiXTsKICBkZWxldGUgcHJvY2Vzcy5lbnZbIkxJTkVfQ0hBTk5FTF9TRUNSRVQiXTsKICBkZWxldGUgcHJvY2Vzcy5lbnZbIkxJTkVfQ0FMTEJBQ0tfVVJMIl07Cn0pOwoKYWZ0ZXIoKCkgPT4gewogIHJlc3RvcmVFbnZpcm9ubWVudCgpOwp9KTsKCmRlc2NyaWJlKCJHRVQgL2FwaS9oZWFsdGh6IiwgKCkgPT4gewogIGl0KCJyZXR1cm5zIGEgZGVncmFkZWQsIHNjaGVtYS12YWxpZCByZXNwb25zZSB3aXRob3V0IExJTkUgY3JlZGVudGlhbHMiLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBjaGFubmVsSWQgPSAibGluZS1jaGFubmVsLWlkLXJvdXRlLXRlc3QiOwogICAgY29uc3QgY2hhbm5lbFNlY3JldCA9ICJsaW5lLWNoYW5uZWwtc2VjcmV0LXJvdXRlLXRlc3QiOwogICAgc2V0TGluZUVudmlyb25tZW50KHsKICAgICAgbm9kZUVudjogInByb2R1Y3Rpb24iLAogICAgICBjaGFubmVsSWQsCiAgICAgIGNoYW5uZWxTZWNyZXQsCiAgICAgIGNhbGxiYWNrVXJsOiAiaHR0cHM6Ly93cm9uZy5leGFtcGxlLmNvbS9hcGkvYXV0aC9saW5lL2NhbGxiYWNrIiwKICAgIH0pOwoKICAgIGNvbnN0IHNjaGVtYU1vZHVsZSA9CiAgICAgIGF3YWl0IGltcG9ydFR5cGVTY3JpcHRNb2R1bGU8SGVhbHRoQ2hlY2tTY2hlbWFNb2R1bGU+KGhlYWx0aFNjaGVtYSk7CiAgICBjb25zdCBzZXJ2ZXIgPSBhd2FpdCBzZXJ2ZVR5cGVTY3JpcHRSb3V0ZShoZWFsdGhSb3V0ZSk7CgogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaChgJHtzZXJ2ZXIudXJsfS9hcGkvaGVhbHRoemApOwogICAgICBjb25zdCBib2R5OiB1bmtub3duID0gYXdhaXQgcmVzcG9uc2UuanNvbigpOwoKICAgICAgYXNzZXJ0LmVxdWFsKHJlc3BvbnNlLnN0YXR1cywgNTAzKTsKICAgICAgYXNzZXJ0LmVxdWFsKAogICAgICAgIHNjaGVtYU1vZHVsZS5IZWFsdGhDaGVja1Jlc3BvbnNlLnNhZmVQYXJzZShib2R5KS5zdWNjZXNzLAogICAgICAgIHRydWUsCiAgICAgICk7CiAgICAgIGFzc2VydC5kZWVwRXF1YWwoYm9keSwgewogICAgICAgIHN0YXR1czogImRlZ3JhZGVkIiwKICAgICAgICBsaW5lTG9naW46IHsKICAgICAgICAgIHJlYWR5OiBmYWxzZSwKICAgICAgICAgIGNoYW5uZWxDb25maWd1cmVkOiB0cnVlLAogICAgICAgICAgc2VjcmV0Q29uZmlndXJlZDogdHJ1ZSwKICAgICAgICAgIGNhbGxiYWNrVXJsQ29uZmlndXJlZDogdHJ1ZSwKICAgICAgICAgIGNhbGxiYWNrVXJsVmFsaWQ6IGZhbHNlLAogICAgICAgICAgY2FsbGJhY2tFbnZpcm9ubWVudDogImludmFsaWQiLAogICAgICAgICAgY2FsbGJhY2tSZWFzb246ICJ1bmV4cGVjdGVkX2hvc3QiLAogICAgICAgIH0sCiAgICAgIH0pOwoKICAgICAgY29uc3Qgc2VyaWFsaXplZEJvZHkgPSBKU09OLnN0cmluZ2lmeShib2R5KTsKICAgICAgYXNzZXJ0LmVxdWFsKHNlcmlhbGl6ZWRCb2R5LmluY2x1ZGVzKGNoYW5uZWxJZCksIGZhbHNlKTsKICAgICAgYXNzZXJ0LmVxdWFsKHNlcmlhbGl6ZWRCb2R5LmluY2x1ZGVzKGNoYW5uZWxTZWNyZXQpLCBmYWxzZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBhd2FpdCBzZXJ2ZXIuY2xvc2UoKTsKICAgIH0KICB9KTsKCiAgaXQoImtlZXBzIHRoZSBoZWFsdGh5IHJlc3BvbnNlIG9uIHRoZSBwcm9kdWN0aW9uIGNhbGxiYWNrIGNvbmZpZ3VyYXRpb24iLCBhc3luYyAoKSA9PiB7CiAgICBzZXRMaW5lRW52aXJvbm1lbnQoewogICAgICBub2RlRW52OiAicHJvZHVjdGlvbiIsCiAgICAgIGNoYW5uZWxJZDogImxpbmUtY2hhbm5lbC1pZC1yb3V0ZS10ZXN0IiwKICAgICAgY2hhbm5lbFNlY3JldDogImxpbmUtY2hhbm5lbC1zZWNyZXQtcm91dGUtdGVzdCIsCiAgICAgIGNhbGxiYWNrVXJsOiBMSU5FX1BST0RVQ1RJT05fQ0FMTEJBQ0tfVVJMLAogICAgfSk7CgogICAgY29uc3Qgc2VydmVyID0gYXdhaXQgc2VydmVUeXBlU2NyaXB0Um91dGUoaGVhbHRoUm91dGUpOwoKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgZmV0Y2goYCR7c2VydmVyLnVybH0vYXBpL2hlYWx0aHpgKTsKICAgICAgY29uc3QgYm9keSA9IChhd2FpdCByZXNwb25zZS5qc29uKCkpIGFzIHsgc3RhdHVzOiBzdHJpbmcgfTsKCiAgICAgIGFzc2VydC5lcXVhbChyZXNwb25zZS5zdGF0dXMsIDIwMCk7CiAgICAgIGFzc2VydC5lcXVhbChib2R5LnN0YXR1cywgIm9rIik7CiAgICB9IGZpbmFsbHkgewogICAgICBhd2FpdCBzZXJ2ZXIuY2xvc2UoKTsKICAgIH0KICB9KTsKfSk7Cg==
+import assert from "node:assert/strict";
+import { after, before, describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
+import { LINE_PRODUCTION_CALLBACK_URL } from "../src/lib/line-config.ts";
+import {
+  importTypeScriptModule,
+  serveTypeScriptRoute,
+} from "./route-harness.ts";
+
+type HealthCheckSchemaModule = {
+  HealthCheckResponse: {
+    safeParse: (value: unknown) => { success: boolean };
+  };
+};
+
+const ORIGINAL_ENV = {
+  NODE_ENV: process.env["NODE_ENV"],
+  LINE_CHANNEL_ID: process.env["LINE_CHANNEL_ID"],
+  LINE_CHANNEL_SECRET: process.env["LINE_CHANNEL_SECRET"],
+  LINE_CALLBACK_URL: process.env["LINE_CALLBACK_URL"],
+};
+
+const healthRoute = fileURLToPath(
+  new URL("../src/routes/health.ts", import.meta.url),
+);
+const healthSchema = fileURLToPath(
+  new URL("../../../lib/api-zod/src/index.ts", import.meta.url),
+);
+
+function setLineEnvironment(values: {
+  nodeEnv: string;
+  channelId?: string;
+  channelSecret?: string;
+  callbackUrl?: string;
+}) {
+  process.env["NODE_ENV"] = values.nodeEnv;
+  process.env["LINE_CHANNEL_ID"] = values.channelId;
+  process.env["LINE_CHANNEL_SECRET"] = values.channelSecret;
+  process.env["LINE_CALLBACK_URL"] = values.callbackUrl;
+}
+
+function restoreEnvironment() {
+  for (const [key, value] of Object.entries(ORIGINAL_ENV)) {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+}
+
+before(() => {
+  delete process.env["NODE_ENV"];
+  delete process.env["LINE_CHANNEL_ID"];
+  delete process.env["LINE_CHANNEL_SECRET"];
+  delete process.env["LINE_CALLBACK_URL"];
+});
+
+after(() => {
+  restoreEnvironment();
+});
+
+describe("GET /api/healthz", () => {
+  it("returns a degraded, schema-valid response without LINE credentials", async () => {
+    const channelId = "line-channel-id-route-test";
+    const channelSecret = "line-channel-secret-route-test";
+    setLineEnvironment({
+      nodeEnv: "production",
+      channelId,
+      channelSecret,
+      callbackUrl: "https://wrong.example.com/api/auth/line/callback",
+    });
+
+    const schemaModule =
+      await importTypeScriptModule<HealthCheckSchemaModule>(healthSchema);
+    const server = await serveTypeScriptRoute(healthRoute);
+
+    try {
+      const response = await fetch(`${server.url}/api/healthz`);
+      const body: unknown = await response.json();
+
+      assert.equal(response.status, 503);
+      assert.equal(
+        schemaModule.HealthCheckResponse.safeParse(body).success,
+        true,
+      );
+      assert.deepEqual(body, {
+        status: "degraded",
+        lineLogin: {
+          ready: false,
+          channelConfigured: true,
+          secretConfigured: true,
+          callbackUrlConfigured: true,
+          callbackUrlValid: false,
+          callbackEnvironment: "invalid",
+          callbackReason: "unexpected_host",
+        },
+      });
+
+      const serializedBody = JSON.stringify(body);
+      assert.equal(serializedBody.includes(channelId), false);
+      assert.equal(serializedBody.includes(channelSecret), false);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("keeps the healthy response on the production callback configuration", async () => {
+    setLineEnvironment({
+      nodeEnv: "production",
+      channelId: "line-channel-id-route-test",
+      channelSecret: "line-channel-secret-route-test",
+      callbackUrl: LINE_PRODUCTION_CALLBACK_URL,
+    });
+
+    const server = await serveTypeScriptRoute(healthRoute);
+
+    try {
+      const response = await fetch(`${server.url}/api/healthz`);
+      const body = (await response.json()) as { status: string };
+
+      assert.equal(response.status, 200);
+      assert.equal(body.status, "ok");
+    } finally {
+      await server.close();
+    }
+  });
+});

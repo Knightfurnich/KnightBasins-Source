@@ -1,1 +1,17 @@
-aW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwoKaW1wb3J0IEFwcCBmcm9tICcuL0FwcCc7CmltcG9ydCB7IEVycm9yQm91bmRhcnkgfSBmcm9tICdAL2NvbXBvbmVudHMvZXJyb3ItYm91bmRhcnknOwoKaW1wb3J0ICcuL2luZGV4LmNzcyc7CgpjcmVhdGVSb290KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyb290JykhLCB7CiAgLy8gS2VlcHMgY2F1Z2h0IGVycm9ycyBvZmYgcmVwb3J0RXJyb3IoKSwgd2hpY2ggd291bGQgcmFpc2UgdGhlIGRldiBvdmVybGF5LgogIG9uQ2F1Z2h0RXJyb3I6IChlcnJvciwgZXJyb3JJbmZvKSA9PiB7CiAgICBjb25zb2xlLmVycm9yKGVycm9yLCBlcnJvckluZm8uY29tcG9uZW50U3RhY2spOwogIH0sCn0pLnJlbmRlcigKICA8RXJyb3JCb3VuZGFyeT4KICAgIDxBcHAgLz4KICA8L0Vycm9yQm91bmRhcnk+LAopOwo=
+import { createRoot } from 'react-dom/client';
+
+import App from './App';
+import { ErrorBoundary } from '@/components/error-boundary';
+
+import './index.css';
+
+createRoot(document.getElementById('root')!, {
+  // Keeps caught errors off reportError(), which would raise the dev overlay.
+  onCaughtError: (error, errorInfo) => {
+    console.error(error, errorInfo.componentStack);
+  },
+}).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>,
+);

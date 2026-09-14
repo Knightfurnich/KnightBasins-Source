@@ -1,1 +1,18 @@
-ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmltcG9ydCBmaXR6CgpJTlBVVFMgPSBbCiAgICBQYXRoKCJhdHRhY2hlZF9hc3NldHMvKOC4o+C4suC4hOC4suC4guC4suC4ouC5geC4nOC5iOC4mSlfQllfa25pZ2h0X0Z1cm5pY2hfXzE3ODkyOTU4MDg0NDEucGRmIiksCiAgICBQYXRoKCJhdHRhY2hlZF9hc3NldHMvKOC4o+C4suC4hOC4suC4o+C4p+C4oeC4leC4tOC4lOC4leC4seC5ieC4hylfQllfa25pZ2h0X0Z1cm5pY2hfKDEpXzE3ODkyOTU4MDg0MzkucGRmIiksCl0KT1VUUFVUID0gUGF0aCgiLmFnZW50cy9vdXRwdXRzL3ByaWNlLXBkZi1wYWdlcyIpCk9VVFBVVC5ta2RpcihwYXJlbnRzPVRydWUsIGV4aXN0X29rPVRydWUpCgpmb3Igc291cmNlIGluIElOUFVUUzoKICAgIGRvY3VtZW50ID0gZml0ei5vcGVuKHNvdXJjZSkKICAgIHByaW50KGYie3NvdXJjZS5uYW1lfToge2RvY3VtZW50LnBhZ2VfY291bnR9IHBhZ2VzIikKICAgIGZvciBwYWdlX251bWJlciwgcGFnZSBpbiBlbnVtZXJhdGUoZG9jdW1lbnQsIHN0YXJ0PTEpOgogICAgICAgIHBpeG1hcCA9IHBhZ2UuZ2V0X3BpeG1hcChtYXRyaXg9Zml0ei5NYXRyaXgoMS41LCAxLjUpLCBhbHBoYT1GYWxzZSkKICAgICAgICB0YXJnZXQgPSBPVVRQVVQgLyBmIntzb3VyY2Uuc3RlbX0tcGFnZS17cGFnZV9udW1iZXI6MDJkfS5wbmciCiAgICAgICAgcGl4bWFwLnNhdmUodGFyZ2V0KQogICAgICAgIHByaW50KGYiICByZW5kZXJlZCB7dGFyZ2V0fSIp
+from pathlib import Path
+import fitz
+
+INPUTS = [
+    Path("attached_assets/(ราคาขายแผ่น)_BY_knight_Furnich__1789295808441.pdf"),
+    Path("attached_assets/(ราคารวมติดตั้ง)_BY_knight_Furnich_(1)_1789295808439.pdf"),
+]
+OUTPUT = Path(".agents/outputs/price-pdf-pages")
+OUTPUT.mkdir(parents=True, exist_ok=True)
+
+for source in INPUTS:
+    document = fitz.open(source)
+    print(f"{source.name}: {document.page_count} pages")
+    for page_number, page in enumerate(document, start=1):
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5), alpha=False)
+        target = OUTPUT / f"{source.stem}-page-{page_number:02d}.png"
+        pixmap.save(target)
+        print(f"  rendered {target}")

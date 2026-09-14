@@ -1,1 +1,8 @@
-IyEvdXNyL2Jpbi9lbnYgYmFzaApzZXQgLWV1byBwaXBlZmFpbAoKZXhwb3J0IENJPXRydWUKCnBucG0gaW5zdGFsbCAtLWZyb3plbi1sb2NrZmlsZSAtLXByZWZlci1vZmZsaW5lCnBucG0gLS1maWx0ZXIgQHdvcmtzcGFjZS9kYiBydW4gcHVzaApwbnBtIHJ1biB0eXBlY2hlY2s6bGlicwo=
+#!/usr/bin/env bash
+set -euo pipefail
+
+export CI=true
+
+pnpm install --frozen-lockfile --prefer-offline
+pnpm --filter @workspace/db run push
+pnpm run typecheck:libs

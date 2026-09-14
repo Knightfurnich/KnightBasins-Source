@@ -1,1 +1,72 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyByZWFkRmlsZVN5bmMgfSBmcm9tICJub2RlOmZzIjsKaW1wb3J0IHsgZmlsZVVSTFRvUGF0aCB9IGZyb20gIm5vZGU6dXJsIjsKaW1wb3J0IHBhdGggZnJvbSAibm9kZTpwYXRoIjsKaW1wb3J0IHsgdXBsb2FkSW1hZ2VGaWxlIH0gZnJvbSAiLi4vc3JjL2FkbWluL2ltYWdlVXBsb2FkQ2xpZW50LnRzIjsKCmNvbnN0IGZpZWxkU291cmNlID0gcmVhZEZpbGVTeW5jKAogIHBhdGguam9pbihwYXRoLmRpcm5hbWUoZmlsZVVSTFRvUGF0aChpbXBvcnQubWV0YS51cmwpKSwgIi4uL3NyYy9hZG1pbi9JbWFnZVVwbG9hZEZpZWxkLnRzeCIpLAogICJ1dGY4IiwKKTsKCmRlc2NyaWJlKCJhZG1pbiBpbWFnZSB1cGxvYWQgZmllbGQiLCAoKSA9PiB7CiAgaXQoInNlbmRzIHRoZSBzZWxlY3RlZCBmaWxlIHdpdGggdGhlIGFkbWluIHNlc3Npb24gYW5kIGNvbW1pdHMgdGhlIHJldHVybmVkIFVSTCIsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGZpbGUgPSBuZXcgRmlsZShbQnVmZmVyLmZyb20oImltYWdlLWJ5dGVzIildLCAiYmFzaW4ucG5nIiwgewogICAgICB0eXBlOiAiaW1hZ2UvcG5nIiwKICAgIH0pOwogICAgbGV0IHJlcXVlc3RVcmwgPSAiIjsKICAgIGxldCByZXF1ZXN0SW5pdDogUmVxdWVzdEluaXQgfCB1bmRlZmluZWQ7CgogICAgY29uc3QgdXBsb2FkZWRVcmwgPSBhd2FpdCB1cGxvYWRJbWFnZUZpbGUoZmlsZSwgYXN5bmMgKGlucHV0LCBpbml0KSA9PiB7CiAgICAgIHJlcXVlc3RVcmwgPSBTdHJpbmcoaW5wdXQpOwogICAgICByZXF1ZXN0SW5pdCA9IGluaXQ7CiAgICAgIHJldHVybiBuZXcgUmVzcG9uc2UoCiAgICAgICAgSlNPTi5zdHJpbmdpZnkoewogICAgICAgICAgZmlsZW5hbWU6ICJjYXRhbG9nLW1hYmMtMDEyMzQ1Njc4OWFiY2RlZi5wbmciLAogICAgICAgICAgdmVyc2lvbjogIm1hYmMiLAogICAgICAgICAgdXJsOiAiaHR0cHM6Ly91cGxvYWRzLmV4YW1wbGUudGVzdC9jYXRhbG9nL2NhdGFsb2ctbWFiYy0wMTIzNDU2Nzg5YWJjZGVmLnBuZz92PW1hYmMiLAogICAgICAgIH0pLAogICAgICAgIHsgaGVhZGVyczogeyAiY29udGVudC10eXBlIjogImFwcGxpY2F0aW9uL2pzb24iIH0gfSwKICAgICAgKTsKICAgIH0pOwoKICAgIGFzc2VydC5lcXVhbChyZXF1ZXN0VXJsLCAiL2FwaS9hZG1pbi91cGxvYWQiKTsKICAgIGFzc2VydC5lcXVhbChyZXF1ZXN0SW5pdD8ubWV0aG9kLCAiUE9TVCIpOwogICAgYXNzZXJ0LmVxdWFsKHJlcXVlc3RJbml0Py5jcmVkZW50aWFscywgImluY2x1ZGUiKTsKICAgIGFzc2VydC5vayhyZXF1ZXN0SW5pdD8uYm9keSBpbnN0YW5jZW9mIEZvcm1EYXRhKTsKICAgIGNvbnN0IHVwbG9hZGVkRmlsZSA9IHJlcXVlc3RJbml0Py5ib2R5IGluc3RhbmNlb2YgRm9ybURhdGEKICAgICAgPyByZXF1ZXN0SW5pdC5ib2R5LmdldCgiZmlsZSIpCiAgICAgIDogbnVsbDsKICAgIGFzc2VydC5vayh1cGxvYWRlZEZpbGUgaW5zdGFuY2VvZiBGaWxlKTsKICAgIGFzc2VydC5lcXVhbCh1cGxvYWRlZEZpbGU/Lm5hbWUsICJiYXNpbi5wbmciKTsKICAgIGFzc2VydC5lcXVhbCh1cGxvYWRlZEZpbGU/LnR5cGUsICJpbWFnZS9wbmciKTsKICAgIGFzc2VydC5lcXVhbCh1cGxvYWRlZFVybCwgImh0dHBzOi8vdXBsb2Fkcy5leGFtcGxlLnRlc3QvY2F0YWxvZy9jYXRhbG9nLW1hYmMtMDEyMzQ1Njc4OWFiY2RlZi5wbmc/dj1tYWJjIik7CiAgfSk7CgogIGl0KCJzdXJmYWNlcyBzZXJ2ZXIgdmFsaWRhdGlvbiBlcnJvcnMgaW5zdGVhZCBvZiBhY2NlcHRpbmcgYSByZXNwb25zZSB3aXRob3V0IGEgVVJMIiwgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmlsZSA9IG5ldyBGaWxlKFtCdWZmZXIuZnJvbSgiaW1hZ2UtYnl0ZXMiKV0sICJiYXNpbi5wbmciLCB7CiAgICAgIHR5cGU6ICJpbWFnZS9wbmciLAogICAgfSk7CgogICAgYXdhaXQgYXNzZXJ0LnJlamVjdHMoCiAgICAgIHVwbG9hZEltYWdlRmlsZShmaWxlLCBhc3luYyAoKSA9PgogICAgICAgIG5ldyBSZXNwb25zZShKU09OLnN0cmluZ2lmeSh7IG1lc3NhZ2U6ICJPbmx5IEpQRywgUE5HLCBXRUJQLCBhbmQgR0lGIGltYWdlcyBhcmUgYWxsb3dlZCIgfSksIHsKICAgICAgICAgIHN0YXR1czogNDAwLAogICAgICAgICAgaGVhZGVyczogeyAiY29udGVudC10eXBlIjogImFwcGxpY2F0aW9uL2pzb24iIH0sCiAgICAgICAgfSksCiAgICAgICksCiAgICAgIHsgbWVzc2FnZTogIk9ubHkgSlBHLCBQTkcsIFdFQlAsIGFuZCBHSUYgaW1hZ2VzIGFyZSBhbGxvd2VkIiB9LAogICAgKTsKICB9KTsKCiAgaXQoImtlZXBzIHRoZSBwcmV2aWV3IGJvdW5kIHRvIHRoZSBjdXJyZW50IHZhbHVlIGFuZCB0aGUgc3VjY2Vzc2Z1bCB1cGxvYWQgVVJMIiwgKCkgPT4gewogICAgYXNzZXJ0Lm1hdGNoKGZpZWxkU291cmNlLCAvXHtwcmV2aWV3VXJsIFw/IFwoLyk7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC88aW1nIHNyYz1ce3ByZXZpZXdVcmxcfSBhbHQ9IuC4leC4seC4p+C4reC4ouC5iOC4suC4h+C4o+C4ueC4m+C4oOC4suC4nuC4quC4tOC4meC4hOC5ieC4siIvKTsKICAgIGFzc2VydC5tYXRjaChmaWVsZFNvdXJjZSwgL2NvbnN0IHVwbG9hZGVkVXJsID0gYXdhaXQgdXBsb2FkSW1hZ2VGaWxlXChmaWxlXCkvKTsKICAgIGFzc2VydC5tYXRjaChmaWVsZFNvdXJjZSwgL29uQ2hhbmdlXCh1cGxvYWRlZFVybFwpLyk7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC9zZXRQcmV2aWV3VXJsXCh1cGxvYWRlZFVybFwpLyk7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC90eXBlPSJmaWxlIi8pOwogICAgYXNzZXJ0Lm1hdGNoKGZpZWxkU291cmNlLCAvYWNjZXB0PSJpbWFnZVwvcG5nLGltYWdlXC9qcGVnLGltYWdlXC93ZWJwLGltYWdlXC9naWYiLyk7CiAgfSk7Cn0pOw==
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { uploadImageFile } from "../src/admin/imageUploadClient.ts";
+
+const fieldSource = readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "../src/admin/ImageUploadField.tsx"),
+  "utf8",
+);
+
+describe("admin image upload field", () => {
+  it("sends the selected file with the admin session and commits the returned URL", async () => {
+    const file = new File([Buffer.from("image-bytes")], "basin.png", {
+      type: "image/png",
+    });
+    let requestUrl = "";
+    let requestInit: RequestInit | undefined;
+
+    const uploadedUrl = await uploadImageFile(file, async (input, init) => {
+      requestUrl = String(input);
+      requestInit = init;
+      return new Response(
+        JSON.stringify({
+          filename: "catalog-mabc-0123456789abcdef.png",
+          version: "mabc",
+          url: "https://uploads.example.test/catalog/catalog-mabc-0123456789abcdef.png?v=mabc",
+        }),
+        { headers: { "content-type": "application/json" } },
+      );
+    });
+
+    assert.equal(requestUrl, "/api/admin/upload");
+    assert.equal(requestInit?.method, "POST");
+    assert.equal(requestInit?.credentials, "include");
+    assert.ok(requestInit?.body instanceof FormData);
+    const uploadedFile = requestInit?.body instanceof FormData
+      ? requestInit.body.get("file")
+      : null;
+    assert.ok(uploadedFile instanceof File);
+    assert.equal(uploadedFile?.name, "basin.png");
+    assert.equal(uploadedFile?.type, "image/png");
+    assert.equal(uploadedUrl, "https://uploads.example.test/catalog/catalog-mabc-0123456789abcdef.png?v=mabc");
+  });
+
+  it("surfaces server validation errors instead of accepting a response without a URL", async () => {
+    const file = new File([Buffer.from("image-bytes")], "basin.png", {
+      type: "image/png",
+    });
+
+    await assert.rejects(
+      uploadImageFile(file, async () =>
+        new Response(JSON.stringify({ message: "Only JPG, PNG, WEBP, and GIF images are allowed" }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        }),
+      ),
+      { message: "Only JPG, PNG, WEBP, and GIF images are allowed" },
+    );
+  });
+
+  it("keeps the preview bound to the current value and the successful upload URL", () => {
+    assert.match(fieldSource, /\{previewUrl \? \(/);
+    assert.match(fieldSource, /<img src=\{previewUrl\} alt="ตัวอย่างรูปภาพสินค้า"/);
+    assert.match(fieldSource, /const uploadedUrl = await uploadImageFile\(file\)/);
+    assert.match(fieldSource, /onChange\(uploadedUrl\)/);
+    assert.match(fieldSource, /setPreviewUrl\(uploadedUrl\)/);
+    assert.match(fieldSource, /type="file"/);
+    assert.match(fieldSource, /accept="image\/png,image\/jpeg,image\/webp,image\/gif"/);
+  });
+});

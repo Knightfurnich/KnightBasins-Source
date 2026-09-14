@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { basinProductFromCatalog, removeStoneSelection, toggleBasinSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
+import { basinProductFromCatalog, filterBasinProducts, PRODUCTS, removeStoneSelection, toggleBasinSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
 
 describe("storefront basin image mapping", () => {
   it("preserves a saved imageUrl from the active catalog response", () => {
@@ -63,5 +63,11 @@ describe("storefront multi-selection state", () => {
     const nw: StoneConfig = { ...bw, color: "NW013" };
     const selected = removeStoneSelection([bw, nw], "BW010");
     assert.deepEqual(selected, [nw]);
+  });
+
+  it("studio basin search reaches every catalog model", () => {
+    assert.equal(filterBasinProducts(PRODUCTS, "").length, 30);
+    assert.deepEqual(filterBasinProducts(PRODUCTS, "KF029").map((product) => product.sku), ["KF029"]);
+    assert.deepEqual(filterBasinProducts(PRODUCTS, "KF030").map((product) => product.sku), ["KF030"]);
   });
 });

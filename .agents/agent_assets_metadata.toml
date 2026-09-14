@@ -1,1 +1,142 @@
-dXBsb2FkcyA9IFtdCmdlbmVyYXRlZCA9IFtdCgpbW291dHB1dHNdXQppZCA9ICJmQmJzUXFhTGttRkV3RGZWYnNmZ2giCnVyaSA9ICJmaWxlOi8vc2NyZWVuc2hvdHMva25pZ2h0LWJhc2lucy11cGxvYWQtcmVsZWFzZS5qcGciCnR5cGUgPSAiaW1hZ2UiCnRpdGxlID0gIktuaWdodCBCYXNpbnMgc3RvcmVmcm9udCBhZnRlciBpbWFnZSB1cGxvYWQgcmVsZWFzZSIKZGVzY3JpcHRpb24gPSAiUHJvZHVjdGlvbiBzdG9yZWZyb250IHByZXZpZXcgY2FwdHVyZWQgYWZ0ZXIgZGVwbG95aW5nIHRoZSBwcm90ZWN0ZWQgYWRtaW4gaW1hZ2UgdXBsb2FkIGZsb3cuIgpsb2dpY2FsX2lkID0gImIwMzQwYzkxLWJiZDktNGZlYS1iZjFhLTAwYWI3YzA0MTk5NSIKY29udGVudF9oYXNoID0gInNoYTI1Njo2YzAxOGVkM2M0MGU3ZWQ4YjA5MzY4MTlkMDZmMjY1NGNiNmFjMDYzOGUzZjg1MTU0MjkwZDQyNDY1MjgwZDJkIgpzaXplID0gNzExMjYKbXRpbWVfbXMgPSAxNzg5MzI5NDMyMDA1CnN0b3JhZ2VfdXJpID0gImdjczovL3JlcGxpdC1yYW1zLWFzc2V0cy1zaXNrby9yYW1zL2Fzc2V0cy9yZXBsOjE0MWFhOGQzLWYxZTUtNDBhNi1hNTQxLWFmMTY2YmRlMmJmMy9iMDM0MGM5MS1iYmQ5LTRmZWEtYmYxYS0wMGFiN2MwNDE5OTUvNzM5MzkxNDctZDZkZi00MDIxLWFmMmItOWU4M2UxOGNkNTBlIgpzdG9yYWdlX3ZlcnNpb25fdG9rZW4gPSAiMTc4OTMyOTQ2NzIwNDY1MCIKY29udGVudF90eXBlID0gImltYWdlL2pwZWciCgpbW291dHB1dHNdXQppZCA9ICI5ME8ybzhlOVJPazR4UVhWYXBFNjQiCnVyaSA9ICJmaWxlOi8vc2NyZWVuc2hvdHMva25pZ2h0LWJhc2lucy1oZC1pbWFnZXMtZmluYWwuanBnIgp0eXBlID0gImltYWdlIgp0aXRsZSA9ICJLbmlnaHQgQmFzaW5zIHN0b3JlZnJvbnQgd2l0aCBiYXNpbiBIRCBpbWFnZXMiCmRlc2NyaXB0aW9uID0gIkZpbmFsIGxvY2FsIHByZXZpZXcgc2hvd2luZyB0aGUgYmFzaW4gcHJvZHVjdCBjYXJkcyByZW5kZXJpbmcgcmVhbCBIRCBiYXNpbiBwaG90b3MgYWZ0ZXIgdGhlIHByb2R1Y3Rpb24gbWVkaWEgVVJMIGZpeC4iCmxvZ2ljYWxfaWQgPSAiM2U4ZGQ2N2YtZWRkYS00ZDdjLWIzOGMtNzQ4NDg5NTI1Yzc3Igpjb250ZW50X2hhc2ggPSAic2hhMjU2OmM2Yjc3MWI0OGY5Y2FhZDY1MTliNDU1ZTU4MmI2ZjVmOTM2ZGIwY2NmOGRjNjRlYjlhMDRlYWNlZmE0Mzc1YTAiCnNpemUgPSA3NDc5MwptdGltZV9tcyA9IDE3ODkzMzIyMjc3NzgKc3RvcmFnZV91cmkgPSAiZ2NzOi8vcmVwbGl0LXJhbXMtYXNzZXRzLXNpc2tvL3JhbXMvYXNzZXRzL3JlcGw6MTQxYWE4ZDMtZjFlNS00MGE2LWE1NDEtYWYxNjZiZGUyYmYzLzNlOGRkNjdmLWVkZGEtNGQ3Yy1iMzhjLTc0ODQ4OTUyNWM3Ny9mODQxZmI2Ny1iNDIyLTQzMWYtOGU4MC0yNGJkZTEyZjk4MjIiCnN0b3JhZ2VfdmVyc2lvbl90b2tlbiA9ICIxNzg5MzMyMjYwNjUyNDk1Igpjb250ZW50X3R5cGUgPSAiaW1hZ2UvanBlZyIKCltbb3V0cHV0c11dCmlkID0gIllmUUxYNFNIZzQ5S0xmU1ZEVWtpcCIKdXJpID0gImZpbGU6Ly9zY3JlZW5zaG90cy9rbmlnaHQtYmFzaW5zLW5vLW92ZXJsYXAuanBnIgp0eXBlID0gImltYWdlIgp0aXRsZSA9ICJLbmlnaHQgQmFzaW5zIHN0b3JlZnJvbnQgYWZ0ZXIgaW1hZ2Ugb3ZlcmxhcCBmaXgiCmRlc2NyaXB0aW9uID0gIlVwZGF0ZWQgc3RvcmVmcm9udCBwcmV2aWV3IGFmdGVyIHJlbW92aW5nIHRoZSBkZWNvcmF0aXZlIGJhc2luIGxheWVycyBiZWhpbmQgcmVhbCBwcm9kdWN0IGltYWdlcy4iCmxvZ2ljYWxfaWQgPSAiMTg3ZDdjMzAtOGQzMC00MWI3LWIwZDItOTM4ODlhY2EwMmQ3Igpjb250ZW50X2hhc2ggPSAic2hhMjU2OmY4M2Q5YmQ1NGM4YTgxZTQ0N2JjNTUwZDhhZjA0NTQ2YTU4OGVkMzMxYjQyMjUxNzdjNTc2YjBkODRhYTVhN2UiCnNpemUgPSA3NTAwMAptdGltZV9tcyA9IDE3ODkzMzMwMDM5NjYKc3RvcmFnZV91cmkgPSAiZ2NzOi8vcmVwbGl0LXJhbXMtYXNzZXRzLXNpc2tvL3JhbXMvYXNzZXRzL3JlcGw6MTQxYWE4ZDMtZjFlNS00MGE2LWE1NDEtYWYxNjZiZGUyYmYzLzE4N2Q3YzMwLThkMzAtNDFiNy1iMGQyLTkzODg5YWNhMDJkNy8xZDM1N2I2MC0xYzZjLTQ4ZGUtYmNmNy0yNmI4YjE2OGMyNDciCnN0b3JhZ2VfdmVyc2lvbl90b2tlbiA9ICIxNzg5MzMzMDg0ODU1MjkwIgpjb250ZW50X3R5cGUgPSAiaW1hZ2UvanBlZyIK
+uploads = []
+generated = []
+
+[[outputs]]
+id = "fBbsQqaLkmFEwDfVbsfgh"
+uri = "file://screenshots/knight-basins-upload-release.jpg"
+type = "image"
+title = "Knight Basins storefront after image upload release"
+description = "Production storefront preview captured after deploying the protected admin image upload flow."
+logical_id = "b0340c91-bbd9-4fea-bf1a-00ab7c041995"
+content_hash = "sha256:6c018ed3c40e7ed8b0936819d06f2654cb6ac0638e3f85154290d42465280d2d"
+size = 71126
+mtime_ms = 1789329432005
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/b0340c91-bbd9-4fea-bf1a-00ab7c041995/73939147-d6df-4021-af2b-9e83e18cd50e"
+storage_version_token = "1789329467204650"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "90O2o8e9ROk4xQXVapE64"
+uri = "file://screenshots/knight-basins-hd-images-final.jpg"
+type = "image"
+title = "Knight Basins storefront with basin HD images"
+description = "Final local preview showing the basin product cards rendering real HD basin photos after the production media URL fix."
+logical_id = "3e8dd67f-edda-4d7c-b38c-748489525c77"
+content_hash = "sha256:c6b771b48f9caad6519b455e582b6f5f936db0ccf8dc64eb9a04eacefa4375a0"
+size = 74793
+mtime_ms = 1789332227778
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/3e8dd67f-edda-4d7c-b38c-748489525c77/f841fb67-b422-431f-8e80-24bde12f9822"
+storage_version_token = "1789332260652495"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "YfQLX4SHg49KLfSVDUkip"
+uri = "file://screenshots/knight-basins-no-overlap.jpg"
+type = "image"
+title = "Knight Basins storefront after image overlap fix"
+description = "Updated storefront preview after removing the decorative basin layers behind real product images."
+logical_id = "187d7c30-8d30-41b7-b0d2-93889aca02d7"
+content_hash = "sha256:f83d9bd54c8a81e447bc550d8af04546a588ed331b4225177c576b0d84aa5a7e"
+size = 75000
+mtime_ms = 1789333003966
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/187d7c30-8d30-41b7-b0d2-93889aca02d7/1d357b60-1c6c-48de-bcf7-26b8b168c247"
+storage_version_token = "1789333084855290"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "ytWJ_xxUcbQaEpSiggbNM"
+uri = "file://artifacts/knight-basins/evidence/basins-selected-two.jpg"
+type = "image"
+title = "Evidence — two basin cards selected"
+description = "Storefront catalog showing two basin cards selected at the same time with visible check badges."
+logical_id = "d5293fb4-6935-45a1-9548-aae18d84549c"
+content_hash = "sha256:5c0e2d183bb2cab24dc5ebd23d410e25e8774a4435e850b3e1eab470d155c30a"
+size = 109021
+mtime_ms = 1789353170395
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/d5293fb4-6935-45a1-9548-aae18d84549c/202b4ca4-e1fb-49a2-920f-0b7834a83d7c"
+storage_version_token = "1789353271771562"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "aQhuaF4VBKKVJ1ODZVsAs"
+uri = "file://artifacts/knight-basins/evidence/basin-toggle-off.jpg"
+type = "image"
+title = "Evidence — basin selection toggled off"
+description = "Storefront catalog after toggling KF001 off; only KF002 remains selected and the quote count is reduced."
+logical_id = "e58a2ff3-f293-4408-a9a2-5eb30c4254a3"
+content_hash = "sha256:81dfaef21b3eccfc203527f3b9ac9cea2bf9f7fe3bf93b9212180e983dff2c2a"
+size = 125996
+mtime_ms = 1789353170548
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/e58a2ff3-f293-4408-a9a2-5eb30c4254a3/07e46abf-3f5f-4e8c-9524-db51f401d594"
+storage_version_token = "1789353273102612"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "EVrNya2bG3Sgpv-BnG850"
+uri = "file://artifacts/knight-basins/evidence/stones-selected-two.jpg"
+type = "image"
+title = "Evidence — two stone colors selected"
+description = "Stone configurator showing independent multi-selection state for two stone colors."
+logical_id = "82a3f05b-5501-4278-9ebd-fe0aacb66810"
+content_hash = "sha256:be3ddf40e6666f55d05e3331f48bbc27fe77e7230035823acaa832f64a19ffa7"
+size = 145306
+mtime_ms = 1789353171028
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/82a3f05b-5501-4278-9ebd-fe0aacb66810/2abd3552-92dc-4024-aabb-5c4effe7f0e8"
+storage_version_token = "1789353274460562"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "Yo45JVfPHY6g4caARo0d2"
+uri = "file://artifacts/knight-basins/evidence/quote-complete-items.jpg"
+type = "image"
+title = "Evidence — complete multi-item quote"
+description = "Quote page showing the basin line, both selected stone configuration rows, and the combined total."
+logical_id = "ded23ec0-e9c5-4f1c-a794-213a4f93d57e"
+content_hash = "sha256:466c3c7c357411add52b6de9e2745632a5229c0faf60e4917ee5991758f723c3"
+size = 140829
+mtime_ms = 1789353171985
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/ded23ec0-e9c5-4f1c-a794-213a4f93d57e/12016af7-483c-49d6-b149-df9a028c3d8f"
+storage_version_token = "1789353275783014"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "BgSCjyLdn_6t5fFzj4MmJ"
+uri = "file://knight-basins-ae74520-build.zip"
+type = "unspecified"
+title = "Knight Basins build — ae74520 (download)"
+description = "Verified ZIP archive containing api-dist and web-dist. SHA-256: 2572fd8bc2c603b2bb2f086dd33fd0ea1e08c17af43ebfd5d3412b1dd7cd1339"
+logical_id = "87236a34-7603-45ca-95bc-38d285702b64"
+content_hash = "sha256:2572fd8bc2c603b2bb2f086dd33fd0ea1e08c17af43ebfd5d3412b1dd7cd1339"
+size = 1641399
+mtime_ms = 1789357609920
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/87236a34-7603-45ca-95bc-38d285702b64/ead38352-c3db-4dfe-8edb-b18b3412d57f"
+storage_version_token = "1789357712220611"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "J2PBbhm8GbM6pxPxQV7Aa"
+uri = "file://knight-basins-studio-fix-build.zip"
+type = "unspecified"
+title = "Knight Basins Studio fix build"
+description = "Production build based on ae74520 with corrected 2D drop positions, red 50 mm clearance frame, and explicit unknown basin-hole dimensions for KF029/KF030. SHA-256: c087574b7525feaaded13c3f8a3be4f77533f51713f2c8bd19c6bcba1968a11d"
+logical_id = "ec6f9638-01e0-48dc-9792-4c3b17cd41ab"
+content_hash = "sha256:c087574b7525feaaded13c3f8a3be4f77533f51713f2c8bd19c6bcba1968a11d"
+size = 1641819
+mtime_ms = 1789359731334
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/ec6f9638-01e0-48dc-9792-4c3b17cd41ab/15f5c806-ae76-43db-a642-b98036b83889"
+storage_version_token = "1789359752899680"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "oieFF81yS__XMalW5Ih3N"
+uri = "file://knight-basins-studio-catalog-search-build.zip"
+type = "unspecified"
+title = "Knight Basins Studio catalog search build (อีกครั้ง)"
+description = "ZIP สำหรับส่งให้เดวิด ภายในมี api-dist/ และ web-dist/. SHA-256: d0859665f8f2021492551de2b9c82f96018bb68b293e4c5a98f08f0ba8e1c5a0"
+logical_id = "e9fa6f9d-7716-4414-96e1-0e57acbe6fe3"
+content_hash = "sha256:d0859665f8f2021492551de2b9c82f96018bb68b293e4c5a98f08f0ba8e1c5a0"
+size = 1642152
+mtime_ms = 1789361186625
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:141aa8d3-f1e5-40a6-a541-af166bde2bf3/e9fa6f9d-7716-4414-96e1-0e57acbe6fe3/a8360404-06ec-45ed-b3c4-467f00ab3236"
+storage_version_token = "1789361396050603"
+content_type = "application/octet-stream"

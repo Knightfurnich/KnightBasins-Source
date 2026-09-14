@@ -1,1 +1,109 @@
-aW1wb3J0IHsgZGIsIGJhc2luQ2F0ZWdvcmllcywgYmFzaW5QcmljZXMsIGluc3RhbGxlZFN0b25lUHJpY2VzLCBzaGVldFN0b25lUHJpY2VzIH0gZnJvbSAiQHdvcmtzcGFjZS9kYiI7CmltcG9ydCB7IGFuZCwgYXNjLCBlcSwgaXNOdWxsIH0gZnJvbSAiZHJpenpsZS1vcm0iOwppbXBvcnQgeyBSb3V0ZXIsIHR5cGUgSVJvdXRlciB9IGZyb20gImV4cHJlc3MiOwppbXBvcnQgeyBQUk9EVUNUUywgU1RPTkVfQ09MT1JTIH0gZnJvbSAiLi4vLi4vLi4va25pZ2h0LWJhc2lucy9zcmMvZGF0YS9jYXRhbG9nIjsKaW1wb3J0IHsgbm9ybWFsaXplQmFzaW5GaWVsZHMsIHdpdGhCYXNpbkNhdGVnb3J5LCB3aXRoQmFzaW5NZWRpYSwgd2l0aFN0b25lTWVkaWEgfSBmcm9tICIuLi9saWIvY2F0YWxvZy1tZWRpYSI7Cgpjb25zdCByb3V0ZXI6IElSb3V0ZXIgPSBSb3V0ZXIoKTsKCmxldCBzZWVkUHJvbWlzZTogUHJvbWlzZTx2b2lkPiB8IG51bGwgPSBudWxsOwoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHNlZWRDYXRhbG9nSWZFbXB0eSgpIHsKICBpZiAoIXNlZWRQcm9taXNlKSB7CiAgICBzZWVkUHJvbWlzZSA9IChhc3luYyAoKSA9PiB7CiAgICAgIGF3YWl0IGRiLnRyYW5zYWN0aW9uKGFzeW5jICh0eCkgPT4gewogICAgICAgIGF3YWl0IHR4Lmluc2VydChiYXNpbkNhdGVnb3JpZXMpLnZhbHVlcyhbCiAgICAgICAgICB7IG5hbWU6ICJjb3VudGVyIGJhc2luIiwgc29ydE9yZGVyOiAwIH0sCiAgICAgICAgICB7IG5hbWU6ICJ0YWxsIHZlcnRpY2FsIHdhc2hiYXNpbiIsIHNvcnRPcmRlcjogMSB9LAogICAgICAgIF0pLm9uQ29uZmxpY3REb05vdGhpbmcoKTsKCiAgICAgICAgY29uc3QgY2F0ZWdvcmllcyA9IGF3YWl0IHR4LnNlbGVjdCgpLmZyb20oYmFzaW5DYXRlZ29yaWVzKTsKICAgICAgICBmb3IgKGNvbnN0IGNhdGVnb3J5IG9mIGNhdGVnb3JpZXMpIHsKICAgICAgICAgIGF3YWl0IHR4LnVwZGF0ZShiYXNpblByaWNlcykKICAgICAgICAgICAgLnNldCh7IGNhdGVnb3J5SWQ6IGNhdGVnb3J5LmlkIH0pCiAgICAgICAgICAgIC53aGVyZShhbmQoaXNOdWxsKGJhc2luUHJpY2VzLmNhdGVnb3J5SWQpLCBlcShiYXNpblByaWNlcy5jYXRlZ29yeSwgY2F0ZWdvcnkubmFtZSkpKTsKICAgICAgICB9CiAgICAgICAgY29uc3QgY2F0ZWdvcnlJZHMgPSBuZXcgTWFwKGNhdGVnb3JpZXMubWFwKChjYXRlZ29yeSkgPT4gW2NhdGVnb3J5Lm5hbWUsIGNhdGVnb3J5LmlkXSkpOwoKICAgICAgICBhd2FpdCB0eC5pbnNlcnQoYmFzaW5QcmljZXMpLnZhbHVlcygKICAgICAgICAgICAgUFJPRFVDVFMubWFwKChwcm9kdWN0LCBpbmRleCkgPT4gewogICAgICAgICAgICAgIGNvbnN0IG5vcm1hbGl6ZWQgPSBub3JtYWxpemVCYXNpbkZpZWxkcyhwcm9kdWN0KTsKICAgICAgICAgICAgICByZXR1cm4gewogICAgICAgICAgICAgICAgLi4ucHJvZHVjdCwKICAgICAgICAgICAgICAgIGNhdGVnb3J5SWQ6IGNhdGVnb3J5SWRzLmdldChwcm9kdWN0LmNhdGVnb3J5KSA/PyBudWxsLAogICAgICAgICAgICAgICAgZGltZW5zaW9uczogbm9ybWFsaXplZC5kaW1lbnNpb25zLAogICAgICAgICAgICAgICAgYmFzaW5EaW1lbnNpb25zOiBub3JtYWxpemVkLmJhc2luRGltZW5zaW9ucywKICAgICAgICAgICAgICAgIGJvd2xNbTogbm9ybWFsaXplZC5ib3dsTW0sCiAgICAgICAgICAgICAgICBzb3J0T3JkZXI6IGluZGV4LAogICAgICAgICAgICAgIH07CiAgICAgICAgICAgIH0pLAogICAgICAgICAgKS5vbkNvbmZsaWN0RG9Ob3RoaW5nKCk7CgogICAgICAgIGF3YWl0IHR4Lmluc2VydChpbnN0YWxsZWRTdG9uZVByaWNlcykudmFsdWVzKAogICAgICAgICAgICBTVE9ORV9DT0xPUlMuZmxhdE1hcCgoc3RvbmUsIGluZGV4KSA9PgogICAgICAgICAgICAgIHN0b25lLmluc3RhbGxlZFByaWNlVEhCID09PSBudWxsCiAgICAgICAgICAgICAgICA/IFtdCiAgICAgICAgICAgICAgICA6IFt7CiAgICAgICAgICAgICAgICAgICAgY29kZTogc3RvbmUuY29kZSwKICAgICAgICAgICAgICAgICAgICBuYW1lOiBzdG9uZS5uYW1lLAogICAgICAgICAgICAgICAgICAgIHByaWNlUGVyU3FtVEhCOiBzdG9uZS5pbnN0YWxsZWRQcmljZVRIQiwKICAgICAgICAgICAgICAgICAgICB0b25lOiBzdG9uZS50b25lLAogICAgICAgICAgICAgICAgICAgIGFsaWFzZXM6IHN0b25lLmRvY3VtZW50Q29kZXMsCiAgICAgICAgICAgICAgICAgICAgc29ydE9yZGVyOiBpbmRleCwKICAgICAgICAgICAgICAgICAgfV0sCiAgICAgICAgICAgICksCiAgICAgICAgICApLm9uQ29uZmxpY3REb05vdGhpbmcoKTsKCiAgICAgICAgYXdhaXQgdHguaW5zZXJ0KHNoZWV0U3RvbmVQcmljZXMpLnZhbHVlcygKICAgICAgICAgICAgU1RPTkVfQ09MT1JTLmZsYXRNYXAoKHN0b25lLCBpbmRleCkgPT4gewogICAgICAgICAgICAgIGlmIChzdG9uZS5zaGVldFByaWNlVEhCID09PSBudWxsKSByZXR1cm4gW107CiAgICAgICAgICAgICAgY29uc3QgZXhjbHVkZWQgPSBbIkJXMDEwIiwgIk5XMDEzIl0uaW5jbHVkZXMoc3RvbmUuY29kZSk7CiAgICAgICAgICAgICAgcmV0dXJuIFt7CiAgICAgICAgICAgICAgICBjb2RlOiBzdG9uZS5jb2RlLAogICAgICAgICAgICAgICAgbmFtZTogc3RvbmUubmFtZSwKICAgICAgICAgICAgICAgIGJhc2VQcmljZVRIQjogc3RvbmUuc2hlZXRQcmljZVRIQiwKICAgICAgICAgICAgICAgIHByaWNlMTBQbHVzVEhCOiBleGNsdWRlZCA/IHN0b25lLnNoZWV0UHJpY2VUSEIgOiBNYXRoLm1heCgwLCBzdG9uZS5zaGVldFByaWNlVEhCIC0gMjAwKSwKICAgICAgICAgICAgICAgIHByaWNlNTBQbHVzVEhCOiBleGNsdWRlZCA/IHN0b25lLnNoZWV0UHJpY2VUSEIgOiBNYXRoLnJvdW5kKHN0b25lLnNoZWV0UHJpY2VUSEIgKiAwLjk1KSwKICAgICAgICAgICAgICAgIHRvbmU6IHN0b25lLnRvbmUsCiAgICAgICAgICAgICAgICBhbGlhc2VzOiBzdG9uZS5kb2N1bWVudENvZGVzLAogICAgICAgICAgICAgICAgc29ydE9yZGVyOiBpbmRleCwKICAgICAgICAgICAgICB9XTsKICAgICAgICAgICAgfSksCiAgICAgICAgICApLm9uQ29uZmxpY3REb05vdGhpbmcoKTsKICAgICAgfSk7CiAgICB9KSgpLmNhdGNoKChlcnJvcikgPT4gewogICAgICBzZWVkUHJvbWlzZSA9IG51bGw7CiAgICAgIHRocm93IGVycm9yOwogICAgfSk7CiAgfQogIGF3YWl0IHNlZWRQcm9taXNlOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZ2V0Q2F0YWxvZ0RhdGEoYWN0aXZlT25seSA9IHRydWUpIHsKICBhd2FpdCBzZWVkQ2F0YWxvZ0lmRW1wdHkoKTsKICBjb25zdCBhY3RpdmUgPSBhY3RpdmVPbmx5ID8gZXEoYmFzaW5QcmljZXMuYWN0aXZlLCB0cnVlKSA6IHVuZGVmaW5lZDsKICBjb25zdCBpbnN0YWxsZWRBY3RpdmUgPSBhY3RpdmVPbmx5ID8gZXEoaW5zdGFsbGVkU3RvbmVQcmljZXMuYWN0aXZlLCB0cnVlKSA6IHVuZGVmaW5lZDsKICBjb25zdCBzaGVldEFjdGl2ZSA9IGFjdGl2ZU9ubHkgPyBlcShzaGVldFN0b25lUHJpY2VzLmFjdGl2ZSwgdHJ1ZSkgOiB1bmRlZmluZWQ7CiAgY29uc3QgW2Jhc2lucywgY2F0ZWdvcmllcywgaW5zdGFsbGVkU3RvbmVzLCBzaGVldFN0b25lc10gPSBhd2FpdCBQcm9taXNlLmFsbChbCiAgICBkYi5zZWxlY3QoKS5mcm9tKGJhc2luUHJpY2VzKS53aGVyZShhY3RpdmUpLm9yZGVyQnkoYXNjKGJhc2luUHJpY2VzLnNvcnRPcmRlciksIGFzYyhiYXNpblByaWNlcy5pZCkpLAogICAgZGIuc2VsZWN0KCkuZnJvbShiYXNpbkNhdGVnb3JpZXMpLndoZXJlKGFjdGl2ZU9ubHkgPyBlcShiYXNpbkNhdGVnb3JpZXMuYWN0aXZlLCB0cnVlKSA6IHVuZGVmaW5lZCkub3JkZXJCeShhc2MoYmFzaW5DYXRlZ29yaWVzLnNvcnRPcmRlciksIGFzYyhiYXNpbkNhdGVnb3JpZXMuaWQpKSwKICAgIGRiLnNlbGVjdCgpLmZyb20oaW5zdGFsbGVkU3RvbmVQcmljZXMpLndoZXJlKGluc3RhbGxlZEFjdGl2ZSkub3JkZXJCeShhc2MoaW5zdGFsbGVkU3RvbmVQcmljZXMuc29ydE9yZGVyKSwgYXNjKGluc3RhbGxlZFN0b25lUHJpY2VzLmlkKSksCiAgICBkYi5zZWxlY3QoKS5mcm9tKHNoZWV0U3RvbmVQcmljZXMpLndoZXJlKHNoZWV0QWN0aXZlKS5vcmRlckJ5KGFzYyhzaGVldFN0b25lUHJpY2VzLnNvcnRPcmRlciksIGFzYyhzaGVldFN0b25lUHJpY2VzLmlkKSksCiAgXSk7CiAgcmV0dXJuIHsKICAgIGJhc2luczogYmFzaW5zLm1hcCgoYmFzaW4pID0+IHdpdGhCYXNpbkNhdGVnb3J5KHdpdGhCYXNpbk1lZGlhKGJhc2luKSwgY2F0ZWdvcmllcykpLAogICAgY2F0ZWdvcmllcywKICAgIGluc3RhbGxlZFN0b25lczogaW5zdGFsbGVkU3RvbmVzLm1hcCh3aXRoU3RvbmVNZWRpYSksCiAgICBzaGVldFN0b25lczogc2hlZXRTdG9uZXMubWFwKHdpdGhTdG9uZU1lZGlhKSwKICB9Owp9Cgpyb3V0ZXIuZ2V0KCIvY2F0YWxvZyIsIGFzeW5jIChfcmVxLCByZXMsIG5leHQpID0+IHsKICB0cnkgewogICAgcmVzLmpzb24oYXdhaXQgZ2V0Q2F0YWxvZ0RhdGEodHJ1ZSkpOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICBuZXh0KGVycm9yKTsKICB9Cn0pOwoKZXhwb3J0IGRlZmF1bHQgcm91dGVyOw==
+import { db, basinCategories, basinPrices, installedStonePrices, sheetStonePrices } from "@workspace/db";
+import { and, asc, eq, isNull } from "drizzle-orm";
+import { Router, type IRouter } from "express";
+import { PRODUCTS, STONE_COLORS } from "../../../knight-basins/src/data/catalog";
+import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+
+const router: IRouter = Router();
+
+let seedPromise: Promise<void> | null = null;
+
+export async function seedCatalogIfEmpty() {
+  if (!seedPromise) {
+    seedPromise = (async () => {
+      await db.transaction(async (tx) => {
+        await tx.insert(basinCategories).values([
+          { name: "counter basin", sortOrder: 0 },
+          { name: "tall vertical washbasin", sortOrder: 1 },
+        ]).onConflictDoNothing();
+
+        const categories = await tx.select().from(basinCategories);
+        for (const category of categories) {
+          await tx.update(basinPrices)
+            .set({ categoryId: category.id })
+            .where(and(isNull(basinPrices.categoryId), eq(basinPrices.category, category.name)));
+        }
+        const categoryIds = new Map(categories.map((category) => [category.name, category.id]));
+
+        await tx.insert(basinPrices).values(
+            PRODUCTS.map((product, index) => {
+              const normalized = normalizeBasinFields(product);
+              return {
+                ...product,
+                categoryId: categoryIds.get(product.category) ?? null,
+                dimensions: normalized.dimensions,
+                basinDimensions: normalized.basinDimensions,
+                bowlMm: normalized.bowlMm,
+                sortOrder: index,
+              };
+            }),
+          ).onConflictDoNothing();
+
+        await tx.insert(installedStonePrices).values(
+            STONE_COLORS.flatMap((stone, index) =>
+              stone.installedPriceTHB === null
+                ? []
+                : [{
+                    code: stone.code,
+                    name: stone.name,
+                    pricePerSqmTHB: stone.installedPriceTHB,
+                    tone: stone.tone,
+                    aliases: stone.documentCodes,
+                    sortOrder: index,
+                  }],
+            ),
+          ).onConflictDoNothing();
+
+        await tx.insert(sheetStonePrices).values(
+            STONE_COLORS.flatMap((stone, index) => {
+              if (stone.sheetPriceTHB === null) return [];
+              const excluded = ["BW010", "NW013"].includes(stone.code);
+              return [{
+                code: stone.code,
+                name: stone.name,
+                basePriceTHB: stone.sheetPriceTHB,
+                price10PlusTHB: excluded ? stone.sheetPriceTHB : Math.max(0, stone.sheetPriceTHB - 200),
+                price50PlusTHB: excluded ? stone.sheetPriceTHB : Math.round(stone.sheetPriceTHB * 0.95),
+                tone: stone.tone,
+                aliases: stone.documentCodes,
+                sortOrder: index,
+              }];
+            }),
+          ).onConflictDoNothing();
+      });
+    })().catch((error) => {
+      seedPromise = null;
+      throw error;
+    });
+  }
+  await seedPromise;
+}
+
+export async function getCatalogData(activeOnly = true) {
+  await seedCatalogIfEmpty();
+  const active = activeOnly ? eq(basinPrices.active, true) : undefined;
+  const installedActive = activeOnly ? eq(installedStonePrices.active, true) : undefined;
+  const sheetActive = activeOnly ? eq(sheetStonePrices.active, true) : undefined;
+  const [basins, categories, installedStones, sheetStones] = await Promise.all([
+    db.select().from(basinPrices).where(active).orderBy(asc(basinPrices.sortOrder), asc(basinPrices.id)),
+    db.select().from(basinCategories).where(activeOnly ? eq(basinCategories.active, true) : undefined).orderBy(asc(basinCategories.sortOrder), asc(basinCategories.id)),
+    db.select().from(installedStonePrices).where(installedActive).orderBy(asc(installedStonePrices.sortOrder), asc(installedStonePrices.id)),
+    db.select().from(sheetStonePrices).where(sheetActive).orderBy(asc(sheetStonePrices.sortOrder), asc(sheetStonePrices.id)),
+  ]);
+  return {
+    basins: basins.map((basin) => withBasinCategory(withBasinMedia(basin), categories)),
+    categories,
+    installedStones: installedStones.map(withStoneMedia),
+    sheetStones: sheetStones.map(withStoneMedia),
+  };
+}
+
+router.get("/catalog", async (_req, res, next) => {
+  try {
+    res.json(await getCatalogData(true));
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;

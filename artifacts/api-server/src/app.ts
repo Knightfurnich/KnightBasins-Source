@@ -1,1 +1,49 @@
-aW1wb3J0IGV4cHJlc3MsIHsgdHlwZSBFeHByZXNzIH0gZnJvbSAiZXhwcmVzcyI7CmltcG9ydCBjb3JzIGZyb20gImNvcnMiOwppbXBvcnQgY29va2llUGFyc2VyIGZyb20gImNvb2tpZS1wYXJzZXIiOwppbXBvcnQgcGlub0h0dHAgZnJvbSAicGluby1odHRwIjsKaW1wb3J0IHJvdXRlciBmcm9tICIuL3JvdXRlcyI7CmltcG9ydCB7IGxvZ2dlciB9IGZyb20gIi4vbGliL2xvZ2dlciI7CmltcG9ydCB7IFVQTE9BRF9ESVIgfSBmcm9tICIuL2xpYi9pbWFnZS11cGxvYWQiOwoKY29uc3QgYXBwOiBFeHByZXNzID0gZXhwcmVzcygpOwoKYXBwLnVzZSgKICBwaW5vSHR0cCh7CiAgICBsb2dnZXIsCiAgICBzZXJpYWxpemVyczogewogICAgICByZXEocmVxKSB7CiAgICAgICAgcmV0dXJuIHsKICAgICAgICAgIGlkOiByZXEuaWQsCiAgICAgICAgICBtZXRob2Q6IHJlcS5tZXRob2QsCiAgICAgICAgICB1cmw6IHJlcS51cmw/LnNwbGl0KCI/IilbMF0sCiAgICAgICAgfTsKICAgICAgfSwKICAgICAgcmVzKHJlcykgewogICAgICAgIHJldHVybiB7CiAgICAgICAgICBzdGF0dXNDb2RlOiByZXMuc3RhdHVzQ29kZSwKICAgICAgICB9OwogICAgICB9LAogICAgfSwKICB9KSwKKTsKYXBwLnVzZShjb3JzKHsgY3JlZGVudGlhbHM6IHRydWUsIG9yaWdpbjogdHJ1ZSB9KSk7CmFwcC51c2UoY29va2llUGFyc2VyKCkpOwphcHAudXNlKCIva2IvaW1hZ2VzL3VwbG9hZHMiLCBleHByZXNzLnN0YXRpYyhVUExPQURfRElSKSk7CmFwcC51c2UoIi9hcGkvdXBsb2FkcyIsIGV4cHJlc3Muc3RhdGljKFVQTE9BRF9ESVIpKTsKYXBwLnVzZShleHByZXNzLmpzb24oKSk7CmFwcC51c2UoZXhwcmVzcy51cmxlbmNvZGVkKHsgZXh0ZW5kZWQ6IHRydWUgfSkpOwoKYXBwLnVzZSgiL2FwaSIsIHJvdXRlcik7CgphcHAudXNlKChlcnJvcjogdW5rbm93biwgX3JlcTogZXhwcmVzcy5SZXF1ZXN0LCByZXM6IGV4cHJlc3MuUmVzcG9uc2UsIF9uZXh0OiBleHByZXNzLk5leHRGdW5jdGlvbikgPT4gewogIGxvZ2dlci5lcnJvcih7IGVycm9yIH0sICJVbmhhbmRsZWQgQVBJIGVycm9yIik7CiAgY29uc3QgcGdFcnJvciA9IGVycm9yIGFzIHsgY29kZT86IHN0cmluZyB9OwogIGlmIChwZ0Vycm9yPy5jb2RlID09PSAiMjM1MDUiKSB7CiAgICByZXMuc3RhdHVzKDQwOSkuanNvbih7IG1lc3NhZ2U6ICJBIHJlY29yZCB3aXRoIHRoaXMgY29kZSBhbHJlYWR5IGV4aXN0cyIgfSk7CiAgICByZXR1cm47CiAgfQogIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgbWVzc2FnZTogIkludGVybmFsIHNlcnZlciBlcnJvciIgfSk7Cn0pOwoKZXhwb3J0IGRlZmF1bHQgYXBwOwo=
+import express, { type Express } from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import pinoHttp from "pino-http";
+import router from "./routes";
+import { logger } from "./lib/logger";
+import { UPLOAD_DIR } from "./lib/image-upload";
+
+const app: Express = express();
+
+app.use(
+  pinoHttp({
+    logger,
+    serializers: {
+      req(req) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url?.split("?")[0],
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+  }),
+);
+app.use(cors({ credentials: true, origin: true }));
+app.use(cookieParser());
+app.use("/kb/images/uploads", express.static(UPLOAD_DIR));
+app.use("/api/uploads", express.static(UPLOAD_DIR));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", router);
+
+app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error({ error }, "Unhandled API error");
+  const pgError = error as { code?: string };
+  if (pgError?.code === "23505") {
+    res.status(409).json({ message: "A record with this code already exists" });
+    return;
+  }
+  res.status(500).json({ message: "Internal server error" });
+});
+
+export default app;

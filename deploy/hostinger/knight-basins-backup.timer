@@ -1,1 +1,10 @@
-W1VuaXRdCkRlc2NyaXB0aW9uPURhaWx5IEtuaWdodCBCYXNpbnMgUG9zdGdyZVNRTCBiYWNrdXAKCltUaW1lcl0KT25DYWxlbmRhcj0qLSotKiAwMzoxNTowMCBVVEMKUGVyc2lzdGVudD10cnVlClVuaXQ9a25pZ2h0LWJhc2lucy1iYWNrdXAuc2VydmljZQoKW0luc3RhbGxdCldhbnRlZEJ5PXRpbWVycy50YXJnZXQ=
+[Unit]
+Description=Daily Knight Basins PostgreSQL backup
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 UTC
+Persistent=true
+Unit=knight-basins-backup.service
+
+[Install]
+WantedBy=timers.target

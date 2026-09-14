@@ -1,1 +1,6 @@
-aW1wb3J0IHsgZGIgfSBmcm9tICJAd29ya3NwYWNlL2RiIjsKaW1wb3J0IHsgY3JlYXRlQWRtaW5Sb3V0ZXIgfSBmcm9tICIuL2FkbWluLXJvdXRlciI7CgpleHBvcnQgeyBjcmVhdGVBZG1pblJvdXRlciB9OwoKZXhwb3J0IGRlZmF1bHQgY3JlYXRlQWRtaW5Sb3V0ZXIoZGIpOw==
+import { db } from "@workspace/db";
+import { createAdminRouter } from "./admin-router";
+
+export { createAdminRouter };
+
+export default createAdminRouter(db);

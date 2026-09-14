@@ -1,1 +1,41 @@
-IyEvdXNyL2Jpbi9lbnYgYmFzaApzZXQgLUVldW8gcGlwZWZhaWwKCkJBQ0tVUF9ESVI9IiR7QkFDS1VQX0RJUjotL3Zhci9iYWNrdXBzL2tuaWdodC1iYXNpbnN9IgpiYWNrdXBfZmlsZT0iJHsxOi19IgoKaWYgW1sgLXogIiRiYWNrdXBfZmlsZSIgXV07IHRoZW4KICBiYWNrdXBfZmlsZT0iJChmaW5kICIkQkFDS1VQX0RJUiIgLW1heGRlcHRoIDEgLXR5cGUgZiAtbmFtZSAna25pZ2h0LWJhc2lucy0qLmR1bXAnIC1wcmludGYgJyVUQCAlcFxuJyBcCiAgICB8IHNvcnQgLW5yIHwgYXdrICdOUiA9PSAxIHsgc3ViKC9eW14gXSsgLywgIiIpOyBwcmludCB9JykiCmZpCgppZiBbWyAteiAiJGJhY2t1cF9maWxlIiB8fCAhIC1yICIkYmFja3VwX2ZpbGUiIF1dOyB0aGVuCiAgZWNobyAiTm8gcmVhZGFibGUgYmFja3VwIGFyY2hpdmUgd2FzIGZvdW5kIGluICRCQUNLVVBfRElSLiIgPiYyCiAgZXhpdCAxCmZpCgppZiAhIGNvbW1hbmQgLXYgcnVudXNlciA+L2Rldi9udWxsIDI+JjE7IHRoZW4KICBlY2hvICJUaGlzIHNjcmlwdCByZXF1aXJlcyBydW51c2VyLiIgPiYyCiAgZXhpdCAxCmZpCgp0ZW1wX2RiPSJrbmlnaHRfYmFzaW5zX3Jlc3RvcmVfY2hlY2tfJChkYXRlIC11ICslWSVtJWQlSCVNJVMpIgpjbGVhbnVwKCkgewogIHJ1bnVzZXIgLXUgcG9zdGdyZXMgLS0gZHJvcGRiIC0taWYtZXhpc3RzICIkdGVtcF9kYiIgPi9kZXYvbnVsbCAyPiYxIHx8IHRydWUKfQp0cmFwIGNsZWFudXAgRVhJVAoKcnVudXNlciAtdSBwb3N0Z3JlcyAtLSBjcmVhdGVkYiAiJHRlbXBfZGIiCnJ1bnVzZXIgLXUgcG9zdGdyZXMgLS0gcGdfcmVzdG9yZSBcCiAgLS1leGl0LW9uLWVycm9yIFwKICAtLW5vLW93bmVyIFwKICAtLW5vLWFjbCBcCiAgLS1kYm5hbWU9IiR0ZW1wX2RiIiBcCiAgIiRiYWNrdXBfZmlsZSIKCnJ1bnVzZXIgLXUgcG9zdGdyZXMgLS0gcHNxbCBcCiAgLS1kYm5hbWU9IiR0ZW1wX2RiIiBcCiAgLS1zZXQ9T05fRVJST1JfU1RPUD0xIFwKICAtLWNvbW1hbmQ9J1NFTEVDVCBjb3VudCgqKSBBUyBiYXNpbl9yb3dzIEZST00gYmFzaW5fcHJpY2VzOyBTRUxFQ1QgY291bnQoKikgQVMgaW5zdGFsbGVkX3N0b25lX3Jvd3MgRlJPTSBpbnN0YWxsZWRfc3RvbmVfcHJpY2VzOyBTRUxFQ1QgY291bnQoKikgQVMgc2hlZXRfc3RvbmVfcm93cyBGUk9NIHNoZWV0X3N0b25lX3ByaWNlczsnCgplY2hvICJSZXN0b3JlIGNoZWNrIHBhc3NlZCBmb3IgJGJhY2t1cF9maWxlIg==
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/knight-basins}"
+backup_file="${1:-}"
+
+if [[ -z "$backup_file" ]]; then
+  backup_file="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'knight-basins-*.dump' -printf '%T@ %p\n' \
+    | sort -nr | awk 'NR == 1 { sub(/^[^ ]+ /, ""); print }')"
+fi
+
+if [[ -z "$backup_file" || ! -r "$backup_file" ]]; then
+  echo "No readable backup archive was found in $BACKUP_DIR." >&2
+  exit 1
+fi
+
+if ! command -v runuser >/dev/null 2>&1; then
+  echo "This script requires runuser." >&2
+  exit 1
+fi
+
+temp_db="knight_basins_restore_check_$(date -u +%Y%m%d%H%M%S)"
+cleanup() {
+  runuser -u postgres -- dropdb --if-exists "$temp_db" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+runuser -u postgres -- createdb "$temp_db"
+runuser -u postgres -- pg_restore \
+  --exit-on-error \
+  --no-owner \
+  --no-acl \
+  --dbname="$temp_db" \
+  "$backup_file"
+
+runuser -u postgres -- psql \
+  --dbname="$temp_db" \
+  --set=ON_ERROR_STOP=1 \
+  --command='SELECT count(*) AS basin_rows FROM basin_prices; SELECT count(*) AS installed_stone_rows FROM installed_stone_prices; SELECT count(*) AS sheet_stone_rows FROM sheet_stone_prices;'
+
+echo "Restore check passed for $backup_file"

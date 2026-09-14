@@ -31,8 +31,8 @@ export type BasinPlacement = {
   sku: string;
   xMm: number;
   yMm: number;
-  widthMm: number;
-  depthMm: number;
+  widthMm: number | null;
+  depthMm: number | null;
 };
 
 export type StudioState = {
@@ -61,6 +61,7 @@ export type StudioEstimate = {
   standardSheetWarning: boolean;
   standardSheetMessage: string;
   unsafePlacements: string[];
+  unknownDimensionPlacements: string[];
   isValid: boolean;
 };
 
@@ -95,9 +96,9 @@ export function standardSheetWarning(shape: CounterShape, dimensions: StudioDime
   return runs.some((run) => run > 3600) || dimensions.depthMm > 760;
 }
 
-function basinSize(product?: BasinProduct) {
+export function basinDimensionsForProduct(product?: BasinProduct) {
   const values = product?.basinDimensions?.match(/\d+/g)?.map(Number) ?? [];
-  return { widthMm: values[0] || 500, depthMm: values[1] || 500 };
+  return { widthMm: values[0] ?? null, depthMm: values[1] ?? null };
 }
 
 export function unsafeBasinPlacements(
@@ -107,12 +108,40 @@ export function unsafeBasinPlacements(
   const maxY = Math.max(0, state.dimensions.depthMm);
   return state.basinPlacements
     .filter((placement) =>
-      placement.xMm < STUDIO_EDGE_CLEARANCE_MM ||
-      placement.yMm < STUDIO_EDGE_CLEARANCE_MM ||
-      placement.xMm + placement.widthMm > maxX - STUDIO_EDGE_CLEARANCE_MM ||
-      placement.yMm + placement.depthMm > maxY - STUDIO_EDGE_CLEARANCE_MM,
+      placement.widthMm !== null &&
+      placement.depthMm !== null &&
+      (
+        placement.xMm < STUDIO_EDGE_CLEARANCE_MM ||
+        placement.yMm < STUDIO_EDGE_CLEARANCE_MM ||
+        placement.xMm + placement.widthMm > maxX - STUDIO_EDGE_CLEARANCE_MM ||
+        placement.yMm + placement.depthMm > maxY - STUDIO_EDGE_CLEARANCE_MM
+      ),
     )
     .map((placement) => placement.id);
+}
+
+export function unknownBasinPlacements(
+  state: Pick<StudioState, "basinPlacements">,
+) {
+  return state.basinPlacements
+    .filter((placement) => placement.widthMm === null || placement.depthMm === null)
+    .map((placement) => placement.id);
+}
+
+export function clampBasinPlacementPosition(
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
+  xMm: number,
+  yMm: number,
+  dimensions: Pick<StudioDimensions, "runAMm" | "depthMm">,
+) {
+  const maxRun = Math.max(1, dimensions.runAMm);
+  const maxDepth = Math.max(1, dimensions.depthMm);
+  const widthMm = placement.widthMm ?? 0;
+  const depthMm = placement.depthMm ?? 0;
+  return {
+    xMm: Math.max(0, Math.min(maxRun - widthMm, xMm)),
+    yMm: Math.max(0, Math.min(maxDepth - depthMm, yMm)),
+  };
 }
 
 export function studioEstimate(
@@ -135,6 +164,7 @@ export function studioEstimate(
     ? state.location === "bangkok-metro" ? STONE_SMALL_JOB_BANGKOK_FEE : STONE_SMALL_JOB_PROVINCE_FEE
     : 0;
   const unsafe = unsafeBasinPlacements(state);
+  const unknownDimensions = unknownBasinPlacements(state);
   const sheetWarning = standardSheetWarning(state.shape, state.dimensions);
   const standardSheetMessage = sheetWarning
     ? `บางช่วงยาวหรือมีความลึกเกินแผ่นมาตรฐาน ${STONE_SHEET_SIZE} ต้องตรวจสอบการต่อแผ่นกับทีมขาย`
@@ -153,6 +183,7 @@ export function studioEstimate(
     standardSheetWarning: sheetWarning,
     standardSheetMessage,
     unsafePlacements: unsafe,
+    unknownDimensionPlacements: unknownDimensions,
     isValid: state.stoneColors.length >= STUDIO_MIN_STONE_COLORS &&
       state.stoneColors.length <= STUDIO_MAX_STONE_COLORS &&
       state.basinSkus.length >= STUDIO_MIN_BASINS &&
@@ -160,13 +191,14 @@ export function studioEstimate(
       state.basinPlacements.length >= state.basinSkus.length &&
       price !== null &&
       !unsafe.length &&
+      !unknownDimensions.length &&
       state.dimensions.depthMm > 0 &&
       usableRuns(state.shape, state.dimensions).every((run) => run > 0),
   };
 }
 
 export function createBasinPlacement(product: BasinProduct, index: number): BasinPlacement {
-  const size = basinSize(product);
+  const size = basinDimensionsForProduct(product);
   return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, xMm: 70, yMm: 70, ...size };
 }
 

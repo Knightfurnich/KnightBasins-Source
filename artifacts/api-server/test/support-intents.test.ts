@@ -1,1 +1,18 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBnZXRTdXBwb3J0SW50ZW50UmVwbHkgfSBmcm9tICIuLi9zcmMvbGliL3N1cHBvcnQtaW50ZW50cy50cyI7CgpkZXNjcmliZSgiS25pZ2h0U3VwcG9ydCBjb252ZXJzYXRpb25hbCByZXBsaWVzIiwgKCkgPT4gewogIGl0KCJpbnRyb2R1Y2VzIEtuaWdodFN1cHBvcnQgaW5zdGVhZCBvZiByZXBlYXRpbmcgdGhlIHNlYXJjaCBpbnN0cnVjdGlvbnMiLCAoKSA9PiB7CiAgICBhc3NlcnQubWF0Y2goZ2V0U3VwcG9ydEludGVudFJlcGx5KCLguITguLjguJPguITguLfguK3guK3guLDguYTguKMiKSA/PyAiIiwgL0tuaWdodFN1cHBvcnQvKTsKICB9KTsKCiAgaXQoImhhbmRsZXMgbG9jYXRpb24gcXVlc3Rpb25zIHdpdGhvdXQgaW52ZW50aW5nIGFuIGFkZHJlc3MiLCAoKSA9PiB7CiAgICBjb25zdCByZXBseSA9IGdldFN1cHBvcnRJbnRlbnRSZXBseSgi4Lij4LmJ4Liy4LiZ4Lit4Lii4Li54LmI4LmE4Lir4LiZIik7CiAgICBhc3NlcnQubWF0Y2gocmVwbHkgPz8gIiIsIC/guKLguLHguIfguYTguKHguYjguKHguLXguILguYnguK3guKHguLnguKXguJfguLXguYjguK3guKLguLnguYgvKTsKICB9KTsKCiAgaXQoImtlZXBzIGNhc3VhbCBxdWVzdGlvbnMgZnJpZW5kbHkgYW5kIG9uIHRvcGljIiwgKCkgPT4gewogICAgYXNzZXJ0Lm1hdGNoKGdldFN1cHBvcnRJbnRlbnRSZXBseSgi4LmE4Lib4LmA4LiX4Li14LmI4Lii4Lin4LiB4Lix4LiZ4Lih4Lix4LmJ4LiiIikgPz8gIiIsIC/guJzguLnguYnguIrguYjguKfguKLguILguYnguK3guKHguLnguKXguKrguLTguJnguITguYnguLIvKTsKICB9KTsKfSk7
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { getSupportIntentReply } from "../src/lib/support-intents.ts";
+
+describe("KnightSupport conversational replies", () => {
+  it("introduces KnightSupport instead of repeating the search instructions", () => {
+    assert.match(getSupportIntentReply("คุณคืออะไร") ?? "", /KnightSupport/);
+  });
+
+  it("handles location questions without inventing an address", () => {
+    const reply = getSupportIntentReply("ร้านอยู่ไหน");
+    assert.match(reply ?? "", /ยังไม่มีข้อมูลที่อยู่/);
+  });
+
+  it("keeps casual questions friendly and on topic", () => {
+    assert.match(getSupportIntentReply("ไปเที่ยวกันมั้ย") ?? "", /ผู้ช่วยข้อมูลสินค้า/);
+  });
+});

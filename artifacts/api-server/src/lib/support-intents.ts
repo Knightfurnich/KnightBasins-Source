@@ -1,1 +1,31 @@
-ZXhwb3J0IGZ1bmN0aW9uIGdldFN1cHBvcnRJbnRlbnRSZXBseShtZXNzYWdlOiBzdHJpbmcpIHsKICBjb25zdCBxdWVyeSA9IG1lc3NhZ2UKICAgIC50cmltKCkKICAgIC50b0xvY2FsZUxvd2VyQ2FzZSgidGgtVEgiKQogICAgLnJlcGxhY2UoL1teXHB7TH1ccHtNfVxwe059XSsvZ3UsICIgIikKICAgIC5yZXBsYWNlKC9ccysvZywgIiAiKTsKCiAgaWYgKCFxdWVyeSkgcmV0dXJuIG51bGw7CgogIGlmICgvKOC4hOC4uOC4k+C4hOC4t+C4reC4reC4sOC5hOC4o3zguYDguJvguYfguJnguYPguITguKN84LiX4Liz4Lit4Liw4LmE4Lij4LmE4LiU4LmJfOC5geC4meC4sOC4meC4s+C4leC4seC4pykvdS50ZXN0KHF1ZXJ5KSkgewogICAgcmV0dXJuICLguJzguKHguITguLfguK0gS25pZ2h0U3VwcG9ydCDguJzguLnguYnguIrguYjguKfguKLguILguK3guIcgS25pZ2h0IEZ1cm5pY2gg4LiE4Lij4Lix4LiaIOC4nOC4oeC4iuC5iOC4p+C4ouC4hOC5ieC4meC4q+C4siBTS1Ug4Lit4LmI4Liy4LiH4Lil4LmJ4Liy4LiH4Lir4LiZ4LmJ4LiyIOC4o+C4q+C4seC4quC4quC4teC4q+C4tOC4mSDguKPguLLguITguLIg4LiC4LiZ4Liy4LiUIOC5geC4peC4sOC4p+C4tOC4lOC4teC5guC4rSAzRCAzNjDCsCDguYTguJTguYkg4Lil4Lit4LiH4Lie4Li04Lih4Lie4LmM4Lij4Lir4Lix4LiqIOC5gOC4iuC5iOC4mSBLRjAyMCDguKvguKPguLfguK0gQlcwMTAg4LmE4LiU4LmJ4LmA4Lil4Lii4LiE4Lij4Lix4LiaIjsKICB9CgogIGlmICgvKOC4quC4p+C4seC4quC4lOC4tXzguKvguKfguLHguJTguJTguLV8aGVsbG98aGl84LiX4Lix4LiB4LiX4Liy4LiiKS91LnRlc3QocXVlcnkpKSB7CiAgICByZXR1cm4gIuC4quC4p+C4seC4quC4lOC4teC4hOC4o+C4seC4miDguKLguLTguJnguJTguLXguIrguYjguKfguKLguITguYnguJnguKvguLLguILguYnguK3guKHguLnguKXguK3guYjguLLguIfguKXguYnguLLguIfguKvguJnguYnguLLguYHguKXguLDguKvguLTguJnguKrguLHguIfguYDguITguKPguLLguLDguKvguYzguYPguKvguYnguITguKPguLHguJog4Lil4Lit4LiH4Lie4Li04Lih4Lie4LmMIFNLVSDguKvguKPguLfguK3guKPguKvguLHguKrguKrguLXguJfguLXguYjguJXguYnguK3guIfguIHguLLguKPguYTguJTguYnguYDguKXguKIiOwogIH0KCiAgaWYgKC8o4Lij4LmJ4Liy4LiZ4Lit4Lii4Li54LmI4LmE4Lir4LiZfOC4reC4ouC4ueC5iOC4l+C4teC5iOC5hOC4q+C4mXzguJfguLXguYjguK3guKLguLnguYjguKPguYnguLLguJl84Lie4Li04LiB4Lix4LiU4Lij4LmJ4Liy4LiZfOC5hOC4m+C4l+C4teC5iOC4o+C5ieC4suC4mXzguYTguJvguKLguLHguIfguYTguIcpL3UudGVzdChxdWVyeSkpIHsKICAgIHJldHVybiAi4Lic4Lih4Lii4Lix4LiH4LmE4Lih4LmI4Lih4Li14LiC4LmJ4Lit4Lih4Li54Lil4LiX4Li14LmI4Lit4Lii4Li54LmI4Lir4LiZ4LmJ4Liy4Lij4LmJ4Liy4LiZ4LmD4LiZ4Lij4Liw4Lia4Lia4LiE4Lij4Lix4LiaIOC5geC4leC5iOC4iuC5iOC4p+C4ouC4hOC5ieC4meC4q+C4suC4o+C4suC4ouC4peC4sOC5gOC4reC4teC4ouC4lOC4quC4tOC4meC4hOC5ieC4siDguKPguLLguITguLIg4LmB4Lil4Liw4LiC4LiZ4Liy4LiU4LmD4Lir4LmJ4LmE4LiU4LmJIOC4q+C4suC4geC4leC5ieC4reC4h+C4geC4suC4o+C4meC4seC4lOC4q+C4oeC4suC4ouC4q+C4o+C4t+C4reC4quC4reC4muC4luC4suC4oeC4quC4luC4suC4meC4l+C4teC5iCDguIHguKPguLjguJPguLLguJXguLTguJTguJXguYjguK3guJfguLXguKEgS25pZ2h0IEZ1cm5pY2gg4LmC4LiU4Lii4LiV4Lij4LiH4LiE4Lij4Lix4LiaIjsKICB9CgogIGlmICgvKOC4guC4reC4muC4hOC4uOC4k3zguILguK3guJrguYPguIh8dGhhbmspL3UudGVzdChxdWVyeSkpIHsKICAgIHJldHVybiAi4Lii4Li04LiZ4LiU4Li14LiE4Lij4Lix4LiaIOC4luC5ieC4suC4leC5ieC4reC4h+C4geC4suC4o+C4lOC4ueC4quC4tOC4meC4hOC5ieC4siDguKPguLLguITguLIg4Lir4Lij4Li34Lit4LiC4LiZ4Liy4LiU4LmA4Lie4Li04LmI4Lih4LmA4LiV4Li04LihIOC4nuC4tOC4oeC4nuC5jCBTS1Ug4Lih4Liy4LmE4LiU4LmJ4LmA4Lil4Lii4LiE4Lij4Lix4LiaIjsKICB9CgogIGlmICgvKOC5hOC4m+C5gOC4l+C4teC5iOC4ouC4p3zguYDguJfguLXguYjguKLguKfguIHguLHguJl84LmA4LiU4LiXfOC4o+C4seC4gXzguYHguJ/guJkpL3UudGVzdChxdWVyeSkpIHsKICAgIHJldHVybiAi4Lic4Lih4LmA4Lib4LmH4LiZ4Lic4Li54LmJ4LiK4LmI4Lin4Lii4LiC4LmJ4Lit4Lih4Li54Lil4Liq4Li04LiZ4LiE4LmJ4LiyIOC4iOC4tuC4h+C5hOC4m+C5gOC4l+C4teC5iOC4ouC4p+C4lOC5ieC4p+C4ouC5hOC4oeC5iOC5hOC4lOC5ieC4hOC4o+C4seC4miDguYHguJXguYjguIrguYjguKfguKLguYDguKXguLfguK3guIHguK3guYjguLLguIfguKXguYnguLLguIfguKvguJnguYnguLLguKvguKPguLfguK3guKvguLTguJnguKrguLHguIfguYDguITguKPguLLguLDguKvguYzguYPguKvguYnguYTguJTguYnguYDguKrguKHguK0iOwogIH0KCiAgcmV0dXJuIG51bGw7Cn0=
+export function getSupportIntentReply(message: string) {
+  const query = message
+    .trim()
+    .toLocaleLowerCase("th-TH")
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ");
+
+  if (!query) return null;
+
+  if (/(คุณคืออะไร|เป็นใคร|ทำอะไรได้|แนะนำตัว)/u.test(query)) {
+    return "ผมคือ KnightSupport ผู้ช่วยของ Knight Furnich ครับ ผมช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ ลองพิมพ์รหัส เช่น KF020 หรือ BW010 ได้เลยครับ";
+  }
+
+  if (/(สวัสดี|หวัดดี|hello|hi|ทักทาย)/u.test(query)) {
+    return "สวัสดีครับ ยินดีช่วยค้นหาข้อมูลอ่างล้างหน้าและหินสังเคราะห์ให้ครับ ลองพิมพ์ SKU หรือรหัสสีที่ต้องการได้เลย";
+  }
+
+  if (/(ร้านอยู่ไหน|อยู่ที่ไหน|ที่อยู่ร้าน|พิกัดร้าน|ไปที่ร้าน|ไปยังไง)/u.test(query)) {
+    return "ผมยังไม่มีข้อมูลที่อยู่หน้าร้านในระบบครับ แต่ช่วยค้นหารายละเอียดสินค้า ราคา และขนาดให้ได้ หากต้องการนัดหมายหรือสอบถามสถานที่ กรุณาติดต่อทีม Knight Furnich โดยตรงครับ";
+  }
+
+  if (/(ขอบคุณ|ขอบใจ|thank)/u.test(query)) {
+    return "ยินดีครับ ถ้าต้องการดูสินค้า ราคา หรือขนาดเพิ่มเติม พิมพ์ SKU มาได้เลยครับ";
+  }
+
+  if (/(ไปเที่ยว|เที่ยวกัน|เดท|รัก|แฟน)/u.test(query)) {
+    return "ผมเป็นผู้ช่วยข้อมูลสินค้า จึงไปเที่ยวด้วยไม่ได้ครับ แต่ช่วยเลือกอ่างล้างหน้าหรือหินสังเคราะห์ให้ได้เสมอ";
+  }
+
+  return null;
+}

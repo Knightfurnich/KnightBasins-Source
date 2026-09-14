@@ -6,4 +6,5 @@
 - [Workspace declaration rebuilds](workspace-declaration-rebuilds.md) — rebuild referenced library declarations after schema merges before trusting API typecheck results.
 - [Production media and schema deployment](production-media-and-schema.md) — normalize legacy basin image URLs and grant the VPS app role access to new tables and sequences.
 - [Development schema sync](development-schema-sync.md) — apply new Drizzle tables and columns to development before restarting artifact workflows.
+- [Scoped artifact dependencies](scoped-artifact-dependencies.md) — add packages to the target pnpm workspace package, not the repository root.
 - [GitHub publish fallback](github-publish-fallback.md) — when the Git remote cannot authenticate and the repository is empty, publish through the installed GitHub integration API.

@@ -1,1 +1,19 @@
-ewogICJleHRlbmRzIjogIi4uLy4uL3RzY29uZmlnLmJhc2UuanNvbiIsCiAgImNvbXBpbGVyT3B0aW9ucyI6IHsKICAgICJpbmNyZW1lbnRhbCI6IHRydWUsCiAgICAidHNCdWlsZEluZm9GaWxlIjogIi50c2J1aWxkaW5mbyIsCiAgICAib3V0RGlyIjogImRpc3QiLAogICAgInJvb3REaXIiOiAiLi4vLi4iLAogICAgInR5cGVzIjogWyJub2RlIl0KICB9LAogICJpbmNsdWRlIjogWyJzcmMiXSwKICAicmVmZXJlbmNlcyI6IFsKICAgIHsKICAgICAgInBhdGgiOiAiLi4vLi4vbGliL2RiIgogICAgfSwKICAgIHsKICAgICAgInBhdGgiOiAiLi4vLi4vbGliL2FwaS16b2QiCiAgICB9CiAgXQp9Cg==
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "outDir": "dist",
+    "rootDir": "../..",
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "../../lib/db"
+    },
+    {
+      "path": "../../lib/api-zod"
+    }
+  ]
+}

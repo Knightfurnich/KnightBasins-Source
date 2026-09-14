@@ -260,6 +260,17 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
 export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
+export function filterBasinProducts(products: BasinProduct[], query: string) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  if (!normalizedQuery) return products;
+  return products.filter((product) => [
+    product.sku,
+    product.colorCode,
+    product.colorName,
+    product.category,
+  ].join(" ").toLocaleLowerCase().includes(normalizedQuery));
+}
+
 export function basinProductFromCatalog(item: {
   sku: string;
   colorCode: string;

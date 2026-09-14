@@ -1,1 +1,114 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgewogIEFETUlOX0FSQ0hJVkVfRVJST1JfTUVTU0FHRSwKICBjcmVhdGVBZG1pbkFyY2hpdmVNdXRhdGlvbkNhbGxiYWNrcywKICBmaWx0ZXJBZG1pbkl0ZW1zLAogIHRvZ2dsZUFkbWluSXRlbUFjdGl2ZSwKfSBmcm9tICIuLi9zcmMvYWRtaW4vYWRtaW5BcmNoaXZlLnRzIjsKCnR5cGUgRml4dHVyZSA9IHsKICBpZDogbnVtYmVyOwogIGNvZGU6IHN0cmluZzsKICBuYW1lOiBzdHJpbmc7CiAgYWN0aXZlOiBib29sZWFuOwogIHNvcnRPcmRlcjogbnVtYmVyOwp9OwoKY29uc3QgZml4dHVyZXM6IEZpeHR1cmVbXSA9IFsKICB7IGlkOiAxLCBjb2RlOiAiQUNUSVZFLTEiLCBuYW1lOiAiQWN0aXZlIHdoaXRlIiwgYWN0aXZlOiB0cnVlLCBzb3J0T3JkZXI6IDIgfSwKICB7IGlkOiAyLCBjb2RlOiAiQVJDSElWRUQtMSIsIG5hbWU6ICJBcmNoaXZlZCBibGFjayIsIGFjdGl2ZTogZmFsc2UsIHNvcnRPcmRlcjogMSB9LApdOwoKZGVzY3JpYmUoImFkbWluIGNhdGFsb2cgdmlzaWJpbGl0eSIsICgpID0+IHsKICBmb3IgKGNvbnN0IFtsYWJlbCwgc2VhcmNoYWJsZUZpZWxkc10gb2YgWwogICAgWyJiYXNpbnMiLCBbImNvZGUiLCAibmFtZSJdIGFzIGNvbnN0XSwKICAgIFsiaW5zdGFsbGVkIHN0b25lcyIsIFsiY29kZSIsICJuYW1lIl0gYXMgY29uc3RdLAogICAgWyJzaGVldCBzdG9uZXMiLCBbImNvZGUiLCAibmFtZSJdIGFzIGNvbnN0XSwKICBdIGFzIGNvbnN0KSB7CiAgICBkZXNjcmliZShsYWJlbCwgKCkgPT4gewogICAgICBpdCgic2hvd3Mgb25seSBhY3RpdmUgcmVjb3JkcyBieSBkZWZhdWx0IiwgKCkgPT4gewogICAgICAgIGFzc2VydC5kZWVwRXF1YWwoCiAgICAgICAgICBmaWx0ZXJBZG1pbkl0ZW1zKGZpeHR1cmVzLCAiYWN0aXZlIiwgIiIsIHNlYXJjaGFibGVGaWVsZHMpLm1hcCgKICAgICAgICAgICAgKGl0ZW0pID0+IGl0ZW0uaWQsCiAgICAgICAgICApLAogICAgICAgICAgWzFdLAogICAgICAgICk7CiAgICAgIH0pOwoKICAgICAgaXQoInNob3dzIG9ubHkgYXJjaGl2ZWQgcmVjb3JkcyBpbiBBcmNoaXZlZCB2aWV3IiwgKCkgPT4gewogICAgICAgIGFzc2VydC5kZWVwRXF1YWwoCiAgICAgICAgICBmaWx0ZXJBZG1pbkl0ZW1zKGZpeHR1cmVzLCAiYXJjaGl2ZWQiLCAiIiwgc2VhcmNoYWJsZUZpZWxkcykubWFwKAogICAgICAgICAgICAoaXRlbSkgPT4gaXRlbS5pZCwKICAgICAgICAgICksCiAgICAgICAgICBbMl0sCiAgICAgICAgKTsKICAgICAgfSk7CgogICAgICBpdCgic2hvd3MgYm90aCByZWNvcmRzIGluIEFsbCB2aWV3IGFuZCBzdGlsbCBhcHBsaWVzIHNlYXJjaCIsICgpID0+IHsKICAgICAgICBhc3NlcnQuZGVlcEVxdWFsKAogICAgICAgICAgZmlsdGVyQWRtaW5JdGVtcyhmaXh0dXJlcywgImFsbCIsICJBUkNISVZFRCIsIHNlYXJjaGFibGVGaWVsZHMpLm1hcCgKICAgICAgICAgICAgKGl0ZW0pID0+IGl0ZW0uaWQsCiAgICAgICAgICApLAogICAgICAgICAgWzJdLAogICAgICAgICk7CiAgICAgICAgYXNzZXJ0LmRlZXBFcXVhbCgKICAgICAgICAgIGZpbHRlckFkbWluSXRlbXMoZml4dHVyZXMsICJhbGwiLCAiIiwgc2VhcmNoYWJsZUZpZWxkcykubWFwKAogICAgICAgICAgICAoaXRlbSkgPT4gaXRlbS5pZCwKICAgICAgICAgICksCiAgICAgICAgICBbMiwgMV0sCiAgICAgICAgKTsKICAgICAgfSk7CiAgICB9KTsKICB9Cn0pOwoKZGVzY3JpYmUoImFkbWluIGFyY2hpdmUgYW5kIHJlc3RvcmUgYmVoYXZpb3IiLCAoKSA9PiB7CiAgaXQoInRvZ2dsZXMgYWN0aXZlIHdpdGhvdXQgY2hhbmdpbmcgdGhlIHJlY29yZCBpZGVudGl0eSBvciBjYXRhbG9nIGZpZWxkcyIsICgpID0+IHsKICAgIGNvbnN0IG9yaWdpbmFsID0gZml4dHVyZXNbMF07CiAgICBjb25zdCBhcmNoaXZlZCA9IHRvZ2dsZUFkbWluSXRlbUFjdGl2ZShvcmlnaW5hbCk7CiAgICBjb25zdCByZXN0b3JlZCA9IHRvZ2dsZUFkbWluSXRlbUFjdGl2ZShhcmNoaXZlZCk7CgogICAgYXNzZXJ0LmVxdWFsKGFyY2hpdmVkLmlkLCBvcmlnaW5hbC5pZCk7CiAgICBhc3NlcnQuZXF1YWwoYXJjaGl2ZWQuY29kZSwgb3JpZ2luYWwuY29kZSk7CiAgICBhc3NlcnQuZXF1YWwoYXJjaGl2ZWQubmFtZSwgb3JpZ2luYWwubmFtZSk7CiAgICBhc3NlcnQuZXF1YWwoYXJjaGl2ZWQuYWN0aXZlLCBmYWxzZSk7CiAgICBhc3NlcnQuZGVlcEVxdWFsKHJlc3RvcmVkLCBvcmlnaW5hbCk7CiAgfSk7CgogIGl0KCJjbG9zZXMgYW5kIHJlZnJlc2hlcyBvbmx5IGFmdGVyIGEgc3VjY2Vzc2Z1bCBtdXRhdGlvbiIsICgpID0+IHsKICAgIGNvbnN0IGNhbGxzOiBzdHJpbmdbXSA9IFtdOwogICAgY29uc3QgY2FsbGJhY2tzID0gY3JlYXRlQWRtaW5BcmNoaXZlTXV0YXRpb25DYWxsYmFja3MoewogICAgICBpbnZhbGlkYXRlOiAoKSA9PiBjYWxscy5wdXNoKCJpbnZhbGlkYXRlIiksCiAgICAgIGNsb3NlRGlhbG9nOiAoKSA9PiBjYWxscy5wdXNoKCJjbG9zZSIpLAogICAgICB0b2FzdDogKHsgZGVzY3JpcHRpb24sIHZhcmlhbnQgfSkgPT4KICAgICAgICBjYWxscy5wdXNoKGB0b2FzdDoke3ZhcmlhbnQgPz8gImRlZmF1bHQifToke2Rlc2NyaXB0aW9ufWApLAogICAgICBzdWNjZXNzTWVzc2FnZTogIlJlc3RvcmVkIiwKICAgIH0pOwoKICAgIGNhbGxiYWNrcy5vblN1Y2Nlc3MoKTsKCiAgICBhc3NlcnQuZGVlcEVxdWFsKGNhbGxzLCBbCiAgICAgICJpbnZhbGlkYXRlIiwKICAgICAgImNsb3NlIiwKICAgICAgInRvYXN0OmRlZmF1bHQ6UmVzdG9yZWQiLAogICAgXSk7CiAgfSk7CgogIGl0KCJrZWVwcyB0aGUgZGlhbG9nIG9wZW4gYW5kIHJlcG9ydHMgYSBjbGVhciBlcnJvciB3aGVuIG11dGF0aW9uIGZhaWxzIiwgKCkgPT4gewogICAgY29uc3QgY2FsbHM6IHN0cmluZ1tdID0gW107CiAgICBjb25zdCBjYWxsYmFja3MgPSBjcmVhdGVBZG1pbkFyY2hpdmVNdXRhdGlvbkNhbGxiYWNrcyh7CiAgICAgIGludmFsaWRhdGU6ICgpID0+IGNhbGxzLnB1c2goImludmFsaWRhdGUiKSwKICAgICAgY2xvc2VEaWFsb2c6ICgpID0+IGNhbGxzLnB1c2goImNsb3NlIiksCiAgICAgIHRvYXN0OiAoeyBkZXNjcmlwdGlvbiwgdmFyaWFudCB9KSA9PgogICAgICAgIGNhbGxzLnB1c2goYHRvYXN0OiR7dmFyaWFudCA/PyAiZGVmYXVsdCJ9OiR7ZGVzY3JpcHRpb259YCksCiAgICAgIHN1Y2Nlc3NNZXNzYWdlOiAiSGlkZGVuIiwKICAgIH0pOwoKICAgIGNhbGxiYWNrcy5vbkVycm9yKCk7CgogICAgYXNzZXJ0LmRlZXBFcXVhbChjYWxscywgWwogICAgICBgdG9hc3Q6ZGVzdHJ1Y3RpdmU6JHtBRE1JTl9BUkNISVZFX0VSUk9SX01FU1NBR0V9YCwKICAgIF0pOwogIH0pOwp9KTs=
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import {
+  ADMIN_ARCHIVE_ERROR_MESSAGE,
+  createAdminArchiveMutationCallbacks,
+  filterAdminItems,
+  toggleAdminItemActive,
+} from "../src/admin/adminArchive.ts";
+
+type Fixture = {
+  id: number;
+  code: string;
+  name: string;
+  active: boolean;
+  sortOrder: number;
+};
+
+const fixtures: Fixture[] = [
+  { id: 1, code: "ACTIVE-1", name: "Active white", active: true, sortOrder: 2 },
+  { id: 2, code: "ARCHIVED-1", name: "Archived black", active: false, sortOrder: 1 },
+];
+
+describe("admin catalog visibility", () => {
+  for (const [label, searchableFields] of [
+    ["basins", ["code", "name"] as const],
+    ["installed stones", ["code", "name"] as const],
+    ["sheet stones", ["code", "name"] as const],
+  ] as const) {
+    describe(label, () => {
+      it("shows only active records by default", () => {
+        assert.deepEqual(
+          filterAdminItems(fixtures, "active", "", searchableFields).map(
+            (item) => item.id,
+          ),
+          [1],
+        );
+      });
+
+      it("shows only archived records in Archived view", () => {
+        assert.deepEqual(
+          filterAdminItems(fixtures, "archived", "", searchableFields).map(
+            (item) => item.id,
+          ),
+          [2],
+        );
+      });
+
+      it("shows both records in All view and still applies search", () => {
+        assert.deepEqual(
+          filterAdminItems(fixtures, "all", "ARCHIVED", searchableFields).map(
+            (item) => item.id,
+          ),
+          [2],
+        );
+        assert.deepEqual(
+          filterAdminItems(fixtures, "all", "", searchableFields).map(
+            (item) => item.id,
+          ),
+          [2, 1],
+        );
+      });
+    });
+  }
+});
+
+describe("admin archive and restore behavior", () => {
+  it("toggles active without changing the record identity or catalog fields", () => {
+    const original = fixtures[0];
+    const archived = toggleAdminItemActive(original);
+    const restored = toggleAdminItemActive(archived);
+
+    assert.equal(archived.id, original.id);
+    assert.equal(archived.code, original.code);
+    assert.equal(archived.name, original.name);
+    assert.equal(archived.active, false);
+    assert.deepEqual(restored, original);
+  });
+
+  it("closes and refreshes only after a successful mutation", () => {
+    const calls: string[] = [];
+    const callbacks = createAdminArchiveMutationCallbacks({
+      invalidate: () => calls.push("invalidate"),
+      closeDialog: () => calls.push("close"),
+      toast: ({ description, variant }) =>
+        calls.push(`toast:${variant ?? "default"}:${description}`),
+      successMessage: "Restored",
+    });
+
+    callbacks.onSuccess();
+
+    assert.deepEqual(calls, [
+      "invalidate",
+      "close",
+      "toast:default:Restored",
+    ]);
+  });
+
+  it("keeps the dialog open and reports a clear error when mutation fails", () => {
+    const calls: string[] = [];
+    const callbacks = createAdminArchiveMutationCallbacks({
+      invalidate: () => calls.push("invalidate"),
+      closeDialog: () => calls.push("close"),
+      toast: ({ description, variant }) =>
+        calls.push(`toast:${variant ?? "default"}:${description}`),
+      successMessage: "Hidden",
+    });
+
+    callbacks.onError();
+
+    assert.deepEqual(calls, [
+      `toast:destructive:${ADMIN_ARCHIVE_ERROR_MESSAGE}`,
+    ]);
+  });
+});

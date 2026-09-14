@@ -1,1 +1,236 @@
-aW1wb3J0IHsgY3JlYXRlSGFzaCwgY3JlYXRlSG1hYywgcmFuZG9tQnl0ZXMsIHRpbWluZ1NhZmVFcXVhbCB9IGZyb20gIm5vZGU6Y3J5cHRvIjsKaW1wb3J0IHsgY3VzdG9tZXJBY2NvdW50cywgY3VzdG9tZXJTZXNzaW9ucywgZGIgfSBmcm9tICJAd29ya3NwYWNlL2RiIjsKaW1wb3J0IHsgYW5kLCBlcSwgZ3QgfSBmcm9tICJkcml6emxlLW9ybSI7CmltcG9ydCB7IFJvdXRlciwgdHlwZSBJUm91dGVyIH0gZnJvbSAiZXhwcmVzcyI7CmltcG9ydCB7IGdldExpbmVBdXRoRGlhZ25vc3RpY3MgfSBmcm9tICIuLi9saWIvbGluZS1jb25maWciOwoKY29uc3Qgcm91dGVyOiBJUm91dGVyID0gUm91dGVyKCk7CmNvbnN0IFNUQVRFX0NPT0tJRSA9ICJrbmlnaHRfbGluZV9vYXV0aF9zdGF0ZSI7CmNvbnN0IFNFU1NJT05fQ09PS0lFID0gImtuaWdodF9saW5lX3Nlc3Npb24iOwpjb25zdCBTRVNTSU9OX0FHRV9NUyA9IDMwICogMjQgKiA2MCAqIDYwICogMTAwMDsKCnR5cGUgTGluZVVzZXIgPSB7CiAgdXNlcklkOiBzdHJpbmc7CiAgZGlzcGxheU5hbWU6IHN0cmluZzsKICBwaWN0dXJlVXJsPzogc3RyaW5nOwp9OwoKdHlwZSBMaW5lU2Vzc2lvbkNvb2tpZSA9IHsKICB0b2tlbjogc3RyaW5nOwp9OwoKZnVuY3Rpb24gY29uZmlnKCkgewogIHJldHVybiB7CiAgICBjaGFubmVsSWQ6IHByb2Nlc3MuZW52WyJMSU5FX0NIQU5ORUxfSUQiXSwKICAgIGNoYW5uZWxTZWNyZXQ6IHByb2Nlc3MuZW52WyJMSU5FX0NIQU5ORUxfU0VDUkVUIl0sCiAgICBjYWxsYmFja1VybDogcHJvY2Vzcy5lbnZbIkxJTkVfQ0FMTEJBQ0tfVVJMIl0sCiAgfTsKfQoKZnVuY3Rpb24gc2VjcmV0KCkgewogIGNvbnN0IHZhbHVlID0gcHJvY2Vzcy5lbnZbIlNFU1NJT05fU0VDUkVUIl07CiAgaWYgKCF2YWx1ZSkgdGhyb3cgbmV3IEVycm9yKCJTRVNTSU9OX1NFQ1JFVCBpcyByZXF1aXJlZCIpOwogIHJldHVybiB2YWx1ZTsKfQoKZnVuY3Rpb24gc2lnbih2YWx1ZTogc3RyaW5nKSB7CiAgcmV0dXJuIGNyZWF0ZUhtYWMoInNoYTI1NiIsIHNlY3JldCgpKS51cGRhdGUodmFsdWUpLmRpZ2VzdCgiaGV4Iik7Cn0KCmZ1bmN0aW9uIGhhc2hTZXNzaW9uVG9rZW4odG9rZW46IHN0cmluZykgewogIHJldHVybiBjcmVhdGVIYXNoKCJzaGEyNTYiKS51cGRhdGUodG9rZW4pLmRpZ2VzdCgiaGV4Iik7Cn0KCmZ1bmN0aW9uIHNhZmVFcXVhbChsZWZ0OiBzdHJpbmcsIHJpZ2h0OiBzdHJpbmcpIHsKICBjb25zdCBhID0gQnVmZmVyLmZyb20obGVmdCk7CiAgY29uc3QgYiA9IEJ1ZmZlci5mcm9tKHJpZ2h0KTsKICByZXR1cm4gYS5sZW5ndGggPT09IGIubGVuZ3RoICYmIHRpbWluZ1NhZmVFcXVhbChhLCBiKTsKfQoKZnVuY3Rpb24gZW5jb2RlKHZhbHVlOiB1bmtub3duKSB7CiAgcmV0dXJuIEJ1ZmZlci5mcm9tKEpTT04uc3RyaW5naWZ5KHZhbHVlKSkudG9TdHJpbmcoImJhc2U2NHVybCIpOwp9CgpmdW5jdGlvbiBkZWNvZGU8VD4odmFsdWU6IHN0cmluZykgewogIHJldHVybiBKU09OLnBhcnNlKEJ1ZmZlci5mcm9tKHZhbHVlLCAiYmFzZTY0dXJsIikudG9TdHJpbmcoInV0ZjgiKSkgYXMgVDsKfQoKZnVuY3Rpb24gc2lnbmVkQ29va2llUGF5bG9hZDxUPih2YWx1ZTogVCkgewogIGNvbnN0IHBheWxvYWQgPSBlbmNvZGUodmFsdWUpOwogIHJldHVybiBgJHtwYXlsb2FkfS4ke3NpZ24ocGF5bG9hZCl9YDsKfQoKZnVuY3Rpb24gdmVyaWZ5Q29va2llPFQ+KHZhbHVlOiBzdHJpbmcgfCB1bmRlZmluZWQpIHsKICBpZiAoIXZhbHVlKSByZXR1cm4gbnVsbDsKICBjb25zdCBbcGF5bG9hZCwgc2lnbmF0dXJlXSA9IHZhbHVlLnNwbGl0KCIuIik7CiAgaWYgKCFwYXlsb2FkIHx8ICFzaWduYXR1cmUgfHwgIXNhZmVFcXVhbChzaWduYXR1cmUsIHNpZ24ocGF5bG9hZCkpKSByZXR1cm4gbnVsbDsKICB0cnkgewogICAgcmV0dXJuIGRlY29kZTxUPihwYXlsb2FkKTsKICB9IGNhdGNoIHsKICAgIHJldHVybiBudWxsOwogIH0KfQoKZnVuY3Rpb24gcmV0dXJuVG8odmFsdWU6IHVua25vd24pIHsKICByZXR1cm4gdHlwZW9mIHZhbHVlID09PSAic3RyaW5nIiAmJiB2YWx1ZS5zdGFydHNXaXRoKCIvIikgJiYgIXZhbHVlLnN0YXJ0c1dpdGgoIi8vIikgPyB2YWx1ZSA6ICIvIjsKfQoKZnVuY3Rpb24gY29uZmlndXJlZCgpIHsKICByZXR1cm4gZ2V0TGluZUF1dGhEaWFnbm9zdGljcygpLnJlYWR5Owp9Cgphc3luYyBmdW5jdGlvbiBmaW5kQXV0aGVudGljYXRlZFVzZXIoY29va2llVmFsdWU6IHN0cmluZyB8IHVuZGVmaW5lZCkgewogIGNvbnN0IHNlc3Npb24gPSB2ZXJpZnlDb29raWU8TGluZVNlc3Npb25Db29raWU+KGNvb2tpZVZhbHVlKTsKICBpZiAoIXNlc3Npb24/LnRva2VuKSByZXR1cm4gbnVsbDsKCiAgY29uc3QgW3Jlc3VsdF0gPSBhd2FpdCBkYgogICAgLnNlbGVjdCh7CiAgICAgIHVzZXJJZDogY3VzdG9tZXJBY2NvdW50cy5saW5lVXNlcklkLAogICAgICBkaXNwbGF5TmFtZTogY3VzdG9tZXJBY2NvdW50cy5kaXNwbGF5TmFtZSwKICAgICAgcGljdHVyZVVybDogY3VzdG9tZXJBY2NvdW50cy5waWN0dXJlVXJsLAogICAgfSkKICAgIC5mcm9tKGN1c3RvbWVyU2Vzc2lvbnMpCiAgICAuaW5uZXJKb2luKGN1c3RvbWVyQWNjb3VudHMsIGVxKGN1c3RvbWVyU2Vzc2lvbnMuYWNjb3VudElkLCBjdXN0b21lckFjY291bnRzLmlkKSkKICAgIC53aGVyZShhbmQoCiAgICAgIGVxKGN1c3RvbWVyU2Vzc2lvbnMudG9rZW5IYXNoLCBoYXNoU2Vzc2lvblRva2VuKHNlc3Npb24udG9rZW4pKSwKICAgICAgZ3QoY3VzdG9tZXJTZXNzaW9ucy5leHBpcmVzQXQsIG5ldyBEYXRlKCkpLAogICAgKSkKICAgIC5saW1pdCgxKTsKCiAgcmV0dXJuIHJlc3VsdCA/PyBudWxsOwp9Cgpyb3V0ZXIuZ2V0KCIvYXV0aC9saW5lL2xvZ2luIiwgKHJlcSwgcmVzKSA9PiB7CiAgaWYgKCFjb25maWd1cmVkKCkpIHsKICAgIHJlcy5zdGF0dXMoNTAzKS5qc29uKHsgbWVzc2FnZTogIkxJTkUgTG9naW4gaXMgbm90IGNvbmZpZ3VyZWQuIFNldCBMSU5FX0NIQU5ORUxfSUQsIExJTkVfQ0hBTk5FTF9TRUNSRVQsIGFuZCBMSU5FX0NBTExCQUNLX1VSTC4iIH0pOwogICAgcmV0dXJuOwogIH0KCiAgY29uc3QgeyBjaGFubmVsSWQsIGNhbGxiYWNrVXJsIH0gPSBjb25maWcoKTsKICBjb25zdCBzdGF0ZSA9IHJhbmRvbUJ5dGVzKDI0KS50b1N0cmluZygiaGV4Iik7CiAgY29uc3Qgc3RhdGVQYXlsb2FkID0geyBzdGF0ZSwgcmV0dXJuVG86IHJldHVyblRvKHJlcS5xdWVyeS5yZXR1cm5UbykgfTsKICByZXMuY29va2llKFNUQVRFX0NPT0tJRSwgc2lnbmVkQ29va2llUGF5bG9hZChzdGF0ZVBheWxvYWQpLCB7CiAgICBodHRwT25seTogdHJ1ZSwKICAgIHNhbWVTaXRlOiAibGF4IiwKICAgIHNlY3VyZTogcHJvY2Vzcy5lbnZbIk5PREVfRU5WIl0gPT09ICJwcm9kdWN0aW9uIiwKICAgIG1heEFnZTogMTAgKiA2MCAqIDEwMDAsCiAgICBwYXRoOiAiLyIsCiAgfSk7CgogIGNvbnN0IHF1ZXJ5ID0gbmV3IFVSTFNlYXJjaFBhcmFtcyh7CiAgICByZXNwb25zZV90eXBlOiAiY29kZSIsCiAgICBjbGllbnRfaWQ6IGNoYW5uZWxJZCEsCiAgICByZWRpcmVjdF91cmk6IGNhbGxiYWNrVXJsISwKICAgIHN0YXRlLAogICAgc2NvcGU6ICJwcm9maWxlIG9wZW5pZCIsCiAgfSk7CiAgcmVzLnJlZGlyZWN0KGBodHRwczovL2FjY2Vzcy5saW5lLm1lL29hdXRoMi92Mi4xL2F1dGhvcml6ZT8ke3F1ZXJ5LnRvU3RyaW5nKCl9YCk7Cn0pOwoKcm91dGVyLmdldCgiL2F1dGgvbGluZS9jYWxsYmFjayIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogIGNvbnN0IHN0YXRlQ29va2llID0gdmVyaWZ5Q29va2llPHsgc3RhdGU6IHN0cmluZzsgcmV0dXJuVG86IHN0cmluZyB9PihyZXEuY29va2llcz8uW1NUQVRFX0NPT0tJRV0pOwogIHJlcy5jbGVhckNvb2tpZShTVEFURV9DT09LSUUsIHsgcGF0aDogIi8iIH0pOwogIGlmICghc3RhdGVDb29raWUgfHwgc3RhdGVDb29raWUuc3RhdGUgIT09IHJlcS5xdWVyeS5zdGF0ZSkgewogICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBtZXNzYWdlOiAiTElORSBMb2dpbiBzdGF0ZSB2ZXJpZmljYXRpb24gZmFpbGVkIiB9KTsKICAgIHJldHVybjsKICB9CiAgaWYgKHJlcS5xdWVyeS5lcnJvciB8fCB0eXBlb2YgcmVxLnF1ZXJ5LmNvZGUgIT09ICJzdHJpbmciKSB7CiAgICByZXMucmVkaXJlY3Qoc3RhdGVDb29raWUucmV0dXJuVG8pOwogICAgcmV0dXJuOwogIH0KCiAgY29uc3QgeyBjaGFubmVsSWQsIGNoYW5uZWxTZWNyZXQsIGNhbGxiYWNrVXJsIH0gPSBjb25maWcoKTsKICB0cnkgewogICAgY29uc3QgdG9rZW5SZXNwb25zZSA9IGF3YWl0IGZldGNoKCJodHRwczovL2FwaS5saW5lLm1lL29hdXRoMi92Mi4xL3Rva2VuIiwgewogICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgaGVhZGVyczogeyAiY29udGVudC10eXBlIjogImFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZCIgfSwKICAgICAgYm9keTogbmV3IFVSTFNlYXJjaFBhcmFtcyh7CiAgICAgICAgZ3JhbnRfdHlwZTogImF1dGhvcml6YXRpb25fY29kZSIsCiAgICAgICAgY29kZTogcmVxLnF1ZXJ5LmNvZGUsCiAgICAgICAgcmVkaXJlY3RfdXJpOiBjYWxsYmFja1VybCEsCiAgICAgICAgY2xpZW50X2lkOiBjaGFubmVsSWQhLAogICAgICAgIGNsaWVudF9zZWNyZXQ6IGNoYW5uZWxTZWNyZXQhLAogICAgICB9KSwKICAgIH0pOwogICAgaWYgKCF0b2tlblJlc3BvbnNlLm9rKSB7CiAgICAgIHJlcy5zdGF0dXMoNTAyKS5qc29uKHsgbWVzc2FnZTogIkxJTkUgTG9naW4gdG9rZW4gZXhjaGFuZ2UgZmFpbGVkIiB9KTsKICAgICAgcmV0dXJuOwogICAgfQogICAgY29uc3QgdG9rZW4gPSBhd2FpdCB0b2tlblJlc3BvbnNlLmpzb24oKSBhcyB7IGFjY2Vzc190b2tlbj86IHN0cmluZyB9OwogICAgaWYgKCF0b2tlbi5hY2Nlc3NfdG9rZW4pIHsKICAgICAgcmVzLnN0YXR1cyg1MDIpLmpzb24oeyBtZXNzYWdlOiAiTElORSBMb2dpbiBkaWQgbm90IHJldHVybiBhbiBhY2Nlc3MgdG9rZW4iIH0pOwogICAgICByZXR1cm47CiAgICB9CgogICAgY29uc3QgcHJvZmlsZVJlc3BvbnNlID0gYXdhaXQgZmV0Y2goImh0dHBzOi8vYXBpLmxpbmUubWUvdjIvcHJvZmlsZSIsIHsKICAgICAgaGVhZGVyczogeyBBdXRob3JpemF0aW9uOiBgQmVhcmVyICR7dG9rZW4uYWNjZXNzX3Rva2VufWAgfSwKICAgIH0pOwogICAgaWYgKCFwcm9maWxlUmVzcG9uc2Uub2spIHsKICAgICAgcmVzLnN0YXR1cyg1MDIpLmpzb24oeyBtZXNzYWdlOiAiTElORSBwcm9maWxlIGxvb2t1cCBmYWlsZWQiIH0pOwogICAgICByZXR1cm47CiAgICB9CiAgICBjb25zdCBwcm9maWxlID0gYXdhaXQgcHJvZmlsZVJlc3BvbnNlLmpzb24oKSBhcyBMaW5lVXNlcjsKICAgIGNvbnN0IFthY2NvdW50XSA9IGF3YWl0IGRiCiAgICAgIC5pbnNlcnQoY3VzdG9tZXJBY2NvdW50cykKICAgICAgLnZhbHVlcyh7CiAgICAgICAgbGluZVVzZXJJZDogcHJvZmlsZS51c2VySWQsCiAgICAgICAgZGlzcGxheU5hbWU6IHByb2ZpbGUuZGlzcGxheU5hbWUsCiAgICAgICAgcGljdHVyZVVybDogcHJvZmlsZS5waWN0dXJlVXJsID8/IG51bGwsCiAgICAgIH0pCiAgICAgIC5vbkNvbmZsaWN0RG9VcGRhdGUoewogICAgICAgIHRhcmdldDogY3VzdG9tZXJBY2NvdW50cy5saW5lVXNlcklkLAogICAgICAgIHNldDogewogICAgICAgICAgZGlzcGxheU5hbWU6IHByb2ZpbGUuZGlzcGxheU5hbWUsCiAgICAgICAgICBwaWN0dXJlVXJsOiBwcm9maWxlLnBpY3R1cmVVcmwgPz8gbnVsbCwKICAgICAgICAgIHVwZGF0ZWRBdDogbmV3IERhdGUoKSwKICAgICAgICB9LAogICAgICB9KQogICAgICAucmV0dXJuaW5nKHsgaWQ6IGN1c3RvbWVyQWNjb3VudHMuaWQgfSk7CiAgICBpZiAoIWFjY291bnQpIHsKICAgICAgdGhyb3cgbmV3IEVycm9yKCJMSU5FIGN1c3RvbWVyIGFjY291bnQgY291bGQgbm90IGJlIHNhdmVkIik7CiAgICB9CgogICAgY29uc3Qgc2Vzc2lvblRva2VuID0gcmFuZG9tQnl0ZXMoMzIpLnRvU3RyaW5nKCJiYXNlNjR1cmwiKTsKICAgIGF3YWl0IGRiLmluc2VydChjdXN0b21lclNlc3Npb25zKS52YWx1ZXMoewogICAgICBhY2NvdW50SWQ6IGFjY291bnQuaWQsCiAgICAgIHRva2VuSGFzaDogaGFzaFNlc3Npb25Ub2tlbihzZXNzaW9uVG9rZW4pLAogICAgICBleHBpcmVzQXQ6IG5ldyBEYXRlKERhdGUubm93KCkgKyBTRVNTSU9OX0FHRV9NUyksCiAgICB9KTsKCiAgICByZXMuY29va2llKFNFU1NJT05fQ09PS0lFLCBzaWduZWRDb29raWVQYXlsb2FkKHsgdG9rZW46IHNlc3Npb25Ub2tlbiB9KSwgewogICAgICBodHRwT25seTogdHJ1ZSwKICAgICAgc2FtZVNpdGU6ICJsYXgiLAogICAgICBzZWN1cmU6IHByb2Nlc3MuZW52WyJOT0RFX0VOViJdID09PSAicHJvZHVjdGlvbiIsCiAgICAgIG1heEFnZTogU0VTU0lPTl9BR0VfTVMsCiAgICAgIHBhdGg6ICIvIiwKICAgIH0pOwogICAgcmVzLnJlZGlyZWN0KHN0YXRlQ29va2llLnJldHVyblRvKTsKICB9IGNhdGNoIChlcnJvcikgewogICAgbmV4dChlcnJvcik7CiAgfQp9KTsKCnJvdXRlci5nZXQoIi9hdXRoL2xpbmUvc3RhdHVzIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IHVzZXIgPSBhd2FpdCBmaW5kQXV0aGVudGljYXRlZFVzZXIocmVxLmNvb2tpZXM/LltTRVNTSU9OX0NPT0tJRV0pOwogICAgcmVzLmpzb24oeyBjb25maWd1cmVkOiBjb25maWd1cmVkKCksIGF1dGhlbnRpY2F0ZWQ6IEJvb2xlYW4odXNlciksIHVzZXI6IHVzZXIgPz8gbnVsbCB9KTsKICB9IGNhdGNoIChlcnJvcikgewogICAgbmV4dChlcnJvcik7CiAgfQp9KTsKCnJvdXRlci5kZWxldGUoIi9hdXRoL2xpbmUvc2Vzc2lvbiIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogIHRyeSB7CiAgICBjb25zdCBzZXNzaW9uID0gdmVyaWZ5Q29va2llPExpbmVTZXNzaW9uQ29va2llPihyZXEuY29va2llcz8uW1NFU1NJT05fQ09PS0lFXSk7CiAgICBpZiAoc2Vzc2lvbj8udG9rZW4pIHsKICAgICAgYXdhaXQgZGIuZGVsZXRlKGN1c3RvbWVyU2Vzc2lvbnMpLndoZXJlKGVxKGN1c3RvbWVyU2Vzc2lvbnMudG9rZW5IYXNoLCBoYXNoU2Vzc2lvblRva2VuKHNlc3Npb24udG9rZW4pKSk7CiAgICB9CiAgICByZXMuY2xlYXJDb29raWUoU0VTU0lPTl9DT09LSUUsIHsgcGF0aDogIi8iIH0pOwogICAgcmVzLmNsZWFyQ29va2llKCJrbmlnaHRfbGluZV91c2VyIiwgeyBwYXRoOiAiLyIgfSk7CiAgICByZXMuc3RhdHVzKDIwNCkuZW5kKCk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIG5leHQoZXJyb3IpOwogIH0KfSk7CgpleHBvcnQgZGVmYXVsdCByb3V0ZXI7Cg==
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { customerAccounts, customerSessions, db } from "@workspace/db";
+import { and, eq, gt } from "drizzle-orm";
+import { Router, type IRouter } from "express";
+import { getLineAuthDiagnostics } from "../lib/line-config";
+
+const router: IRouter = Router();
+const STATE_COOKIE = "knight_line_oauth_state";
+const SESSION_COOKIE = "knight_line_session";
+const SESSION_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+type LineUser = {
+  userId: string;
+  displayName: string;
+  pictureUrl?: string;
+};
+
+type LineSessionCookie = {
+  token: string;
+};
+
+function config() {
+  return {
+    channelId: process.env["LINE_CHANNEL_ID"],
+    channelSecret: process.env["LINE_CHANNEL_SECRET"],
+    callbackUrl: process.env["LINE_CALLBACK_URL"],
+  };
+}
+
+function secret() {
+  const value = process.env["SESSION_SECRET"];
+  if (!value) throw new Error("SESSION_SECRET is required");
+  return value;
+}
+
+function sign(value: string) {
+  return createHmac("sha256", secret()).update(value).digest("hex");
+}
+
+function hashSessionToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function safeEqual(left: string, right: string) {
+  const a = Buffer.from(left);
+  const b = Buffer.from(right);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function encode(value: unknown) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+function decode<T>(value: string) {
+  return JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as T;
+}
+
+function signedCookiePayload<T>(value: T) {
+  const payload = encode(value);
+  return `${payload}.${sign(payload)}`;
+}
+
+function verifyCookie<T>(value: string | undefined) {
+  if (!value) return null;
+  const [payload, signature] = value.split(".");
+  if (!payload || !signature || !safeEqual(signature, sign(payload))) return null;
+  try {
+    return decode<T>(payload);
+  } catch {
+    return null;
+  }
+}
+
+function returnTo(value: unknown) {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "/";
+}
+
+function configured() {
+  return getLineAuthDiagnostics().ready;
+}
+
+async function findAuthenticatedUser(cookieValue: string | undefined) {
+  const session = verifyCookie<LineSessionCookie>(cookieValue);
+  if (!session?.token) return null;
+
+  const [result] = await db
+    .select({
+      userId: customerAccounts.lineUserId,
+      displayName: customerAccounts.displayName,
+      pictureUrl: customerAccounts.pictureUrl,
+    })
+    .from(customerSessions)
+    .innerJoin(customerAccounts, eq(customerSessions.accountId, customerAccounts.id))
+    .where(and(
+      eq(customerSessions.tokenHash, hashSessionToken(session.token)),
+      gt(customerSessions.expiresAt, new Date()),
+    ))
+    .limit(1);
+
+  return result ?? null;
+}
+
+router.get("/auth/line/login", (req, res) => {
+  if (!configured()) {
+    res.status(503).json({ message: "LINE Login is not configured. Set LINE_CHANNEL_ID, LINE_CHANNEL_SECRET, and LINE_CALLBACK_URL." });
+    return;
+  }
+
+  const { channelId, callbackUrl } = config();
+  const state = randomBytes(24).toString("hex");
+  const statePayload = { state, returnTo: returnTo(req.query.returnTo) };
+  res.cookie(STATE_COOKIE, signedCookiePayload(statePayload), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env["NODE_ENV"] === "production",
+    maxAge: 10 * 60 * 1000,
+    path: "/",
+  });
+
+  const query = new URLSearchParams({
+    response_type: "code",
+    client_id: channelId!,
+    redirect_uri: callbackUrl!,
+    state,
+    scope: "profile openid",
+  });
+  res.redirect(`https://access.line.me/oauth2/v2.1/authorize?${query.toString()}`);
+});
+
+router.get("/auth/line/callback", async (req, res, next) => {
+  const stateCookie = verifyCookie<{ state: string; returnTo: string }>(req.cookies?.[STATE_COOKIE]);
+  res.clearCookie(STATE_COOKIE, { path: "/" });
+  if (!stateCookie || stateCookie.state !== req.query.state) {
+    res.status(400).json({ message: "LINE Login state verification failed" });
+    return;
+  }
+  if (req.query.error || typeof req.query.code !== "string") {
+    res.redirect(stateCookie.returnTo);
+    return;
+  }
+
+  const { channelId, channelSecret, callbackUrl } = config();
+  try {
+    const tokenResponse = await fetch("https://api.line.me/oauth2/v2.1/token", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code: req.query.code,
+        redirect_uri: callbackUrl!,
+        client_id: channelId!,
+        client_secret: channelSecret!,
+      }),
+    });
+    if (!tokenResponse.ok) {
+      res.status(502).json({ message: "LINE Login token exchange failed" });
+      return;
+    }
+    const token = await tokenResponse.json() as { access_token?: string };
+    if (!token.access_token) {
+      res.status(502).json({ message: "LINE Login did not return an access token" });
+      return;
+    }
+
+    const profileResponse = await fetch("https://api.line.me/v2/profile", {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+    });
+    if (!profileResponse.ok) {
+      res.status(502).json({ message: "LINE profile lookup failed" });
+      return;
+    }
+    const profile = await profileResponse.json() as LineUser;
+    const [account] = await db
+      .insert(customerAccounts)
+      .values({
+        lineUserId: profile.userId,
+        displayName: profile.displayName,
+        pictureUrl: profile.pictureUrl ?? null,
+      })
+      .onConflictDoUpdate({
+        target: customerAccounts.lineUserId,
+        set: {
+          displayName: profile.displayName,
+          pictureUrl: profile.pictureUrl ?? null,
+          updatedAt: new Date(),
+        },
+      })
+      .returning({ id: customerAccounts.id });
+    if (!account) {
+      throw new Error("LINE customer account could not be saved");
+    }
+
+    const sessionToken = randomBytes(32).toString("base64url");
+    await db.insert(customerSessions).values({
+      accountId: account.id,
+      tokenHash: hashSessionToken(sessionToken),
+      expiresAt: new Date(Date.now() + SESSION_AGE_MS),
+    });
+
+    res.cookie(SESSION_COOKIE, signedCookiePayload({ token: sessionToken }), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env["NODE_ENV"] === "production",
+      maxAge: SESSION_AGE_MS,
+      path: "/",
+    });
+    res.redirect(stateCookie.returnTo);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/auth/line/status", async (req, res, next) => {
+  try {
+    const user = await findAuthenticatedUser(req.cookies?.[SESSION_COOKIE]);
+    res.json({ configured: configured(), authenticated: Boolean(user), user: user ?? null });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/auth/line/session", async (req, res, next) => {
+  try {
+    const session = verifyCookie<LineSessionCookie>(req.cookies?.[SESSION_COOKIE]);
+    if (session?.token) {
+      await db.delete(customerSessions).where(eq(customerSessions.tokenHash, hashSessionToken(session.token)));
+    }
+    res.clearCookie(SESSION_COOKIE, { path: "/" });
+    res.clearCookie("knight_line_user", { path: "/" });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;

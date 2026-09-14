@@ -1,1 +1,71 @@
-aW1wb3J0IHsgZGVmaW5lQ29uZmlnLCBJbnB1dFRyYW5zZm9ybWVyRm4gfSBmcm9tICJvcnZhbCI7CmltcG9ydCBwYXRoIGZyb20gInBhdGgiOwoKY29uc3Qgcm9vdCA9IHBhdGgucmVzb2x2ZShfX2Rpcm5hbWUsICIuLiIsICIuLiIpOwpjb25zdCBhcGlDbGllbnRSZWFjdFNyYyA9IHBhdGgucmVzb2x2ZShyb290LCAibGliIiwgImFwaS1jbGllbnQtcmVhY3QiLCAic3JjIik7CmNvbnN0IGFwaVpvZFNyYyA9IHBhdGgucmVzb2x2ZShyb290LCAibGliIiwgImFwaS16b2QiLCAic3JjIik7CgovLyBPdXIgZXhwb3J0cyBtYWtlIGFzc3VtcHRpb25zIGFib3V0IHRoZSB0aXRsZSBvZiB0aGUgQVBJIGJlaW5nICJBcGkiIChpLmUuIGdlbmVyYXRlZCBvdXRwdXQgaXMgYGFwaS50c2ApLgpjb25zdCB0aXRsZVRyYW5zZm9ybWVyOiBJbnB1dFRyYW5zZm9ybWVyRm4gPSAoY29uZmlnKSA9PiB7CiAgY29uZmlnLmluZm8gPz89IHt9OwogIGNvbmZpZy5pbmZvLnRpdGxlID0gIkFwaSI7CgogIHJldHVybiBjb25maWc7Cn07CgpleHBvcnQgZGVmYXVsdCBkZWZpbmVDb25maWcoewogICJhcGktY2xpZW50LXJlYWN0IjogewogICAgaW5wdXQ6IHsKICAgICAgdGFyZ2V0OiBwYXRoLnJlc29sdmUoX19kaXJuYW1lLCAib3BlbmFwaS55YW1sIiksCiAgICAgIG92ZXJyaWRlOiB7CiAgICAgICAgdHJhbnNmb3JtZXI6IHRpdGxlVHJhbnNmb3JtZXIsCiAgICAgIH0sCiAgICB9LAogICAgb3V0cHV0OiB7CiAgICAgIHdvcmtzcGFjZTogYXBpQ2xpZW50UmVhY3RTcmMsCiAgICAgIHRhcmdldDogImdlbmVyYXRlZCIsCiAgICAgIGNsaWVudDogInJlYWN0LXF1ZXJ5IiwKICAgICAgbW9kZTogInNwbGl0IiwKICAgICAgYmFzZVVybDogIi9hcGkiLAogICAgICBjbGVhbjogdHJ1ZSwKICAgICAgcHJldHRpZXI6IHRydWUsCiAgICAgIG92ZXJyaWRlOiB7CiAgICAgICAgZmV0Y2g6IHsKICAgICAgICAgIGluY2x1ZGVIdHRwUmVzcG9uc2VSZXR1cm5UeXBlOiBmYWxzZSwKICAgICAgICB9LAogICAgICAgIG11dGF0b3I6IHsKICAgICAgICAgIHBhdGg6IHBhdGgucmVzb2x2ZShhcGlDbGllbnRSZWFjdFNyYywgImN1c3RvbS1mZXRjaC50cyIpLAogICAgICAgICAgbmFtZTogImN1c3RvbUZldGNoIiwKICAgICAgICB9LAogICAgICB9LAogICAgfSwKICB9LAogIHpvZDogewogICAgaW5wdXQ6IHsKICAgICAgdGFyZ2V0OiBwYXRoLnJlc29sdmUoX19kaXJuYW1lLCAib3BlbmFwaS55YW1sIiksCiAgICAgIG92ZXJyaWRlOiB7CiAgICAgICAgdHJhbnNmb3JtZXI6IHRpdGxlVHJhbnNmb3JtZXIsCiAgICAgIH0sCiAgICB9LAogICAgb3V0cHV0OiB7CiAgICAgIHdvcmtzcGFjZTogYXBpWm9kU3JjLAogICAgICBjbGllbnQ6ICJ6b2QiLAogICAgICB0YXJnZXQ6ICJnZW5lcmF0ZWQiLAogICAgICBtb2RlOiAic3BsaXQiLAogICAgICBjbGVhbjogdHJ1ZSwKICAgICAgcHJldHRpZXI6IHRydWUsCiAgICAgIG92ZXJyaWRlOiB7CiAgICAgICAgem9kOiB7CiAgICAgICAgICBjb2VyY2U6IHsKICAgICAgICAgICAgcXVlcnk6IFsnYm9vbGVhbicsICdudW1iZXInLCAnc3RyaW5nJ10sCiAgICAgICAgICAgIHBhcmFtOiBbJ2Jvb2xlYW4nLCAnbnVtYmVyJywgJ3N0cmluZyddLAogICAgICAgICAgICBib2R5OiBbJ2JpZ2ludCcsICdkYXRlJ10sCiAgICAgICAgICAgIHJlc3BvbnNlOiBbJ2JpZ2ludCcsICdkYXRlJ10sCiAgICAgICAgICB9LAogICAgICAgIH0sCiAgICAgICAgdXNlRGF0ZXM6IHRydWUsCiAgICAgICAgdXNlQmlnSW50OiB0cnVlLAogICAgICB9LAogICAgfSwKICB9LAp9KTsK
+import { defineConfig, InputTransformerFn } from "orval";
+import path from "path";
+
+const root = path.resolve(__dirname, "..", "..");
+const apiClientReactSrc = path.resolve(root, "lib", "api-client-react", "src");
+const apiZodSrc = path.resolve(root, "lib", "api-zod", "src");
+
+// Our exports make assumptions about the title of the API being "Api" (i.e. generated output is `api.ts`).
+const titleTransformer: InputTransformerFn = (config) => {
+  config.info ??= {};
+  config.info.title = "Api";
+
+  return config;
+};
+
+export default defineConfig({
+  "api-client-react": {
+    input: {
+      target: path.resolve(__dirname, "openapi.yaml"),
+      override: {
+        transformer: titleTransformer,
+      },
+    },
+    output: {
+      workspace: apiClientReactSrc,
+      target: "generated",
+      client: "react-query",
+      mode: "split",
+      baseUrl: "/api",
+      clean: true,
+      prettier: true,
+      override: {
+        fetch: {
+          includeHttpResponseReturnType: false,
+        },
+        mutator: {
+          path: path.resolve(apiClientReactSrc, "custom-fetch.ts"),
+          name: "customFetch",
+        },
+      },
+    },
+  },
+  zod: {
+    input: {
+      target: path.resolve(__dirname, "openapi.yaml"),
+      override: {
+        transformer: titleTransformer,
+      },
+    },
+    output: {
+      workspace: apiZodSrc,
+      client: "zod",
+      target: "generated",
+      mode: "split",
+      clean: true,
+      prettier: true,
+      override: {
+        zod: {
+          coerce: {
+            query: ['boolean', 'number', 'string'],
+            param: ['boolean', 'number', 'string'],
+            body: ['bigint', 'date'],
+            response: ['bigint', 'date'],
+          },
+        },
+        useDates: true,
+        useBigInt: true,
+      },
+    },
+  },
+});

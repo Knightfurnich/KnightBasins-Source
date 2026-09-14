@@ -1,1 +1,14 @@
-aW1wb3J0IHsgUm91dGVyLCB0eXBlIElSb3V0ZXIgfSBmcm9tICJleHByZXNzIjsKaW1wb3J0IHsgSGVhbHRoQ2hlY2tSZXNwb25zZSB9IGZyb20gIkB3b3Jrc3BhY2UvYXBpLXpvZCI7CmltcG9ydCB7IGdldExpbmVBdXRoRGlhZ25vc3RpY3MsIGdldExpbmVIZWFsdGhTdGF0dXMgfSBmcm9tICIuLi9saWIvbGluZS1jb25maWciOwoKY29uc3Qgcm91dGVyOiBJUm91dGVyID0gUm91dGVyKCk7Cgpyb3V0ZXIuZ2V0KCIvaGVhbHRoeiIsIChfcmVxLCByZXMpID0+IHsKICBjb25zdCBsaW5lTG9naW4gPSBnZXRMaW5lQXV0aERpYWdub3N0aWNzKCk7CiAgY29uc3Qgc3RhdHVzID0gZ2V0TGluZUhlYWx0aFN0YXR1cyhsaW5lTG9naW4pOwogIGNvbnN0IGRhdGEgPSBIZWFsdGhDaGVja1Jlc3BvbnNlLnBhcnNlKHsgc3RhdHVzLCBsaW5lTG9naW4gfSk7CiAgcmVzLnN0YXR1cyhzdGF0dXMgPT09ICJvayIgPyAyMDAgOiA1MDMpLmpzb24oZGF0YSk7Cn0pOwoKZXhwb3J0IGRlZmF1bHQgcm91dGVyOwo=
+import { Router, type IRouter } from "express";
+import { HealthCheckResponse } from "@workspace/api-zod";
+import { getLineAuthDiagnostics, getLineHealthStatus } from "../lib/line-config";
+
+const router: IRouter = Router();
+
+router.get("/healthz", (_req, res) => {
+  const lineLogin = getLineAuthDiagnostics();
+  const status = getLineHealthStatus(lineLogin);
+  const data = HealthCheckResponse.parse({ status, lineLogin });
+  res.status(status === "ok" ? 200 : 503).json(data);
+});
+
+export default router;

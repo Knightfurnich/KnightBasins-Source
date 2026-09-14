@@ -1,1 +1,58 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyByZWFkRmlsZVN5bmMgfSBmcm9tICJub2RlOmZzIjsKaW1wb3J0IHsgZmlsZVVSTFRvUGF0aCB9IGZyb20gIm5vZGU6dXJsIjsKaW1wb3J0IHBhdGggZnJvbSAibm9kZTpwYXRoIjsKaW1wb3J0IHsgdXBsb2FkVmlkZW9GaWxlIH0gZnJvbSAiLi4vc3JjL2FkbWluL2ltYWdlVXBsb2FkQ2xpZW50LnRzIjsKCmNvbnN0IGZpZWxkU291cmNlID0gcmVhZEZpbGVTeW5jKAogIHBhdGguam9pbihwYXRoLmRpcm5hbWUoZmlsZVVSTFRvUGF0aChpbXBvcnQubWV0YS51cmwpKSwgIi4uL3NyYy9hZG1pbi9WaWRlb1VwbG9hZEZpZWxkLnRzeCIpLAogICJ1dGY4IiwKKTsKCmRlc2NyaWJlKCJhZG1pbiBiYXNpbiB2aWRlbyB1cGxvYWQgZmllbGQiLCAoKSA9PiB7CiAgaXQoInNlbmRzIHRoZSBzZWxlY3RlZCB2aWRlbyB3aXRoIHRoZSBhZG1pbiBzZXNzaW9uIGFuZCBjb21taXRzIHRoZSByZXR1cm5lZCBVUkwiLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBmaWxlID0gbmV3IEZpbGUoW0J1ZmZlci5mcm9tKCJ2aWRlby1ieXRlcyIpXSwgImJhc2luLXRvdXIubXA0IiwgeyB0eXBlOiAidmlkZW8vbXA0IiB9KTsKICAgIGxldCByZXF1ZXN0VXJsID0gIiI7CiAgICBsZXQgcmVxdWVzdEluaXQ6IFJlcXVlc3RJbml0IHwgdW5kZWZpbmVkOwoKICAgIGNvbnN0IHVwbG9hZGVkVXJsID0gYXdhaXQgdXBsb2FkVmlkZW9GaWxlKGZpbGUsIGFzeW5jIChpbnB1dCwgaW5pdCkgPT4gewogICAgICByZXF1ZXN0VXJsID0gU3RyaW5nKGlucHV0KTsKICAgICAgcmVxdWVzdEluaXQgPSBpbml0OwogICAgICByZXR1cm4gbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsKICAgICAgICBmaWxlbmFtZTogImNhdGFsb2ctbWFiYy0wMTIzNDU2Nzg5YWJjZGVmLm1wNCIsCiAgICAgICAgdmVyc2lvbjogIm1hYmMiLAogICAgICAgIHVybDogImh0dHBzOi8vdXBsb2Fkcy5leGFtcGxlLnRlc3QvY2F0YWxvZy9jYXRhbG9nLW1hYmMtMDEyMzQ1Njc4OWFiY2RlZi5tcDQ/dj1tYWJjIiwKICAgICAgfSksIHsgaGVhZGVyczogeyAiY29udGVudC10eXBlIjogImFwcGxpY2F0aW9uL2pzb24iIH0gfSk7CiAgICB9KTsKCiAgICBhc3NlcnQuZXF1YWwocmVxdWVzdFVybCwgIi9hcGkvYWRtaW4vdXBsb2FkL3ZpZGVvIik7CiAgICBhc3NlcnQuZXF1YWwocmVxdWVzdEluaXQ/Lm1ldGhvZCwgIlBPU1QiKTsKICAgIGFzc2VydC5lcXVhbChyZXF1ZXN0SW5pdD8uY3JlZGVudGlhbHMsICJpbmNsdWRlIik7CiAgICBhc3NlcnQub2socmVxdWVzdEluaXQ/LmJvZHkgaW5zdGFuY2VvZiBGb3JtRGF0YSk7CiAgICBjb25zdCB1cGxvYWRlZEZpbGUgPSByZXF1ZXN0SW5pdD8uYm9keSBpbnN0YW5jZW9mIEZvcm1EYXRhID8gcmVxdWVzdEluaXQuYm9keS5nZXQoImZpbGUiKSA6IG51bGw7CiAgICBhc3NlcnQub2sodXBsb2FkZWRGaWxlIGluc3RhbmNlb2YgRmlsZSk7CiAgICBhc3NlcnQuZXF1YWwodXBsb2FkZWRGaWxlPy5uYW1lLCAiYmFzaW4tdG91ci5tcDQiKTsKICAgIGFzc2VydC5lcXVhbCh1cGxvYWRlZEZpbGU/LnR5cGUsICJ2aWRlby9tcDQiKTsKICAgIGFzc2VydC5lcXVhbCh1cGxvYWRlZFVybCwgImh0dHBzOi8vdXBsb2Fkcy5leGFtcGxlLnRlc3QvY2F0YWxvZy9jYXRhbG9nLW1hYmMtMDEyMzQ1Njc4OWFiY2RlZi5tcDQ/dj1tYWJjIik7CiAgfSk7CgogIGl0KCJzdXJmYWNlcyBzZXJ2ZXIgdmFsaWRhdGlvbiBlcnJvcnMiLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBmaWxlID0gbmV3IEZpbGUoW0J1ZmZlci5mcm9tKCJ2aWRlby1ieXRlcyIpXSwgImJhc2luLXRvdXIubXA0IiwgeyB0eXBlOiAidmlkZW8vbXA0IiB9KTsKICAgIGF3YWl0IGFzc2VydC5yZWplY3RzKAogICAgICB1cGxvYWRWaWRlb0ZpbGUoZmlsZSwgYXN5bmMgKCkgPT4gbmV3IFJlc3BvbnNlKAogICAgICAgIEpTT04uc3RyaW5naWZ5KHsgbWVzc2FnZTogIk9ubHkgTVA0LCBXRUJNLCBhbmQgTU9WIHZpZGVvcyBhcmUgYWxsb3dlZCIgfSksCiAgICAgICAgeyBzdGF0dXM6IDQwMCwgaGVhZGVyczogeyAiY29udGVudC10eXBlIjogImFwcGxpY2F0aW9uL2pzb24iIH0gfSwKICAgICAgKSksCiAgICAgIHsgbWVzc2FnZTogIk9ubHkgTVA0LCBXRUJNLCBhbmQgTU9WIHZpZGVvcyBhcmUgYWxsb3dlZCIgfSwKICAgICk7CiAgfSk7CgogIGl0KCJyZW5kZXJzIGxvY2FsIGFuZCBjb21taXR0ZWQgcHJldmlld3Mgd2l0aCBzdXBwb3J0ZWQgdmlkZW8gdHlwZXMiLCAoKSA9PiB7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC88dmlkZW8gc3JjPVx7cHJldmlld1VybFx9IGNvbnRyb2xzLyk7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC9jb25zdCBsb2NhbFByZXZpZXcgPSBVUkxcLmNyZWF0ZU9iamVjdFVSTFwoZmlsZVwpLyk7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC9zZXRQcmV2aWV3VXJsXCh1cGxvYWRlZFVybFwpLyk7CiAgICBhc3NlcnQubWF0Y2goZmllbGRTb3VyY2UsIC9hY2NlcHQ9InZpZGVvXC9tcDQsdmlkZW9cL3dlYm0sdmlkZW9cL3F1aWNrdGltZSIvKTsKICAgIGFzc2VydC5tYXRjaChmaWVsZFNvdXJjZSwgL+C4geC4s+C4peC4seC4h+C4reC4seC4m+C5guC4q+C4peC4lC8pOwogIH0pOwp9KTs=
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { uploadVideoFile } from "../src/admin/imageUploadClient.ts";
+
+const fieldSource = readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "../src/admin/VideoUploadField.tsx"),
+  "utf8",
+);
+
+describe("admin basin video upload field", () => {
+  it("sends the selected video with the admin session and commits the returned URL", async () => {
+    const file = new File([Buffer.from("video-bytes")], "basin-tour.mp4", { type: "video/mp4" });
+    let requestUrl = "";
+    let requestInit: RequestInit | undefined;
+
+    const uploadedUrl = await uploadVideoFile(file, async (input, init) => {
+      requestUrl = String(input);
+      requestInit = init;
+      return new Response(JSON.stringify({
+        filename: "catalog-mabc-0123456789abcdef.mp4",
+        version: "mabc",
+        url: "https://uploads.example.test/catalog/catalog-mabc-0123456789abcdef.mp4?v=mabc",
+      }), { headers: { "content-type": "application/json" } });
+    });
+
+    assert.equal(requestUrl, "/api/admin/upload/video");
+    assert.equal(requestInit?.method, "POST");
+    assert.equal(requestInit?.credentials, "include");
+    assert.ok(requestInit?.body instanceof FormData);
+    const uploadedFile = requestInit?.body instanceof FormData ? requestInit.body.get("file") : null;
+    assert.ok(uploadedFile instanceof File);
+    assert.equal(uploadedFile?.name, "basin-tour.mp4");
+    assert.equal(uploadedFile?.type, "video/mp4");
+    assert.equal(uploadedUrl, "https://uploads.example.test/catalog/catalog-mabc-0123456789abcdef.mp4?v=mabc");
+  });
+
+  it("surfaces server validation errors", async () => {
+    const file = new File([Buffer.from("video-bytes")], "basin-tour.mp4", { type: "video/mp4" });
+    await assert.rejects(
+      uploadVideoFile(file, async () => new Response(
+        JSON.stringify({ message: "Only MP4, WEBM, and MOV videos are allowed" }),
+        { status: 400, headers: { "content-type": "application/json" } },
+      )),
+      { message: "Only MP4, WEBM, and MOV videos are allowed" },
+    );
+  });
+
+  it("renders local and committed previews with supported video types", () => {
+    assert.match(fieldSource, /<video src=\{previewUrl\} controls/);
+    assert.match(fieldSource, /const localPreview = URL\.createObjectURL\(file\)/);
+    assert.match(fieldSource, /setPreviewUrl\(uploadedUrl\)/);
+    assert.match(fieldSource, /accept="video\/mp4,video\/webm,video\/quicktime"/);
+    assert.match(fieldSource, /กำลังอัปโหลด/);
+  });
+});

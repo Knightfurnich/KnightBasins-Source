@@ -1289,6 +1289,11 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-active-stone button { padding: 7px 9px; color: var(--ink-soft); background: transparent; border: 1px solid var(--line); font-size: 10px; }
 .studio-active-stone button.is-active { color: white; background: var(--brand-blue); border-color: var(--brand-blue); }
 .studio-basin-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; max-height: 300px; overflow: auto; }
+.studio-basin-search { display: grid; gap: 5px; margin: 12px 0 5px; color: var(--ink-soft); font-size: 10px; }
+.studio-basin-search input { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); outline: none; background: #fbfdfe; font-size: 11px; }
+.studio-basin-search input:focus { border-color: #65afd4; box-shadow: 0 0 0 3px rgba(42, 155, 208, .12); }
+.studio-basin-result-count { margin: 0 0 8px; color: var(--ink-soft); font: 9px var(--mono); }
+.studio-basin-empty { grid-column: 1 / -1; margin: 0; padding: 18px 8px; color: var(--ink-soft); font-size: 11px; text-align: center; }
 .studio-basin-choice svg { position: absolute; right: 7px; top: 8px; color: var(--brand-blue); }
 .studio-canvas-panel { margin-top: 18px; }
 .studio-shape-tabs { display: flex; gap: 5px; margin-bottom: 14px; }
@@ -1320,6 +1325,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   background-size: 28px 28px;
 }
 .studio-canvas--L::after, .studio-canvas--U::after { content: ""; position: absolute; inset: 0; pointer-events: none; border: 25px solid rgba(42,155,208,.08); }
+.studio-clearance-frame { position: absolute; z-index: 1; pointer-events: none; border: 2px dashed #c64d3f; box-shadow: 0 0 0 9999px rgba(198,77,63,.04); }
+.studio-placement--unsafe { border-color: #c64d3f; box-shadow: 0 0 0 2px rgba(198,77,63,.18), 0 6px 15px rgba(17,65,105,.2); }
+.studio-placement--unknown { background: repeating-linear-gradient(135deg, #607d8b, #607d8b 8px, #506a77 8px, #506a77 16px); }
+.studio-placement--unknown small { max-width: 120px; text-align: center; line-height: 1.2; }
 .studio-canvas-label { position: absolute; left: 12px; top: 10px; z-index: 1; color: var(--ink-soft); font: 10px var(--mono); }
 .studio-canvas-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-soft); font-size: 12px; }
 .studio-placement {

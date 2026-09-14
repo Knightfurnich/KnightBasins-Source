@@ -1,1 +1,299 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBhZnRlciwgYmVmb3JlLCBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBta2R0ZW1wLCByZWFkRmlsZSwgcmVhZGRpciwgcm0sIHV0aW1lcywgd3JpdGVGaWxlIH0gZnJvbSAibm9kZTpmcy9wcm9taXNlcyI7CmltcG9ydCBwYXRoIGZyb20gIm5vZGU6cGF0aCI7CmltcG9ydCBleHByZXNzIGZyb20gImV4cHJlc3MiOwppbXBvcnQgY29va2llUGFyc2VyIGZyb20gImNvb2tpZS1wYXJzZXIiOwppbXBvcnQgeyBmaWxlVVJMVG9QYXRoIH0gZnJvbSAibm9kZTp1cmwiOwppbXBvcnQgeyBjcmVhdGVBZG1pblRva2VuIH0gZnJvbSAiLi4vc3JjL21pZGRsZXdhcmVzL2FkbWluLWF1dGgudHMiOwppbXBvcnQgeyBpbXBvcnRUeXBlU2NyaXB0TW9kdWxlIH0gZnJvbSAiLi9yb3V0ZS1oYXJuZXNzLnRzIjsKCnR5cGUgQWRtaW5Sb3V0ZU1vZHVsZSA9IHsKICBjcmVhdGVBZG1pblJvdXRlcjogKGRhdGFiYXNlOiB1bmtub3duKSA9PiBQYXJhbWV0ZXJzPHR5cGVvZiBleHByZXNzWyJ1c2UiXT5bMV07Cn07Cgp0eXBlIFVwbG9hZFJlc3BvbnNlID0gewogIGZpbGVuYW1lOiBzdHJpbmc7CiAgY29udGVudFR5cGU6IHN0cmluZzsKICBzaXplOiBudW1iZXI7CiAgb3JpZ2luYWxOYW1lOiBzdHJpbmc7CiAgdmVyc2lvbjogc3RyaW5nOwogIHVybDogc3RyaW5nOwp9OwoKY29uc3QgT1JJR0lOQUxfRU5WID0gewogIEFETUlOX1BBU1NXT1JEOiBwcm9jZXNzLmVudlsiQURNSU5fUEFTU1dPUkQiXSwKICBEQVRBQkFTRV9VUkw6IHByb2Nlc3MuZW52WyJEQVRBQkFTRV9VUkwiXSwKICBQVUJMSUNfVVBMT0FEX09SSUdJTjogcHJvY2Vzcy5lbnZbIlBVQkxJQ19VUExPQURfT1JJR0lOIl0sCiAgU0VTU0lPTl9TRUNSRVQ6IHByb2Nlc3MuZW52WyJTRVNTSU9OX1NFQ1JFVCJdLAogIFVQTE9BRF9ESVI6IHByb2Nlc3MuZW52WyJVUExPQURfRElSIl0sCn07Cgpjb25zdCBhZG1pblJvdXRlID0gZmlsZVVSTFRvUGF0aCgKICBuZXcgVVJMKCIuLi9zcmMvcm91dGVzL2FkbWluLXJvdXRlci50cyIsIGltcG9ydC5tZXRhLnVybCksCik7CmNvbnN0IHVwbG9hZE9yaWdpbiA9ICJodHRwczovL3VwbG9hZHMuZXhhbXBsZS50ZXN0L2NhdGFsb2ciOwpsZXQgdXBsb2FkRGlyZWN0b3J5ID0gIiI7CgpmdW5jdGlvbiBpbWFnZUZvcm1EYXRhKAogIGZpbGVOYW1lID0gImJhc2luLnBuZyIsCiAgY29udGVudFR5cGUgPSAiaW1hZ2UvcG5nIiwKICBieXRlcyA9IEJ1ZmZlci5mcm9tKCJwbmctZml4dHVyZSIpLAogIGZpZWxkTmFtZSA9ICJmaWxlIiwKKSB7CiAgY29uc3QgZm9ybURhdGEgPSBuZXcgRm9ybURhdGEoKTsKICBmb3JtRGF0YS5hcHBlbmQoZmllbGROYW1lLCBuZXcgQmxvYihbYnl0ZXNdLCB7IHR5cGU6IGNvbnRlbnRUeXBlIH0pLCBmaWxlTmFtZSk7CiAgcmV0dXJuIGZvcm1EYXRhOwp9CgpmdW5jdGlvbiB2aWRlb0Zvcm1EYXRhKAogIGZpbGVOYW1lID0gImJhc2luLm1wNCIsCiAgY29udGVudFR5cGUgPSAidmlkZW8vbXA0IiwKICBieXRlcyA9IEJ1ZmZlci5mcm9tKCJtcDQtZml4dHVyZSIpLAopIHsKICByZXR1cm4gaW1hZ2VGb3JtRGF0YShmaWxlTmFtZSwgY29udGVudFR5cGUsIGJ5dGVzKTsKfQoKZnVuY3Rpb24gY2xlYW51cERhdGFiYXNlKAogIGJhc2luczogQXJyYXk8eyBpbWFnZVVybD86IHN0cmluZyB8IG51bGwgfT4sCiAgaW5zdGFsbGVkU3RvbmVzOiBBcnJheTx7IGltYWdlVXJsPzogc3RyaW5nIHwgbnVsbCB9PiwKICBzaGVldFN0b25lczogQXJyYXk8eyBpbWFnZVVybD86IHN0cmluZyB8IG51bGwgfT4sCikgewogIGNvbnN0IHJvd3MgPSBbYmFzaW5zLCBpbnN0YWxsZWRTdG9uZXMsIHNoZWV0U3RvbmVzXTsKICBsZXQgcXVlcnlOdW1iZXIgPSAwOwoKICByZXR1cm4gewogICAgc2VsZWN0OiAoKSA9PiAoewogICAgICBmcm9tOiBhc3luYyAoKSA9PiByb3dzW3F1ZXJ5TnVtYmVyKytdID8/IFtdLAogICAgfSksCiAgfTsKfQoKYXN5bmMgZnVuY3Rpb24gc3RhcnRBZG1pblJvdXRlKGRhdGFiYXNlOiB1bmtub3duKSB7CiAgY29uc3Qgcm91dGVNb2R1bGUgPSBhd2FpdCBpbXBvcnRUeXBlU2NyaXB0TW9kdWxlPEFkbWluUm91dGVNb2R1bGU+KGFkbWluUm91dGUpOwogIGNvbnN0IGFwcCA9IGV4cHJlc3MoKTsKICBhcHAudXNlKGNvb2tpZVBhcnNlcigpKTsKICBhcHAudXNlKGV4cHJlc3MuanNvbigpKTsKICBhcHAudXNlKCIvYXBpIiwgcm91dGVNb2R1bGUuY3JlYXRlQWRtaW5Sb3V0ZXIoZGF0YWJhc2UpKTsKICBjb25zdCBzZXJ2ZXIgPSBhd2FpdCBuZXcgUHJvbWlzZTxSZXR1cm5UeXBlPHR5cGVvZiBhcHAubGlzdGVuPj4oCiAgICAocmVzb2x2ZSwgcmVqZWN0KSA9PiB7CiAgICAgIGNvbnN0IGxpc3RlbmVyID0gYXBwLmxpc3RlbigwLCAiMTI3LjAuMC4xIiwgKCkgPT4gcmVzb2x2ZShsaXN0ZW5lcikpOwogICAgICBsaXN0ZW5lci5vbmNlKCJlcnJvciIsIHJlamVjdCk7CiAgICB9LAogICk7CiAgY29uc3QgYWRkcmVzcyA9IHNlcnZlci5hZGRyZXNzKCk7CgogIGlmICghYWRkcmVzcyB8fCB0eXBlb2YgYWRkcmVzcyA9PT0gInN0cmluZyIpIHsKICAgIHNlcnZlci5jbG9zZSgpOwogICAgdGhyb3cgbmV3IEVycm9yKCJBZG1pbiB1cGxvYWQgdGVzdCBzZXJ2ZXIgZGlkIG5vdCBleHBvc2UgYSBUQ1AgYWRkcmVzcyIpOwogIH0KCiAgcmV0dXJuIHsKICAgIHVybDogYGh0dHA6Ly8xMjcuMC4wLjE6JHthZGRyZXNzLnBvcnR9YCwKICAgIGNsb3NlOiAoKSA9PgogICAgICBuZXcgUHJvbWlzZTx2b2lkPigocmVzb2x2ZSwgcmVqZWN0KSA9PgogICAgICAgIHNlcnZlci5jbG9zZSgoZXJyb3IpID0+IChlcnJvciA/IHJlamVjdChlcnJvcikgOiByZXNvbHZlKCkpKSwKICAgICAgKSwKICB9Owp9CgpiZWZvcmUoYXN5bmMgKCkgPT4gewogIHVwbG9hZERpcmVjdG9yeSA9IGF3YWl0IG1rZHRlbXAoCiAgICBwYXRoLmpvaW4ocGF0aC5kaXJuYW1lKGZpbGVVUkxUb1BhdGgoaW1wb3J0Lm1ldGEudXJsKSksICIudXBsb2FkLXRlc3QtIiksCiAgKTsKICBwcm9jZXNzLmVudlsiQURNSU5fUEFTU1dPUkQiXSA9ICJhZG1pbi11cGxvYWQtdGVzdC1wYXNzd29yZCI7CiAgcHJvY2Vzcy5lbnZbIkRBVEFCQVNFX1VSTCJdID0gInBvc3RncmVzOi8vYWRtaW4tdXBsb2FkLXRlc3QiOwogIHByb2Nlc3MuZW52WyJQVUJMSUNfVVBMT0FEX09SSUdJTiJdID0gdXBsb2FkT3JpZ2luOwogIHByb2Nlc3MuZW52WyJTRVNTSU9OX1NFQ1JFVCJdID0gImFkbWluLXVwbG9hZC10ZXN0LXNlc3Npb24tc2VjcmV0IjsKICBwcm9jZXNzLmVudlsiVVBMT0FEX0RJUiJdID0gdXBsb2FkRGlyZWN0b3J5Owp9KTsKCmFmdGVyKGFzeW5jICgpID0+IHsKICBhd2FpdCBybSh1cGxvYWREaXJlY3RvcnksIHsgZm9yY2U6IHRydWUsIHJlY3Vyc2l2ZTogdHJ1ZSB9KTsKICBmb3IgKGNvbnN0IFtrZXksIHZhbHVlXSBvZiBPYmplY3QuZW50cmllcyhPUklHSU5BTF9FTlYpKSB7CiAgICBpZiAodmFsdWUgPT09IHVuZGVmaW5lZCkgewogICAgICBkZWxldGUgcHJvY2Vzcy5lbnZba2V5XTsKICAgIH0gZWxzZSB7CiAgICAgIHByb2Nlc3MuZW52W2tleV0gPSB2YWx1ZTsKICAgIH0KICB9Cn0pOwoKZGVzY3JpYmUoInByb3RlY3RlZCBhZG1pbiBpbWFnZSB1cGxvYWQgcm91dGUiLCAoKSA9PiB7CiAgaXQoInJlamVjdHMgdXBsb2FkcyB3aXRob3V0IHRoZSBleGlzdGluZyBhZG1pbiBzZXNzaW9uIGNvb2tpZSIsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHNlcnZlciA9IGF3YWl0IHN0YXJ0QWRtaW5Sb3V0ZSh7fSk7CgogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaChgJHtzZXJ2ZXIudXJsfS9hcGkvYWRtaW4vdXBsb2FkYCwgewogICAgICAgIG1ldGhvZDogIlBPU1QiLAogICAgICAgIGJvZHk6IGltYWdlRm9ybURhdGEoKSwKICAgICAgfSk7CgogICAgICBhc3NlcnQuZXF1YWwocmVzcG9uc2Uuc3RhdHVzLCA0MDEpOwogICAgICBhc3NlcnQuZGVlcEVxdWFsKGF3YWl0IHJlc3BvbnNlLmpzb24oKSwgewogICAgICAgIG1lc3NhZ2U6ICJBdXRoZW50aWNhdGlvbiByZXF1aXJlZCIsCiAgICAgIH0pOwogICAgfSBmaW5hbGx5IHsKICAgICAgYXdhaXQgc2VydmVyLmNsb3NlKCk7CiAgICB9CiAgfSk7CgogIGl0KCJhY2NlcHRzIGEgdmFsaWQgbXVsdGlwYXJ0IGltYWdlIGFuZCByZXR1cm5zIGEgdmVyc2lvbmVkIHB1YmxpYyBVUkwiLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBzZXJ2ZXIgPSBhd2FpdCBzdGFydEFkbWluUm91dGUoe30pOwogICAgY29uc3QgY29va2llID0gYGtuaWdodF9hZG1pbl9zZXNzaW9uPSR7Y3JlYXRlQWRtaW5Ub2tlbigpfWA7CiAgICBjb25zdCBieXRlcyA9IEJ1ZmZlci5mcm9tKCJ2YWxpZC1wbmctZml4dHVyZSIpOwogICAgbGV0IHVwbG9hZGVkRmlsZW5hbWU6IHN0cmluZyB8IHVuZGVmaW5lZDsKCiAgICB0cnkgewogICAgICBjb25zdCByZXNwb25zZSA9IGF3YWl0IGZldGNoKGAke3NlcnZlci51cmx9L2FwaS9hZG1pbi91cGxvYWRgLCB7CiAgICAgICAgbWV0aG9kOiAiUE9TVCIsCiAgICAgICAgaGVhZGVyczogeyBjb29raWUgfSwKICAgICAgICBib2R5OiBpbWFnZUZvcm1EYXRhKCJjYXRhbG9nLWltYWdlLnBuZyIsICJpbWFnZS9wbmciLCBieXRlcyksCiAgICAgIH0pOwogICAgICBjb25zdCBwYXlsb2FkID0gKGF3YWl0IHJlc3BvbnNlLmpzb24oKSkgYXMgVXBsb2FkUmVzcG9uc2U7CiAgICAgIHVwbG9hZGVkRmlsZW5hbWUgPSBwYXlsb2FkLmZpbGVuYW1lOwoKICAgICAgYXNzZXJ0LmVxdWFsKHJlc3BvbnNlLnN0YXR1cywgMjAxKTsKICAgICAgYXNzZXJ0LmVxdWFsKHBheWxvYWQuY29udGVudFR5cGUsICJpbWFnZS9wbmciKTsKICAgICAgYXNzZXJ0LmVxdWFsKHBheWxvYWQub3JpZ2luYWxOYW1lLCAiY2F0YWxvZy1pbWFnZS5wbmciKTsKICAgICAgYXNzZXJ0LmVxdWFsKHBheWxvYWQuc2l6ZSwgYnl0ZXMubGVuZ3RoKTsKICAgICAgYXNzZXJ0Lm1hdGNoKHBheWxvYWQudmVyc2lvbiwgL15bYS16MC05XSskLyk7CiAgICAgIGFzc2VydC5tYXRjaChwYXlsb2FkLmZpbGVuYW1lLCBuZXcgUmVnRXhwKGBeY2F0YWxvZy0ke3BheWxvYWQudmVyc2lvbn0tW2EtZjAtOV17MTZ9XFwucG5nJGApKTsKICAgICAgYXNzZXJ0LmVxdWFsKAogICAgICAgIHBheWxvYWQudXJsLAogICAgICAgIGAke3VwbG9hZE9yaWdpbn0vJHtwYXlsb2FkLmZpbGVuYW1lfT92PSR7cGF5bG9hZC52ZXJzaW9ufWAsCiAgICAgICk7CiAgICAgIGFzc2VydC5kZWVwRXF1YWwoCiAgICAgICAgYXdhaXQgcmVhZEZpbGUocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgcGF5bG9hZC5maWxlbmFtZSkpLAogICAgICAgIGJ5dGVzLAogICAgICApOwogICAgfSBmaW5hbGx5IHsKICAgICAgYXdhaXQgc2VydmVyLmNsb3NlKCk7CiAgICAgIGlmICh1cGxvYWRlZEZpbGVuYW1lKSB7CiAgICAgICAgYXdhaXQgcm0ocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgdXBsb2FkZWRGaWxlbmFtZSksIHsgZm9yY2U6IHRydWUgfSk7CiAgICAgIH0KICAgIH0KICB9KTsKCiAgaXQoImFjY2VwdHMgYSB2YWxpZCBiYXNpbiB2aWRlbyB3aXRob3V0IGNoYW5naW5nIGltYWdlIHVwbG9hZCB2YWxpZGF0aW9uIiwgYXN5bmMgKCkgPT4gewogICAgY29uc3Qgc2VydmVyID0gYXdhaXQgc3RhcnRBZG1pblJvdXRlKHt9KTsKICAgIGNvbnN0IGNvb2tpZSA9IGBrbmlnaHRfYWRtaW5fc2Vzc2lvbj0ke2NyZWF0ZUFkbWluVG9rZW4oKX1gOwogICAgY29uc3QgYnl0ZXMgPSBCdWZmZXIuZnJvbSgidmFsaWQtbXA0LWZpeHR1cmUiKTsKICAgIGxldCB1cGxvYWRlZEZpbGVuYW1lOiBzdHJpbmcgfCB1bmRlZmluZWQ7CgogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaChgJHtzZXJ2ZXIudXJsfS9hcGkvYWRtaW4vdXBsb2FkL3ZpZGVvYCwgewogICAgICAgIG1ldGhvZDogIlBPU1QiLAogICAgICAgIGhlYWRlcnM6IHsgY29va2llIH0sCiAgICAgICAgYm9keTogdmlkZW9Gb3JtRGF0YSgiYmFzaW4tdG91ci5tcDQiLCAidmlkZW8vbXA0IiwgYnl0ZXMpLAogICAgICB9KTsKICAgICAgY29uc3QgcGF5bG9hZCA9IChhd2FpdCByZXNwb25zZS5qc29uKCkpIGFzIFVwbG9hZFJlc3BvbnNlOwogICAgICB1cGxvYWRlZEZpbGVuYW1lID0gcGF5bG9hZC5maWxlbmFtZTsKCiAgICAgIGFzc2VydC5lcXVhbChyZXNwb25zZS5zdGF0dXMsIDIwMSk7CiAgICAgIGFzc2VydC5lcXVhbChwYXlsb2FkLmNvbnRlbnRUeXBlLCAidmlkZW8vbXA0Iik7CiAgICAgIGFzc2VydC5tYXRjaChwYXlsb2FkLmZpbGVuYW1lLCBuZXcgUmVnRXhwKGBeY2F0YWxvZy0ke3BheWxvYWQudmVyc2lvbn0tW2EtZjAtOV17MTZ9XFwubXA0JGApKTsKICAgICAgYXNzZXJ0LmRlZXBFcXVhbChhd2FpdCByZWFkRmlsZShwYXRoLmpvaW4odXBsb2FkRGlyZWN0b3J5LCBwYXlsb2FkLmZpbGVuYW1lKSksIGJ5dGVzKTsKICAgIH0gZmluYWxseSB7CiAgICAgIGF3YWl0IHNlcnZlci5jbG9zZSgpOwogICAgICBpZiAodXBsb2FkZWRGaWxlbmFtZSkgYXdhaXQgcm0ocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgdXBsb2FkZWRGaWxlbmFtZSksIHsgZm9yY2U6IHRydWUgfSk7CiAgICB9CiAgfSk7CgogIGl0KCJyZXR1cm5zIGEgY2xpZW50IGVycm9yIGZvciBtYWxmb3JtZWQgb3IgdW5zdXBwb3J0ZWQgbXVsdGlwYXJ0IGlucHV0IiwgYXN5bmMgKCkgPT4gewogICAgY29uc3Qgc2VydmVyID0gYXdhaXQgc3RhcnRBZG1pblJvdXRlKHt9KTsKICAgIGNvbnN0IGNvb2tpZSA9IGBrbmlnaHRfYWRtaW5fc2Vzc2lvbj0ke2NyZWF0ZUFkbWluVG9rZW4oKX1gOwogICAgY29uc3QgZmlsZXNCZWZvcmUgPSBhd2FpdCByZWFkZGlyKHVwbG9hZERpcmVjdG9yeSk7CgogICAgdHJ5IHsKICAgICAgY29uc3QgbWlzc2luZ0JvdW5kYXJ5ID0gYXdhaXQgZmV0Y2goYCR7c2VydmVyLnVybH0vYXBpL2FkbWluL3VwbG9hZGAsIHsKICAgICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgICBoZWFkZXJzOiB7CiAgICAgICAgICBjb29raWUsCiAgICAgICAgICAiY29udGVudC10eXBlIjogIm11bHRpcGFydC9mb3JtLWRhdGEiLAogICAgICAgIH0sCiAgICAgICAgYm9keTogIm5vdCBtdWx0aXBhcnQiLAogICAgICB9KTsKICAgICAgYXNzZXJ0LmVxdWFsKG1pc3NpbmdCb3VuZGFyeS5zdGF0dXMsIDQwMCk7CiAgICAgIGFzc2VydC5tYXRjaCgoYXdhaXQgbWlzc2luZ0JvdW5kYXJ5Lmpzb24oKSkubWVzc2FnZSwgL211bHRpcGFydCBpbWFnZSBmaWxlL2kpOwoKICAgICAgY29uc3QgdW5zdXBwb3J0ZWRUeXBlID0gYXdhaXQgZmV0Y2goYCR7c2VydmVyLnVybH0vYXBpL2FkbWluL3VwbG9hZGAsIHsKICAgICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgICBoZWFkZXJzOiB7IGNvb2tpZSB9LAogICAgICAgIGJvZHk6IGltYWdlRm9ybURhdGEoIm5vdGVzLnR4dCIsICJ0ZXh0L3BsYWluIiksCiAgICAgIH0pOwogICAgICBhc3NlcnQuZXF1YWwodW5zdXBwb3J0ZWRUeXBlLnN0YXR1cywgNDAwKTsKICAgICAgYXNzZXJ0Lm1hdGNoKChhd2FpdCB1bnN1cHBvcnRlZFR5cGUuanNvbigpKS5tZXNzYWdlLCAvSlBHLCBQTkcsIFdFQlAsIGFuZCBHSUYvaSk7CgogICAgICBjb25zdCB3cm9uZ0ZpZWxkID0gYXdhaXQgZmV0Y2goYCR7c2VydmVyLnVybH0vYXBpL2FkbWluL3VwbG9hZGAsIHsKICAgICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgICBoZWFkZXJzOiB7IGNvb2tpZSB9LAogICAgICAgIGJvZHk6IGltYWdlRm9ybURhdGEoImJhc2luLnBuZyIsICJpbWFnZS9wbmciLCB1bmRlZmluZWQsICJwaG90byIpLAogICAgICB9KTsKICAgICAgYXNzZXJ0LmVxdWFsKHdyb25nRmllbGQuc3RhdHVzLCA0MDApOwogICAgICBhc3NlcnQubWF0Y2goKGF3YWl0IHdyb25nRmllbGQuanNvbigpKS5tZXNzYWdlLCAvQ2hvb3NlIGFuIGltYWdlIGZpbGUvaSk7CgogICAgICBhc3NlcnQuZGVlcEVxdWFsKGF3YWl0IHJlYWRkaXIodXBsb2FkRGlyZWN0b3J5KSwgZmlsZXNCZWZvcmUpOwogICAgfSBmaW5hbGx5IHsKICAgICAgYXdhaXQgc2VydmVyLmNsb3NlKCk7CiAgICB9CiAgfSk7CgogIGl0KCJyZW1vdmVzIG9sZCB1bnJlZmVyZW5jZWQgdXBsb2FkcyBidXQgcHJlc2VydmVzIHJlZmVyZW5jZWQgYW5kIGZyZXNoIGZpbGVzIiwgYXN5bmMgKCkgPT4gewogICAgY29uc3QgcmVmZXJlbmNlZCA9ICJjYXRhbG9nLW1vbGQtYmJiYmJiYmJiYmJiYmJiYi5wbmciOwogICAgY29uc3QgcmVmZXJlbmNlZFZpZGVvID0gImNhdGFsb2ctbW9sZC1kZGRkZGRkZGRkZGRkZGRkLm1wNCI7CiAgICBjb25zdCBvcnBoYW4gPSAiY2F0YWxvZy1tb2xkLWFhYWFhYWFhYWFhYWFhYWEucG5nIjsKICAgIGNvbnN0IGZyZXNoID0gImNhdGFsb2ctbWZyZXNoLWNjY2NjY2NjY2NjY2NjY2MucG5nIjsKICAgIGNvbnN0IHVucmVsYXRlZCA9ICJrZWVwLXRoaXMtZmlsZS50eHQiOwogICAgY29uc3Qgb2xkVGltZSA9IG5ldyBEYXRlKERhdGUubm93KCkgLSA0OCAqIDYwICogNjAgKiAxMDAwKTsKICAgIGF3YWl0IHdyaXRlRmlsZShwYXRoLmpvaW4odXBsb2FkRGlyZWN0b3J5LCBvcnBoYW4pLCAib2xkIG9ycGhhbiIpOwogICAgYXdhaXQgd3JpdGVGaWxlKHBhdGguam9pbih1cGxvYWREaXJlY3RvcnksIHJlZmVyZW5jZWQpLCAic3RpbGwgaW4gY2F0YWxvZyIpOwogICAgYXdhaXQgd3JpdGVGaWxlKHBhdGguam9pbih1cGxvYWREaXJlY3RvcnksIHJlZmVyZW5jZWRWaWRlbyksICJ2aWRlbyBzdGlsbCBpbiBjYXRhbG9nIik7CiAgICBhd2FpdCB3cml0ZUZpbGUocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgZnJlc2gpLCAiZnJlc2ggb3JwaGFuIik7CiAgICBhd2FpdCB3cml0ZUZpbGUocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgdW5yZWxhdGVkKSwgIm5vdCBtYW5hZ2VkIik7CiAgICBhd2FpdCB1dGltZXMocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgb3JwaGFuKSwgb2xkVGltZSwgb2xkVGltZSk7CiAgICBhd2FpdCB1dGltZXMocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgcmVmZXJlbmNlZCksIG9sZFRpbWUsIG9sZFRpbWUpOwogICAgYXdhaXQgdXRpbWVzKHBhdGguam9pbih1cGxvYWREaXJlY3RvcnksIHJlZmVyZW5jZWRWaWRlbyksIG9sZFRpbWUsIG9sZFRpbWUpOwoKICAgIGNvbnN0IHNlcnZlciA9IGF3YWl0IHN0YXJ0QWRtaW5Sb3V0ZSgKICAgICAgY2xlYW51cERhdGFiYXNlKAogICAgICAgIFt7IGltYWdlVXJsOiBudWxsLCB2aWRlb1VybDogYCR7dXBsb2FkT3JpZ2lufS8ke3JlZmVyZW5jZWRWaWRlb30/dj1tb2xkYCB9XSwKICAgICAgICBbeyBpbWFnZVVybDogYCR7dXBsb2FkT3JpZ2lufS8ke3JlZmVyZW5jZWR9P3Y9bW9sZGAgfV0sCiAgICAgICAgW3sgaW1hZ2VVcmw6ICJodHRwczovL2NlbnRyYWwuZXhhbXBsZS50ZXN0L3NsYWIvU1MwMDEucG5nIiB9XSwKICAgICAgKSwKICAgICk7CiAgICBjb25zdCBjb29raWUgPSBga25pZ2h0X2FkbWluX3Nlc3Npb249JHtjcmVhdGVBZG1pblRva2VuKCl9YDsKCiAgICB0cnkgewogICAgICBjb25zdCByZXNwb25zZSA9IGF3YWl0IGZldGNoKGAke3NlcnZlci51cmx9L2FwaS9hZG1pbi91cGxvYWRzL2NsZWFudXBgLCB7CiAgICAgICAgbWV0aG9kOiAiUE9TVCIsCiAgICAgICAgaGVhZGVyczogeyBjb29raWUgfSwKICAgICAgfSk7CiAgICAgIGNvbnN0IHBheWxvYWQgPSAoYXdhaXQgcmVzcG9uc2UuanNvbigpKSBhcyB7CiAgICAgICAgcmV0ZW50aW9uSG91cnM6IG51bWJlcjsKICAgICAgICBzY2FubmVkOiBudW1iZXI7CiAgICAgICAgcmVtb3ZlZDogc3RyaW5nW107CiAgICAgICAgc2tpcHBlZFJlZmVyZW5jZWQ6IG51bWJlcjsKICAgICAgICBza2lwcGVkVG9vTmV3OiBudW1iZXI7CiAgICAgIH07CgogICAgICBhc3NlcnQuZXF1YWwocmVzcG9uc2Uuc3RhdHVzLCAyMDApOwogICAgICBhc3NlcnQuZXF1YWwocGF5bG9hZC5yZXRlbnRpb25Ib3VycywgMjQpOwogICAgICAgYXNzZXJ0LmVxdWFsKHBheWxvYWQuc2Nhbm5lZCwgNCk7CiAgICAgIGFzc2VydC5kZWVwRXF1YWwocGF5bG9hZC5yZW1vdmVkLCBbb3JwaGFuXSk7CiAgICAgICBhc3NlcnQuZXF1YWwocGF5bG9hZC5za2lwcGVkUmVmZXJlbmNlZCwgMik7CiAgICAgIGFzc2VydC5lcXVhbChwYXlsb2FkLnNraXBwZWRUb29OZXcsIDEpOwogICAgICBhd2FpdCBhc3NlcnQucmVqZWN0cyhyZWFkRmlsZShwYXRoLmpvaW4odXBsb2FkRGlyZWN0b3J5LCBvcnBoYW4pKSk7CiAgICAgIGFzc2VydC5kZWVwRXF1YWwoYXdhaXQgcmVhZEZpbGUocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgcmVmZXJlbmNlZCkpLCBCdWZmZXIuZnJvbSgic3RpbGwgaW4gY2F0YWxvZyIpKTsKICAgICAgIGFzc2VydC5kZWVwRXF1YWwoYXdhaXQgcmVhZEZpbGUocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgcmVmZXJlbmNlZFZpZGVvKSksIEJ1ZmZlci5mcm9tKCJ2aWRlbyBzdGlsbCBpbiBjYXRhbG9nIikpOwogICAgICBhc3NlcnQuZGVlcEVxdWFsKGF3YWl0IHJlYWRGaWxlKHBhdGguam9pbih1cGxvYWREaXJlY3RvcnksIGZyZXNoKSksIEJ1ZmZlci5mcm9tKCJmcmVzaCBvcnBoYW4iKSk7CiAgICAgIGFzc2VydC5kZWVwRXF1YWwoYXdhaXQgcmVhZEZpbGUocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgdW5yZWxhdGVkKSksIEJ1ZmZlci5mcm9tKCJub3QgbWFuYWdlZCIpKTsKICAgIH0gZmluYWxseSB7CiAgICAgIGF3YWl0IHNlcnZlci5jbG9zZSgpOwogICAgICBhd2FpdCBybShwYXRoLmpvaW4odXBsb2FkRGlyZWN0b3J5LCByZWZlcmVuY2VkKSwgeyBmb3JjZTogdHJ1ZSB9KTsKICAgICAgIGF3YWl0IHJtKHBhdGguam9pbih1cGxvYWREaXJlY3RvcnksIHJlZmVyZW5jZWRWaWRlbyksIHsgZm9yY2U6IHRydWUgfSk7CiAgICAgIGF3YWl0IHJtKHBhdGguam9pbih1cGxvYWREaXJlY3RvcnksIGZyZXNoKSwgeyBmb3JjZTogdHJ1ZSB9KTsKICAgICAgYXdhaXQgcm0ocGF0aC5qb2luKHVwbG9hZERpcmVjdG9yeSwgdW5yZWxhdGVkKSwgeyBmb3JjZTogdHJ1ZSB9KTsKICAgIH0KICB9KTsKfSk7
+import assert from "node:assert/strict";
+import { after, before, describe, it } from "node:test";
+import { mkdtemp, readFile, readdir, rm, utimes, writeFile } from "node:fs/promises";
+import path from "node:path";
+import express from "express";
+import cookieParser from "cookie-parser";
+import { fileURLToPath } from "node:url";
+import { createAdminToken } from "../src/middlewares/admin-auth.ts";
+import { importTypeScriptModule } from "./route-harness.ts";
+
+type AdminRouteModule = {
+  createAdminRouter: (database: unknown) => Parameters<typeof express["use"]>[1];
+};
+
+type UploadResponse = {
+  filename: string;
+  contentType: string;
+  size: number;
+  originalName: string;
+  version: string;
+  url: string;
+};
+
+const ORIGINAL_ENV = {
+  ADMIN_PASSWORD: process.env["ADMIN_PASSWORD"],
+  DATABASE_URL: process.env["DATABASE_URL"],
+  PUBLIC_UPLOAD_ORIGIN: process.env["PUBLIC_UPLOAD_ORIGIN"],
+  SESSION_SECRET: process.env["SESSION_SECRET"],
+  UPLOAD_DIR: process.env["UPLOAD_DIR"],
+};
+
+const adminRoute = fileURLToPath(
+  new URL("../src/routes/admin-router.ts", import.meta.url),
+);
+const uploadOrigin = "https://uploads.example.test/catalog";
+let uploadDirectory = "";
+
+function imageFormData(
+  fileName = "basin.png",
+  contentType = "image/png",
+  bytes = Buffer.from("png-fixture"),
+  fieldName = "file",
+) {
+  const formData = new FormData();
+  formData.append(fieldName, new Blob([bytes], { type: contentType }), fileName);
+  return formData;
+}
+
+function videoFormData(
+  fileName = "basin.mp4",
+  contentType = "video/mp4",
+  bytes = Buffer.from("mp4-fixture"),
+) {
+  return imageFormData(fileName, contentType, bytes);
+}
+
+function cleanupDatabase(
+  basins: Array<{ imageUrl?: string | null }>,
+  installedStones: Array<{ imageUrl?: string | null }>,
+  sheetStones: Array<{ imageUrl?: string | null }>,
+) {
+  const rows = [basins, installedStones, sheetStones];
+  let queryNumber = 0;
+
+  return {
+    select: () => ({
+      from: async () => rows[queryNumber++] ?? [],
+    }),
+  };
+}
+
+async function startAdminRoute(database: unknown) {
+  const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+  const app = express();
+  app.use(cookieParser());
+  app.use(express.json());
+  app.use("/api", routeModule.createAdminRouter(database));
+  const server = await new Promise<ReturnType<typeof app.listen>>(
+    (resolve, reject) => {
+      const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
+      listener.once("error", reject);
+    },
+  );
+  const address = server.address();
+
+  if (!address || typeof address === "string") {
+    server.close();
+    throw new Error("Admin upload test server did not expose a TCP address");
+  }
+
+  return {
+    url: `http://127.0.0.1:${address.port}`,
+    close: () =>
+      new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      ),
+  };
+}
+
+before(async () => {
+  uploadDirectory = await mkdtemp(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), ".upload-test-"),
+  );
+  process.env["ADMIN_PASSWORD"] = "admin-upload-test-password";
+  process.env["DATABASE_URL"] = "postgres://admin-upload-test";
+  process.env["PUBLIC_UPLOAD_ORIGIN"] = uploadOrigin;
+  process.env["SESSION_SECRET"] = "admin-upload-test-session-secret";
+  process.env["UPLOAD_DIR"] = uploadDirectory;
+});
+
+after(async () => {
+  await rm(uploadDirectory, { force: true, recursive: true });
+  for (const [key, value] of Object.entries(ORIGINAL_ENV)) {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+});
+
+describe("protected admin image upload route", () => {
+  it("rejects uploads without the existing admin session cookie", async () => {
+    const server = await startAdminRoute({});
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        body: imageFormData(),
+      });
+
+      assert.equal(response.status, 401);
+      assert.deepEqual(await response.json(), {
+        message: "Authentication required",
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("accepts a valid multipart image and returns a versioned public URL", async () => {
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    const bytes = Buffer.from("valid-png-fixture");
+    let uploadedFilename: string | undefined;
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: { cookie },
+        body: imageFormData("catalog-image.png", "image/png", bytes),
+      });
+      const payload = (await response.json()) as UploadResponse;
+      uploadedFilename = payload.filename;
+
+      assert.equal(response.status, 201);
+      assert.equal(payload.contentType, "image/png");
+      assert.equal(payload.originalName, "catalog-image.png");
+      assert.equal(payload.size, bytes.length);
+      assert.match(payload.version, /^[a-z0-9]+$/);
+      assert.match(payload.filename, new RegExp(`^catalog-${payload.version}-[a-f0-9]{16}\\.png$`));
+      assert.equal(
+        payload.url,
+        `${uploadOrigin}/${payload.filename}?v=${payload.version}`,
+      );
+      assert.deepEqual(
+        await readFile(path.join(uploadDirectory, payload.filename)),
+        bytes,
+      );
+    } finally {
+      await server.close();
+      if (uploadedFilename) {
+        await rm(path.join(uploadDirectory, uploadedFilename), { force: true });
+      }
+    }
+  });
+
+  it("accepts a valid basin video without changing image upload validation", async () => {
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    const bytes = Buffer.from("valid-mp4-fixture");
+    let uploadedFilename: string | undefined;
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/upload/video`, {
+        method: "POST",
+        headers: { cookie },
+        body: videoFormData("basin-tour.mp4", "video/mp4", bytes),
+      });
+      const payload = (await response.json()) as UploadResponse;
+      uploadedFilename = payload.filename;
+
+      assert.equal(response.status, 201);
+      assert.equal(payload.contentType, "video/mp4");
+      assert.match(payload.filename, new RegExp(`^catalog-${payload.version}-[a-f0-9]{16}\\.mp4$`));
+      assert.deepEqual(await readFile(path.join(uploadDirectory, payload.filename)), bytes);
+    } finally {
+      await server.close();
+      if (uploadedFilename) await rm(path.join(uploadDirectory, uploadedFilename), { force: true });
+    }
+  });
+
+  it("returns a client error for malformed or unsupported multipart input", async () => {
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    const filesBefore = await readdir(uploadDirectory);
+
+    try {
+      const missingBoundary = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: {
+          cookie,
+          "content-type": "multipart/form-data",
+        },
+        body: "not multipart",
+      });
+      assert.equal(missingBoundary.status, 400);
+      assert.match((await missingBoundary.json()).message, /multipart image file/i);
+
+      const unsupportedType = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: { cookie },
+        body: imageFormData("notes.txt", "text/plain"),
+      });
+      assert.equal(unsupportedType.status, 400);
+      assert.match((await unsupportedType.json()).message, /JPG, PNG, WEBP, and GIF/i);
+
+      const wrongField = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: { cookie },
+        body: imageFormData("basin.png", "image/png", undefined, "photo"),
+      });
+      assert.equal(wrongField.status, 400);
+      assert.match((await wrongField.json()).message, /Choose an image file/i);
+
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("removes old unreferenced uploads but preserves referenced and fresh files", async () => {
+    const referenced = "catalog-mold-bbbbbbbbbbbbbbbb.png";
+    const referencedVideo = "catalog-mold-dddddddddddddddd.mp4";
+    const orphan = "catalog-mold-aaaaaaaaaaaaaaaa.png";
+    const fresh = "catalog-mfresh-cccccccccccccccc.png";
+    const unrelated = "keep-this-file.txt";
+    const oldTime = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    await writeFile(path.join(uploadDirectory, orphan), "old orphan");
+    await writeFile(path.join(uploadDirectory, referenced), "still in catalog");
+    await writeFile(path.join(uploadDirectory, referencedVideo), "video still in catalog");
+    await writeFile(path.join(uploadDirectory, fresh), "fresh orphan");
+    await writeFile(path.join(uploadDirectory, unrelated), "not managed");
+    await utimes(path.join(uploadDirectory, orphan), oldTime, oldTime);
+    await utimes(path.join(uploadDirectory, referenced), oldTime, oldTime);
+    await utimes(path.join(uploadDirectory, referencedVideo), oldTime, oldTime);
+
+    const server = await startAdminRoute(
+      cleanupDatabase(
+        [{ imageUrl: null, videoUrl: `${uploadOrigin}/${referencedVideo}?v=mold` }],
+        [{ imageUrl: `${uploadOrigin}/${referenced}?v=mold` }],
+        [{ imageUrl: "https://central.example.test/slab/SS001.png" }],
+      ),
+    );
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/uploads/cleanup`, {
+        method: "POST",
+        headers: { cookie },
+      });
+      const payload = (await response.json()) as {
+        retentionHours: number;
+        scanned: number;
+        removed: string[];
+        skippedReferenced: number;
+        skippedTooNew: number;
+      };
+
+      assert.equal(response.status, 200);
+      assert.equal(payload.retentionHours, 24);
+       assert.equal(payload.scanned, 4);
+      assert.deepEqual(payload.removed, [orphan]);
+       assert.equal(payload.skippedReferenced, 2);
+      assert.equal(payload.skippedTooNew, 1);
+      await assert.rejects(readFile(path.join(uploadDirectory, orphan)));
+      assert.deepEqual(await readFile(path.join(uploadDirectory, referenced)), Buffer.from("still in catalog"));
+       assert.deepEqual(await readFile(path.join(uploadDirectory, referencedVideo)), Buffer.from("video still in catalog"));
+      assert.deepEqual(await readFile(path.join(uploadDirectory, fresh)), Buffer.from("fresh orphan"));
+      assert.deepEqual(await readFile(path.join(uploadDirectory, unrelated)), Buffer.from("not managed"));
+    } finally {
+      await server.close();
+      await rm(path.join(uploadDirectory, referenced), { force: true });
+       await rm(path.join(uploadDirectory, referencedVideo), { force: true });
+      await rm(path.join(uploadDirectory, fresh), { force: true });
+      await rm(path.join(uploadDirectory, unrelated), { force: true });
+    }
+  });
+});

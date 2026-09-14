@@ -1,1 +1,63 @@
-aW1wb3J0IHsgY3JlYXRlSG1hYywgdGltaW5nU2FmZUVxdWFsIH0gZnJvbSAibm9kZTpjcnlwdG8iOwppbXBvcnQgdHlwZSB7IFJlcXVlc3RIYW5kbGVyIH0gZnJvbSAiZXhwcmVzcyI7Cgpjb25zdCBDT09LSUVfTkFNRSA9ICJrbmlnaHRfYWRtaW5fc2Vzc2lvbiI7CmNvbnN0IFNFU1NJT05fQUdFX01TID0gMTIgKiA2MCAqIDYwICogMTAwMDsKCmZ1bmN0aW9uIHNlY3JldCgpIHsKICBjb25zdCB2YWx1ZSA9IHByb2Nlc3MuZW52WyJTRVNTSU9OX1NFQ1JFVCJdOwogIGlmICghdmFsdWUpIHRocm93IG5ldyBFcnJvcigiU0VTU0lPTl9TRUNSRVQgaXMgcmVxdWlyZWQiKTsKICByZXR1cm4gdmFsdWU7Cn0KCmZ1bmN0aW9uIHNpZ24ocGF5bG9hZDogc3RyaW5nKSB7CiAgcmV0dXJuIGNyZWF0ZUhtYWMoInNoYTI1NiIsIHNlY3JldCgpKS51cGRhdGUocGF5bG9hZCkuZGlnZXN0KCJoZXgiKTsKfQoKZnVuY3Rpb24gc2FmZUVxdWFsKGxlZnQ6IHN0cmluZywgcmlnaHQ6IHN0cmluZykgewogIGNvbnN0IGEgPSBCdWZmZXIuZnJvbShsZWZ0KTsKICBjb25zdCBiID0gQnVmZmVyLmZyb20ocmlnaHQpOwogIHJldHVybiBhLmxlbmd0aCA9PT0gYi5sZW5ndGggJiYgdGltaW5nU2FmZUVxdWFsKGEsIGIpOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlQWRtaW5Ub2tlbigpIHsKICBjb25zdCBleHBpcmVzQXQgPSBEYXRlLm5vdygpICsgU0VTU0lPTl9BR0VfTVM7CiAgY29uc3QgcGF5bG9hZCA9IFN0cmluZyhleHBpcmVzQXQpOwogIHJldHVybiBgJHtwYXlsb2FkfS4ke3NpZ24ocGF5bG9hZCl9YDsKfQoKZXhwb3J0IGZ1bmN0aW9uIGlzQWRtaW5Ub2tlblZhbGlkKHRva2VuOiBzdHJpbmcgfCB1bmRlZmluZWQpIHsKICBpZiAoIXRva2VuKSByZXR1cm4gZmFsc2U7CiAgY29uc3QgW3BheWxvYWQsIHNpZ25hdHVyZV0gPSB0b2tlbi5zcGxpdCgiLiIpOwogIGlmICghcGF5bG9hZCB8fCAhc2lnbmF0dXJlIHx8IE51bWJlcihwYXlsb2FkKSA8PSBEYXRlLm5vdygpKSByZXR1cm4gZmFsc2U7CiAgcmV0dXJuIHNhZmVFcXVhbChzaWduYXR1cmUsIHNpZ24ocGF5bG9hZCkpOwp9CgpleHBvcnQgZnVuY3Rpb24gYWRtaW5Db29raWVPcHRpb25zKCkgewogIHJldHVybiB7CiAgICBodHRwT25seTogdHJ1ZSwKICAgIHNhbWVTaXRlOiAibGF4IiBhcyBjb25zdCwKICAgIHNlY3VyZTogcHJvY2Vzcy5lbnZbIk5PREVfRU5WIl0gPT09ICJwcm9kdWN0aW9uIiwKICAgIG1heEFnZTogU0VTU0lPTl9BR0VfTVMsCiAgICBwYXRoOiAiLyIsCiAgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGFkbWluUGFzc3dvcmRNYXRjaGVzKHBhc3N3b3JkOiBzdHJpbmcpIHsKICBjb25zdCBleHBlY3RlZCA9IHByb2Nlc3MuZW52WyJBRE1JTl9QQVNTV09SRCJdOwogIHJldHVybiBleHBlY3RlZCA/IHNhZmVFcXVhbChwYXNzd29yZCwgZXhwZWN0ZWQpIDogZmFsc2U7Cn0KCmV4cG9ydCBjb25zdCByZXF1aXJlQWRtaW46IFJlcXVlc3RIYW5kbGVyID0gKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgaWYgKCFwcm9jZXNzLmVudlsiQURNSU5fUEFTU1dPUkQiXSkgewogICAgcmVzLnN0YXR1cyg1MDMpLmpzb24oeyBtZXNzYWdlOiAiQWRtaW4gYWNjZXNzIGlzIG5vdCBjb25maWd1cmVkIiB9KTsKICAgIHJldHVybjsKICB9CiAgaWYgKCFpc0FkbWluVG9rZW5WYWxpZChyZXEuY29va2llcz8uW0NPT0tJRV9OQU1FXSkpIHsKICAgIHJlcy5zdGF0dXMoNDAxKS5qc29uKHsgbWVzc2FnZTogIkF1dGhlbnRpY2F0aW9uIHJlcXVpcmVkIiB9KTsKICAgIHJldHVybjsKICB9CiAgbmV4dCgpOwp9OwoKZXhwb3J0IHsgQ09PS0lFX05BTUUgfTs=
+import { createHmac, timingSafeEqual } from "node:crypto";
+import type { RequestHandler } from "express";
+
+const COOKIE_NAME = "knight_admin_session";
+const SESSION_AGE_MS = 12 * 60 * 60 * 1000;
+
+function secret() {
+  const value = process.env["SESSION_SECRET"];
+  if (!value) throw new Error("SESSION_SECRET is required");
+  return value;
+}
+
+function sign(payload: string) {
+  return createHmac("sha256", secret()).update(payload).digest("hex");
+}
+
+function safeEqual(left: string, right: string) {
+  const a = Buffer.from(left);
+  const b = Buffer.from(right);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+export function createAdminToken() {
+  const expiresAt = Date.now() + SESSION_AGE_MS;
+  const payload = String(expiresAt);
+  return `${payload}.${sign(payload)}`;
+}
+
+export function isAdminTokenValid(token: string | undefined) {
+  if (!token) return false;
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature || Number(payload) <= Date.now()) return false;
+  return safeEqual(signature, sign(payload));
+}
+
+export function adminCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env["NODE_ENV"] === "production",
+    maxAge: SESSION_AGE_MS,
+    path: "/",
+  };
+}
+
+export function adminPasswordMatches(password: string) {
+  const expected = process.env["ADMIN_PASSWORD"];
+  return expected ? safeEqual(password, expected) : false;
+}
+
+export const requireAdmin: RequestHandler = (req, res, next) => {
+  if (!process.env["ADMIN_PASSWORD"]) {
+    res.status(503).json({ message: "Admin access is not configured" });
+    return;
+  }
+  if (!isAdminTokenValid(req.cookies?.[COOKIE_NAME])) {
+    res.status(401).json({ message: "Authentication required" });
+    return;
+  }
+  next();
+};
+
+export { COOKIE_NAME };

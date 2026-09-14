@@ -1,1 +1,281 @@
-IyBEZXBsb3kgS25pZ2h0IEJhc2lucyB0byB0aGUgc2hhcmVkIEhvc3RpbmdlciBWUFMKClRoaXMgZGVwbG95bWVudCBjb250YWlucyBhIFZpdGUgUmVhY3Qgc3RvcmVmcm9udCBwbHVzIGFuIEV4cHJlc3MgQVBJIGFuZCBQb3N0Z3JlU1FMLWJhY2tlZCBhZG1pbmlzdHJhdGlvbiBhcmVhLiBJdCBjYW4gbGl2ZSBvbiB0aGUgc2FtZSBWUFMgYXMgS25pZ2h0IERlc2lnbiB3aXRob3V0IHNoYXJpbmcgaXRzIHByb2Nlc3MsIGRhdGFiYXNlLCBvciBkb2N1bWVudCByb290LgoKIyMgMS4gQnVpbGQgdGhlIHByb2R1Y3Rpb24gZmlsZXMKClJ1biBmcm9tIHRoZSByZXBvc2l0b3J5IHJvb3Q6CgpgYGBiYXNoCnBucG0gaW5zdGFsbCAtLWZyb3plbi1sb2NrZmlsZQpQT1JUPTIyNzMxIEJBU0VfUEFUSD0vIHBucG0gLS1maWx0ZXIgQHdvcmtzcGFjZS9rbmlnaHQtYmFzaW5zIHJ1biBidWlsZApwbnBtIC0tZmlsdGVyIEB3b3Jrc3BhY2UvYXBpLXNlcnZlciBydW4gYnVpbGQKYGBgCgpUaGUgZGVwbG95YWJsZSBmaWxlcyB3aWxsIGJlIGluOgoKYGBgdGV4dAphcnRpZmFjdHMva25pZ2h0LWJhc2lucy9kaXN0L3B1YmxpYy8KYXJ0aWZhY3RzL2FwaS1zZXJ2ZXIvZGlzdC8KYGBgCgpUaGUgQVBJIHN0YXJ0cyBvbmx5IGFmdGVyIGl0IGhhcyBhcHBsaWVkIGl0cyBpZGVtcG90ZW50IGNhdGFsb2cgc2VlZC4gVGhlIHNlZWQKdXNlcyB0aGUgY2F0YWxvZyBzb3VyY2UgaW4gYGFydGlmYWN0cy9rbmlnaHQtYmFzaW5zL3NyYy9kYXRhL2NhdGFsb2cudHNgLCBzbyB0aGUKcmVsZWFzZSBhbmQgdGhlIGRhdGFiYXNlIG11c3QgY29tZSBmcm9tIHRoZSBzYW1lIGNvbW1pdC4KCiMjIDIuIENvcHkgdGhlIHJlbGVhc2UgdG8gdGhlIFZQUwoKQ3JlYXRlIGEgc2VwYXJhdGUgZG9jdW1lbnQgcm9vdC4gRG8gbm90IGNvcHkgb3ZlciB0aGUgS25pZ2h0IERlc2lnbiBkaXJlY3Rvcnk6CgpgYGBiYXNoCnN1ZG8gbWtkaXIgLXAgL3Zhci93d3cva25pZ2h0LWJhc2lucwpzdWRvIGNob3duIC1SICIkVVNFUiI6IiRVU0VSIiAvdmFyL3d3dy9rbmlnaHQtYmFzaW5zCmBgYAoKRnJvbSB0aGUgcHJvamVjdCBtYWNoaW5lLCBjb3B5IHRoZSBnZW5lcmF0ZWQgc3RvcmVmcm9udCwgQVBJIGJ1bmRsZSwgYW5kCmRlcGxveW1lbnQgaGVscGVycy4gVGhlIEFQSSBidW5kbGUgaXMgc2VsZi1jb250YWluZWQ7IHRoZSBzb3VyY2UgY2hlY2tvdXQgaXMKb25seSBuZWVkZWQgb24gdGhlIFZQUyBmb3IgdGhlIERyaXp6bGUgc2NoZW1hIHB1c2guCgpgYGBiYXNoCnJzeW5jIC1hdnogLS1kZWxldGUgYXJ0aWZhY3RzL2tuaWdodC1iYXNpbnMvZGlzdC9wdWJsaWMvIFwKICBZT1VSX1ZQU19VU0VSQFlPVVJfVlBTX0hPU1Q6L3Zhci93d3cva25pZ2h0LWJhc2lucy8KCnNzaCBZT1VSX1ZQU19VU0VSQFlPVVJfVlBTX0hPU1QgXAogICdzdWRvIG1rZGlyIC1wIC9vcHQva25pZ2h0LWJhc2lucy9hcnRpZmFjdHMvYXBpLXNlcnZlci9kaXN0IC9vcHQva25pZ2h0LWJhc2lucy9kZXBsb3kvaG9zdGluZ2VyJwpyc3luYyAtYXZ6IC0tZGVsZXRlIGFydGlmYWN0cy9hcGktc2VydmVyL2Rpc3QvIFwKICBZT1VSX1ZQU19VU0VSQFlPVVJfVlBTX0hPU1Q6L29wdC9rbmlnaHQtYmFzaW5zL2FydGlmYWN0cy9hcGktc2VydmVyL2Rpc3QvCnJzeW5jIC1hdnogZGVwbG95L2hvc3Rpbmdlci8gXAogIFlPVVJfVlBTX1VTRVJAWU9VUl9WUFNfSE9TVDovb3B0L2tuaWdodC1iYXNpbnMvZGVwbG95L2hvc3Rpbmdlci8KYGBgCgpGb3IgdGhlIHNjaGVtYSBwdXNoLCBlaXRoZXIga2VlcCBhIGNoZWNrb3V0IG9mIHRoaXMgcmVwb3NpdG9yeSBhdApgL29wdC9rbmlnaHQtYmFzaW5zYCBvciBydW4gdGhlIHB1c2ggZnJvbSBhIG1hdGNoaW5nIGNoZWNrb3V0IG9uIHRoZSBWUFMuIERvCm5vdCBjb3B5IGAuZW52YCBmaWxlcyBvciBjcmVkZW50aWFscy4KCiMjIDMuIEFkZCB0aGUgTmdpbnggc2l0ZQoKQ29weSBga25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQubmdpbnguY29uZmAgdG86CgpgYGB0ZXh0Ci9ldGMvbmdpbngvc2l0ZXMtYXZhaWxhYmxlL2tuaWdodGJhc2lucy5zcnYxOTY0NDczLmhzdGdyLmNsb3VkCmBgYAoKRW5hYmxlIGl0IGFsb25nc2lkZSB0aGUgZXhpc3RpbmcgS25pZ2h0IERlc2lnbiBzaXRlOgoKYGBgYmFzaApzdWRvIGxuIC1zIC9ldGMvbmdpbngvc2l0ZXMtYXZhaWxhYmxlL2tuaWdodGJhc2lucy5zcnYxOTY0NDczLmhzdGdyLmNsb3VkIFwKICAvZXRjL25naW54L3NpdGVzLWVuYWJsZWQva25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQKc3VkbyBuZ2lueCAtdApzdWRvIHN5c3RlbWN0bCByZWxvYWQgbmdpbngKYGBgCgpUaGUgYHRyeV9maWxlc2AgZmFsbGJhY2sgaXMgcmVxdWlyZWQgc28gZGlyZWN0IHZpc2l0cyB0byBgL3N0b25lYCBhbmQgYC9xdW90ZWAgd29yayBhZnRlciByZWZyZXNoLgoKIyMgNC4gQ29uZmlndXJlIFBvc3RncmVTUUwgYW5kIGFwcGx5IHRoZSBzY2hlbWEKCkluc3RhbGwgUG9zdGdyZVNRTCBhbmQgdGhlIGNsaWVudCB0b29scyBpZiB0aGUgc2hhcmVkIFZQUyBpbWFnZSBkb2VzIG5vdAphbHJlYWR5IGluY2x1ZGUgdGhlbS4gVGhlbiBwcm92aXNpb24gdGhlIHNlcGFyYXRlIGRhdGFiYXNlIGFuZCBub24tc3VwZXJ1c2VyCnJvbGUuIFJ1biB0aGlzIG9uIHRoZSBWUFM7IHRoZSBwYXNzd29yZCBpcyBuZXZlciBzdG9yZWQgaW4gdGhlIHJlcG9zaXRvcnk6CgpgYGBiYXNoCmV4cG9ydCBLTklHSFRfQkFTSU5TX0RCX1BBU1NXT1JEPSdjaG9vc2UtYS1sb25nLXJhbmRvbS1wYXNzd29yZCcKYmFzaCAvb3B0L2tuaWdodC1iYXNpbnMvZGVwbG95L2hvc3Rpbmdlci9wcm92aXNpb24tcG9zdGdyZXMuc2gKdW5zZXQgS05JR0hUX0JBU0lOU19EQl9QQVNTV09SRApgYGAKClRoZSBzY3JpcHQgY3JlYXRlcyBga25pZ2h0X2Jhc2luc2AgYW5kIGBrbmlnaHRfYmFzaW5zX2FwcGAgYnkgZGVmYXVsdCwKZGlzYWxsb3dzIHN1cGVydXNlci9yb2xlL2RhdGFiYXNlIGNyZWF0aW9uIHByaXZpbGVnZXMsIHJlbW92ZXMgdGhlIHB1YmxpYwpkYXRhYmFzZSBhbmQgc2NoZW1hIGdyYW50cywgYW5kIGdyYW50cyB0aGUgYXBwIHJvbGUgb25seSB0aGUgcGVybWlzc2lvbnMKbmVlZGVkIGJ5IERyaXp6bGUgYW5kIHRoZSBBUEkuIE92ZXJyaWRlIHRoZSBuYW1lcyB3aXRoCmBLTklHSFRfQkFTSU5TX0RCX05BTUVgIGFuZCBgS05JR0hUX0JBU0lOU19EQl9VU0VSYCBpZiBuZWVkZWQuCgpDcmVhdGUgYC9ldGMva25pZ2h0LWJhc2lucy9hcGkuZW52YCB3aXRoIHBlcm1pc3Npb25zIHJlYWRhYmxlIG9ubHkgYnkgcm9vdCBhbmQKdGhlIHNlcnZpY2UgYWNjb3VudDoKCmBgYGJhc2gKc3VkbyBpbnN0YWxsIC1kIC1tIDA3NTAgLW8gcm9vdCAtZyB3d3ctZGF0YSAvZXRjL2tuaWdodC1iYXNpbnMKc3VkbyBzaCAtYyAnY2F0ID4gL2V0Yy9rbmlnaHQtYmFzaW5zL2FwaS5lbnYnIDw8J0VPRicKREFUQUJBU0VfVVJMPXBvc3RncmVzcWw6Ly9rbmlnaHRfYmFzaW5zX2FwcDpVUkxfRU5DT0RFRF9QQVNTV09SREAxMjcuMC4wLjE6NTQzMi9rbmlnaHRfYmFzaW5zClNFU1NJT05fU0VDUkVUPXVzZS1hLWxvbmctcmFuZG9tLXNlY3JldApBRE1JTl9QQVNTV09SRD11c2UtYS1zdHJvbmctYWRtaW4tcGFzc3dvcmQKTElORV9DSEFOTkVMX0lEPXlvdXItbGluZS1jaGFubmVsLWlkCkxJTkVfQ0hBTk5FTF9TRUNSRVQ9eW91ci1saW5lLWNoYW5uZWwtc2VjcmV0CkxJTkVfQ0FMTEJBQ0tfVVJMPWh0dHBzOi8va25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQvYXBpL2F1dGgvbGluZS9jYWxsYmFjawpFT0YKc3VkbyBjaG93biByb290Ond3dy1kYXRhIC9ldGMva25pZ2h0LWJhc2lucy9hcGkuZW52CnN1ZG8gY2htb2QgMDY0MCAvZXRjL2tuaWdodC1iYXNpbnMvYXBpLmVudgpgYGAKClVSTC1lbmNvZGUgYW55IHJlc2VydmVkIGNoYXJhY3RlcnMgaW4gdGhlIGRhdGFiYXNlIHBhc3N3b3JkLiBBcHBseSB0aGUKRHJpenpsZSBzY2hlbWEgZnJvbSB0aGUgbWF0Y2hpbmcgcmVwb3NpdG9yeSBjaGVja291dDoKCmBgYGJhc2gKc2V0IC1hCnNvdXJjZSAvZXRjL2tuaWdodC1iYXNpbnMvYXBpLmVudgpzZXQgK2EKREFUQUJBU0VfVVJMPSIkREFUQUJBU0VfVVJMIiBwbnBtIC0tZmlsdGVyIEB3b3Jrc3BhY2UvZGIgcnVuIHB1c2gKYGBgCgpUaGUgQVBJIHNlZWRzIGFsbCBjdXJyZW50IGJhc2luLCBpbnN0YWxsZWQtc3RvbmUsIGFuZCBzaGVldC1zdG9uZSBjYXRhbG9nIHJvd3MKYmVmb3JlIGl0IHN0YXJ0cyBsaXN0ZW5pbmcuIEFmdGVyIHN0YXJ0aW5nIGl0LCBgL2FwaS9jYXRhbG9nYCBpcyB0aGUKcmVhZC1vbmx5IGNvbmZpcm1hdGlvbiB0aGF0IHRoZSBzZWVkIGNvbXBsZXRlZC4KClRoZSBMSU5FIERldmVsb3BlcnMgY2hhbm5lbCBtdXN0IHVzZSB0aGlzIGV4YWN0IGNhbGxiYWNrIFVSTDoKCmBgYHRleHQKaHR0cHM6Ly9rbmlnaHRiYXNpbnMuc3J2MTk2NDQ3My5oc3Rnci5jbG91ZC9hcGkvYXV0aC9saW5lL2NhbGxiYWNrCmBgYAoKVGhlIEFQSSByZXBvcnRzIExJTkUgY29uZmlndXJhdGlvbiBzdGF0ZSBhdCBgL2FwaS9oZWFsdGh6YCB3aXRob3V0IHJldHVybmluZwp0aGUgY2hhbm5lbCBJRCBvciBzZWNyZXQuIEluIHByb2R1Y3Rpb24sIHRoZSBlbmRwb2ludCByZXR1cm5zIEhUVFAgNTAzIHVudGlsCnRoZSBjaGFubmVsIGNyZWRlbnRpYWxzIGFuZCBleGFjdCBIVFRQUyBjYWxsYmFjayBVUkwgYXJlIGNvbmZpZ3VyZWQuIEZvciBsb2NhbApkZXZlbG9wbWVudCBvbmx5LCB1c2UgdGhpcyBleHBsaWNpdGx5IGFsbG93ZWQgY2FsbGJhY2sgaW5zdGVhZDoKCmBgYHRleHQKaHR0cDovL2xvY2FsaG9zdDo1MDAwL2FwaS9hdXRoL2xpbmUvY2FsbGJhY2sKYGBgCgpEbyBub3QgdXNlIHRoZSBsb2NhbCBjYWxsYmFjayBpbiB0aGUgcHJvZHVjdGlvbiBlbnZpcm9ubWVudC4KCiMjIyBVcGxvYWRlZCBwcm9kdWN0LXBob3RvIGNsZWFudXAKCkJ5IGRlZmF1bHQsIGV2ZXJ5IHN1Y2Nlc3NmdWwgaW1hZ2UgdXBsb2FkIGlzIHJldGFpbmVkIGZvciBhdCBsZWFzdCAyNCBob3Vycy4KVGhpcyBnaXZlcyBhbiBhZG1pbmlzdHJhdG9yIHRpbWUgdG8gc2F2ZSBhbiBlZGl0IG9yIHJlY292ZXIgZnJvbSBhIGNhbmNlbGxlZAplZGl0LiBUaGUgYXV0aGVudGljYXRlZCBjbGVhbnVwIHJvdXRlIHRoZW4gcmVtb3ZlcyBvbmx5IGdlbmVyYXRlZCBgY2F0YWxvZy0qYApmaWxlcyBvbGRlciB0aGFuIHRoZSByZXRlbnRpb24gcGVyaW9kIHRoYXQgYXJlIG5vdCByZWZlcmVuY2VkIGJ5IGFueSBiYXNpbiwKaW5zdGFsbGVkLXN0b25lLCBvciBzaGVldC1zdG9uZSByb3cuIEl0IG5ldmVyIHJlbW92ZXMgY2VudHJhbC9zdGF0aWMgY2F0YWxvZwptZWRpYSBvciBhIGZpbGUgc3RpbGwgcmVmZXJlbmNlZCBieSBhIGNhdGFsb2cgcm93LgoKUnVuIHRoZSBjbGVhbnVwIG9uY2UgYSBkYXkgZnJvbSBhbiBvcGVyYXRvciBtYWNoaW5lIG9yIGEgcHJvdGVjdGVkIHNjaGVkdWxlci4KS2VlcCB0aGUgYWRtaW4gc2Vzc2lvbiBjb29raWUgaW4gYSB0ZW1wb3JhcnkgZmlsZSBhbmQgcmVtb3ZlIGl0IGFmdGVyIHRoZSBydW46CgpgYGBiYXNoCnNldCAtZXVvIHBpcGVmYWlsCkJBU0VfVVJMPWh0dHBzOi8va25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQKQ09PS0lFX0ZJTEU9IiQobWt0ZW1wKSIKdHJhcCAncm0gLWYgIiRDT09LSUVfRklMRSInIEVYSVQKCmN1cmwgLS1mYWlsIC0tc2lsZW50IC0tc2hvdy1lcnJvciBcCiAgLWMgIiRDT09LSUVfRklMRSIgXAogIC1IICdjb250ZW50LXR5cGU6IGFwcGxpY2F0aW9uL2pzb24nIFwKICAtLWRhdGEgIntcInBhc3N3b3JkXCI6XCIkQURNSU5fUEFTU1dPUkRcIn0iIFwKICAiJEJBU0VfVVJML2FwaS9hZG1pbi9zZXNzaW9uIiA+L2Rldi9udWxsCgpjdXJsIC0tZmFpbCAtLXNpbGVudCAtLXNob3ctZXJyb3IgXAogIC1iICIkQ09PS0lFX0ZJTEUiIFwKICAtWCBQT1NUIFwKICAiJEJBU0VfVVJML2FwaS9hZG1pbi91cGxvYWRzL2NsZWFudXAiCnByaW50ZiAnXG4nCmBgYAoKU2V0IGBVUExPQURfUkVURU5USU9OX0hPVVJTYCBpbiB0aGUgQVBJIGVudmlyb25tZW50IHRvIGNoYW5nZSB0aGUgbWluaW11bQpyZXRlbnRpb24gcGVyaW9kOyBpbnZhbGlkIHZhbHVlcyBhbmQgdmFsdWVzIGJlbG93IG9uZSBob3VyIHVzZSB0aGUgMjQtaG91cgpkZWZhdWx0LiBEbyBub3QgcnVuIGNsZWFudXAgYnkgZGVsZXRpbmcgZmlsZXMgZGlyZWN0bHk6IHRoZSByb3V0ZSBjaGVja3MgYWxsCnRocmVlIGNhdGFsb2cgdGFibGVzIGJlZm9yZSByZW1vdmluZyBhbnl0aGluZy4KCiMjIDUuIEluc3RhbGwgYW5kIHZlcmlmeSB0aGUgQVBJIHNlcnZpY2UKCmBgYGJhc2gKc3VkbyBta2RpciAtcCAvZXRjL2tuaWdodC1iYXNpbnMKc3VkbyBjcCBkZXBsb3kvaG9zdGluZ2VyL2tuaWdodC1iYXNpbnMtYXBpLnNlcnZpY2UgL2V0Yy9zeXN0ZW1kL3N5c3RlbS8Kc3VkbyBzeXN0ZW1jdGwgZGFlbW9uLXJlbG9hZApzdWRvIHN5c3RlbWN0bCBlbmFibGUgLS1ub3cga25pZ2h0LWJhc2lucy1hcGkKc3VkbyBzeXN0ZW1jdGwgc3RhdHVzIGtuaWdodC1iYXNpbnMtYXBpCmN1cmwgaHR0cDovLzEyNy4wLjAuMTo4MDgwL2FwaS9oZWFsdGh6CmN1cmwgaHR0cDovLzEyNy4wLjAuMTo4MDgwL2FwaS9jYXRhbG9nCmBgYAoKVGhlIE5naW54IGNvbmZpZ3VyYXRpb24gcHJveGllcyBgL2FwaS9gIHRvIHRoaXMgc2VydmljZSBvbiBsb2NhbGhvc3QgcG9ydCA4MDgwLgoKIyMgNi4gU2NoZWR1bGUgYmFja3VwcyBhbmQgcGVyZm9ybSBhIHJlc3RvcmUgY2hlY2sKClRoZSBiYWNrdXAgc2VydmljZSBzdG9yZXMgUG9zdGdyZVNRTCBjdXN0b20tZm9ybWF0IGFyY2hpdmVzIHByb3RlY3RlZCBieQpyZXN0cmljdGl2ZSBmaWxlc3lzdGVtIHBlcm1pc3Npb25zIHVuZGVyIGAvdmFyL2JhY2t1cHMva25pZ2h0LWJhc2luc2AsCnZhbGlkYXRlcyBlYWNoIGFyY2hpdmUgYmVmb3JlIHJldGFpbmluZyBpdCwgYW5kIGtlZXBzIDE0IGRheXMgYnkgZGVmYXVsdC4gSWYKdGhlIFZQUyByZXF1aXJlcyBlbmNyeXB0aW9uIGF0IHJlc3QsIHBsYWNlIHRoZSBiYWNrdXAgZGlyZWN0b3J5IG9uIHRoZQpwcm92aWRlcidzIGVuY3J5cHRlZCB2b2x1bWUgb3IgYWRkIGhvc3QtbWFuYWdlZCBlbmNyeXB0aW9uOyB0aGUgc2NyaXB0IGRvZXMKbm90IGNsYWltIHRvIGVuY3J5cHQgZGF0YWJhc2UgY29udGVudHMuCgpgYGBiYXNoCnN1ZG8gaW5zdGFsbCAtZCAtbSAwNzAwIC92YXIvYmFja3Vwcy9rbmlnaHQtYmFzaW5zCnN1ZG8gY3AgZGVwbG95L2hvc3Rpbmdlci9rbmlnaHQtYmFzaW5zLWJhY2t1cC5zZXJ2aWNlIC9ldGMvc3lzdGVtZC9zeXN0ZW0vCnN1ZG8gY3AgZGVwbG95L2hvc3Rpbmdlci9rbmlnaHQtYmFzaW5zLWJhY2t1cC50aW1lciAvZXRjL3N5c3RlbWQvc3lzdGVtLwpzdWRvIHN5c3RlbWN0bCBkYWVtb24tcmVsb2FkCnN1ZG8gc3lzdGVtY3RsIGVuYWJsZSAtLW5vdyBrbmlnaHQtYmFzaW5zLWJhY2t1cC50aW1lcgpzdWRvIHN5c3RlbWN0bCBzdGFydCBrbmlnaHQtYmFzaW5zLWJhY2t1cC5zZXJ2aWNlCnN1ZG8gc3lzdGVtY3RsIGxpc3QtdGltZXJzIGtuaWdodC1iYXNpbnMtYmFja3VwLnRpbWVyCnN1ZG8gYmFzaCAvb3B0L2tuaWdodC1iYXNpbnMvZGVwbG95L2hvc3Rpbmdlci9yZXN0b3JlLWNoZWNrLnNoCmBgYAoKYHJlc3RvcmUtY2hlY2suc2hgIHJlc3RvcmVzIHRoZSBuZXdlc3QgYXJjaGl2ZSBpbnRvIGEgdGVtcG9yYXJ5IGxvY2FsCmRhdGFiYXNlLCBjaGVja3MgYWxsIHRocmVlIGNhdGFsb2cgdGFibGVzLCBhbmQgZHJvcHMgdGhlIHRlbXBvcmFyeSBkYXRhYmFzZQp3aGVuIGl0IGV4aXRzLiBSdW4gaXQgYWZ0ZXIgdGhlIGZpcnN0IGJhY2t1cCBhbmQgd2hlbmV2ZXIgdGhlIGJhY2t1cCBvcgpQb3N0Z3JlU1FMIHNldHVwIGNoYW5nZXMuCgojIyA3LiBQb2ludCBETlMgYW5kIGVuYWJsZSBIVFRQUwoKQ3JlYXRlIGFuIGBBYCByZWNvcmQ6CgpgYGB0ZXh0CmtuaWdodGJhc2lucy5zcnYxOTY0NDczLmhzdGdyLmNsb3VkIC0+IFlPVVJfVlBTX0lQCmBgYAoKQWZ0ZXIgRE5TIHJlc29sdmVzLCBpbnN0YWxsIHRoZSBjZXJ0aWZpY2F0ZSB3aXRob3V0IGNoYW5naW5nIHRoZSBLbmlnaHQgRGVzaWduIHNlcnZlciBibG9jazoKCmBgYGJhc2gKc3VkbyBjZXJ0Ym90IC0tbmdpbnggLWQga25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQKYGBgCgpDb25maXJtIHJlbmV3YWw6CgpgYGBiYXNoCnN1ZG8gY2VydGJvdCByZW5ldyAtLWRyeS1ydW4KYGBgCgpDb25maXJtIHRoZSBwdWJsaWMgZW5kcG9pbnRzIGFmdGVyIEROUyBhbmQgVExTIGFyZSBhY3RpdmU6CgpgYGBiYXNoCmN1cmwgLS1mYWlsIGh0dHBzOi8va25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQvYXBpL2hlYWx0aHoKY3VybCAtLWZhaWwgaHR0cHM6Ly9rbmlnaHRiYXNpbnMuc3J2MTk2NDQ3My5oc3Rnci5jbG91ZC9hcGkvY2F0YWxvZwpgYGAKCiMjIDguIFJ1biB0aGUgcmVsZWFzZSB2YWxpZGF0aW9uIGdhdGUKClJ1biB0aGlzIGFzIHRoZSBmaW5hbCB2YWxpZGF0aW9uIHN0ZXAgYWZ0ZXIgZXZlcnkgQVBJIGRlcGxveW1lbnQsIExJTkUKZW52aXJvbm1lbnQgY2hhbmdlLCBvciBOZ2lueC9UTFMgY2hhbmdlLiBUaGlzIGlzIGEgcmVsZWFzZSBnYXRlLCBub3QgYW4Kb3B0aW9uYWwgc21va2UgY2hlY2s6CgpgYGBiYXNoCnNldCAtZXVvIHBpcGVmYWlsCkJBU0VfVVJMPWh0dHBzOi8va25pZ2h0YmFzaW5zLnNydjE5NjQ0NzMuaHN0Z3IuY2xvdWQgXAogIGJhc2ggZGVwbG95L2hvc3Rpbmdlci9jaGVjay1saW5lLWxvZ2luLnNoCmBgYAoKVGhlIGNvbW1hbmQgZXhpdHMgbm9uLXplcm8gYW5kIG11c3Qgc3RvcCB0aGUgcmVsZWFzZSB3aGVuIHByb2R1Y3Rpb24gaGVhbHRoIGlzCmRlZ3JhZGVkLCB0aGUgbG9naW4gZW5kcG9pbnQgZG9lcyBub3QgcmV0dXJuIGFuIGF1dGhvcml6YXRpb24gcmVkaXJlY3Qgd2l0aCB0aGUKZXhhY3QgcHJvZHVjdGlvbiBjYWxsYmFjaywgb3IgdGhlIGNhbGxiYWNrIHJvdXRlIGlzIHVuYXZhaWxhYmxlLiBEbyBub3QgYXBwZW5kCmB8fCB0cnVlYCwgY29udGludWUgYWZ0ZXIgYSBmYWlsdXJlLCBvciBtYXJrIHRoZSByZWxlYXNlIGNvbXBsZXRlIHVudGlsIHRoaXMKY29tbWFuZCBzdWNjZWVkcy4gVGhlIGNoZWNrIG9ubHkgbG9ncyBzdGF0dXMgYW5kIGZpeGVkIGRpYWdub3N0aWMgbWVzc2FnZXM7IGl0CmRvZXMgbm90IHByaW50IHRoZSBMSU5FIGNoYW5uZWwgSUQsIGNoYW5uZWwgc2VjcmV0LCBvciByZXNwb25zZSBib2R5LgoKU2V0IGBCQVNFX1VSTGAgd2hlbiB2YWxpZGF0aW5nIGEgZGlmZmVyZW50IHB1YmxpYyBlbmRwb2ludCB0aGF0IGlzIGNvbmZpZ3VyZWQKdG8gdXNlIHRoZSBzYW1lIHByb2R1Y3Rpb24gY2FsbGJhY2s6CgpgYGBiYXNoCkJBU0VfVVJMPWh0dHBzOi8vWU9VUl9QVUJMSUNfSFRUUFNfSE9TVCBcCiAgYmFzaCBkZXBsb3kvaG9zdGluZ2VyL2NoZWNrLWxpbmUtbG9naW4uc2gKYGBgCgojIyBOb3RlcwoKLSBUaGlzIHNpdGUgdXNlcyBpdHMgb3duIE5naW54IGBzZXJ2ZXJfbmFtZWAgYW5kIGAvdmFyL3d3dy9rbmlnaHQtYmFzaW5zYCByb290LgotIERvIG5vdCBzdG9wIG9yIHJlcGxhY2UgdGhlIGV4aXN0aW5nIEtuaWdodCBEZXNpZ24gcHJvY2Vzcy4KLSBUaGUgQVBJIHNlcnZlciBpcyByZXF1aXJlZCBmb3IgY3VycmVudCBjYXRhbG9nIHByaWNlcyBhbmQgYC9hZG1pbmAuCi0gS2VlcCBgL2V0Yy9rbmlnaHQtYmFzaW5zL2FwaS5lbnZgIG91dHNpZGUgdGhlIHJlcG9zaXRvcnkgYW5kIGJhY2sgdXAgdGhlIFBvc3RncmVTUUwgZGF0YWJhc2UgcmVndWxhcmx5LgotIEtlZXAgUG9zdGdyZVNRTCBsaXN0ZW5pbmcgb24gbG9jYWxob3N0IHVubGVzcyB0aGUgVlBTIGhhcyBhIGRvY3VtZW50ZWQgbmVlZAogIGZvciByZW1vdGUgZGF0YWJhc2UgYWNjZXNzLiBWZXJpZnkgd2l0aAogIGBzdWRvIC11IHBvc3RncmVzIHBzcWwgLUF0YyAnU0hPVyBsaXN0ZW5fYWRkcmVzc2VzJ2AuCi0gSWYgdGhlIFZQUyB1c2VzIGEgTm9kZSBpbnN0YWxsYXRpb24gb3V0c2lkZSBgL3Vzci9iaW4vbm9kZWAsIHVwZGF0ZQogIGBFeGVjU3RhcnRgIGluIHRoZSBzeXN0ZW1kIHVuaXQgdG8gdGhhdCBhYnNvbHV0ZSBOb2RlIHBhdGg7IGRvIG5vdCB1c2UgYW4KICBpbnRlcmFjdGl2ZSBzaGVsbCBvciBhbiBOVk0tZGVwZW5kZW50IGNvbW1hbmQgaW4gc3lzdGVtZC4KLSBEbyBub3QgcHV0IFZQUyBwYXNzd29yZHMsIHByaXZhdGUga2V5cywgb3IgZGF0YWJhc2UgY3JlZGVudGlhbHMgaW4gdGhpcyByZXBvc2l0b3J5IG9yIGluIGNoYXQu
+# Deploy Knight Basins to the shared Hostinger VPS
+
+This deployment contains a Vite React storefront plus an Express API and PostgreSQL-backed administration area. It can live on the same VPS as Knight Design without sharing its process, database, or document root.
+
+## 1. Build the production files
+
+Run from the repository root:
+
+```bash
+pnpm install --frozen-lockfile
+PORT=22731 BASE_PATH=/ pnpm --filter @workspace/knight-basins run build
+pnpm --filter @workspace/api-server run build
+```
+
+The deployable files will be in:
+
+```text
+artifacts/knight-basins/dist/public/
+artifacts/api-server/dist/
+```
+
+The API starts only after it has applied its idempotent catalog seed. The seed
+uses the catalog source in `artifacts/knight-basins/src/data/catalog.ts`, so the
+release and the database must come from the same commit.
+
+## 2. Copy the release to the VPS
+
+Create a separate document root. Do not copy over the Knight Design directory:
+
+```bash
+sudo mkdir -p /var/www/knight-basins
+sudo chown -R "$USER":"$USER" /var/www/knight-basins
+```
+
+From the project machine, copy the generated storefront, API bundle, and
+deployment helpers. The API bundle is self-contained; the source checkout is
+only needed on the VPS for the Drizzle schema push.
+
+```bash
+rsync -avz --delete artifacts/knight-basins/dist/public/ \
+  YOUR_VPS_USER@YOUR_VPS_HOST:/var/www/knight-basins/
+
+ssh YOUR_VPS_USER@YOUR_VPS_HOST \
+  'sudo mkdir -p /opt/knight-basins/artifacts/api-server/dist /opt/knight-basins/deploy/hostinger'
+rsync -avz --delete artifacts/api-server/dist/ \
+  YOUR_VPS_USER@YOUR_VPS_HOST:/opt/knight-basins/artifacts/api-server/dist/
+rsync -avz deploy/hostinger/ \
+  YOUR_VPS_USER@YOUR_VPS_HOST:/opt/knight-basins/deploy/hostinger/
+```
+
+For the schema push, either keep a checkout of this repository at
+`/opt/knight-basins` or run the push from a matching checkout on the VPS. Do
+not copy `.env` files or credentials.
+
+## 3. Add the Nginx site
+
+Copy `knightbasins.srv1964473.hstgr.cloud.nginx.conf` to:
+
+```text
+/etc/nginx/sites-available/knightbasins.srv1964473.hstgr.cloud
+```
+
+Enable it alongside the existing Knight Design site:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/knightbasins.srv1964473.hstgr.cloud \
+  /etc/nginx/sites-enabled/knightbasins.srv1964473.hstgr.cloud
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+The `try_files` fallback is required so direct visits to `/stone` and `/quote` work after refresh.
+
+## 4. Configure PostgreSQL and apply the schema
+
+Install PostgreSQL and the client tools if the shared VPS image does not
+already include them. Then provision the separate database and non-superuser
+role. Run this on the VPS; the password is never stored in the repository:
+
+```bash
+export KNIGHT_BASINS_DB_PASSWORD='choose-a-long-random-password'
+bash /opt/knight-basins/deploy/hostinger/provision-postgres.sh
+unset KNIGHT_BASINS_DB_PASSWORD
+```
+
+The script creates `knight_basins` and `knight_basins_app` by default,
+disallows superuser/role/database creation privileges, removes the public
+database and schema grants, and grants the app role only the permissions
+needed by Drizzle and the API. Override the names with
+`KNIGHT_BASINS_DB_NAME` and `KNIGHT_BASINS_DB_USER` if needed.
+
+Create `/etc/knight-basins/api.env` with permissions readable only by root and
+the service account:
+
+```bash
+sudo install -d -m 0750 -o root -g www-data /etc/knight-basins
+sudo sh -c 'cat > /etc/knight-basins/api.env' <<'EOF'
+DATABASE_URL=postgresql://knight_basins_app:URL_ENCODED_PASSWORD@127.0.0.1:5432/knight_basins
+SESSION_SECRET=use-a-long-random-secret
+ADMIN_PASSWORD=use-a-strong-admin-password
+LINE_CHANNEL_ID=your-line-channel-id
+LINE_CHANNEL_SECRET=your-line-channel-secret
+LINE_CALLBACK_URL=https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
+EOF
+sudo chown root:www-data /etc/knight-basins/api.env
+sudo chmod 0640 /etc/knight-basins/api.env
+```
+
+URL-encode any reserved characters in the database password. Apply the
+Drizzle schema from the matching repository checkout:
+
+```bash
+set -a
+source /etc/knight-basins/api.env
+set +a
+DATABASE_URL="$DATABASE_URL" pnpm --filter @workspace/db run push
+```
+
+The API seeds all current basin, installed-stone, and sheet-stone catalog rows
+before it starts listening. After starting it, `/api/catalog` is the
+read-only confirmation that the seed completed.
+
+The LINE Developers channel must use this exact callback URL:
+
+```text
+https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
+```
+
+The API reports LINE configuration state at `/api/healthz` without returning
+the channel ID or secret. In production, the endpoint returns HTTP 503 until
+the channel credentials and exact HTTPS callback URL are configured. For local
+development only, use this explicitly allowed callback instead:
+
+```text
+http://localhost:5000/api/auth/line/callback
+```
+
+Do not use the local callback in the production environment.
+
+### Uploaded product-photo cleanup
+
+By default, every successful image upload is retained for at least 24 hours.
+This gives an administrator time to save an edit or recover from a cancelled
+edit. The authenticated cleanup route then removes only generated `catalog-*`
+files older than the retention period that are not referenced by any basin,
+installed-stone, or sheet-stone row. It never removes central/static catalog
+media or a file still referenced by a catalog row.
+
+Run the cleanup once a day from an operator machine or a protected scheduler.
+Keep the admin session cookie in a temporary file and remove it after the run:
+
+```bash
+set -euo pipefail
+BASE_URL=https://knightbasins.srv1964473.hstgr.cloud
+COOKIE_FILE="$(mktemp)"
+trap 'rm -f "$COOKIE_FILE"' EXIT
+
+curl --fail --silent --show-error \
+  -c "$COOKIE_FILE" \
+  -H 'content-type: application/json' \
+  --data "{\"password\":\"$ADMIN_PASSWORD\"}" \
+  "$BASE_URL/api/admin/session" >/dev/null
+
+curl --fail --silent --show-error \
+  -b "$COOKIE_FILE" \
+  -X POST \
+  "$BASE_URL/api/admin/uploads/cleanup"
+printf '\n'
+```
+
+Set `UPLOAD_RETENTION_HOURS` in the API environment to change the minimum
+retention period; invalid values and values below one hour use the 24-hour
+default. Do not run cleanup by deleting files directly: the route checks all
+three catalog tables before removing anything.
+
+## 5. Install and verify the API service
+
+```bash
+sudo mkdir -p /etc/knight-basins
+sudo cp deploy/hostinger/knight-basins-api.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now knight-basins-api
+sudo systemctl status knight-basins-api
+curl http://127.0.0.1:8080/api/healthz
+curl http://127.0.0.1:8080/api/catalog
+```
+
+The Nginx configuration proxies `/api/` to this service on localhost port 8080.
+
+## 6. Schedule backups and perform a restore check
+
+The backup service stores PostgreSQL custom-format archives protected by
+restrictive filesystem permissions under `/var/backups/knight-basins`,
+validates each archive before retaining it, and keeps 14 days by default. If
+the VPS requires encryption at rest, place the backup directory on the
+provider's encrypted volume or add host-managed encryption; the script does
+not claim to encrypt database contents.
+
+```bash
+sudo install -d -m 0700 /var/backups/knight-basins
+sudo cp deploy/hostinger/knight-basins-backup.service /etc/systemd/system/
+sudo cp deploy/hostinger/knight-basins-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now knight-basins-backup.timer
+sudo systemctl start knight-basins-backup.service
+sudo systemctl list-timers knight-basins-backup.timer
+sudo bash /opt/knight-basins/deploy/hostinger/restore-check.sh
+```
+
+`restore-check.sh` restores the newest archive into a temporary local
+database, checks all three catalog tables, and drops the temporary database
+when it exits. Run it after the first backup and whenever the backup or
+PostgreSQL setup changes.
+
+## 7. Point DNS and enable HTTPS
+
+Create an `A` record:
+
+```text
+knightbasins.srv1964473.hstgr.cloud -> YOUR_VPS_IP
+```
+
+After DNS resolves, install the certificate without changing the Knight Design server block:
+
+```bash
+sudo certbot --nginx -d knightbasins.srv1964473.hstgr.cloud
+```
+
+Confirm renewal:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+Confirm the public endpoints after DNS and TLS are active:
+
+```bash
+curl --fail https://knightbasins.srv1964473.hstgr.cloud/api/healthz
+curl --fail https://knightbasins.srv1964473.hstgr.cloud/api/catalog
+```
+
+## 8. Run the release validation gate
+
+Run this as the final validation step after every API deployment, LINE
+environment change, or Nginx/TLS change. This is a release gate, not an
+optional smoke check:
+
+```bash
+set -euo pipefail
+BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \
+  bash deploy/hostinger/check-line-login.sh
+```
+
+The command exits non-zero and must stop the release when production health is
+degraded, the login endpoint does not return an authorization redirect with the
+exact production callback, or the callback route is unavailable. Do not append
+`|| true`, continue after a failure, or mark the release complete until this
+command succeeds. The check only logs status and fixed diagnostic messages; it
+does not print the LINE channel ID, channel secret, or response body.
+
+Set `BASE_URL` when validating a different public endpoint that is configured
+to use the same production callback:
+
+```bash
+BASE_URL=https://YOUR_PUBLIC_HTTPS_HOST \
+  bash deploy/hostinger/check-line-login.sh
+```
+
+## Notes
+
+- This site uses its own Nginx `server_name` and `/var/www/knight-basins` root.
+- Do not stop or replace the existing Knight Design process.
+- The API server is required for current catalog prices and `/admin`.
+- Keep `/etc/knight-basins/api.env` outside the repository and back up the PostgreSQL database regularly.
+- Keep PostgreSQL listening on localhost unless the VPS has a documented need
+  for remote database access. Verify with
+  `sudo -u postgres psql -Atc 'SHOW listen_addresses'`.
+- If the VPS uses a Node installation outside `/usr/bin/node`, update
+  `ExecStart` in the systemd unit to that absolute Node path; do not use an
+  interactive shell or an NVM-dependent command in systemd.
+- Do not put VPS passwords, private keys, or database credentials in this repository or in chat.

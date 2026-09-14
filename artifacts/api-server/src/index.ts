@@ -1,1 +1,35 @@
-aW1wb3J0IGFwcCBmcm9tICIuL2FwcCI7CmltcG9ydCB7IGxvZ2dlciB9IGZyb20gIi4vbGliL2xvZ2dlciI7CmltcG9ydCB7IHNlZWRDYXRhbG9nSWZFbXB0eSB9IGZyb20gIi4vcm91dGVzL2NhdGFsb2ciOwoKY29uc3QgcmF3UG9ydCA9IHByb2Nlc3MuZW52WyJQT1JUIl07CgppZiAoIXJhd1BvcnQpIHsKICB0aHJvdyBuZXcgRXJyb3IoCiAgICAiUE9SVCBlbnZpcm9ubWVudCB2YXJpYWJsZSBpcyByZXF1aXJlZCBidXQgd2FzIG5vdCBwcm92aWRlZC4iLAogICk7Cn0KCmNvbnN0IHBvcnQgPSBOdW1iZXIocmF3UG9ydCk7CgppZiAoTnVtYmVyLmlzTmFOKHBvcnQpIHx8IHBvcnQgPD0gMCkgewogIHRocm93IG5ldyBFcnJvcihgSW52YWxpZCBQT1JUIHZhbHVlOiAiJHtyYXdQb3J0fSJgKTsKfQoKYXN5bmMgZnVuY3Rpb24gc3RhcnQoKSB7CiAgYXdhaXQgc2VlZENhdGFsb2dJZkVtcHR5KCk7CgogIGFwcC5saXN0ZW4ocG9ydCwgKGVycikgPT4gewogICAgaWYgKGVycikgewogICAgICBsb2dnZXIuZXJyb3IoeyBlcnIgfSwgIkVycm9yIGxpc3RlbmluZyBvbiBwb3J0Iik7CiAgICAgIHByb2Nlc3MuZXhpdCgxKTsKICAgIH0KCiAgICBsb2dnZXIuaW5mbyh7IHBvcnQgfSwgIlNlcnZlciBsaXN0ZW5pbmciKTsKICB9KTsKfQoKc3RhcnQoKS5jYXRjaCgoZXJyb3IpID0+IHsKICBsb2dnZXIuZXJyb3IoeyBlcnJvciB9LCAiVW5hYmxlIHRvIGluaXRpYWxpemUgY2F0YWxvZyIpOwogIHByb2Nlc3MuZXhpdCgxKTsKfSk7Cg==
+import app from "./app";
+import { logger } from "./lib/logger";
+import { seedCatalogIfEmpty } from "./routes/catalog";
+
+const rawPort = process.env["PORT"];
+
+if (!rawPort) {
+  throw new Error(
+    "PORT environment variable is required but was not provided.",
+  );
+}
+
+const port = Number(rawPort);
+
+if (Number.isNaN(port) || port <= 0) {
+  throw new Error(`Invalid PORT value: "${rawPort}"`);
+}
+
+async function start() {
+  await seedCatalogIfEmpty();
+
+  app.listen(port, (err) => {
+    if (err) {
+      logger.error({ err }, "Error listening on port");
+      process.exit(1);
+    }
+
+    logger.info({ port }, "Server listening");
+  });
+}
+
+start().catch((error) => {
+  logger.error({ error }, "Unable to initialize catalog");
+  process.exit(1);
+});

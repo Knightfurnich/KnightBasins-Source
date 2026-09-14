@@ -1,1 +1,9 @@
-W1VuaXRdCkRlc2NyaXB0aW9uPUtuaWdodCBCYXNpbnMgUG9zdGdyZVNRTCBiYWNrdXAKQWZ0ZXI9cG9zdGdyZXNxbC5zZXJ2aWNlCgpbU2VydmljZV0KVHlwZT1vbmVzaG90ClVzZXI9cm9vdApHcm91cD1yb290CkV4ZWNTdGFydD0vdXNyL2Jpbi9iYXNoIC9vcHQva25pZ2h0LWJhc2lucy9kZXBsb3kvaG9zdGluZ2VyL2JhY2t1cC5zaA==
+[Unit]
+Description=Knight Basins PostgreSQL backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/bin/bash /opt/knight-basins/deploy/hostinger/backup.sh

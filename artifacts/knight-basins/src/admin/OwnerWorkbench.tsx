@@ -1,1 +1,212 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IEFycm93TGVmdCwgQmFyQ2hhcnQzLCBDaGVja0NpcmNsZTIsIENpcmNsZURvbGxhclNpZ24sIEV4dGVybmFsTGluaywgRmlsZVRleHQsIEltYWdlLCBMYXlvdXREYXNoYm9hcmQsIExvY2tLZXlob2xlLCBNZXNzYWdlQ2lyY2xlLCBQYWNrYWdlLCBQbGF5Q2lyY2xlLCBTaGllbGRDaGVjaywgVHJpYW5nbGVBbGVydCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IExpbmsgfSBmcm9tICJ3b3V0ZXIiOwppbXBvcnQgeyBnZXRIZWFsdGhDaGVja1F1ZXJ5S2V5LCB1c2VHZXRBZG1pblNlc3Npb24sIHVzZUdldENhdGFsb2csIHVzZUhlYWx0aENoZWNrLCB0eXBlIEhlYWx0aFN0YXR1cyB9IGZyb20gIkB3b3Jrc3BhY2UvYXBpLWNsaWVudC1yZWFjdCI7CmltcG9ydCBrbmlnaHRGdXJuaWNoTG9nbyBmcm9tICJAYXNzZXRzL0tuaWdodGZ1cm5pY2gtbG9nb18xNzg5MzAyMjY2MjIwLnBuZyI7CmltcG9ydCB7IEtuaWdodFN1cHBvcnQsIExpbmVMb2dpbkJ1dHRvbiB9IGZyb20gIkAvY29tcG9uZW50cy9LbmlnaHRTdXBwb3J0IjsKaW1wb3J0IHsgQWRtaW5Mb2dpbiwgQWRtaW5Mb2dvdXQgfSBmcm9tICIuL0FkbWluQXBwIjsKaW1wb3J0IHsgQmFzaW5zTWFuYWdlciB9IGZyb20gIi4vQmFzaW5zTWFuYWdlciI7CmltcG9ydCB7IEluc3RhbGxlZFN0b25lc01hbmFnZXIgfSBmcm9tICIuL0luc3RhbGxlZFN0b25lc01hbmFnZXIiOwppbXBvcnQgeyBTaGVldFN0b25lc01hbmFnZXIgfSBmcm9tICIuL1NoZWV0U3RvbmVzTWFuYWdlciI7Cgp0eXBlIFdvcmtiZW5jaFNlY3Rpb24gPSAib3ZlcnZpZXciIHwgImJhc2lucyIgfCAiaW5zdGFsbGVkIiB8ICJzaGVldHMiOwp0eXBlIExpbmVSZWFkaW5lc3NTdGF0ZSA9ICJyZWFkeSIgfCAibWlzc2luZy1jcmVkZW50aWFscyIgfCAibWFsZm9ybWVkLWNhbGxiYWNrIiB8ICJ3cm9uZy1ob3N0IiB8ICJjYWxsYmFjay1pc3N1ZSIgfCAidW5hdmFpbGFibGUiOwoKY29uc3QgbmF2SXRlbXM6IEFycmF5PHsga2V5OiBXb3JrYmVuY2hTZWN0aW9uOyBsYWJlbDogc3RyaW5nOyBpY29uOiB0eXBlb2YgTGF5b3V0RGFzaGJvYXJkIH0+ID0gWwogIHsga2V5OiAib3ZlcnZpZXciLCBsYWJlbDogIuC4oOC4suC4nuC4o+C4p+C4oSIsIGljb246IExheW91dERhc2hib2FyZCB9LAogIHsga2V5OiAiYmFzaW5zIiwgbGFiZWw6ICLguK3guYjguLLguIfguKXguYnguLLguIfguKvguJnguYnguLIiLCBpY29uOiBQYWNrYWdlIH0sCiAgeyBrZXk6ICJpbnN0YWxsZWQiLCBsYWJlbDogIuC4q+C4tOC4mSDCtyDguJ7guKPguYnguK3guKHguJXguLTguJTguJXguLHguYnguIciLCBpY29uOiBDaXJjbGVEb2xsYXJTaWduIH0sCiAgeyBrZXk6ICJzaGVldHMiLCBsYWJlbDogIuC4q+C4tOC4mSDCtyDguILguLLguKLguYHguJzguYjguJkiLCBpY29uOiBGaWxlVGV4dCB9LApdOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gT3duZXJXb3JrYmVuY2goKSB7CiAgY29uc3QgeyBkYXRhOiBzZXNzaW9uLCBpc0xvYWRpbmcgfSA9IHVzZUdldEFkbWluU2Vzc2lvbigpOwogIGNvbnN0IHsgZGF0YTogY2F0YWxvZyB9ID0gdXNlR2V0Q2F0YWxvZygpOwogIGNvbnN0IFtzZWN0aW9uLCBzZXRTZWN0aW9uXSA9IHVzZVN0YXRlPFdvcmtiZW5jaFNlY3Rpb24+KCJvdmVydmlldyIpOwogIGNvbnN0IG5hdkNvdW50cyA9IHsKICAgIGJhc2luczogY2F0YWxvZz8uYmFzaW5zLmxlbmd0aCA/PyAwLAogICAgaW5zdGFsbGVkOiBjYXRhbG9nPy5pbnN0YWxsZWRTdG9uZXMubGVuZ3RoID8/IDAsCiAgICBzaGVldHM6IGNhdGFsb2c/LnNoZWV0U3RvbmVzLmxlbmd0aCA/PyAwLAogIH07CgogIGlmIChpc0xvYWRpbmcpIHJldHVybiA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLWxvYWRpbmciPuC4geC4s+C4peC4seC4h+C4leC4o+C4p+C4iOC4quC4reC4muC4quC4tOC4l+C4mOC4tOC5jC4uLjwvZGl2PjsKICBpZiAoIXNlc3Npb24/LmF1dGhlbnRpY2F0ZWQpIHJldHVybiA8QWRtaW5Mb2dpbiAvPjsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJvd25lci13b3JrYmVuY2giPgogICAgICA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLXRvcGxpbmUiPjxzcGFuPktOSUdIVCBGVVJOSUNIIC8gUFJJVkFURSBXT1JLQkVOQ0g8L3NwYW4+PHNwYW4+4LmA4LiI4LmJ4Liy4LiC4Lit4LiH4Lij4LmJ4Liy4LiZ4LmA4LiX4LmI4Liy4LiZ4Lix4LmJ4LiZIMK3IOC5gOC4i+C4quC4iuC4seC4meC4m+C4peC4reC4lOC4oOC4seC4ojwvc3Bhbj48L2Rpdj4KICAgICAgPGhlYWRlciBjbGFzc05hbWU9IndvcmtiZW5jaC1oZWFkZXIiPgogICAgICAgIDxMaW5rIGhyZWY9Ii8iIGNsYXNzTmFtZT0id29ya2JlbmNoLWJyYW5kIj48aW1nIHNyYz17a25pZ2h0RnVybmljaExvZ299IGFsdD0iS25pZ2h0IEZ1cm5pY2giIC8+PHNwYW4+PHN0cm9uZz5LTklHSFQgRlVSTklDSDwvc3Ryb25nPjxzbWFsbD5DQVRBTE9HVUUgTUFOQUdFTUVOVDwvc21hbGw+PC9zcGFuPjwvTGluaz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLWhlYWRlci1hY3Rpb25zIj48TGluayBocmVmPSIvIiBjbGFzc05hbWU9IndvcmtiZW5jaC1iYWNrIj48QXJyb3dMZWZ0IHNpemU9ezE2fSAvPiDguIHguKXguLHguJrguYTguJvguYHguITguJXguJXguLLguKXguYfguK3guIE8L0xpbms+PExpbmVMb2dpbkJ1dHRvbiBjb21wYWN0IC8+PEFkbWluTG9nb3V0IC8+PC9kaXY+CiAgICAgIDwvaGVhZGVyPgogICAgICA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLW1vYmlsZS1uYXYiPntuYXZJdGVtcy5tYXAoKGl0ZW0pID0+IDxXb3JrYmVuY2hOYXZCdXR0b24ga2V5PXtpdGVtLmtleX0gaXRlbT17aXRlbX0gYWN0aXZlPXtzZWN0aW9uID09PSBpdGVtLmtleX0gb25DbGljaz17KCkgPT4gc2V0U2VjdGlvbihpdGVtLmtleSl9IG1vYmlsZSBjb3VudHM9e25hdkNvdW50c30gLz4pfTwvZGl2PgogICAgICA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLXNoZWxsIj4KICAgICAgICA8YXNpZGUgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtc2lkZWJhciI+CiAgICAgICAgICA8cD5DQVRBTE9HVUUgQ09OVFJPTDwvcD4KICAgICAgICAgIDxuYXY+e25hdkl0ZW1zLm1hcCgoaXRlbSkgPT4gPFdvcmtiZW5jaE5hdkJ1dHRvbiBrZXk9e2l0ZW0ua2V5fSBpdGVtPXtpdGVtfSBhY3RpdmU9e3NlY3Rpb24gPT09IGl0ZW0ua2V5fSBvbkNsaWNrPXsoKSA9PiBzZXRTZWN0aW9uKGl0ZW0ua2V5KX0gY291bnRzPXtuYXZDb3VudHN9IC8+KX08L25hdj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtb3duZXItbm90ZSI+PFNoaWVsZENoZWNrIHNpemU9ezE1fSAvPjxzdHJvbmc+4LmC4Lir4Lih4LiU4LiI4Lix4LiU4LiB4Liy4Lij4Liq4LmI4Lin4LiZ4LiV4Lix4LinPC9zdHJvbmc+PHNwYW4+4LiC4LmJ4Lit4Lih4Li54Lil4LiK4Li44LiU4LiZ4Li14LmJ4LiI4Liw4LmB4Liq4LiU4LiH4Lic4Lil4LiB4Lix4Lia4Lil4Li54LiB4LiE4LmJ4Liy4LmA4Lih4Li34LmI4Lit4LiB4LiUIOKAnOC4muC4seC4meC4l+C4tuC4geC5geC4peC4sOC5gOC4nOC4ouC5geC4nuC4o+C5iOKAnSDguYDguJfguYjguLLguJnguLHguYnguJk8L3NwYW4+PC9kaXY+CiAgICAgICAgPC9hc2lkZT4KICAgICAgICA8bWFpbiBjbGFzc05hbWU9IndvcmtiZW5jaC1tYWluIj4KICAgICAgICAgIHtzZWN0aW9uID09PSAib3ZlcnZpZXciICYmIDxXb3JrYmVuY2hPdmVydmlldyBvbk5hdmlnYXRlPXtzZXRTZWN0aW9ufSAvPn0KICAgICAgICAgIHtzZWN0aW9uID09PSAiYmFzaW5zIiAmJiA8QmFzaW5zTWFuYWdlciAvPn0KICAgICAgICAgIHtzZWN0aW9uID09PSAiaW5zdGFsbGVkIiAmJiA8SW5zdGFsbGVkU3RvbmVzTWFuYWdlciAvPn0KICAgICAgICAgIHtzZWN0aW9uID09PSAic2hlZXRzIiAmJiA8U2hlZXRTdG9uZXNNYW5hZ2VyIC8+fQogICAgICAgIDwvbWFpbj4KICAgICAgPC9kaXY+CiAgICAgIDxLbmlnaHRTdXBwb3J0IC8+CiAgICA8L2Rpdj4KICApOwp9CgpmdW5jdGlvbiBXb3JrYmVuY2hOYXZCdXR0b24oeyBpdGVtLCBhY3RpdmUsIG9uQ2xpY2ssIG1vYmlsZSA9IGZhbHNlLCBjb3VudHMgfTogeyBpdGVtOiAodHlwZW9mIG5hdkl0ZW1zKVtudW1iZXJdOyBhY3RpdmU6IGJvb2xlYW47IG9uQ2xpY2s6ICgpID0+IHZvaWQ7IG1vYmlsZT86IGJvb2xlYW47IGNvdW50czogeyBiYXNpbnM6IG51bWJlcjsgaW5zdGFsbGVkOiBudW1iZXI7IHNoZWV0czogbnVtYmVyIH0gfSkgewogIGNvbnN0IEljb24gPSBpdGVtLmljb247CiAgY29uc3QgY291bnQgPSBpdGVtLmtleSA9PT0gImJhc2lucyIgPyBjb3VudHMuYmFzaW5zIDogaXRlbS5rZXkgPT09ICJpbnN0YWxsZWQiID8gY291bnRzLmluc3RhbGxlZCA6IGNvdW50cy5zaGVldHM7CiAgcmV0dXJuIDxidXR0b24gdHlwZT0iYnV0dG9uIiBjbGFzc05hbWU9e2B3b3JrYmVuY2gtbmF2LWJ1dHRvbiAke2FjdGl2ZSA/ICJpcy1hY3RpdmUiIDogIiJ9ICR7bW9iaWxlID8gImlzLW1vYmlsZSIgOiAiIn1gfSBvbkNsaWNrPXtvbkNsaWNrfT48SWNvbiBzaXplPXsxNX0gLz48c3Bhbj57aXRlbS5sYWJlbH08L3NwYW4+eyFtb2JpbGUgJiYgaXRlbS5rZXkgIT09ICJvdmVydmlldyIgJiYgPGVtPntjb3VudH08L2VtPn08L2J1dHRvbj47Cn0KCmZ1bmN0aW9uIFdvcmtiZW5jaE92ZXJ2aWV3KHsgb25OYXZpZ2F0ZSB9OiB7IG9uTmF2aWdhdGU6IChzZWN0aW9uOiBXb3JrYmVuY2hTZWN0aW9uKSA9PiB2b2lkIH0pIHsKICBjb25zdCB7IGRhdGE6IGNhdGFsb2csIGlzTG9hZGluZyB9ID0gdXNlR2V0Q2F0YWxvZygpOwogIGNvbnN0IGJhc2lucyA9IGNhdGFsb2c/LmJhc2lucyA/PyBbXTsKICBjb25zdCBpbnN0YWxsZWRDb3VudCA9IGNhdGFsb2c/Lmluc3RhbGxlZFN0b25lcy5sZW5ndGggPz8gMDsKICBjb25zdCBzaGVldENvdW50ID0gY2F0YWxvZz8uc2hlZXRTdG9uZXMubGVuZ3RoID8/IDA7CiAgY29uc3QgdG9wU2t1cyA9IFsiS0YwMDEiLCAiS0YwMjAiLCAiS0YwMjMiXTsKICBjb25zdCB0b3BCYXNpbnMgPSB0b3BTa3VzLm1hcCgoc2t1KSA9PiBiYXNpbnMuZmluZCgoYmFzaW4pID0+IGJhc2luLnNrdSA9PT0gc2t1KSkuZmlsdGVyKEJvb2xlYW4pOwogIGNvbnN0IGNvdW50ZXJDb3VudCA9IGJhc2lucy5maWx0ZXIoKGJhc2luKSA9PiBiYXNpbi5jYXRlZ29yeSA9PT0gImNvdW50ZXIgYmFzaW4iKS5sZW5ndGg7CiAgY29uc3Qgcm91bmRDb3VudCA9IGJhc2lucy5maWx0ZXIoKGJhc2luKSA9PiBiYXNpbi5kaW1lbnNpb25zLmluY2x1ZGVzKCLDmCIpKS5sZW5ndGg7CiAgY29uc3Qgc3F1YXJlQ291bnQgPSBNYXRoLm1heCgwLCBiYXNpbnMubGVuZ3RoIC0gY291bnRlckNvdW50IC0gcm91bmRDb3VudCk7CiAgY29uc3QgYmFzaW5Ub3RhbCA9IGJhc2lucy5sZW5ndGggfHwgMTsKICBjb25zdCBjb3VudGVyV2lkdGggPSBgJHtNYXRoLnJvdW5kKChjb3VudGVyQ291bnQgLyBiYXNpblRvdGFsKSAqIDEwMCl9JWA7CiAgY29uc3Qgc3F1YXJlV2lkdGggPSBgJHtNYXRoLnJvdW5kKChzcXVhcmVDb3VudCAvIGJhc2luVG90YWwpICogMTAwKX0lYDsKICBjb25zdCByb3VuZFdpZHRoID0gYCR7TWF0aC5yb3VuZCgocm91bmRDb3VudCAvIGJhc2luVG90YWwpICogMTAwKX0lYDsKCiAgaWYgKGlzTG9hZGluZykgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtbG9hZGluZyI+4LiB4Liz4Lil4Lix4LiH4LmC4Lir4Lil4LiU4LiC4LmJ4Lit4Lih4Li54Lil4LmB4LiE4LiV4LiV4Liy4Lil4LmH4Lit4LiBLi4uPC9kaXY+OwogIHJldHVybiA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLW92ZXJ2aWV3Ij4KICAgIDxkaXYgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtcGFnZS1oZWFkaW5nIj48ZGl2PjxwIGNsYXNzTmFtZT0id29ya2JlbmNoLWV5ZWJyb3ciPldPUktCRU5DSCAvIE9WRVJWSUVXPC9wPjxoMT7guKjguLnguJnguKLguYzguKPguKfguKHguK3guYjguLLguIfguKXguYnguLLguIfguKvguJnguYnguLI8YnIgLz48ZW0+4LmB4Lil4Liw4Lin4Lix4Liq4LiU4Li44Lir4Li04LiZ4Liq4Lix4LiH4LmA4LiE4Lij4Liy4Liw4Lir4LmMPC9lbT48L2gxPjxwPuC4leC4o+C4p+C4iOC4quC4reC4muC4quC4luC4suC4meC4sOC4o+C4suC4hOC4siDguKrguLfguYjguK3guKrguLTguJnguITguYnguLIg4LmB4Lil4Liw4Lij4Liy4Lii4LiB4Liy4Lij4LiX4Li14LmI4LmA4Lib4Li04LiU4LmB4Liq4LiU4LiH4LmD4LiZ4LmB4LiE4LiV4LiV4Liy4Lil4LmH4Lit4LiBIEtuaWdodCBGdXJuaWNoPC9wPjwvZGl2PjxzcGFuIGNsYXNzTmFtZT0id29ya2JlbmNoLXVwZGF0ZWQiPjxDaGVja0NpcmNsZTIgc2l6ZT17MTR9IC8+IOC4guC5ieC4reC4oeC4ueC4peC4peC5iOC4suC4quC4uOC4lOC4iOC4suC4geC5gOC4i+C4tOC4o+C5jOC4n+C5gOC4p+C4reC4o+C5jDwvc3Bhbj48L2Rpdj4KICAgIDxkaXYgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtc3RhdC1ncmlkIj4KICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIGNsYXNzTmFtZT0id29ya2JlbmNoLXN0YXQgd29ya2JlbmNoLXN0YXQtLXByaW1hcnkiIG9uQ2xpY2s9eygpID0+IG9uTmF2aWdhdGUoImJhc2lucyIpfT48c3Bhbj7guK3guYjguLLguIfguKXguYnguLLguIfguKvguJnguYnguLLguYPguJnguYHguITguJXguJXguLLguKXguYfguK3guIE8L3NwYW4+PHN0cm9uZz57YmFzaW5zLmxlbmd0aH08L3N0cm9uZz48c21hbGw+4Lij4Li44LmI4LiZIMK3IOC4oeC4teC4p+C4tOC4lOC4teC5guC4rSAzRCAzNjDCsDwvc21hbGw+PGI+MDEgLyAwNDwvYj48L2J1dHRvbj4KICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIGNsYXNzTmFtZT0id29ya2JlbmNoLXN0YXQiIG9uQ2xpY2s9eygpID0+IG9uTmF2aWdhdGUoImluc3RhbGxlZCIpfT48c3Bhbj7guKvguLTguJnguJ7guKPguYnguK3guKHguJXguLTguJTguJXguLHguYnguIc8L3NwYW4+PHN0cm9uZz57aW5zdGFsbGVkQ291bnR9PC9zdHJvbmc+PHNtYWxsPuC4quC4tSDCtyDguKDguLLguJ4gSEQ8L3NtYWxsPjwvYnV0dG9uPgogICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtc3RhdCIgb25DbGljaz17KCkgPT4gb25OYXZpZ2F0ZSgic2hlZXRzIil9PjxzcGFuPuC4q+C4tOC4meC4guC4suC4ouC5gOC4m+C5h+C4meC5geC4nOC5iOC4mTwvc3Bhbj48c3Ryb25nPntzaGVldENvdW50fTwvc3Ryb25nPjxzbWFsbD7guKrguLUgwrcg4LmB4Lia4LmI4LiH4Lij4Liy4LiE4Liy4LiV4Liy4Lih4LiI4Liz4LiZ4Lin4LiZ4Liq4Lix4LmI4LiH4LiL4Li34LmJ4LitPC9zbWFsbD48L2J1dHRvbj4KICAgIDwvZGl2PgogICAgPExpbmVSZWFkaW5lc3NQYW5lbCAvPgogICAgIDxzZWN0aW9uIGNsYXNzTmFtZT0id29ya2JlbmNoLW92ZXJ2aWV3LWdyaWQiPgogICAgICAgPGRpdiBjbGFzc05hbWU9IndvcmtiZW5jaC1jYXJkIGJhc2luLWJyZWFrZG93biI+PGRpdiBjbGFzc05hbWU9IndvcmtiZW5jaC1jYXJkLWhlYWRpbmciPjxkaXY+PHAgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtZXllYnJvdyI+QkFTSU4gTUlYIC8ge2Jhc2lucy5sZW5ndGh9IE1PREVMUzwvcD48aDI+4Liq4Lix4LiU4Liq4LmI4Lin4LiZ4Lij4Li44LmI4LiZ4Lit4LmI4Liy4LiHPC9oMj48L2Rpdj48QmFyQ2hhcnQzIHNpemU9ezIwfSAvPjwvZGl2PjxkaXYgY2xhc3NOYW1lPSJicmVha2Rvd24tcm93Ij48c3Bhbj7guKfguLLguIfguYDguITguLLguJnguYzguYDguJXguK3guKPguYw8L3NwYW4+PHN0cm9uZz57Y291bnRlckNvdW50fTwvc3Ryb25nPjxpIHN0eWxlPXt7IHdpZHRoOiBjb3VudGVyV2lkdGggfX0gLz48L2Rpdj48ZGl2IGNsYXNzTmFtZT0iYnJlYWtkb3duLXJvdyI+PHNwYW4+4LiV4Lix4LmJ4LiH4Lie4Li34LmJ4LiZ4LiX4Lij4LiH4LmA4Lir4Lil4Li14LmI4Lii4LihPC9zcGFuPjxzdHJvbmc+e3NxdWFyZUNvdW50fTwvc3Ryb25nPjxpIHN0eWxlPXt7IHdpZHRoOiBzcXVhcmVXaWR0aCB9fSAvPjwvZGl2PjxkaXYgY2xhc3NOYW1lPSJicmVha2Rvd24tcm93Ij48c3Bhbj7guJXguLHguYnguIfguJ7guLfguYnguJnguJfguKPguIfguIHguKXguKE8L3NwYW4+PHN0cm9uZz57cm91bmRDb3VudH08L3N0cm9uZz48aSBzdHlsZT17eyB3aWR0aDogcm91bmRXaWR0aCB9fSAvPjwvZGl2PjxwIGNsYXNzTmFtZT0id29ya2JlbmNoLW11dGVkIj7guYLguITguKPguIfguKrguKPguYnguLLguIfguILguYnguK3guKHguLnguKXguKPguLHguIHguKnguLLguKrguLHguI3guKXguLHguIHguKnguJPguYwgw5gg4Liq4Liz4Lir4Lij4Lix4Lia4LiC4LiZ4Liy4LiU4LiX4Lij4LiH4LiB4Lil4LihIOC5geC4peC4sCBLRjAyOS9LRjAzMCDguYTguKHguYjguKHguLXguILguYnguK3guKHguLnguKXguILguJnguLLguJTguKvguKXguLjguKE8L3A+PC9kaXY+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtY2FyZCBzdHVkaW8tbm90ZSI+PHAgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtZXllYnJvdyI+U1RVRElPIE5PVEUgLyAwNjwvcD48aDI+4Lit4LmI4Liy4LiH4Lil4LmJ4Liy4LiH4Lir4LiZ4LmJ4Liy4Lir4Li04LiZ4Liq4Lix4LiH4LmA4LiE4Lij4Liy4Liw4Lir4LmM4Lir4Lil4LmI4Lit4LiC4Li24LmJ4LiZ4Lij4Li54Lib4LiK4Li04LmJ4LiZ4LmA4LiU4Li14Lii4LinIOC4quC4p+C4oiDguJfguJnguJfguLLguJkg4LmE4Lij4LmJ4Lij4Lit4Lii4LiV4LmI4LitPC9oMj48c3BhbiBjbGFzc05hbWU9Im5vdGUtcnVsZSIgLz48cD7guILguYnguK3guKHguLnguKXguKrguLfguYjguK0g4Lin4Li04LiU4Li14LmC4LitIDNEIDM2MMKwIOC5geC4peC4sOC4oOC4suC4nuC5geC4nOC5iOC4mSBIRCDguYDguIrguLfguYjguK3guKHguIjguLLguIHguYDguIvguLTguKPguYzguJ/guYDguKfguK3guKPguYzguIHguKXguLLguIcg4LmA4Lie4Li34LmI4Lit4LmD4Lir4LmJ4LiX4Li14Lih4LiC4Liy4Lii4LmD4LiK4LmJ4LiC4LmJ4Lit4Lih4Li54Lil4LiK4Li44LiU4LmA4LiU4Li14Lii4Lin4LiB4Lix4Lia4Lir4LiZ4LmJ4Liy4Lij4LmJ4Liy4LiZPC9wPjwvZGl2PgogICAgPC9zZWN0aW9uPgogICAgPHNlY3Rpb24gY2xhc3NOYW1lPSJ3b3JrYmVuY2gtY2FyZCB0b3AtYmFzaW5zIj48ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLWNhcmQtaGVhZGluZyI+PGRpdj48cCBjbGFzc05hbWU9IndvcmtiZW5jaC1leWVicm93Ij5UT1AgQkFTSU5TIC8gQ1VTVE9NRVIgRkFWT1VSSVRFUzwvcD48aDI+4Lit4LmI4Liy4LiH4Lij4Li44LmI4LiZ4Lii4Lit4LiU4LiZ4Li04Lii4LihPC9oMj48L2Rpdj48YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3NOYW1lPSJ3b3JrYmVuY2gtdGV4dC1idXR0b24iIG9uQ2xpY2s9eygpID0+IG9uTmF2aWdhdGUoImJhc2lucyIpfT7guJTguLnguJXguLLguKPguLLguIfguKPguLLguITguLLguKvguKXguLHguIEgPEV4dGVybmFsTGluayBzaXplPXsxNH0gLz48L2J1dHRvbj48L2Rpdj48ZGl2IGNsYXNzTmFtZT0idG9wLWJhc2luLWdyaWQiPnt0b3BCYXNpbnMubWFwKChiYXNpbikgPT4gPGFydGljbGUga2V5PXtiYXNpbiEuc2t1fT48ZGl2IGNsYXNzTmFtZT0idG9wLWJhc2luLWFydCIgc3R5bGU9e3sgYmFja2dyb3VuZDogYmFzaW4hLmltYWdlVG9uZSB9fT48c3Bhbj57YmFzaW4hLnNrdX08L3NwYW4+PGEgaHJlZj17YmFzaW4hLnZpZGVvVXJsfSB0YXJnZXQ9Il9ibGFuayIgcmVsPSJub3JlZmVycmVyIj48UGxheUNpcmNsZSBzaXplPXsxNX0gLz4gM0QgMzYwwrA8L2E+PC9kaXY+PGRpdj48c3Ryb25nPntiYXNpbiEuY29sb3JOYW1lfTwvc3Ryb25nPjxzbWFsbD57YmFzaW4hLmRpbWVuc2lvbnN9PC9zbWFsbD48L2Rpdj48L2FydGljbGU+KX08L2Rpdj48L3NlY3Rpb24+CiAgICA8ZGl2IGNsYXNzTmFtZT0id29ya2JlbmNoLXJ1bGVzIj48TG9ja0tleWhvbGUgc2l6ZT17MTV9IC8+PHNwYW4+PHN0cm9uZz5BZG1pbiBSdWxlczwvc3Ryb25nPiDguKvguYnguLLguKHguKXguJrguJbguLLguKfguKMgwrcg4LmD4LiK4LmJIEFyY2hpdmVkL+C4i+C5iOC4reC4meC5geC4l+C4mSDCtyDguILguJnguLLguJTguJfguKPguIfguIHguKXguKHguJXguYnguK3guIfguITguIcgw5ggwrcgS0YwMjkg4LmB4Lil4LiwIEtGMDMwIOC5gOC4geC5h+C4miBib3dsX21tIOC5gOC4m+C5h+C4mSBudWxsPC9zcGFuPjwvZGl2PgogIDwvZGl2PjsKfQoKZnVuY3Rpb24gaXNIZWFsdGhTdGF0dXModmFsdWU6IHVua25vd24pOiB2YWx1ZSBpcyBIZWFsdGhTdGF0dXMgewogIGlmICghdmFsdWUgfHwgdHlwZW9mIHZhbHVlICE9PSAib2JqZWN0IikgcmV0dXJuIGZhbHNlOwogIGNvbnN0IGxpbmVMb2dpbiA9ICh2YWx1ZSBhcyB7IGxpbmVMb2dpbj86IHVua25vd24gfSkubGluZUxvZ2luOwogIGlmICghbGluZUxvZ2luIHx8IHR5cGVvZiBsaW5lTG9naW4gIT09ICJvYmplY3QiKSByZXR1cm4gZmFsc2U7CgogIGNvbnN0IGRpYWdub3N0aWMgPSBsaW5lTG9naW4gYXMgUmVjb3JkPHN0cmluZywgdW5rbm93bj47CiAgcmV0dXJuIHR5cGVvZiBkaWFnbm9zdGljLnJlYWR5ID09PSAiYm9vbGVhbiIKICAgICYmIHR5cGVvZiBkaWFnbm9zdGljLmNoYW5uZWxDb25maWd1cmVkID09PSAiYm9vbGVhbiIKICAgICYmIHR5cGVvZiBkaWFnbm9zdGljLnNlY3JldENvbmZpZ3VyZWQgPT09ICJib29sZWFuIgogICAgJiYgdHlwZW9mIGRpYWdub3N0aWMuY2FsbGJhY2tVcmxDb25maWd1cmVkID09PSAiYm9vbGVhbiIKICAgICYmIHR5cGVvZiBkaWFnbm9zdGljLmNhbGxiYWNrVXJsVmFsaWQgPT09ICJib29sZWFuIgogICAgJiYgdHlwZW9mIGRpYWdub3N0aWMuY2FsbGJhY2tFbnZpcm9ubWVudCA9PT0gInN0cmluZyIKICAgICYmIHR5cGVvZiBkaWFnbm9zdGljLmNhbGxiYWNrUmVhc29uID09PSAic3RyaW5nIjsKfQoKZnVuY3Rpb24gaGVhbHRoU3RhdHVzRnJvbUVycm9yKGVycm9yOiB1bmtub3duKTogSGVhbHRoU3RhdHVzIHwgdW5kZWZpbmVkIHsKICBpZiAoIWVycm9yIHx8IHR5cGVvZiBlcnJvciAhPT0gIm9iamVjdCIpIHJldHVybiB1bmRlZmluZWQ7CiAgcmV0dXJuIGlzSGVhbHRoU3RhdHVzKChlcnJvciBhcyB7IGRhdGE/OiB1bmtub3duIH0pLmRhdGEpID8gKGVycm9yIGFzIHsgZGF0YTogSGVhbHRoU3RhdHVzIH0pLmRhdGEgOiB1bmRlZmluZWQ7Cn0KCmZ1bmN0aW9uIGxpbmVSZWFkaW5lc3NTdGF0ZShoZWFsdGg6IEhlYWx0aFN0YXR1cyB8IHVuZGVmaW5lZCk6IExpbmVSZWFkaW5lc3NTdGF0ZSB7CiAgaWYgKCFoZWFsdGgpIHJldHVybiAidW5hdmFpbGFibGUiOwogIGNvbnN0IHsgbGluZUxvZ2luIH0gPSBoZWFsdGg7CiAgaWYgKGxpbmVMb2dpbi5yZWFkeSkgcmV0dXJuICJyZWFkeSI7CiAgaWYgKCFsaW5lTG9naW4uY2hhbm5lbENvbmZpZ3VyZWQgfHwgIWxpbmVMb2dpbi5zZWNyZXRDb25maWd1cmVkKSByZXR1cm4gIm1pc3NpbmctY3JlZGVudGlhbHMiOwogIGlmIChsaW5lTG9naW4uY2FsbGJhY2tSZWFzb24gPT09ICJ1bmV4cGVjdGVkX2hvc3QiKSByZXR1cm4gIndyb25nLWhvc3QiOwogIGlmIChsaW5lTG9naW4uY2FsbGJhY2tSZWFzb24gPT09ICJtYWxmb3JtZWQiKSByZXR1cm4gIm1hbGZvcm1lZC1jYWxsYmFjayI7CiAgcmV0dXJuICJjYWxsYmFjay1pc3N1ZSI7Cn0KCmZ1bmN0aW9uIGxpbmVSZWFkaW5lc3NDb3B5KHN0YXRlOiBMaW5lUmVhZGluZXNzU3RhdGUsIGhlYWx0aDogSGVhbHRoU3RhdHVzIHwgdW5kZWZpbmVkKSB7CiAgc3dpdGNoIChzdGF0ZSkgewogICAgY2FzZSAicmVhZHkiOgogICAgICByZXR1cm4geyBsYWJlbDogIuC4nuC4o+C5ieC4reC4oeC5g+C4iuC5ieC4h+C4suC4mSIsIHRpdGxlOiAiTElORSBMb2dpbiDguJ7guKPguYnguK3guKHguKrguLPguKvguKPguLHguJrguKXguLnguIHguITguYnguLIiLCBkZXNjcmlwdGlvbjogIkNoYW5uZWwg4LmB4Lil4LiwIENhbGxiYWNrIFVSTCDguJzguYjguLLguJnguIHguLLguKPguJXguKPguKfguIjguKrguK3guJrguYHguKXguYnguKciIH07CiAgICBjYXNlICJtaXNzaW5nLWNyZWRlbnRpYWxzIjoKICAgICAgcmV0dXJuIHsgbGFiZWw6ICLguJXguLHguYnguIfguITguYjguLLguYTguKHguYjguITguKPguJoiLCB0aXRsZTogIuC4ouC4seC4h+C4guC4suC4lOC4guC5ieC4reC4oeC4ueC4peC5gOC4iuC4t+C5iOC4reC4oeC4leC5iOC4rSBMSU5FIiwgZGVzY3JpcHRpb246ICLguYDguJ7guLTguYjguKEgTElORSBDaGFubmVsIElEIOC5geC4peC4sCBDaGFubmVsIFNlY3JldCDguYPguJkgU2VjcmV0cyDguILguK3guIfguYLguJvguKPguYDguIjguIHguJXguYwg4LmB4Lil4LmJ4Lin4LiV4Lij4Lin4LiI4Liq4Lit4Lia4Lit4Li14LiB4LiE4Lij4Lix4LmJ4LiHIiB9OwogICAgY2FzZSAid3JvbmctaG9zdCI6CiAgICAgIHJldHVybiB7IGxhYmVsOiAiSG9zdCDguYTguKHguYjguJbguLnguIHguJXguYnguK3guIciLCB0aXRsZTogIkNhbGxiYWNrIFVSTCDguIrguLXguYnguYTguJvguKLguLHguIcgaG9zdCDguJfguLXguYjguYTguKHguYjguYPguIrguYggcHJvZHVjdGlvbiIsIGRlc2NyaXB0aW9uOiAi4LmA4Lib4Lil4Li14LmI4Lii4LiZIENhbGxiYWNrIFVSTCDguYPguKvguYnguIrguLXguYnguYTguJvguKLguLHguIcgaG9zdCDguILguK3guIcgS25pZ2h0IEZ1cm5pY2gg4LiX4Li14LmI4LiV4Lix4LmJ4LiH4LmE4Lin4LmJ4LmD4LiZIExJTkUgRGV2ZWxvcGVycyBDb25zb2xlIiB9OwogICAgY2FzZSAibWFsZm9ybWVkLWNhbGxiYWNrIjoKICAgICAgcmV0dXJuIHsgbGFiZWw6ICLguKPguLnguJvguYHguJrguJrguYTguKHguYjguJbguLnguIHguJXguYnguK3guIciLCB0aXRsZTogIkNhbGxiYWNrIFVSTCDguK3guYjguLLguJnguKPguLnguJvguYHguJrguJrguYTguKHguYjguYTguJTguYkiLCBkZXNjcmlwdGlvbjogIuC4leC4o+C4p+C4iOC4quC4reC4muC4p+C5iOC4siBDYWxsYmFjayBVUkwg4LmA4Lib4LmH4LiZIFVSTCDguYDguJXguYfguKHguKPguLnguJvguYHguJrguJrguYHguKXguLDguYTguKHguYjguKHguLXguK3guLHguIHguILguKPguLDguJfguLXguYjguYTguKHguYjguJbguLnguIHguJXguYnguK3guIciIH07CiAgICBjYXNlICJjYWxsYmFjay1pc3N1ZSI6CiAgICAgIHJldHVybiB7IGxhYmVsOiAi4LiV4Lij4Lin4LiI4Liq4Lit4LiaIENhbGxiYWNrIiwgdGl0bGU6ICLguJXguYnguK3guIfguYHguIHguYnguYTguIIgQ2FsbGJhY2sgVVJMIiwgZGVzY3JpcHRpb246IGNhbGxiYWNrUmVhc29uQ29weShoZWFsdGg/LmxpbmVMb2dpbi5jYWxsYmFja1JlYXNvbikgfTsKICAgIGRlZmF1bHQ6CiAgICAgIHJldHVybiB7IGxhYmVsOiAi4LiV4Lij4Lin4LiI4Liq4Lit4Lia4LmE4Lih4LmI4LmE4LiU4LmJIiwgdGl0bGU6ICLguKLguLHguIfguK3guYjguLLguJnguKrguJbguLLguJnguLAgTElORSBMb2dpbiDguYTguKHguYjguYTguJTguYkiLCBkZXNjcmlwdGlvbjogIuC5gOC4i+C4tOC4o+C5jOC4n+C5gOC4p+C4reC4o+C5jOC5hOC4oeC5iOC4leC4reC4muC4guC5ieC4reC4oeC4ueC4peC4p+C4tOC4meC4tOC4iOC4ieC4seC4ouC4l+C4teC5iOC4m+C4peC4reC4lOC4oOC4seC4oiDguKXguK3guIfguKPguLXguYDguJ/guKPguIrguKvguJnguYnguLLguJnguLXguYnguK3guLXguIHguITguKPguLHguYnguIciIH07CiAgfQp9CgpmdW5jdGlvbiBjYWxsYmFja1JlYXNvbkNvcHkocmVhc29uOiBIZWFsdGhTdGF0dXNbImxpbmVMb2dpbiJdWyJjYWxsYmFja1JlYXNvbiJdIHwgdW5kZWZpbmVkKSB7CiAgc3dpdGNoIChyZWFzb24pIHsKICAgIGNhc2UgIm1pc3NpbmciOgogICAgICByZXR1cm4gIuC4ouC4seC4h+C5hOC4oeC5iOC5hOC4lOC5ieC4leC4seC5ieC4h+C4hOC5iOC4siBDYWxsYmFjayBVUkwg4LmD4LiZ4Lij4Liw4Lia4LiaIjsKICAgIGNhc2UgIm5vdF9odHRwcyI6CiAgICAgIHJldHVybiAiQ2FsbGJhY2sgVVJMIOC4leC5ieC4reC4h+C5g+C4iuC5iSBIVFRQUyDguYPguJkgcHJvZHVjdGlvbiI7CiAgICBjYXNlICJ1bmV4cGVjdGVkX3BhdGgiOgogICAgICByZXR1cm4gInBhdGgg4LiC4Lit4LiHIENhbGxiYWNrIFVSTCDguYTguKHguYjguJXguKPguIfguIHguLHguJrguYDguKrguYnguJnguJfguLLguIfguJfguLXguYjguKPguLDguJrguJrguKPguK3guIfguKPguLHguJoiOwogICAgY2FzZSAidW5leHBlY3RlZF9mb3JtYXQiOgogICAgICByZXR1cm4gIkNhbGxiYWNrIFVSTCDguYTguKHguYjguJXguKPguIfguIHguLHguJrguKPguLnguJvguYHguJrguJogcHJvZHVjdGlvbiDguJfguLXguYjguKPguLDguJrguJrguKPguK3guIfguKPguLHguJoiOwogICAgZGVmYXVsdDoKICAgICAgcmV0dXJuICLguJXguKPguKfguIjguKrguK3guJogQ2FsbGJhY2sgVVJMIOC5g+C4q+C5ieC4leC4o+C4h+C4geC4seC4muC4hOC5iOC4suC4l+C4teC5iOC4peC4h+C4l+C4sOC5gOC4muC4teC4ouC4meC5hOC4p+C5ieC5g+C4mSBMSU5FIERldmVsb3BlcnMgQ29uc29sZSI7CiAgfQp9CgpmdW5jdGlvbiBMaW5lUmVhZGluZXNzUGFuZWwoKSB7CiAgY29uc3QgeyBkYXRhLCBlcnJvciwgaXNMb2FkaW5nLCBpc0Vycm9yIH0gPSB1c2VIZWFsdGhDaGVjayh7CiAgICBxdWVyeTogewogICAgICBxdWVyeUtleTogZ2V0SGVhbHRoQ2hlY2tRdWVyeUtleSgpLAogICAgICByZXRyeTogZmFsc2UsCiAgICAgIHN0YWxlVGltZTogMzBfMDAwLAogICAgfSwKICB9KTsKICBjb25zdCBoZWFsdGggPSBkYXRhID8/IGhlYWx0aFN0YXR1c0Zyb21FcnJvcihlcnJvcik7CiAgY29uc3Qgc3RhdGUgPSBpc0xvYWRpbmcgPyAidW5hdmFpbGFibGUiIDogbGluZVJlYWRpbmVzc1N0YXRlKGhlYWx0aCk7CiAgY29uc3QgY29weSA9IGlzTG9hZGluZyA/IHsgbGFiZWw6ICLguIHguLPguKXguLHguIfguJXguKPguKfguIjguKrguK3guJoiLCB0aXRsZTogIuC4geC4s+C4peC4seC4h+C4leC4o+C4p+C4iOC4quC4reC4miBMSU5FIExvZ2luIiwgZGVzY3JpcHRpb246ICLguIHguLPguKXguLHguIfguK3guYjguLLguJnguKrguJbguLLguJnguLDguIHguLLguKPguJXguLHguYnguIfguITguYjguLLguJfguLXguYjguJvguKXguK3guJTguKDguLHguKLguIjguLLguIHguYDguIvguLTguKPguYzguJ/guYDguKfguK3guKPguYwiIH0gOiBsaW5lUmVhZGluZXNzQ29weShzdGF0ZSwgaGVhbHRoKTsKICBjb25zdCBkaWFnbm9zdGljID0gaGVhbHRoPy5saW5lTG9naW47CiAgY29uc3QgaXNSZWFkeSA9IHN0YXRlID09PSAicmVhZHkiOwogIGNvbnN0IGlzVW5hdmFpbGFibGUgPSBpc0Vycm9yICYmICFoZWFsdGg7CgogIHJldHVybiAoCiAgICA8c2VjdGlvbiBjbGFzc05hbWU9e2B3b3JrYmVuY2gtY2FyZCBsaW5lLXJlYWRpbmVzcy1wYW5lbCBsaW5lLXJlYWRpbmVzcy1wYW5lbC0tJHtzdGF0ZX1gfSBhcmlhLWxhYmVsbGVkYnk9ImxpbmUtcmVhZGluZXNzLXRpdGxlIj4KICAgICAgPGRpdiBjbGFzc05hbWU9ImxpbmUtcmVhZGluZXNzLWhlYWRpbmciPgogICAgICAgIDxkaXY+CiAgICAgICAgICA8cCBjbGFzc05hbWU9IndvcmtiZW5jaC1leWVicm93Ij5MSU5FIExPR0lOIC8gUkVBRElORVNTPC9wPgogICAgICAgICAgPGgyIGlkPSJsaW5lLXJlYWRpbmVzcy10aXRsZSI+e2NvcHkudGl0bGV9PC9oMj4KICAgICAgICAgIDxwPntjb3B5LmRlc2NyaXB0aW9ufTwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImxpbmUtcmVhZGluZXNzLXN0YXR1cyI+CiAgICAgICAgICB7aXNSZWFkeSA/IDxDaGVja0NpcmNsZTIgc2l6ZT17MTV9IC8+IDogPFRyaWFuZ2xlQWxlcnQgc2l6ZT17MTV9IC8+fQogICAgICAgICAge2NvcHkubGFiZWx9CiAgICAgICAgPC9zcGFuPgogICAgICA8L2Rpdj4KICAgICAge2RpYWdub3N0aWMgPyAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImxpbmUtcmVhZGluZXNzLWNoZWNrcyI+CiAgICAgICAgICA8UmVhZGluZXNzQ2hlY2sgbGFiZWw9IkNoYW5uZWwgSUQiIGNvbmZpZ3VyZWQ9e2RpYWdub3N0aWMuY2hhbm5lbENvbmZpZ3VyZWR9IC8+CiAgICAgICAgICA8UmVhZGluZXNzQ2hlY2sgbGFiZWw9IkNoYW5uZWwgU2VjcmV0IiBjb25maWd1cmVkPXtkaWFnbm9zdGljLnNlY3JldENvbmZpZ3VyZWR9IC8+CiAgICAgICAgICA8UmVhZGluZXNzQ2hlY2sgbGFiZWw9IkNhbGxiYWNrIFVSTCIgY29uZmlndXJlZD17ZGlhZ25vc3RpYy5jYWxsYmFja1VybENvbmZpZ3VyZWQgJiYgZGlhZ25vc3RpYy5jYWxsYmFja1VybFZhbGlkfSAvPgogICAgICAgIDwvZGl2PgogICAgICApIDogKAogICAgICAgIDxwIGNsYXNzTmFtZT0ibGluZS1yZWFkaW5lc3MtdW5hdmFpbGFibGUiPntpc1VuYXZhaWxhYmxlID8gIuC5hOC4oeC5iOC4nuC4muC4guC5ieC4reC4oeC4ueC4peC4quC4luC4suC4meC4sOC4iOC4suC4gSBBUEkiIDogIuC4geC4s+C4peC4seC4h+C5guC4q+C4peC4lOC4guC5ieC4reC4oeC4ueC4peC4quC4luC4suC4meC4sC4uLiJ9PC9wPgogICAgICApfQogICAgICA8cCBjbGFzc05hbWU9ImxpbmUtcmVhZGluZXNzLXNhZmUtbm90ZSI+4LmB4Liq4LiU4LiH4LmA4LiJ4Lie4Liy4Liw4Liq4LiW4Liy4LiZ4Liw4LiB4Liy4Lij4LiV4Lix4LmJ4LiH4LiE4LmI4Liy4LmA4LiX4LmI4Liy4LiZ4Lix4LmJ4LiZIOC5hOC4oeC5iOC5geC4quC4lOC4h+C4hOC5iOC4siBDaGFubmVsIElELCBTZWNyZXQg4Lir4Lij4Li34LitIFVSTCDguJfguLXguYjguJrguLHguJnguJfguLbguIHguYTguKfguYk8L3A+CiAgICA8L3NlY3Rpb24+CiAgKTsKfQoKZnVuY3Rpb24gUmVhZGluZXNzQ2hlY2soeyBsYWJlbCwgY29uZmlndXJlZCB9OiB7IGxhYmVsOiBzdHJpbmc7IGNvbmZpZ3VyZWQ6IGJvb2xlYW4gfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibGluZS1yZWFkaW5lc3MtY2hlY2siPgogICAgICB7Y29uZmlndXJlZCA/IDxDaGVja0NpcmNsZTIgc2l6ZT17MTR9IC8+IDogPFRyaWFuZ2xlQWxlcnQgc2l6ZT17MTR9IC8+fQogICAgICA8c3Bhbj57bGFiZWx9PC9zcGFuPgogICAgICA8c3Ryb25nPntjb25maWd1cmVkID8gIuC4leC4seC5ieC4h+C4hOC5iOC4suC5geC4peC5ieC4pyIgOiAi4Lii4Lix4LiH4LmE4Lih4LmI4Lih4Li1In08L3N0cm9uZz4KICAgIDwvZGl2PgogICk7Cn0K
+import { useState } from "react";
+import { ArrowLeft, BarChart3, CheckCircle2, CircleDollarSign, ExternalLink, FileText, Image, LayoutDashboard, LockKeyhole, MessageCircle, Package, PlayCircle, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Link } from "wouter";
+import { getHealthCheckQueryKey, useGetAdminSession, useGetCatalog, useHealthCheck, type HealthStatus } from "@workspace/api-client-react";
+import knightFurnichLogo from "@assets/Knightfurnich-logo_1789302266220.png";
+import { KnightSupport, LineLoginButton } from "@/components/KnightSupport";
+import { AdminLogin, AdminLogout } from "./AdminApp";
+import { BasinsManager } from "./BasinsManager";
+import { InstalledStonesManager } from "./InstalledStonesManager";
+import { SheetStonesManager } from "./SheetStonesManager";
+
+type WorkbenchSection = "overview" | "basins" | "installed" | "sheets";
+type LineReadinessState = "ready" | "missing-credentials" | "malformed-callback" | "wrong-host" | "callback-issue" | "unavailable";
+
+const navItems: Array<{ key: WorkbenchSection; label: string; icon: typeof LayoutDashboard }> = [
+  { key: "overview", label: "ภาพรวม", icon: LayoutDashboard },
+  { key: "basins", label: "อ่างล้างหน้า", icon: Package },
+  { key: "installed", label: "หิน · พร้อมติดตั้ง", icon: CircleDollarSign },
+  { key: "sheets", label: "หิน · ขายแผ่น", icon: FileText },
+];
+
+export default function OwnerWorkbench() {
+  const { data: session, isLoading } = useGetAdminSession();
+  const { data: catalog } = useGetCatalog();
+  const [section, setSection] = useState<WorkbenchSection>("overview");
+  const navCounts = {
+    basins: catalog?.basins.length ?? 0,
+    installed: catalog?.installedStones.length ?? 0,
+    sheets: catalog?.sheetStones.length ?? 0,
+  };
+
+  if (isLoading) return <div className="workbench-loading">กำลังตรวจสอบสิทธิ์...</div>;
+  if (!session?.authenticated) return <AdminLogin />;
+
+  return (
+    <div className="owner-workbench">
+      <div className="workbench-topline"><span>KNIGHT FURNICH / PRIVATE WORKBENCH</span><span>เจ้าของร้านเท่านั้น · เซสชันปลอดภัย</span></div>
+      <header className="workbench-header">
+        <Link href="/" className="workbench-brand"><img src={knightFurnichLogo} alt="Knight Furnich" /><span><strong>KNIGHT FURNICH</strong><small>CATALOGUE MANAGEMENT</small></span></Link>
+        <div className="workbench-header-actions"><Link href="/" className="workbench-back"><ArrowLeft size={16} /> กลับไปแคตตาล็อก</Link><LineLoginButton compact /><AdminLogout /></div>
+      </header>
+      <div className="workbench-mobile-nav">{navItems.map((item) => <WorkbenchNavButton key={item.key} item={item} active={section === item.key} onClick={() => setSection(item.key)} mobile counts={navCounts} />)}</div>
+      <div className="workbench-shell">
+        <aside className="workbench-sidebar">
+          <p>CATALOGUE CONTROL</p>
+          <nav>{navItems.map((item) => <WorkbenchNavButton key={item.key} item={item} active={section === item.key} onClick={() => setSection(item.key)} counts={navCounts} />)}</nav>
+          <div className="workbench-owner-note"><ShieldCheck size={15} /><strong>โหมดจัดการส่วนตัว</strong><span>ข้อมูลชุดนี้จะแสดงผลกับลูกค้าเมื่อกด “บันทึกและเผยแพร่” เท่านั้น</span></div>
+        </aside>
+        <main className="workbench-main">
+          {section === "overview" && <WorkbenchOverview onNavigate={setSection} />}
+          {section === "basins" && <BasinsManager />}
+          {section === "installed" && <InstalledStonesManager />}
+          {section === "sheets" && <SheetStonesManager />}
+        </main>
+      </div>
+      <KnightSupport />
+    </div>
+  );
+}
+
+function WorkbenchNavButton({ item, active, onClick, mobile = false, counts }: { item: (typeof navItems)[number]; active: boolean; onClick: () => void; mobile?: boolean; counts: { basins: number; installed: number; sheets: number } }) {
+  const Icon = item.icon;
+  const count = item.key === "basins" ? counts.basins : item.key === "installed" ? counts.installed : counts.sheets;
+  return <button type="button" className={`workbench-nav-button ${active ? "is-active" : ""} ${mobile ? "is-mobile" : ""}`} onClick={onClick}><Icon size={15} /><span>{item.label}</span>{!mobile && item.key !== "overview" && <em>{count}</em>}</button>;
+}
+
+function WorkbenchOverview({ onNavigate }: { onNavigate: (section: WorkbenchSection) => void }) {
+  const { data: catalog, isLoading } = useGetCatalog();
+  const basins = catalog?.basins ?? [];
+  const installedCount = catalog?.installedStones.length ?? 0;
+  const sheetCount = catalog?.sheetStones.length ?? 0;
+  const topSkus = ["KF001", "KF020", "KF023"];
+  const topBasins = topSkus.map((sku) => basins.find((basin) => basin.sku === sku)).filter(Boolean);
+  const counterCount = basins.filter((basin) => basin.category === "counter basin").length;
+  const roundCount = basins.filter((basin) => basin.dimensions.includes("Ø")).length;
+  const squareCount = Math.max(0, basins.length - counterCount - roundCount);
+  const basinTotal = basins.length || 1;
+  const counterWidth = `${Math.round((counterCount / basinTotal) * 100)}%`;
+  const squareWidth = `${Math.round((squareCount / basinTotal) * 100)}%`;
+  const roundWidth = `${Math.round((roundCount / basinTotal) * 100)}%`;
+
+  if (isLoading) return <div className="workbench-loading">กำลังโหลดข้อมูลแคตตาล็อก...</div>;
+  return <div className="workbench-overview">
+    <div className="workbench-page-heading"><div><p className="workbench-eyebrow">WORKBENCH / OVERVIEW</p><h1>ศูนย์รวมอ่างล้างหน้า<br /><em>และวัสดุหินสังเคราะห์</em></h1><p>ตรวจสอบสถานะราคา สื่อสินค้า และรายการที่เปิดแสดงในแคตตาล็อก Knight Furnich</p></div><span className="workbench-updated"><CheckCircle2 size={14} /> ข้อมูลล่าสุดจากเซิร์ฟเวอร์</span></div>
+    <div className="workbench-stat-grid">
+      <button type="button" className="workbench-stat workbench-stat--primary" onClick={() => onNavigate("basins")}><span>อ่างล้างหน้าในแคตตาล็อก</span><strong>{basins.length}</strong><small>รุ่น · มีวิดีโอ 3D 360°</small><b>01 / 04</b></button>
+      <button type="button" className="workbench-stat" onClick={() => onNavigate("installed")}><span>หินพร้อมติดตั้ง</span><strong>{installedCount}</strong><small>สี · ภาพ HD</small></button>
+      <button type="button" className="workbench-stat" onClick={() => onNavigate("sheets")}><span>หินขายเป็นแผ่น</span><strong>{sheetCount}</strong><small>สี · แบ่งราคาตามจำนวนสั่งซื้อ</small></button>
+    </div>
+    <LineReadinessPanel />
+     <section className="workbench-overview-grid">
+       <div className="workbench-card basin-breakdown"><div className="workbench-card-heading"><div><p className="workbench-eyebrow">BASIN MIX / {basins.length} MODELS</p><h2>สัดส่วนรุ่นอ่าง</h2></div><BarChart3 size={20} /></div><div className="breakdown-row"><span>วางเคาน์เตอร์</span><strong>{counterCount}</strong><i style={{ width: counterWidth }} /></div><div className="breakdown-row"><span>ตั้งพื้นทรงเหลี่ยม</span><strong>{squareCount}</strong><i style={{ width: squareWidth }} /></div><div className="breakdown-row"><span>ตั้งพื้นทรงกลม</span><strong>{roundCount}</strong><i style={{ width: roundWidth }} /></div><p className="workbench-muted">โครงสร้างข้อมูลรักษาสัญลักษณ์ Ø สำหรับขนาดทรงกลม และ KF029/KF030 ไม่มีข้อมูลขนาดหลุม</p></div>
+      <div className="workbench-card studio-note"><p className="workbench-eyebrow">STUDIO NOTE / 06</p><h2>อ่างล้างหน้าหินสังเคราะห์หล่อขึ้นรูปชิ้นเดียว สวย ทนทาน ไร้รอยต่อ</h2><span className="note-rule" /><p>ข้อมูลสื่อ วิดีโอ 3D 360° และภาพแผ่น HD เชื่อมจากเซิร์ฟเวอร์กลาง เพื่อให้ทีมขายใช้ข้อมูลชุดเดียวกับหน้าร้าน</p></div>
+    </section>
+    <section className="workbench-card top-basins"><div className="workbench-card-heading"><div><p className="workbench-eyebrow">TOP BASINS / CUSTOMER FAVOURITES</p><h2>อ่างรุ่นยอดนิยม</h2></div><button type="button" className="workbench-text-button" onClick={() => onNavigate("basins")}>ดูตารางราคาหลัก <ExternalLink size={14} /></button></div><div className="top-basin-grid">{topBasins.map((basin) => <article key={basin!.sku}><div className="top-basin-art" style={{ background: basin!.imageTone }}><span>{basin!.sku}</span><a href={basin!.videoUrl} target="_blank" rel="noreferrer"><PlayCircle size={15} /> 3D 360°</a></div><div><strong>{basin!.colorName}</strong><small>{basin!.dimensions}</small></div></article>)}</div></section>
+    <div className="workbench-rules"><LockKeyhole size={15} /><span><strong>Admin Rules</strong> ห้ามลบถาวร · ใช้ Archived/ซ่อนแทน · ขนาดทรงกลมต้องคง Ø · KF029 และ KF030 เก็บ bowl_mm เป็น null</span></div>
+  </div>;
+}
+
+function isHealthStatus(value: unknown): value is HealthStatus {
+  if (!value || typeof value !== "object") return false;
+  const lineLogin = (value as { lineLogin?: unknown }).lineLogin;
+  if (!lineLogin || typeof lineLogin !== "object") return false;
+
+  const diagnostic = lineLogin as Record<string, unknown>;
+  return typeof diagnostic.ready === "boolean"
+    && typeof diagnostic.channelConfigured === "boolean"
+    && typeof diagnostic.secretConfigured === "boolean"
+    && typeof diagnostic.callbackUrlConfigured === "boolean"
+    && typeof diagnostic.callbackUrlValid === "boolean"
+    && typeof diagnostic.callbackEnvironment === "string"
+    && typeof diagnostic.callbackReason === "string";
+}
+
+function healthStatusFromError(error: unknown): HealthStatus | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  return isHealthStatus((error as { data?: unknown }).data) ? (error as { data: HealthStatus }).data : undefined;
+}
+
+function lineReadinessState(health: HealthStatus | undefined): LineReadinessState {
+  if (!health) return "unavailable";
+  const { lineLogin } = health;
+  if (lineLogin.ready) return "ready";
+  if (!lineLogin.channelConfigured || !lineLogin.secretConfigured) return "missing-credentials";
+  if (lineLogin.callbackReason === "unexpected_host") return "wrong-host";
+  if (lineLogin.callbackReason === "malformed") return "malformed-callback";
+  return "callback-issue";
+}
+
+function lineReadinessCopy(state: LineReadinessState, health: HealthStatus | undefined) {
+  switch (state) {
+    case "ready":
+      return { label: "พร้อมใช้งาน", title: "LINE Login พร้อมสำหรับลูกค้า", description: "Channel และ Callback URL ผ่านการตรวจสอบแล้ว" };
+    case "missing-credentials":
+      return { label: "ตั้งค่าไม่ครบ", title: "ยังขาดข้อมูลเชื่อมต่อ LINE", description: "เพิ่ม LINE Channel ID และ Channel Secret ใน Secrets ของโปรเจกต์ แล้วตรวจสอบอีกครั้ง" };
+    case "wrong-host":
+      return { label: "Host ไม่ถูกต้อง", title: "Callback URL ชี้ไปยัง host ที่ไม่ใช่ production", description: "เปลี่ยน Callback URL ให้ชี้ไปยัง host ของ Knight Furnich ที่ตั้งไว้ใน LINE Developers Console" };
+    case "malformed-callback":
+      return { label: "รูปแบบไม่ถูกต้อง", title: "Callback URL อ่านรูปแบบไม่ได้", description: "ตรวจสอบว่า Callback URL เป็น URL เต็มรูปแบบและไม่มีอักขระที่ไม่ถูกต้อง" };
+    case "callback-issue":
+      return { label: "ตรวจสอบ Callback", title: "ต้องแก้ไข Callback URL", description: callbackReasonCopy(health?.lineLogin.callbackReason) };
+    default:
+      return { label: "ตรวจสอบไม่ได้", title: "ยังอ่านสถานะ LINE Login ไม่ได้", description: "เซิร์ฟเวอร์ไม่ตอบข้อมูลวินิจฉัยที่ปลอดภัย ลองรีเฟรชหน้านี้อีกครั้ง" };
+  }
+}
+
+function callbackReasonCopy(reason: HealthStatus["lineLogin"]["callbackReason"] | undefined) {
+  switch (reason) {
+    case "missing":
+      return "ยังไม่ได้ตั้งค่า Callback URL ในระบบ";
+    case "not_https":
+      return "Callback URL ต้องใช้ HTTPS ใน production";
+    case "unexpected_path":
+      return "path ของ Callback URL ไม่ตรงกับเส้นทางที่ระบบรองรับ";
+    case "unexpected_format":
+      return "Callback URL ไม่ตรงกับรูปแบบ production ที่ระบบรองรับ";
+    default:
+      return "ตรวจสอบ Callback URL ให้ตรงกับค่าที่ลงทะเบียนไว้ใน LINE Developers Console";
+  }
+}
+
+function LineReadinessPanel() {
+  const { data, error, isLoading, isError } = useHealthCheck({
+    query: {
+      queryKey: getHealthCheckQueryKey(),
+      retry: false,
+      staleTime: 30_000,
+    },
+  });
+  const health = data ?? healthStatusFromError(error);
+  const state = isLoading ? "unavailable" : lineReadinessState(health);
+  const copy = isLoading ? { label: "กำลังตรวจสอบ", title: "กำลังตรวจสอบ LINE Login", description: "กำลังอ่านสถานะการตั้งค่าที่ปลอดภัยจากเซิร์ฟเวอร์" } : lineReadinessCopy(state, health);
+  const diagnostic = health?.lineLogin;
+  const isReady = state === "ready";
+  const isUnavailable = isError && !health;
+
+  return (
+    <section className={`workbench-card line-readiness-panel line-readiness-panel--${state}`} aria-labelledby="line-readiness-title">
+      <div className="line-readiness-heading">
+        <div>
+          <p className="workbench-eyebrow">LINE LOGIN / READINESS</p>
+          <h2 id="line-readiness-title">{copy.title}</h2>
+          <p>{copy.description}</p>
+        </div>
+        <span className="line-readiness-status">
+          {isReady ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}
+          {copy.label}
+        </span>
+      </div>
+      {diagnostic ? (
+        <div className="line-readiness-checks">
+          <ReadinessCheck label="Channel ID" configured={diagnostic.channelConfigured} />
+          <ReadinessCheck label="Channel Secret" configured={diagnostic.secretConfigured} />
+          <ReadinessCheck label="Callback URL" configured={diagnostic.callbackUrlConfigured && diagnostic.callbackUrlValid} />
+        </div>
+      ) : (
+        <p className="line-readiness-unavailable">{isUnavailable ? "ไม่พบข้อมูลสถานะจาก API" : "กำลังโหลดข้อมูลสถานะ..."}</p>
+      )}
+      <p className="line-readiness-safe-note">แสดงเฉพาะสถานะการตั้งค่าเท่านั้น ไม่แสดงค่า Channel ID, Secret หรือ URL ที่บันทึกไว้</p>
+    </section>
+  );
+}
+
+function ReadinessCheck({ label, configured }: { label: string; configured: boolean }) {
+  return (
+    <div className="line-readiness-check">
+      {configured ? <CheckCircle2 size={14} /> : <TriangleAlert size={14} />}
+      <span>{label}</span>
+      <strong>{configured ? "ตั้งค่าแล้ว" : "ยังไม่มี"}</strong>
+    </div>
+  );
+}

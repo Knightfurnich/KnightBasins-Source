@@ -1,1 +1,103 @@
-ZXhwb3J0IGNvbnN0IExJTkVfUFJPRFVDVElPTl9IT1NUID0gImtuaWdodGJhc2lucy5zcnYxOTY0NDczLmhzdGdyLmNsb3VkIjsKZXhwb3J0IGNvbnN0IExJTkVfQ0FMTEJBQ0tfUEFUSCA9ICIvYXBpL2F1dGgvbGluZS9jYWxsYmFjayI7CmV4cG9ydCBjb25zdCBMSU5FX1BST0RVQ1RJT05fQ0FMTEJBQ0tfVVJMID0gYGh0dHBzOi8vJHtMSU5FX1BST0RVQ1RJT05fSE9TVH0ke0xJTkVfQ0FMTEJBQ0tfUEFUSH1gOwpleHBvcnQgY29uc3QgTElORV9MT0NBTF9DQUxMQkFDS19VUkwgPSBgaHR0cDovL2xvY2FsaG9zdDo1MDAwJHtMSU5FX0NBTExCQUNLX1BBVEh9YDsKCmNvbnN0IExJTkVfQ0FMTEJBQ0tfUkVBU09OUyA9IFsKICAiY29uZmlndXJlZCIsCiAgIm1pc3NpbmciLAogICJtYWxmb3JtZWQiLAogICJub3RfaHR0cHMiLAogICJ1bmV4cGVjdGVkX2hvc3QiLAogICJ1bmV4cGVjdGVkX3BhdGgiLAogICJ1bmV4cGVjdGVkX2Zvcm1hdCIsCl0gYXMgY29uc3Q7CgpleHBvcnQgdHlwZSBMaW5lQ2FsbGJhY2tSZWFzb24gPSAodHlwZW9mIExJTkVfQ0FMTEJBQ0tfUkVBU09OUylbbnVtYmVyXTsKZXhwb3J0IHR5cGUgTGluZUNhbGxiYWNrRW52aXJvbm1lbnQgPSAicHJvZHVjdGlvbiIgfCAiZGV2ZWxvcG1lbnQiIHwgImludmFsaWQiIHwgIm1pc3NpbmciOwoKZXhwb3J0IHR5cGUgTGluZUNhbGxiYWNrVmFsaWRhdGlvbiA9IHsKICB2YWxpZDogYm9vbGVhbjsKICBlbnZpcm9ubWVudDogTGluZUNhbGxiYWNrRW52aXJvbm1lbnQ7CiAgcmVhc29uOiBMaW5lQ2FsbGJhY2tSZWFzb247Cn07CgpleHBvcnQgdHlwZSBMaW5lQXV0aERpYWdub3N0aWNzID0gewogIHJlYWR5OiBib29sZWFuOwogIGNoYW5uZWxDb25maWd1cmVkOiBib29sZWFuOwogIHNlY3JldENvbmZpZ3VyZWQ6IGJvb2xlYW47CiAgY2FsbGJhY2tVcmxDb25maWd1cmVkOiBib29sZWFuOwogIGNhbGxiYWNrVXJsVmFsaWQ6IGJvb2xlYW47CiAgY2FsbGJhY2tFbnZpcm9ubWVudDogTGluZUNhbGxiYWNrRW52aXJvbm1lbnQ7CiAgY2FsbGJhY2tSZWFzb246IExpbmVDYWxsYmFja1JlYXNvbjsKfTsKCmV4cG9ydCB0eXBlIExpbmVIZWFsdGhTdGF0dXMgPSAib2siIHwgImRlZ3JhZGVkIjsKCmZ1bmN0aW9uIGxpbmVDb25maWcoKSB7CiAgcmV0dXJuIHsKICAgIGNoYW5uZWxJZDogcHJvY2Vzcy5lbnZbIkxJTkVfQ0hBTk5FTF9JRCJdLAogICAgY2hhbm5lbFNlY3JldDogcHJvY2Vzcy5lbnZbIkxJTkVfQ0hBTk5FTF9TRUNSRVQiXSwKICAgIGNhbGxiYWNrVXJsOiBwcm9jZXNzLmVudlsiTElORV9DQUxMQkFDS19VUkwiXSwKICB9Owp9CgpleHBvcnQgZnVuY3Rpb24gdmFsaWRhdGVMaW5lQ2FsbGJhY2tVcmwoY2FsbGJhY2tVcmwgPSBwcm9jZXNzLmVudlsiTElORV9DQUxMQkFDS19VUkwiXSk6IExpbmVDYWxsYmFja1ZhbGlkYXRpb24gewogIGlmICghY2FsbGJhY2tVcmwpIHsKICAgIHJldHVybiB7IHZhbGlkOiBmYWxzZSwgZW52aXJvbm1lbnQ6ICJtaXNzaW5nIiwgcmVhc29uOiAibWlzc2luZyIgfTsKICB9CgogIGxldCBwYXJzZWQ6IFVSTDsKICB0cnkgewogICAgcGFyc2VkID0gbmV3IFVSTChjYWxsYmFja1VybCk7CiAgfSBjYXRjaCB7CiAgICByZXR1cm4geyB2YWxpZDogZmFsc2UsIGVudmlyb25tZW50OiAiaW52YWxpZCIsIHJlYXNvbjogIm1hbGZvcm1lZCIgfTsKICB9CgogIGlmIChwYXJzZWQuaHJlZiA9PT0gTElORV9QUk9EVUNUSU9OX0NBTExCQUNLX1VSTCkgewogICAgcmV0dXJuIHsgdmFsaWQ6IHRydWUsIGVudmlyb25tZW50OiAicHJvZHVjdGlvbiIsIHJlYXNvbjogImNvbmZpZ3VyZWQiIH07CiAgfQoKICBpZiAocHJvY2Vzcy5lbnZbIk5PREVfRU5WIl0gIT09ICJwcm9kdWN0aW9uIiAmJiBwYXJzZWQuaHJlZiA9PT0gTElORV9MT0NBTF9DQUxMQkFDS19VUkwpIHsKICAgIHJldHVybiB7IHZhbGlkOiB0cnVlLCBlbnZpcm9ubWVudDogImRldmVsb3BtZW50IiwgcmVhc29uOiAiY29uZmlndXJlZCIgfTsKICB9CgogIGlmIChwYXJzZWQucHJvdG9jb2wgIT09ICJodHRwczoiKSB7CiAgICByZXR1cm4geyB2YWxpZDogZmFsc2UsIGVudmlyb25tZW50OiAiaW52YWxpZCIsIHJlYXNvbjogIm5vdF9odHRwcyIgfTsKICB9CgogIGlmIChwYXJzZWQuaG9zdG5hbWUgIT09IExJTkVfUFJPRFVDVElPTl9IT1NUKSB7CiAgICByZXR1cm4geyB2YWxpZDogZmFsc2UsIGVudmlyb25tZW50OiAiaW52YWxpZCIsIHJlYXNvbjogInVuZXhwZWN0ZWRfaG9zdCIgfTsKICB9CgogIGlmIChwYXJzZWQucGF0aG5hbWUgIT09IExJTkVfQ0FMTEJBQ0tfUEFUSCkgewogICAgcmV0dXJuIHsgdmFsaWQ6IGZhbHNlLCBlbnZpcm9ubWVudDogImludmFsaWQiLCByZWFzb246ICJ1bmV4cGVjdGVkX3BhdGgiIH07CiAgfQoKICByZXR1cm4geyB2YWxpZDogZmFsc2UsIGVudmlyb25tZW50OiAiaW52YWxpZCIsIHJlYXNvbjogInVuZXhwZWN0ZWRfZm9ybWF0IiB9Owp9CgpleHBvcnQgZnVuY3Rpb24gZ2V0TGluZUF1dGhEaWFnbm9zdGljcygpOiBMaW5lQXV0aERpYWdub3N0aWNzIHsKICBjb25zdCB7IGNoYW5uZWxJZCwgY2hhbm5lbFNlY3JldCwgY2FsbGJhY2tVcmwgfSA9IGxpbmVDb25maWcoKTsKICBjb25zdCBjYWxsYmFjayA9IHZhbGlkYXRlTGluZUNhbGxiYWNrVXJsKGNhbGxiYWNrVXJsKTsKICBjb25zdCBjaGFubmVsQ29uZmlndXJlZCA9IEJvb2xlYW4oY2hhbm5lbElkKTsKICBjb25zdCBzZWNyZXRDb25maWd1cmVkID0gQm9vbGVhbihjaGFubmVsU2VjcmV0KTsKCiAgcmV0dXJuIHsKICAgIHJlYWR5OiBjaGFubmVsQ29uZmlndXJlZCAmJiBzZWNyZXRDb25maWd1cmVkICYmIGNhbGxiYWNrLnZhbGlkLAogICAgY2hhbm5lbENvbmZpZ3VyZWQsCiAgICBzZWNyZXRDb25maWd1cmVkLAogICAgY2FsbGJhY2tVcmxDb25maWd1cmVkOiBCb29sZWFuKGNhbGxiYWNrVXJsKSwKICAgIGNhbGxiYWNrVXJsVmFsaWQ6IGNhbGxiYWNrLnZhbGlkLAogICAgY2FsbGJhY2tFbnZpcm9ubWVudDogY2FsbGJhY2suZW52aXJvbm1lbnQsCiAgICBjYWxsYmFja1JlYXNvbjogY2FsbGJhY2sucmVhc29uLAogIH07Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXRMaW5lSGVhbHRoU3RhdHVzKAogIGRpYWdub3N0aWNzID0gZ2V0TGluZUF1dGhEaWFnbm9zdGljcygpLAopOiBMaW5lSGVhbHRoU3RhdHVzIHsKICByZXR1cm4gcHJvY2Vzcy5lbnZbIk5PREVfRU5WIl0gPT09ICJwcm9kdWN0aW9uIiAmJiAhZGlhZ25vc3RpY3MucmVhZHkKICAgID8gImRlZ3JhZGVkIgogICAgOiAib2siOwp9
+export const LINE_PRODUCTION_HOST = "knightbasins.srv1964473.hstgr.cloud";
+export const LINE_CALLBACK_PATH = "/api/auth/line/callback";
+export const LINE_PRODUCTION_CALLBACK_URL = `https://${LINE_PRODUCTION_HOST}${LINE_CALLBACK_PATH}`;
+export const LINE_LOCAL_CALLBACK_URL = `http://localhost:5000${LINE_CALLBACK_PATH}`;
+
+const LINE_CALLBACK_REASONS = [
+  "configured",
+  "missing",
+  "malformed",
+  "not_https",
+  "unexpected_host",
+  "unexpected_path",
+  "unexpected_format",
+] as const;
+
+export type LineCallbackReason = (typeof LINE_CALLBACK_REASONS)[number];
+export type LineCallbackEnvironment = "production" | "development" | "invalid" | "missing";
+
+export type LineCallbackValidation = {
+  valid: boolean;
+  environment: LineCallbackEnvironment;
+  reason: LineCallbackReason;
+};
+
+export type LineAuthDiagnostics = {
+  ready: boolean;
+  channelConfigured: boolean;
+  secretConfigured: boolean;
+  callbackUrlConfigured: boolean;
+  callbackUrlValid: boolean;
+  callbackEnvironment: LineCallbackEnvironment;
+  callbackReason: LineCallbackReason;
+};
+
+export type LineHealthStatus = "ok" | "degraded";
+
+function lineConfig() {
+  return {
+    channelId: process.env["LINE_CHANNEL_ID"],
+    channelSecret: process.env["LINE_CHANNEL_SECRET"],
+    callbackUrl: process.env["LINE_CALLBACK_URL"],
+  };
+}
+
+export function validateLineCallbackUrl(callbackUrl = process.env["LINE_CALLBACK_URL"]): LineCallbackValidation {
+  if (!callbackUrl) {
+    return { valid: false, environment: "missing", reason: "missing" };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(callbackUrl);
+  } catch {
+    return { valid: false, environment: "invalid", reason: "malformed" };
+  }
+
+  if (parsed.href === LINE_PRODUCTION_CALLBACK_URL) {
+    return { valid: true, environment: "production", reason: "configured" };
+  }
+
+  if (process.env["NODE_ENV"] !== "production" && parsed.href === LINE_LOCAL_CALLBACK_URL) {
+    return { valid: true, environment: "development", reason: "configured" };
+  }
+
+  if (parsed.protocol !== "https:") {
+    return { valid: false, environment: "invalid", reason: "not_https" };
+  }
+
+  if (parsed.hostname !== LINE_PRODUCTION_HOST) {
+    return { valid: false, environment: "invalid", reason: "unexpected_host" };
+  }
+
+  if (parsed.pathname !== LINE_CALLBACK_PATH) {
+    return { valid: false, environment: "invalid", reason: "unexpected_path" };
+  }
+
+  return { valid: false, environment: "invalid", reason: "unexpected_format" };
+}
+
+export function getLineAuthDiagnostics(): LineAuthDiagnostics {
+  const { channelId, channelSecret, callbackUrl } = lineConfig();
+  const callback = validateLineCallbackUrl(callbackUrl);
+  const channelConfigured = Boolean(channelId);
+  const secretConfigured = Boolean(channelSecret);
+
+  return {
+    ready: channelConfigured && secretConfigured && callback.valid,
+    channelConfigured,
+    secretConfigured,
+    callbackUrlConfigured: Boolean(callbackUrl),
+    callbackUrlValid: callback.valid,
+    callbackEnvironment: callback.environment,
+    callbackReason: callback.reason,
+  };
+}
+
+export function getLineHealthStatus(
+  diagnostics = getLineAuthDiagnostics(),
+): LineHealthStatus {
+  return process.env["NODE_ENV"] === "production" && !diagnostics.ready
+    ? "degraded"
+    : "ok";
+}

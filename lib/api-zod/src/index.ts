@@ -1,1 +1,2 @@
-ZXhwb3J0ICogZnJvbSAiLi9nZW5lcmF0ZWQvYXBpIjsKZXhwb3J0ICogZnJvbSAnLi9nZW5lcmF0ZWQvYXBpJzsK
+export * from "./generated/api";
+export * from './generated/api';

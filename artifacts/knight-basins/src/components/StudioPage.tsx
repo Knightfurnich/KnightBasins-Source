@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowRight, Check, GripVertical, Upload, X } from "lucid
 import {
   PRODUCTS,
   STONE_COLORS,
+  filterBasinProducts,
   formatTHB,
   productBySku,
   stoneColorByName,
@@ -10,6 +11,7 @@ import {
 } from "@/data/catalog";
 import {
   createBasinPlacement,
+  clampBasinPlacementPosition,
   studioEstimate,
   studioStoneName,
   STUDIO_EDGE_CLEARANCE_MM,
@@ -17,6 +19,8 @@ import {
   STUDIO_MAX_STONE_COLORS,
   STUDIO_MIN_BASINS,
   STUDIO_MIN_STONE_COLORS,
+  unsafeBasinPlacements,
+  unknownBasinPlacements,
   type BasinPlacement,
   type CounterShape,
   type StudioEstimate,
@@ -82,6 +86,8 @@ function StudioContactFields({ contact, setContact }: { contact: typeof emptyCon
 }
 
 function StudioShortlists({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
+  const [basinQuery, setBasinQuery] = useState("");
+  const visibleBasins = useMemo(() => filterBasinProducts(PRODUCTS, basinQuery), [basinQuery]);
   const toggleStone = (code: string) => {
     setState((current) => {
       if (current.stoneColors.includes(code)) {
@@ -116,10 +122,14 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
       <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนผัง หรือกดเลือกเพื่อเพิ่ม / นำออก</p>
-      <div className="studio-basin-list">{PRODUCTS.slice(0, 12).map((product) => {
+       <label className="studio-basin-search">ค้นหา SKU หรือสี
+         <input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" />
+       </label>
+       <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {PRODUCTS.length} รุ่น</p>
+       <div className="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
         return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => { event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span>{product.sku}</span><strong>{product.colorName}</strong><small>{formatTHB(product.priceTHB)}</small>{selected && <GripVertical size={14} />}</button>;
-      })}</div>
+       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
     </section>
   </div>;
 }
@@ -127,7 +137,14 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
 function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
   const maxRun = Math.max(1, state.dimensions.runAMm);
   const maxDepth = Math.max(1, state.dimensions.depthMm);
-  const movePlacement = (id: string, xMm: number, yMm: number) => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.map((placement) => placement.id === id ? { ...placement, xMm: Math.max(0, Math.min(maxRun - placement.widthMm, xMm)), yMm: Math.max(0, Math.min(maxDepth - placement.depthMm, yMm)) } : placement) }));
+  const unsafeIds = new Set(unsafeBasinPlacements(state));
+  const unknownDimensionIds = new Set(unknownBasinPlacements(state));
+  const movePlacement = (id: string, xMm: number, yMm: number) => setState((current) => ({
+    ...current,
+    basinPlacements: current.basinPlacements.map((placement) => placement.id === id
+      ? { ...placement, ...clampBasinPlacementPosition(placement, xMm, yMm, current.dimensions) }
+      : placement),
+  }));
   const drop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const rect = event.currentTarget.getBoundingClientRect();
@@ -135,12 +152,32 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
     const product = productBySku(sku);
     if (product && state.basinSkus.includes(sku)) {
       const placement = createBasinPlacement(product, state.basinPlacements.length);
-      movePlacement(placement.id, ((event.clientX - rect.left) / rect.width) * maxRun - placement.widthMm / 2, ((event.clientY - rect.top) / rect.height) * maxDepth - placement.depthMm / 2);
-      setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, placement] }));
+      const xMm = ((event.clientX - rect.left) / rect.width) * maxRun - (placement.widthMm ?? 0) / 2;
+      const yMm = ((event.clientY - rect.top) / rect.height) * maxDepth - (placement.depthMm ?? 0) / 2;
+      setState((current) => ({
+        ...current,
+        basinPlacements: [
+          ...current.basinPlacements,
+          { ...placement, ...clampBasinPlacementPosition(placement, xMm, yMm, current.dimensions) },
+        ],
+      }));
       return;
     }
     const placementId = event.dataTransfer.getData("application/x-studio-placement");
-    if (placementId) movePlacement(placementId, ((event.clientX - rect.left) / rect.width) * maxRun - 250, ((event.clientY - rect.top) / rect.height) * maxDepth - 250);
+    const existingPlacement = state.basinPlacements.find((placement) => placement.id === placementId);
+    if (placementId) {
+      movePlacement(
+        placementId,
+        ((event.clientX - rect.left) / rect.width) * maxRun - (existingPlacement?.widthMm ?? 0) / 2,
+        ((event.clientY - rect.top) / rect.height) * maxDepth - (existingPlacement?.depthMm ?? 0) / 2,
+      );
+    }
+  };
+  const clearanceFrameStyle = {
+    left: `${(STUDIO_EDGE_CLEARANCE_MM / maxRun) * 100}%`,
+    right: `${(STUDIO_EDGE_CLEARANCE_MM / maxRun) * 100}%`,
+    top: `${(STUDIO_EDGE_CLEARANCE_MM / maxDepth) * 100}%`,
+    bottom: `${(STUDIO_EDGE_CLEARANCE_MM / maxDepth) * 100}%`,
   };
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading"><div><p className="eyebrow">03 / 2D COUNTER LAYOUT</p><h3>วางอ่างบนผังเคาน์เตอร์</h3></div><span>หน่วย mm</span></div>
@@ -153,12 +190,13 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
     </div>
     <label className="studio-checkbox"><input type="checkbox" checked={state.backsplash.enabled} onChange={(event) => setState((current) => ({ ...current, backsplash: { ...current.backsplash, enabled: event.target.checked } }))} /> เพิ่ม backsplash ด้านหลัง</label>
     {state.backsplash.enabled && <label className="studio-inline-field">ความสูง backsplash (mm)<input type="number" min="1" value={state.backsplash.heightMm} onChange={(event) => setState((current) => ({ ...current, backsplash: { enabled: true, heightMm: numericValue(event.target.value) } }))} data-testid="input-studio-backsplash-height" /></label>}
-    <div className={`studio-canvas studio-canvas--${state.shape}`} onDragOver={(event) => event.preventDefault()} onDrop={drop} data-testid="studio-canvas" aria-label="ผังเคาน์เตอร์ 2D">
+    <div className={`studio-canvas studio-canvas--${state.shape} ${unsafeIds.size ? "studio-canvas--unsafe" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={drop} data-testid="studio-canvas" aria-label="ผังเคาน์เตอร์ 2D">
       <span className="studio-canvas-label">{state.shape}-SHAPE · {displayMm(state.dimensions.runAMm)} × {displayMm(state.dimensions.depthMm)} mm</span>
-      {state.basinPlacements.map((placement) => <div key={placement.id} draggable className="studio-placement" style={{ left: `${(placement.xMm / maxRun) * 100}%`, top: `${(placement.yMm / maxDepth) * 100}%`, width: `${(placement.widthMm / maxRun) * 100}%`, height: `${(placement.depthMm / maxDepth) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>ลากเพื่อย้าย</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>)}
+       {unsafeIds.size > 0 && <div className="studio-clearance-frame" style={clearanceFrameStyle} aria-hidden="true" />}
+       {state.basinPlacements.map((placement) => <div key={placement.id} draggable className={`studio-placement ${unsafeIds.has(placement.id) ? "studio-placement--unsafe" : ""} ${unknownDimensionIds.has(placement.id) ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / maxRun) * 100}%`, top: `${(placement.yMm / maxDepth) * 100}%`, width: placement.widthMm === null ? "22%" : `${(placement.widthMm / maxRun) * 100}%`, height: placement.depthMm === null ? "22%" : `${(placement.depthMm / maxDepth) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>{unknownDimensionIds.has(placement.id) ? "แคตตาล็อกไม่ระบุขนาดหลุม" : "ลากเพื่อย้าย"}</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>)}
       {!state.basinPlacements.length && <span className="studio-canvas-empty">ลากอ่างที่เลือกมาวางที่นี่</span>}
     </div>
-    <p className="studio-canvas-hint"><GripVertical size={14} /> ระยะขอบเคาน์เตอร์ต้องเหลืออย่างน้อย {STUDIO_EDGE_CLEARANCE_MM} mm รอบอ่างทุกด้าน</p>
+     <p className="studio-canvas-hint"><GripVertical size={14} /> ระยะขอบเคาน์เตอร์ต้องเหลืออย่างน้อย {STUDIO_EDGE_CLEARANCE_MM} mm รอบอ่างทุกด้าน</p>
   </section>;
 }
 
@@ -206,7 +244,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     {mode === "studio" ? <StudioCanvas state={state} setState={setState} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
-      <aside className="studio-panel studio-estimate-panel"><div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div><div className="studio-estimate-lines"><div><span>พื้นที่เคาน์เตอร์</span><strong>{estimate.counterAreaSqM.toFixed(2)} m²</strong></div><div><span>พื้นที่ backsplash</span><strong>{estimate.backsplashAreaSqM.toFixed(2)} m²</strong></div><div><span>พื้นที่หินรวม</span><strong>{estimate.stoneAreaSqM.toFixed(2)} m²</strong></div><div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{formatTHB(estimate.stoneTotalTHB)}</strong></div><div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>{estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}</div><div className="studio-total"><span>รวมประมาณการ</span><strong>{formatTHB(estimate.totalTHB)}</strong><small>ยังไม่รวม VAT · ไม่หักพื้นที่หลุมอ่าง</small></div>{estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}{estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> ระยะขอบอ่างต้องห่างจากขอบเคาน์เตอร์อย่างน้อย 50 mm จึงจะส่งคำขอได้</p>}<button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>{result && <p className="studio-result" role="status">{result}</p>}</aside>
+     <aside className="studio-panel studio-estimate-panel"><div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div><div className="studio-estimate-lines"><div><span>พื้นที่เคาน์เตอร์</span><strong>{estimate.counterAreaSqM.toFixed(2)} m²</strong></div><div><span>พื้นที่ backsplash</span><strong>{estimate.backsplashAreaSqM.toFixed(2)} m²</strong></div><div><span>พื้นที่หินรวม</span><strong>{estimate.stoneAreaSqM.toFixed(2)} m²</strong></div><div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{formatTHB(estimate.stoneTotalTHB)}</strong></div><div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>{estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}</div><div className="studio-total"><span>รวมประมาณการ</span><strong>{formatTHB(estimate.totalTHB)}</strong><small>ยังไม่รวม VAT · ไม่หักพื้นที่หลุมอ่าง</small></div>{estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}{estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> ระยะขอบอ่างต้องห่างจากขอบเคาน์เตอร์อย่างน้อย 50 mm จึงจะส่งคำขอได้</p>}{estimate.unknownDimensionPlacements.length > 0 && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> แคตตาล็อกไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ</p>}<button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>{result && <p className="studio-result" role="status">{result}</p>}</aside>
     </section>
   </div>;
 }
