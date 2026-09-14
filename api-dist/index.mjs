@@ -38524,6 +38524,30 @@ var UpsertLeadResponse = objectType({
   "createdAt": coerce.date(),
   "updatedAt": coerce.date()
 });
+var getSavedQuoteQueryQuoteNumberMax = 64;
+var GetSavedQuoteQueryParams = objectType({
+  "quoteNumber": coerce.string().max(getSavedQuoteQueryQuoteNumberMax)
+});
+var GetSavedQuoteResponse = objectType({
+  "id": numberType(),
+  "leadKey": stringType(),
+  "status": enumType(["new_lead", "selecting", "quote_requested", "closed"]),
+  "source": stringType(),
+  "name": stringType().nullish(),
+  "company": stringType().nullish(),
+  "phone": stringType().nullish(),
+  "email": stringType().nullish(),
+  "project": stringType().nullish(),
+  "address": stringType().nullish(),
+  "notes": stringType().nullish(),
+  "productSkus": arrayType(stringType()),
+  "quoteNumber": stringType().nullish(),
+  "orderMode": enumType(["quick-purchase", "studio", "sketch"]).optional(),
+  "studioData": recordType(stringType(), unknownType()).nullish(),
+  "sketchUrl": stringType().nullish(),
+  "createdAt": coerce.date(),
+  "updatedAt": coerce.date()
+});
 var SubmitSketchLeadBody = objectType({
   "file": stringType().describe("Uploaded image file supplied as multipart content"),
   "metadata": stringType().describe("JSON-encoded LeadInput metadata")
@@ -47136,10 +47160,17 @@ var router5 = (0, import_express6.Router)();
 function invalid2(res, message, details) {
   return res.status(400).json({ message, details });
 }
+function createQuoteNumber() {
+  const month = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit" }).format(/* @__PURE__ */ new Date());
+  const serial2 = String(Date.now()).slice(-6);
+  return `${month} / US / ${serial2}`;
+}
 router5.post("/leads", async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
   if (!parsed.success) return invalid2(res, "Invalid lead data", parsed.error.flatten());
   try {
+    const [existing] = await db.select({ quoteNumber: customerLeads.quoteNumber }).from(customerLeads).where(eq(customerLeads.leadKey, parsed.data.leadKey)).limit(1);
+    const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? createQuoteNumber() : null);
     const statusPriority = {
       new_lead: 0,
       selecting: 1,
@@ -47147,7 +47178,7 @@ router5.post("/leads", async (req, res, next) => {
       closed: 3
     };
     const requestedPriority = statusPriority[parsed.data.status];
-    const [lead] = await db.insert(customerLeads).values(parsed.data).onConflictDoUpdate({
+    const [lead] = await db.insert(customerLeads).values({ ...parsed.data, quoteNumber }).onConflictDoUpdate({
       target: customerLeads.leadKey,
       set: {
         status: sql`CASE WHEN ${customerLeads.status} = 'closed' OR ${customerLeads.status} = 'quote_requested' AND ${requestedPriority} < 2 OR ${customerLeads.status} = 'selecting' AND ${requestedPriority} < 1 THEN ${customerLeads.status} ELSE ${parsed.data.status} END`,
@@ -47160,13 +47191,26 @@ router5.post("/leads", async (req, res, next) => {
         address: parsed.data.address,
         notes: parsed.data.notes,
         productSkus: parsed.data.productSkus,
-        quoteNumber: parsed.data.quoteNumber,
+        quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
         orderMode: parsed.data.orderMode,
         studioData: parsed.data.studioData,
         sketchUrl: parsed.data.sketchUrl,
         updatedAt: /* @__PURE__ */ new Date()
       }
     }).returning();
+    return res.json(lead);
+  } catch (error) {
+    return next(error);
+  }
+});
+router5.get("/quotes", async (req, res, next) => {
+  const quoteNumber = typeof req.query.quoteNumber === "string" ? req.query.quoteNumber.trim() : "";
+  if (!quoteNumber) return invalid2(res, "quoteNumber is required");
+  try {
+    const [lead] = await db.select().from(customerLeads).where(eq(customerLeads.quoteNumber, quoteNumber)).limit(1);
+    if (!lead || lead.orderMode !== "studio" || !lead.studioData) {
+      return res.status(404).json({ message: "Quote not found" });
+    }
     return res.json(lead);
   } catch (error) {
     return next(error);

@@ -19,6 +19,8 @@ const baseState: StudioState = {
   dimensions: { depthMm: 600, runAMm: 1800, runBMm: 0, runCMm: 0 },
   backsplash: { enabled: false, heightMm: 100 },
   location: "bangkok-metro",
+  vat: false,
+  quoteFormat: "US",
   stoneColors: ["BW010", "MU010"],
   activeStone: "BW010",
   basinSkus: ["KF001"],
@@ -53,6 +55,27 @@ test("studio estimate includes backsplash and basin installation, never a cut-ou
   assert.equal(estimate.basinSubtotalTHB, 19000);
   assert.equal(estimate.installationChargeTHB, 5000);
   assert.equal(estimate.totalTHB, estimate.stoneTotalTHB + 24000 + 5000);
+});
+
+test("studio estimate matches the saved-quote acceptance example", () => {
+  const estimate = studioEstimate({
+    ...baseState,
+    activeStone: "BW010",
+    basinSkus: ["KF001"],
+    backsplash: { enabled: true, heightMm: 100 },
+    basinPlacements: [
+      { ...baseState.basinPlacements[0], id: "basin-1", xMm: 70, yMm: 50 },
+      { ...baseState.basinPlacements[0], id: "basin-2", xMm: 620, yMm: 50 },
+      { ...baseState.basinPlacements[0], id: "basin-3", xMm: 1170, yMm: 50 },
+    ],
+  }, PRODUCTS);
+  assert.equal(estimate.stoneAreaSqM, 1.26);
+  assert.equal(estimate.stoneTotalTHB, 9450);
+  assert.equal(estimate.basinSubtotalTHB, 57000);
+  assert.equal(estimate.installationChargeTHB, 0);
+  assert.equal(estimate.smallJobFeeTHB, 5000);
+  assert.equal(estimate.totalTHB, 71450);
+  assert.equal(estimate.isValid, true);
 });
 
 test("unsafe basin placement blocks final studio submission", () => {

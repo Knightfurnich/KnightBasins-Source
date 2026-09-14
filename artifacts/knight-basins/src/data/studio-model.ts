@@ -13,6 +13,7 @@ import {
 export type StudioOrderMode = "quick-purchase" | "studio" | "sketch";
 export type CounterShape = "I" | "L" | "U";
 export type StudioLocation = "bangkok-metro" | "province";
+export type StudioQuoteFormat = "US" | "OF";
 
 export type StudioDimensions = {
   depthMm: number;
@@ -41,6 +42,8 @@ export type StudioState = {
   dimensions: StudioDimensions;
   backsplash: BacksplashConfig;
   location: StudioLocation;
+  vat: boolean;
+  quoteFormat: StudioQuoteFormat;
   stoneColors: string[];
   activeStone: string;
   basinSkus: string[];
@@ -57,6 +60,8 @@ export type StudioEstimate = {
   installationChargeTHB: number;
   installationDiscountTHB: number;
   smallJobFeeTHB: number;
+  subtotalTHB: number;
+  vatAmountTHB: number;
   totalTHB: number;
   standardSheetWarning: boolean;
   standardSheetMessage: string;
@@ -163,6 +168,8 @@ export function studioEstimate(
   const smallJobFee = price !== null && stoneArea > 0 && stoneArea < minimumArea
     ? state.location === "bangkok-metro" ? STONE_SMALL_JOB_BANGKOK_FEE : STONE_SMALL_JOB_PROVINCE_FEE
     : 0;
+  const subtotal = stoneTotal + basinSubtotal + installationCharge + smallJobFee;
+  const vatAmount = state.vat ? Math.round(subtotal * 0.07) : 0;
   const unsafe = unsafeBasinPlacements(state);
   const unknownDimensions = unknownBasinPlacements(state);
   const sheetWarning = standardSheetWarning(state.shape, state.dimensions);
@@ -179,7 +186,9 @@ export function studioEstimate(
     installationChargeTHB: installationCharge,
     installationDiscountTHB: installationDiscount,
     smallJobFeeTHB: smallJobFee,
-    totalTHB: stoneTotal + basinSubtotal + installationCharge + smallJobFee,
+    subtotalTHB: subtotal,
+    vatAmountTHB: vatAmount,
+    totalTHB: subtotal + vatAmount,
     standardSheetWarning: sheetWarning,
     standardSheetMessage,
     unsafePlacements: unsafe,

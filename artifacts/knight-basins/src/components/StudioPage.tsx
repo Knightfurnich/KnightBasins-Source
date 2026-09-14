@@ -47,7 +47,7 @@ export type StudioSubmission = {
 type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
   leadKey: string;
-  onSubmitStudio: (submission: StudioSubmission) => void;
+  onSubmitStudio: (submission: StudioSubmission) => Promise<void> | void;
 };
 
 const initialState: StudioState = {
@@ -56,6 +56,8 @@ const initialState: StudioState = {
   dimensions: { depthMm: 600, runAMm: 1800, runBMm: 1200, runCMm: 1200 },
   backsplash: { enabled: false, heightMm: 100 },
   location: "bangkok-metro",
+  vat: false,
+  quoteFormat: "US",
   stoneColors: ["BW010", "MU010"],
   activeStone: "BW010",
   basinSkus: ["KF001"],
@@ -120,7 +122,7 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
       <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))}>{studioStoneName(code)} · {formatTHB(stoneColorByName(code).installedPriceTHB ?? 0)} / m²</button>)}</div>
     </section>
     <section className="studio-panel">
-      <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
+       <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
       <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนผัง หรือกดเลือกเพื่อเพิ่ม / นำออก</p>
        <label className="studio-basin-search">ค้นหา SKU หรือสี
          <input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" />
@@ -208,13 +210,28 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const [submitting, setSubmitting] = useState(false);
   const estimate = useMemo(() => studioEstimate(state, PRODUCTS), [state]);
   const activeStone = stoneColorByName(state.activeStone);
-  const submitStudio = () => {
+  const submitStudio = async () => {
     if (!estimate.isValid) {
-      setResult("กรุณาเลือกสินค้าและวางอ่างให้ครบ พร้อมแก้ไขระยะขอบสีแดงก่อนส่งคำขอ");
+      setResult(estimate.unknownDimensionPlacements.length
+        ? "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ"
+        : estimate.unsafePlacements.length
+          ? "กรุณาแก้ไขระยะขอบสีแดงให้ห่างจากขอบอย่างน้อย 50 mm ก่อนส่งคำขอ"
+          : "กรุณาเลือกสินค้าและวางอ่างให้ครบก่อนส่งคำขอ");
       return;
     }
-    onSubmitStudio({ state, estimate, contact });
-    setResult("บันทึกคำขอออกแบบแล้ว ทีมขายจะติดต่อกลับเพื่อยืนยันแบบและราคา");
+    if (!contact.name.trim() || !contact.phone.trim() || !contact.project.trim() || !contact.address.trim()) {
+      setResult("กรุณากรอกชื่อผู้ติดต่อ โทรศัพท์ ชื่อโครงการ และสถานที่ติดตั้ง");
+      return;
+    }
+    setSubmitting(true);
+    setResult("");
+    try {
+      await onSubmitStudio({ state, estimate, contact });
+    } catch (error) {
+      setResult(error instanceof Error ? error.message : "สร้างใบเสนอราคาไม่สำเร็จ กรุณาลองอีกครั้ง");
+    } finally {
+      setSubmitting(false);
+    }
   };
   const submitSketch = async () => {
     if (!sketchFile || !contact.name || !contact.phone || !contact.project) {
@@ -244,7 +261,24 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     {mode === "studio" ? <StudioCanvas state={state} setState={setState} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
-     <aside className="studio-panel studio-estimate-panel"><div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div><div className="studio-estimate-lines"><div><span>พื้นที่เคาน์เตอร์</span><strong>{estimate.counterAreaSqM.toFixed(2)} m²</strong></div><div><span>พื้นที่ backsplash</span><strong>{estimate.backsplashAreaSqM.toFixed(2)} m²</strong></div><div><span>พื้นที่หินรวม</span><strong>{estimate.stoneAreaSqM.toFixed(2)} m²</strong></div><div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{formatTHB(estimate.stoneTotalTHB)}</strong></div><div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>{estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}</div><div className="studio-total"><span>รวมประมาณการ</span><strong>{formatTHB(estimate.totalTHB)}</strong><small>ยังไม่รวม VAT · ไม่หักพื้นที่หลุมอ่าง</small></div>{estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}{estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> ระยะขอบอ่างต้องห่างจากขอบเคาน์เตอร์อย่างน้อย 50 mm จึงจะส่งคำขอได้</p>}{estimate.unknownDimensionPlacements.length > 0 && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> แคตตาล็อกไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ</p>}<button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>{result && <p className="studio-result" role="status">{result}</p>}</aside>
+      <aside className="studio-panel studio-estimate-panel">
+        <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
+        <div className="studio-estimate-lines">
+          <div><span>พื้นที่เคาน์เตอร์</span><strong>{estimate.counterAreaSqM.toFixed(2)} m²</strong></div>
+          <div><span>พื้นที่ backsplash</span><strong>{estimate.backsplashAreaSqM.toFixed(2)} m²</strong></div>
+          <div><span>พื้นที่หินรวม</span><strong>{estimate.stoneAreaSqM.toFixed(2)} m²</strong></div>
+          <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{formatTHB(estimate.stoneTotalTHB)}</strong></div>
+          <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>
+          {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
+        </div>
+        <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% ({formatTHB(estimate.vatAmountTHB)})</label>
+        <div className="studio-total"><span>รวมประมาณการ</span><strong>{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ไม่หักพื้นที่หลุมอ่าง</small></div>
+        {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
+        {estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> ระยะขอบอ่างต้องห่างจากขอบเคาน์เตอร์อย่างน้อย 50 mm จึงจะส่งคำขอได้</p>}
+        {estimate.unknownDimensionPlacements.length > 0 && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> แคตตาล็อกไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ</p>}
+        <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
+        {result && <p className="studio-result" role="status">{result}</p>}
+      </aside>
     </section>
   </div>;
 }
