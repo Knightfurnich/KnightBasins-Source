@@ -7,4 +7,8 @@
 - [Production media and schema deployment](production-media-and-schema.md) — normalize legacy basin image URLs and grant the VPS app role access to new tables and sequences.
 - [Development schema sync](development-schema-sync.md) — apply new Drizzle tables and columns to development before restarting artifact workflows.
 - [Scoped artifact dependencies](scoped-artifact-dependencies.md) — add packages to the target pnpm workspace package, not the repository root.
-- [GitHub publish fallback](github-publish-fallback.md) — when the Git remote cannot authenticate and the repository is empty, publish through the installed GitHub integration API.
+- [GitHub publish fallback](github-publish-fallback.md) — use the GitHub integration when Git auth fails, then hand off through an exact-repo read-only deploy key.
+- [Async quote route tests](async-quote-route-tests.md) — wait for the loaded saved-quote root, not a shared formal-quote selector during navigation.
+- [Production asset root guard](production-asset-root-guard.md) — Hostinger serves the storefront at `/`; validate both build paths and JavaScript response types.
+- [Public quote origin](public-quote-origin.md) — derive exported quote links from the configured public origin, never an internal proxy hop.
+- [Shared studio shape geometry](studio-shape-geometry.md) — keep I/L/U regions, clearance, placement safety, labels, and saved layouts on one geometry model.
