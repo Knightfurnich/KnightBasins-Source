@@ -304,9 +304,11 @@ command succeeds. The check only logs status and fixed diagnostic messages; it
 does not print the LINE channel ID, channel secret, or response body.
 
 Run the web asset gate after copying the storefront and reloading Nginx. It
-fetches `/`, extracts the JavaScript URL, then requires HTTP 200, a JavaScript
-content type, and a non-HTML response body. This catches both a real 404 and
-the more subtle case where an SPA fallback returns `index.html` with HTTP 200:
+fetches `/`, extracts the JavaScript URL with Python 3's standard library, then
+requires a `/assets/` path, HTTP 200, a JavaScript content type, and a non-HTML
+response body. This catches both a real 404 and the more subtle case where an
+SPA fallback returns `index.html` with HTTP 200. The checker requires only
+`bash`, `curl`, and `python3`; it does not require Node.js:
 
 ```bash
 BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \

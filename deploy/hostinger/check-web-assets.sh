@@ -24,19 +24,40 @@ if [[ "$index_status" != "200" ]]; then
 fi
 
 mapfile -t js_assets < <(
-  node - "$index_body" <<'NODE'
-const fs = require("node:fs");
-const html = fs.readFileSync(process.argv[2], "utf8");
-const assets = [...html.matchAll(/\bsrc=["'](\/assets\/[^"']+\.m?js(?:[?#][^"']*)?)["']/g)]
-  .map((match) => match[1]);
+  python3 - "$index_body" <<'PY'
+import re
+import sys
+from html.parser import HTMLParser
+from pathlib import Path
 
-if (assets.length === 0) {
-  console.error("No root JavaScript asset was found in the production index.");
-  process.exit(1);
-}
 
-process.stdout.write(`${assets.join("\n")}\n`);
-NODE
+class ScriptSourceParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.sources = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() != "script":
+            return
+
+        source = dict(attrs).get("src")
+        if source and re.search(r"\.m?js(?:[?#]|$)", source, re.IGNORECASE):
+            if source not in self.sources:
+                self.sources.append(source)
+
+
+parser = ScriptSourceParser()
+parser.feed(Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+
+if not parser.sources:
+    print(
+        "No root JavaScript asset was found in the production index.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+print("\n".join(parser.sources))
+PY
 )
 
 if [[ "${#js_assets[@]}" -eq 0 ]]; then
@@ -45,6 +66,11 @@ if [[ "${#js_assets[@]}" -eq 0 ]]; then
 fi
 
 for asset_path in "${js_assets[@]}"; do
+  if [[ "$asset_path" != /assets/* ]]; then
+    echo "JavaScript asset check failed for $asset_path: path must start with /assets/." >&2
+    exit 1
+  fi
+
   asset_status="$(
     curl --silent --show-error \
       --dump-header "$asset_headers" \
