@@ -275,4 +275,101 @@ describe("long formal quote print flow", () => {
     assert.equal(printStyles.firstRowBreak, "avoid");
     assert.equal(printStyles.totalBreak, "avoid");
   });
+
+  it("shows both real Studio download actions for the current layout", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "order mode tabs",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-download-studio-dxf"]\') !== null'),
+      Boolean,
+      "Studio export actions",
+    );
+    const actions = await browser.page.evaluate(`(() => ({
+      dxfText: document.querySelector('[data-testid="button-download-studio-dxf"]')?.textContent ?? "",
+      pdfText: document.querySelector('[data-testid="button-download-studio-pdf"]')?.textContent ?? "",
+      dxfDisabled: document.querySelector('[data-testid="button-download-studio-dxf"]')?.disabled ?? true,
+      pdfDisabled: document.querySelector('[data-testid="button-download-studio-pdf"]')?.disabled ?? true,
+    }))()`);
+    assert.match(actions.dxfText, /ดาวน์โหลดแบบ.*DXF/);
+    assert.match(actions.pdfText, /ดาวน์โหลดแบบ.*PDF/);
+    assert.equal(actions.dxfDisabled, false);
+    assert.equal(actions.pdfDisabled, false);
+    await clickTestId(browser.page, "button-download-studio-dxf");
+    await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
+    await clickTestId(browser.page, "button-download-studio-pdf");
+    const printStatus = await waitFor(
+      () => browser.page.evaluate("window.__studioPrintCalled === true"),
+      Boolean,
+      "Studio print action",
+    );
+    assert.equal(printStatus, true);
+    assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-I");
+  });
+
+  it("keeps Studio export actions on a saved quote snapshot", async () => {
+    const fill = [
+      ["input-studio-name", "คุณทดสอบแบบ"],
+      ["input-studio-phone", "0812345678"],
+      ["input-studio-project", "โครงการ Studio Export"],
+      ["input-studio-address", "กรุงเทพฯ"],
+    ] as const;
+    for (const [testId, value] of fill) await setTextInput(browser.page, testId, value);
+    const dropped = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.35, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(dropped, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'),
+      Boolean,
+      "basin placement",
+    );
+    await clickTestId(browser.page, "button-submit-studio");
+    const savedOutcome = await waitFor(
+      () => browser.page.evaluate(`(() => ({
+        saved: document.querySelector('[data-testid="saved-studio-layout"]') !== null,
+        error: document.querySelector('[data-testid="status-saved-quote-error"]')?.textContent ?? "",
+        invalid: document.querySelector('[data-testid="status-saved-quote-invalid"]')?.textContent ?? "",
+        result: document.querySelector('[role="status"]')?.textContent ?? "",
+        url: window.location.href,
+      }))()`),
+      (value) => value.saved || Boolean(value.error) || Boolean(value.invalid),
+      "saved Studio navigation",
+    );
+    assert.equal(savedOutcome.saved, true, JSON.stringify(savedOutcome));
+    const savedActions = await browser.page.evaluate(`(() => ({
+      dxf: document.querySelector('[data-testid="button-download-saved-studio-dxf"]')?.disabled ?? true,
+      pdf: document.querySelector('[data-testid="button-download-saved-studio-pdf"]')?.disabled ?? true,
+    }))()`);
+    assert.equal(savedActions.dxf, false);
+    assert.equal(savedActions.pdf, false);
+    await clickTestId(browser.page, "button-download-saved-studio-dxf");
+    await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
+    await clickTestId(browser.page, "button-download-saved-studio-pdf");
+    assert.equal(await waitFor(
+      () => browser.page.evaluate("window.__studioPrintCalled === true"),
+      Boolean,
+      "saved Studio print action",
+    ), true);
+    assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-I$/);
+  });
 });

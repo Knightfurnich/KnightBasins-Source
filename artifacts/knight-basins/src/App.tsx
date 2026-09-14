@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
-import { ArrowRight, Check, ChevronDown, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
 import {
   formatTHB,
   INSTALLATION_PRICE,
@@ -29,6 +29,7 @@ import {
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { StudioPage, type StudioSubmission } from "@/components/StudioPage";
 import { counterBounds, counterShapeLabel, unsafeBasinPlacements, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
+import { downloadStudioDxf, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
 
 const emptyCustomer: CustomerDetails = { name: "", company: "", taxId: "", phone: "", email: "", purchasingDepartment: "", address: "", project: "", site: "", notes: "" };
@@ -457,13 +458,18 @@ function readSavedQuotePayload(value: unknown): SavedQuotePayload | null {
   };
 }
 
-function StudioLayoutSnapshot({ state }: { state: StudioState }) {
+function StudioLayoutSnapshot({ state, quoteNumber }: { state: StudioState; quoteNumber: string }) {
   const bounds = counterBounds(state.shape, state.dimensions);
   const maxRun = Math.max(1, bounds.widthMm);
   const maxDepth = Math.max(1, bounds.heightMm);
   const unsafeIds = new Set(unsafeBasinPlacements(state));
   const formatPlacementCoordinate = (value: number) => Math.round(value).toLocaleString("th-TH");
-  return <section className="studio-saved-layout" data-testid="saved-studio-layout">
+  const exportReady = studioExportDimensionsValid(state);
+  const exportFile = async (format: "dxf" | "pdf") => {
+    if (format === "dxf") await downloadStudioDxf(state, quoteNumber || "studio-layout");
+    else printStudioLayout(studioPrintTitle(quoteNumber || "studio-layout", state.shape));
+  };
+  return <section className="studio-saved-layout studio-print-layout" data-testid="saved-studio-layout">
     <div className="studio-saved-layout-heading">
       <div><p className="eyebrow">SAVED 2D STUDIO LAYOUT</p><h2>แบบที่บันทึกไว้</h2></div>
        <span>{counterShapeLabel(state.shape, state.dimensions)}</span>
@@ -492,7 +498,9 @@ function StudioLayoutSnapshot({ state }: { state: StudioState }) {
       })}
       {!state.basinPlacements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
     </StudioFootprint>
+    <div className="studio-saved-layout-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("dxf")} data-testid="button-download-saved-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("pdf")} data-testid="button-download-saved-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button></div>
     <p className="studio-saved-layout-note">ตำแหน่งอ่างเป็นแบบ read-only ที่บันทึกพร้อมใบเสนอราคา ไม่สามารถแก้ไขจากลิงก์นี้ได้</p>
+    <p className="studio-print-warning">{STUDIO_PRINT_NOTE}</p>
   </section>;
 }
 
@@ -637,7 +645,7 @@ function SavedQuotePage() {
     </div>
     {notificationMessage && <p className="studio-result" role="status" data-testid="status-saved-quote-notification">{notificationMessage}</p>}
     </div>
-    {state && <StudioLayoutSnapshot state={state} />}
+    {state && <StudioLayoutSnapshot state={state} quoteNumber={savedQuoteNumber} />}
     <FormalQuote format={format} quoteNumber={savedQuoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} />
     <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>
   </div>;

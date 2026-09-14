@@ -1,5 +1,5 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, Check, GripVertical, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, Download, GripVertical, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -21,6 +21,7 @@ import {
   STUDIO_MAX_STONE_COLORS,
   STUDIO_MIN_BASINS,
   STUDIO_MIN_STONE_COLORS,
+  counterShapeLabel,
   unsafeBasinPlacements,
   unknownBasinPlacements,
   type BasinPlacement,
@@ -31,6 +32,7 @@ import {
   type StudioState,
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
+import { downloadStudioDxf, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -211,6 +213,38 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
   </section>;
 }
 
+function StudioPrintLayout({ state }: { state: StudioState }) {
+  const bounds = counterBounds(state.shape, state.dimensions);
+  const maxRun = Math.max(1, bounds.widthMm);
+  const maxDepth = Math.max(1, bounds.heightMm);
+  return <section className="studio-print-layout" data-testid="studio-print-layout">
+    <div className="studio-print-heading">
+      <div><p className="eyebrow">KNIGHT BASINS / STUDIO REFERENCE</p><h2>{counterShapeLabel(state.shape, state.dimensions)}</h2></div>
+      <div className="studio-print-dimensions">A {state.dimensions.runAMm} mm · {state.shape !== "I" && `B ${state.dimensions.runBMm} mm · `}{state.shape === "U" && `C ${state.dimensions.runCMm} mm · `}ลึก {state.dimensions.depthMm} mm</div>
+    </div>
+    <StudioFootprint state={state} className="studio-print-canvas" testId="studio-print-canvas" ariaLabel="ผัง Studio สำหรับพิมพ์">
+      {state.basinPlacements.map((placement) => {
+        const unknown = placement.widthMm === null || placement.depthMm === null;
+        return <div
+          key={placement.id}
+          className={`studio-placement ${unknown ? "studio-placement--unknown" : ""}`}
+          style={{
+            left: `${(placement.xMm / maxRun) * 100}%`,
+            top: `${(placement.yMm / maxDepth) * 100}%`,
+            width: placement.widthMm === null ? "22%" : `${(placement.widthMm / maxRun) * 100}%`,
+            height: placement.depthMm === null ? "22%" : `${(placement.depthMm / maxDepth) * 100}%`,
+          }}
+        >
+          <strong>{placement.sku}</strong>
+          <small>{unknown ? "แคตตาล็อกไม่ระบุขนาดหลุม" : `${placement.widthMm} × ${placement.depthMm} mm`}</small>
+        </div>;
+      })}
+    </StudioFootprint>
+    <p className="studio-print-warning">{STUDIO_PRINT_NOTE}</p>
+    <p className="studio-print-footnote">หน่วยมิลลิเมตร · ผังอ้างอิงจาก Studio · ตรวจสอบหน้างานก่อนผลิต</p>
+  </section>;
+}
+
 export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const [state, setState] = useState<StudioState>({ ...initialState, mode });
   const [contact, setContact] = useState(emptyContact);
@@ -219,6 +253,25 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const [submitting, setSubmitting] = useState(false);
   const estimate = useMemo(() => studioEstimate(state, PRODUCTS), [state]);
   const activeStone = stoneColorByName(state.activeStone);
+  const exportReady = mode === "studio" && studioExportDimensionsValid(state);
+  const exportName = contact.project || "studio-layout";
+  const exportFiles = async (format: "dxf" | "pdf") => {
+    if (!exportReady) {
+      setResult("ขนาดเคาน์เตอร์ไม่ถูกต้อง จึงยังดาวน์โหลดแบบไม่ได้");
+      return;
+    }
+    try {
+      if (format === "dxf") await downloadStudioDxf(state, exportName);
+      else {
+        printStudioLayout(studioPrintTitle(exportName, state.shape));
+        setResult("เปิดหน้าพิมพ์แบบแล้ว เลือกเครื่องพิมพ์เป็น PDF ได้");
+        return;
+      }
+      setResult(`ดาวน์โหลดแบบ ${format.toUpperCase()} แล้ว`);
+    } catch (error) {
+      setResult(error instanceof Error ? error.message : "สร้างไฟล์แบบไม่สำเร็จ กรุณาลองอีกครั้ง");
+    }
+  };
   const submitStudio = async () => {
     const validationMessage = studioSubmissionValidationMessage(state, estimate);
     if (validationMessage) {
@@ -308,9 +361,11 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
         {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
          {estimate.unsafePlacements.length > 0 && <p className="studio-warning"><AlertTriangle size={16} /> วางขอบอ่างบนเส้น 50 mm ได้พอดี หากพื้นที่ไม่พอให้เพิ่มความลึกเคาน์เตอร์ เช่น 700 mm จึงจะส่งคำขอได้</p>}
         {estimate.unknownDimensionPlacements.length > 0 && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> แคตตาล็อกไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ</p>}
+         {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button></div>}
         <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
         {result && <p className="studio-result" role="status">{result}</p>}
       </aside>
-    </section>
+     </section>
+     {mode === "studio" && <StudioPrintLayout state={state} />}
   </div>;
 }
