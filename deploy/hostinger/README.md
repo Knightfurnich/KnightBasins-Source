@@ -12,6 +12,27 @@ PORT=22731 BASE_PATH=/ pnpm --filter @workspace/knight-basins run build
 pnpm --filter @workspace/api-server run build
 ```
 
+The storefront build is guarded for the Hostinger document root. Production
+must use `BASE_PATH=/` (or leave `BASE_PATH` unset). The build also inspects
+the generated `dist/public/index.html` and fails unless every JS/CSS reference
+starts with `/assets/`.
+
+To demonstrate the guard, this command must fail before emitting a usable
+production build:
+
+```bash
+PORT=22731 BASE_PATH=/knight-basins/ \
+  pnpm --filter @workspace/knight-basins run build
+# Error: [production-build] BASE_PATH must be "/" or unset ...
+```
+
+The normal production build must pass:
+
+```bash
+PORT=22731 BASE_PATH=/ \
+  pnpm --filter @workspace/knight-basins run build
+```
+
 The deployable files will be in:
 
 ```text
@@ -281,6 +302,19 @@ exact production callback, or the callback route is unavailable. Do not append
 `|| true`, continue after a failure, or mark the release complete until this
 command succeeds. The check only logs status and fixed diagnostic messages; it
 does not print the LINE channel ID, channel secret, or response body.
+
+Run the web asset gate after copying the storefront and reloading Nginx. It
+fetches `/`, extracts the JavaScript URL, then requires HTTP 200, a JavaScript
+content type, and a non-HTML response body. This catches both a real 404 and
+the more subtle case where an SPA fallback returns `index.html` with HTTP 200:
+
+```bash
+BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \
+  bash deploy/hostinger/check-web-assets.sh
+```
+
+The command exits non-zero on a missing asset, an HTML fallback, or a
+non-JavaScript `Content-Type`. Run it before the final production smoke test.
 
 Set `BASE_URL` when validating a different public endpoint that is configured
 to use the same production callback:
