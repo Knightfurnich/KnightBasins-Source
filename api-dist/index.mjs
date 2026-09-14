@@ -47146,6 +47146,29 @@ var line_auth_default = router4;
 // src/routes/leads.ts
 var import_express6 = __toESM(require_express2(), 1);
 
+// src/lib/public-origin.ts
+function configuredPublicOrigin() {
+  for (const configured2 of [process.env["PUBLIC_APP_ORIGIN"], process.env["PUBLIC_UPLOAD_ORIGIN"]]) {
+    const value = configured2?.trim();
+    if (!value) continue;
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "http:" && url.protocol !== "https:") continue;
+      if (process.env["NODE_ENV"] === "production") url.protocol = "https:";
+      return url.origin;
+    } catch {
+    }
+  }
+  return null;
+}
+function requestOrigin(req) {
+  const configured2 = configuredPublicOrigin();
+  if (configured2) return configured2;
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const protocol = process.env["NODE_ENV"] === "production" ? "https" : forwardedProto || req.protocol;
+  return `${protocol}://${req.get("host") || "localhost"}`;
+}
+
 // src/lib/sales-notifications.ts
 function configuredChannel() {
   return process.env["NOTIFY_CHANNEL"]?.trim().toLowerCase() === "telegram" ? "telegram" : "line";
@@ -47323,10 +47346,6 @@ router5.get("/quotes", async (req, res, next) => {
     return next(error);
   }
 });
-function requestOrigin(req) {
-  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
-  return `${forwardedProto || req.protocol}://${req.get("host") || "localhost"}`;
-}
 router5.post("/quotes/notify", async (req, res, next) => {
   const quoteNumber = typeof req.body?.quoteNumber === "string" ? req.body.quoteNumber.trim() : "";
   if (!quoteNumber) return invalid2(res, "quoteNumber is required");

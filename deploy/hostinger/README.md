@@ -142,6 +142,8 @@ ADMIN_PASSWORD=use-a-strong-admin-password
 LINE_CHANNEL_ID=your-line-channel-id
 LINE_CHANNEL_SECRET=your-line-channel-secret
 LINE_CALLBACK_URL=https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
+# Optional; PUBLIC_UPLOAD_ORIGIN is also accepted for public quote links.
+PUBLIC_APP_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud
 EOF
 sudo chown root:www-data /etc/knight-basins/api.env
 sudo chmod 0640 /etc/knight-basins/api.env

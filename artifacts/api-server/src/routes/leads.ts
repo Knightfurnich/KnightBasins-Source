@@ -4,6 +4,7 @@ import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
 import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
+import { requestOrigin } from "../lib/public-origin";
 import { notifyQuote, notifySketch } from "../lib/sales-notifications";
 
 const router: IRouter = Router();
@@ -85,11 +86,6 @@ router.get("/quotes", async (req, res, next) => {
     return next(error);
   }
 });
-
-function requestOrigin(req: { protocol: string; get(name: string): string | undefined }) {
-  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
-  return `${forwardedProto || req.protocol}://${req.get("host") || "localhost"}`;
-}
 
 router.post("/quotes/notify", async (req, res, next) => {
   const quoteNumber = typeof req.body?.quoteNumber === "string" ? req.body.quoteNumber.trim() : "";
