@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, writeStoredStudioDraft, type StudioDraftRecord } from "../src/data/studio-draft.ts";
+import { decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "../src/data/studio-draft.ts";
 import type { StudioState } from "../src/data/studio-model.ts";
 
 const state: StudioState = {
@@ -53,4 +53,14 @@ test("invalid studio draft links and storage records are rejected", () => {
   const storage = memoryStorage();
   storage.setItem("knight-studio-draft-v1", JSON.stringify({ version: 1, savedAt: "bad", state: { mode: "studio" } }));
   assert.equal(readStoredStudioDraft(storage), null);
+});
+
+test("named Studio drafts persist, list, and delete independently", () => {
+  const storage = memoryStorage();
+  const first: NamedStudioDraftRecord = { version: 1, id: "draft-1", name: "ห้องน้ำชั้น 1", createdAt: "2026-09-15T04:00:00.000Z", savedAt: "2026-09-15T04:00:00.000Z", state };
+  const second: NamedStudioDraftRecord = { ...first, id: "draft-2", name: "ห้องน้ำชั้น 2" };
+  assert.equal(writeStoredStudioDrafts([first, second], storage), true);
+  assert.deepEqual(readStoredStudioDrafts(storage), [first, second]);
+  assert.equal(removeStoredStudioDraft(first.id, storage), true);
+  assert.deepEqual(readStoredStudioDrafts(storage), [second]);
 });

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, Check, Copy, Download, GripVertical, Plus, RotateCw, Trash2, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type SetStateAction } from "react";
+import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -48,7 +48,7 @@ import {
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
-import { clearStoredStudioDraft, decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, writeStoredStudioDraft, type StudioDraftRecord } from "@/data/studio-draft";
+import { clearStoredStudioDraft, decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -157,6 +157,10 @@ function studioDraftUrl(state: StudioState) {
   const url = new URL("/studio", window.location.origin);
   url.searchParams.set("draft", encodeStudioDraft(state));
   return url.toString();
+}
+
+function defaultNamedDraft() {
+  return `แบบร่าง ${new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
 }
 
 function numericValue(value: string, fallback = 0) {
@@ -349,12 +353,45 @@ function StudioPrintLayout({ state }: { state: StudioState }) {
   </section>;
 }
 
+function StudioDraftCard({ draft, onOpen, onCopy, onDelete }: { draft: NamedStudioDraftRecord; onOpen: () => void; onCopy: () => void; onDelete: () => void }) {
+  const estimate = studioEstimate(draft.state, PRODUCTS);
+  const piece = getStudioPieces(draft.state)[0];
+  return <article className="studio-saved-draft-card" data-testid={`studio-saved-draft-${draft.id}`}>
+    <div className="studio-saved-draft-preview">
+      {piece ? <StudioFootprint piece={piece} stoneTone={stoneColorByName(draft.state.activeStone).tone} className="studio-saved-draft-canvas" testId={`studio-draft-preview-${draft.id}`} ariaLabel={`ตัวอย่างแบบร่าง ${draft.name}`}><span /></StudioFootprint> : <span>ไม่มีผัง</span>}
+    </div>
+    <div className="studio-saved-draft-content">
+      <div className="studio-saved-draft-heading"><div><strong>{draft.name}</strong><small>บันทึกล่าสุด {formatDraftTimestamp(draft.savedAt)}</small></div><span>{draft.state.activeStone}</span></div>
+      <div className="studio-saved-draft-summary"><span>{estimate.counterAreaSqM.toFixed(4)} m²</span><strong>{formatTHB(estimate.totalTHB)}</strong></div>
+      <div className="studio-saved-draft-actions">
+        <button type="button" className="button button--accent" onClick={onOpen} data-testid={`button-open-studio-draft-${draft.id}`}><Pencil size={14} /> เปิดทำต่อ</button>
+        <button type="button" className="button button--outline" onClick={onCopy} data-testid={`button-copy-studio-draft-${draft.id}`}><Link2 size={14} /> คัดลอกลิงก์</button>
+        <button type="button" className="icon-button studio-saved-draft-delete" onClick={onDelete} aria-label={`ลบแบบร่าง ${draft.name}`} data-testid={`button-delete-studio-draft-${draft.id}`}><Trash2 size={14} /></button>
+      </div>
+    </div>
+  </article>;
+}
+
+function StudioDraftDrawer({ drafts, onClose, onOpen, onCopy, onDelete }: { drafts: NamedStudioDraftRecord[]; onClose: () => void; onOpen: (draft: NamedStudioDraftRecord) => void; onCopy: (draft: NamedStudioDraftRecord) => void; onDelete: (draft: NamedStudioDraftRecord) => void }) {
+  return <div className="studio-drafts-layer">
+    <button type="button" className="studio-drafts-backdrop" onClick={onClose} aria-label="ปิดแบบร่างของฉัน" />
+    <aside className="studio-drafts-drawer" role="dialog" aria-modal="true" aria-labelledby="studio-drafts-title" data-testid="studio-drafts-drawer">
+      <div className="studio-drafts-drawer-heading"><div><p className="eyebrow">SAVED WORKSPACE</p><h2 id="studio-drafts-title">แบบร่างของฉัน <span>({drafts.length})</span></h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="ปิดแบบร่างของฉัน" data-testid="button-close-studio-drafts"><X size={18} /></button></div>
+      {drafts.length === 0 ? <div className="studio-drafts-empty"><FolderOpen size={28} /><strong>ยังไม่มีแบบร่างที่ตั้งชื่อ</strong><small>กด “บันทึกแบบร่าง” เพื่อเก็บแบบไว้กลับมาทำต่อ</small></div> : <div className="studio-drafts-list">{drafts.map((draft) => <StudioDraftCard key={draft.id} draft={draft} onOpen={() => onOpen(draft)} onCopy={() => onCopy(draft)} onDelete={() => onDelete(draft)} />)}</div>}
+    </aside>
+  </div>;
+}
+
 export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
   const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode));
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
+  const [namedDrafts, setNamedDrafts] = useState<NamedStudioDraftRecord[]>(() => mode === "studio" ? readStoredStudioDrafts() : []);
+  const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
+  const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false);
+  const [draftName, setDraftName] = useState("");
   const skipNextDraftSave = useRef(false);
   const hasMountedDraftEffect = useRef(false);
   const [contact, setContact] = useState(emptyContact);
@@ -399,17 +436,65 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     setDraftResult("");
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   };
+  const copyStateLink = async (draftState: StudioState, successMessage: string) => {
+    const url = studioDraftUrl(draftState);
+    try {
+      await navigator.clipboard.writeText(url);
+      setDraftResult(successMessage);
+    } catch {
+      setDraftResult(`คัดลอกลิงก์ไม่สำเร็จ คัดลอก URL นี้ด้วยตนเอง: ${url}`);
+    }
+  };
   const copyDraftLink = async () => {
     const savedAt = new Date().toISOString();
     writeStoredStudioDraft({ version: 1, savedAt, state });
     setLastSavedAt(savedAt);
-    const url = studioDraftUrl(state);
-    try {
-      await navigator.clipboard.writeText(url);
-      setDraftResult("บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้");
-    } catch {
-      setDraftResult(`บันทึกแบบร่างแล้ว คัดลอกลิงก์นี้ด้วยตนเอง: ${url}`);
+    await copyStateLink(state, "บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้");
+  };
+  const openSaveDraftDialog = () => {
+    setDraftName(defaultNamedDraft());
+    setSaveDraftDialogOpen(true);
+  };
+  const saveNamedDraft = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = draftName.trim();
+    if (!name) return;
+    const now = new Date().toISOString();
+    const draft: NamedStudioDraftRecord = {
+      version: 1,
+      id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name,
+      createdAt: now,
+      savedAt: now,
+      state,
+    };
+    const next = [draft, ...namedDrafts];
+    if (!writeStoredStudioDrafts(next)) {
+      setDraftResult("บันทึกแบบร่างไม่สำเร็จ กรุณาตรวจสอบพื้นที่จัดเก็บของเบราว์เซอร์");
+      return;
     }
+    setNamedDrafts(next);
+    setSaveDraftDialogOpen(false);
+    setDraftDrawerOpen(true);
+    setDraftResult(`บันทึกแบบร่าง “${name}” แล้ว`);
+  };
+  const openNamedDraft = (draft: NamedStudioDraftRecord) => {
+    setState(draft.state);
+    setLastSavedAt(draft.savedAt);
+    setDraftDrawerOpen(false);
+    setDraftResult(`เปิดแบบร่าง “${draft.name}” แล้ว`);
+  };
+  const copyNamedDraftLink = async (draft: NamedStudioDraftRecord) => {
+    await copyStateLink(draft.state, `คัดลอกลิงก์แบบร่าง “${draft.name}” แล้ว เปิดใน Incognito เพื่อแก้ไขต่อได้`);
+  };
+  const deleteNamedDraft = (draft: NamedStudioDraftRecord) => {
+    if (!window.confirm(`ลบแบบร่าง “${draft.name}” หรือไม่`)) return;
+    if (!removeStoredStudioDraft(draft.id)) {
+      setDraftResult("ลบแบบร่างไม่สำเร็จ กรุณาลองอีกครั้ง");
+      return;
+    }
+    setNamedDrafts((current) => current.filter((item) => item.id !== draft.id));
+    setDraftResult(`ลบแบบร่าง “${draft.name}” แล้ว`);
   };
   const exportFiles = async (format: "dxf" | "pdf" | "png") => {
     if (!exportReady) {
@@ -486,7 +571,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   return <div className="page-wrap studio-page">
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
-    {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Copy size={15} /> บันทึก / คัดลอกลิงก์แบบร่าง</button></div>}
+     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> บันทึกแบบร่าง</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
     <StudioShortlists state={state} setState={setState} />
     {mode === "studio" ? <StudioCanvas state={state} setState={setState} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
@@ -520,5 +605,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
       </aside>
     </section>
     {mode === "studio" && <StudioPrintLayout state={state} />}
+     {mode === "studio" && draftDrawerOpen && <StudioDraftDrawer drafts={namedDrafts} onClose={() => setDraftDrawerOpen(false)} onOpen={openNamedDraft} onCopy={(draft) => void copyNamedDraftLink(draft)} onDelete={deleteNamedDraft} />}
+     {mode === "studio" && saveDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setSaveDraftDialogOpen(false)} /><form className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-save-draft-title" onSubmit={saveNamedDraft} data-testid="studio-save-draft-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">SAVE WORKSPACE</p><h2 id="studio-save-draft-title">บันทึกแบบร่าง</h2></div><button type="button" className="icon-button" onClick={() => setSaveDraftDialogOpen(false)} aria-label="ปิดหน้าต่างบันทึกแบบร่าง"><X size={18} /></button></div><label>ชื่อแบบร่าง<input autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)} data-testid="input-studio-draft-name" /></label><p>เก็บผัง 2D สีหิน ขนาด อ่าง และค่ารายด้านไว้กลับมาทำต่อได้</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setSaveDraftDialogOpen(false)} data-testid="button-cancel-save-studio-draft">ยกเลิก</button><button type="submit" className="button button--accent" data-testid="button-confirm-save-studio-draft">บันทึกแบบร่าง</button></div></form></div>}
   </div>;
 }

@@ -677,6 +677,102 @@ describe("long formal quote print flow", () => {
     await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1')");
   });
 
+  it("saves named Studio drafts in My Drafts and restores each card", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio order mode",
+    );
+    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1'); localStorage.removeItem('knight-studio-drafts-v1')");
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-named-studio-draft"]\') !== null'),
+      Boolean,
+      "named Studio draft toolbar",
+    );
+    const widthId = await browser.page.evaluate(`document.querySelector('[data-testid^="input-rectangle-width-"]')?.getAttribute("data-testid") ?? ""`);
+    assert.ok(widthId);
+    await setTextInput(browser.page, widthId, "2250");
+    await clickTestId(browser.page, "button-save-named-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-save-draft-dialog"]\') !== null'),
+      Boolean,
+      "save named draft dialog",
+    );
+    await setTextInput(browser.page, "input-studio-draft-name", "ห้องน้ำชั้น 1");
+    await clickTestId(browser.page, "button-confirm-save-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-drafts-drawer"]\') !== null'),
+      Boolean,
+      "My Drafts drawer",
+    );
+    const card = await browser.page.evaluate(`(() => {
+      const card = document.querySelector('[data-testid^="studio-saved-draft-"]');
+      return {
+        name: card?.querySelector(".studio-saved-draft-heading strong")?.textContent ?? "",
+        summary: card?.querySelector(".studio-saved-draft-summary")?.textContent ?? "",
+        preview: card?.querySelector('[data-testid^="studio-draft-preview-"]') !== null,
+        count: document.querySelector('[data-testid="button-open-studio-drafts"]')?.textContent ?? "",
+      };
+    })()`);
+    assert.equal(card.name, "ห้องน้ำชั้น 1");
+    assert.match(card.summary, /m²/);
+    assert.equal(card.preview, true);
+    assert.match(card.count, /แบบร่างของฉัน \(1\)/);
+
+    await browser.page.evaluate(`(() => {
+      window.__namedDraftLink = "";
+      navigator.clipboard.writeText = async (value) => { window.__namedDraftLink = value; };
+    })()`);
+    await browser.page.evaluate("document.querySelector('[data-testid^=\"button-copy-studio-draft-\"]')?.click()");
+    const namedDraftLink = await waitFor(
+      () => browser.page.evaluate("window.__namedDraftLink"),
+      (value) => typeof value === "string" && value.includes("/studio?draft="),
+      "named draft card link",
+    );
+    await browser.page.evaluate("document.querySelector('[data-testid^=\"button-open-studio-draft-\"]')?.click()");
+    const resumed = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
+        return input instanceof HTMLInputElement ? input.value : "";
+      })()`),
+      (value) => value === "2250",
+      "named draft card restore",
+    );
+    assert.equal(resumed, "2250");
+
+    await clickTestId(browser.page, "button-open-studio-drafts");
+    await browser.page.evaluate("window.confirm = () => true");
+    await browser.page.evaluate("document.querySelector('[data-testid^=\"button-delete-studio-draft-\"]')?.click()");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-drafts-drawer"]\')?.textContent?.includes("ยังไม่มีแบบร่างที่ตั้งชื่อ") ?? false'),
+      Boolean,
+      "deleted named draft",
+    );
+
+    await browser.page.evaluate("localStorage.clear()");
+    await browser.page.command("Page.navigate", { url: namedDraftLink });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-named-studio-draft"]\') !== null'),
+      Boolean,
+      "named draft link",
+    );
+    const linkedWidth = await browser.page.evaluate(`(() => {
+      const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
+      return input instanceof HTMLInputElement ? input.value : "";
+    })()`);
+    assert.equal(linkedWidth, "2250");
+    await browser.page.evaluate("localStorage.clear()");
+  });
+
   it("keeps KnightSupport readable and above mobile floating controls", async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {

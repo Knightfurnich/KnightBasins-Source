@@ -1,9 +1,19 @@
 import type { StudioState } from "./studio-model";
 
 export const STUDIO_DRAFT_STORAGE_KEY = "knight-studio-draft-v1";
+export const STUDIO_NAMED_DRAFTS_STORAGE_KEY = "knight-studio-drafts-v1";
 
 export type StudioDraftRecord = {
   version: 1;
+  savedAt: string;
+  state: StudioState;
+};
+
+export type NamedStudioDraftRecord = {
+  version: 1;
+  id: string;
+  name: string;
+  createdAt: string;
   savedAt: string;
   state: StudioState;
 };
@@ -78,4 +88,46 @@ export function clearStoredStudioDraft(storage: Storage | undefined = typeof loc
   } catch {
     // Storage can be unavailable in private browsing; the URL draft still works.
   }
+}
+
+function isValidTimestamp(value: unknown): value is string {
+  return typeof value === "string" && !Number.isNaN(new Date(value).getTime());
+}
+
+function isNamedStudioDraft(value: unknown): value is NamedStudioDraftRecord {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<NamedStudioDraftRecord>;
+  return candidate.version === 1 &&
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.name === "string" &&
+    candidate.name.trim().length > 0 &&
+    isValidTimestamp(candidate.createdAt) &&
+    isValidTimestamp(candidate.savedAt) &&
+    looksLikeStudioState(candidate.state);
+}
+
+export function readStoredStudioDrafts(storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage): NamedStudioDraftRecord[] {
+  if (!storage) return [];
+  try {
+    const parsed: unknown = JSON.parse(storage.getItem(STUDIO_NAMED_DRAFTS_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter(isNamedStudioDraft) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeStoredStudioDrafts(drafts: NamedStudioDraftRecord[], storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage) {
+  if (!storage) return false;
+  try {
+    storage.setItem(STUDIO_NAMED_DRAFTS_STORAGE_KEY, JSON.stringify(drafts));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function removeStoredStudioDraft(draftId: string, storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage) {
+  const drafts = readStoredStudioDrafts(storage);
+  return writeStoredStudioDrafts(drafts.filter((draft) => draft.id !== draftId), storage);
 }
