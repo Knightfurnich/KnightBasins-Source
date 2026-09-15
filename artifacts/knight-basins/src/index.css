@@ -1663,6 +1663,9 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-total small { color: var(--ink-soft); font-size: 9px; }
 .studio-warning { display: flex; align-items: start; gap: 7px; margin: 14px 0; padding: 11px; color: #a83f37; background: #fff1ef; border: 1px solid #f0b6ae; font-size: 10px; line-height: 1.5; }
 .studio-warning--amber { color: #856000; background: #fff9e8; border-color: #ead58c; }
+.studio-warning--small { color: #9b5b18; background: #fff4e3; border-color: #efc37d; }
+.studio-warning--small p { margin: 0; }
+.studio-warning--small p + p { margin-top: 4px; }
 .studio-estimate-panel .button { margin-top: 14px; }
 .studio-result { margin: 12px 0 0; color: var(--success); font-size: 11px; line-height: 1.6; }
 .studio-export-actions, .studio-saved-layout-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }

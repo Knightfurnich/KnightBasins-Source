@@ -739,6 +739,91 @@ describe("long formal quote print flow", () => {
     );
   });
 
+  it("shows a non-blocking warning for rectangle dimensions under 400 mm", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "small rectangle Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "small rectangle Studio canvas",
+    );
+    const widthInput = await browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-width-"]\')?.getAttribute("data-testid") ?? ""');
+    const lengthInput = await browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-length-"]\')?.getAttribute("data-testid") ?? ""');
+    assert.match(widthInput, /^input-rectangle-width-/);
+    assert.match(lengthInput, /^input-rectangle-length-/);
+    await setTextInput(browser.page, widthInput, "10");
+    await setTextInput(browser.page, lengthInput, "15");
+    const warning = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const element = document.querySelector('[data-testid^="status-small-rectangle-"]');
+        return element?.textContent ?? "";
+      })()`),
+      (value) => value.includes("ขนาด 10 มม.") && value.includes("ขนาด 15 มม.") && value.includes("400 มม."),
+      "small rectangle informative warning",
+    );
+    assert.match(warning, /กรุณาตรวจสอบหน่วยมิลลิเมตร/);
+
+    const addRectangle = await browser.page.evaluate(`(() => {
+      const button = document.querySelector('[data-testid^="button-add-studio-rectangle-"]');
+      if (!(button instanceof HTMLElement)) return false;
+      button.click();
+      return true;
+    })()`);
+    assert.equal(addRectangle, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-rectangle-editor").length === 2'),
+      Boolean,
+      "small rectangle companion panel",
+    );
+    const secondRectangleX = await browser.page.evaluate(`(() => {
+      const inputs = [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')];
+      return inputs[1]?.getAttribute("data-testid") ?? "";
+    })()`);
+    assert.match(secondRectangleX, /^input-rectangle-x-/);
+    await setTextInput(browser.page, secondRectangleX, "10");
+
+    const dropped = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.75, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(dropped, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'),
+      Boolean,
+      "small rectangle basin placement",
+    );
+
+    for (const [testId, value] of [
+      ["input-studio-name", "คุณทดสอบขนาดเล็ก"],
+      ["input-studio-phone", "0812345678"],
+      ["input-studio-project", "โครงการขนาดเล็ก"],
+      ["input-studio-address", "กรุงเทพฯ"],
+    ] as const) {
+      await setTextInput(browser.page, testId, value);
+    }
+    await clickTestId(browser.page, "button-submit-studio");
+    const submitResult = await waitFor(
+      () => browser.page.evaluate("window.location.href"),
+      (value) => value.includes("/quote/view?quote="),
+      "small rectangle non-blocking submit",
+    );
+    assert.match(submitResult, /\/quote\/view\?quote=/);
+    assert.match(warning, /ขนาด 10 มม/);
+  });
+
   it("keeps Studio export actions on a saved quote snapshot", async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });

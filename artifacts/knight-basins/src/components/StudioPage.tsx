@@ -169,6 +169,9 @@ function numericValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+const SMALL_RECTANGLE_STANDARD_MM = 400;
+const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} มม. เล็กกว่ามาตรฐานท็อปเคาน์เตอร์ทั่วไป (400 มม.) กรุณาตรวจสอบหน่วยมิลลิเมตร (เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร)`;
+
  function StudioContactFields({ contact, setContact }: { contact: typeof emptyContact; setContact: Dispatch<SetStateAction<typeof emptyContact>> }) {
    const update = (key: keyof typeof emptyContact, value: string) => setContact((current) => ({ ...current, [key]: value }));
    return <div className="studio-contact-grid">
@@ -298,6 +301,7 @@ function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; sta
     <div className="studio-piece-rectangle-list">
       {piece.rectangles.map((rectangle, index) => {
         const statuses = studioSideStatuses(piece, rectangle.id);
+        const smallDimensions = [rectangle.widthMm, rectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM);
         return <div className="studio-rectangle-editor" key={rectangle.id}>
           <div className="studio-rectangle-editor-heading"><strong>แผ่น {index + 1}</strong><button type="button" className="icon-button" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.filter((item) => item.id !== rectangle.id) }))} disabled={piece.rectangles.length <= 1} aria-label={`ลบแผ่น ${index + 1}`}><Trash2 size={14} /></button></div>
           <div className="studio-rectangle-inputs">
@@ -306,6 +310,7 @@ function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; sta
              <label>X<input type="number" min="0" value={rectangle.xMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, xMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-x-${rectangle.id}`} /></label>
              <label>Y<input type="number" min="0" value={rectangle.yMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, yMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-y-${rectangle.id}`} /></label>
           </div>
+            {smallDimensions.length > 0 && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${rectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{smallDimensions.map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
            <p className="studio-helper">หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
            {rectangle.widthMm > 900 && <div className="studio-dimension-suggestion" aria-live="polite"><span>ความกว้าง (แนวลึก) เกิน 900 มม. ตรวจสอบทิศทางอีกครั้ง</span><button type="button" className="button button--outline" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, widthMm: item.lengthMm, lengthMm: item.widthMm } : item) }))} data-testid={`button-swap-rectangle-dimensions-${rectangle.id}`}><RotateCw size={14} /> สลับ กว้าง ↔ ยาว</button></div>}
            <button type="button" className="button button--outline studio-rotate-button" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, rotation: item.rotation === 0 ? 90 : 0 } : item) }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
