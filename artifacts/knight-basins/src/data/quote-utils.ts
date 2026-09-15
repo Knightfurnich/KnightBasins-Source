@@ -1,9 +1,10 @@
 import * as QRCode from "qrcode";
+import { THAI_TIME_ZONE } from "./date-time.ts";
 
 export type QuoteFormat = "US" | "OF";
 
 export function formatQuoteMonth(date: Date) {
-  return new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit", timeZone: THAI_TIME_ZONE }).format(date);
 }
 
 const thaiNumberWords = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];

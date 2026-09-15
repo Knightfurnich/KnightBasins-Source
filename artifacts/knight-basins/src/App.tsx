@@ -27,6 +27,7 @@ import {
   type StoneConfig,
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
+import { formatEnglishDate, formatThaiDate } from "@/data/date-time";
 import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } from "@/components/StudioPage";
 import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
@@ -85,7 +86,7 @@ function upsertStone(stones: StoneConfig[], incoming: StoneConfig) {
 }
 
 function formatDate(date = new Date()) {
-  return new Intl.DateTimeFormat("th-TH", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+  return formatThaiDate(date);
 }
 
 function BasinVisual({ tone, imageUrl, alt, tall = false }: { tone: string; imageUrl?: string; alt?: string; tall?: boolean }) {
@@ -317,7 +318,7 @@ type QuoteLanguage = "TH" | "EN";
 
 function formatQuoteDate(date: Date, language: QuoteLanguage) {
   return language === "EN"
-    ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(date)
+    ? formatEnglishDate(date)
     : formatDate(date);
 }
 

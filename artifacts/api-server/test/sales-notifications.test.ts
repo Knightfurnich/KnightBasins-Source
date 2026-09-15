@@ -66,6 +66,7 @@ describe("sales notifications", () => {
     const result = await (await module()).notifyQuote(lead, "https://example.com", "/quote/view?quote=x");
     assert.equal(result.notificationStatus, "notified");
     assert.match(requestBody, /Sep 26/);
+    assert.match(requestBody, /⏰ .+ น\./);
     assert.match(requestBody, /KF002 Soft ×3 ชุด/);
     assert.doesNotMatch(requestBody, /600 × 800|หลุม 350/);
     assert.match(requestBody, /ยอดก่อน VAT: 57,000 บาท/);

@@ -29,11 +29,11 @@ export function leadMatchesSearch(lead: CustomerLead, query: string) {
 }
 
 function dayStart(value: string) {
-  return new Date(`${value}T00:00:00`);
+  return new Date(`${value}T00:00:00+07:00`);
 }
 
 function dayEnd(value: string) {
-  return new Date(`${value}T23:59:59.999`);
+  return new Date(`${value}T23:59:59.999+07:00`);
 }
 
 export function leadMatchesDateRange(lead: CustomerLead, filters: LeadDateFilters) {

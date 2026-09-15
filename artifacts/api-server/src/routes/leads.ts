@@ -6,6 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
 import { notifyQuote, notifySketch } from "../lib/sales-notifications";
+import { formatQuoteMonth } from "../lib/date-time";
 
 const router: IRouter = Router();
 
@@ -13,9 +14,9 @@ function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
 
-function createQuoteNumber() {
-  const month = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit" }).format(new Date());
-  const serial = String(Date.now()).slice(-6);
+export function createQuoteNumber(now = new Date()) {
+  const month = formatQuoteMonth(now);
+  const serial = String(now.getTime()).slice(-6);
   return `${month} / US / ${serial}`;
 }
 

@@ -51,6 +51,10 @@ test("quotation number keeps the US and OF document modes", () => {
   assert.equal(`${formatQuoteMonth(issueDate)} / OF / 1125`, "Sep 26 / OF / 1125");
 });
 
+test("quotation month follows Bangkok time at the UTC month boundary", () => {
+  assert.equal(formatQuoteMonth(new Date("2026-09-30T23:30:00.000Z")), "Oct 26");
+});
+
 test("Thai amount words and QR images are generated from the same total/video URL", () => {
   assert.equal(thaiNumberText(37450), "สามหมื่นเจ็ดพันสี่ร้อยห้าสิบบาทถ้วน");
   const videoUrl = "https://example.com/videos/KF020-360.mp4";

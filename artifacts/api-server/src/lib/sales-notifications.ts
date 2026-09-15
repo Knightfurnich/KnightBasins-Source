@@ -5,6 +5,8 @@ export type NotificationResult = {
   message: string;
 };
 
+import { formatThaiDateTime } from "./date-time";
+
 type LeadNotificationData = {
   name: string | null;
   phone: string | null;
@@ -123,6 +125,7 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
   const items = formatNotificationItems(notificationItems(studio), lead.productSkus);
   return [
     `Knight Basins: ${title}`,
+    `⏰ ${formatThaiDateTime()} น.`,
     `เลขที่: ${lead.quoteNumber || "-"}`,
     `ผู้ติดต่อ: ${lead.name || "-"} · โครงการ: ${lead.project || "-"}`,
     `โทร: ${lead.phone || "-"}`,

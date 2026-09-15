@@ -49,6 +49,7 @@ import {
 import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { clearStoredStudioDraft, decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
+import { formatThaiDateTime } from "@/data/date-time";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -150,7 +151,7 @@ function readLinkedDraft() {
 function formatDraftTimestamp(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "ไม่ทราบเวลา";
-  return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(date);
+  return formatThaiDateTime(date);
 }
 
 function studioDraftUrl(state: StudioState) {
@@ -160,7 +161,7 @@ function studioDraftUrl(state: StudioState) {
 }
 
 function defaultNamedDraft() {
-  return `แบบร่าง ${new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
+  return `แบบร่าง ${formatThaiDateTime()}`;
 }
 
 function numericValue(value: string, fallback = 0) {

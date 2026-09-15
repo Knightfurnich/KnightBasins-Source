@@ -54,6 +54,13 @@ test("admin lead date filters include both calendar boundaries", () => {
   assert.equal(leadMatchesDateRange(leads[0], { toDate: "2026-09-13" }), false);
 });
 
+test("admin lead date filters use Bangkok midnight boundaries", () => {
+  const atBangkokMidnight = { ...leads[0], createdAt: "2026-09-14T17:00:00.000Z" };
+  const justBeforeBangkokMidnight = { ...leads[0], createdAt: "2026-09-14T16:59:59.999Z" };
+  assert.equal(leadMatchesDateRange(atBangkokMidnight, { fromDate: "2026-09-15", toDate: "2026-09-15" }), true);
+  assert.equal(leadMatchesDateRange(justBeforeBangkokMidnight, { fromDate: "2026-09-15", toDate: "2026-09-15" }), false);
+});
+
 test("admin lead filtering keeps status and local filters independent", () => {
   assert.deepEqual(filterAdminLeads(leads, "quote_requested", "บ้าน", {}), [leads[0]]);
   assert.deepEqual(filterAdminLeads(leads, "all", "", { fromDate: "2026-09-13", toDate: "2026-09-13" }), [leads[1]]);

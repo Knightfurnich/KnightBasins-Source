@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { adminQuoteUrl, filterAdminLeads } from "./leads-utils";
+import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 
 const statusLabels: Record<CustomerLeadStatus, string> = {
   new_lead: "New Lead",
@@ -41,14 +42,7 @@ function formatLeadDate(value: string) {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "วันที่ไม่ถูกต้อง"
-    : new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(date);
-}
-
-function dateInputValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+    : formatThaiDateTime(date);
 }
 
 export function LeadsManager() {
@@ -86,11 +80,11 @@ export function LeadsManager() {
 
   const setDatePreset = (days: number) => {
     const today = new Date();
-    const from = new Date(today);
-    from.setHours(0, 0, 0, 0);
-    from.setDate(from.getDate() - (days - 1));
-    setFromDate(dateInputValue(from));
-    setToDate(dateInputValue(today));
+    const todayThai = thaiDateInputValue(today);
+    const from = new Date(`${todayThai}T12:00:00+07:00`);
+    from.setUTCDate(from.getUTCDate() - (days - 1));
+    setFromDate(thaiDateInputValue(from));
+    setToDate(thaiDateInputValue(today));
   };
 
   return (
