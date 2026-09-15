@@ -431,4 +431,72 @@ describe("long formal quote print flow", () => {
     ), true);
     assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-\d+ชิ้น$/);
   });
+
+  it("keeps Studio controls within the viewport on mobile", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-stone-comparison"]\') !== null'),
+      Boolean,
+      "Studio comparison",
+    );
+
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 375,
+      height: 1200,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    const mobile = await browser.page.evaluate(`(() => {
+      const style = (selector) => {
+        const element = document.querySelector(selector);
+        return element instanceof HTMLElement ? getComputedStyle(element).gridTemplateColumns : "";
+      };
+      return {
+        bodyWidth: document.body.scrollWidth,
+        viewportWidth: window.innerWidth,
+        rectangleColumns: style(".studio-rectangle-inputs"),
+        sideStatusColumns: style(".studio-side-status-grid"),
+        pricingColumns: style(".studio-pricing-inputs"),
+        comparisonColumns: style(".studio-stone-comparison-grid"),
+      };
+    })()`);
+    assert.ok(mobile.bodyWidth <= mobile.viewportWidth, "Studio must not widen the mobile page");
+    assert.equal(mobile.rectangleColumns.split(" ").length, 2);
+    assert.equal(mobile.sideStatusColumns.split(" ").length, 2);
+    assert.equal(mobile.pricingColumns.split(" ").length, 1);
+    assert.equal(mobile.comparisonColumns.split(" ").length, 1);
+
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 768,
+      height: 1200,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    const tablet = await browser.page.evaluate(`(() => {
+      const style = (selector) => {
+        const element = document.querySelector(selector);
+        return element instanceof HTMLElement ? getComputedStyle(element).gridTemplateColumns : "";
+      };
+      return {
+        bodyWidth: document.body.scrollWidth,
+        viewportWidth: window.innerWidth,
+        rectangleColumns: style(".studio-rectangle-inputs"),
+        sideStatusColumns: style(".studio-side-status-grid"),
+        pricingColumns: style(".studio-pricing-inputs"),
+        comparisonColumns: style(".studio-stone-comparison-grid"),
+      };
+    })()`);
+    assert.ok(tablet.bodyWidth <= tablet.viewportWidth, "Studio must not widen the tablet page");
+    assert.equal(tablet.rectangleColumns.split(" ").length, 4);
+    assert.equal(tablet.sideStatusColumns.split(" ").length, 4);
+    assert.equal(tablet.pricingColumns.split(" ").length, 3);
+    assert.equal(tablet.comparisonColumns.split(" ").length, 3);
+  });
 });
