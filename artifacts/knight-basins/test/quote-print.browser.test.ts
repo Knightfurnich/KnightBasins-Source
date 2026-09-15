@@ -685,6 +685,58 @@ describe("long formal quote print flow", () => {
       Boolean,
       "phone format submission block",
     );
+    await setTextInput(browser.page, "input-studio-phone", "0812345678");
+    await setTextInput(browser.page, "input-studio-email", "abc@xyz");
+    await clickTestId(browser.page, "button-submit-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)"'),
+      Boolean,
+      "Studio email format submission block",
+    );
+  });
+
+  it("shows email format guidance in quick quote and trims blank hand-sketch contact names", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-email"]\') !== null'),
+      Boolean,
+      "quick quote customer form",
+    );
+    await setTextInput(browser.page, "input-customer-email", "abc@xyz");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="status-quote-email-validation"]\')?.textContent === "กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)"'),
+      Boolean,
+      "incomplete email guidance",
+    );
+    await setTextInput(browser.page, "input-customer-email", "name.com");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="status-quote-email-validation"]\')?.textContent === "กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)"'),
+      Boolean,
+      "missing-at email guidance",
+    );
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-sketch"]\') !== null'),
+      Boolean,
+      "hand-sketch order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-sketch");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-submit-sketch"]\') !== null'),
+      Boolean,
+      "hand-sketch submit form",
+    );
+    await setTextInput(browser.page, "input-studio-name", "   ");
+    await setTextInput(browser.page, "input-studio-phone", "0812345678");
+    await setTextInput(browser.page, "input-studio-project", "โครงการภาพร่าง");
+    await clickTestId(browser.page, "button-submit-sketch");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "กรุณาแนบไฟล์ และกรอกชื่อผู้ติดต่อ โทรศัพท์ และชื่อโครงการ"'),
+      Boolean,
+      "hand-sketch blank-name validation",
+    );
   });
 
   it("keeps Studio export actions on a saved quote snapshot", async () => {

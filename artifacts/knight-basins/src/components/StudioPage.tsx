@@ -53,7 +53,7 @@ import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime } from "@/data/date-time";
-import { isValidPhoneNumber } from "@/data/validation";
+import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
@@ -169,19 +169,23 @@ function numericValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function StudioContactFields({ contact, setContact }: { contact: typeof emptyContact; setContact: Dispatch<SetStateAction<typeof emptyContact>> }) {
-  const update = (key: keyof typeof emptyContact, value: string) => setContact((current) => ({ ...current, [key]: value }));
-  return <div className="studio-contact-grid">
-    {([
-      ["name", "ชื่อผู้ติดต่อ", true],
-      ["company", "บริษัท", false],
-      ["phone", "โทรศัพท์", true],
-      ["email", "อีเมล", false],
-      ["project", "ชื่อโครงการ", true],
-      ["address", "ที่อยู่ / สถานที่ติดตั้ง", true],
-    ] as const).map(([key, label, required]) => <label key={key}>{label}{required && <span> *</span>}<input required={required} type={key === "phone" ? "tel" : undefined} inputMode={key === "phone" ? "numeric" : undefined} pattern={key === "phone" ? "[0-9]{9,10}" : undefined} minLength={key === "phone" ? 9 : undefined} maxLength={key === "phone" ? 10 : undefined} placeholder={key === "phone" ? "0812345678 (10 หลัก)" : undefined} value={contact[key]} onChange={(event) => update(key, key === "phone" ? cleanPhoneInput(event.target.value) : event.target.value)} data-testid={`input-studio-${key}`} /></label>)}
-  </div>;
-}
+ function StudioContactFields({ contact, setContact }: { contact: typeof emptyContact; setContact: Dispatch<SetStateAction<typeof emptyContact>> }) {
+   const update = (key: keyof typeof emptyContact, value: string) => setContact((current) => ({ ...current, [key]: value }));
+   return <div className="studio-contact-grid">
+     {([
+       ["name", "ชื่อผู้ติดต่อ", true],
+       ["company", "บริษัท", false],
+       ["phone", "โทรศัพท์", true],
+       ["email", "อีเมล", false],
+       ["project", "ชื่อโครงการ", true],
+       ["address", "ที่อยู่ / สถานที่ติดตั้ง", true],
+     ] as const).map(([key, label, required]) => {
+       const emailField = key === "email";
+       const phoneField = key === "phone";
+       return <label key={key}>{label}{required && <span> *</span>}<input required={required} type={phoneField ? "tel" : emailField ? "email" : undefined} inputMode={phoneField ? "numeric" : undefined} pattern={phoneField ? "[0-9]{9,10}" : undefined} minLength={phoneField ? 9 : undefined} maxLength={phoneField ? 10 : undefined} placeholder={phoneField ? "0812345678 (10 หลัก)" : emailField ? "name@example.com" : undefined} value={contact[key]} onChange={(event) => update(key, phoneField ? cleanPhoneInput(event.target.value) : event.target.value)} data-testid={`input-studio-${key}`} aria-invalid={emailField && !isValidEmailAddress(contact.email)} /></label>;
+     })}
+   </div>;
+ }
 
 function StudioShortlists({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
   const [basinQuery, setBasinQuery] = useState("");
@@ -553,6 +557,10 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
       setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
       return;
     }
+    if (!isValidEmailAddress(contact.email)) {
+      setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
+      return;
+    }
     setSubmitting(true);
     setResult("");
     try {
@@ -576,19 +584,29 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     }
   };
   const submitSketch = async () => {
-    if (!sketchFile || !contact.name || !contact.phone || !contact.project) {
+    const name = contact.name.trim();
+    const company = contact.company.trim();
+    const phone = contact.phone.trim();
+    const email = contact.email.trim();
+    const project = contact.project.trim();
+    const address = contact.address.trim();
+    if (!sketchFile || !name || !phone || !project) {
       setResult("กรุณาแนบไฟล์ และกรอกชื่อผู้ติดต่อ โทรศัพท์ และชื่อโครงการ");
       return;
     }
-    if (!isValidPhoneNumber(contact.phone)) {
+    if (!isValidPhoneNumber(phone)) {
       setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
+      return;
+    }
+    if (!isValidEmailAddress(email)) {
+      setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
     }
     setSubmitting(true);
     setResult("");
     const form = new FormData();
     form.append("file", sketchFile);
-    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name: contact.name, company: contact.company || null, phone: contact.phone, email: contact.email || null, project: contact.project, address: contact.address || null, studioData: { ...state, estimate } }));
+    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, email: email || null, project, address: address || null, studioData: { ...state, estimate } }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };
