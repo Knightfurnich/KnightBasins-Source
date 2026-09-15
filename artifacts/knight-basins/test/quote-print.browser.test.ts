@@ -306,6 +306,35 @@ describe("long formal quote print flow", () => {
     assert.match(actions.pdfText, /ดาวน์โหลดแบบ.*PDF/);
     assert.equal(actions.dxfDisabled, false);
     assert.equal(actions.pdfDisabled, false);
+    const lightTone = await browser.page.evaluate(`(() => {
+      const canvas = document.querySelector('[data-testid="studio-canvas"]');
+      const rectangle = canvas?.querySelector('.studio-piece-rectangle');
+      const size = rectangle?.querySelector('.studio-piece-size');
+      return {
+        canvasTone: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-stone-tone") : "",
+        rectangleBackground: rectangle instanceof HTMLElement ? getComputedStyle(rectangle).backgroundColor : "",
+        textColor: size instanceof HTMLElement ? getComputedStyle(size).color : "",
+      };
+    })()`);
+    assert.equal(lightTone.canvasTone, "#f5f3eb");
+    assert.notEqual(lightTone.rectangleBackground, "rgba(248, 252, 254, 0.78)");
+    await clickTestId(browser.page, "button-studio-stone-SO423");
+    await clickTestId(browser.page, "button-studio-active-stone-SO423");
+    const darkTone = await browser.page.evaluate(`(() => {
+      const canvas = document.querySelector('[data-testid="studio-canvas"]');
+      const rectangle = canvas?.querySelector('.studio-piece-rectangle');
+      const size = rectangle?.querySelector('.studio-piece-size');
+      return {
+        canvasTone: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-stone-tone") : "",
+        rectangleBackground: rectangle instanceof HTMLElement ? getComputedStyle(rectangle).backgroundColor : "",
+        textColor: size instanceof HTMLElement ? getComputedStyle(size).color : "",
+        jointColor: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-joint-color") : "",
+      };
+    })()`);
+    assert.equal(darkTone.canvasTone, "#343736");
+    assert.notEqual(darkTone.rectangleBackground, lightTone.rectangleBackground);
+    assert.equal(darkTone.textColor, "rgb(255, 255, 255)");
+    assert.equal(darkTone.jointColor, "#ffe08a");
     await clickTestId(browser.page, "button-download-studio-dxf");
     await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
     await clickTestId(browser.page, "button-download-studio-pdf");

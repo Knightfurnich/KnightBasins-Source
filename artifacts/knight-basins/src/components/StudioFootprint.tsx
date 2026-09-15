@@ -10,6 +10,7 @@ import {
 
 type StudioFootprintProps = {
   piece: StudioPiece;
+  stoneTone?: string;
   className?: string;
   testId?: string;
   ariaLabel?: string;
@@ -18,6 +19,27 @@ type StudioFootprintProps = {
   onDrop?: (event: React.DragEvent<HTMLDivElement>) => void;
   children?: ReactNode;
 };
+
+function stoneToneStyle(stoneTone?: string): CSSProperties {
+  const tone = stoneTone?.trim();
+  if (!tone) return {};
+  const hex = tone.match(/^#([0-9a-f]{6})$/i);
+  const channels = hex ? [0, 2, 4].map((offset) => Number.parseInt(hex[1].slice(offset, offset + 2), 16)) : null;
+  const luminance = channels
+    ? channels.reduce((sum, channel) => {
+        const normalized = channel / 255;
+        return sum + (normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4);
+      }, 0)
+    : 0.5;
+  const dark = luminance < 0.42;
+  return {
+    ["--studio-stone-tone" as string]: tone,
+    ["--studio-stone-ink" as string]: dark ? "#ffffff" : "#17324a",
+    ["--studio-stone-edge" as string]: dark ? "rgba(255,255,255,.72)" : "rgba(23,50,74,.32)",
+    ["--studio-stone-text-shadow" as string]: dark ? "0 1px 2px rgba(0,0,0,.8)" : "0 1px 2px rgba(255,255,255,.72)",
+    ["--studio-joint-color" as string]: dark ? "#ffe08a" : "#704f00",
+  };
+}
 
 function rectangleStyle(piece: StudioPiece, rectangle: StudioPiece["rectangles"][number], bounds: { widthMm: number; heightMm: number }): CSSProperties {
   const size = studioRectangleSize(rectangle);
@@ -33,6 +55,7 @@ function rectangleStyle(piece: StudioPiece, rectangle: StudioPiece["rectangles"]
 
 export function StudioFootprint({
   piece,
+  stoneTone,
   className = "",
   testId,
   ariaLabel,
@@ -46,7 +69,7 @@ export function StudioFootprint({
   return (
     <div
       className={`studio-canvas studio-piece-canvas ${unsafe ? "studio-canvas--unsafe" : ""} ${className}`}
-      style={{ aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}` }}
+      style={{ aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}`, ...stoneToneStyle(stoneTone) }}
       onDragOver={onDragOver}
       onDrop={onDrop}
       data-testid={testId}
