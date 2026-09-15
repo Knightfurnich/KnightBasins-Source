@@ -1603,9 +1603,11 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .quote-drop-zone { padding: 10px 12px; }
   .quote-drop-zone small { max-width: 180px; }
   .knight-support { right: 12px; bottom: 12px; }
+  .knight-support { z-index: 100 !important; }
   .knight-support-trigger { width: 42px; height: 42px; justify-content: center; padding: 0; }
   .knight-support-trigger span { display: none; }
-  .knight-support-panel { width: min(340px, calc(100vw - 24px)); }
+  .knight-support-panel { width: min(340px, calc(100vw - 24px)); max-height: calc(100dvh - 80px) !important; }
+  .knight-support-form input { font-size: 14px !important; }
   .admin-main { padding: 24px 16px 48px !important; }
   .admin-header { padding-inline: 16px !important; }
   .admin-header .admin-logo { width: 40px; height: 40px; }

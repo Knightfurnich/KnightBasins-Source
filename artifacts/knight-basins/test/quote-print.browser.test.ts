@@ -499,4 +499,52 @@ describe("long formal quote print flow", () => {
     assert.equal(tablet.pricingColumns.split(" ").length, 3);
     assert.equal(tablet.comparisonColumns.split(" ").length, 3);
   });
+
+  it("keeps KnightSupport readable and above mobile floating controls", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 375,
+      height: 1200,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-knight-support"]\') !== null'),
+      Boolean,
+      "KnightSupport trigger",
+    );
+    await clickTestId(browser.page, "button-knight-support");
+    const support = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const panel = document.querySelector(".knight-support-panel");
+        const input = document.querySelector(".knight-support-form input");
+        const title = document.querySelector(".knight-support-head strong");
+        const description = document.querySelector(".knight-support-head small");
+        const support = document.querySelector(".knight-support");
+        if (!(panel instanceof HTMLElement) || !(input instanceof HTMLInputElement) || !(support instanceof HTMLElement)) return null;
+        const maxHeight = Number.parseFloat(getComputedStyle(panel).maxHeight);
+        return {
+          title: title?.textContent ?? "",
+          description: description?.textContent ?? "",
+          fontSize: getComputedStyle(input).fontSize,
+          maxHeight,
+          expectedMaxHeight: window.innerHeight - 80,
+          zIndex: getComputedStyle(support).zIndex,
+          panelWidth: panel.getBoundingClientRect().width,
+          bodyWidth: document.body.scrollWidth,
+          viewportWidth: window.innerWidth,
+        };
+      })()`),
+      (value): value is { title: string; description: string; fontSize: string; maxHeight: number; expectedMaxHeight: number; zIndex: string; panelWidth: number; bodyWidth: number; viewportWidth: number } => value !== null,
+      "KnightSupport panel",
+    );
+    assert.equal(support.title, "น้องไนท์ (ผู้ช่วยทีมขาย)");
+    assert.equal(support.description, "สอบถามสินค้า ราคา และวิธีออกแบบ 2D ได้เลยค่ะ");
+    assert.equal(support.fontSize, "14px");
+    assert.ok(support.maxHeight <= support.expectedMaxHeight + 1);
+    assert.equal(support.zIndex, "100");
+    assert.ok(support.panelWidth <= 351);
+    assert.ok(support.bodyWidth <= support.viewportWidth);
+  });
 });

@@ -70,23 +70,23 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
   return (
     <div className="knight-support">
       {open && (
-        <section className="knight-support-panel" aria-label="KnightSupport">
+        <section className="knight-support-panel" aria-label="น้องไนท์ (ผู้ช่วยทีมขาย)">
           <div className="knight-support-head">
-            <div><strong>KnightSupport</strong><small>ถามข้อมูลสินค้าได้ทันที</small></div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="ปิด KnightSupport"><X size={16} /></button>
+            <div><strong>น้องไนท์ (ผู้ช่วยทีมขาย)</strong><small>สอบถามสินค้า ราคา และวิธีออกแบบ 2D ได้เลยค่ะ</small></div>
+            <button type="button" onClick={() => setOpen(false)} aria-label="ปิดน้องไนท์"><X size={16} /></button>
           </div>
           <div className="knight-support-messages" aria-live="polite">
             {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}</div>)}
             {chat.isPending && <p className="knight-support-message knight-support-message--assistant">กำลังค้นข้อมูล...</p>}
           </div>
           <form className="knight-support-form" onSubmit={(event) => { event.preventDefault(); send(); }}>
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="เช่น KF023 หรือ BW010" aria-label="คำถาม KnightSupport" />
+            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="เช่น KF023 หรือ BW010" aria-label="คำถามน้องไนท์" />
             <button type="submit" aria-label="ส่งคำถาม" disabled={chat.isPending || !draft.trim()}><Send size={15} /></button>
           </form>
         </section>
       )}
       <button type="button" className="knight-support-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="เปิด KnightSupport" data-testid="button-knight-support">
-        {open ? <X size={17} /> : <MessageCircle size={17} />} <span>KnightSupport</span>
+        {open ? <X size={17} /> : <MessageCircle size={17} />} <span>น้องไนท์</span>
       </button>
     </div>
   );
