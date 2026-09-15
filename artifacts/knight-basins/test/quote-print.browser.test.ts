@@ -843,6 +843,45 @@ describe("long formal quote print flow", () => {
     assert.equal(tablet.comparisonColumns.split(" ").length, 3);
   });
 
+  it("shows Studio measurement guidance, swaps deep dimensions, and cleans phone input", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio helper order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "Studio helper canvas",
+    );
+    const widthId = await browser.page.evaluate(`document.querySelector('[data-testid^="input-rectangle-width-"]')?.getAttribute("data-testid") ?? ""`);
+    const lengthId = await browser.page.evaluate(`document.querySelector('[data-testid^="input-rectangle-length-"]')?.getAttribute("data-testid") ?? ""`);
+    assert.ok(widthId);
+    assert.ok(lengthId);
+    assert.equal(await browser.page.evaluate('document.body.textContent?.includes("หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร") ?? false'), true);
+    assert.equal(await browser.page.evaluate('document.body.textContent?.includes("ติดบัว = ชิดผนังปูน / ขอบเปิด = โชว์ลอยในอากาศ") ?? false'), true);
+
+    await setTextInput(browser.page, widthId, "1000");
+    const swapId = await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="button-swap-rectangle-dimensions-"]\')?.getAttribute("data-testid") ?? ""'),
+      (value) => Boolean(value),
+      "dimension swap suggestion",
+    );
+    await clickTestId(browser.page, swapId);
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="${widthId}"]')?.value ?? ""`), "600");
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="${lengthId}"]')?.value ?? ""`), "1000");
+
+    await setTextInput(browser.page, "input-studio-phone", "081-234-5678");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-studio-phone"]\')?.value ?? ""'),
+      (value) => value === "0812345678",
+      "cleaned Studio phone",
+    );
+  });
+
   it("autosaves Studio drafts and resumes them from a self-contained link", async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {

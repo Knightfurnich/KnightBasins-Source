@@ -38,6 +38,7 @@ import {
 } from "./adminArchive";
 import { ImageUploadField } from "./ImageUploadField";
 import { VideoUploadField } from "./VideoUploadField";
+import { isTallBasinSku, normalizeDimensionInput, sanitizePriceInput } from "@/data/input-sanitizers";
 
 const basinSchema = z.object({
   sku: z.string().min(1, "กรุณากรอก SKU"),
@@ -292,6 +293,13 @@ function BasinFormDialog({
       sortOrder: 0,
     }
   });
+  const sku = form.watch("sku");
+  const bowlLocked = isTallBasinSku(sku);
+  useEffect(() => {
+    if (bowlLocked && form.getValues("basinDimensions")) {
+      form.setValue("basinDimensions", "", { shouldDirty: true, shouldValidate: true });
+    }
+  }, [bowlLocked, form]);
 
   const onSubmit = (values: z.infer<typeof basinSchema>) => {
     const selectedCategory = values.categoryId
@@ -300,7 +308,7 @@ function BasinFormDialog({
     const payload = {
       ...values,
       category: selectedCategory?.name ?? values.category,
-      basinDimensions: values.basinDimensions || null,
+      basinDimensions: bowlLocked ? null : values.basinDimensions ? normalizeDimensionInput(values.basinDimensions) : null,
     };
     
     if (initialData) {
@@ -346,7 +354,7 @@ function BasinFormDialog({
                 <FormField control={form.control} name="sku" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">SKU</FormLabel>
-                    <FormControl><Input className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)]" {...field} /></FormControl>
+                    <FormControl><Input className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)]" {...field} data-testid="input-admin-basin-sku" /></FormControl>
                     <FormMessage className="text-[#a24439] text-xs" />
                   </FormItem>
                 )} />
@@ -405,7 +413,7 @@ function BasinFormDialog({
                 <FormField control={form.control} name="priceTHB" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ราคา (บาท)</FormLabel>
-                    <FormControl><Input type="number" className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)] font-mono" {...field} /></FormControl>
+                 <FormControl><Input type="text" inputMode="decimal" className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)] font-mono" value={field.value ?? ""} onChange={(event) => field.onChange(sanitizePriceInput(event.target.value))} data-testid="input-admin-basin-price" /></FormControl>
                     <FormMessage className="text-[#a24439] text-xs" />
                   </FormItem>
                 )} />
@@ -423,14 +431,15 @@ function BasinFormDialog({
                 <FormField control={form.control} name="dimensions" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ขนาดโดยรวม</FormLabel>
-                    <FormControl><Input placeholder="e.g. 500 × 500 × 850 mm" className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)] font-mono text-sm" {...field} /></FormControl>
+                    <FormControl><Input placeholder="e.g. 500 × 500 × 850 mm" className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)] font-mono text-sm" value={field.value} onChange={(event) => field.onChange(normalizeDimensionInput(event.target.value))} data-testid="input-admin-basin-dimensions" /></FormControl>
                     <FormMessage className="text-[#a24439] text-xs" />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="basinDimensions" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ขนาดหลุม (ตัวเลือก)</FormLabel>
-                    <FormControl><Input placeholder="e.g. 400 × 300 × 120 mm" value={field.value || ""} onChange={field.onChange} className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)] font-mono text-sm" /></FormControl>
+                    <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ขนาดหลุมเจาะ (bowl_mm)</FormLabel>
+                    <FormControl><Input placeholder={bowlLocked ? "KF029 / KF030 ไม่ใช้ bowl_mm" : "e.g. 400 × 300 × 120 mm"} value={bowlLocked ? "" : field.value || ""} onChange={(event) => field.onChange(normalizeDimensionInput(event.target.value))} disabled={bowlLocked} data-testid="input-admin-basin-bowl" className="rounded-none border-[var(--line)] bg-[rgba(249,247,241,0.5)] focus-visible:border-[var(--saffron)] font-mono text-sm disabled:cursor-not-allowed disabled:opacity-60" /></FormControl>
+                    {bowlLocked && <p className="text-xs text-[var(--ink-soft)]">อ่างทรงสูง KF029 / KF030 ต้องเก็บ bowl_mm เป็น null ตามแคตตาล็อก</p>}
                     <FormMessage className="text-[#a24439] text-xs" />
                   </FormItem>
                 )} />

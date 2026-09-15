@@ -312,4 +312,50 @@ describe("admin image upload browser flow", () => {
     assert.ok(uploadRequests.every((request) => request.method === "POST"));
     assert.ok(uploadRequests.every((request) => request.contentType?.toLowerCase().startsWith("multipart/form-data;")));
   });
+
+  it("guards round dimensions, tall-basin bowl_mm, and decorated prices in the basin form", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/admin/basins` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'input[type="password"]\') !== null || document.body?.innerText.includes("จัดการอ่างล้างหน้า") === true'),
+      Boolean,
+      "admin login form for field guards",
+    );
+    const needsLogin = await browser.page.evaluate('document.querySelector(\'input[type="password"]\') !== null');
+    if (needsLogin) {
+      await setTextInput(browser.page, 'input[type="password"]', adminPassword!);
+      await clickButton(browser.page, "เข้าสู่ระบบ");
+    }
+    await waitFor(
+      () => browser.page.evaluate('document.body?.innerText.includes("จัดการอ่างล้างหน้า") === true'),
+      Boolean,
+      "authenticated basin manager for field guards",
+    );
+    await clickButton(browser.page, "เพิ่มรายการใหม่");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-admin-basin-bowl"]\') !== null'),
+      Boolean,
+      "basin guard form",
+    );
+
+    await setTextInput(browser.page, '[data-testid="input-admin-basin-sku"]', "KF001");
+    await setTextInput(browser.page, '[data-testid="input-admin-basin-bowl"]', "D350x150");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-admin-basin-bowl"]\')?.value ?? ""'),
+      (value) => value === "Ø350x150",
+      "normalized round bowl dimension",
+    );
+    await setTextInput(browser.page, '[data-testid="input-admin-basin-price"]', "฿1,000");
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="input-admin-basin-price"]\')?.value ?? ""'), "1000");
+
+    await setTextInput(browser.page, '[data-testid="input-admin-basin-sku"]', "KF029");
+    await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const input = document.querySelector('[data-testid="input-admin-basin-bowl"]');
+        return input instanceof HTMLInputElement && input.disabled && input.value === "";
+      })()`),
+      Boolean,
+      "tall basin bowl guard",
+    );
+    assert.equal(await browser.page.evaluate('document.body.innerText.includes("KF029 / KF030 ต้องเก็บ bowl_mm เป็น null ตามแคตตาล็อก")'), true);
+  });
 });
