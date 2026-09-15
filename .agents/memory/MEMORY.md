@@ -12,3 +12,6 @@
 - [Production asset root guard](production-asset-root-guard.md) — Hostinger serves the storefront at `/`; validate both build paths and JavaScript response types.
 - [Public quote origin](public-quote-origin.md) — derive exported quote links from the configured public origin, never an internal proxy hop.
 - [Shared studio shape geometry](studio-shape-geometry.md) — keep I/L/U regions, clearance, placement safety, labels, and saved layouts on one geometry model.
+- [Studio export pipeline](studio-export-pipeline.md) — keep DXF millimetres and unknown-hole placeholders honest; rasterize the shared model for visible Thai PDF notes.
+- [Source and artifact parity](source-artifact-parity.md) — rebuild API/web distribution folders after source changes before publishing the release commit.
+- [Thai timezone handling](thai-timezone.md) — make every user-visible date, Bangkok calendar boundary, notification timestamp, and document month explicit.
