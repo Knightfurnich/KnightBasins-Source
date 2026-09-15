@@ -25,6 +25,7 @@ type NotificationItem = {
   description?: string;
   quantity?: number;
   unit?: string;
+  unitPriceTHB?: number;
 };
 
 type NotificationSnapshot = {
@@ -101,7 +102,7 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     vat?: boolean;
     items?: NotificationItem[];
     quickQuote?: { subtotal?: number; vatAmount?: number; total?: number; vat?: boolean; items?: NotificationItem[] };
-    estimate?: { subtotalTHB?: number; vatAmountTHB?: number; totalTHB?: number };
+    estimate?: { subtotalTHB?: number; vatAmountTHB?: number; totalTHB?: number; stoneUnitPriceTHB?: number };
   } | null;
   const notification = studio?.notification;
   const subtotal = notification?.subtotal
@@ -123,6 +124,8 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     ?? studio?.quickQuote?.vat
     ?? vatAmount > 0;
   const items = formatNotificationItems(notificationItems(studio), lead.productSkus);
+  const has9500StoneRate = notificationItems(studio).some((item) => itemKind(item) === "stone" && item.unitPriceTHB === 9500) ||
+    studio?.estimate?.stoneUnitPriceTHB === 9500;
   return [
     `Knight Basins: ${title}`,
     `⏰ ${formatThaiDateTime()} น.`,
@@ -131,6 +134,7 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     `โทร: ${lead.phone || "-"}`,
     "รายการ:",
     ...items,
+    ...(has9500StoneRate ? ["*(ยอดรวมสุทธินี้ยังไม่รวมราคาหินลายหินอ่อน — ทีมขายจะประเมินราคาเพิ่ม)*"] : []),
     ...(vat
       ? [
           `ยอดก่อน VAT: ${typeof subtotal === "number" ? `${formatBaht(subtotal)} บาท` : "-"}`,

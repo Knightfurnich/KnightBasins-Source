@@ -12,8 +12,10 @@ import {
 import {
   basinDimensionsForProduct,
   createBasinPlacement,
+  disconnectedRectangleIds,
   pieceBounds,
   pieceOverlapWarnings,
+  placementCrossesPanelJoint,
   placementFitsStudioPiece,
   sideStatusKey,
   snapStudioRectanglePosition,
@@ -233,6 +235,7 @@ function setPieceState(setState: Dispatch<SetStateAction<StudioState>>, pieceId:
 
 function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
   const overlaps = pieceOverlapWarnings(piece);
+  const disconnectedRectangles = disconnectedRectangleIds(piece);
   const bounds = pieceBounds(piece);
   const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? state.pieces?.[0]?.id) === piece.id);
   const moveRectangle = (rectangleId: string, xMm: number, yMm: number) => setPieceState(setState, piece.id, (current) => {
@@ -285,20 +288,22 @@ function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; sta
           <div className="studio-rectangle-inputs">
             <label>กว้าง (มม.)<input type="number" min="1" value={rectangle.widthMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, widthMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-width-${rectangle.id}`} /></label>
             <label>ยาว (มม.)<input type="number" min="1" value={rectangle.lengthMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, lengthMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-length-${rectangle.id}`} /></label>
-            <label>X<input type="number" min="0" value={rectangle.xMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, xMm: numericValue(event.target.value) } : item) }))} /></label>
-            <label>Y<input type="number" min="0" value={rectangle.yMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, yMm: numericValue(event.target.value) } : item) }))} /></label>
+             <label>X<input type="number" min="0" value={rectangle.xMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, xMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-x-${rectangle.id}`} /></label>
+             <label>Y<input type="number" min="0" value={rectangle.yMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, yMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-y-${rectangle.id}`} /></label>
           </div>
           <button type="button" className="button button--outline studio-rotate-button" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, rotation: item.rotation === 0 ? 90 : 0 } : item) }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
           <div className="studio-side-status-grid">{statuses.map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(rectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option></select></label>)}</div>
         </div>;
       })}
-      <button type="button" className="button button--outline" disabled={piece.rectangles.length >= STUDIO_MAX_RECTANGLES} onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: [...current.rectangles, makeRectangle(current.rectangles.length)] }))}><Plus size={14} /> เพิ่มสี่เหลี่ยม / ขั้น</button>
+       <button type="button" className="button button--outline" disabled={piece.rectangles.length >= STUDIO_MAX_RECTANGLES} onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: [...current.rectangles, makeRectangle(current.rectangles.length)] }))} data-testid={`button-add-studio-rectangle-${piece.id}`}><Plus size={14} /> เพิ่มสี่เหลี่ยม / ขั้น</button>
     </div>
     {overlaps.length > 0 && <p className="studio-warning"><AlertTriangle size={15} /> มีสี่เหลี่ยมซ้อนกัน ({overlaps.length} จุด) พื้นที่ไม่ถูกหักซ้ำ แต่ควรตรวจสอบการจัดวาง</p>}
+    {disconnectedRectangles.length > 0 && <p className="studio-warning" data-testid={`status-disconnected-rectangles-${piece.id}`}><AlertTriangle size={15} /> สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน</p>}
     <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
-      {placements.map((placement) => {
+       {placements.map((placement) => {
         const unknown = placement.widthMm === null || placement.depthMm === null;
-        return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : "ลากเพื่อย้าย"}</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+         const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
+         return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "ลากเพื่อย้าย"}</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
       })}
       {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className="studio-rectangle-drag-target" draggable onDragStart={(event) => event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id)} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`ลากแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
     </StudioFootprint>
@@ -594,7 +599,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
         <div className="studio-pricing-inputs">
           <label>ความสูงบัว (มม.)<input type="number" min="1" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-upstand-height" /></label>
           <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
-          <label>ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
+           <label>ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
         </div>
         <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
          <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>

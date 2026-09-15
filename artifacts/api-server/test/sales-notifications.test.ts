@@ -115,6 +115,63 @@ describe("sales notifications", () => {
     assert.match(requestBody, /ค่าดำเนินการงานพื้นที่เล็ก/);
   });
 
+  it("adds the 9,500 stone-rate warning below the stone line", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const rateLead = {
+      ...lead,
+      studioData: {
+        notification: {
+          items: [
+            { kind: "stone" as const, code: "BR816O", description: "Black River", quantity: 1.2, unit: "ตร.ม.", unitPriceTHB: 9500 },
+          ],
+          subtotal: 12345,
+          vatAmount: 0,
+          total: 12345,
+          vat: false,
+        },
+      },
+    };
+    await (await module()).notifyQuote(rateLead, "https://example.com", "/quote/view?quote=x");
+    const warning = "*(ยอดรวมสุทธินี้ยังไม่รวมราคาหินลายหินอ่อน — ทีมขายจะประเมินราคาเพิ่ม)*";
+    assert.match(requestBody, new RegExp(warning.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.ok(requestBody.indexOf("- หิน BR816O") < requestBody.indexOf(warning));
+  });
+
+  it("sends the same 9,500 stone-rate warning through LINE", async () => {
+    process.env["NOTIFY_CHANNEL"] = "line";
+    process.env["LINE_CHANNEL_ACCESS_TOKEN"] = "line-token";
+    process.env["LINE_SALES_DESTINATION_ID"] = "line-destination";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response("{}", { status: 200 });
+    };
+    const rateLead = {
+      ...lead,
+      studioData: {
+        notification: {
+          items: [{ kind: "stone" as const, code: "BR816O", description: "Black River", quantity: 1, unit: "ตร.ม.", unitPriceTHB: 9500 }],
+          subtotal: 10000,
+          vatAmount: 0,
+          total: 10000,
+          vat: false,
+        },
+      },
+    };
+    const result = await (await module()).notifyQuote(rateLead, "https://example.com", "/quote/view?quote=x");
+    assert.equal(result.notificationStatus, "notified");
+    const payload = JSON.parse(requestBody) as { to: string; messages: Array<{ text: string }> };
+    assert.equal(payload.to, "line-destination");
+    assert.match(payload.messages[0]?.text ?? "", /ยอดรวมสุทธินี้ยังไม่รวมราคาหินลายหินอ่อน/);
+  });
+
   it("uses sendPhoto for sketch notifications", async () => {
     process.env["NOTIFY_CHANNEL"] = "telegram";
     process.env["TELEGRAM_BOT_TOKEN"] = "test-token";

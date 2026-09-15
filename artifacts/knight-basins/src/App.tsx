@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
-import { ArrowRight, Check, ChevronDown, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Copy, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
 import {
   formatTHB,
   INSTALLATION_PRICE,
@@ -28,6 +28,7 @@ import {
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { formatEnglishDate, formatThaiDate } from "@/data/date-time";
+import { encodeStudioDraft } from "@/data/studio-draft";
 import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } from "@/components/StudioPage";
 import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
@@ -743,6 +744,10 @@ function SavedQuotePage() {
       setNotificationMessage(error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่");
     }
   };
+  const copySavedStudioToEditor = () => {
+    if (!state) return;
+    setLocation(`/studio?draft=${encodeURIComponent(encodeStudioDraft(state))}`);
+  };
 
   return <div className="page-wrap quote-page saved-quote-page" data-testid="saved-quote-page">
     <section className="quote-heading saved-quote-heading">
@@ -757,6 +762,7 @@ function SavedQuotePage() {
         <button type="button" className={language === "EN" ? "is-active" : ""} onClick={() => setLanguage("EN")} aria-pressed={language === "EN"} data-testid="button-saved-quote-language-en">EN</button>
       </div>
       <button className="button button--dark" onClick={copyLink} data-testid="button-copy-saved-quote-link">{copied ? <><Check size={15} /> คัดลอกลิงก์แล้ว</> : "คัดลอกลิงก์ใบเสนอราคา"}</button>
+       {state && <button className="button button--accent" onClick={copySavedStudioToEditor} data-testid="button-copy-saved-studio-to-editor"><Copy size={15} /> คัดลอกผังนี้ไปปรับแต่งใหม่</button>}
       <button className="button button--accent" onClick={sendNotification} disabled={notifyMutation.isPending} data-testid="button-send-saved-quote-notification">{notifyMutation.isPending ? "กำลังส่ง..." : "ส่งเข้า Telegram"}</button>
       <button className="button button--outline" onClick={() => setLocation("/")} data-testid="button-saved-quote-home">กลับไปแคตตาล็อก</button>
     </div>

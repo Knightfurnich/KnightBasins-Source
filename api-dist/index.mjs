@@ -47243,6 +47243,7 @@ function quoteSummary(lead, quoteUrl, title = "\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0
   const total = notification?.total ?? studio?.total ?? studio?.quickQuote?.total ?? studio?.estimate?.totalTHB ?? subtotal;
   const vat = notification?.vat ?? studio?.vat ?? studio?.quickQuote?.vat ?? vatAmount > 0;
   const items = formatNotificationItems(notificationItems(studio), lead.productSkus);
+  const has9500StoneRate = notificationItems(studio).some((item) => itemKind(item) === "stone" && item.unitPriceTHB === 9500) || studio?.estimate?.stoneUnitPriceTHB === 9500;
   return [
     `Knight Basins: ${title}`,
     `\u23F0 ${formatThaiDateTime()} \u0E19.`,
@@ -47251,6 +47252,7 @@ function quoteSummary(lead, quoteUrl, title = "\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0
     `\u0E42\u0E17\u0E23: ${lead.phone || "-"}`,
     "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23:",
     ...items,
+    ...has9500StoneRate ? ["*(\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21\u0E2A\u0E38\u0E17\u0E18\u0E34\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E27\u0E21\u0E23\u0E32\u0E04\u0E32\u0E2B\u0E34\u0E19\u0E25\u0E32\u0E22\u0E2B\u0E34\u0E19\u0E2D\u0E48\u0E2D\u0E19 \u2014 \u0E17\u0E35\u0E21\u0E02\u0E32\u0E22\u0E08\u0E30\u0E1B\u0E23\u0E30\u0E40\u0E21\u0E34\u0E19\u0E23\u0E32\u0E04\u0E32\u0E40\u0E1E\u0E34\u0E48\u0E21)*"] : [],
     ...vat ? [
       `\u0E22\u0E2D\u0E14\u0E01\u0E48\u0E2D\u0E19 VAT: ${typeof subtotal === "number" ? `${formatBaht(subtotal)} \u0E1A\u0E32\u0E17` : "-"}`,
       `VAT 7%: ${formatBaht(vatAmount)} \u0E1A\u0E32\u0E17`,

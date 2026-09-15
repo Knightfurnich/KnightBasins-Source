@@ -108,7 +108,10 @@ export type StudioEstimate = {
   openEdgePriceInvalid: boolean;
   overlapWarnings: string[];
   unsafePlacements: string[];
+  crossJointPlacements: string[];
   unknownDimensionPlacements: string[];
+  disconnectedRectangles: string[];
+  discountInvalid: boolean;
   warnings: string[];
   isValid: boolean;
 };
@@ -258,6 +261,45 @@ export function studioPieceJoints(piece: StudioPiece): StudioEdgeJoint[] {
   return joints;
 }
 
+function rectangleIntersectionArea(
+  first: { xMm: number; yMm: number; widthMm: number; heightMm: number },
+  second: { xMm: number; yMm: number; widthMm: number; heightMm: number },
+) {
+  const width = Math.min(first.xMm + first.widthMm, second.xMm + second.widthMm) - Math.max(first.xMm, second.xMm);
+  const height = Math.min(first.yMm + first.heightMm, second.yMm + second.heightMm) - Math.max(first.yMm, second.yMm);
+  return width > STUDIO_EPSILON_MM && height > STUDIO_EPSILON_MM ? width * height : 0;
+}
+
+export function studioPieceConnectivity(piece: StudioPiece) {
+  const connected = new Map<string, Set<string>>();
+  piece.rectangles.forEach((rectangle) => connected.set(rectangle.id, new Set([rectangle.id])));
+  studioPieceJoints(piece).forEach((joint) => {
+    const first = connected.get(joint.first.rectangleId);
+    const second = connected.get(joint.second.rectangleId);
+    if (!first || !second) return;
+    const merged = new Set([...first, ...second]);
+    merged.forEach((rectangleId) => connected.set(rectangleId, merged));
+  });
+  const components: string[][] = [];
+  const seen = new Set<string>();
+  piece.rectangles.forEach((rectangle) => {
+    if (seen.has(rectangle.id)) return;
+    const component = [...(connected.get(rectangle.id) ?? [rectangle.id])];
+    component.forEach((rectangleId) => seen.add(rectangleId));
+    components.push(component);
+  });
+  return components;
+}
+
+export function disconnectedRectangleIds(piece: StudioPiece) {
+  const components = studioPieceConnectivity(piece);
+  if (components.length <= 1) return [];
+  const connectedToFirst = new Set(components[0]);
+  return piece.rectangles
+    .map((rectangle) => rectangle.id)
+    .filter((rectangleId) => !connectedToFirst.has(rectangleId));
+}
+
 export function studioEdgeTotals(pieces: StudioPiece[]) {
   return pieces.flatMap(studioPieceEdges).reduce((totals, edge) => {
     if (edge.status === "upstand") totals.upstandLengthMm += edge.exposedLengthMm;
@@ -346,7 +388,8 @@ export function studioStateDimensionsValid(state: Pick<StudioState, "pieces" | "
         rectangle.xMm >= 0 &&
         rectangle.yMm >= 0,
       ),
-    );
+    ) &&
+    (state.pieces === undefined || !pieces.some((piece) => disconnectedRectangleIds(piece).length > 0));
 }
 
 export function basinDimensionsForProduct(product?: BasinProduct) {
@@ -365,6 +408,23 @@ function placementFitsRectangle(placement: Pick<BasinPlacement, "xMm" | "yMm" | 
 
 export function placementFitsStudioPiece(piece: StudioPiece, placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">) {
   return piece.rectangles.some((rectangle) => placementFitsRectangle(placement, rectangle));
+}
+
+export function placementCrossesPanelJoint(
+  piece: StudioPiece,
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
+) {
+  if (placement.widthMm === null || placement.depthMm === null) return false;
+  const basin = { xMm: placement.xMm, yMm: placement.yMm, widthMm: placement.widthMm, heightMm: placement.depthMm };
+  return studioPieceJoints(piece).some((joint) => {
+    const first = piece.rectangles.find((rectangle) => rectangle.id === joint.first.rectangleId);
+    const second = piece.rectangles.find((rectangle) => rectangle.id === joint.second.rectangleId);
+    if (!first || !second) return false;
+    const firstSize = studioRectangleSize(first);
+    const secondSize = studioRectangleSize(second);
+    return rectangleIntersectionArea(basin, { xMm: first.xMm, yMm: first.yMm, widthMm: firstSize.widthMm, heightMm: firstSize.heightMm }) > 0 &&
+      rectangleIntersectionArea(basin, { xMm: second.xMm, yMm: second.yMm, widthMm: secondSize.widthMm, heightMm: secondSize.heightMm }) > 0;
+  });
 }
 
 export function placementFitsCounterShape(
@@ -531,15 +591,26 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
   const smallJobFee = price !== null && stoneArea > 0 && stoneArea < minimumArea
     ? state.location === "bangkok-metro" ? STONE_SMALL_JOB_BANGKOK_FEE : STONE_SMALL_JOB_PROVINCE_FEE
     : 0;
-  const discountTHB = roundBaht(state.discountTHB ?? 0);
   const grossSubtotal = stoneTotal + openEdgeTotal + basinSubtotal + requestedInstallation + smallJobFee;
-  const subtotal = Math.max(0, grossSubtotal - discountTHB - installationDiscount);
+  const rawDiscount = state.discountTHB ?? 0;
+  const discountInvalid = !Number.isFinite(rawDiscount) || rawDiscount < 0 || rawDiscount > Math.max(0, grossSubtotal - installationDiscount);
+  const discountTHB = Number.isFinite(rawDiscount) ? Math.round(rawDiscount) : 0;
+  const appliedDiscountTHB = Math.min(Math.max(0, discountTHB), Math.max(0, grossSubtotal - installationDiscount));
+  const subtotal = Math.max(0, grossSubtotal - appliedDiscountTHB - installationDiscount);
   const vatAmount = state.vat ? roundBaht(subtotal * 0.07) : 0;
   const total = subtotal + vatAmount;
   const overlapWarnings = pieces.flatMap((piece) => pieceOverlapWarnings(piece).map((pair) => `${piece.name}: ${pair}`));
+  const disconnectedRectangles = isNewLayout ? pieces.flatMap((piece) => disconnectedRectangleIds(piece).map((id) => `${piece.name}: ${id}`)) : [];
   const unsafe = isNewLayout ? state.basinPlacements.filter((placement) => {
     const piece = studioPieceById(state, placement.pieceId);
-    return placement.widthMm !== null && placement.depthMm !== null && !placementFitsStudioPiece(piece, placement);
+    return placement.widthMm !== null &&
+      placement.depthMm !== null &&
+      !placementFitsStudioPiece(piece, placement) &&
+      !placementCrossesPanelJoint(piece, placement);
+  }).map((placement) => placement.id) : [];
+  const crossJointPlacements = isNewLayout ? state.basinPlacements.filter((placement) => {
+    const piece = studioPieceById(state, placement.pieceId);
+    return placementCrossesPanelJoint(piece, placement);
   }).map((placement) => placement.id) : [];
   const unknownDimensions = unknownBasinPlacements(state);
   const upstandHeightMissing = isNewLayout && (state.upstandHeightMm === null || state.upstandHeightMm === undefined);
@@ -553,7 +624,10 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
     ...(upstandHeightMissing ? ["ยังไม่ได้ระบุความสูงบัว จึงยังไม่คิดเงินบัว"] : []),
     ...(openEdgePriceMissing ? ["ยังไม่ได้ระบุราคาขอบเปิดต่อเมตร"] : []),
      ...(openEdgePriceInvalid ? ["ราคาขอบเปิดต้องไม่ติดลบและมีทศนิยมไม่เกิน 2 ตำแหน่ง"] : []),
+     ...(discountInvalid ? ["ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด"] : []),
     ...(overlapWarnings.length ? ["มีสี่เหลี่ยมซ้อนกัน พื้นที่ยังคิดตามแผ่นเต็มแต่ต้องตรวจสอบแบบ"] : []),
+     ...(disconnectedRectangles.length ? ["สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน"] : []),
+     ...(crossJointPlacements.length ? ["อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว"] : []),
   ];
   return {
     pieceCount: pieces.length,
@@ -586,7 +660,10 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
     openEdgePriceInvalid,
     overlapWarnings,
     unsafePlacements: unsafe,
+    crossJointPlacements,
     unknownDimensionPlacements: unknownDimensions,
+    disconnectedRectangles,
+    discountInvalid,
     warnings,
     isValid: state.stoneColors.length >= STUDIO_MIN_STONE_COLORS &&
       state.stoneColors.length <= STUDIO_MAX_STONE_COLORS &&
@@ -595,7 +672,10 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
       state.basinPlacements.length >= state.basinSkus.length &&
       price !== null &&
       !openEdgePriceInvalid &&
+      !discountInvalid &&
       !overlapWarnings.length &&
+      !disconnectedRectangles.length &&
+      !crossJointPlacements.length &&
       !unsafe.length &&
       !unknownDimensions.length &&
       studioStateDimensionsValid(state),
@@ -604,7 +684,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
 
 export function studioSubmissionValidationMessage(
   state: StudioState,
-  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid">,
+  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">,
 ) {
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
@@ -612,8 +692,11 @@ export function studioSubmissionValidationMessage(
   if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
   if (estimate.unknownDimensionPlacements.length > 0) return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
   if (estimate.overlapWarnings.length > 0) return "มีสี่เหลี่ยมซ้อนกัน กรุณาขยับแผ่นให้ไม่ซ้อนกันก่อนส่งคำขอ";
+  if (estimate.disconnectedRectangles.length > 0) return "สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน";
+  if (estimate.crossJointPlacements.length > 0) return "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว";
   if (estimate.unsafePlacements.length > 0) return "กรุณาวางอ่างให้อยู่ภายในสี่เหลี่ยมของชิ้นงาน";
   if (estimate.openEdgePriceInvalid) return "ราคาขอบเปิดติดลบไม่ได้";
+  if (estimate.discountInvalid) return "ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด";
   if (!estimate.isValid) return "กรุณาตรวจสอบจำนวนชิ้นงาน จำนวนแผ่น ขนาดแผ่น และข้อมูลวัสดุก่อนส่งคำขอ";
   return null;
 }

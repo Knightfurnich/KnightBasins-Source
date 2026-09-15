@@ -326,6 +326,7 @@ describe("long formal quote print flow", () => {
     assert.equal(printStyles.sheetShadow, "none");
     assert.equal(printStyles.firstRowBreak, "avoid");
     assert.equal(printStyles.totalBreak, "avoid");
+
   });
 
   it("shows both real Studio download actions for the current layout", async () => {
@@ -451,7 +452,131 @@ describe("long formal quote print flow", () => {
     assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
   });
 
+  it("shows and blocks the Studio joint, disconnected-rectangle, and discount validations", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "Studio canvas",
+    );
+
+    const addRectangle = await browser.page.evaluate(`(() => {
+      const button = document.querySelector('[data-testid^="button-add-studio-rectangle-"]');
+      if (!(button instanceof HTMLElement)) return "";
+      const id = button.getAttribute("data-testid") ?? "";
+      button.click();
+      return id;
+    })()`);
+    assert.match(addRectangle, /^button-add-studio-rectangle-/);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-rectangle-editor").length === 2'),
+      Boolean,
+      "second Studio rectangle",
+    );
+    const secondRectangleX = await browser.page.evaluate(`(() => {
+      const inputs = [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')];
+      return inputs[1]?.getAttribute("data-testid") ?? "";
+    })()`);
+    assert.match(secondRectangleX, /^input-rectangle-x-/);
+    await setTextInput(browser.page, secondRectangleX, "2100");
+    await waitFor(
+      () => browser.page.evaluate('document.body.textContent?.includes("สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน") ?? false'),
+      Boolean,
+      "disconnected rectangle warning",
+    );
+
+    await setTextInput(browser.page, secondRectangleX, "1800");
+    await waitFor(
+      () => browser.page.evaluate('!(document.body.textContent?.includes("สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน") ?? false)'),
+      Boolean,
+      "connected rectangle reset",
+    );
+    const droppedAcrossJoint = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.5, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(droppedAcrossJoint, true);
+    await waitFor(
+      () => browser.page.evaluate('document.body.textContent?.includes("อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว") ?? false'),
+      Boolean,
+      "cross-joint warning",
+    );
+    await clickTestId(browser.page, "button-submit-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว"'),
+      Boolean,
+      "cross-joint submission block",
+    );
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "fresh Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "fresh Studio canvas",
+    );
+    const droppedInsidePanel = await browser.page.evaluate(`(() => {
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.25, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(droppedInsidePanel, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
+      Boolean,
+      "inside-panel basin placement",
+    );
+    await setTextInput(browser.page, "input-studio-discount", "-1");
+    await waitFor(
+      () => browser.page.evaluate('document.body.textContent?.includes("ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด") ?? false'),
+      Boolean,
+      "discount warning",
+    );
+    await clickTestId(browser.page, "button-submit-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด"'),
+      Boolean,
+      "discount submission block",
+    );
+  });
+
   it("keeps Studio export actions on a saved quote snapshot", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "saved Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "saved Studio canvas",
+    );
     const fill = [
       ["input-studio-name", "คุณทดสอบแบบ"],
       ["input-studio-phone", "0812345678"],
@@ -516,6 +641,14 @@ describe("long formal quote print flow", () => {
       "saved Studio print action",
     ), true);
     assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-\d+ชิ้น$/);
+    await clickTestId(browser.page, "button-copy-saved-studio-to-editor");
+    await waitFor(
+      () => browser.page.evaluate('window.location.pathname === "/studio" && new URLSearchParams(window.location.search).has("draft")'),
+      Boolean,
+      "Studio duplicate route",
+    );
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'), true);
+    assert.equal(await browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'), true);
   });
 
   it("keeps Studio controls within the viewport on mobile", async () => {

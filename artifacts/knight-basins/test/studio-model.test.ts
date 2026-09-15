@@ -4,6 +4,8 @@ import { PRODUCTS } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
   createBasinPlacement,
+  disconnectedRectangleIds,
+  placementCrossesPanelJoint,
   pieceOverlapWarnings,
   pieceBounds,
   snapStudioRectanglePosition,
@@ -89,6 +91,41 @@ test("touching edges create joints, snap within tolerance, and exclude shared le
   assert.equal(totals.openEdgeLengthMm, 1000);
 });
 
+test("basins crossing a panel joint are blocked while basins inside one panel remain safe", () => {
+  const layout = piece([
+    rectangle("a", { widthMm: 1000 }),
+    rectangle("b", { xMm: 1000, widthMm: 800 }),
+  ]);
+  const crossing = { xMm: 800, yMm: 100, widthMm: 500, depthMm: 300 };
+  assert.equal(placementCrossesPanelJoint(layout, crossing), true);
+  assert.equal(placementCrossesPanelJoint(layout, { ...crossing, xMm: 100 }), false);
+  const estimate = studioEstimate(baseState({
+    pieces: [layout],
+    basinPlacements: [{ id: "basin-1", sku: "KF001", pieceId: "piece-1", ...crossing }],
+  }), PRODUCTS);
+  assert.deepEqual(estimate.crossJointPlacements, ["basin-1"]);
+  assert.equal(estimate.isValid, false);
+  assert.equal(
+    studioSubmissionValidationMessage({ ...baseState(), pieces: [layout], basinPlacements: [{ id: "basin-1", sku: "KF001", pieceId: "piece-1", ...crossing }] }, estimate),
+    "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว",
+  );
+});
+
+test("rectangles in one workpiece must form one connected component", () => {
+  const layout = piece([
+    rectangle("a"),
+    rectangle("b", { xMm: 1200 }),
+  ]);
+  assert.deepEqual(disconnectedRectangleIds(layout), ["b"]);
+  const estimate = studioEstimate(baseState({ pieces: [layout] }), PRODUCTS);
+  assert.deepEqual(estimate.disconnectedRectangles, ["ชิ้นงาน 1: b"]);
+  assert.equal(estimate.isValid, false);
+  assert.equal(
+    studioSubmissionValidationMessage({ ...baseState(), pieces: [layout] }, estimate),
+    "สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน",
+  );
+});
+
 test("new model enforces one to three pieces and one to six valid rectangles", () => {
   assert.equal(studioStateDimensionsValid(baseState()), true);
   assert.equal(studioStateDimensionsValid(baseState({ pieces: [] })), false);
@@ -135,6 +172,23 @@ test("open-edge price rejects negative values and more than two decimals", () =>
   assert.equal(estimate.openEdgePriceInvalid, true);
   assert.equal(estimate.isValid, false);
   assert.match(estimate.warnings.join(" "), /ทศนิยมไม่เกิน 2/);
+});
+
+test("discount validation rejects negative and over-total values before submission", () => {
+  const negative = studioEstimate(baseState({ discountTHB: -1 }), PRODUCTS);
+  assert.equal(negative.discountInvalid, true);
+  assert.equal(negative.isValid, false);
+  assert.match(negative.warnings.join(" "), /ส่วนลดต้องไม่ติดลบ/);
+  assert.equal(studioSubmissionValidationMessage(baseState({ discountTHB: -1 }), negative), "ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด");
+
+  const overTotal = studioEstimate(baseState({ discountTHB: 999999 }), PRODUCTS);
+  assert.equal(overTotal.discountInvalid, true);
+  assert.equal(overTotal.isValid, false);
+  assert.equal(studioSubmissionValidationMessage(baseState({ discountTHB: 999999 }), overTotal), "ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด");
+
+  const eligible = studioEstimate(baseState({ discountTHB: 0 }), PRODUCTS).grossSubtotalTHB;
+  const maximum = studioEstimate(baseState({ discountTHB: eligible }), PRODUCTS);
+  assert.equal(maximum.discountInvalid, false);
 });
 
 test("9,500 stone rates hand off to sales instead of entering automatic totals", () => {

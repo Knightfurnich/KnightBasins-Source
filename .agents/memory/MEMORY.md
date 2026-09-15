@@ -15,3 +15,4 @@
 - [Studio export pipeline](studio-export-pipeline.md) — keep DXF millimetres and unknown-hole placeholders honest; rasterize the shared model for visible Thai PDF notes.
 - [Source and artifact parity](source-artifact-parity.md) — rebuild API/web distribution folders after source changes before publishing the release commit.
 - [Thai timezone handling](thai-timezone.md) — make every user-visible date, Bangkok calendar boundary, notification timestamp, and document month explicit.
+- [Studio browser test isolation](studio-browser-test-isolation.md) — clear autosaved Studio state before browser cases that require a fresh layout.
