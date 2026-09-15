@@ -119,11 +119,11 @@ export function extractSupportProfileFields(message: string): SupportProfileFiel
 }
 
 export function isSupportConfirmation(message: string) {
-  return /^(?:ยืนยัน|ใช่|ตกลง|โอเค|ok|okay|confirm|ยืนยันข้อมูล)$/iu.test(normalized(message));
+  return /^(?:ยืนยัน|ใช่|ตกลง|โอเค|ok|okay|confirm|ยืนยันข้อมูล)\s*(?:(?:นะ)?(?:ครับ|ค่ะ|คะ)|krub|ka)?$/iu.test(normalized(message));
 }
 
 export function isSupportCancellation(message: string) {
-  return /^(?:ยกเลิก|ไม่ใช่|ไม่ตกลง|ไม่ต้องการ|cancel|no)$/iu.test(normalized(message));
+  return /^(?:ยกเลิก|ไม่ใช่|ไม่ตกลง|ไม่ต้องการ|cancel|no)\s*(?:(?:นะ)?(?:ครับ|ค่ะ|คะ)|krub|ka)?$/iu.test(normalized(message));
 }
 
 export function supportProfileFieldLabel(field: SupportProfileField) {

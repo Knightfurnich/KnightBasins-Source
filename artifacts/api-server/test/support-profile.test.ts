@@ -33,7 +33,14 @@ describe("KnightSupport profile extraction", () => {
   it("recognizes confirmation and cancellation words", () => {
     assert.equal(isSupportConfirmation("ยืนยัน"), true);
     assert.equal(isSupportConfirmation("ตกลง"), true);
+    assert.equal(isSupportConfirmation("ยืนยันครับ"), true);
+    assert.equal(isSupportConfirmation("ยืนยันค่ะ"), true);
+    assert.equal(isSupportConfirmation("ยืนยันนะคะ"), true);
+    assert.equal(isSupportConfirmation("confirm krub"), true);
     assert.equal(isSupportCancellation("ยกเลิก"), true);
     assert.equal(isSupportCancellation("ไม่ใช่"), true);
+    assert.equal(isSupportCancellation("ยกเลิกค่ะ"), true);
+    assert.equal(isSupportCancellation("cancel ka"), true);
+    assert.equal(isSupportConfirmation("ช่วยเช็กราคา confirm รุ่นนี้"), false);
   });
 });

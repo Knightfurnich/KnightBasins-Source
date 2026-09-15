@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { and, eq, ne } from "drizzle-orm";
-import { customerAccounts, customerLeads, db, supportProfileUpdates } from "@workspace/db";
+import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db } from "@workspace/db";
 import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
@@ -19,6 +19,7 @@ const router: IRouter = Router();
 
 type Account = NonNullable<Awaited<ReturnType<typeof findAuthenticatedAccount>>>;
 type PendingProfileUpdate = {
+  id: number;
   fields: SupportProfileFields;
   comparison: Array<{
     field: SupportProfileField;
@@ -58,53 +59,6 @@ function updateReply(comparison: PendingProfileUpdate["comparison"]) {
     "",
     "ต้องการให้น้องไนท์อัปเดตแทนข้อมูลเดิมใช่ไหมคะ? พิมพ์ “ยืนยัน” หรือ “ยกเลิก” ได้เลย",
   ].join("\n");
-}
-
-async function findPendingProfileUpdate(accountId: number) {
-  const [pending] = await db
-    .select({
-      fields: supportProfileUpdates.fields,
-      comparison: supportProfileUpdates.comparison,
-      expiresAt: supportProfileUpdates.expiresAt,
-    })
-    .from(supportProfileUpdates)
-    .where(eq(supportProfileUpdates.customerAccountId, accountId))
-    .limit(1);
-  if (!pending) return null;
-  if (pending.expiresAt.getTime() <= Date.now()) {
-    await db.delete(supportProfileUpdates).where(eq(supportProfileUpdates.customerAccountId, accountId));
-    return null;
-  }
-  return {
-    fields: pending.fields as SupportProfileFields,
-    comparison: pending.comparison as PendingProfileUpdate["comparison"],
-    expiresAt: pending.expiresAt.getTime(),
-  } satisfies PendingProfileUpdate;
-}
-
-async function savePendingProfileUpdate(accountId: number, pending: Omit<PendingProfileUpdate, "expiresAt">) {
-  const expiresAt = new Date(Date.now() + PENDING_UPDATE_TTL_MS);
-  await db
-    .insert(supportProfileUpdates)
-    .values({
-      customerAccountId: accountId,
-      fields: pending.fields,
-      comparison: pending.comparison,
-      expiresAt,
-    })
-    .onConflictDoUpdate({
-      target: supportProfileUpdates.customerAccountId,
-      set: {
-        fields: pending.fields,
-        comparison: pending.comparison,
-        expiresAt,
-        updatedAt: new Date(),
-      },
-    });
-}
-
-async function clearPendingProfileUpdate(accountId: number) {
-  await db.delete(supportProfileUpdates).where(eq(supportProfileUpdates.customerAccountId, accountId));
 }
 
 function leadValues(fields: SupportProfileFields) {
@@ -189,12 +143,42 @@ router.post("/support/chat", async (req, res, next) => {
 
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
-    const pending = account ? await findPendingProfileUpdate(account.id) : null;
+    let pending: PendingProfileUpdate | undefined;
+    if (account) {
+      const [storedPending] = await db
+        .select()
+        .from(customerProfileUpdateConfirmations)
+        .where(eq(customerProfileUpdateConfirmations.accountId, account.id))
+        .limit(1);
+      if (storedPending) {
+        const expiresAt = storedPending.expiresAt.getTime();
+        if (expiresAt > Date.now()) {
+          pending = {
+            id: storedPending.id,
+            fields: storedPending.fields as SupportProfileFields,
+            comparison: storedPending.comparison as PendingProfileUpdate["comparison"],
+            expiresAt,
+          };
+        } else {
+          await db
+            .delete(customerProfileUpdateConfirmations)
+            .where(and(
+              eq(customerProfileUpdateConfirmations.id, storedPending.id),
+              eq(customerProfileUpdateConfirmations.accountId, account.id),
+            ));
+        }
+      }
+    }
 
     if (account && pending && pending.expiresAt > Date.now()) {
       if (isSupportConfirmation(message)) {
         await applyProfileUpdate(account, pending.fields);
-        await clearPendingProfileUpdate(account.id);
+        await db
+          .delete(customerProfileUpdateConfirmations)
+          .where(and(
+            eq(customerProfileUpdateConfirmations.id, pending.id),
+            eq(customerProfileUpdateConfirmations.accountId, account.id),
+          ));
         res.json({
           reply: "น้องไนท์อัปเดตข้อมูลโปรไฟล์และใบกำกับภาษีให้เรียบร้อยแล้วค่ะ 🟢",
           matchedType: "none",
@@ -203,7 +187,12 @@ router.post("/support/chat", async (req, res, next) => {
         return;
       }
       if (isSupportCancellation(message)) {
-        await clearPendingProfileUpdate(account.id);
+        await db
+          .delete(customerProfileUpdateConfirmations)
+          .where(and(
+            eq(customerProfileUpdateConfirmations.id, pending.id),
+            eq(customerProfileUpdateConfirmations.accountId, account.id),
+          ));
         res.json({
           reply: "ยกเลิกการอัปเดตข้อมูลแล้วค่ะ ข้อมูลเดิมยังไม่เปลี่ยนแปลง",
           matchedType: "none",
@@ -223,7 +212,10 @@ router.post("/support/chat", async (req, res, next) => {
         });
         return;
       }
-      const comparison = profileComparison(account, extracted);
+      const fieldsToConfirm = pending
+        ? { ...pending.fields, ...extracted }
+        : extracted;
+      const comparison = profileComparison(account, fieldsToConfirm);
       if (!comparison.length) {
         res.json({
           reply: "ข้อมูลที่ส่งมาตรงกับโปรไฟล์ปัจจุบันแล้วค่ะ ยังไม่มีอะไรต้องอัปเดต",
@@ -232,10 +224,23 @@ router.post("/support/chat", async (req, res, next) => {
         });
         return;
       }
-      await savePendingProfileUpdate(account.id, {
-        fields: extracted,
-        comparison,
-      });
+      await db
+        .insert(customerProfileUpdateConfirmations)
+        .values({
+          accountId: account.id,
+          fields: fieldsToConfirm,
+          comparison,
+          expiresAt: new Date(Date.now() + PENDING_UPDATE_TTL_MS),
+        })
+        .onConflictDoUpdate({
+          target: customerProfileUpdateConfirmations.accountId,
+          set: {
+            fields: fieldsToConfirm,
+            comparison,
+            expiresAt: new Date(Date.now() + PENDING_UPDATE_TTL_MS),
+            updatedAt: new Date(),
+          },
+        });
       res.json({
         reply: updateReply(comparison),
         matchedType: "none",

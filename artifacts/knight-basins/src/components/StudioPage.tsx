@@ -52,7 +52,7 @@ import {
 import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
-import { formatThaiDateTime } from "@/data/date-time";
+import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
 
@@ -201,7 +201,7 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
       <label>บทบาทลูกค้า<select value={contact.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-studio-customer-role"><option value="">เลือกบทบาท</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label>
       <label>ประเภทสถานที่<select value={contact.propertyType} onChange={(event) => update("propertyType", event.target.value)} data-testid="input-studio-property-type"><option value="">เลือกประเภท</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>
       {contact.propertyType === "condo" && <label>ชั้นคอนโด<input value={contact.condoFloor} onChange={(event) => update("condoFloor", event.target.value)} maxLength={32} data-testid="input-studio-condo-floor" /></label>}
-      <label>วันที่คาดว่าจะติดตั้ง<input type="date" value={contact.expectedInstallationDate} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-studio-installation-date" /></label>
+       <label>วันที่คาดว่าจะติดตั้ง<input type="date" min={thaiDateInputValue(new Date())} value={contact.expectedInstallationDate} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-studio-installation-date" /></label>
       <label>ชื่อสำหรับใบกำกับภาษี<input value={contact.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-studio-tax-name" /></label>
       <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={contact.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} data-testid="input-studio-tax-id" /></label>
       <label>สาขา<input value={contact.taxBranch} onChange={(event) => update("taxBranch", event.target.value)} maxLength={120} data-testid="input-studio-tax-branch" /></label>
@@ -451,6 +451,9 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
+  const today = thaiDateInputValue(new Date());
+  const hasPastInstallationDate = Boolean(contact.expectedInstallationDate && contact.expectedInstallationDate < today);
+  const missingTaxIdForVat = state.vat && !/^[0-9]{13}$/.test(contact.taxId);
   useEffect(() => {
     if (!contactDefaults) return;
     setContact((current) => ({
@@ -597,6 +600,10 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
       setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
+    if (hasPastInstallationDate) {
+      setResult("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
+      return;
+    }
     if (!isValidEmailAddress(contact.email)) {
       setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
@@ -646,6 +653,10 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
       setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
+    if (hasPastInstallationDate) {
+      setResult("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
+      return;
+    }
     setSubmitting(true);
     setResult("");
     const form = new FormData();
@@ -691,6 +702,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
            <label>ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
         </div>
         <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
+        {missingTaxIdForVat && <p className="studio-warning studio-warning--amber" role="status" data-testid="status-studio-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}
          <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
         {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
         {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}

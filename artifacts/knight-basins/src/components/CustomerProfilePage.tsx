@@ -10,7 +10,7 @@ import {
 } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatTHB } from "@/data/catalog";
-import { formatThaiDateTime } from "@/data/date-time";
+import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress } from "@/data/validation";
 import { LineLoginButton } from "./KnightSupport";
 
@@ -42,6 +42,8 @@ export function CustomerProfilePage() {
   const [form, setForm] = useState<CustomerProfileInput>(emptyProfile);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const today = thaiDateInputValue(new Date());
+  const hasInvalidTaxId = Boolean(form.taxId && !/^[0-9]{13}$/.test(form.taxId));
 
   useEffect(() => {
     if (!profile.data) return;
@@ -80,8 +82,12 @@ export function CustomerProfilePage() {
       setErrorMessage("กรุณาตรวจสอบรูปแบบอีเมล");
       return;
     }
-    if (form.taxId && !/^[0-9]{13}$/.test(form.taxId)) {
-      setErrorMessage("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+    if (hasInvalidTaxId) {
+      setErrorMessage("");
+      return;
+    }
+    if (form.expectedInstallationDate && form.expectedInstallationDate < today) {
+      setErrorMessage("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
       return;
     }
     updateProfile.mutate(
@@ -150,9 +156,9 @@ export function CustomerProfilePage() {
           <label className="profile-field-wide">ที่อยู่จัดส่ง / ติดตั้งเริ่มต้น<textarea value={form.address} onChange={(event) => update("address", event.target.value)} maxLength={4000} rows={4} data-testid="input-profile-address" /></label>
            <label>ประเภทสถานที่<select value={form.propertyType ?? "house-townhome"} onChange={(event) => setForm((current) => ({ ...current, propertyType: event.target.value as CustomerProfileInput["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-profile-property-type"><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>
            {form.propertyType === "condo" && <label>ชั้นคอนโด<input value={form.condoFloor ?? ""} onChange={(event) => update("condoFloor", event.target.value)} maxLength={32} data-testid="input-profile-condo-floor" /></label>}
-           <label>วันที่คาดว่าจะติดตั้ง<input type="date" value={form.expectedInstallationDate ?? ""} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-profile-installation-date" /></label>
+           <label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={form.expectedInstallationDate ?? ""} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-profile-installation-date" /></label>
           <label>ชื่อสำหรับใบกำกับภาษี<input value={form.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-profile-tax-name" /></label>
-          <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={form.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} data-testid="input-profile-tax-id" /></label>
+           <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={form.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} aria-invalid={hasInvalidTaxId} data-testid="input-profile-tax-id" />{hasInvalidTaxId && <span className="field-error" role="alert" data-testid="status-profile-tax-id-validation">กรุณากรอกเลขประจำตัวผู้เสียภาษีให้ครบ 13 หลัก</span>}</label>
           <label>สาขา<input value={form.taxBranch} onChange={(event) => update("taxBranch", event.target.value)} maxLength={120} data-testid="input-profile-tax-branch" /></label>
           <label>ช่องทางติดต่อที่สะดวก<select value={form.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-profile-preferred-contact"><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label>
           <label>บทบาทลูกค้า<select value={form.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-profile-customer-role"><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label>
