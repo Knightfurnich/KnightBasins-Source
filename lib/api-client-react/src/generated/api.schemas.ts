@@ -470,6 +470,53 @@ export interface LineAuthStatus {
   user: LineAuthUser | null;
 }
 
+export interface CustomerProfileInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  fullName: string;
+  /** @pattern ^[0-9]{10}$ */
+  phone: string;
+  /** @maxLength 240 */
+  email: string;
+  /** @maxLength 200 */
+  company: string;
+  /** @maxLength 240 */
+  project: string;
+  /** @maxLength 4000 */
+  address: string;
+}
+
+export type CustomerProfile = CustomerProfileInput & ({
+  id: number;
+  lineUserId: string;
+  displayName: string;
+  /** @nullable */
+  pictureUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+});
+
+export type CustomerQuotationOrderMode = typeof CustomerQuotationOrderMode[keyof typeof CustomerQuotationOrderMode];
+
+
+export const CustomerQuotationOrderMode = {
+  studio: 'studio',
+  'quick-purchase': 'quick-purchase',
+} as const;
+
+export interface CustomerQuotation {
+  id: number;
+  quoteNumber: string;
+  orderMode: CustomerQuotationOrderMode;
+  issuedAt: string;
+  updatedAt: string;
+  /** @nullable */
+  amountTHB?: number | null;
+  viewUrl: string;
+}
+
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
   password: string;

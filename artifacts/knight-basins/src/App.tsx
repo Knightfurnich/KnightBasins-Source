@@ -34,6 +34,7 @@ import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, t
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
 import { isValidEmailAddress } from "@/data/validation";
+import { CustomerProfilePage } from "@/components/CustomerProfilePage";
 
 const emptyCustomer: CustomerDetails = { name: "", company: "", taxId: "", phone: "", email: "", purchasingDepartment: "", address: "", project: "", site: "", notes: "" };
 const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
@@ -572,10 +573,16 @@ function SavedQuotePage() {
   const [language, setLanguage] = useState<QuoteLanguage>("TH");
   const notifyMutation = useNotifySavedQuote();
   const [notificationMessage, setNotificationMessage] = useState(() => new URLSearchParams(window.location.search).get("notification") ?? "");
+  const shouldPrint = new URLSearchParams(window.location.search).get("print") === "1";
   useEffect(() => {
     const persisted = lead?.studioData ? readSavedQuotePayload(lead.studioData) : null;
     setLanguage(persisted?.kind === "quick-purchase" ? persisted.language ?? "TH" : "TH");
   }, [lead?.quoteNumber]);
+  useEffect(() => {
+    if (!shouldPrint || !lead) return;
+    const timer = window.setTimeout(() => window.print(), 500);
+    return () => window.clearTimeout(timer);
+  }, [shouldPrint, lead?.quoteNumber]);
 
   if (!quoteNumber) {
     return <div className="page-wrap empty-state"><span className="empty-number">—</span><h3>ไม่พบเลขที่ใบเสนอราคา</h3><Link href="/quote" className="text-link">กลับไปสร้างใบเสนอราคา <ArrowRight size={15} /></Link></div>;
@@ -921,7 +928,7 @@ import AdminApp from "./admin/AdminApp";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import knightFurnichLogo from "@assets/Knightfurnich-logo_1789302266220.png";
-import { useGetCatalog, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
+import { useGetCatalog, useGetCustomerProfile, useGetLineAuthStatus, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
 import { KnightSupport, LineLoginButton } from "@/components/KnightSupport";
 import OwnerWorkbench from "./admin/OwnerWorkbench";
 
@@ -946,6 +953,8 @@ function OrderModeTabs({ mode, setMode }: { mode: StudioOrderMode; setMode: Disp
 
 function Storefront() {
   const { data: remoteCatalog } = useGetCatalog();
+  const { data: lineAuth } = useGetLineAuthStatus();
+  const { data: customerProfile } = useGetCustomerProfile({ query: { queryKey: ["customer-profile"], enabled: lineAuth?.authenticated === true, retry: false } });
   const [, setCatalogRevision] = useState(0);
   const [cart, setCart] = useStored<QuoteBasinLine[]>("knight-cart", []);
   const [stones, setStones] = useStoredStones("knight-stones", []);
@@ -956,6 +965,26 @@ function Storefront() {
   const [, setLocation] = useLocation();
   const upsertLead = useUpsertLead();
   const notifyQuoteMutation = useNotifySavedQuote();
+  const contactDefaults = useMemo(() => ({
+    name: customerProfile?.fullName || customerProfile?.displayName || "",
+    company: customerProfile?.company || "",
+    phone: customerProfile?.phone || "",
+    email: customerProfile?.email || "",
+    project: customerProfile?.project || "",
+    address: customerProfile?.address || "",
+  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.phone, customerProfile?.email, customerProfile?.project, customerProfile?.address]);
+  useEffect(() => {
+    if (!customerProfile) return;
+    setCustomer((current) => ({
+      ...current,
+      name: contactDefaults.name || current.name,
+      company: contactDefaults.company || current.company,
+      phone: contactDefaults.phone || current.phone,
+      email: contactDefaults.email || current.email,
+      project: contactDefaults.project || current.project,
+      address: contactDefaults.address || current.address,
+    }));
+  }, [customerProfile?.id, customerProfile?.updatedAt]);
   useEffect(() => {
     if (!remoteCatalog) return;
      PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
@@ -1031,7 +1060,7 @@ function Storefront() {
     if (!lead.quoteNumber) throw new Error("ระบบยังไม่ได้สร้างเลขที่ใบเสนอราคา");
     setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`);
   };
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

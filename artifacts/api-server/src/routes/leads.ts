@@ -7,6 +7,7 @@ import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
 import { notifyQuote, notifySketch } from "../lib/sales-notifications";
 import { formatQuoteMonth } from "../lib/date-time";
+import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
 const router: IRouter = Router();
 
@@ -25,6 +26,7 @@ router.post("/leads", async (req, res, next) => {
   if (!parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
 
   try {
+    const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
     const [existing] = await db
       .select({ quoteNumber: customerLeads.quoteNumber })
       .from(customerLeads)
@@ -40,7 +42,7 @@ router.post("/leads", async (req, res, next) => {
     const requestedPriority = statusPriority[parsed.data.status];
     const [lead] = await db
       .insert(customerLeads)
-      .values({ ...parsed.data, quoteNumber })
+      .values({ ...parsed.data, quoteNumber, customerAccountId: account?.id ?? null })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
         set: {
@@ -58,6 +60,7 @@ router.post("/leads", async (req, res, next) => {
            orderMode: parsed.data.orderMode,
            studioData: parsed.data.studioData,
            sketchUrl: parsed.data.sketchUrl,
+           customerAccountId: account?.id ?? customerLeads.customerAccountId,
           updatedAt: new Date(),
         },
       })
@@ -109,6 +112,7 @@ router.post("/quotes/notify", async (req, res, next) => {
 
 router.post("/leads/sketch", async (req, res, next) => {
   try {
+    const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
     const { media, fields } = await readMultipartForm(req, "image");
     let metadata: unknown;
     try {
@@ -123,7 +127,7 @@ router.post("/leads/sketch", async (req, res, next) => {
     const upload = await saveUploadedMedia(media, "sketch");
     const [lead] = await db
       .insert(customerLeads)
-      .values({ ...parsed.data, sketchUrl: upload.url, orderMode: "sketch" })
+      .values({ ...parsed.data, sketchUrl: upload.url, orderMode: "sketch", customerAccountId: account?.id ?? null })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
         set: {
@@ -140,6 +144,7 @@ router.post("/leads/sketch", async (req, res, next) => {
           productSkus: parsed.data.productSkus,
           studioData: parsed.data.studioData,
           sketchUrl: upload.url,
+           customerAccountId: account?.id ?? customerLeads.customerAccountId,
           updatedAt: new Date(),
         },
       })

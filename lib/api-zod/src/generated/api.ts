@@ -1294,3 +1294,106 @@ export const GetLineAuthStatusResponse = zod.object({
 export const DeleteLineSessionResponse = zod.void()
 
 
+/**
+ * @summary Get the authenticated customer's profile
+ */
+export const getCustomerProfileResponseOneFullNameMax = 160;
+
+export const getCustomerProfileResponseOnePhoneRegExp = new RegExp('^[0-9]{10}$');
+export const getCustomerProfileResponseOneEmailMax = 240;
+
+export const getCustomerProfileResponseOneCompanyMax = 200;
+
+export const getCustomerProfileResponseOneProjectMax = 240;
+
+export const getCustomerProfileResponseOneAddressMax = 4000;
+
+
+
+export const GetCustomerProfileResponse = zod.object({
+  "fullName": zod.string().min(1).max(getCustomerProfileResponseOneFullNameMax),
+  "phone": zod.string().regex(getCustomerProfileResponseOnePhoneRegExp),
+  "email": zod.string().max(getCustomerProfileResponseOneEmailMax),
+  "company": zod.string().max(getCustomerProfileResponseOneCompanyMax),
+  "project": zod.string().max(getCustomerProfileResponseOneProjectMax),
+  "address": zod.string().max(getCustomerProfileResponseOneAddressMax)
+}).and(zod.object({
+  "id": zod.number(),
+  "lineUserId": zod.string(),
+  "displayName": zod.string(),
+  "pictureUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+/**
+ * @summary Update the authenticated customer's profile
+ */
+export const updateCustomerProfileBodyFullNameMax = 160;
+
+export const updateCustomerProfileBodyPhoneRegExp = new RegExp('^[0-9]{10}$');
+export const updateCustomerProfileBodyEmailMax = 240;
+
+export const updateCustomerProfileBodyCompanyMax = 200;
+
+export const updateCustomerProfileBodyProjectMax = 240;
+
+export const updateCustomerProfileBodyAddressMax = 4000;
+
+
+
+export const UpdateCustomerProfileBody = zod.object({
+  "fullName": zod.string().min(1).max(updateCustomerProfileBodyFullNameMax),
+  "phone": zod.string().regex(updateCustomerProfileBodyPhoneRegExp),
+  "email": zod.string().max(updateCustomerProfileBodyEmailMax),
+  "company": zod.string().max(updateCustomerProfileBodyCompanyMax),
+  "project": zod.string().max(updateCustomerProfileBodyProjectMax),
+  "address": zod.string().max(updateCustomerProfileBodyAddressMax)
+})
+
+export const updateCustomerProfileResponseOneFullNameMax = 160;
+
+export const updateCustomerProfileResponseOnePhoneRegExp = new RegExp('^[0-9]{10}$');
+export const updateCustomerProfileResponseOneEmailMax = 240;
+
+export const updateCustomerProfileResponseOneCompanyMax = 200;
+
+export const updateCustomerProfileResponseOneProjectMax = 240;
+
+export const updateCustomerProfileResponseOneAddressMax = 4000;
+
+
+
+export const UpdateCustomerProfileResponse = zod.object({
+  "fullName": zod.string().min(1).max(updateCustomerProfileResponseOneFullNameMax),
+  "phone": zod.string().regex(updateCustomerProfileResponseOnePhoneRegExp),
+  "email": zod.string().max(updateCustomerProfileResponseOneEmailMax),
+  "company": zod.string().max(updateCustomerProfileResponseOneCompanyMax),
+  "project": zod.string().max(updateCustomerProfileResponseOneProjectMax),
+  "address": zod.string().max(updateCustomerProfileResponseOneAddressMax)
+}).and(zod.object({
+  "id": zod.number(),
+  "lineUserId": zod.string(),
+  "displayName": zod.string(),
+  "pictureUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+/**
+ * @summary List quotations belonging to the authenticated customer
+ */
+export const GetCustomerQuotationHistoryResponseItem = zod.object({
+  "id": zod.number(),
+  "quoteNumber": zod.string(),
+  "orderMode": zod.enum(['studio', 'quick-purchase']),
+  "issuedAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "amountTHB": zod.number().nullish(),
+  "viewUrl": zod.string()
+})
+export const GetCustomerQuotationHistoryResponse = zod.array(GetCustomerQuotationHistoryResponseItem)
+
+

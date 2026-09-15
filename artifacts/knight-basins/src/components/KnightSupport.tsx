@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
+import { Link } from "wouter";
 import { useGetLineAuthStatus, useSendSupportChatMessage } from "@workspace/api-client-react";
 
 type ChatMessage = {
@@ -18,7 +19,7 @@ export function LineLoginButton({ compact = false }: { compact?: boolean }) {
   };
 
   if (data?.authenticated) {
-    return <span className="line-login-user">{data.user?.displayName ?? "LINE"}</span>;
+    return <Link href="/profile" className="line-login-user" title={data.user?.displayName ?? "LINE"} data-testid="link-my-profile">👤 โปรไฟล์ของฉัน</Link>;
   }
 
   return (

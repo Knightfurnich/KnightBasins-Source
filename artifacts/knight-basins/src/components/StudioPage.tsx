@@ -96,6 +96,7 @@ type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
   leadKey: string;
   onSubmitStudio: (submission: StudioSubmission) => Promise<void> | void;
+  contactDefaults?: typeof emptyContact;
 };
 
 const makeRectangle = (index: number): StudioRectangle => ({
@@ -411,7 +412,7 @@ function StudioDraftDrawer({ drafts, onClose, onOpen, onCopy, onDelete }: { draf
   </div>;
 }
 
-export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
+export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
   const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode));
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
@@ -423,7 +424,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const [draftName, setDraftName] = useState("");
   const skipNextDraftSave = useRef(false);
   const hasMountedDraftEffect = useRef(false);
-  const [contact, setContact] = useState(emptyContact);
+  const [contact, setContact] = useState(() => ({ ...emptyContact, ...contactDefaults }));
   const [sketchFile, setSketchFile] = useState<File | null>(null);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -432,6 +433,18 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
+  useEffect(() => {
+    if (!contactDefaults) return;
+    setContact((current) => ({
+      ...current,
+      name: contactDefaults.name || current.name,
+      company: contactDefaults.company || current.company,
+      phone: contactDefaults.phone || current.phone,
+      email: contactDefaults.email || current.email,
+      project: contactDefaults.project || current.project,
+      address: contactDefaults.address || current.address,
+    }));
+  }, [contactDefaults?.name, contactDefaults?.company, contactDefaults?.phone, contactDefaults?.email, contactDefaults?.project, contactDefaults?.address]);
   useEffect(() => {
     if (!estimate.crossJointPlacements.length && result === "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว") {
       setResult("");

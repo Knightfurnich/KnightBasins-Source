@@ -6,7 +6,7 @@ import { getLineAuthDiagnostics } from "../lib/line-config";
 
 const router: IRouter = Router();
 const STATE_COOKIE = "knight_line_oauth_state";
-const SESSION_COOKIE = "knight_line_session";
+export const SESSION_COOKIE = "knight_line_session";
 const SESSION_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 type LineUser = {
@@ -79,15 +79,24 @@ function configured() {
   return getLineAuthDiagnostics().ready;
 }
 
-async function findAuthenticatedUser(cookieValue: string | undefined) {
+export async function findAuthenticatedAccount(cookieValue: string | undefined) {
   const session = verifyCookie<LineSessionCookie>(cookieValue);
   if (!session?.token) return null;
 
   const [result] = await db
     .select({
+      id: customerAccounts.id,
       userId: customerAccounts.lineUserId,
       displayName: customerAccounts.displayName,
       pictureUrl: customerAccounts.pictureUrl,
+      fullName: customerAccounts.fullName,
+      phone: customerAccounts.phone,
+      email: customerAccounts.email,
+      company: customerAccounts.company,
+      project: customerAccounts.project,
+      address: customerAccounts.address,
+      createdAt: customerAccounts.createdAt,
+      updatedAt: customerAccounts.updatedAt,
     })
     .from(customerSessions)
     .innerJoin(customerAccounts, eq(customerSessions.accountId, customerAccounts.id))
@@ -98,6 +107,11 @@ async function findAuthenticatedUser(cookieValue: string | undefined) {
     .limit(1);
 
   return result ?? null;
+}
+
+async function findAuthenticatedUser(cookieValue: string | undefined) {
+  const account = await findAuthenticatedAccount(cookieValue);
+  return account ? { userId: account.userId, displayName: account.displayName, pictureUrl: account.pictureUrl } : null;
 }
 
 router.get("/auth/line/login", (req, res) => {

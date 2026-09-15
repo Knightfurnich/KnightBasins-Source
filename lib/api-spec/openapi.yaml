@@ -552,6 +552,57 @@ paths:
       responses:
         "204":
           description: Logged out
+  /customer/profile:
+    get:
+      operationId: getCustomerProfile
+      tags: [customer-auth]
+      summary: Get the authenticated customer's profile
+      responses:
+        "200":
+          description: Customer profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerProfile"
+        "401":
+          description: LINE login required
+    put:
+      operationId: updateCustomerProfile
+      tags: [customer-auth]
+      summary: Update the authenticated customer's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerProfileInput"
+      responses:
+        "200":
+          description: Updated customer profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerProfile"
+        "400":
+          description: Invalid profile data
+        "401":
+          description: LINE login required
+  /customer/quotes:
+    get:
+      operationId: getCustomerQuotationHistory
+      tags: [customer-auth]
+      summary: List quotations belonging to the authenticated customer
+      responses:
+        "200":
+          description: Customer quotation history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerQuotation"
+        "401":
+          description: LINE login required
 components:
   parameters:
     RecordId:
@@ -877,4 +928,39 @@ components:
           oneOf:
             - $ref: "#/components/schemas/LineAuthUser"
             - type: "null"
+    CustomerProfileInput:
+      type: object
+      required: [fullName, phone, email, company, project, address]
+      properties:
+        fullName: { type: string, minLength: 1, maxLength: 160 }
+        phone: { type: string, pattern: "^[0-9]{10}$" }
+        email: { type: string, maxLength: 240 }
+        company: { type: string, maxLength: 200 }
+        project: { type: string, maxLength: 240 }
+        address: { type: string, maxLength: 4000 }
+    CustomerProfile:
+      allOf:
+        - $ref: "#/components/schemas/CustomerProfileInput"
+        - type: object
+          required: [id, lineUserId, displayName, pictureUrl, createdAt, updatedAt]
+          properties:
+            id: { type: integer }
+            lineUserId: { type: string }
+            displayName: { type: string }
+            pictureUrl: { type: [string, "null"] }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    CustomerQuotation:
+      type: object
+      required: [id, quoteNumber, orderMode, issuedAt, updatedAt, viewUrl]
+      properties:
+        id: { type: integer }
+        quoteNumber: { type: string }
+        orderMode:
+          type: string
+          enum: [studio, quick-purchase]
+        issuedAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        amountTHB: { type: [integer, "null"] }
+        viewUrl: { type: string }
 

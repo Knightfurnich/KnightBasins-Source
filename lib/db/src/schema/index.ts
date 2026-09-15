@@ -2,6 +2,7 @@ import {
   boolean,
   foreignKey,
   integer,
+  index,
   jsonb,
   pgTable,
   serial,
@@ -122,6 +123,12 @@ export const customerAccounts = pgTable(
     lineUserId: varchar("line_user_id", { length: 255 }).notNull(),
     displayName: varchar("display_name", { length: 160 }).notNull(),
     pictureUrl: text("picture_url"),
+    fullName: varchar("full_name", { length: 160 }),
+    phone: varchar("phone", { length: 64 }),
+    email: varchar("email", { length: 240 }),
+    company: varchar("company", { length: 200 }),
+    project: varchar("project", { length: 240 }),
+    address: text("address"),
     ...auditColumns,
   },
   (table) => [uniqueIndex("customer_accounts_line_user_id_unique").on(table.lineUserId)],
@@ -165,9 +172,18 @@ export const customerLeads = pgTable(
     quoteNumber: varchar("quote_number", { length: 64 }),
     studioData: jsonb("studio_data"),
     sketchUrl: text("sketch_url"),
+    customerAccountId: integer("customer_account_id"),
     ...auditColumns,
   },
-  (table) => [uniqueIndex("customer_leads_key_unique").on(table.leadKey)],
+  (table) => [
+    uniqueIndex("customer_leads_key_unique").on(table.leadKey),
+    index("customer_leads_customer_account_id_idx").on(table.customerAccountId),
+    foreignKey({
+      columns: [table.customerAccountId],
+      foreignColumns: [customerAccounts.id],
+      name: "customer_leads_customer_account_id_customer_accounts_id_fk",
+    }).onDelete("set null"),
+  ],
 );
 
 export type BasinPrice = typeof basinPrices.$inferSelect;
