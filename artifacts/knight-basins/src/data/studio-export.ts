@@ -240,9 +240,118 @@ export function printStudioLayout(title: string) {
   }, 0);
 }
 
-export function safeStudioExportName(value: string, pieceCount: number, extension: "dxf" | "pdf") {
+export function safeStudioExportName(value: string, pieceCount: number, extension: "dxf" | "pdf" | "png") {
   const safe = value.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "studio-layout";
   return `${safe}-${pieceCount}ชิ้น.${extension}`;
+}
+
+function escapeSvg(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+function svgColor(value: string | undefined, fallback: string) {
+  return value && /^#[0-9a-f]{6}$/i.test(value.trim()) ? value.trim() : fallback;
+}
+
+function toneInk(tone: string) {
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(tone.slice(offset + 1, offset + 3), 16));
+  const luminance = channels.reduce((sum, channel) => {
+    const normalized = channel / 255;
+    return sum + (normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4);
+  }, 0);
+  return luminance < 0.42 ? "#ffffff" : "#17324a";
+}
+
+export function createStudioPngSvg(
+  state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">,
+  stoneTone?: string,
+) {
+  const model = createStudioExportModel(state);
+  const tone = svgColor(stoneTone, "#dce8ed");
+  const ink = toneInk(tone);
+  const padding = 90;
+  const headerHeight = 92;
+  const contentWidth = Math.max(1, ...model.pieces.map((piece) => piece.bounds.widthMm));
+  const contentHeight = Math.max(1, ...model.pieces.map((piece) => piece.offsetY + piece.bounds.heightMm));
+  const width = contentWidth + padding * 2;
+  const height = contentHeight + padding * 2 + headerHeight;
+  const edgeColors: Record<string, string> = {
+    upstand: "#b26b00",
+    "open-edge": "#bd3f38",
+    "wall-flush": "#526b7a",
+  };
+  const pieceMarkup = model.pieces.map((piece, pieceIndex) => {
+    const originY = padding + headerHeight + piece.offsetY;
+    const rectangles = piece.rectangles.map((rectangle) => `
+      <rect x="${rectangle.xMm}" y="${rectangle.yMm}" width="${rectangle.widthMm}" height="${rectangle.heightMm}" rx="8" fill="${tone}" stroke="${ink}" stroke-opacity=".56" stroke-width="7"/>
+      <text x="${rectangle.xMm + rectangle.widthMm / 2}" y="${rectangle.yMm + rectangle.heightMm / 2}" text-anchor="middle" dominant-baseline="middle" fill="${ink}" font-size="28" font-weight="700">${rectangle.widthMm} × ${rectangle.heightMm} mm</text>
+    `).join("");
+    const joints = piece.joints.map((joint) => `
+      <line x1="${joint.first.start.xMm}" y1="${joint.first.start.yMm}" x2="${joint.first.end.xMm}" y2="${joint.first.end.yMm}" stroke="${ink}" stroke-width="10" stroke-dasharray="24 16" stroke-linecap="round"/>
+    `).join("");
+    const edges = piece.edges.filter((edge) => edge.status !== "normal" && edge.exposedLengthMm > 0).map((edge) => `
+      <line x1="${edge.start.xMm}" y1="${edge.start.yMm}" x2="${edge.end.xMm}" y2="${edge.end.yMm}" stroke="${edgeColors[edge.status] ?? "#526b7a"}" stroke-width="12" stroke-linecap="round"/>
+      <text x="${(edge.start.xMm + edge.end.xMm) / 2}" y="${(edge.start.yMm + edge.end.yMm) / 2}" fill="${edgeColors[edge.status] ?? "#526b7a"}" font-size="20" font-weight="700">${escapeSvg(studioSideStatusLabelForExport(edge.status))}</text>
+    `).join("");
+    const basins = model.basins.filter((basin) => basin.pieceId === piece.piece.id).map((basin) => {
+      const basinWidth = basin.widthMm ?? 180;
+      const basinHeight = basin.heightMm ?? 70;
+      const label = basin.unknownDimensions ? `${basin.sku} · ขนาดหลุมไม่ระบุ` : `${basin.sku} · ${basin.widthMm} × ${basin.heightMm} mm`;
+      return `
+        <rect x="${basin.xMm}" y="${basin.yMm}" width="${basinWidth}" height="${basinHeight}" rx="10" fill="#ffffff" fill-opacity=".92" stroke="#17324a" stroke-width="7" ${basin.unknownDimensions ? 'stroke-dasharray="18 12"' : ""}/>
+        <text x="${basin.xMm + basinWidth / 2}" y="${basin.yMm + basinHeight / 2}" text-anchor="middle" dominant-baseline="middle" fill="#17324a" font-size="20" font-weight="700">${escapeSvg(label)}</text>
+      `;
+    }).join("");
+    return `
+      <g transform="translate(${padding} ${originY})">
+        <text x="0" y="-28" fill="#17324a" font-size="28" font-weight="700">${escapeSvg(piece.piece.name || `ชิ้นงาน ${pieceIndex + 1}`)}</text>
+        ${rectangles}${joints}${edges}${basins}
+      </g>
+    `;
+  }).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <rect width="100%" height="100%" fill="#f7fafb"/>
+    <text x="${padding}" y="${padding - 34}" fill="#17324a" font-size="34" font-weight="700">Knight Basins · Studio 2D</text>
+    <text x="${padding}" y="${padding + 8}" fill="#526b7a" font-size="20">สีหิน: ${escapeSvg(stoneTone || "catalog fallback")} · ${model.pieceCount} ชิ้นงาน · ${model.rectangleCount} แผ่น</text>
+    ${pieceMarkup}
+    <text x="${padding}" y="${height - 34}" fill="#526b7a" font-size="18">${escapeSvg(STUDIO_PRINT_NOTE)} · หน่วยมิลลิเมตร</text>
+  </svg>`;
+}
+
+function studioSideStatusLabelForExport(status: StudioEdge["status"]) {
+  return { upstand: "ติดบัว", "open-edge": "ขอบเปิด", "wall-flush": "ชิดผนัง", normal: "" }[status];
+}
+
+export async function downloadStudioPng(
+  state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">,
+  name: string,
+  stoneTone?: string,
+) {
+  if (typeof window === "undefined" || typeof document === "undefined") throw new Error("PNG export is only available in a browser");
+  const svg = createStudioPngSvg(state, stoneTone);
+  const image = new Image();
+  const source = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("สร้างภาพ PNG ไม่สำเร็จ กรุณาลองอีกครั้ง"));
+    image.src = source;
+  });
+  const scale = 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width * scale;
+  canvas.height = image.height * scale;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("เบราว์เซอร์ไม่รองรับการสร้างภาพ PNG");
+  context.scale(scale, scale);
+  context.drawImage(image, 0, 0);
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("สร้างไฟล์ PNG ไม่สำเร็จ กรุณาลองอีกครั้ง");
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = safeStudioExportName(name, studioPieces(state).length, "png");
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export async function downloadStudioDxf(state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">, name: string) {

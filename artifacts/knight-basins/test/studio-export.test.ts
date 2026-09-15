@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createStudioDxf, createStudioExportModel, STUDIO_EXPORT_LAYERS, STUDIO_EXPORT_NOTE, studioPrintTitle } from "../src/data/studio-export.ts";
+import { createStudioDxf, createStudioExportModel, createStudioPngSvg, STUDIO_EXPORT_LAYERS, STUDIO_EXPORT_NOTE, studioPrintTitle } from "../src/data/studio-export.ts";
 import type { StudioState } from "../src/data/studio-model.ts";
 
 const state = (overrides: Partial<StudioState> = {}): StudioState => ({
@@ -102,4 +102,12 @@ test("unknown basin dimensions use an ASCII label and never create a cutout hole
 test("print titles identify piece count and sanitize project names", () => {
   assert.equal(studioPrintTitle("studio-layout", 3), "KF-Basins-studio-layout-3ชิ้น");
   assert.equal(studioPrintTitle("QT/2026 001", 2), "KF-Basins-QT-2026-001-2ชิ้น");
+});
+
+test("PNG SVG uses the shared layout model, selected stone tone, dimensions, and basin labels", () => {
+  const svg = createStudioPngSvg(state(), "#090a09");
+  assert.match(svg, /fill="#090a09"/);
+  assert.match(svg, /1800 × 600 mm/);
+  assert.match(svg, /KF001/);
+  assert.match(svg, /ติดบัว/);
 });

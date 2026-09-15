@@ -29,7 +29,7 @@ import {
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } from "@/components/StudioPage";
 import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
-import { downloadStudioDxf, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
+import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
 
 const emptyCustomer: CustomerDetails = { name: "", company: "", taxId: "", phone: "", email: "", purchasingDepartment: "", address: "", project: "", site: "", notes: "" };
@@ -464,8 +464,9 @@ function StudioLayoutSnapshot({ state, quoteNumber }: { state: StudioState; quot
   const pieces = studioPieces(state);
   const formatPlacementCoordinate = (value: number) => Math.round(value).toLocaleString("th-TH");
   const exportReady = studioExportDimensionsValid(state);
-  const exportFile = async (format: "dxf" | "pdf") => {
+  const exportFile = async (format: "dxf" | "pdf" | "png") => {
     if (format === "dxf") await downloadStudioDxf(state, quoteNumber || "studio-layout");
+    else if (format === "png") await downloadStudioPng(state, quoteNumber || "studio-layout", stoneColorByName(state.activeStone).tone);
     else printStudioLayout(studioPrintTitle(quoteNumber || "studio-layout", pieces.length));
   };
   return <section className="studio-saved-layout studio-print-layout" data-testid="saved-studio-layout">
@@ -489,7 +490,7 @@ function StudioLayoutSnapshot({ state, quoteNumber }: { state: StudioState; quot
         {!placements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
       </StudioFootprint></div>;
     })}</div>
-    <div className="studio-saved-layout-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("dxf")} data-testid="button-download-saved-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("pdf")} data-testid="button-download-saved-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button></div>
+    <div className="studio-saved-layout-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("dxf")} data-testid="button-download-saved-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("pdf")} data-testid="button-download-saved-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFile("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>
     <p className="studio-saved-layout-note">ตำแหน่งอ่างเป็นแบบ read-only ที่บันทึกพร้อมใบเสนอราคา ไม่สามารถแก้ไขจากลิงก์นี้ได้</p>
     <p className="studio-print-warning">{STUDIO_PRINT_NOTE}</p>
   </section>;

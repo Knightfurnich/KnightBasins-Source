@@ -47,7 +47,7 @@ import {
   type StudioState,
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
-import { downloadStudioDxf, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
+import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -278,6 +278,35 @@ function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispa
   </section>;
 }
 
+function StudioStoneComparison({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
+  const comparisons = useMemo(() => state.stoneColors.map((code) => {
+    const stone = stoneColorByName(code);
+    const estimate = studioEstimate({ ...state, activeStone: code }, PRODUCTS);
+    const priceLabel = estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : estimate.stoneUnitPriceTHB === null ? "ติดต่อฝ่ายขาย" : formatTHB(estimate.stoneUnitPriceTHB);
+    const stoneTotalLabel = estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(estimate.stoneTotalTHB);
+    return { code, stone, estimate, priceLabel, stoneTotalLabel };
+  }), [state]);
+  return <section className="studio-stone-comparison" data-testid="studio-stone-comparison">
+    <div className="studio-stone-comparison-heading"><span>เปรียบเทียบสีหิน</span><small>กดการ์ดเพื่อใช้เป็นสีคำนวณหลัก</small></div>
+    <div className="studio-stone-comparison-grid">
+      {comparisons.map(({ code, stone, estimate, priceLabel, stoneTotalLabel }) => <button
+        type="button"
+        key={code}
+        className={`studio-stone-comparison-card ${state.activeStone === code ? "is-active" : ""}`}
+        onClick={() => setState((current) => ({ ...current, activeStone: code }))}
+        aria-pressed={state.activeStone === code}
+        data-testid={`button-stone-comparison-${code}`}
+      >
+        <span className="studio-stone-comparison-name"><i style={{ background: stone.tone }} /><strong>{code}</strong><small>{stone.name}</small></span>
+        <span><small>ราคาหิน / ตร.ม.</small><strong>{priceLabel}</strong></span>
+        <span><small>ราคารวมหิน</small><strong>{stoneTotalLabel}</strong></span>
+        <span><small>ยอดรวมประมาณการสุทธิ</small><strong>{formatTHB(estimate.totalTHB)}</strong></span>
+        {state.activeStone === code && <em>กำลังคำนวณ</em>}
+      </button>)}
+    </div>
+  </section>;
+}
+
 function StudioPrintLayout({ state }: { state: StudioState }) {
   return <section className="studio-print-layout" data-testid="studio-print-layout">
     <div className="studio-print-heading"><div><p className="eyebrow">KNIGHT BASINS / RECTANGLE WORKPIECES</p><h2>ผังประกอบ {getStudioPieces(state).length} ชิ้นงาน</h2></div><div className="studio-print-dimensions">พื้นที่รวม {studioEstimate(state, PRODUCTS).counterAreaSqM.toFixed(4)} m²</div></div>
@@ -298,19 +327,20 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
-  const exportFiles = async (format: "dxf" | "pdf") => {
+  const exportFiles = async (format: "dxf" | "pdf" | "png") => {
     if (!exportReady) {
       setResult("ขนาดหรือจำนวนแผ่นไม่ถูกต้อง จึงยังดาวน์โหลดแบบไม่ได้");
       return;
     }
     try {
       if (format === "dxf") await downloadStudioDxf(state, exportName);
+      else if (format === "png") await downloadStudioPng(state, exportName, activeStone.tone);
       else {
         printStudioLayout(studioPrintTitle(exportName, getStudioPieces(state).length));
         setResult("เปิดหน้าพิมพ์แบบแล้ว เลือกเครื่องพิมพ์เป็น PDF ได้");
         return;
       }
-      setResult(`ดาวน์โหลดแบบ ${format.toUpperCase()} แล้ว`);
+      setResult(format === "png" ? "ดาวน์โหลดภาพ PNG แล้ว" : `ดาวน์โหลดแบบ ${format.toUpperCase()} แล้ว`);
     } catch (error) {
       setResult(error instanceof Error ? error.message : "สร้างไฟล์แบบไม่สำเร็จ กรุณาลองอีกครั้ง");
     }
@@ -387,16 +417,17 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
           {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
           <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>
         </div>
+         <StudioStoneComparison state={state} setState={setState} />
         <div className="studio-pricing-inputs">
           <label>ความสูงบัว (มม.)<input type="number" min="1" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-upstand-height" /></label>
           <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
           <label>ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
         </div>
         <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
-        <div className="studio-total"><span>รวมประมาณการ</span><strong>{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
+         <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
         {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
         {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
-        {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button></div>}
+         {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
         <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
         {result && <p className="studio-result" role="status">{result}</p>}
       </aside>

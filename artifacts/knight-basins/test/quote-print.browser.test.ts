@@ -299,13 +299,32 @@ describe("long formal quote print flow", () => {
     const actions = await browser.page.evaluate(`(() => ({
       dxfText: document.querySelector('[data-testid="button-download-studio-dxf"]')?.textContent ?? "",
       pdfText: document.querySelector('[data-testid="button-download-studio-pdf"]')?.textContent ?? "",
+      pngText: document.querySelector('[data-testid="button-download-studio-png"]')?.textContent ?? "",
       dxfDisabled: document.querySelector('[data-testid="button-download-studio-dxf"]')?.disabled ?? true,
       pdfDisabled: document.querySelector('[data-testid="button-download-studio-pdf"]')?.disabled ?? true,
+      pngDisabled: document.querySelector('[data-testid="button-download-studio-png"]')?.disabled ?? true,
     }))()`);
     assert.match(actions.dxfText, /ดาวน์โหลดแบบ.*DXF/);
     assert.match(actions.pdfText, /ดาวน์โหลดแบบ.*PDF/);
+    assert.match(actions.pngText, /ดาวน์โหลดภาพ.*PNG/);
     assert.equal(actions.dxfDisabled, false);
     assert.equal(actions.pdfDisabled, false);
+    assert.equal(actions.pngDisabled, false);
+    const initialComparison = await browser.page.evaluate(`(() => ({
+      count: document.querySelectorAll('[data-testid^="button-stone-comparison-"]').length,
+      active: document.querySelector('[data-testid^="button-stone-comparison-"][aria-pressed="true"]')?.getAttribute("data-testid") ?? "",
+      total: document.querySelector('[data-testid="studio-total-value"]')?.textContent ?? "",
+    }))()`);
+    assert.equal(initialComparison.count, 2);
+    assert.equal(initialComparison.active, "button-stone-comparison-BW010");
+    await clickTestId(browser.page, "button-stone-comparison-MU010");
+    const selectedComparison = await browser.page.evaluate(`(() => ({
+      active: document.querySelector('[data-testid^="button-stone-comparison-"][aria-pressed="true"]')?.getAttribute("data-testid") ?? "",
+      mainStone: document.querySelector('[data-testid="button-studio-active-stone-MU010"]')?.classList.contains("is-active") ?? false,
+      total: document.querySelector('[data-testid="studio-total-value"]')?.textContent ?? "",
+    }))()`);
+    assert.equal(selectedComparison.active, "button-stone-comparison-MU010");
+    assert.equal(selectedComparison.mainStone, true);
     const lightTone = await browser.page.evaluate(`(() => {
       const canvas = document.querySelector('[data-testid="studio-canvas"]');
       const rectangle = canvas?.querySelector('.studio-piece-rectangle');
@@ -316,7 +335,7 @@ describe("long formal quote print flow", () => {
         textColor: size instanceof HTMLElement ? getComputedStyle(size).color : "",
       };
     })()`);
-    assert.equal(lightTone.canvasTone, "#f5f3eb");
+    assert.equal(lightTone.canvasTone, "#fbfaf4");
     assert.notEqual(lightTone.rectangleBackground, "rgba(248, 252, 254, 0.78)");
     await clickTestId(browser.page, "button-studio-stone-SO423");
     await clickTestId(browser.page, "button-studio-active-stone-SO423");
@@ -329,12 +348,20 @@ describe("long formal quote print flow", () => {
         rectangleBackground: rectangle instanceof HTMLElement ? getComputedStyle(rectangle).backgroundColor : "",
         textColor: size instanceof HTMLElement ? getComputedStyle(size).color : "",
         jointColor: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-joint-color") : "",
+        total: document.querySelector('[data-testid="studio-total-value"]')?.textContent ?? "",
       };
     })()`);
     assert.equal(darkTone.canvasTone, "#343736");
     assert.notEqual(darkTone.rectangleBackground, lightTone.rectangleBackground);
     assert.equal(darkTone.textColor, "rgb(255, 255, 255)");
     assert.equal(darkTone.jointColor, "#ffe08a");
+    assert.notEqual(darkTone.total, initialComparison.total);
+    await clickTestId(browser.page, "button-download-studio-png");
+    assert.match(await waitFor(
+      () => browser.page.evaluate("document.querySelector('[role=\"status\"]')?.textContent ?? \"\""),
+      (value) => value.includes("PNG"),
+      "Studio PNG download",
+    ), /PNG/);
     await clickTestId(browser.page, "button-download-studio-dxf");
     await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
     await clickTestId(browser.page, "button-download-studio-pdf");
@@ -388,9 +415,12 @@ describe("long formal quote print flow", () => {
     const savedActions = await browser.page.evaluate(`(() => ({
       dxf: document.querySelector('[data-testid="button-download-saved-studio-dxf"]')?.disabled ?? true,
       pdf: document.querySelector('[data-testid="button-download-saved-studio-pdf"]')?.disabled ?? true,
+      png: document.querySelector('[data-testid="button-download-studio-png"]')?.disabled ?? true,
     }))()`);
     assert.equal(savedActions.dxf, false);
     assert.equal(savedActions.pdf, false);
+    assert.equal(savedActions.png, false);
+    await clickTestId(browser.page, "button-download-studio-png");
     await clickTestId(browser.page, "button-download-saved-studio-dxf");
     await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
     await clickTestId(browser.page, "button-download-saved-studio-pdf");
