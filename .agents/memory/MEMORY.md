@@ -18,3 +18,4 @@
 - [Studio browser test isolation](studio-browser-test-isolation.md) — clear autosaved Studio state before browser cases that require a fresh layout.
 - [Short Studio draft links](studio-short-links.md) — short URLs are local-storage handles; retain the store when testing resume and clear stale validation results after edits.
 - [Route test harness middleware](route-test-harness.md) — mirror JSON/cookie middleware and externalize CJS database drivers in native route tests.
+- [Storefront build port](storefront-build-port.md) — invoke standalone Vite builds with an explicit PORT; managed workflows inject it automatically.
