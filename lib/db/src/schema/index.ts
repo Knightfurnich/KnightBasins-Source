@@ -162,6 +162,26 @@ export const customerSessions = pgTable(
   ],
 );
 
+export const supportProfileUpdates = pgTable(
+  "support_profile_updates",
+  {
+    id: serial("id").primaryKey(),
+    customerAccountId: integer("customer_account_id").notNull(),
+    fields: jsonb("fields").notNull(),
+    comparison: jsonb("comparison").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("support_profile_updates_account_unique").on(table.customerAccountId),
+    foreignKey({
+      columns: [table.customerAccountId],
+      foreignColumns: [customerAccounts.id],
+      name: "support_profile_updates_account_id_customer_accounts_id_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
 export const customerLeads = pgTable(
   "customer_leads",
   {
@@ -211,4 +231,5 @@ export type InstalledStonePrice = typeof installedStonePrices.$inferSelect;
 export type SheetStonePrice = typeof sheetStonePrices.$inferSelect;
 export type CustomerAccount = typeof customerAccounts.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
+export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;
 export type CustomerLead = typeof customerLeads.$inferSelect;

@@ -39,7 +39,7 @@ describe("KnightSupport profile update confirmation", () => {
     const leadId = leadResult.rows[0]?.id;
     assert.ok(leadId);
 
-    const route = await serveTypeScriptRoute("src/routes/support.ts");
+    let route = await serveTypeScriptRoute("src/routes/support.ts");
     const headers = { "Content-Type": "application/json", Cookie: sessionCookie(token) };
     try {
       const message = await fetch(`${route.url}/api/support/chat`, {
@@ -61,6 +61,8 @@ describe("KnightSupport profile update confirmation", () => {
       assert.equal(unchanged.rows[0]?.tax_name, "บริษัทเดิม จำกัด");
       assert.equal(unchanged.rows[0]?.tax_id, "0105550000000");
 
+      await route.close();
+      route = await serveTypeScriptRoute("src/routes/support.ts");
       const confirmed = await fetch(`${route.url}/api/support/chat`, {
         method: "POST",
         headers,

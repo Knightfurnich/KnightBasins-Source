@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { and, eq, ne } from "drizzle-orm";
-import { customerAccounts, customerLeads, db } from "@workspace/db";
+import { customerAccounts, customerLeads, db, supportProfileUpdates } from "@workspace/db";
 import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
@@ -29,7 +29,6 @@ type PendingProfileUpdate = {
   expiresAt: number;
 };
 
-const pendingProfileUpdates = new Map<number, PendingProfileUpdate>();
 const PENDING_UPDATE_TTL_MS = 10 * 60 * 1000;
 
 function cleanMessage(value: unknown) {
@@ -59,6 +58,53 @@ function updateReply(comparison: PendingProfileUpdate["comparison"]) {
     "",
     "ต้องการให้น้องไนท์อัปเดตแทนข้อมูลเดิมใช่ไหมคะ? พิมพ์ “ยืนยัน” หรือ “ยกเลิก” ได้เลย",
   ].join("\n");
+}
+
+async function findPendingProfileUpdate(accountId: number) {
+  const [pending] = await db
+    .select({
+      fields: supportProfileUpdates.fields,
+      comparison: supportProfileUpdates.comparison,
+      expiresAt: supportProfileUpdates.expiresAt,
+    })
+    .from(supportProfileUpdates)
+    .where(eq(supportProfileUpdates.customerAccountId, accountId))
+    .limit(1);
+  if (!pending) return null;
+  if (pending.expiresAt.getTime() <= Date.now()) {
+    await db.delete(supportProfileUpdates).where(eq(supportProfileUpdates.customerAccountId, accountId));
+    return null;
+  }
+  return {
+    fields: pending.fields as SupportProfileFields,
+    comparison: pending.comparison as PendingProfileUpdate["comparison"],
+    expiresAt: pending.expiresAt.getTime(),
+  } satisfies PendingProfileUpdate;
+}
+
+async function savePendingProfileUpdate(accountId: number, pending: Omit<PendingProfileUpdate, "expiresAt">) {
+  const expiresAt = new Date(Date.now() + PENDING_UPDATE_TTL_MS);
+  await db
+    .insert(supportProfileUpdates)
+    .values({
+      customerAccountId: accountId,
+      fields: pending.fields,
+      comparison: pending.comparison,
+      expiresAt,
+    })
+    .onConflictDoUpdate({
+      target: supportProfileUpdates.customerAccountId,
+      set: {
+        fields: pending.fields,
+        comparison: pending.comparison,
+        expiresAt,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+async function clearPendingProfileUpdate(accountId: number) {
+  await db.delete(supportProfileUpdates).where(eq(supportProfileUpdates.customerAccountId, accountId));
 }
 
 function leadValues(fields: SupportProfileFields) {
@@ -143,13 +189,12 @@ router.post("/support/chat", async (req, res, next) => {
 
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
-    const pending = account ? pendingProfileUpdates.get(account.id) : undefined;
-    if (account && pending && pending.expiresAt <= Date.now()) pendingProfileUpdates.delete(account.id);
+    const pending = account ? await findPendingProfileUpdate(account.id) : null;
 
     if (account && pending && pending.expiresAt > Date.now()) {
       if (isSupportConfirmation(message)) {
         await applyProfileUpdate(account, pending.fields);
-        pendingProfileUpdates.delete(account.id);
+        await clearPendingProfileUpdate(account.id);
         res.json({
           reply: "น้องไนท์อัปเดตข้อมูลโปรไฟล์และใบกำกับภาษีให้เรียบร้อยแล้วค่ะ 🟢",
           matchedType: "none",
@@ -158,7 +203,7 @@ router.post("/support/chat", async (req, res, next) => {
         return;
       }
       if (isSupportCancellation(message)) {
-        pendingProfileUpdates.delete(account.id);
+        await clearPendingProfileUpdate(account.id);
         res.json({
           reply: "ยกเลิกการอัปเดตข้อมูลแล้วค่ะ ข้อมูลเดิมยังไม่เปลี่ยนแปลง",
           matchedType: "none",
@@ -187,10 +232,9 @@ router.post("/support/chat", async (req, res, next) => {
         });
         return;
       }
-      pendingProfileUpdates.set(account.id, {
+      await savePendingProfileUpdate(account.id, {
         fields: extracted,
         comparison,
-        expiresAt: Date.now() + PENDING_UPDATE_TTL_MS,
       });
       res.json({
         reply: updateReply(comparison),
