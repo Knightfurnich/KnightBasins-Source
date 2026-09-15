@@ -56,13 +56,22 @@ import { formatThaiDateTime } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
 
-const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
+const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
   name: "",
   company: "",
   phone: "",
   email: "",
   project: "",
   address: "",
+  taxName: "",
+  taxId: "",
+  taxBranch: "",
+  taxAddress: "",
+  preferredContact: "",
+  customerRole: "",
+  propertyType: "",
+  condoFloor: "",
+  expectedInstallationDate: "",
 };
 
 export type StudioSubmission = {
@@ -96,7 +105,7 @@ type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
   leadKey: string;
   onSubmitStudio: (submission: StudioSubmission) => Promise<void> | void;
-  contactDefaults?: typeof emptyContact;
+  contactDefaults?: Partial<typeof emptyContact>;
 };
 
 const makeRectangle = (index: number): StudioRectangle => ({
@@ -187,7 +196,16 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
        const emailField = key === "email";
        const phoneField = key === "phone";
        return <label key={key}>{label}{required && <span> *</span>}<input required={required} type={phoneField ? "tel" : emailField ? "email" : undefined} inputMode={phoneField ? "numeric" : undefined} pattern={phoneField ? "[0-9]{9,10}" : undefined} minLength={phoneField ? 9 : undefined} maxLength={phoneField ? 10 : undefined} placeholder={phoneField ? "0812345678 (10 หลัก)" : emailField ? "name@example.com" : undefined} value={contact[key]} onChange={(event) => update(key, phoneField ? cleanPhoneInput(event.target.value) : event.target.value)} data-testid={`input-studio-${key}`} aria-invalid={emailField && !isValidEmailAddress(contact.email)} /></label>;
-     })}
+      })}
+      <label>ช่องทางติดต่อที่สะดวก<select value={contact.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-studio-preferred-contact"><option value="">เลือกช่องทาง</option><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label>
+      <label>บทบาทลูกค้า<select value={contact.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-studio-customer-role"><option value="">เลือกบทบาท</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label>
+      <label>ประเภทสถานที่<select value={contact.propertyType} onChange={(event) => update("propertyType", event.target.value)} data-testid="input-studio-property-type"><option value="">เลือกประเภท</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>
+      {contact.propertyType === "condo" && <label>ชั้นคอนโด<input value={contact.condoFloor} onChange={(event) => update("condoFloor", event.target.value)} maxLength={32} data-testid="input-studio-condo-floor" /></label>}
+      <label>วันที่คาดว่าจะติดตั้ง<input type="date" value={contact.expectedInstallationDate} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-studio-installation-date" /></label>
+      <label>ชื่อสำหรับใบกำกับภาษี<input value={contact.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-studio-tax-name" /></label>
+      <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={contact.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} data-testid="input-studio-tax-id" /></label>
+      <label>สาขา<input value={contact.taxBranch} onChange={(event) => update("taxBranch", event.target.value)} maxLength={120} data-testid="input-studio-tax-branch" /></label>
+      <label className="studio-contact-wide">ที่อยู่สำหรับใบกำกับภาษี<textarea value={contact.taxAddress} onChange={(event) => update("taxAddress", event.target.value)} maxLength={4000} data-testid="input-studio-tax-address" /></label>
    </div>;
  }
 
@@ -575,6 +593,10 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
       setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
       return;
     }
+    if (contact.taxId && !/^[0-9]{13}$/.test(contact.taxId)) {
+      setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+      return;
+    }
     if (!isValidEmailAddress(contact.email)) {
       setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
@@ -620,11 +642,15 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
       setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
     }
+    if (contact.taxId && !/^[0-9]{13}$/.test(contact.taxId)) {
+      setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+      return;
+    }
     setSubmitting(true);
     setResult("");
     const form = new FormData();
     form.append("file", sketchFile);
-    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, email: email || null, project, address: address || null, studioData: { ...state, estimate } }));
+    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, email: email || null, project, address: address || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };

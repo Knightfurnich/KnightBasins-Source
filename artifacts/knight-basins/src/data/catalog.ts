@@ -35,12 +35,20 @@ export type CustomerDetails = {
   name: string;
   company: string;
   taxId: string;
+  taxName: string;
+  taxBranch: string;
+  taxAddress: string;
   phone: string;
   email: string;
   purchasingDepartment: string;
   address: string;
   project: string;
   site: string;
+  preferredContact: "line" | "phone" | "email" | "";
+  customerRole: "homeowner" | "architect-interior" | "contractor" | "";
+  propertyType: "house-townhome" | "condo" | "commercial" | "";
+  condoFloor: string;
+  expectedInstallationDate: string;
   notes: string;
 };
 

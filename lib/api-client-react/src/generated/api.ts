@@ -2867,3 +2867,10 @@ export function useGetCustomerQuotationHistory<TData = Awaited<ReturnType<typeof
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+

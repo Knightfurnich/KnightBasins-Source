@@ -15,6 +15,11 @@ function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
 
+function dateValue(value: Date | string | null | undefined) {
+  if (!value) return null;
+  return value instanceof Date ? value.toISOString().slice(0, 10) : value;
+}
+
 export function createQuoteNumber(now = new Date()) {
   const month = formatQuoteMonth(now);
   const serial = String(now.getTime()).slice(-6);
@@ -42,7 +47,12 @@ router.post("/leads", async (req, res, next) => {
     const requestedPriority = statusPriority[parsed.data.status];
     const [lead] = await db
       .insert(customerLeads)
-      .values({ ...parsed.data, quoteNumber, customerAccountId: account?.id ?? null })
+      .values({
+        ...parsed.data,
+        expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
+        quoteNumber,
+        customerAccountId: account?.id ?? null,
+      })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
         set: {
@@ -55,6 +65,15 @@ router.post("/leads", async (req, res, next) => {
           project: parsed.data.project,
           address: parsed.data.address,
           notes: parsed.data.notes,
+           taxName: parsed.data.taxName,
+           taxId: parsed.data.taxId,
+           taxBranch: parsed.data.taxBranch,
+           taxAddress: parsed.data.taxAddress,
+           preferredContact: parsed.data.preferredContact,
+           customerRole: parsed.data.customerRole,
+           propertyType: parsed.data.propertyType,
+           condoFloor: parsed.data.condoFloor,
+           expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
           productSkus: parsed.data.productSkus,
            quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
            orderMode: parsed.data.orderMode,
@@ -127,7 +146,13 @@ router.post("/leads/sketch", async (req, res, next) => {
     const upload = await saveUploadedMedia(media, "sketch");
     const [lead] = await db
       .insert(customerLeads)
-      .values({ ...parsed.data, sketchUrl: upload.url, orderMode: "sketch", customerAccountId: account?.id ?? null })
+      .values({
+        ...parsed.data,
+        expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
+        sketchUrl: upload.url,
+        orderMode: "sketch",
+        customerAccountId: account?.id ?? null,
+      })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
         set: {
@@ -141,6 +166,15 @@ router.post("/leads/sketch", async (req, res, next) => {
           project: parsed.data.project,
           address: parsed.data.address,
           notes: parsed.data.notes,
+          taxName: parsed.data.taxName,
+          taxId: parsed.data.taxId,
+          taxBranch: parsed.data.taxBranch,
+          taxAddress: parsed.data.taxAddress,
+          preferredContact: parsed.data.preferredContact,
+          customerRole: parsed.data.customerRole,
+          propertyType: parsed.data.propertyType,
+          condoFloor: parsed.data.condoFloor,
+          expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
           productSkus: parsed.data.productSkus,
           studioData: parsed.data.studioData,
           sketchUrl: upload.url,

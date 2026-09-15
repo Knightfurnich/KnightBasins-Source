@@ -36,7 +36,26 @@ import { StudioFootprint } from "@/components/StudioFootprint";
 import { isValidEmailAddress } from "@/data/validation";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
 
-const emptyCustomer: CustomerDetails = { name: "", company: "", taxId: "", phone: "", email: "", purchasingDepartment: "", address: "", project: "", site: "", notes: "" };
+const emptyCustomer: CustomerDetails = {
+  name: "",
+  company: "",
+  taxId: "",
+  taxName: "",
+  taxBranch: "",
+  taxAddress: "",
+  phone: "",
+  email: "",
+  purchasingDepartment: "",
+  address: "",
+  project: "",
+  site: "",
+  preferredContact: "",
+  customerRole: "",
+  propertyType: "",
+  condoFloor: "",
+  expectedInstallationDate: "",
+  notes: "",
+};
 const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
 
 function formatStonePrice(price: number | null) {
@@ -447,12 +466,13 @@ function FormalQuote({
 
     <div className="formal-customer-grid">
       <div><span>{isEnglish ? "Contact Name" : "บริษัท / สำนักงาน"}</span><strong>{isEnglish ? customer.name || "—" : customer.company || "—"}</strong></div>
-      <div><span>{isEnglish ? "Company / Office" : "เลขประจำตัวผู้เสียภาษีลูกค้า"}</span><strong>{isEnglish ? customer.company || "—" : customer.taxId || "—"}</strong></div>
+      <div><span>{isEnglish ? "Company / Office" : "ชื่อออกใบกำกับภาษี"}</span><strong>{isEnglish ? customer.company || "—" : customer.taxName || customer.company || customer.name || "—"}</strong></div>
       <div><span>{isEnglish ? "Phone" : "ผู้ติดต่อ"}</span><strong>{isEnglish ? customer.phone || "—" : customer.name || "—"}</strong></div>
       <div><span>{isEnglish ? "Purchasing / Accounts" : "ฝ่ายจัดซื้อ / บัญชี"}</span><strong>{customer.purchasingDepartment || "—"}</strong></div>
       <div><span>{isEnglish ? "Phone · Email" : "โทรศัพท์ · อีเมล"}</span><strong>{customer.phone || "—"} · {customer.email || "—"}</strong></div>
       <div><span>{isEnglish ? "Project" : "โครงการ / สถานที่ติดตั้ง (SITE)"}</span><strong>{isEnglish ? customer.project || "—" : `${customer.project || "—"} · ${customer.site || customer.address || "—"}`}</strong></div>
-      <div className="formal-customer-wide"><span>{isEnglish ? "Location" : "ที่อยู่ลูกค้า"}</span><strong>{isEnglish ? customer.site || customer.address || "—" : customer.address || "—"}</strong></div>
+      <div><span>{isEnglish ? "Tax ID / Branch" : "เลขผู้เสียภาษี / สาขา"}</span><strong>{customer.taxId || "—"} · {customer.taxBranch || "—"}</strong></div>
+      <div className="formal-customer-wide"><span>{isEnglish ? "Location / Tax Address" : "ที่อยู่ติดตั้ง / ที่อยู่ออกใบกำกับภาษี"}</span><strong>{isEnglish ? `${customer.site || customer.address || "—"} · ${customer.taxAddress || "—"}` : `${customer.address || "—"} · ${customer.taxAddress || "—"}`}</strong></div>
     </div>
 
     <div className="formal-quote-table-wrap">
@@ -629,13 +649,21 @@ function SavedQuotePage() {
     customer = {
       name: lead.name ?? "",
       company: lead.company ?? "",
-      taxId: "",
+      taxId: lead.taxId ?? "",
+      taxName: lead.taxName ?? "",
+      taxBranch: lead.taxBranch ?? "",
+      taxAddress: lead.taxAddress ?? "",
       phone: lead.phone ?? "",
       email: lead.email ?? "",
       purchasingDepartment: "",
       address: lead.address ?? "",
       project: lead.project ?? "",
       site: "",
+      preferredContact: (lead.preferredContact as CustomerDetails["preferredContact"]) ?? "",
+      customerRole: (lead.customerRole as CustomerDetails["customerRole"]) ?? "",
+      propertyType: (lead.propertyType as CustomerDetails["propertyType"]) ?? "",
+      condoFloor: lead.condoFloor ?? "",
+      expectedInstallationDate: lead.expectedInstallationDate ?? "",
       notes: lead.notes ?? "",
     };
     const placements = state.basinPlacements.length
@@ -802,8 +830,9 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   const { installationDiscount, installationCharge, grossSubtotal, subtotal, vatAmount, total } = calculateFormalQuoteTotals({ basinSubtotal, requestedInstallationCharge, basinSets, stoneTotal: totalStone, vat, vatRate: VAT_RATE });
   const hasMissing = !customer.name.trim() || !customer.phone.trim() || !customer.email.trim() || !customer.project.trim();
   const hasInvalidEmail = !isValidEmailAddress(customer.email);
+  const hasInvalidTaxId = Boolean(customer.taxId && !/^[0-9]{13}$/.test(customer.taxId));
   const hasInvalidStone = stones.some(isInvalidStone);
-  const canGenerate = !hasMissing && !hasInvalidEmail && !hasInvalidStone && cart.length > 0;
+  const canGenerate = !hasMissing && !hasInvalidEmail && !hasInvalidTaxId && !hasInvalidStone && cart.length > 0;
   const formalItems: FormalQuoteItem[] = cart.map((line) => {
     const product = productBySku(line.sku)!;
     return {
@@ -836,6 +865,8 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
     `Knight Furnich ใบเสนอราคา ${quoteNumber}`,
     `รูปแบบ: ${quoteFormat === "US" ? "US / สรุปตามพื้นที่" : "OF / รายละเอียดหน้างาน"}`,
     `ผู้ติดต่อ: ${customer.name} · โครงการ: ${customer.project}`,
+    `ประเภทสถานที่: ${customer.propertyType || "-"}${customer.condoFloor ? ` · ชั้น ${customer.condoFloor}` : ""} · วันที่คาดว่าจะติดตั้ง: ${customer.expectedInstallationDate || "-"}`,
+    `ใบกำกับภาษี: ${customer.taxName || "-"} · ${customer.taxId || "-"} · ${customer.taxBranch || "-"}`,
     `สินค้า: ${cart.map((line) => `${line.sku} x${line.quantity}`).join(", ") || "-"}`,
     `หินสังเคราะห์: ${stoneActive ? stones.map((stone) => `${stoneColorByName(stone.color).code} ${stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น` : `${stoneAreaSqM(stone).toFixed(2)} m²`}`).join(", ") : "ไม่ได้เลือก"}`,
     `ยอดสุทธิประมาณการ: ${formatTHB(total)}`,
@@ -899,7 +930,9 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   const customerFields: Array<{ key: keyof CustomerDetails; label: string; placeholder: string; required?: boolean }> = [
     { key: "name", label: "ชื่อผู้ติดต่อ", placeholder: "เช่น คุณนรินทร์", required: true },
     { key: "company", label: "บริษัท / สำนักงาน", placeholder: "ถ้ามี" },
+    { key: "taxName", label: "ชื่อออกใบกำกับภาษี", placeholder: "ถ้ามี" },
     { key: "taxId", label: "เลขประจำตัวผู้เสียภาษีลูกค้า", placeholder: "ถ้ามี" },
+    { key: "taxBranch", label: "สาขา", placeholder: "สำนักงานใหญ่ / ถ้ามี" },
     { key: "phone", label: "โทรศัพท์", placeholder: "08x-xxx-xxxx", required: true },
     { key: "email", label: "อีเมล", placeholder: "name@company.com", required: true },
     { key: "purchasingDepartment", label: "ฝ่ายจัดซื้อ / บัญชี", placeholder: "ถ้ามี" },
@@ -916,7 +949,7 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
        <section className="quote-format-panel"><div><p className="eyebrow">DOCUMENT FORMAT</p><strong>เลือกรูปแบบใบเสนอราคา</strong><small>US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จุดติดตั้ง</small></div><div className="quote-format-switch"><button className={quoteFormat === "US" ? "is-active" : ""} onClick={() => setQuoteFormat("US")} data-testid="button-quote-format-us"><span>US</span><small>พื้นที่ / แผ่น</small></button><button className={quoteFormat === "OF" ? "is-active" : ""} onClick={() => setQuoteFormat("OF")} data-testid="button-quote-format-of"><span>OF</span><small>รายห้อง / จุด</small></button></div><div className="quote-language-choice"><p className="eyebrow">DOCUMENT LANGUAGE</p><strong>เลือกภาษาสำหรับ PDF / Print</strong><small>ค่าเริ่มต้นเป็นภาษาไทย และบันทึกไปกับใบเสนอราคา</small></div><div className="quote-language-switch quote-language-switch--builder" role="group" aria-label="ภาษาของใบเสนอราคา"><span>PDF / Print</span><button type="button" className={quoteLanguage === "TH" ? "is-active" : ""} onClick={() => setQuoteLanguage("TH")} aria-pressed={quoteLanguage === "TH"} data-testid="button-quote-language-th">TH</button><button type="button" className={quoteLanguage === "EN" ? "is-active" : ""} onClick={() => setQuoteLanguage("EN")} aria-pressed={quoteLanguage === "EN"} data-testid="button-quote-language-en">EN</button></div></section>
       <div className="quote-layout"><section className="quote-main"><div className="quote-block"><div className="block-header"><div><p className="eyebrow">01 / BASINS</p><h2>รายการอ่างล้างหน้า</h2></div><Link href="/" className="text-link" data-testid="link-add-more">เพิ่มรายการ <Plus size={15} /></Link></div>{cart.length ? cart.map((line) => { const product = productBySku(line.sku)!; return <div className="quote-line" key={line.sku} data-testid={`row-quote-${line.sku}`}><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={product.category === "tall vertical washbasin"} /><div className="quote-line-name"><span className="eyebrow">{product.sku} / {product.colorCode}</span><strong>{product.colorName}</strong><small>{product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง"} · {product.dimensions}</small></div><div className="line-quantity"><button onClick={() => updateLine(line.sku, { quantity: line.quantity - 1 })} aria-label={`ลดจำนวน ${line.sku}`} data-testid={`button-quantity-minus-${line.sku}`}><Minus size={13} /></button><span data-testid={`text-quantity-${line.sku}`}>{line.quantity}</span><button onClick={() => updateLine(line.sku, { quantity: line.quantity + 1 })} aria-label={`เพิ่มจำนวน ${line.sku}`} data-testid={`button-quantity-plus-${line.sku}`}><Plus size={13} /></button></div><label className="install-toggle"><input type="checkbox" checked={line.installationSelected} onChange={(event) => updateLine(line.sku, { installationSelected: event.target.checked })} data-testid={`input-installation-${line.sku}`} /><span />ติดตั้ง</label><strong className="line-price">{formatTHB(product.priceTHB * line.quantity)}</strong><button className="icon-button" onClick={() => setCart((lines) => lines.filter((item) => item.sku !== line.sku))} aria-label={`ลบ ${line.sku}`} data-testid={`button-remove-${line.sku}`}><Trash2 size={15} /></button></div>; }) : <div className="quote-empty" data-testid="status-quote-empty"><ShoppingBag size={22} /><p>ยังไม่มีสินค้าในใบเสนอราคา</p><Link href="/" className="text-link" data-testid="link-empty-catalog">เลือกจากแคตตาล็อก <ArrowRight size={15} /></Link></div>}<div className="install-note">ค่าติดตั้งอ่าง <strong>5,000 บาท/ชุด</strong> · ฟรีค่าดำเนินการติดตั้งเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</div></div>
            <div className="quote-block"><div className="block-header"><div><p className="eyebrow">02 / STONE</p><h2>หินสังเคราะห์</h2></div><Link href="/stone" className="text-link" data-testid="link-edit-stone">{stoneActive ? "แก้ไขการกำหนดค่า" : "เพิ่มหินสังเคราะห์"} <ArrowRight size={15} /></Link></div>{stoneActive ? stones.map((stone) => <QuoteStoneRow key={stone.color} stone={stone} onRemove={removeStone} />) : <div className="quote-empty quote-empty--compact" data-testid="status-stone-empty"><p>ยังไม่ได้เลือกหินสังเคราะห์</p><Link href="/stone" className="text-link" data-testid="link-empty-stone">เลือกสีและรูปแบบการสั่งซื้อ <ArrowRight size={15} /></Link></div>}</div>
-          <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2></div>{hasMissing && <span className="missing-badge" data-testid="status-customer-missing">กรุณากรอกข้อมูลที่จำเป็น</span>}</div><div className="customer-grid">{customerFields.map((field) => <label key={field.key}>{field.label}{field.required && <sup>*</sup>}<input type={field.key === "email" ? "email" : undefined} value={customer[field.key] ?? ""} placeholder={field.placeholder} onChange={(event) => setCustomer((current) => ({ ...current, [field.key]: event.target.value }))} data-testid={`input-customer-${field.key}`} aria-invalid={field.key === "email" && hasInvalidEmail} /></label>)}<label className="span-2">ที่อยู่ลูกค้า / สถานที่จัดส่ง<textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} data-testid="input-customer-address" /></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}</div>
+           <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2></div>{hasMissing && <span className="missing-badge" data-testid="status-customer-missing">กรุณากรอกข้อมูลที่จำเป็น</span>}</div><div className="customer-grid">{customerFields.map((field) => <label key={field.key}>{field.label}{field.required && <sup>*</sup>}<input type={field.key === "email" ? "email" : undefined} value={customer[field.key] ?? ""} placeholder={field.placeholder} onChange={(event) => setCustomer((current) => ({ ...current, [field.key]: field.key === "taxId" ? event.target.value.replace(/\D/g, "").slice(0, 13) : event.target.value }))} data-testid={`input-customer-${field.key}`} aria-invalid={(field.key === "email" && hasInvalidEmail) || (field.key === "taxId" && hasInvalidTaxId)} /></label>)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">เลือกช่องทาง</option><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">เลือกบทบาท</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label><label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">เลือกประเภท</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label className="span-2">ที่อยู่ลูกค้า / สถานที่จัดส่ง<textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} data-testid="input-customer-address" /></label><label className="span-2">ที่อยู่สำหรับใบกำกับภาษี<textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} data-testid="input-customer-tax-address" /></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}</div>
          </section><aside className="quote-summary"><p className="eyebrow">04 / TOTAL</p><h2>สรุปใบเสนอราคา</h2><div className="total-rows"><div><span>สินค้าอ่างล้างหน้า <small>{basinSets} ชุด</small></span><strong>{formatTHB(basinSubtotal)}</strong></div><div><span>ค่าติดตั้งอ่าง</span><strong className={installationCharge === 0 ? "free-text" : ""}>{installationCharge === 0 ? "ฟรี" : formatTHB(installationCharge)}</strong></div>{stoneActive && <div><span>หินสังเคราะห์ <small>{stones.length} สี · อ้างอิงราคาจากเอกสาร</small></span><strong>{hasInvalidStone ? "ตรวจสอบรายการ" : formatTHB(totalStone)}</strong></div>}<div className="discount-row"><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{installationDiscount ? `-${formatTHB(installationDiscount)}` : "—"}</strong></div></div><div className="vat-row"><label><input type="checkbox" checked={vat} onChange={(event) => setVat(event.target.checked)} data-testid="input-vat" /><span />คิด VAT 7%</label><strong>{formatTHB(vatAmount)}</strong></div><div className="grand-total"><span>ยอดรวมทั้งสิ้น</span><strong data-testid="text-grand-total">{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div><button className="button button--accent full-width" onClick={generateQuote} data-testid="button-generate-quote">{submitted && canGenerate ? <><Check size={16} /> สร้างใบเสนอราคาแล้ว</> : <>ออกใบเสนอราคาทางการ <ArrowRight size={16} /></>}</button>{hasMissing && <p className="summary-warning" data-testid="status-quote-validation">กรอกชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ เพื่อสร้างใบเสนอราคาที่สมบูรณ์</p>}{hasInvalidStone && <p className="summary-warning" data-testid="status-quote-stone-validation">กลับไปหน้าหินสังเคราะห์และกรอกขนาดอย่างน้อย 10 × 10 ซม. หรือเลือกสีที่มีราคาในเอกสาร ก่อนสร้างใบเสนอราคา</p>}{!cart.length && <p className="summary-warning" data-testid="status-quote-cart-validation">เพิ่มสินค้าอย่างน้อย 1 รายการก่อนออกใบเสนอราคา</p>}{submitted && canGenerate && <div className="success-message" data-testid="status-quote-success"><Check size={16} /> {quoteNumber} พร้อมพิมพ์หรือบันทึกเป็น PDF</div>}<div className="quote-share"><strong>ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ</strong><p>กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิด LINE เพื่อส่งต่อได้ทันที</p><div className="quote-share-actions"><button type="button" className="button button--dark" onClick={copyLineSummary} data-testid="button-copy-line-summary">{copied ? <><Check size={15} /> คัดลอกแล้ว</> : "คัดลอกสรุปส่ง LINE"}</button><a className="button button--outline" href={`https://line.me/R/msg/text/?text=${encodeURIComponent(lineSummary)}`} target="_blank" rel="noreferrer" data-testid="link-send-line-summary">เปิด LINE</a></div></div><div className="quote-terms"><strong>หมายเหตุจากแคตตาล็อก</strong><p>ราคาสินค้าไม่รวม VAT · หินตัดและติดตั้งใช้อัตรารวมติดตั้งแล้ว · งานหินต่ำกว่าพื้นที่ขั้นต่ำอาจมีค่าดำเนินการเพิ่มตามพื้นที่</p></div></aside></div>
     </div>
     {submitted && canGenerate && <FormalQuote format={quoteFormat} quoteNumber={quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={installationDiscount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} language={quoteLanguage} />}
@@ -968,21 +1001,33 @@ function Storefront() {
   const contactDefaults = useMemo(() => ({
     name: customerProfile?.fullName || customerProfile?.displayName || "",
     company: customerProfile?.company || "",
+    taxId: customerProfile?.taxId || "",
+    taxName: customerProfile?.taxName || "",
+    taxBranch: customerProfile?.taxBranch || "",
+    taxAddress: customerProfile?.taxAddress || "",
     phone: customerProfile?.phone || "",
     email: customerProfile?.email || "",
     project: customerProfile?.project || "",
     address: customerProfile?.address || "",
-  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.phone, customerProfile?.email, customerProfile?.project, customerProfile?.address]);
+    preferredContact: (customerProfile?.preferredContact || "") as CustomerDetails["preferredContact"],
+    customerRole: (customerProfile?.customerRole || "") as CustomerDetails["customerRole"],
+  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole]);
   useEffect(() => {
     if (!customerProfile) return;
     setCustomer((current) => ({
       ...current,
       name: contactDefaults.name || current.name,
       company: contactDefaults.company || current.company,
+       taxId: contactDefaults.taxId || current.taxId,
+       taxName: contactDefaults.taxName || current.taxName,
+       taxBranch: contactDefaults.taxBranch || current.taxBranch,
+       taxAddress: contactDefaults.taxAddress || current.taxAddress,
       phone: contactDefaults.phone || current.phone,
       email: contactDefaults.email || current.email,
       project: contactDefaults.project || current.project,
       address: contactDefaults.address || current.address,
+       preferredContact: contactDefaults.preferredContact || current.preferredContact,
+       customerRole: contactDefaults.customerRole || current.customerRole,
     }));
   }, [customerProfile?.id, customerProfile?.updatedAt]);
   useEffect(() => {
@@ -1023,6 +1068,15 @@ function Storefront() {
         project: details.project ?? (customer.project || null),
         address: details.address ?? (customer.address || null),
         notes: details.notes ?? (customer.notes || null),
+        taxName: details.taxName ?? (customer.taxName || null),
+        taxId: details.taxId ?? (customer.taxId || null),
+        taxBranch: details.taxBranch ?? (customer.taxBranch || null),
+        taxAddress: details.taxAddress ?? (customer.taxAddress || null),
+        preferredContact: details.preferredContact || customer.preferredContact || null,
+        customerRole: details.customerRole || customer.customerRole || null,
+        propertyType: details.propertyType || customer.propertyType || null,
+        condoFloor: details.condoFloor ?? (customer.condoFloor || null),
+        expectedInstallationDate: details.expectedInstallationDate ?? (customer.expectedInstallationDate || null),
         orderMode: details.orderMode ?? "quick-purchase",
         studioData: details.studioData ? { ...(details.studioData as Record<string, unknown>) } : null,
       },

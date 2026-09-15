@@ -21,6 +21,12 @@ const emptyProfile: CustomerProfileInput = {
   company: "",
   project: "",
   address: "",
+  taxName: "",
+  taxId: "",
+  taxBranch: "",
+  taxAddress: "",
+  preferredContact: "line",
+  customerRole: "homeowner",
 };
 
 export function CustomerProfilePage() {
@@ -43,6 +49,12 @@ export function CustomerProfilePage() {
       company: profile.data.company ?? "",
       project: profile.data.project ?? "",
       address: profile.data.address ?? "",
+      taxName: profile.data.taxName ?? "",
+      taxId: profile.data.taxId ?? "",
+      taxBranch: profile.data.taxBranch ?? "",
+      taxAddress: profile.data.taxAddress ?? "",
+      preferredContact: profile.data.preferredContact ?? "line",
+      customerRole: profile.data.customerRole ?? "homeowner",
     });
   }, [profile.data?.updatedAt]);
 
@@ -62,8 +74,12 @@ export function CustomerProfilePage() {
       setErrorMessage("กรุณาตรวจสอบรูปแบบอีเมล");
       return;
     }
+    if (form.taxId && !/^[0-9]{13}$/.test(form.taxId)) {
+      setErrorMessage("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+      return;
+    }
     updateProfile.mutate(
-      { data: { ...form, fullName: form.fullName.trim(), phone: form.phone.trim(), email: form.email.trim(), company: form.company.trim(), project: form.project.trim(), address: form.address.trim() } },
+       { data: { ...form, fullName: form.fullName.trim(), phone: form.phone.trim(), email: form.email.trim(), company: form.company.trim(), project: form.project.trim(), address: form.address.trim(), taxName: form.taxName.trim(), taxId: form.taxId.trim(), taxBranch: form.taxBranch.trim(), taxAddress: form.taxAddress.trim() } },
       {
         onSuccess: (saved) => {
           setForm({
@@ -73,6 +89,12 @@ export function CustomerProfilePage() {
             company: saved.company ?? "",
             project: saved.project ?? "",
             address: saved.address ?? "",
+            taxName: saved.taxName ?? "",
+            taxId: saved.taxId ?? "",
+            taxBranch: saved.taxBranch ?? "",
+            taxAddress: saved.taxAddress ?? "",
+            preferredContact: saved.preferredContact ?? "line",
+            customerRole: saved.customerRole ?? "homeowner",
           });
           setMessage("บันทึกโปรไฟล์แล้ว");
           setErrorMessage("");
@@ -117,6 +139,12 @@ export function CustomerProfilePage() {
           <label>บริษัท<input value={form.company} onChange={(event) => update("company", event.target.value)} maxLength={200} data-testid="input-profile-company" /></label>
           <label>โครงการ<input value={form.project} onChange={(event) => update("project", event.target.value)} maxLength={240} data-testid="input-profile-project" /></label>
           <label className="profile-field-wide">ที่อยู่จัดส่ง / ติดตั้งเริ่มต้น<textarea value={form.address} onChange={(event) => update("address", event.target.value)} maxLength={4000} rows={4} data-testid="input-profile-address" /></label>
+          <label>ชื่อสำหรับใบกำกับภาษี<input value={form.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-profile-tax-name" /></label>
+          <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={form.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} data-testid="input-profile-tax-id" /></label>
+          <label>สาขา<input value={form.taxBranch} onChange={(event) => update("taxBranch", event.target.value)} maxLength={120} data-testid="input-profile-tax-branch" /></label>
+          <label>ช่องทางติดต่อที่สะดวก<select value={form.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-profile-preferred-contact"><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label>
+          <label>บทบาทลูกค้า<select value={form.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-profile-customer-role"><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label>
+          <label className="profile-field-wide">ที่อยู่สำหรับใบกำกับภาษี<textarea value={form.taxAddress} onChange={(event) => update("taxAddress", event.target.value)} maxLength={4000} rows={4} data-testid="input-profile-tax-address" /></label>
         </div>
         {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}
         {message && <p className="form-success" role="status">{message}</p>}

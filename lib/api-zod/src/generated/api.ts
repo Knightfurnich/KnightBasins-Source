@@ -1077,6 +1077,13 @@ export const upsertLeadBodyEmailMax = 240;
 
 export const upsertLeadBodyProjectMax = 240;
 
+export const upsertLeadBodyTaxNameMax = 240;
+
+export const upsertLeadBodyTaxIdRegExp = new RegExp('^$|^[0-9]{13}$');
+export const upsertLeadBodyTaxBranchMax = 120;
+
+export const upsertLeadBodyCondoFloorMax = 32;
+
 export const upsertLeadBodyProductSkusItemMax = 32;
 
 export const upsertLeadBodyProductSkusMax = 20;
@@ -1098,6 +1105,15 @@ export const UpsertLeadBody = zod.object({
   "project": zod.string().max(upsertLeadBodyProjectMax).nullish(),
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "taxName": zod.string().max(upsertLeadBodyTaxNameMax).nullish(),
+  "taxId": zod.string().regex(upsertLeadBodyTaxIdRegExp).nullish(),
+  "taxBranch": zod.string().max(upsertLeadBodyTaxBranchMax).nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.union([zod.literal('line'),zod.literal('phone'),zod.literal('email'),zod.literal(null)]).nullish(),
+  "customerRole": zod.union([zod.literal('homeowner'),zod.literal('architect-interior'),zod.literal('contractor'),zod.literal(null)]).nullish(),
+  "propertyType": zod.union([zod.literal('house-townhome'),zod.literal('condo'),zod.literal('commercial'),zod.literal(null)]).nullish(),
+  "condoFloor": zod.string().max(upsertLeadBodyCondoFloorMax).nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "productSkus": zod.array(zod.string().max(upsertLeadBodyProductSkusItemMax)).max(upsertLeadBodyProductSkusMax),
   "quoteNumber": zod.string().max(upsertLeadBodyQuoteNumberMax).nullish(),
   "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
@@ -1117,6 +1133,15 @@ export const UpsertLeadResponse = zod.object({
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
@@ -1150,6 +1175,15 @@ export const GetSavedQuoteResponse = zod.object({
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
@@ -1198,6 +1232,15 @@ export const SubmitSketchLeadResponse = zod.object({
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
@@ -1226,6 +1269,15 @@ export const ListAdminLeadsResponseItem = zod.object({
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
@@ -1264,6 +1316,15 @@ export const UpdateAdminLeadResponse = zod.object({
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
@@ -1308,6 +1369,13 @@ export const getCustomerProfileResponseOneProjectMax = 240;
 
 export const getCustomerProfileResponseOneAddressMax = 4000;
 
+export const getCustomerProfileResponseOneTaxNameMax = 240;
+
+export const getCustomerProfileResponseOneTaxIdRegExp = new RegExp('^$|^[0-9]{13}$');
+export const getCustomerProfileResponseOneTaxBranchMax = 120;
+
+export const getCustomerProfileResponseOneTaxAddressMax = 4000;
+
 
 
 export const GetCustomerProfileResponse = zod.object({
@@ -1316,12 +1384,24 @@ export const GetCustomerProfileResponse = zod.object({
   "email": zod.string().max(getCustomerProfileResponseOneEmailMax),
   "company": zod.string().max(getCustomerProfileResponseOneCompanyMax),
   "project": zod.string().max(getCustomerProfileResponseOneProjectMax),
-  "address": zod.string().max(getCustomerProfileResponseOneAddressMax)
+  "address": zod.string().max(getCustomerProfileResponseOneAddressMax),
+  "taxName": zod.string().max(getCustomerProfileResponseOneTaxNameMax),
+  "taxId": zod.string().regex(getCustomerProfileResponseOneTaxIdRegExp),
+  "taxBranch": zod.string().max(getCustomerProfileResponseOneTaxBranchMax),
+  "taxAddress": zod.string().max(getCustomerProfileResponseOneTaxAddressMax),
+  "preferredContact": zod.enum(['line', 'phone', 'email']),
+  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor'])
 }).and(zod.object({
   "id": zod.number(),
   "lineUserId": zod.string(),
   "displayName": zod.string(),
   "pictureUrl": zod.string().nullable(),
+  "taxName": zod.string(),
+  "taxId": zod.string(),
+  "taxBranch": zod.string(),
+  "taxAddress": zod.string(),
+  "preferredContact": zod.string(),
+  "customerRole": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }))
@@ -1341,6 +1421,13 @@ export const updateCustomerProfileBodyProjectMax = 240;
 
 export const updateCustomerProfileBodyAddressMax = 4000;
 
+export const updateCustomerProfileBodyTaxNameMax = 240;
+
+export const updateCustomerProfileBodyTaxIdRegExp = new RegExp('^$|^[0-9]{13}$');
+export const updateCustomerProfileBodyTaxBranchMax = 120;
+
+export const updateCustomerProfileBodyTaxAddressMax = 4000;
+
 
 
 export const UpdateCustomerProfileBody = zod.object({
@@ -1349,7 +1436,13 @@ export const UpdateCustomerProfileBody = zod.object({
   "email": zod.string().max(updateCustomerProfileBodyEmailMax),
   "company": zod.string().max(updateCustomerProfileBodyCompanyMax),
   "project": zod.string().max(updateCustomerProfileBodyProjectMax),
-  "address": zod.string().max(updateCustomerProfileBodyAddressMax)
+  "address": zod.string().max(updateCustomerProfileBodyAddressMax),
+  "taxName": zod.string().max(updateCustomerProfileBodyTaxNameMax),
+  "taxId": zod.string().regex(updateCustomerProfileBodyTaxIdRegExp),
+  "taxBranch": zod.string().max(updateCustomerProfileBodyTaxBranchMax),
+  "taxAddress": zod.string().max(updateCustomerProfileBodyTaxAddressMax),
+  "preferredContact": zod.enum(['line', 'phone', 'email']),
+  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor'])
 })
 
 export const updateCustomerProfileResponseOneFullNameMax = 160;
@@ -1363,6 +1456,13 @@ export const updateCustomerProfileResponseOneProjectMax = 240;
 
 export const updateCustomerProfileResponseOneAddressMax = 4000;
 
+export const updateCustomerProfileResponseOneTaxNameMax = 240;
+
+export const updateCustomerProfileResponseOneTaxIdRegExp = new RegExp('^$|^[0-9]{13}$');
+export const updateCustomerProfileResponseOneTaxBranchMax = 120;
+
+export const updateCustomerProfileResponseOneTaxAddressMax = 4000;
+
 
 
 export const UpdateCustomerProfileResponse = zod.object({
@@ -1371,12 +1471,24 @@ export const UpdateCustomerProfileResponse = zod.object({
   "email": zod.string().max(updateCustomerProfileResponseOneEmailMax),
   "company": zod.string().max(updateCustomerProfileResponseOneCompanyMax),
   "project": zod.string().max(updateCustomerProfileResponseOneProjectMax),
-  "address": zod.string().max(updateCustomerProfileResponseOneAddressMax)
+  "address": zod.string().max(updateCustomerProfileResponseOneAddressMax),
+  "taxName": zod.string().max(updateCustomerProfileResponseOneTaxNameMax),
+  "taxId": zod.string().regex(updateCustomerProfileResponseOneTaxIdRegExp),
+  "taxBranch": zod.string().max(updateCustomerProfileResponseOneTaxBranchMax),
+  "taxAddress": zod.string().max(updateCustomerProfileResponseOneTaxAddressMax),
+  "preferredContact": zod.enum(['line', 'phone', 'email']),
+  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor'])
 }).and(zod.object({
   "id": zod.number(),
   "lineUserId": zod.string(),
   "displayName": zod.string(),
   "pictureUrl": zod.string().nullable(),
+  "taxName": zod.string(),
+  "taxId": zod.string(),
+  "taxBranch": zod.string(),
+  "taxAddress": zod.string(),
+  "preferredContact": zod.string(),
+  "customerRole": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }))

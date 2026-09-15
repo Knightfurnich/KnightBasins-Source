@@ -837,6 +837,21 @@ components:
         project: { type: [string, "null"], maxLength: 240 }
         address: { type: [string, "null"] }
         notes: { type: [string, "null"] }
+        taxName: { type: [string, "null"], maxLength: 240 }
+        taxId: { type: [string, "null"], pattern: "^$|^[0-9]{13}$" }
+        taxBranch: { type: [string, "null"], maxLength: 120 }
+        taxAddress: { type: [string, "null"] }
+        preferredContact:
+          type: [string, "null"]
+          enum: [line, phone, email, null]
+        customerRole:
+          type: [string, "null"]
+          enum: [homeowner, architect-interior, contractor, null]
+        propertyType:
+          type: [string, "null"]
+          enum: [house-townhome, condo, commercial, null]
+        condoFloor: { type: [string, "null"], maxLength: 32 }
+        expectedInstallationDate: { type: [string, "null"], format: date }
         productSkus:
           type: array
           maxItems: 20
@@ -874,6 +889,15 @@ components:
         project: { type: [string, "null"] }
         address: { type: [string, "null"] }
         notes: { type: [string, "null"] }
+        taxName: { type: [string, "null"] }
+        taxId: { type: [string, "null"] }
+        taxBranch: { type: [string, "null"] }
+        taxAddress: { type: [string, "null"] }
+        preferredContact: { type: [string, "null"] }
+        customerRole: { type: [string, "null"] }
+        propertyType: { type: [string, "null"] }
+        condoFloor: { type: [string, "null"] }
+        expectedInstallationDate: { type: [string, "null"], format: date }
         productSkus:
           type: array
           items: { type: string }
@@ -930,7 +954,7 @@ components:
             - type: "null"
     CustomerProfileInput:
       type: object
-      required: [fullName, phone, email, company, project, address]
+      required: [fullName, phone, email, company, project, address, taxName, taxId, taxBranch, taxAddress, preferredContact, customerRole]
       properties:
         fullName: { type: string, minLength: 1, maxLength: 160 }
         phone: { type: string, pattern: "^[0-9]{10}$" }
@@ -938,6 +962,16 @@ components:
         company: { type: string, maxLength: 200 }
         project: { type: string, maxLength: 240 }
         address: { type: string, maxLength: 4000 }
+        taxName: { type: string, maxLength: 240 }
+        taxId: { type: string, pattern: "^$|^[0-9]{13}$" }
+        taxBranch: { type: string, maxLength: 120 }
+        taxAddress: { type: string, maxLength: 4000 }
+        preferredContact:
+          type: string
+          enum: [line, phone, email]
+        customerRole:
+          type: string
+          enum: [homeowner, architect-interior, contractor]
     CustomerProfile:
       allOf:
         - $ref: "#/components/schemas/CustomerProfileInput"
@@ -948,6 +982,12 @@ components:
             lineUserId: { type: string }
             displayName: { type: string }
             pictureUrl: { type: [string, "null"] }
+            taxName: { type: string }
+            taxId: { type: string }
+            taxBranch: { type: string }
+            taxAddress: { type: string }
+            preferredContact: { type: string }
+            customerRole: { type: string }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
     CustomerQuotation:

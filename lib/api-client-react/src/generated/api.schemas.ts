@@ -282,6 +282,42 @@ export const LeadInputStatus = {
   closed: 'closed',
 } as const;
 
+/**
+ * @nullable
+ */
+export type LeadInputPreferredContact = typeof LeadInputPreferredContact[keyof typeof LeadInputPreferredContact] | null;
+
+
+export const LeadInputPreferredContact = {
+  line: 'line',
+  phone: 'phone',
+  email: 'email',
+} as const;
+
+/**
+ * @nullable
+ */
+export type LeadInputCustomerRole = typeof LeadInputCustomerRole[keyof typeof LeadInputCustomerRole] | null;
+
+
+export const LeadInputCustomerRole = {
+  homeowner: 'homeowner',
+  'architect-interior': 'architect-interior',
+  contractor: 'contractor',
+} as const;
+
+/**
+ * @nullable
+ */
+export type LeadInputPropertyType = typeof LeadInputPropertyType[keyof typeof LeadInputPropertyType] | null;
+
+
+export const LeadInputPropertyType = {
+  'house-townhome': 'house-townhome',
+  condo: 'condo',
+  commercial: 'commercial',
+} as const;
+
 export type LeadInputOrderMode = typeof LeadInputOrderMode[keyof typeof LeadInputOrderMode];
 
 
@@ -334,6 +370,36 @@ export interface LeadInput {
   address?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * @maxLength 240
+     * @nullable
+     */
+  taxName?: string | null;
+  /**
+     * @nullable
+     * @pattern ^$|^[0-9]{13}$
+     */
+  taxId?: string | null;
+  /**
+     * @maxLength 120
+     * @nullable
+     */
+  taxBranch?: string | null;
+  /** @nullable */
+  taxAddress?: string | null;
+  /** @nullable */
+  preferredContact?: LeadInputPreferredContact;
+  /** @nullable */
+  customerRole?: LeadInputCustomerRole;
+  /** @nullable */
+  propertyType?: LeadInputPropertyType;
+  /**
+     * @maxLength 32
+     * @nullable
+     */
+  condoFloor?: string | null;
+  /** @nullable */
+  expectedInstallationDate?: string | null;
   /**
      * @maxItems 20
      * @items.maxLength 32
@@ -413,6 +479,24 @@ export interface CustomerLead {
   address?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  taxName?: string | null;
+  /** @nullable */
+  taxId?: string | null;
+  /** @nullable */
+  taxBranch?: string | null;
+  /** @nullable */
+  taxAddress?: string | null;
+  /** @nullable */
+  preferredContact?: string | null;
+  /** @nullable */
+  customerRole?: string | null;
+  /** @nullable */
+  propertyType?: string | null;
+  /** @nullable */
+  condoFloor?: string | null;
+  /** @nullable */
+  expectedInstallationDate?: string | null;
   productSkus: string[];
   /** @nullable */
   quoteNumber?: string | null;
@@ -470,6 +554,24 @@ export interface LineAuthStatus {
   user: LineAuthUser | null;
 }
 
+export type CustomerProfileInputPreferredContact = typeof CustomerProfileInputPreferredContact[keyof typeof CustomerProfileInputPreferredContact];
+
+
+export const CustomerProfileInputPreferredContact = {
+  line: 'line',
+  phone: 'phone',
+  email: 'email',
+} as const;
+
+export type CustomerProfileInputCustomerRole = typeof CustomerProfileInputCustomerRole[keyof typeof CustomerProfileInputCustomerRole];
+
+
+export const CustomerProfileInputCustomerRole = {
+  homeowner: 'homeowner',
+  'architect-interior': 'architect-interior',
+  contractor: 'contractor',
+} as const;
+
 export interface CustomerProfileInput {
   /**
      * @minLength 1
@@ -486,6 +588,16 @@ export interface CustomerProfileInput {
   project: string;
   /** @maxLength 4000 */
   address: string;
+  /** @maxLength 240 */
+  taxName: string;
+  /** @pattern ^$|^[0-9]{13}$ */
+  taxId: string;
+  /** @maxLength 120 */
+  taxBranch: string;
+  /** @maxLength 4000 */
+  taxAddress: string;
+  preferredContact: CustomerProfileInputPreferredContact;
+  customerRole: CustomerProfileInputCustomerRole;
 }
 
 export type CustomerProfile = CustomerProfileInput & ({
@@ -494,6 +606,12 @@ export type CustomerProfile = CustomerProfileInput & ({
   displayName: string;
   /** @nullable */
   pictureUrl: string | null;
+  taxName?: string;
+  taxId?: string;
+  taxBranch?: string;
+  taxAddress?: string;
+  preferredContact?: string;
+  customerRole?: string;
   createdAt: string;
   updatedAt: string;
 });

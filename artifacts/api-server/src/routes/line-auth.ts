@@ -95,6 +95,12 @@ export async function findAuthenticatedAccount(cookieValue: string | undefined) 
       company: customerAccounts.company,
       project: customerAccounts.project,
       address: customerAccounts.address,
+      taxName: customerAccounts.taxName,
+      taxId: customerAccounts.taxId,
+      taxBranch: customerAccounts.taxBranch,
+      taxAddress: customerAccounts.taxAddress,
+      preferredContact: customerAccounts.preferredContact,
+      customerRole: customerAccounts.customerRole,
       createdAt: customerAccounts.createdAt,
       updatedAt: customerAccounts.updatedAt,
     })

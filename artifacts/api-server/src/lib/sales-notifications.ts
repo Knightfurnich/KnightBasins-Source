@@ -5,17 +5,27 @@ export type NotificationResult = {
   message: string;
 };
 
-import { formatThaiDateTime } from "./date-time";
+import { formatThaiDateOnly, formatThaiDateTime } from "./date-time";
 
 type LeadNotificationData = {
   name: string | null;
   phone: string | null;
   project: string | null;
+  address?: string | null;
   productSkus: string[];
   quoteNumber?: string | null;
   orderMode?: string;
   studioData?: unknown;
   sketchUrl?: string | null;
+  taxName?: string | null;
+  taxId?: string | null;
+  taxBranch?: string | null;
+  taxAddress?: string | null;
+  preferredContact?: string | null;
+  customerRole?: string | null;
+  propertyType?: string | null;
+  condoFloor?: string | null;
+  expectedInstallationDate?: string | Date | null;
 };
 
 type NotificationItem = {
@@ -54,6 +64,30 @@ function formatQuantity(quantity: number) {
 
 function formatBaht(amount: number) {
   return Math.round(amount).toLocaleString("th-TH");
+}
+
+function labelValue(value: string | null | undefined) {
+  return value?.trim() || "-";
+}
+
+function customerRoleLabel(value: string | null | undefined) {
+  return {
+    homeowner: "ลูกค้าบ้านพักอาศัย",
+    "architect-interior": "สถาปนิก / อินทีเรีย",
+    contractor: "ผู้รับเหมาก่อสร้าง",
+  }[value ?? ""] ?? labelValue(value);
+}
+
+function propertyTypeLabel(value: string | null | undefined) {
+  return {
+    "house-townhome": "บ้านเดี่ยว / ทาวน์โฮม",
+    condo: "คอนโด",
+    commercial: "อาคารพาณิชย์",
+  }[value ?? ""] ?? labelValue(value);
+}
+
+function preferredContactLabel(value: string | null | undefined) {
+  return { line: "LINE", phone: "โทรศัพท์", email: "อีเมล" }[value ?? ""] ?? labelValue(value);
 }
 
 function itemLabel(item: NotificationItem) {
@@ -132,6 +166,11 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     `เลขที่: ${lead.quoteNumber || "-"}`,
     `ผู้ติดต่อ: ${lead.name || "-"} · โครงการ: ${lead.project || "-"}`,
     `โทร: ${lead.phone || "-"}`,
+    `ประเภทลูกค้า: ${customerRoleLabel(lead.customerRole)} · ติดต่อสะดวกทาง: ${preferredContactLabel(lead.preferredContact)}`,
+    `สถานที่ติดตั้ง: ${propertyTypeLabel(lead.propertyType)}${lead.condoFloor ? ` · ชั้น ${lead.condoFloor}` : ""} · ที่อยู่ ${labelValue(lead.address)}`,
+    `วันที่คาดว่าจะติดตั้ง: ${formatThaiDateOnly(lead.expectedInstallationDate)}`,
+    `ข้อมูลใบกำกับภาษี: ${labelValue(lead.taxName)} · Tax ID ${labelValue(lead.taxId)} · ${labelValue(lead.taxBranch)}`,
+    `ที่อยู่ใบกำกับภาษี: ${labelValue(lead.taxAddress)}`,
     "รายการ:",
     ...items,
     ...(has9500StoneRate ? ["*(ยอดรวมสุทธินี้ยังไม่รวมราคาหินลายหินอ่อน — ทีมขายจะประเมินราคาเพิ่ม)*"] : []),
