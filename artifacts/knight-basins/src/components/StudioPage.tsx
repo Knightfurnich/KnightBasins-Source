@@ -50,7 +50,7 @@ import {
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
-import { clearStoredStudioDraft, decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
+import { clearStoredStudioDraft, createStudioDraftLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime } from "@/data/date-time";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
@@ -147,19 +147,13 @@ function createInitialStudioState(mode: Extract<StudioOrderMode, "studio" | "ske
 function readLinkedDraft() {
   if (typeof window === "undefined") return { token: "", state: null as StudioState | null };
   const token = new URLSearchParams(window.location.search).get("draft") ?? "";
-  return { token, state: token ? decodeStudioDraft(token) : null };
+  return { token, state: token ? decodeStudioDraft(token) ?? readStoredShortStudioDraft(token)?.state ?? null : null };
 }
 
 function formatDraftTimestamp(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "ไม่ทราบเวลา";
   return formatThaiDateTime(date);
-}
-
-function studioDraftUrl(state: StudioState) {
-  const url = new URL("/studio", window.location.origin);
-  url.searchParams.set("draft", encodeStudioDraft(state));
-  return url.toString();
 }
 
 function defaultNamedDraft() {
@@ -251,6 +245,20 @@ function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; sta
       const canvasY = ((event.clientY - rect.top) / rect.height) * bounds.heightMm;
       const moving = piece.rectangles.find((rectangle) => rectangle.id === rectangleId);
       if (moving) moveRectangle(rectangleId, canvasX - studioRectangleSize(moving).widthMm / 2, canvasY - studioRectangleSize(moving).heightMm / 2);
+      return;
+    }
+    const placementId = event.dataTransfer.getData("application/x-studio-placement");
+    if (placementId) {
+      const moving = state.basinPlacements.find((placement) => placement.id === placementId);
+      if (!moving) return;
+      const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (moving.widthMm ?? 0) / 2;
+      const yMm = ((event.clientY - rect.top) / rect.height) * bounds.heightMm - (moving.depthMm ?? 0) / 2;
+      setState((current) => ({
+        ...current,
+        basinPlacements: current.basinPlacements.map((placement) => placement.id === placementId
+          ? { ...placement, pieceId: piece.id, xMm: Math.round(xMm), yMm: Math.round(yMm) }
+          : placement),
+      }));
       return;
     }
     const sku = event.dataTransfer.getData("application/x-studio-basin");
@@ -410,6 +418,11 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
   useEffect(() => {
+    if (!estimate.crossJointPlacements.length && result === "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว") {
+      setResult("");
+    }
+  }, [estimate.crossJointPlacements.length, result]);
+  useEffect(() => {
     if (mode !== "studio") return;
     if (!hasMountedDraftEffect.current) {
       hasMountedDraftEffect.current = true;
@@ -443,7 +456,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   };
   const copyStateLink = async (draftState: StudioState, successMessage: string) => {
-    const url = studioDraftUrl(draftState);
+    const url = createStudioDraftLink(draftState);
     try {
       await navigator.clipboard.writeText(url);
       setDraftResult(successMessage);

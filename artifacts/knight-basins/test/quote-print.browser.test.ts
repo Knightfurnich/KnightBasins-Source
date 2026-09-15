@@ -520,6 +520,23 @@ describe("long formal quote print flow", () => {
       Boolean,
       "cross-joint submission block",
     );
+    const movedOutOfJoint = await browser.page.evaluate(`(() => {
+      const placement = document.querySelector(".studio-placement");
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(placement instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      placement.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer }));
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.25, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(movedOutOfJoint, true);
+    await waitFor(
+      () => browser.page.evaluate('!(document.body.textContent?.includes("อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว") ?? false)'),
+      Boolean,
+      "cross-joint warning cleared after basin move",
+    );
 
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -790,7 +807,9 @@ describe("long formal quote print flow", () => {
       (value) => typeof value === "string" && value.includes("/studio?draft="),
       "copied Studio draft link",
     );
-    await browser.page.evaluate("localStorage.clear()");
+    assert.ok(draftLink.length <= 100);
+    assert.match(draftLink, /\/studio\?draft=KB-[A-Z0-9]{6}$/);
+    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1')");
     await browser.page.command("Page.navigate", { url: draftLink });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-studio-draft-link"]\') !== null'),
@@ -807,7 +826,31 @@ describe("long formal quote print flow", () => {
     assert.equal(linked.basinSelected, true);
     assert.equal(linked.width, "2100");
     assert.equal(linked.banner, false);
-    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1')");
+    const legacyDraftLink = await browser.page.evaluate(`(() => {
+      const drafts = JSON.parse(localStorage.getItem("knight-studio-short-drafts-v1") || "[]");
+      const state = drafts[0]?.state;
+      if (!state) return "";
+      const bytes = new TextEncoder().encode(JSON.stringify(state));
+      let binary = "";
+      bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+      const token = btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
+      return \`${baseUrl}/studio?draft=\${token}\`;
+    })()`);
+    assert.match(legacyDraftLink, /\/studio\?draft=[A-Za-z0-9_-]+$/);
+    await browser.page.evaluate("localStorage.removeItem('knight-studio-short-drafts-v1'); localStorage.removeItem('knight-studio-draft-v1')");
+    await browser.page.command("Page.navigate", { url: legacyDraftLink });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-studio-draft-link"]\') !== null'),
+      Boolean,
+      "legacy linked Studio draft",
+    );
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-active-stone-SO423"]\')?.classList.contains("is-active") ?? false'), true);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF002"]\')?.classList.contains("is-selected") ?? false'), true);
+    assert.equal(await browser.page.evaluate(`(() => {
+      const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
+      return input instanceof HTMLInputElement ? input.value : "";
+    })()`), "2100");
+    await browser.page.evaluate("localStorage.clear()");
   });
 
   it("saves named Studio drafts in My Drafts and restores each card", async () => {
@@ -891,7 +934,7 @@ describe("long formal quote print flow", () => {
       "deleted named draft",
     );
 
-    await browser.page.evaluate("localStorage.clear()");
+    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1'); localStorage.removeItem('knight-studio-drafts-v1')");
     await browser.page.command("Page.navigate", { url: namedDraftLink });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-named-studio-draft"]\') !== null'),

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "../src/data/studio-draft.ts";
+import { createStudioDraftLink, decodeStudioDraft, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
 import type { StudioState } from "../src/data/studio-model.ts";
 
 const state: StudioState = {
@@ -39,6 +39,19 @@ function memoryStorage() {
 test("studio draft links preserve the full editable state", () => {
   const decoded = decodeStudioDraft(encodeStudioDraft(state));
   assert.deepEqual(decoded, state);
+});
+
+test("short Studio draft links stay compact and restore from the local Draft Store", () => {
+  const storage = memoryStorage();
+  const link = createStudioDraftLink(state, "https://example.test", storage);
+  const url = new URL(link);
+  const id = url.searchParams.get("draft") ?? "";
+
+  assert.ok(link.length <= 100);
+  assert.match(id, /^KB-[A-Z0-9]{6}$/);
+  assert.equal(url.pathname, "/studio");
+  assert.deepEqual(readStoredShortStudioDraft(id, storage)?.state, state);
+  assert.equal((JSON.parse(storage.getItem(STUDIO_SHORT_DRAFTS_STORAGE_KEY) || "[]") as ShortStudioDraftRecord[]).length, 1);
 });
 
 test("studio drafts round-trip through browser storage", () => {
