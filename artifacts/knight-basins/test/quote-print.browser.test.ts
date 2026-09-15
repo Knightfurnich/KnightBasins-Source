@@ -204,22 +204,36 @@ describe("long formal quote print flow", () => {
       Boolean,
       "quote editor",
     );
+    const initialLanguage = await browser.page.evaluate(`(() => ({
+      thaiActive: document.querySelector('[data-testid="button-quote-language-th"]')?.classList.contains("is-active") ?? false,
+      englishActive: document.querySelector('[data-testid="button-quote-language-en"]')?.classList.contains("is-active") ?? false,
+      total: document.querySelector('[data-testid="text-grand-total"]')?.textContent ?? "",
+    }))()`);
+    assert.equal(initialLanguage.thaiActive, true);
+    assert.equal(initialLanguage.englishActive, false);
+    await clickTestId(browser.page, "button-quote-language-en");
+    const selectedLanguage = await browser.page.evaluate(`(() => ({
+      thaiActive: document.querySelector('[data-testid="button-quote-language-th"]')?.classList.contains("is-active") ?? false,
+      englishActive: document.querySelector('[data-testid="button-quote-language-en"]')?.classList.contains("is-active") ?? false,
+      total: document.querySelector('[data-testid="text-grand-total"]')?.textContent ?? "",
+    }))()`);
+    assert.equal(selectedLanguage.thaiActive, false);
+    assert.equal(selectedLanguage.englishActive, true);
+    assert.equal(selectedLanguage.total, initialLanguage.total);
     await setTextInput(browser.page, "input-customer-name", "คุณนรินทร์");
     await setTextInput(browser.page, "input-customer-phone", "0812345678");
     await setTextInput(browser.page, "input-customer-email", "customer@example.com");
     await setTextInput(browser.page, "input-customer-project", "โครงการหลายรายการ");
-    await clickTestId(browser.page, "button-quote-language-en");
-    const builderLanguage = await browser.page.evaluate(`(() => ({
-      active: document.querySelector('[data-testid="button-quote-language-en"]')?.classList.contains("is-active") ?? false,
-      thActive: document.querySelector('[data-testid="button-quote-language-th"]')?.classList.contains("is-active") ?? false,
-    }))()`);
-    assert.equal(builderLanguage.active, true);
-    assert.equal(builderLanguage.thActive, false);
     await clickTestId(browser.page, "button-generate-quote");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"]\') !== null'),
       Boolean,
       "formal quote",
+    );
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"] h1\')?.textContent === "OFFICIAL QUOTATION"'),
+      Boolean,
+      "saved quote language",
     );
 
     const quote = await browser.page.evaluate(`(() => {
@@ -242,9 +256,17 @@ describe("long formal quote print flow", () => {
       assert.ok(quote.rows.some((row) => row.includes(code)), `Formal quote is missing ${code}`);
     }
     assert.equal(quote.hasQrHeader, true);
-    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-saved-quote-language-en"]\')?.classList.contains("is-active") ?? false'), true);
+    const savedLanguage = await browser.page.evaluate(`(() => ({
+      thaiActive: document.querySelector('[data-testid="button-saved-quote-language-th"]')?.classList.contains("is-active") ?? false,
+      englishActive: document.querySelector('[data-testid="button-saved-quote-language-en"]')?.classList.contains("is-active") ?? false,
+      total: document.querySelector('.formal-grand-total strong')?.textContent ?? "",
+    }))()`);
+    assert.equal(savedLanguage.thaiActive, false);
+    assert.equal(savedLanguage.englishActive, true);
+    assert.equal(savedLanguage.total, initialLanguage.total);
 
     await clickTestId(browser.page, "button-saved-quote-language-th");
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="formal-quote-sheet"] h1\')?.textContent'), "ใบเสนอราคา / สรุปตามพื้นที่");
     await clickTestId(browser.page, "button-saved-quote-language-en");
     const englishQuote = await browser.page.evaluate(`(() => ({
       title: document.querySelector('[data-testid="formal-quote-sheet"] h1')?.textContent ?? "",
@@ -562,6 +584,97 @@ describe("long formal quote print flow", () => {
     assert.equal(tablet.sideStatusColumns.split(" ").length, 4);
     assert.equal(tablet.pricingColumns.split(" ").length, 3);
     assert.equal(tablet.comparisonColumns.split(" ").length, 3);
+  });
+
+  it("autosaves Studio drafts and resumes them from a self-contained link", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio order mode",
+    );
+    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1')");
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-studio-draft-link"]\') !== null'),
+      Boolean,
+      "Studio draft toolbar",
+    );
+    const widthId = await browser.page.evaluate(`document.querySelector('[data-testid^="input-rectangle-width-"]')?.getAttribute("data-testid") ?? ""`);
+    assert.ok(widthId);
+    await setTextInput(browser.page, widthId, "2100");
+    await clickTestId(browser.page, "button-studio-stone-SO423");
+    await clickTestId(browser.page, "button-studio-active-stone-SO423");
+    await clickTestId(browser.page, "button-studio-basin-KF002");
+    await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const record = JSON.parse(localStorage.getItem("knight-studio-draft-v1") || "null");
+        return record?.state?.activeStone === "SO423" && record?.state?.basinSkus?.includes("KF002") && record?.state?.pieces?.[0]?.rectangles?.[0]?.widthMm === 2100;
+      })()`),
+      Boolean,
+      "autosaved Studio state",
+    );
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio order mode after draft save",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-draft-banner"]\') !== null'),
+      Boolean,
+      "Studio draft recovery banner",
+    );
+    assert.match(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-draft-banner"]\')?.textContent ?? ""'), /พบแบบร่างที่ทำค้างไว้เมื่อ/);
+    await clickTestId(browser.page, "button-resume-studio-draft");
+    const resumed = await browser.page.evaluate(`(() => ({
+      activeStone: document.querySelector('[data-testid="button-studio-active-stone-SO423"]')?.classList.contains("is-active") ?? false,
+      basinSelected: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.classList.contains("is-selected") ?? false,
+      width: (() => { const input = document.querySelector('[data-testid^="input-rectangle-width-"]'); return input instanceof HTMLInputElement ? input.value : ""; })(),
+      banner: document.querySelector('[data-testid="studio-draft-banner"]') !== null,
+    }))()`);
+    assert.equal(resumed.activeStone, true);
+    assert.equal(resumed.basinSelected, true);
+    assert.equal(resumed.width, "2100");
+    assert.equal(resumed.banner, false);
+
+    await browser.page.evaluate(`(() => {
+      window.__draftLink = "";
+      navigator.clipboard.writeText = async (value) => { window.__draftLink = value; };
+    })()`);
+    await clickTestId(browser.page, "button-save-studio-draft-link");
+    const draftLink = await waitFor(
+      () => browser.page.evaluate("window.__draftLink"),
+      (value) => typeof value === "string" && value.includes("/studio?draft="),
+      "copied Studio draft link",
+    );
+    await browser.page.evaluate("localStorage.clear()");
+    await browser.page.command("Page.navigate", { url: draftLink });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-studio-draft-link"]\') !== null'),
+      Boolean,
+      "linked Studio draft",
+    );
+    const linked = await browser.page.evaluate(`(() => ({
+      activeStone: document.querySelector('[data-testid="button-studio-active-stone-SO423"]')?.classList.contains("is-active") ?? false,
+      basinSelected: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.classList.contains("is-selected") ?? false,
+      width: (() => { const input = document.querySelector('[data-testid^="input-rectangle-width-"]'); return input instanceof HTMLInputElement ? input.value : ""; })(),
+      banner: document.querySelector('[data-testid="studio-draft-banner"]') !== null,
+    }))()`);
+    assert.equal(linked.activeStone, true);
+    assert.equal(linked.basinSelected, true);
+    assert.equal(linked.width, "2100");
+    assert.equal(linked.banner, false);
+    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1')");
   });
 
   it("keeps KnightSupport readable and above mobile floating controls", async () => {

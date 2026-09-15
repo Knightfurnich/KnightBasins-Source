@@ -1,5 +1,5 @@
-import { useMemo, useState, type Dispatch, type DragEvent, type SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, Check, Download, GripVertical, Plus, RotateCw, Trash2, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type SetStateAction } from "react";
+import { AlertTriangle, ArrowRight, Check, Copy, Download, GripVertical, Plus, RotateCw, Trash2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -48,6 +48,7 @@ import {
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
+import { clearStoredStudioDraft, decodeStudioDraft, encodeStudioDraft, readStoredStudioDraft, writeStoredStudioDraft, type StudioDraftRecord } from "@/data/studio-draft";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -124,7 +125,39 @@ const initialState: StudioState = {
   basinSkus: ["KF001"],
   basinPlacements: [],
 };
-initialState.activePieceId = initialState.pieces![0].id;
+
+function createInitialStudioState(mode: Extract<StudioOrderMode, "studio" | "sketch">): StudioState {
+  const piece = makePiece(0);
+  return {
+    ...initialState,
+    mode,
+    dimensions: { ...initialState.dimensions },
+    pieces: [piece],
+    activePieceId: piece.id,
+    backsplash: { ...initialState.backsplash },
+    stoneColors: [...initialState.stoneColors],
+    basinSkus: [...initialState.basinSkus],
+    basinPlacements: [],
+  };
+}
+
+function readLinkedDraft() {
+  if (typeof window === "undefined") return { token: "", state: null as StudioState | null };
+  const token = new URLSearchParams(window.location.search).get("draft") ?? "";
+  return { token, state: token ? decodeStudioDraft(token) : null };
+}
+
+function formatDraftTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "ไม่ทราบเวลา";
+  return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+function studioDraftUrl(state: StudioState) {
+  const url = new URL("/studio", window.location.origin);
+  url.searchParams.set("draft", encodeStudioDraft(state));
+  return url.toString();
+}
 
 function numericValue(value: string, fallback = 0) {
   if (value.trim() === "") return fallback;
@@ -317,7 +350,13 @@ function StudioPrintLayout({ state }: { state: StudioState }) {
 }
 
 export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
-  const [state, setState] = useState<StudioState>({ ...initialState, mode, pieces: initialState.pieces?.map((piece) => ({ ...piece, id: `${piece.id}-${mode}` })), activePieceId: undefined });
+  const linkedDraft = useMemo(readLinkedDraft, []);
+  const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode));
+  const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
+  const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
+  const skipNextDraftSave = useRef(false);
+  const hasMountedDraftEffect = useRef(false);
   const [contact, setContact] = useState(emptyContact);
   const [sketchFile, setSketchFile] = useState<File | null>(null);
   const [result, setResult] = useState("");
@@ -327,6 +366,51 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
+  useEffect(() => {
+    if (mode !== "studio") return;
+    if (!hasMountedDraftEffect.current) {
+      hasMountedDraftEffect.current = true;
+      return;
+    }
+    if (skipNextDraftSave.current) {
+      skipNextDraftSave.current = false;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const savedAt = new Date().toISOString();
+      const saved = writeStoredStudioDraft({ version: 1, savedAt, state });
+      if (saved) setLastSavedAt(savedAt);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [mode, state]);
+  const resumeDraft = () => {
+    if (!draftNotice) return;
+    setState(draftNotice.state);
+    setLastSavedAt(draftNotice.savedAt);
+    setDraftNotice(null);
+    setDraftResult("ดึงแบบร่างเดิมแล้ว");
+  };
+  const startNewDraft = () => {
+    clearStoredStudioDraft();
+    skipNextDraftSave.current = true;
+    setState(createInitialStudioState(mode));
+    setLastSavedAt(null);
+    setDraftNotice(null);
+    setDraftResult("");
+    if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
+  };
+  const copyDraftLink = async () => {
+    const savedAt = new Date().toISOString();
+    writeStoredStudioDraft({ version: 1, savedAt, state });
+    setLastSavedAt(savedAt);
+    const url = studioDraftUrl(state);
+    try {
+      await navigator.clipboard.writeText(url);
+      setDraftResult("บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้");
+    } catch {
+      setDraftResult(`บันทึกแบบร่างแล้ว คัดลอกลิงก์นี้ด้วยตนเอง: ${url}`);
+    }
+  };
   const exportFiles = async (format: "dxf" | "pdf" | "png") => {
     if (!exportReady) {
       setResult("ขนาดหรือจำนวนแผ่นไม่ถูกต้อง จึงยังดาวน์โหลดแบบไม่ได้");
@@ -401,6 +485,9 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   };
   return <div className="page-wrap studio-page">
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
+    {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
+    {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Copy size={15} /> บันทึก / คัดลอกลิงก์แบบร่าง</button></div>}
+    {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
     <StudioShortlists state={state} setState={setState} />
     {mode === "studio" ? <StudioCanvas state={state} setState={setState} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
     <section className="studio-layout-bottom">
