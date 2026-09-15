@@ -27,6 +27,9 @@ const emptyProfile: CustomerProfileInput = {
   taxAddress: "",
   preferredContact: "line",
   customerRole: "homeowner",
+  propertyType: "house-townhome",
+  condoFloor: "",
+  expectedInstallationDate: "",
 };
 
 export function CustomerProfilePage() {
@@ -55,6 +58,9 @@ export function CustomerProfilePage() {
       taxAddress: profile.data.taxAddress ?? "",
       preferredContact: profile.data.preferredContact ?? "line",
       customerRole: profile.data.customerRole ?? "homeowner",
+      propertyType: profile.data.propertyType as CustomerProfileInput["propertyType"] ?? "house-townhome",
+      condoFloor: profile.data.condoFloor ?? "",
+      expectedInstallationDate: profile.data.expectedInstallationDate ?? "",
     });
   }, [profile.data?.updatedAt]);
 
@@ -79,7 +85,7 @@ export function CustomerProfilePage() {
       return;
     }
     updateProfile.mutate(
-       { data: { ...form, fullName: form.fullName.trim(), phone: form.phone.trim(), email: form.email.trim(), company: form.company.trim(), project: form.project.trim(), address: form.address.trim(), taxName: form.taxName.trim(), taxId: form.taxId.trim(), taxBranch: form.taxBranch.trim(), taxAddress: form.taxAddress.trim() } },
+         { data: { ...form, fullName: form.fullName.trim(), phone: form.phone.trim(), email: form.email.trim(), company: form.company.trim(), project: form.project.trim(), address: form.address.trim(), taxName: form.taxName.trim(), taxId: form.taxId.trim(), taxBranch: form.taxBranch.trim(), taxAddress: form.taxAddress.trim(), expectedInstallationDate: form.expectedInstallationDate || null } },
       {
         onSuccess: (saved) => {
           setForm({
@@ -95,6 +101,9 @@ export function CustomerProfilePage() {
             taxAddress: saved.taxAddress ?? "",
             preferredContact: saved.preferredContact ?? "line",
             customerRole: saved.customerRole ?? "homeowner",
+            propertyType: saved.propertyType as CustomerProfileInput["propertyType"] ?? "house-townhome",
+            condoFloor: saved.condoFloor ?? "",
+            expectedInstallationDate: saved.expectedInstallationDate ?? "",
           });
           setMessage("บันทึกโปรไฟล์แล้ว");
           setErrorMessage("");
@@ -139,6 +148,9 @@ export function CustomerProfilePage() {
           <label>บริษัท<input value={form.company} onChange={(event) => update("company", event.target.value)} maxLength={200} data-testid="input-profile-company" /></label>
           <label>โครงการ<input value={form.project} onChange={(event) => update("project", event.target.value)} maxLength={240} data-testid="input-profile-project" /></label>
           <label className="profile-field-wide">ที่อยู่จัดส่ง / ติดตั้งเริ่มต้น<textarea value={form.address} onChange={(event) => update("address", event.target.value)} maxLength={4000} rows={4} data-testid="input-profile-address" /></label>
+           <label>ประเภทสถานที่<select value={form.propertyType ?? "house-townhome"} onChange={(event) => setForm((current) => ({ ...current, propertyType: event.target.value as CustomerProfileInput["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-profile-property-type"><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>
+           {form.propertyType === "condo" && <label>ชั้นคอนโด<input value={form.condoFloor ?? ""} onChange={(event) => update("condoFloor", event.target.value)} maxLength={32} data-testid="input-profile-condo-floor" /></label>}
+           <label>วันที่คาดว่าจะติดตั้ง<input type="date" value={form.expectedInstallationDate ?? ""} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-profile-installation-date" /></label>
           <label>ชื่อสำหรับใบกำกับภาษี<input value={form.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-profile-tax-name" /></label>
           <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={form.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} data-testid="input-profile-tax-id" /></label>
           <label>สาขา<input value={form.taxBranch} onChange={(event) => update("taxBranch", event.target.value)} maxLength={120} data-testid="input-profile-tax-branch" /></label>

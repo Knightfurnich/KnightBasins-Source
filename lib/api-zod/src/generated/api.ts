@@ -1055,7 +1055,16 @@ export const SendSupportChatMessageResponse = zod.object({
   "priceTHB": zod.number(),
   "dimensions": zod.string(),
   "basinDimensions": zod.string().nullish()
+})).optional(),
+  "profileUpdate": zod.object({
+  "status": zod.enum(['login_required', 'confirmation_required', 'updated', 'cancelled', 'no_changes']),
+  "fields": zod.array(zod.object({
+  "field": zod.string(),
+  "label": zod.string(),
+  "previousValue": zod.string(),
+  "nextValue": zod.string()
 })).optional()
+}).optional()
 })
 
 
@@ -1376,6 +1385,8 @@ export const getCustomerProfileResponseOneTaxBranchMax = 120;
 
 export const getCustomerProfileResponseOneTaxAddressMax = 4000;
 
+export const getCustomerProfileResponseOneCondoFloorMax = 32;
+
 
 
 export const GetCustomerProfileResponse = zod.object({
@@ -1390,7 +1401,10 @@ export const GetCustomerProfileResponse = zod.object({
   "taxBranch": zod.string().max(getCustomerProfileResponseOneTaxBranchMax),
   "taxAddress": zod.string().max(getCustomerProfileResponseOneTaxAddressMax),
   "preferredContact": zod.enum(['line', 'phone', 'email']),
-  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor'])
+  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor']),
+  "propertyType": zod.enum(['house-townhome', 'condo', 'commercial']).optional(),
+  "condoFloor": zod.string().max(getCustomerProfileResponseOneCondoFloorMax).optional(),
+  "expectedInstallationDate": zod.coerce.date().nullish()
 }).and(zod.object({
   "id": zod.number(),
   "lineUserId": zod.string(),
@@ -1402,6 +1416,9 @@ export const GetCustomerProfileResponse = zod.object({
   "taxAddress": zod.string(),
   "preferredContact": zod.string(),
   "customerRole": zod.string(),
+  "propertyType": zod.string().optional(),
+  "condoFloor": zod.string().optional(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }))
@@ -1428,6 +1445,8 @@ export const updateCustomerProfileBodyTaxBranchMax = 120;
 
 export const updateCustomerProfileBodyTaxAddressMax = 4000;
 
+export const updateCustomerProfileBodyCondoFloorMax = 32;
+
 
 
 export const UpdateCustomerProfileBody = zod.object({
@@ -1442,7 +1461,10 @@ export const UpdateCustomerProfileBody = zod.object({
   "taxBranch": zod.string().max(updateCustomerProfileBodyTaxBranchMax),
   "taxAddress": zod.string().max(updateCustomerProfileBodyTaxAddressMax),
   "preferredContact": zod.enum(['line', 'phone', 'email']),
-  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor'])
+  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor']),
+  "propertyType": zod.enum(['house-townhome', 'condo', 'commercial']).optional(),
+  "condoFloor": zod.string().max(updateCustomerProfileBodyCondoFloorMax).optional(),
+  "expectedInstallationDate": zod.coerce.date().nullish()
 })
 
 export const updateCustomerProfileResponseOneFullNameMax = 160;
@@ -1463,6 +1485,8 @@ export const updateCustomerProfileResponseOneTaxBranchMax = 120;
 
 export const updateCustomerProfileResponseOneTaxAddressMax = 4000;
 
+export const updateCustomerProfileResponseOneCondoFloorMax = 32;
+
 
 
 export const UpdateCustomerProfileResponse = zod.object({
@@ -1477,7 +1501,10 @@ export const UpdateCustomerProfileResponse = zod.object({
   "taxBranch": zod.string().max(updateCustomerProfileResponseOneTaxBranchMax),
   "taxAddress": zod.string().max(updateCustomerProfileResponseOneTaxAddressMax),
   "preferredContact": zod.enum(['line', 'phone', 'email']),
-  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor'])
+  "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor']),
+  "propertyType": zod.enum(['house-townhome', 'condo', 'commercial']).optional(),
+  "condoFloor": zod.string().max(updateCustomerProfileResponseOneCondoFloorMax).optional(),
+  "expectedInstallationDate": zod.coerce.date().nullish()
 }).and(zod.object({
   "id": zod.number(),
   "lineUserId": zod.string(),
@@ -1489,6 +1516,9 @@ export const UpdateCustomerProfileResponse = zod.object({
   "taxAddress": zod.string(),
   "preferredContact": zod.string(),
   "customerRole": zod.string(),
+  "propertyType": zod.string().optional(),
+  "condoFloor": zod.string().optional(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }))

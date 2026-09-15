@@ -32,6 +32,9 @@ function profileResponse(account: NonNullable<Awaited<ReturnType<typeof findAuth
     taxAddress: account.taxAddress ?? "",
     preferredContact: account.preferredContact ?? "line",
     customerRole: account.customerRole ?? "homeowner",
+    propertyType: account.propertyType ?? "",
+    condoFloor: account.condoFloor ?? "",
+    expectedInstallationDate: account.expectedInstallationDate ?? "",
     createdAt: account.createdAt,
     updatedAt: account.updatedAt,
   };
@@ -78,6 +81,15 @@ router.put("/customer/profile", async (req, res, next) => {
         taxAddress: parsed.data.taxAddress || null,
         preferredContact: parsed.data.preferredContact,
         customerRole: parsed.data.customerRole,
+        ...(parsed.data.propertyType !== undefined ? { propertyType: parsed.data.propertyType || null } : {}),
+        ...(parsed.data.condoFloor !== undefined ? { condoFloor: parsed.data.condoFloor || null } : {}),
+        ...(parsed.data.expectedInstallationDate !== undefined
+          ? {
+              expectedInstallationDate: parsed.data.expectedInstallationDate instanceof Date
+                ? parsed.data.expectedInstallationDate.toISOString().slice(0, 10)
+                : parsed.data.expectedInstallationDate || null,
+            }
+          : {}),
         updatedAt: new Date(),
       })
       .where(eq(customerAccounts.id, account.id))
@@ -98,6 +110,9 @@ router.put("/customer/profile", async (req, res, next) => {
         taxAddress: customerAccounts.taxAddress,
         preferredContact: customerAccounts.preferredContact,
         customerRole: customerAccounts.customerRole,
+        propertyType: customerAccounts.propertyType,
+        condoFloor: customerAccounts.condoFloor,
+        expectedInstallationDate: customerAccounts.expectedInstallationDate,
         createdAt: customerAccounts.createdAt,
         updatedAt: customerAccounts.updatedAt,
       });

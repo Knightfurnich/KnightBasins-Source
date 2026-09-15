@@ -101,6 +101,9 @@ export async function findAuthenticatedAccount(cookieValue: string | undefined) 
       taxAddress: customerAccounts.taxAddress,
       preferredContact: customerAccounts.preferredContact,
       customerRole: customerAccounts.customerRole,
+       propertyType: customerAccounts.propertyType,
+       condoFloor: customerAccounts.condoFloor,
+       expectedInstallationDate: customerAccounts.expectedInstallationDate,
       createdAt: customerAccounts.createdAt,
       updatedAt: customerAccounts.updatedAt,
     })

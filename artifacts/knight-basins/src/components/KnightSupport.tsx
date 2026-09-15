@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import { Link } from "wouter";
-import { useGetLineAuthStatus, useSendSupportChatMessage } from "@workspace/api-client-react";
+import { useGetLineAuthStatus, useSendSupportChatMessage, type SupportProfileUpdate } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ChatMessage = {
   role: "assistant" | "user";
   text: string;
   productCodes?: string[];
+  profileUpdate?: SupportProfileUpdate;
 };
 
 export function LineLoginButton({ compact = false }: { compact?: boolean }) {
@@ -49,19 +51,23 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
     { role: "assistant", text: "สวัสดีครับ ผมช่วยค้นหา SKU ราคา ขนาด และวิดีโอ 3D 360° ของสินค้าได้" },
   ]);
   const chat = useSendSupportChatMessage();
+  const queryClient = useQueryClient();
 
-  const send = () => {
-    const message = draft.trim();
+  const send = (requestedMessage?: string) => {
+    const message = (requestedMessage ?? draft).trim();
     if (!message || chat.isPending) return;
-    setDraft("");
+    if (!requestedMessage) setDraft("");
     setMessages((current) => [...current, { role: "user", text: message }]);
     chat.mutate(
       { data: { message } },
       {
         onSuccess: (result) => {
           const productCodes = result.compareItems?.map((item) => item.code) ?? (result.matchedCode ? [result.matchedCode] : []);
-          onLeadEvent?.("new_lead", productCodes);
-          setMessages((current) => [...current, { role: "assistant", text: result.reply, productCodes }]);
+          if (productCodes.length || !result.profileUpdate) onLeadEvent?.("new_lead", productCodes);
+          if (result.profileUpdate?.status === "updated") {
+            void queryClient.invalidateQueries({ queryKey: ["customer-profile"] });
+          }
+          setMessages((current) => [...current, { role: "assistant", text: result.reply, productCodes, profileUpdate: result.profileUpdate }]);
         },
         onError: () => setMessages((current) => [...current, { role: "assistant", text: "ขออภัยครับ ระบบค้นหาข้อมูลขัดข้องชั่วคราว กรุณาลองอีกครั้ง" }]),
       },
@@ -77,7 +83,7 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
             <button type="button" onClick={() => setOpen(false)} aria-label="ปิดน้องไนท์"><X size={16} /></button>
           </div>
           <div className="knight-support-messages" aria-live="polite">
-            {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}</div>)}
+             {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}{message.role === "assistant" && message.profileUpdate?.status === "confirmation_required" && <div className="knight-support-actions"><button type="button" onClick={() => send("ยืนยัน")} disabled={chat.isPending}>ยืนยันการอัปเดต</button><button type="button" onClick={() => send("ยกเลิก")} disabled={chat.isPending}>ยกเลิก</button></div>}</div>)}
             {chat.isPending && <p className="knight-support-message knight-support-message--assistant">กำลังค้นข้อมูล...</p>}
           </div>
           <form className="knight-support-form" onSubmit={(event) => { event.preventDefault(); send(); }}>

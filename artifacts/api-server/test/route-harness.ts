@@ -1,4 +1,5 @@
 import { build } from "esbuild";
+import cookieParser from "cookie-parser";
 import express, { type Express } from "express";
 import { mkdtemp, rm } from "node:fs/promises";
 import http from "node:http";
@@ -29,7 +30,7 @@ async function bundleTypeScriptModule(entryPoint: string): Promise<{
     await build({
       entryPoints: [entryPoint],
       bundle: true,
-      external: ["express"],
+      external: ["express", "pg"],
       format: "esm",
       logLevel: "silent",
       outfile: outputFile,
@@ -68,6 +69,8 @@ export async function serveTypeScriptRoute(
   try {
     const route = (await import(bundle.moduleUrl)) as RouteModule;
     const app = express();
+    app.use(express.json());
+    app.use(cookieParser());
     app.use(mountPath, route.default);
     const server = await listen(app);
     const address = server.address();

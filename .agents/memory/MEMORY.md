@@ -17,3 +17,4 @@
 - [Thai timezone handling](thai-timezone.md) — make every user-visible date, Bangkok calendar boundary, notification timestamp, and document month explicit.
 - [Studio browser test isolation](studio-browser-test-isolation.md) — clear autosaved Studio state before browser cases that require a fresh layout.
 - [Short Studio draft links](studio-short-links.md) — short URLs are local-storage handles; retain the store when testing resume and clear stale validation results after edits.
+- [Route test harness middleware](route-test-harness.md) — mirror JSON/cookie middleware and externalize CJS database drivers in native route tests.

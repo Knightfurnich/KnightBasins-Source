@@ -810,6 +810,27 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SupportCatalogItem"
+        profileUpdate:
+          $ref: "#/components/schemas/SupportProfileUpdate"
+    SupportProfileUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [login_required, confirmation_required, updated, cancelled, no_changes]
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupportProfileUpdateField"
+    SupportProfileUpdateField:
+      type: object
+      required: [field, label, previousValue, nextValue]
+      properties:
+        field: { type: string }
+        label: { type: string }
+        previousValue: { type: string }
+        nextValue: { type: string }
     SupportCatalogItem:
       type: object
       required: [code, name, category, priceTHB, dimensions]
@@ -972,6 +993,11 @@ components:
         customerRole:
           type: string
           enum: [homeowner, architect-interior, contractor]
+        propertyType:
+          type: string
+          enum: [house-townhome, condo, commercial]
+        condoFloor: { type: string, maxLength: 32 }
+        expectedInstallationDate: { type: [string, "null"], format: date }
     CustomerProfile:
       allOf:
         - $ref: "#/components/schemas/CustomerProfileInput"
@@ -988,6 +1014,9 @@ components:
             taxAddress: { type: string }
             preferredContact: { type: string }
             customerRole: { type: string }
+            propertyType: { type: string }
+            condoFloor: { type: string }
+            expectedInstallationDate: { type: [string, "null"], format: date }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
     CustomerQuotation:

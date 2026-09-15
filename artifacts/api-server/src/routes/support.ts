@@ -1,12 +1,137 @@
 import { Router, type IRouter } from "express";
+import { and, eq, ne } from "drizzle-orm";
+import { customerAccounts, customerLeads, db } from "@workspace/db";
 import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
+import {
+  extractSupportProfileFields,
+  isSupportCancellation,
+  isSupportConfirmation,
+  supportProfileFieldLabel,
+  supportProfileValue,
+  type SupportProfileField,
+  type SupportProfileFields,
+} from "../lib/support-profile";
+import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
 const router: IRouter = Router();
 
+type Account = NonNullable<Awaited<ReturnType<typeof findAuthenticatedAccount>>>;
+type PendingProfileUpdate = {
+  fields: SupportProfileFields;
+  comparison: Array<{
+    field: SupportProfileField;
+    label: string;
+    previousValue: string;
+    nextValue: string;
+  }>;
+  expiresAt: number;
+};
+
+const pendingProfileUpdates = new Map<number, PendingProfileUpdate>();
+const PENDING_UPDATE_TTL_MS = 10 * 60 * 1000;
+
 function cleanMessage(value: unknown) {
   return typeof value === "string" ? value.trim().slice(0, 500) : "";
+}
+
+function profileValue(account: Account, field: SupportProfileField) {
+  if (field === "fullName") return account.fullName;
+  return account[field];
+}
+
+function profileComparison(account: Account, fields: SupportProfileFields) {
+  return (Object.entries(fields) as Array<[SupportProfileField, string]>)
+    .filter(([field, nextValue]) => cleanMessage(profileValue(account, field)) !== cleanMessage(nextValue))
+    .map(([field, nextValue]) => ({
+      field,
+      label: supportProfileFieldLabel(field),
+      previousValue: supportProfileValue(field, profileValue(account, field)),
+      nextValue: supportProfileValue(field, nextValue),
+    }));
+}
+
+function updateReply(comparison: PendingProfileUpdate["comparison"]) {
+  return [
+    "น้องไนท์พบข้อมูลโปรไฟล์หรือใบกำกับภาษีใหม่:",
+    ...comparison.map((item) => `• ${item.label}เดิม: ${item.previousValue} → ใหม่: ${item.nextValue}`),
+    "",
+    "ต้องการให้น้องไนท์อัปเดตแทนข้อมูลเดิมใช่ไหมคะ? พิมพ์ “ยืนยัน” หรือ “ยกเลิก” ได้เลย",
+  ].join("\n");
+}
+
+function leadValues(fields: SupportProfileFields) {
+  return {
+    ...(fields.fullName !== undefined ? { name: fields.fullName } : {}),
+    ...(fields.phone !== undefined ? { phone: fields.phone } : {}),
+    ...(fields.email !== undefined ? { email: fields.email } : {}),
+    ...(fields.address !== undefined ? { address: fields.address } : {}),
+    ...(fields.taxName !== undefined ? { taxName: fields.taxName } : {}),
+    ...(fields.taxId !== undefined ? { taxId: fields.taxId } : {}),
+    ...(fields.taxBranch !== undefined ? { taxBranch: fields.taxBranch } : {}),
+    ...(fields.taxAddress !== undefined ? { taxAddress: fields.taxAddress } : {}),
+    ...(fields.propertyType !== undefined ? { propertyType: fields.propertyType } : {}),
+    ...(fields.condoFloor !== undefined ? { condoFloor: fields.condoFloor } : {}),
+  };
+}
+
+async function applyProfileUpdate(account: Account, fields: SupportProfileFields) {
+  const now = new Date();
+  const normalizedFields = fields.propertyType && fields.propertyType !== "condo"
+    ? { ...fields, condoFloor: "" }
+    : fields;
+  await db.transaction(async (tx) => {
+    await tx
+      .update(customerAccounts)
+      .set({
+        ...(normalizedFields.fullName !== undefined ? { fullName: normalizedFields.fullName } : {}),
+        ...(normalizedFields.phone !== undefined ? { phone: normalizedFields.phone } : {}),
+        ...(normalizedFields.email !== undefined ? { email: normalizedFields.email } : {}),
+        ...(normalizedFields.address !== undefined ? { address: normalizedFields.address } : {}),
+        ...(normalizedFields.taxName !== undefined ? { taxName: normalizedFields.taxName } : {}),
+        ...(normalizedFields.taxId !== undefined ? { taxId: normalizedFields.taxId } : {}),
+        ...(normalizedFields.taxBranch !== undefined ? { taxBranch: normalizedFields.taxBranch } : {}),
+        ...(normalizedFields.taxAddress !== undefined ? { taxAddress: normalizedFields.taxAddress } : {}),
+        ...(normalizedFields.propertyType !== undefined ? { propertyType: normalizedFields.propertyType } : {}),
+        ...(normalizedFields.condoFloor !== undefined ? { condoFloor: normalizedFields.condoFloor || null } : {}),
+        updatedAt: now,
+      })
+      .where(eq(customerAccounts.id, account.id));
+
+    const activeLeads = await tx
+      .select({ id: customerLeads.id })
+      .from(customerLeads)
+      .where(and(eq(customerLeads.customerAccountId, account.id), ne(customerLeads.status, "closed")));
+    const values = leadValues(normalizedFields);
+    if (activeLeads.length) {
+      for (const lead of activeLeads) {
+        await tx.update(customerLeads).set({ ...values, updatedAt: now }).where(eq(customerLeads.id, lead.id));
+      }
+      return;
+    }
+
+    await tx.insert(customerLeads).values({
+      leadKey: `support-${account.id}`,
+      status: "new_lead",
+      source: "knight_support",
+      orderMode: "quick-purchase",
+      name: normalizedFields.fullName ?? account.fullName ?? null,
+      phone: normalizedFields.phone ?? account.phone ?? null,
+      email: normalizedFields.email ?? account.email ?? null,
+      address: normalizedFields.address ?? account.address ?? null,
+      taxName: normalizedFields.taxName ?? account.taxName ?? null,
+      taxId: normalizedFields.taxId ?? account.taxId ?? null,
+      taxBranch: normalizedFields.taxBranch ?? account.taxBranch ?? null,
+      taxAddress: normalizedFields.taxAddress ?? account.taxAddress ?? null,
+      preferredContact: account.preferredContact ?? null,
+      customerRole: account.customerRole ?? null,
+      propertyType: normalizedFields.propertyType ?? account.propertyType ?? null,
+      condoFloor: normalizedFields.condoFloor || account.condoFloor || null,
+      productSkus: [],
+      customerAccountId: account.id,
+    });
+  });
 }
 
 router.post("/support/chat", async (req, res, next) => {
@@ -17,6 +142,72 @@ router.post("/support/chat", async (req, res, next) => {
   }
 
   try {
+    const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
+    const pending = account ? pendingProfileUpdates.get(account.id) : undefined;
+    if (account && pending && pending.expiresAt <= Date.now()) pendingProfileUpdates.delete(account.id);
+
+    if (account && pending && pending.expiresAt > Date.now()) {
+      if (isSupportConfirmation(message)) {
+        await applyProfileUpdate(account, pending.fields);
+        pendingProfileUpdates.delete(account.id);
+        res.json({
+          reply: "น้องไนท์อัปเดตข้อมูลโปรไฟล์และใบกำกับภาษีให้เรียบร้อยแล้วค่ะ 🟢",
+          matchedType: "none",
+          profileUpdate: { status: "updated", fields: pending.comparison },
+        });
+        return;
+      }
+      if (isSupportCancellation(message)) {
+        pendingProfileUpdates.delete(account.id);
+        res.json({
+          reply: "ยกเลิกการอัปเดตข้อมูลแล้วค่ะ ข้อมูลเดิมยังไม่เปลี่ยนแปลง",
+          matchedType: "none",
+          profileUpdate: { status: "cancelled", fields: pending.comparison },
+        });
+        return;
+      }
+    }
+
+    const extracted = extractSupportProfileFields(message);
+    if (Object.keys(extracted).length > 0) {
+      if (!account) {
+        res.json({
+          reply: "น้องไนท์พบข้อมูลโปรไฟล์ใหม่ แต่การบันทึกข้อมูลต้องเข้าสู่ระบบด้วย LINE ก่อนนะคะ",
+          matchedType: "none",
+          profileUpdate: { status: "login_required", fields: [] },
+        });
+        return;
+      }
+      const comparison = profileComparison(account, extracted);
+      if (!comparison.length) {
+        res.json({
+          reply: "ข้อมูลที่ส่งมาตรงกับโปรไฟล์ปัจจุบันแล้วค่ะ ยังไม่มีอะไรต้องอัปเดต",
+          matchedType: "none",
+          profileUpdate: { status: "no_changes", fields: [] },
+        });
+        return;
+      }
+      pendingProfileUpdates.set(account.id, {
+        fields: extracted,
+        comparison,
+        expiresAt: Date.now() + PENDING_UPDATE_TTL_MS,
+      });
+      res.json({
+        reply: updateReply(comparison),
+        matchedType: "none",
+        profileUpdate: { status: "confirmation_required", fields: comparison },
+      });
+      return;
+    }
+
+    if (account && (isSupportConfirmation(message) || isSupportCancellation(message))) {
+      res.json({
+        reply: "ตอนนี้ยังไม่มีข้อมูลโปรไฟล์ที่รอการยืนยันค่ะ",
+        matchedType: "none",
+      });
+      return;
+    }
+
     const intentReply = getSupportIntentReply(message);
     if (intentReply) {
       res.json({ reply: intentReply, matchedType: "none" });

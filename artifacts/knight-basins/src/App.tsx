@@ -1011,7 +1011,10 @@ function Storefront() {
     address: customerProfile?.address || "",
     preferredContact: (customerProfile?.preferredContact || "") as CustomerDetails["preferredContact"],
     customerRole: (customerProfile?.customerRole || "") as CustomerDetails["customerRole"],
-  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole]);
+    propertyType: (customerProfile?.propertyType || "") as CustomerDetails["propertyType"],
+    condoFloor: customerProfile?.condoFloor || "",
+    expectedInstallationDate: customerProfile?.expectedInstallationDate || "",
+  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole, customerProfile?.propertyType, customerProfile?.condoFloor, customerProfile?.expectedInstallationDate]);
   useEffect(() => {
     if (!customerProfile) return;
     setCustomer((current) => ({
@@ -1028,6 +1031,9 @@ function Storefront() {
       address: contactDefaults.address || current.address,
        preferredContact: contactDefaults.preferredContact || current.preferredContact,
        customerRole: contactDefaults.customerRole || current.customerRole,
+        propertyType: contactDefaults.propertyType || current.propertyType,
+        condoFloor: contactDefaults.condoFloor || current.condoFloor,
+        expectedInstallationDate: contactDefaults.expectedInstallationDate || current.expectedInstallationDate,
     }));
   }, [customerProfile?.id, customerProfile?.updatedAt]);
   useEffect(() => {
@@ -1075,8 +1081,8 @@ function Storefront() {
         preferredContact: details.preferredContact || customer.preferredContact || null,
         customerRole: details.customerRole || customer.customerRole || null,
         propertyType: details.propertyType || customer.propertyType || null,
-        condoFloor: details.condoFloor ?? (customer.condoFloor || null),
-        expectedInstallationDate: details.expectedInstallationDate ?? (customer.expectedInstallationDate || null),
+        condoFloor: details.condoFloor || customer.condoFloor || null,
+        expectedInstallationDate: details.expectedInstallationDate || customer.expectedInstallationDate || null,
         orderMode: details.orderMode ?? "quick-purchase",
         studioData: details.studioData ? { ...(details.studioData as Record<string, unknown>) } : null,
       },

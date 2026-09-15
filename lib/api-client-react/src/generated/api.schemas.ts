@@ -264,12 +264,36 @@ export interface SupportCatalogItem {
   basinDimensions?: string | null;
 }
 
+export type SupportProfileUpdateStatus = typeof SupportProfileUpdateStatus[keyof typeof SupportProfileUpdateStatus];
+
+
+export const SupportProfileUpdateStatus = {
+  login_required: 'login_required',
+  confirmation_required: 'confirmation_required',
+  updated: 'updated',
+  cancelled: 'cancelled',
+  no_changes: 'no_changes',
+} as const;
+
+export interface SupportProfileUpdateField {
+  field: string;
+  label: string;
+  previousValue: string;
+  nextValue: string;
+}
+
+export interface SupportProfileUpdate {
+  status: SupportProfileUpdateStatus;
+  fields?: SupportProfileUpdateField[];
+}
+
 export interface SupportChatResponse {
   reply: string;
   matchedType: SupportChatResponseMatchedType;
   /** @nullable */
   matchedCode?: string | null;
   compareItems?: SupportCatalogItem[];
+  profileUpdate?: SupportProfileUpdate;
 }
 
 export type LeadInputStatus = typeof LeadInputStatus[keyof typeof LeadInputStatus];
@@ -572,6 +596,15 @@ export const CustomerProfileInputCustomerRole = {
   contractor: 'contractor',
 } as const;
 
+export type CustomerProfileInputPropertyType = typeof CustomerProfileInputPropertyType[keyof typeof CustomerProfileInputPropertyType];
+
+
+export const CustomerProfileInputPropertyType = {
+  'house-townhome': 'house-townhome',
+  condo: 'condo',
+  commercial: 'commercial',
+} as const;
+
 export interface CustomerProfileInput {
   /**
      * @minLength 1
@@ -598,6 +631,11 @@ export interface CustomerProfileInput {
   taxAddress: string;
   preferredContact: CustomerProfileInputPreferredContact;
   customerRole: CustomerProfileInputCustomerRole;
+  propertyType?: CustomerProfileInputPropertyType;
+  /** @maxLength 32 */
+  condoFloor?: string;
+  /** @nullable */
+  expectedInstallationDate?: string | null;
 }
 
 export type CustomerProfile = CustomerProfileInput & ({
@@ -612,6 +650,10 @@ export type CustomerProfile = CustomerProfileInput & ({
   taxAddress?: string;
   preferredContact?: string;
   customerRole?: string;
+  propertyType?: string;
+  condoFloor?: string;
+  /** @nullable */
+  expectedInstallationDate?: string | null;
   createdAt: string;
   updatedAt: string;
 });
