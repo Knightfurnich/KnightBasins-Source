@@ -2,6 +2,7 @@ import type { StudioState } from "./studio-model";
 
 export const STUDIO_DRAFT_STORAGE_KEY = "knight-studio-draft-v1";
 export const STUDIO_NAMED_DRAFTS_STORAGE_KEY = "knight-studio-drafts-v1";
+export const STUDIO_SHORT_DRAFTS_STORAGE_KEY = "knight-studio-short-drafts-v1";
 
 export type StudioDraftRecord = {
   version: 1;
@@ -14,6 +15,13 @@ export type NamedStudioDraftRecord = {
   id: string;
   name: string;
   createdAt: string;
+  savedAt: string;
+  state: StudioState;
+};
+
+export type ShortStudioDraftRecord = {
+  version: 1;
+  id: string;
   savedAt: string;
   state: StudioState;
 };
@@ -88,6 +96,100 @@ export function clearStoredStudioDraft(storage: Storage | undefined = typeof loc
   } catch {
     // Storage can be unavailable in private browsing; the URL draft still works.
   }
+}
+
+function isShortStudioDraft(value: unknown): value is ShortStudioDraftRecord {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<ShortStudioDraftRecord>;
+  return candidate.version === 1 &&
+    typeof candidate.id === "string" &&
+    /^KB-[A-Z0-9]{6}$/.test(candidate.id) &&
+    isValidTimestamp(candidate.savedAt) &&
+    looksLikeStudioState(candidate.state);
+}
+
+function shortDraftSuffix() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const values = new Uint32Array(6);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    crypto.getRandomValues(values);
+    return Array.from(values, (value) => alphabet[value % alphabet.length]).join("");
+  }
+  return Array.from({ length: 6 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
+}
+
+function nextShortStudioDraftId(existing: ShortStudioDraftRecord[]) {
+  const used = new Set(existing.map((draft) => draft.id));
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const id = `KB-${shortDraftSuffix()}`;
+    if (!used.has(id)) return id;
+  }
+  return `KB-${Date.now().toString(36).toUpperCase().slice(-6).padStart(6, "0")}`;
+}
+
+export function readStoredShortStudioDrafts(storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage): ShortStudioDraftRecord[] {
+  if (!storage) return [];
+  try {
+    const parsed: unknown = JSON.parse(storage.getItem(STUDIO_SHORT_DRAFTS_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter(isShortStudioDraft) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeStoredShortStudioDrafts(
+  drafts: ShortStudioDraftRecord[],
+  storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
+) {
+  if (!storage) return false;
+  try {
+    storage.setItem(STUDIO_SHORT_DRAFTS_STORAGE_KEY, JSON.stringify(drafts));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function writeShortStudioDraft(
+  state: StudioState,
+  storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
+  savedAt = new Date().toISOString(),
+) {
+  const drafts = readStoredShortStudioDrafts(storage);
+  const record: ShortStudioDraftRecord = {
+    version: 1,
+    id: nextShortStudioDraftId(drafts),
+    savedAt,
+    state,
+  };
+  return writeStoredShortStudioDrafts([record, ...drafts], storage) ? record : null;
+}
+
+export function readStoredShortStudioDraft(
+  id: string,
+  storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
+) {
+  return readStoredShortStudioDrafts(storage).find((draft) => draft.id === id) ?? null;
+}
+
+export function createStudioDraftLink(
+  state: StudioState,
+  origin: string = typeof window === "undefined" ? "http://localhost" : window.location.origin,
+  storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
+) {
+  const url = new URL("/studio", origin);
+  const shortDraft = writeShortStudioDraft(state, storage);
+  url.searchParams.set("draft", shortDraft?.id ?? encodeStudioDraft(state));
+  return url.toString();
+}
+
+export function createStudioShareLink(
+  state: StudioState,
+  origin: string = typeof window === "undefined" ? "http://localhost" : window.location.origin,
+) {
+  const url = new URL("/studio", origin);
+  url.searchParams.set("draft", encodeStudioDraft(state));
+  return url.toString();
 }
 
 function isValidTimestamp(value: unknown): value is string {

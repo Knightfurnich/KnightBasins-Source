@@ -28,7 +28,7 @@ import {
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { formatEnglishDate, formatThaiDate } from "@/data/date-time";
-import { encodeStudioDraft } from "@/data/studio-draft";
+import { createStudioShareLink } from "@/data/studio-draft";
 import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } from "@/components/StudioPage";
 import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
@@ -746,7 +746,8 @@ function SavedQuotePage() {
   };
   const copySavedStudioToEditor = () => {
     if (!state) return;
-    setLocation(`/studio?draft=${encodeURIComponent(encodeStudioDraft(state))}`);
+    const url = new URL(createStudioShareLink(state));
+    setLocation(`${url.pathname}${url.search}`);
   };
 
   return <div className="page-wrap quote-page saved-quote-page" data-testid="saved-quote-page">

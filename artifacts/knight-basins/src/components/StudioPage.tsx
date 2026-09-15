@@ -11,6 +11,7 @@ import {
 } from "@/data/catalog";
 import {
   basinDimensionsForProduct,
+  basinPlacementOverlapWarnings,
   createBasinPlacement,
   disconnectedRectangleIds,
   pieceBounds,
@@ -50,8 +51,9 @@ import {
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
-import { clearStoredStudioDraft, createStudioDraftLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
+import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime } from "@/data/date-time";
+import { isValidPhoneNumber } from "@/data/validation";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address"> = {
   name: "",
@@ -176,7 +178,7 @@ function StudioContactFields({ contact, setContact }: { contact: typeof emptyCon
       ["email", "อีเมล", false],
       ["project", "ชื่อโครงการ", true],
       ["address", "ที่อยู่ / สถานที่ติดตั้ง", true],
-    ] as const).map(([key, label, required]) => <label key={key}>{label}{required && <span> *</span>}<input required={required} value={contact[key]} onChange={(event) => update(key, event.target.value)} data-testid={`input-studio-${key}`} /></label>)}
+    ] as const).map(([key, label, required]) => <label key={key}>{label}{required && <span> *</span>}<input required={required} type={key === "phone" ? "tel" : undefined} inputMode={key === "phone" ? "numeric" : undefined} pattern={key === "phone" ? "[0-9]{9,10}" : undefined} minLength={key === "phone" ? 9 : undefined} maxLength={key === "phone" ? 10 : undefined} value={contact[key]} onChange={(event) => update(key, event.target.value)} data-testid={`input-studio-${key}`} /></label>)}
   </div>;
 }
 
@@ -455,8 +457,8 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     setDraftResult("");
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   };
-  const copyStateLink = async (draftState: StudioState, successMessage: string) => {
-    const url = createStudioDraftLink(draftState);
+  const copyStateLink = async (draftState: StudioState, successMessage: string, createLink: typeof createStudioShareLink = createStudioShareLink) => {
+    const url = createLink(draftState);
     try {
       await navigator.clipboard.writeText(url);
       setDraftResult(successMessage);
@@ -504,7 +506,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
     setDraftResult(`เปิดแบบร่าง “${draft.name}” แล้ว`);
   };
   const copyNamedDraftLink = async (draft: NamedStudioDraftRecord) => {
-    await copyStateLink(draft.state, `คัดลอกลิงก์แบบร่าง “${draft.name}” แล้ว เปิดใน Incognito เพื่อแก้ไขต่อได้`);
+    await copyStateLink(draft.state, `คัดลอกลิงก์แบบร่าง “${draft.name}” แล้ว เปิดใน Incognito เพื่อแก้ไขต่อได้`, createStudioDraftLink);
   };
   const deleteNamedDraft = (draft: NamedStudioDraftRecord) => {
     if (!window.confirm(`ลบแบบร่าง “${draft.name}” หรือไม่`)) return;
@@ -543,6 +545,10 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
       setResult("กรุณากรอกชื่อผู้ติดต่อ โทรศัพท์ ชื่อโครงการ และสถานที่ติดตั้ง");
       return;
     }
+    if (!isValidPhoneNumber(contact.phone)) {
+      setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
+      return;
+    }
     setSubmitting(true);
     setResult("");
     try {
@@ -568,6 +574,10 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
   const submitSketch = async () => {
     if (!sketchFile || !contact.name || !contact.phone || !contact.project) {
       setResult("กรุณาแนบไฟล์ และกรอกชื่อผู้ติดต่อ โทรศัพท์ และชื่อโครงการ");
+      return;
+    }
+    if (!isValidPhoneNumber(contact.phone)) {
+      setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
       return;
     }
     setSubmitting(true);
@@ -610,7 +620,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio }: StudioPageProps) {
         </div>
          <StudioStoneComparison state={state} setState={setState} />
         <div className="studio-pricing-inputs">
-          <label>ความสูงบัว (มม.)<input type="number" min="1" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-upstand-height" /></label>
+           <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-upstand-height" /></label>
           <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
            <label>ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
         </div>

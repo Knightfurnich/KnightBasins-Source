@@ -580,6 +580,113 @@ describe("long formal quote print flow", () => {
     );
   });
 
+  it("blocks overlapping basin placements before a quote request", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "overlap Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "overlap Studio canvas",
+    );
+    await clickTestId(browser.page, "button-studio-basin-KF002");
+    const dropBasin = async (sku: string) => {
+      const dropped = await browser.page.evaluate(`(() => {
+        const target = document.querySelector('[data-testid="studio-canvas"]');
+        if (!(target instanceof HTMLElement)) return false;
+        const dataTransfer = new DataTransfer();
+        dataTransfer.setData("application/x-studio-basin", "${sku}");
+        const rect = target.getBoundingClientRect();
+        target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+        target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.25, clientY: rect.top + rect.height * 0.5 }));
+        return true;
+      })()`);
+      assert.equal(dropped, true);
+    };
+    await dropBasin("KF001");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
+      Boolean,
+      "first overlap basin",
+    );
+    await dropBasin("KF002");
+    await waitFor(
+      () => browser.page.evaluate('document.body.textContent?.includes("มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน") ?? false'),
+      Boolean,
+      "basin overlap warning",
+    );
+    await clickTestId(browser.page, "button-submit-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน"'),
+      Boolean,
+      "basin overlap submission block",
+    );
+  });
+
+  it("blocks invalid Studio upstand heights and phone numbers", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "field validation Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "field validation Studio canvas",
+    );
+    const dropped = await browser.page.evaluate(`(() => {
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.25, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(dropped, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
+      Boolean,
+      "field validation basin",
+    );
+    await setTextInput(browser.page, "input-studio-upstand-height", "-1");
+    await waitFor(
+      () => browser.page.evaluate('document.body.textContent?.includes("ความสูงบัวต้องอยู่ระหว่าง 0–500 มม.") ?? false'),
+      Boolean,
+      "upstand height warning",
+    );
+    await clickTestId(browser.page, "button-submit-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "ความสูงบัวต้องอยู่ระหว่าง 0–500 มม."'),
+      Boolean,
+      "upstand height submission block",
+    );
+    await setTextInput(browser.page, "input-studio-upstand-height", "120");
+    for (const [testId, value] of [
+      ["input-studio-name", "คุณทดสอบเบอร์โทร"],
+      ["input-studio-phone", "08123"],
+      ["input-studio-project", "โครงการเบอร์โทร"],
+      ["input-studio-address", "กรุงเทพฯ"],
+    ] as const) {
+      await setTextInput(browser.page, testId, value);
+    }
+    await clickTestId(browser.page, "button-submit-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก"'),
+      Boolean,
+      "phone format submission block",
+    );
+  });
+
   it("keeps Studio export actions on a saved quote snapshot", async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
@@ -807,9 +914,9 @@ describe("long formal quote print flow", () => {
       (value) => typeof value === "string" && value.includes("/studio?draft="),
       "copied Studio draft link",
     );
-    assert.ok(draftLink.length <= 100);
-    assert.match(draftLink, /\/studio\?draft=KB-[A-Z0-9]{6}$/);
-    await browser.page.evaluate("localStorage.removeItem('knight-studio-draft-v1')");
+    assert.ok(draftLink.length > 100);
+    assert.match(draftLink, /\/studio\?draft=[A-Za-z0-9_-]+$/);
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: draftLink });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-studio-draft-link"]\') !== null'),
@@ -826,18 +933,9 @@ describe("long formal quote print flow", () => {
     assert.equal(linked.basinSelected, true);
     assert.equal(linked.width, "2100");
     assert.equal(linked.banner, false);
-    const legacyDraftLink = await browser.page.evaluate(`(() => {
-      const drafts = JSON.parse(localStorage.getItem("knight-studio-short-drafts-v1") || "[]");
-      const state = drafts[0]?.state;
-      if (!state) return "";
-      const bytes = new TextEncoder().encode(JSON.stringify(state));
-      let binary = "";
-      bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
-      const token = btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
-      return \`${baseUrl}/studio?draft=\${token}\`;
-    })()`);
+    const legacyDraftLink = draftLink;
     assert.match(legacyDraftLink, /\/studio\?draft=[A-Za-z0-9_-]+$/);
-    await browser.page.evaluate("localStorage.removeItem('knight-studio-short-drafts-v1'); localStorage.removeItem('knight-studio-draft-v1')");
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: legacyDraftLink });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-save-studio-draft-link"]\') !== null'),
@@ -914,6 +1012,8 @@ describe("long formal quote print flow", () => {
       (value) => typeof value === "string" && value.includes("/studio?draft="),
       "named draft card link",
     );
+    assert.ok(namedDraftLink.length <= 100);
+    assert.match(namedDraftLink, /\/studio\?draft=KB-[A-Z0-9]{6}$/);
     await browser.page.evaluate("document.querySelector('[data-testid^=\"button-open-studio-draft-\"]')?.click()");
     const resumed = await waitFor(
       () => browser.page.evaluate(`(() => {

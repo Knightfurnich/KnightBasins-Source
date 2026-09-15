@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createStudioDraftLink, decodeStudioDraft, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
+import { createStudioDraftLink, createStudioShareLink, decodeStudioDraft, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
 import type { StudioState } from "../src/data/studio-model.ts";
 
 const state: StudioState = {
@@ -52,6 +52,16 @@ test("short Studio draft links stay compact and restore from the local Draft Sto
   assert.equal(url.pathname, "/studio");
   assert.deepEqual(readStoredShortStudioDraft(id, storage)?.state, state);
   assert.equal((JSON.parse(storage.getItem(STUDIO_SHORT_DRAFTS_STORAGE_KEY) || "[]") as ShortStudioDraftRecord[]).length, 1);
+});
+
+test("shared Studio links restore without browser storage", () => {
+  const link = createStudioShareLink(state, "https://example.test");
+  const url = new URL(link);
+  const token = url.searchParams.get("draft") ?? "";
+
+  assert.ok(link.length > 100);
+  assert.equal(url.pathname, "/studio");
+  assert.deepEqual(decodeStudioDraft(token), state);
 });
 
 test("studio drafts round-trip through browser storage", () => {

@@ -3,6 +3,7 @@ import test from "node:test";
 import { PRODUCTS } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
+  basinPlacementOverlapWarnings,
   createBasinPlacement,
   disconnectedRectangleIds,
   placementCrossesPanelJoint,
@@ -111,6 +112,27 @@ test("basins crossing a panel joint are blocked while basins inside one panel re
   );
 });
 
+test("overlapping basins are blocked while basins that only touch remain safe", () => {
+  const overlapping = baseState({
+    basinPlacements: [
+      { id: "basin-1", sku: "KF001", pieceId: "piece-1", xMm: 100, yMm: 50, widthMm: 500, depthMm: 500 },
+      { id: "basin-2", sku: "KF002", pieceId: "piece-1", xMm: 500, yMm: 50, widthMm: 500, depthMm: 500 },
+    ],
+    basinSkus: ["KF001", "KF002"],
+  });
+  assert.deepEqual(basinPlacementOverlapWarnings(overlapping), ["basin-1:basin-2"]);
+  const estimate = studioEstimate(overlapping, PRODUCTS);
+  assert.deepEqual(estimate.basinOverlapWarnings, ["basin-1:basin-2"]);
+  assert.equal(estimate.isValid, false);
+  assert.equal(studioSubmissionValidationMessage(overlapping, estimate), "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน");
+
+  const touching = {
+    ...overlapping,
+    basinPlacements: overlapping.basinPlacements.map((placement, index) => ({ ...placement, xMm: index * 500 })),
+  };
+  assert.deepEqual(basinPlacementOverlapWarnings(touching), []);
+});
+
 test("rectangles in one workpiece must form one connected component", () => {
   const layout = piece([
     rectangle("a"),
@@ -172,6 +194,21 @@ test("open-edge price rejects negative values and more than two decimals", () =>
   assert.equal(estimate.openEdgePriceInvalid, true);
   assert.equal(estimate.isValid, false);
   assert.match(estimate.warnings.join(" "), /ทศนิยมไม่เกิน 2/);
+});
+
+test("upstand height is limited to 0–500 mm", () => {
+  const negative = studioEstimate(baseState({ upstandHeightMm: -1 }), PRODUCTS);
+  assert.equal(negative.upstandHeightInvalid, true);
+  assert.equal(negative.isValid, false);
+  assert.equal(studioSubmissionValidationMessage(baseState({ upstandHeightMm: -1 }), negative), "ความสูงบัวต้องอยู่ระหว่าง 0–500 มม.");
+
+  const maximum = studioEstimate(baseState({ upstandHeightMm: 500 }), PRODUCTS);
+  assert.equal(maximum.upstandHeightInvalid, false);
+  assert.equal(maximum.isValid, true);
+
+  const overMaximum = studioEstimate(baseState({ upstandHeightMm: 501 }), PRODUCTS);
+  assert.equal(overMaximum.upstandHeightInvalid, true);
+  assert.equal(overMaximum.isValid, false);
 });
 
 test("discount validation rejects negative and over-total values before submission", () => {

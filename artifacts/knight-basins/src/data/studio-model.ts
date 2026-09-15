@@ -106,6 +106,8 @@ export type StudioEstimate = {
   upstandHeightMissing: boolean;
   openEdgePriceMissing: boolean;
   openEdgePriceInvalid: boolean;
+  upstandHeightInvalid: boolean;
+  basinOverlapWarnings: string[];
   overlapWarnings: string[];
   unsafePlacements: string[];
   crossJointPlacements: string[];
@@ -448,6 +450,26 @@ export function unknownBasinPlacements(state: Pick<StudioState, "basinPlacements
     .map((placement) => placement.id);
 }
 
+function basinPlacementIntersection(first: BasinPlacement, second: BasinPlacement) {
+  if (first.widthMm === null || first.depthMm === null || second.widthMm === null || second.depthMm === null) return 0;
+  const width = Math.min(first.xMm + first.widthMm, second.xMm + second.widthMm) - Math.max(first.xMm, second.xMm);
+  const depth = Math.min(first.yMm + first.depthMm, second.yMm + second.depthMm) - Math.max(first.yMm, second.yMm);
+  return width > STUDIO_EPSILON_MM && depth > STUDIO_EPSILON_MM ? width * depth : 0;
+}
+
+export function basinPlacementOverlapWarnings(state: Pick<StudioState, "basinPlacements">) {
+  const warnings: string[] = [];
+  for (let firstIndex = 0; firstIndex < state.basinPlacements.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < state.basinPlacements.length; secondIndex += 1) {
+      const first = state.basinPlacements[firstIndex];
+      const second = state.basinPlacements[secondIndex];
+      if ((first.pieceId ?? "") !== (second.pieceId ?? "")) continue;
+      if (basinPlacementIntersection(first, second) > 0) warnings.push(`${first.id}:${second.id}`);
+    }
+  }
+  return warnings;
+}
+
 export function clampBasinPlacementPosition(
   placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
   xMm: number,
@@ -568,6 +590,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
   const counterArea = isNewLayout ? studioAreaSqM(pieces) : counterAreaSqM(state.shape, state.dimensions);
   const edgeTotals = isNewLayout ? studioEdgeTotals(pieces) : { upstandLengthMm: 0, openEdgeLengthMm: 0 };
   const upstandHeight = state.upstandHeightMm ?? (isNewLayout ? null : state.backsplash.enabled ? state.backsplash.heightMm : null);
+  const upstandHeightInvalid = upstandHeight !== null && (!Number.isFinite(upstandHeight) || upstandHeight < 0 || upstandHeight > 500);
   const upstandArea = upstandHeight !== null && Number.isFinite(upstandHeight) && upstandHeight > 0
     ? edgeTotals.upstandLengthMm * upstandHeight / 1_000_000
     : 0;
@@ -600,6 +623,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
   const vatAmount = state.vat ? roundBaht(subtotal * 0.07) : 0;
   const total = subtotal + vatAmount;
   const overlapWarnings = pieces.flatMap((piece) => pieceOverlapWarnings(piece).map((pair) => `${piece.name}: ${pair}`));
+  const basinOverlapWarnings = basinPlacementOverlapWarnings(state);
   const disconnectedRectangles = isNewLayout ? pieces.flatMap((piece) => disconnectedRectangleIds(piece).map((id) => `${piece.name}: ${id}`)) : [];
   const unsafe = isNewLayout ? state.basinPlacements.filter((placement) => {
     const piece = studioPieceById(state, placement.pieceId);
@@ -625,7 +649,9 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
     ...(openEdgePriceMissing ? ["ยังไม่ได้ระบุราคาขอบเปิดต่อเมตร"] : []),
      ...(openEdgePriceInvalid ? ["ราคาขอบเปิดต้องไม่ติดลบและมีทศนิยมไม่เกิน 2 ตำแหน่ง"] : []),
      ...(discountInvalid ? ["ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด"] : []),
+     ...(upstandHeightInvalid ? ["ความสูงบัวต้องอยู่ระหว่าง 0–500 มม."] : []),
     ...(overlapWarnings.length ? ["มีสี่เหลี่ยมซ้อนกัน พื้นที่ยังคิดตามแผ่นเต็มแต่ต้องตรวจสอบแบบ"] : []),
+     ...(basinOverlapWarnings.length ? ["มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน"] : []),
      ...(disconnectedRectangles.length ? ["สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน"] : []),
      ...(crossJointPlacements.length ? ["อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว"] : []),
   ];
@@ -658,6 +684,8 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
     upstandHeightMissing,
     openEdgePriceMissing,
     openEdgePriceInvalid,
+     upstandHeightInvalid,
+     basinOverlapWarnings,
     overlapWarnings,
     unsafePlacements: unsafe,
     crossJointPlacements,
@@ -672,7 +700,9 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
       state.basinPlacements.length >= state.basinSkus.length &&
       price !== null &&
       !openEdgePriceInvalid &&
+      !upstandHeightInvalid &&
       !discountInvalid &&
+      !basinOverlapWarnings.length &&
       !overlapWarnings.length &&
       !disconnectedRectangles.length &&
       !crossJointPlacements.length &&
@@ -684,18 +714,20 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
 
 export function studioSubmissionValidationMessage(
   state: StudioState,
-  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">,
+  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "upstandHeightInvalid" | "basinOverlapWarnings" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">,
 ) {
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
   if (state.basinPlacements.length === 0) return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง";
   if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
   if (estimate.unknownDimensionPlacements.length > 0) return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
+  if (estimate.basinOverlapWarnings.length > 0) return "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน";
   if (estimate.overlapWarnings.length > 0) return "มีสี่เหลี่ยมซ้อนกัน กรุณาขยับแผ่นให้ไม่ซ้อนกันก่อนส่งคำขอ";
   if (estimate.disconnectedRectangles.length > 0) return "สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน";
   if (estimate.crossJointPlacements.length > 0) return "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว";
   if (estimate.unsafePlacements.length > 0) return "กรุณาวางอ่างให้อยู่ภายในสี่เหลี่ยมของชิ้นงาน";
   if (estimate.openEdgePriceInvalid) return "ราคาขอบเปิดติดลบไม่ได้";
+  if (estimate.upstandHeightInvalid) return "ความสูงบัวต้องอยู่ระหว่าง 0–500 มม.";
   if (estimate.discountInvalid) return "ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด";
   if (!estimate.isValid) return "กรุณาตรวจสอบจำนวนชิ้นงาน จำนวนแผ่น ขนาดแผ่น และข้อมูลวัสดุก่อนส่งคำขอ";
   return null;
