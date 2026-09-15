@@ -727,6 +727,8 @@ h1, h2, h3 { color: var(--ink); }
 .quote-format-panel > div:first-child { display: grid; gap: 4px; }
 .quote-format-panel strong { color: var(--brand-blue); font-size: 12px; }
 .quote-format-panel small { color: var(--ink-soft); font-size: 10px; }
+.quote-format-controls { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.quote-format-controls .quote-language-switch { margin-right: 0; }
 .quote-format-switch { display: flex; gap: 7px; }
 .quote-format-switch button { display: grid; gap: 2px; min-width: 100px; padding: 9px 12px; border: 1px solid #b8d4e4; border-radius: 8px; color: var(--brand-blue); background: white; text-align: left; }
 .quote-format-switch button span { font: 700 13px var(--mono); }
@@ -1514,14 +1516,38 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   color: white;
   background: linear-gradient(145deg, #236a9f, #123f67);
   border: 2px solid white;
+  border-radius: 10px;
+  overflow: hidden;
   box-shadow: 0 6px 15px rgba(17,65,105,.2);
   font: 10px var(--mono);
 }
+.studio-placement::before {
+  position: absolute;
+  inset: 4px;
+  z-index: 0;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255,255,255,.24), transparent 36%),
+    linear-gradient(145deg, rgba(8,38,65,.08), rgba(8,38,65,.48));
+  box-shadow:
+    inset 4px 4px 10px rgba(0,0,0,.42),
+    inset -3px -3px 7px rgba(255,255,255,.2);
+  content: "";
+  pointer-events: none;
+}
+.studio-placement > strong,
+.studio-placement > small,
+.studio-placement > button { position: relative; z-index: 1; }
 .studio-placement:active { cursor: grabbing; }
 .studio-placement small { font: 8px var(--sans); opacity: .8; }
 .studio-placement button { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 18px; height: 18px; color: white; background: rgba(0,0,0,.2); }
 .studio-canvas-hint { display: flex; align-items: center; gap: 5px; margin: 10px 0 0; color: var(--ink-soft); font-size: 10px; }
 .saved-quote-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: -12px 0 24px; }
+.quote-language-switch { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: #f7fbfd; }
+.quote-language-switch span { padding: 0 5px; color: var(--ink-soft); font: 9px var(--mono); }
+.quote-language-switch button { min-width: 32px; padding: 5px 7px; border-radius: 999px; color: var(--ink-soft); background: transparent; font: 700 10px var(--mono); }
+.quote-language-switch button.is-active { color: white; background: var(--brand-blue); }
 .studio-saved-layout { margin: 0 auto 28px; padding: 25px; background: #fff; border: 1px solid #cad9e3; box-shadow: 0 12px 32px rgba(21, 62, 94, .08); }
 .studio-saved-layout-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .studio-saved-layout-heading h2 { margin: 3px 0 0; color: var(--ink); font-size: 23px; }

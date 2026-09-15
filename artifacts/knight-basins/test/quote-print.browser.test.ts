@@ -208,6 +208,13 @@ describe("long formal quote print flow", () => {
     await setTextInput(browser.page, "input-customer-phone", "0812345678");
     await setTextInput(browser.page, "input-customer-email", "customer@example.com");
     await setTextInput(browser.page, "input-customer-project", "โครงการหลายรายการ");
+    await clickTestId(browser.page, "button-quote-language-en");
+    const builderLanguage = await browser.page.evaluate(`(() => ({
+      active: document.querySelector('[data-testid="button-quote-language-en"]')?.classList.contains("is-active") ?? false,
+      thActive: document.querySelector('[data-testid="button-quote-language-th"]')?.classList.contains("is-active") ?? false,
+    }))()`);
+    assert.equal(builderLanguage.active, true);
+    assert.equal(builderLanguage.thActive, false);
     await clickTestId(browser.page, "button-generate-quote");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"]\') !== null'),
@@ -235,6 +242,29 @@ describe("long formal quote print flow", () => {
       assert.ok(quote.rows.some((row) => row.includes(code)), `Formal quote is missing ${code}`);
     }
     assert.equal(quote.hasQrHeader, true);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-saved-quote-language-en"]\')?.classList.contains("is-active") ?? false'), true);
+
+    await clickTestId(browser.page, "button-saved-quote-language-th");
+    await clickTestId(browser.page, "button-saved-quote-language-en");
+    const englishQuote = await browser.page.evaluate(`(() => ({
+      title: document.querySelector('[data-testid="formal-quote-sheet"] h1')?.textContent ?? "",
+      headers: [...document.querySelectorAll('[data-testid="formal-quote-table"] thead th')].map((cell) => cell.textContent ?? "").join(" | "),
+      body: document.querySelector('[data-testid="formal-quote-table"] tbody')?.textContent ?? "",
+      notes: document.querySelector('.formal-notes')?.textContent ?? "",
+      languageButton: document.querySelector('[data-testid="button-saved-quote-language-en"]')?.classList.contains("is-active") ?? false,
+    }))()`);
+    assert.equal(englishQuote.title, "OFFICIAL QUOTATION");
+    assert.match(englishQuote.headers, /Item Description/);
+    assert.match(englishQuote.headers, /Quantity/);
+    assert.match(englishQuote.headers, /Price\/Unit/);
+    assert.match(englishQuote.headers, /Total \(THB\)/);
+    assert.match(englishQuote.body, /Basin Set/);
+    assert.match(englishQuote.body, /Solid Surface Stone/);
+    assert.equal(englishQuote.languageButton, true);
+    assert.match(englishQuote.notes, /50% deposit upon approval/);
+    await browser.page.evaluate("window.__savedQuotePrintTitle = ''; window.print = () => { window.__savedQuotePrintTitle = document.title; }");
+    await clickTestId(browser.page, "button-print-saved-quote");
+    assert.match(await browser.page.evaluate("window.__savedQuotePrintTitle"), /^KF-Basins-Quote-.+-EN\.pdf$/);
 
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 390,
@@ -296,6 +326,23 @@ describe("long formal quote print flow", () => {
       Boolean,
       "Studio export actions",
     );
+    const dropped = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.35, clientY: rect.top + rect.height * 0.5 }));
+      return true;
+    })()`);
+    assert.equal(dropped, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'.studio-placement\') !== null'),
+      Boolean,
+      "Studio basin placement",
+    );
     const actions = await browser.page.evaluate(`(() => ({
       dxfText: document.querySelector('[data-testid="button-download-studio-dxf"]')?.textContent ?? "",
       pdfText: document.querySelector('[data-testid="button-download-studio-pdf"]')?.textContent ?? "",
@@ -329,25 +376,32 @@ describe("long formal quote print flow", () => {
       const canvas = document.querySelector('[data-testid="studio-canvas"]');
       const rectangle = canvas?.querySelector('.studio-piece-rectangle');
       const size = rectangle?.querySelector('.studio-piece-size');
+      const basin = canvas?.querySelector('.studio-placement');
       return {
         canvasTone: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-stone-tone") : "",
         rectangleBackground: rectangle instanceof HTMLElement ? getComputedStyle(rectangle).backgroundColor : "",
         textColor: size instanceof HTMLElement ? getComputedStyle(size).color : "",
+        basinShadow: basin instanceof HTMLElement ? getComputedStyle(basin, "::before").boxShadow : "",
+        basinRadius: basin instanceof HTMLElement ? getComputedStyle(basin).borderRadius : "",
       };
     })()`);
     assert.equal(lightTone.canvasTone, "#fbfaf4");
     assert.notEqual(lightTone.rectangleBackground, "rgba(248, 252, 254, 0.78)");
+    assert.match(lightTone.basinShadow, /inset/);
+    assert.equal(lightTone.basinRadius, "10px");
     await clickTestId(browser.page, "button-studio-stone-SO423");
     await clickTestId(browser.page, "button-studio-active-stone-SO423");
     const darkTone = await browser.page.evaluate(`(() => {
       const canvas = document.querySelector('[data-testid="studio-canvas"]');
       const rectangle = canvas?.querySelector('.studio-piece-rectangle');
       const size = rectangle?.querySelector('.studio-piece-size');
+      const basin = canvas?.querySelector('.studio-placement');
       return {
         canvasTone: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-stone-tone") : "",
         rectangleBackground: rectangle instanceof HTMLElement ? getComputedStyle(rectangle).backgroundColor : "",
         textColor: size instanceof HTMLElement ? getComputedStyle(size).color : "",
         jointColor: canvas instanceof HTMLElement ? canvas.style.getPropertyValue("--studio-joint-color") : "",
+        basinShadow: basin instanceof HTMLElement ? getComputedStyle(basin, "::before").boxShadow : "",
         total: document.querySelector('[data-testid="studio-total-value"]')?.textContent ?? "",
       };
     })()`);
@@ -355,6 +409,7 @@ describe("long formal quote print flow", () => {
     assert.notEqual(darkTone.rectangleBackground, lightTone.rectangleBackground);
     assert.equal(darkTone.textColor, "rgb(255, 255, 255)");
     assert.equal(darkTone.jointColor, "#ffe08a");
+    assert.match(darkTone.basinShadow, /inset/);
     assert.notEqual(darkTone.total, initialComparison.total);
     await clickTestId(browser.page, "button-download-studio-png");
     assert.match(await waitFor(
@@ -412,6 +467,15 @@ describe("long formal quote print flow", () => {
       "saved Studio navigation",
     );
     assert.equal(savedOutcome.saved, true, JSON.stringify(savedOutcome));
+    await clickTestId(browser.page, "button-saved-quote-language-en");
+    const savedEnglish = await browser.page.evaluate(`(() => ({
+      heading: document.querySelector('[data-testid="saved-studio-layout"] h2')?.textContent ?? "",
+      note: document.querySelector('[data-testid="saved-studio-layout"] .studio-saved-layout-note')?.textContent ?? "",
+      formalTitle: document.querySelector('[data-testid="formal-quote-sheet"] h1')?.textContent ?? "",
+    }))()`);
+    assert.equal(savedEnglish.heading, "Saved layout");
+    assert.match(savedEnglish.note, /Basin positions are read-only/);
+    assert.equal(savedEnglish.formalTitle, "OFFICIAL QUOTATION");
     const savedActions = await browser.page.evaluate(`(() => ({
       dxf: document.querySelector('[data-testid="button-download-saved-studio-dxf"]')?.disabled ?? true,
       pdf: document.querySelector('[data-testid="button-download-saved-studio-pdf"]')?.disabled ?? true,
