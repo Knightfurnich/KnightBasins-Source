@@ -1,0 +1,25 @@
+name: Release validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-release:
+    name: Validate release contents
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the release commit
+        uses: actions/checkout@v4
+
+      - name: Block tracked runtime uploads
+        run: bash deploy/hostinger/check-upload-files.sh
+
+      - name: Test the upload release guard
+        run: bash deploy/hostinger/check-upload-files.test.sh
