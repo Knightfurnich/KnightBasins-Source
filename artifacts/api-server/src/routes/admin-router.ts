@@ -42,6 +42,7 @@ import {
   readMultipartVideo,
   saveUploadedImage,
   saveUploadedVideo,
+  UploadFileCollisionError,
 } from "../lib/image-upload";
 
 export type AdminDatabase = {
@@ -159,6 +160,9 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       const image = await readMultipartImage(req);
       return res.status(201).json(await saveUploadedImage(image));
     } catch (error) {
+      if (error instanceof UploadFileCollisionError) {
+        return res.status(409).json({ message: error.message });
+      }
       if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) {
         return res.status(400).json({ message: error.message });
       }
@@ -171,6 +175,9 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       const video = await readMultipartVideo(req);
       return res.status(201).json(await saveUploadedVideo(video));
     } catch (error) {
+      if (error instanceof UploadFileCollisionError) {
+        return res.status(409).json({ message: error.message });
+      }
       if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) {
         return res.status(400).json({ message: error.message });
       }
