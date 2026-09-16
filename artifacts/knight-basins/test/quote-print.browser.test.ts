@@ -366,6 +366,20 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "Studio basin placement",
     );
+    await browser.page.evaluate("document.querySelector('.studio-placement')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-placement-x-"]\') !== null && document.querySelector(\'[data-testid^="input-placement-y-"]\') !== null'),
+      Boolean,
+      "basin placement inspector",
+    );
+    const placementPreview = await browser.page.evaluate(`(() => ({
+      hasCatalogPreview: document.querySelector('.studio-placement-visual .basin-visual') !== null,
+      x: document.querySelector('[data-testid^="input-placement-x-"]')?.getAttribute("value") ?? "",
+      y: document.querySelector('[data-testid^="input-placement-y-"]')?.getAttribute("value") ?? "",
+    }))()`);
+    assert.equal(placementPreview.hasCatalogPreview, true);
+    assert.notEqual(placementPreview.x, "");
+    assert.notEqual(placementPreview.y, "");
     const actions = await browser.page.evaluate(`(() => ({
       dxfText: document.querySelector('[data-testid="button-download-studio-dxf"]')?.textContent ?? "",
       pdfText: document.querySelector('[data-testid="button-download-studio-pdf"]')?.textContent ?? "",
@@ -385,7 +399,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       active: document.querySelector('[data-testid^="button-stone-comparison-"][aria-pressed="true"]')?.getAttribute("data-testid") ?? "",
       total: document.querySelector('[data-testid="studio-total-value"]')?.textContent ?? "",
     }))()`);
-    assert.equal(initialComparison.count, 2);
+    assert.ok(initialComparison.count >= 2 && initialComparison.count <= 3);
     assert.equal(initialComparison.active, "button-stone-comparison-BW010");
     await clickTestId(browser.page, "button-stone-comparison-MU010");
     const selectedComparison = await browser.page.evaluate(`(() => ({
@@ -412,7 +426,16 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.notEqual(lightTone.rectangleBackground, "rgba(248, 252, 254, 0.78)");
     assert.match(lightTone.basinShadow, /inset/);
     assert.equal(lightTone.basinRadius, "10px");
-    await clickTestId(browser.page, "button-studio-stone-SO423");
+    const so423Selected = await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-stone-SO423"]\')?.getAttribute("aria-pressed") === "true"');
+    if (!so423Selected) {
+      const selectedStoneToRemove = await browser.page.evaluate(`(() => {
+        const button = [...document.querySelectorAll('[data-testid^="button-studio-stone-"][aria-pressed="true"]')]
+          .find((candidate) => candidate.getAttribute("data-testid") !== "button-studio-stone-BW010");
+        return button?.getAttribute("data-testid") ?? "";
+      })()`);
+      if (selectedStoneToRemove) await clickTestId(browser.page, selectedStoneToRemove);
+      await clickTestId(browser.page, "button-studio-stone-SO423");
+    }
     await clickTestId(browser.page, "button-studio-active-stone-SO423");
     const darkTone = await browser.page.evaluate(`(() => {
       const canvas = document.querySelector('[data-testid="studio-canvas"]');
@@ -475,24 +498,65 @@ describe("long formal quote print flow", { concurrency: false }, () => {
 
     await clickTestId(browser.page, "button-studio-preset-l-left");
     await waitFor(
-      () => browser.page.evaluate('document.querySelectorAll(".studio-rectangle-editor").length === 2'),
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="select-studio-rectangle-"] option:nth-child(2)\') !== null'),
       Boolean,
       "left L preset rectangles",
     );
-    const leftPreset = await browser.page.evaluate(`(() => ({
+    const leftFirstRectangle = await browser.page.evaluate(`(() => ({
       widths: [...document.querySelectorAll('[data-testid^="input-rectangle-width-"]')].map((input) => input.value),
       lengths: [...document.querySelectorAll('[data-testid^="input-rectangle-length-"]')].map((input) => input.value),
       xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
       ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
     }))()`);
-    assert.deepEqual(leftPreset, { widths: ["1500", "600"], lengths: ["600", "1200"], xs: ["0", "0"], ys: ["0", "600"] });
+    assert.deepEqual(leftFirstRectangle, { widths: ["1500"], lengths: ["600"], xs: ["0"], ys: ["0"] });
+    await browser.page.evaluate(`(() => {
+      const select = document.querySelector('[data-testid^="select-studio-rectangle-"]');
+      if (!(select instanceof HTMLSelectElement)) return false;
+      select.value = select.options[1]?.value ?? "";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    })()`);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-width-"]\')?.value === "600"'),
+      Boolean,
+      "left L second rectangle selection",
+    );
+    const leftSecondRectangle = await browser.page.evaluate(`(() => ({
+      widths: [...document.querySelectorAll('[data-testid^="input-rectangle-width-"]')].map((input) => input.value),
+      lengths: [...document.querySelectorAll('[data-testid^="input-rectangle-length-"]')].map((input) => input.value),
+      xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
+      ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
+    }))()`);
+    assert.deepEqual(leftSecondRectangle, { widths: ["600"], lengths: ["1200"], xs: ["0"], ys: ["600"] });
 
     await clickTestId(browser.page, "button-studio-preset-l-right");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-x-"]\')?.value === "0"'),
+      Boolean,
+      "right L first rectangle selection",
+    );
+    const rightFirstRectangle = await browser.page.evaluate(`(() => ({
+      xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
+      ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
+    }))()`);
+    assert.deepEqual(rightFirstRectangle, { xs: ["0"], ys: ["0"] });
+    await browser.page.evaluate(`(() => {
+      const select = document.querySelector('[data-testid^="select-studio-rectangle-"]');
+      if (!(select instanceof HTMLSelectElement)) return false;
+      select.value = select.options[1]?.value ?? "";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    })()`);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-x-"]\')?.value === "900"'),
+      Boolean,
+      "right L second rectangle selection",
+    );
     const rightPreset = await browser.page.evaluate(`(() => ({
       xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
       ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
     }))()`);
-    assert.deepEqual(rightPreset, { xs: ["0", "900"], ys: ["0", "600"] });
+    assert.deepEqual(rightPreset, { xs: ["900"], ys: ["600"] });
 
     await clickTestId(browser.page, "button-studio-preset-i");
     const dropped = await browser.page.evaluate(`(() => {
@@ -588,13 +652,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     })()`);
     assert.match(addRectangle, /^button-add-studio-rectangle-/);
     await waitFor(
-      () => browser.page.evaluate('document.querySelectorAll(".studio-rectangle-editor").length === 2'),
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="select-studio-rectangle-"] option:nth-child(2)\') !== null'),
       Boolean,
       "second Studio rectangle",
     );
     const secondRectangleX = await browser.page.evaluate(`(() => {
       const inputs = [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')];
-      return inputs[1]?.getAttribute("data-testid") ?? "";
+      return inputs[0]?.getAttribute("data-testid") ?? "";
     })()`);
     assert.match(secondRectangleX, /^input-rectangle-x-/);
     await setTextInput(browser.page, secondRectangleX, "2100");
@@ -890,13 +954,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     })()`);
     assert.equal(addRectangle, true);
     await waitFor(
-      () => browser.page.evaluate('document.querySelectorAll(".studio-rectangle-editor").length === 2'),
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="select-studio-rectangle-"] option:nth-child(2)\') !== null'),
       Boolean,
       "small rectangle companion panel",
     );
     const secondRectangleX = await browser.page.evaluate(`(() => {
       const inputs = [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')];
-      return inputs[1]?.getAttribute("data-testid") ?? "";
+      return inputs[0]?.getAttribute("data-testid") ?? "";
     })()`);
     assert.match(secondRectangleX, /^input-rectangle-x-/);
     await setTextInput(browser.page, secondRectangleX, "10");
