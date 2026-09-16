@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, Minus, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -12,7 +12,9 @@ import {
 import {
   basinDimensionsForProduct,
   basinPlacementOverlapWarnings,
+  centerBasinPlacementPosition,
   createBasinPlacement,
+  distributeBasinPlacementPositions,
   disconnectedRectangleIds,
   pieceBounds,
   pieceOverlapWarnings,
@@ -50,6 +52,7 @@ import {
   type StudioState,
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
+import { BasinVisual } from "./BasinVisual";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
@@ -106,9 +109,11 @@ type StudioPageProps = {
   leadKey: string;
   onSubmitStudio: (submission: StudioSubmission) => Promise<void> | void;
   contactDefaults?: Partial<typeof emptyContact>;
+  initialBasinSkus?: string[];
+  initialStoneColors?: string[];
 };
 
-const makeRectangle = (index: number): StudioRectangle => ({
+const makeRectangle = (index: number, overrides: Partial<StudioRectangle> = {}): StudioRectangle => ({
   id: `rectangle-${Date.now()}-${index}`,
   widthMm: 1800,
   lengthMm: 600,
@@ -116,6 +121,7 @@ const makeRectangle = (index: number): StudioRectangle => ({
   yMm: 0,
   rotation: 0,
   label: index ? "แผ่นต่อ" : "แผ่นหลัก",
+  ...overrides,
 });
 
 const makePiece = (index: number): StudioPiece => {
@@ -142,8 +148,20 @@ const initialState: StudioState = {
   basinPlacements: [],
 };
 
-function createInitialStudioState(mode: Extract<StudioOrderMode, "studio" | "sketch">): StudioState {
+function createInitialStudioState(
+  mode: Extract<StudioOrderMode, "studio" | "sketch">,
+  initialBasinSkus: string[] = [],
+  initialStoneColors: string[] = [],
+): StudioState {
   const piece = makePiece(0);
+  const basinSkus = [...new Set(initialBasinSkus)]
+    .filter((sku) => Boolean(productBySku(sku)))
+    .slice(0, STUDIO_MAX_BASINS);
+  const selectedBasinSkus = basinSkus.length ? basinSkus : [...initialState.basinSkus];
+  const stoneColors = [...new Set(initialStoneColors)]
+    .map((code) => stoneColorByName(code).code)
+    .slice(0, STUDIO_MAX_STONE_COLORS);
+  const selectedStoneColors = stoneColors.length ? stoneColors : [...initialState.stoneColors];
   return {
     ...initialState,
     mode,
@@ -151,8 +169,9 @@ function createInitialStudioState(mode: Extract<StudioOrderMode, "studio" | "ske
     pieces: [piece],
     activePieceId: piece.id,
     backsplash: { ...initialState.backsplash },
-    stoneColors: [...initialState.stoneColors],
-    basinSkus: [...initialState.basinSkus],
+    stoneColors: selectedStoneColors,
+    activeStone: selectedStoneColors[0] ?? initialState.activeStone,
+    basinSkus: selectedBasinSkus,
     basinPlacements: [],
   };
 }
@@ -177,6 +196,36 @@ function numericValue(value: string, fallback = 0) {
   if (value.trim() === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+type StudioPreset = "i" | "l-left" | "l-right";
+
+const studioPresetCopy: Record<StudioPreset, { label: string; description: string }> = {
+  i: { label: "📐 ทรงตรง", description: "I-Shape · 1500 × 600 มม." },
+  "l-left": { label: "📐 ทรงฉากซ้าย", description: "L-Shape Left · 1500 × 1200 มม." },
+  "l-right": { label: "📐 ทรงฉากขวา", description: "L-Shape Right · 1500 × 1200 มม." },
+};
+
+function createPresetPiece(preset: StudioPreset): StudioPiece {
+  const rectangles = preset === "i"
+    ? [makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นหลัก" })]
+    : [
+      makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นบน" }),
+      makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: preset === "l-left" ? 0 : 900, yMm: 600, label: "แผ่นฉาก" }),
+    ];
+  return { id: `piece-${Date.now()}-preset`, name: preset === "i" ? "ชิ้นงานตรง" : preset === "l-left" ? "ชิ้นงานฉากซ้าย" : "ชิ้นงานฉากขวา", rectangles, sideStatuses: {} };
+}
+
+function studioStateWithPreset(state: StudioState, preset: StudioPreset): StudioState {
+  const piece = createPresetPiece(preset);
+  return {
+    ...state,
+    shape: preset === "i" ? "I" : "L",
+    dimensions: { depthMm: 600, runAMm: 1500, runBMm: preset === "i" ? 0 : 1200, runCMm: 0 },
+    pieces: [piece],
+    activePieceId: piece.id,
+    basinPlacements: [],
+  };
 }
 
 const SMALL_RECTANGLE_STANDARD_MM = 400;
@@ -235,9 +284,9 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
       <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบ แล้วเลือกสีที่ใช้คำนวณจากรายการด้านล่าง</p>
       <div className="studio-stone-list">{STONE_COLORS.slice(0, 24).map((stone) => {
         const selected = state.stoneColors.includes(stone.code);
-        return <button type="button" key={stone.code} className={`studio-stone-choice ${selected ? "is-selected" : ""} ${state.activeStone === stone.code ? "is-active" : ""}`} onClick={() => toggleStone(stone.code)} aria-pressed={selected} data-testid={`button-studio-stone-${stone.code}`}><span style={{ background: stone.tone }} /> <strong>{stone.code}</strong><small>{stone.name}</small>{selected && <Check size={14} />}</button>;
+        return <button type="button" key={stone.code} className={`studio-stone-choice ${selected ? "is-selected" : ""} ${state.activeStone === stone.code ? "is-active" : ""}`} onClick={() => toggleStone(stone.code)} aria-pressed={selected} data-testid={`button-studio-stone-${stone.code}`}><span className="studio-stone-swatch" style={{ background: stone.tone }} /> <strong>{stone.code}</strong><small>{stone.name}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
       })}</div>
-      <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{studioStoneName(code)} · {formatTHB(stoneColorByName(code).installedPriceTHB ?? 0)} / m²</button>)}</div>
+      <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code).installedPriceTHB ?? 0)} / m²</button>)}</div>
     </section>
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
@@ -246,7 +295,7 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
       <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {PRODUCTS.length} รุ่น</p>
       <div className="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
-        return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-basin", product.sku)} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span>{product.sku}</span><strong>{product.colorName}</strong><small>{formatTHB(product.priceTHB)}</small>{selected && <GripVertical size={14} />}</button>;
+         return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
     </section>
   </div>;
@@ -256,11 +305,26 @@ function setPieceState(setState: Dispatch<SetStateAction<StudioState>>, pieceId:
   setState((current) => ({ ...current, pieces: getStudioPieces(current).map((piece) => piece.id === pieceId ? updater(piece) : piece) }));
 }
 
-function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
+function StudioPieceEditorLegacy({
+  piece,
+  state,
+  setState,
+  zoom,
+  selectedPlacementId,
+  setSelectedPlacementId,
+}: {
+  piece: StudioPiece;
+  state: StudioState;
+  setState: Dispatch<SetStateAction<StudioState>>;
+  zoom: number;
+  selectedPlacementId: string | null;
+  setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
+}) {
   const overlaps = pieceOverlapWarnings(piece);
   const disconnectedRectangles = disconnectedRectangleIds(piece);
   const bounds = pieceBounds(piece);
   const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? state.pieces?.[0]?.id) === piece.id);
+  const selectedPlacement = placements.find((placement) => placement.id === selectedPlacementId);
   const moveRectangle = (rectangleId: string, xMm: number, yMm: number) => setPieceState(setState, piece.id, (current) => {
     const snapped = snapStudioRectanglePosition(current, rectangleId, xMm, yMm);
     return { ...current, rectangles: current.rectangles.map((rectangle) => rectangle.id === rectangleId ? { ...rectangle, ...snapped } : rectangle) };
@@ -312,6 +376,18 @@ function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; sta
     }
     return { ...current, sideStatuses: { ...current.sideStatuses, ...Object.fromEntries([...keys].map((key) => [key, status])) } };
   });
+  const centerSelectedBasin = () => {
+    if (!selectedPlacement) return;
+    const position = centerBasinPlacementPosition(piece, selectedPlacement);
+    setState((current) => ({ ...current, basinPlacements: current.basinPlacements.map((placement) => placement.id === selectedPlacement.id ? { ...placement, pieceId: piece.id, ...position } : placement) }));
+  };
+  const distributeBasins = () => {
+    const positions = distributeBasinPlacementPositions(piece, placements);
+    setState((current) => ({ ...current, basinPlacements: current.basinPlacements.map((placement) => {
+      const position = positions.find((candidate) => candidate.id === placement.id);
+      return position ? { ...placement, pieceId: piece.id, xMm: position.xMm, yMm: position.yMm } : placement;
+    }) }));
+  };
   return <section className="studio-piece-editor">
     <div className="studio-piece-heading">
       <label><span>ชื่อชิ้นงาน</span><input value={piece.name} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, name: event.target.value }))} data-testid={`input-piece-name-${piece.id}`} /></label>
@@ -341,24 +417,243 @@ function StudioPieceEditor({ piece, state, setState }: { piece: StudioPiece; sta
     </div>
     {overlaps.length > 0 && <p className="studio-warning"><AlertTriangle size={15} /> มีสี่เหลี่ยมซ้อนกัน ({overlaps.length} จุด) พื้นที่ไม่ถูกหักซ้ำ แต่ควรตรวจสอบการจัดวาง</p>}
     {disconnectedRectangles.length > 0 && <p className="studio-warning" data-testid={`status-disconnected-rectangles-${piece.id}`}><AlertTriangle size={15} /> สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน</p>}
-    <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+     {placements.length > 0 && <div className="studio-placement-tools" data-testid={`studio-placement-tools-${piece.id}`}>
+       <div><strong>จัดวางอ่าง</strong><small>แตะอ่างบนผังเพื่อเลือก แล้วใช้คำสั่งอัตโนมัติ</small></div>
+       <div className="studio-placement-selectors">
+         {placements.map((placement) => <button type="button" key={placement.id} className={placement.id === selectedPlacementId ? "is-active" : ""} onClick={() => setSelectedPlacementId(placement.id)} aria-pressed={placement.id === selectedPlacementId} data-testid={`button-select-studio-placement-${placement.id}`}>{placement.sku}</button>)}
+       </div>
+       {selectedPlacement && <div className="studio-placement-actions">
+         <button type="button" className="button button--outline" onClick={centerSelectedBasin} disabled={selectedPlacement.widthMm === null || selectedPlacement.depthMm === null} data-testid="button-center-selected-basin">🎯 วางอ่างกึ่งกลางแผ่น</button>
+         {placements.length === 2 && <button type="button" className="button button--outline" onClick={distributeBasins} disabled={placements.some((placement) => placement.widthMm === null || placement.depthMm === null)} data-testid="button-distribute-studio-basins">↔️ จัดระยะห่างอ่างเท่ากัน</button>}
+       </div>}
+     </div>}
+     <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
        {placements.map((placement) => {
         const unknown = placement.widthMm === null || placement.depthMm === null;
          const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
-         return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onDragStart={(event) => event.dataTransfer.setData("application/x-studio-placement", placement.id)}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "ลากเพื่อย้าย"}</small><button type="button" onClick={() => setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }))} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+          return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => setSelectedPlacementId(placement.id)} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); } }}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "แตะเพื่อเลือก · ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : current); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
       })}
       {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className="studio-rectangle-drag-target" draggable onDragStart={(event) => event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id)} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`ลากแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
     </StudioFootprint>
-    <p className="studio-canvas-hint"><GripVertical size={14} /> ลากแผ่นเพื่อจัดเรียง · ขอบที่ชนกันจะ snap ต่อกัน · เส้นประคือแนวต่อแผ่น</p>
+     <p className="studio-canvas-hint"><GripVertical size={14} /> ลากแผ่นเพื่อจัดเรียง · แตะอ่างเพื่อเลือก · ขอบที่ชนกันจะ snap ต่อกัน</p>
   </section>;
 }
 
-function StudioCanvas({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
+function StudioPieceEditor({
+  piece,
+  state,
+  setState,
+  zoom,
+  selectedPlacementId,
+  setSelectedPlacementId,
+  selectedRectangleId,
+  setSelectedRectangleId,
+}: {
+  piece: StudioPiece;
+  state: StudioState;
+  setState: Dispatch<SetStateAction<StudioState>>;
+  zoom: number;
+  selectedPlacementId: string | null;
+  setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
+  selectedRectangleId: string | null;
+  setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
+}) {
+  const overlaps = pieceOverlapWarnings(piece);
+  const bounds = pieceBounds(piece);
+  const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? state.pieces?.[0]?.id) === piece.id);
+  const selectedPlacement = placements.find((placement) => placement.id === selectedPlacementId);
+  const activeRectangle = piece.rectangles.find((rectangle) => rectangle.id === selectedRectangleId) ?? piece.rectangles[0];
+  const updateRectangle = (updater: (rectangle: StudioRectangle) => StudioRectangle) => {
+    if (!activeRectangle) return;
+    setPieceState(setState, piece.id, (current) => ({
+      ...current,
+      rectangles: current.rectangles.map((rectangle) => rectangle.id === activeRectangle.id ? updater(rectangle) : rectangle),
+    }));
+  };
+  const moveRectangle = (rectangleId: string, xMm: number, yMm: number) => setPieceState(setState, piece.id, (current) => {
+    const snapped = snapStudioRectanglePosition(current, rectangleId, xMm, yMm);
+    return { ...current, rectangles: current.rectangles.map((rectangle) => rectangle.id === rectangleId ? { ...rectangle, ...snapped } : rectangle) };
+  });
+  const drop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const rectangleId = event.dataTransfer.getData("application/x-studio-rectangle");
+    if (rectangleId) {
+      const canvasX = ((event.clientX - rect.left) / rect.width) * bounds.widthMm;
+      const canvasY = ((event.clientY - rect.top) / rect.height) * bounds.heightMm;
+      const moving = piece.rectangles.find((rectangle) => rectangle.id === rectangleId);
+      if (moving) {
+        setSelectedRectangleId(rectangleId);
+        setSelectedPlacementId(null);
+        moveRectangle(rectangleId, canvasX - studioRectangleSize(moving).widthMm / 2, canvasY - studioRectangleSize(moving).heightMm / 2);
+      }
+      return;
+    }
+    const placementId = event.dataTransfer.getData("application/x-studio-placement");
+    if (placementId) {
+      const moving = state.basinPlacements.find((placement) => placement.id === placementId);
+      if (!moving) return;
+      const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (moving.widthMm ?? 0) / 2;
+      const yMm = ((event.clientY - rect.top) / rect.height) * bounds.heightMm - (moving.depthMm ?? 0) / 2;
+      setSelectedPlacementId(placementId);
+      setState((current) => ({
+        ...current,
+        basinPlacements: current.basinPlacements.map((placement) => placement.id === placementId
+          ? { ...placement, pieceId: piece.id, xMm: Math.round(xMm), yMm: Math.round(yMm) }
+          : placement),
+      }));
+      return;
+    }
+    const sku = event.dataTransfer.getData("application/x-studio-basin");
+    const product = productBySku(sku);
+    if (!product || !state.basinSkus.includes(sku)) return;
+    const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id);
+    const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (placement.widthMm ?? 0) / 2;
+    const yMm = ((event.clientY - rect.top) / rect.height) * bounds.heightMm - (placement.depthMm ?? 0) / 2;
+    const size = placement.widthMm !== null && placement.depthMm !== null ? { xMm, yMm } : { xMm: 0, yMm: 0 };
+    setSelectedPlacementId(placement.id);
+    setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, { ...placement, ...size }] }));
+  };
+  const changeStatus = (rectangleId: string, side: "top" | "right" | "bottom" | "left", status: SideStatus) => setPieceState(setState, piece.id, (current) => {
+    const edge = studioPieceEdges(current).find((candidate) => candidate.rectangleId === rectangleId && candidate.side === side);
+    const keys = new Set(edge ? [edge.key] : [sideStatusKey(rectangleId, side)]);
+    if (edge) {
+      studioPieceJoints(current).forEach((joint) => {
+        if (joint.first.key === edge.key || joint.second.key === edge.key) {
+          keys.add(joint.first.key);
+          keys.add(joint.second.key);
+        }
+      });
+    }
+    return { ...current, sideStatuses: { ...current.sideStatuses, ...Object.fromEntries([...keys].map((key) => [key, status])) } };
+  });
+  const centerSelectedBasin = () => {
+    if (!selectedPlacement) return;
+    const position = centerBasinPlacementPosition(piece, selectedPlacement);
+    setState((current) => ({ ...current, basinPlacements: current.basinPlacements.map((placement) => placement.id === selectedPlacement.id ? { ...placement, pieceId: piece.id, ...position } : placement) }));
+  };
+  const distributeBasins = () => {
+    const positions = distributeBasinPlacementPositions(piece, placements);
+    setState((current) => ({ ...current, basinPlacements: current.basinPlacements.map((placement) => {
+      const position = positions.find((candidate) => candidate.id === placement.id);
+      return position ? { ...placement, pieceId: piece.id, xMm: position.xMm, yMm: position.yMm } : placement;
+    }) }));
+  };
+  const updatePlacement = (updater: (placement: BasinPlacement) => BasinPlacement) => {
+    if (!selectedPlacement) return;
+    setState((current) => ({
+      ...current,
+      basinPlacements: current.basinPlacements.map((placement) => placement.id === selectedPlacement.id ? updater(placement) : placement),
+    }));
+  };
+  const addRectangle = () => {
+    const rectangle = makeRectangle(piece.rectangles.length);
+    setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: [...current.rectangles, rectangle] }));
+    setSelectedRectangleId(rectangle.id);
+    setSelectedPlacementId(null);
+  };
+  return <section className="studio-piece-editor studio-piece-editor--canvas-first">
+    <div className="studio-piece-heading">
+      <label><span>ชื่อชิ้นงาน</span><input value={piece.name} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, name: event.target.value }))} data-testid={`input-piece-name-${piece.id}`} /></label>
+      <span>{piece.rectangles.length} / {STUDIO_MAX_RECTANGLES} แผ่น · {studioPieceAreaSqM(piece).toFixed(4)} m²</span>
+    </div>
+    <div className="studio-piece-workspace">
+      <div className="studio-piece-canvas-column">
+        <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+          {placements.map((placement) => {
+            const unknown = placement.widthMm === null || placement.depthMm === null;
+            const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
+            const product = productBySku(placement.sku);
+            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} />}</span><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : placement.id); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+          })}
+          {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className={`studio-rectangle-drag-target ${rectangle.id === activeRectangle?.id ? "is-selected" : ""}`} draggable onClick={() => { setSelectedRectangleId(rectangle.id); setSelectedPlacementId(null); }} onDragStart={(event) => { setSelectedRectangleId(rectangle.id); event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id); }} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`เลือกแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
+        </StudioFootprint>
+        <p className="studio-canvas-hint"><GripVertical size={14} /> คลิกแผ่นหรืออ่างเพื่อเปิดตัวแก้ไข · ลากเพื่อจัดตำแหน่ง · ขอบที่ชนกันจะ snap ต่อกัน</p>
+      </div>
+      <aside className="studio-inspector" aria-label={`ตัวแก้ไขชิ้นงาน ${piece.name}`}>
+        <div className="studio-inspector-heading"><div><p className="eyebrow">INSPECTOR</p><h4>{selectedPlacement ? `อ่าง ${selectedPlacement.sku}` : `แผ่น ${activeRectangle ? piece.rectangles.findIndex((item) => item.id === activeRectangle.id) + 1 : 1}`}</h4></div><span>{selectedPlacement ? "BASIN" : "PANEL"}</span></div>
+        {placements.length > 0 && <div className="studio-placement-tools" data-testid={`studio-placement-tools-${piece.id}`}><div><strong>อ่างในชิ้นงาน</strong><small>เลือกอ่างบนผัง หรือเลือกจากรายการนี้</small></div><div className="studio-placement-selectors">{placements.map((placement) => <button type="button" key={placement.id} className={placement.id === selectedPlacementId ? "is-active" : ""} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} aria-pressed={placement.id === selectedPlacementId} data-testid={`button-select-studio-placement-${placement.id}`}>{placement.sku}</button>)}</div>{selectedPlacement && <div className="studio-placement-actions"><button type="button" className="button button--outline" onClick={centerSelectedBasin} disabled={selectedPlacement.widthMm === null || selectedPlacement.depthMm === null} data-testid="button-center-selected-basin">วางอ่างกึ่งกลางแผ่น</button>{placements.length === 2 && <button type="button" className="button button--outline" onClick={distributeBasins} disabled={placements.some((placement) => placement.widthMm === null || placement.depthMm === null)} data-testid="button-distribute-studio-basins">จัดระยะห่างอ่าง</button>}</div>}</div>}
+        {selectedPlacement && <div className="studio-inspector-section studio-placement-inspector-section">
+          <div className="studio-inspector-subheading"><strong>ตำแหน่งอ่าง {selectedPlacement.sku}</strong><small>{selectedPlacement.widthMm === null || selectedPlacement.depthMm === null ? "ขนาดหลุมไม่ระบุ" : `หลุม ${selectedPlacement.widthMm} × ${selectedPlacement.depthMm} มม.`}</small></div>
+          <div className="studio-rectangle-inputs">
+            <label>X (มม.)<input type="number" min="0" value={Math.round(selectedPlacement.xMm)} onChange={(event) => updatePlacement((placement) => ({ ...placement, xMm: numericValue(event.target.value) }))} data-testid={`input-placement-x-${selectedPlacement.id}`} /></label>
+            <label>Y (มม.)<input type="number" min="0" value={Math.round(selectedPlacement.yMm)} onChange={(event) => updatePlacement((placement) => ({ ...placement, yMm: numericValue(event.target.value) }))} data-testid={`input-placement-y-${selectedPlacement.id}`} /></label>
+          </div>
+           <p className="studio-helper">X / Y คือระยะจากมุมซ้ายบนของผังถึงมุมซ้ายบนของหลุมอ่าง · หน่วยมิลลิเมตร · แก้ตรง ๆ หรือใช้การลากบนผัง</p>
+        </div>}
+         {activeRectangle && <div className="studio-inspector-section">
+           <label className="studio-rectangle-select">เลือกแผ่น
+             <select value={activeRectangle.id} onChange={(event) => { setSelectedRectangleId(event.target.value); setSelectedPlacementId(null); }} data-testid={`select-studio-rectangle-${piece.id}`}>
+               {piece.rectangles.map((rectangle, index) => <option key={rectangle.id} value={rectangle.id}>แผ่น {index + 1} · {rectangle.widthMm} × {rectangle.lengthMm} มม.</option>)}
+             </select>
+           </label>
+          <div className="studio-rectangle-editor">
+           <div className="studio-rectangle-inputs">
+            <label>กว้าง (มม.)<input type="number" min="1" value={activeRectangle.widthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, widthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-width-${activeRectangle.id}`} /></label>
+            <label>ยาว (มม.)<input type="number" min="1" value={activeRectangle.lengthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, lengthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-length-${activeRectangle.id}`} /></label>
+             <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, xMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
+             <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, yMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
+           </div>
+            <p className="studio-helper">X / Y คือระยะจากมุมซ้ายบนของกรอบผังถึงมุมซ้ายบนของแผ่น · หน่วยมิลลิเมตร · ขนาดแผ่นใช้หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
+          {([activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).length > 0) && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${activeRectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{[activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
+          {activeRectangle.widthMm > 900 && <div className="studio-dimension-suggestion" aria-live="polite"><span>ความกว้างเกิน 900 มม. ตรวจสอบทิศทาง</span><button type="button" className="button button--outline" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, widthMm: rectangle.lengthMm, lengthMm: rectangle.widthMm }))} data-testid={`button-swap-rectangle-dimensions-${activeRectangle.id}`}><RotateCw size={14} /> สลับ กว้าง ↔ ยาว</button></div>}
+          <button type="button" className="button button--outline studio-rotate-button" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, rotation: rectangle.rotation === 0 ? 90 : 0 }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
+          <div className="studio-side-status-grid">{studioSideStatuses(piece, activeRectangle.id).map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(activeRectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option></select></label>)}</div>
+          <p className="studio-helper">ติดบัว = ชิดผนังปูน / ขอบเปิด = โชว์ลอยในอากาศ</p>
+           <div className="studio-inspector-actions"><button type="button" className="button button--outline" disabled={piece.rectangles.length >= STUDIO_MAX_RECTANGLES} onClick={addRectangle} data-testid={`button-add-studio-rectangle-${piece.id}`}><Plus size={14} /> เพิ่มแผ่น / ขั้น</button><button type="button" className="icon-button" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.filter((item) => item.id !== activeRectangle.id) }))} disabled={piece.rectangles.length <= 1} aria-label="ลบแผ่นที่เลือก"><Trash2 size={14} /></button></div>
+          </div>
+        </div>}
+      </aside>
+    </div>
+    {overlaps.length > 0 && <p className="studio-warning"><AlertTriangle size={15} /> มีสี่เหลี่ยมซ้อนกัน ({overlaps.length} จุด) พื้นที่ไม่ถูกหักซ้ำ แต่ควรตรวจสอบการจัดวาง</p>}
+  </section>;
+}
+
+function StudioCanvas({
+  state,
+  setState,
+  zoom,
+  setZoom,
+  selectedPlacementId,
+  setSelectedPlacementId,
+  selectedRectangleId,
+  setSelectedRectangleId,
+}: {
+  state: StudioState;
+  setState: Dispatch<SetStateAction<StudioState>>;
+  zoom: number;
+  setZoom: Dispatch<SetStateAction<number>>;
+  selectedPlacementId: string | null;
+  setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
+  selectedRectangleId: string | null;
+  setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
+}) {
   const pieces = getStudioPieces(state);
+  const applyPreset = (preset: StudioPreset) => {
+    setState((current) => studioStateWithPreset(current, preset));
+    setSelectedPlacementId(null);
+    setSelectedRectangleId(null);
+  };
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading"><div><p className="eyebrow">03 / RECTANGLE WORKPIECES</p><h3>ประกอบผังจากสี่เหลี่ยม</h3></div><span>{pieces.length} / {STUDIO_MAX_PIECES} ชิ้นงาน</span></div>
     <p className="studio-helper">แต่ละชิ้นงานมีได้สูงสุด 6 แผ่น · ขอบที่ชนกันจะแสดงเส้นประและข้อความต้องได้ฉาก 90° · แผ่นซ้อนกันจะแจ้งเตือน</p>
-    <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} />)}</div>
+    <div className="studio-canvas-toolbar">
+      <div>
+        <strong>เริ่มจากทรงสำเร็จรูป</strong>
+        <small>กดครั้งเดียวเพื่อล้างผังเดิมและสร้างขนาดมาตรฐาน</small>
+      </div>
+      <div className="studio-preset-actions">
+        {(Object.keys(studioPresetCopy) as StudioPreset[]).map((preset) => <button type="button" key={preset} className="button button--outline studio-preset-button" onClick={() => applyPreset(preset)} data-testid={`button-studio-preset-${preset}`}><span>{studioPresetCopy[preset].label}</span><small>{studioPresetCopy[preset].description}</small></button>)}
+      </div>
+    </div>
+    <div className="studio-zoom-toolbar" aria-label="ควบคุมการซูมผัง 2D">
+      <span>ขยายผัง 2D</span>
+      <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.max(.75, Math.round((current - .25) * 100) / 100))} aria-label="ซูมออก" data-testid="button-studio-zoom-out"><Minus size={15} /></button>
+      <strong data-testid="studio-zoom-value">{Math.round(zoom * 100)}%</strong>
+      <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.min(2, Math.round((current + .25) * 100) / 100))} aria-label="ซูมเข้า" data-testid="button-studio-zoom-in"><Plus size={15} /></button>
+      <button type="button" className="button button--outline" onClick={() => setZoom(1)} data-testid="button-studio-zoom-reset">100%</button>
+    </div>
+    <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} zoom={zoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} />)}</div>
     <button type="button" className="button button--outline" disabled={pieces.length >= STUDIO_MAX_PIECES} onClick={() => setState((current) => ({ ...current, pieces: [...getStudioPieces(current), makePiece(getStudioPieces(current).length)] }))} data-testid="button-add-studio-piece"><Plus size={15} /> เพิ่มชิ้นงาน</button>
   </section>;
 }
@@ -386,7 +681,7 @@ function StudioStoneComparison({ state, setState }: { state: StudioState; setSta
         <span><small>ราคาหิน / ตร.ม.</small><strong>{priceLabel}</strong></span>
         <span><small>ราคารวมหิน</small><strong>{stoneTotalLabel}</strong></span>
         <span><small>ยอดรวมประมาณการสุทธิ</small><strong>{formatTHB(estimate.totalTHB)}</strong></span>
-        {state.activeStone === code && <em>กำลังคำนวณ</em>}
+        {state.activeStone === code && <em><Check size={12} /> กำลังคำนวณ</em>}
       </button>)}
     </div>
   </section>;
@@ -430,9 +725,16 @@ function StudioDraftDrawer({ drafts, onClose, onOpen, onCopy, onDelete }: { draf
   </div>;
 }
 
-export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: StudioPageProps) {
+export function StudioPage({
+  mode,
+  leadKey,
+  onSubmitStudio,
+  contactDefaults,
+  initialBasinSkus = [],
+  initialStoneColors = [],
+}: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
-  const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode));
+  const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors));
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
@@ -446,6 +748,9 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
   const [sketchFile, setSketchFile] = useState<File | null>(null);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [canvasZoom, setCanvasZoom] = useState(1);
+  const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
+  const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
   const estimate = useMemo(() => studioEstimate(state, PRODUCTS), [state]);
   const activeStone = stoneColorByName(state.activeStone);
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
@@ -498,10 +803,13 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
   const startNewDraft = () => {
     clearStoredStudioDraft();
     skipNextDraftSave.current = true;
-    setState(createInitialStudioState(mode));
+    setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors));
     setLastSavedAt(null);
     setDraftNotice(null);
     setDraftResult("");
+    setCanvasZoom(1);
+    setSelectedPlacementId(null);
+    setSelectedRectangleId(null);
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   };
   const copyStateLink = async (draftState: StudioState, successMessage: string, createLink: typeof createStudioShareLink = createStudioShareLink) => {
@@ -674,13 +982,14 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
       setSubmitting(false);
     }
   };
+  const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
   return <div className="page-wrap studio-page">
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> บันทึกแบบร่าง</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
-    <StudioShortlists state={state} setState={setState} />
-    {mode === "studio" ? <StudioCanvas state={state} setState={setState} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
+     <StudioShortlists state={state} setState={setState} />
+      {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
       <aside className="studio-panel studio-estimate-panel">
@@ -712,6 +1021,7 @@ export function StudioPage({ mode, leadKey, onSubmitStudio, contactDefaults }: S
       </aside>
     </section>
     {mode === "studio" && <StudioPrintLayout state={state} />}
+     {mode === "studio" && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting} onClick={() => void submitStudio()} data-testid="button-mobile-studio-submit">{submitting ? "กำลังส่ง..." : "ส่งขอราคา"}</button></div></div>}
      {mode === "studio" && draftDrawerOpen && <StudioDraftDrawer drafts={namedDrafts} onClose={() => setDraftDrawerOpen(false)} onOpen={openNamedDraft} onCopy={(draft) => void copyNamedDraftLink(draft)} onDelete={deleteNamedDraft} />}
      {mode === "studio" && saveDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setSaveDraftDialogOpen(false)} /><form className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-save-draft-title" onSubmit={saveNamedDraft} data-testid="studio-save-draft-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">SAVE WORKSPACE</p><h2 id="studio-save-draft-title">บันทึกแบบร่าง</h2></div><button type="button" className="icon-button" onClick={() => setSaveDraftDialogOpen(false)} aria-label="ปิดหน้าต่างบันทึกแบบร่าง"><X size={18} /></button></div><label>ชื่อแบบร่าง<input autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)} data-testid="input-studio-draft-name" /></label><p>เก็บผัง 2D สีหิน ขนาด อ่าง และค่ารายด้านไว้กลับมาทำต่อได้</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setSaveDraftDialogOpen(false)} data-testid="button-cancel-save-studio-draft">ยกเลิก</button><button type="submit" className="button button--accent" data-testid="button-confirm-save-studio-draft">บันทึกแบบร่าง</button></div></form></div>}
   </div>;
