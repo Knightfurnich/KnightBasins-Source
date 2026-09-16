@@ -1,14 +1,23 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawn, type ChildProcess } from "node:child_process";
 import net from "node:net";
 
 const baseUrl = process.env["BROWSER_TEST_BASE_URL"] ?? "http://127.0.0.1:80";
 const adminPassword = process.env["ADMIN_PASSWORD"];
 const chromiumPath = process.env["CHROMIUM_BIN"] ?? "/repl/tools/bin/chromium";
+const uploadDirectory =
+  process.env["BROWSER_TEST_UPLOAD_DIR"] ??
+  path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../api-server/uploads",
+  );
+const managedUploadFilename =
+  /^(?:catalog|sketch)-[a-z0-9]+-[a-f0-9]{16}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/i;
 
 type CdpEvent = {
   method: string;
@@ -224,18 +233,51 @@ async function stopBrowser(browser: {
   });
 }
 
+async function listUploadFiles() {
+  try {
+    return new Set(await readdir(uploadDirectory));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return new Set<string>();
+    }
+    throw error;
+  }
+}
+
+async function removeGeneratedUploads(beforeTest: Set<string>) {
+  const afterTest = await listUploadFiles();
+  await Promise.all(
+    [...afterTest]
+      .filter(
+        (filename) =>
+          !beforeTest.has(filename) && managedUploadFilename.test(filename),
+      )
+      .map((filename) =>
+        rm(path.join(uploadDirectory, filename), { force: true }),
+      ),
+  );
+}
+
 describe("admin image upload browser flow", () => {
   let browser: Awaited<ReturnType<typeof launchBrowser>>;
   let fixtureDirectory = "";
+  let uploadFilesBeforeTest = new Set<string>();
+  let uploadCleanupEnabled = false;
 
   before(async () => {
-    if (!adminPassword) throw new Error("ADMIN_PASSWORD is required for the browser upload test");
-    fixtureDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-upload-fixtures-"));
+    if (!adminPassword) {
+      throw new Error("ADMIN_PASSWORD is required for the browser upload test");
+    }
+    fixtureDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "knight-basins-upload-fixtures-"),
+    );
     await writeFile(path.join(fixtureDirectory, "unsupported.txt"), "not an image");
-     await writeFile(
-       path.join(fixtureDirectory, "supported.png"),
-       Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x03]),
-     );
+    await writeFile(
+      path.join(fixtureDirectory, "supported.png"),
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x03]),
+    );
+    uploadFilesBeforeTest = await listUploadFiles();
+    uploadCleanupEnabled = true;
     browser = await launchBrowser();
     await browser.page.command("Runtime.enable");
     await browser.page.command("Page.enable");
@@ -244,8 +286,16 @@ describe("admin image upload browser flow", () => {
   });
 
   after(async () => {
-    if (browser) await stopBrowser(browser);
-    if (fixtureDirectory) await rm(fixtureDirectory, { force: true, recursive: true });
+    try {
+      if (browser) await stopBrowser(browser);
+    } finally {
+      if (uploadCleanupEnabled) {
+        await removeGeneratedUploads(uploadFilesBeforeTest);
+      }
+      if (fixtureDirectory) {
+        await rm(fixtureDirectory, { force: true, recursive: true });
+      }
+    }
   });
 
   it("logs in through the admin UI, shows validation errors, and previews the saved upload URL", async () => {

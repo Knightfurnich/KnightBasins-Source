@@ -36,6 +36,7 @@ import { StudioFootprint } from "@/components/StudioFootprint";
 import { BasinVisual } from "@/components/BasinVisual";
 import { isValidEmailAddress } from "@/data/validation";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
+import { knightFurnichLogo } from "@/data/assets";
 
 const emptyCustomer: CustomerDetails = {
   name: "",
@@ -955,7 +956,6 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
 import AdminApp from "./admin/AdminApp";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import knightFurnichLogo from "@assets/Knightfurnich-logo_1789302266220.png";
 import { useGetCatalog, useGetCustomerProfile, useGetLineAuthStatus, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
 import { KnightSupport, LineLoginButton } from "@/components/KnightSupport";
 import OwnerWorkbench from "./admin/OwnerWorkbench";

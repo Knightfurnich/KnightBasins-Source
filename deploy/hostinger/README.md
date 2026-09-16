@@ -40,6 +40,12 @@ artifacts/knight-basins/dist/public/
 artifacts/api-server/dist/
 ```
 
+Catalog and sketch uploads are runtime media stored in the API upload directory
+on the deployment host. They are not release assets and must never be committed
+under `artifacts/api-server/uploads/`. The browser upload test removes files it
+creates after each run, and the release check below reports any tracked upload
+path before it can be published.
+
 The API starts only after it has applied its idempotent catalog seed. The seed
 uses the catalog source in `artifacts/knight-basins/src/data/catalog.ts`, so the
 release and the database must come from the same commit.
@@ -304,6 +310,16 @@ exact production callback, or the callback route is unavailable. Do not append
 `|| true`, continue after a failure, or mark the release complete until this
 command succeeds. The check only logs status and fixed diagnostic messages; it
 does not print the LINE channel ID, channel secret, or response body.
+
+Before publishing a release commit, run the repository upload guard:
+
+```bash
+bash deploy/hostinger/check-upload-files.sh
+```
+
+It exits non-zero and lists every unexpected tracked path under
+`artifacts/api-server/uploads/`. Do not bypass the check; remove test fixtures
+from Git and keep production uploads on the deployment host.
 
 Run the web asset gate after copying the storefront and reloading Nginx. It
 fetches `/`, extracts the JavaScript URL with Python 3's standard library, then

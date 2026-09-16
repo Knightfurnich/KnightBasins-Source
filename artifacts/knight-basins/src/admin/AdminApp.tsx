@@ -13,7 +13,7 @@ import { BasinsManager } from "./BasinsManager";
 import { InstalledStonesManager } from "./InstalledStonesManager";
 import { SheetStonesManager } from "./SheetStonesManager";
 import { LeadsManager } from "./LeadsManager";
-import knightFurnichLogo from "@assets/Knightfurnich-logo_1789302266220.png";
+import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
   password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
@@ -36,7 +36,7 @@ export default function AdminApp() {
   }
 
   return (
-    <div className="admin-app min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col font-sans">
+    <div className="admin-app min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col">
       <header className="admin-header border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img className="admin-logo" src={knightFurnichLogo} alt="Knight Furnich" />
@@ -132,7 +132,7 @@ export function AdminLogin() {
   };
 
   return (
-    <div className="admin-login min-h-screen bg-[var(--paper)] flex flex-col items-center justify-center p-6 text-[var(--ink)] font-sans">
+    <div className="admin-login min-h-screen bg-[var(--paper)] flex flex-col items-center justify-center p-6 text-[var(--ink)]">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
           <img className="admin-login-logo" src={knightFurnichLogo} alt="Knight Furnich" />
