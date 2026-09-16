@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import crypto from "node:crypto";
 import { constants } from "node:fs";
 import { mkdir, open, readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
@@ -40,6 +40,15 @@ export type UploadedImageCleanupResult = {
   skippedReferenced: number;
   skippedTooNew: number;
 };
+
+export class UploadFileCollisionError extends Error {
+  readonly code = "EEXIST";
+
+  constructor(filename: string) {
+    super(`An upload with the filename "${filename}" already exists`);
+    this.name = "UploadFileCollisionError";
+  }
+}
 
 function parseRetentionHours(value: string | undefined) {
   if (!value) return DEFAULT_UPLOAD_RETENTION_HOURS;
@@ -290,7 +299,7 @@ export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog"
     throw new Error("PUBLIC_UPLOAD_ORIGIN must be configured in production");
   }
   const version = Date.now().toString(36);
-  const token = randomBytes(8).toString("hex");
+  const token = crypto.randomBytes(8).toString("hex");
   const filename = `${prefix}-${version}-${token}.${extension}`;
   const safeFilename = path.basename(filename);
   if (safeFilename !== filename || !MANAGED_FILENAME.test(safeFilename)) {
@@ -301,12 +310,23 @@ export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog"
   const filePath = path.resolve(uploadRoot, safeFilename);
   if (!filePath.startsWith(`${uploadRoot}${path.sep}`)) throw new Error("Invalid upload filename");
   const fileUrl = new URL(safeFilename, pathToFileURL(`${uploadRoot}${path.sep}`));
-  const handle = await open(fileUrl,
-    constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
-    0o600,
-  );
+  let handle;
+  try {
+    handle = await open(fileUrl,
+      constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
+      0o600,
+    );
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+      throw new UploadFileCollisionError(filename);
+    }
+    throw error;
+  }
   try {
     await handle.writeFile(media.buffer);
+  } catch (error) {
+    await unlink(filePath).catch(() => undefined);
+    throw error;
   } finally {
     await handle.close();
   }
@@ -319,6 +339,23 @@ export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog"
     version,
     url: `${(PUBLIC_UPLOAD_ORIGIN || "/api/uploads").replace(/\/$/, "")}/${filename}?v=${version}`,
   };
+}
+
+export async function removeUploadedMedia(filename: string) {
+  const safeFilename = path.basename(filename);
+  if (safeFilename !== filename || !MANAGED_FILENAME.test(safeFilename)) {
+    throw new Error("Invalid upload filename");
+  }
+
+  const uploadRoot = path.resolve(UPLOAD_DIR);
+  const filePath = path.resolve(uploadRoot, safeFilename);
+  if (!filePath.startsWith(`${uploadRoot}${path.sep}`)) throw new Error("Invalid upload filename");
+
+  try {
+    await unlink(filePath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
 }
 
 export async function saveUploadedImage(image: UploadedImage) {
