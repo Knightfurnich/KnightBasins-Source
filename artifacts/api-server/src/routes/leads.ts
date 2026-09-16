@@ -3,7 +3,7 @@ import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
-import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
+import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
 import {
   createQuoteAccessSecret,
@@ -185,45 +185,59 @@ router.get("/quotes", async (req, res, next) => {
       return invalid(res, "Invalid sketch lead data", parsed.success ? undefined : parsed.error.flatten());
     }
     const upload = await saveUploadedMedia(media, "sketch");
-    const [lead] = await database
-      .insert(customerLeads)
-      .values({
-        ...parsed.data,
-        expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
-        sketchUrl: upload.url,
-        orderMode: "sketch",
-        customerAccountId: account?.id ?? null,
-      })
-      .onConflictDoUpdate({
-        target: customerLeads.leadKey,
-        set: {
-          status: parsed.data.status,
-          source: parsed.data.source,
-          orderMode: "sketch",
-          name: parsed.data.name,
-          company: parsed.data.company,
-          phone: parsed.data.phone,
-          email: parsed.data.email,
-          project: parsed.data.project,
-          address: parsed.data.address,
-          notes: parsed.data.notes,
-          taxName: parsed.data.taxName,
-          taxId: parsed.data.taxId,
-          taxBranch: parsed.data.taxBranch,
-          taxAddress: parsed.data.taxAddress,
-          preferredContact: parsed.data.preferredContact,
-          customerRole: parsed.data.customerRole,
-          propertyType: parsed.data.propertyType,
-          condoFloor: parsed.data.condoFloor,
+    let lead;
+    try {
+      [lead] = await database
+        .insert(customerLeads)
+        .values({
+          ...parsed.data,
           expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
-          productSkus: parsed.data.productSkus,
-          studioData: parsed.data.studioData,
           sketchUrl: upload.url,
-           customerAccountId: account?.id ?? customerLeads.customerAccountId,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+          orderMode: "sketch",
+          customerAccountId: account?.id ?? null,
+        })
+        .onConflictDoUpdate({
+          target: customerLeads.leadKey,
+          set: {
+            status: parsed.data.status,
+            source: parsed.data.source,
+            orderMode: "sketch",
+            name: parsed.data.name,
+            company: parsed.data.company,
+            phone: parsed.data.phone,
+            email: parsed.data.email,
+            project: parsed.data.project,
+            address: parsed.data.address,
+            notes: parsed.data.notes,
+            taxName: parsed.data.taxName,
+            taxId: parsed.data.taxId,
+            taxBranch: parsed.data.taxBranch,
+            taxAddress: parsed.data.taxAddress,
+            preferredContact: parsed.data.preferredContact,
+            customerRole: parsed.data.customerRole,
+            propertyType: parsed.data.propertyType,
+            condoFloor: parsed.data.condoFloor,
+            expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
+            productSkus: parsed.data.productSkus,
+            studioData: parsed.data.studioData,
+            sketchUrl: upload.url,
+            customerAccountId: account?.id ?? customerLeads.customerAccountId,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      if (!lead) throw new Error("Lead was not saved");
+    } catch (error) {
+      try {
+        await removeUploadedMedia(upload.filename);
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          `Lead save failed and sketch upload cleanup failed for ${upload.filename}`,
+        );
+      }
+      throw error;
+    }
     const result = await notifySketch(
       lead,
       requestOrigin(req),
