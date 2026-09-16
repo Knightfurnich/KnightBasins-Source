@@ -25,9 +25,23 @@ describe("KnightSupport profile update confirmation", () => {
     );
     const accountId = accountResult.rows[0]?.id;
     assert.ok(accountId);
+    const secondToken = randomBytes(32).toString("base64url");
+    const secondAccountResult = await pool.query<{ id: number }>(
+      `INSERT INTO customer_accounts
+        (line_user_id, display_name, full_name)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [`support-test-second-${suffix}`, "Second Support Test", "ผู้ใช้ที่สอง"],
+    );
+    const secondAccountId = secondAccountResult.rows[0]?.id;
+    assert.ok(secondAccountId);
     await pool.query(
       `INSERT INTO customer_sessions (account_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
       [accountId, createHash("sha256").update(token).digest("hex"), new Date(Date.now() + 60_000)],
+    );
+    await pool.query(
+      `INSERT INTO customer_sessions (account_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+      [secondAccountId, createHash("sha256").update(secondToken).digest("hex"), new Date(Date.now() + 60_000)],
     );
     const leadResult = await pool.query<{ id: number }>(
       `INSERT INTO customer_leads
@@ -41,6 +55,7 @@ describe("KnightSupport profile update confirmation", () => {
 
     let route = await serveTypeScriptRoute("src/routes/support.ts");
     const headers = { "Content-Type": "application/json", Cookie: sessionCookie(token) };
+    const secondHeaders = { "Content-Type": "application/json", Cookie: sessionCookie(secondToken) };
     try {
       const message = await fetch(`${route.url}/api/support/chat`, {
         method: "POST",
@@ -63,6 +78,27 @@ describe("KnightSupport profile update confirmation", () => {
 
       await route.close();
       route = await serveTypeScriptRoute("src/routes/support.ts");
+
+      const otherAccountConfirmation = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers: secondHeaders,
+        body: JSON.stringify({ message: "ยืนยัน" }),
+      });
+      assert.equal(otherAccountConfirmation.status, 200);
+      const otherAccountResult = await otherAccountConfirmation.json() as { reply?: string; profileUpdate?: { status?: string } };
+      assert.equal(otherAccountResult.profileUpdate, undefined);
+      assert.match(otherAccountResult.reply ?? "", /ยังไม่มีข้อมูล/);
+
+      const otherAccountCancellation = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers: secondHeaders,
+        body: JSON.stringify({ message: "ยกเลิก" }),
+      });
+      assert.equal(otherAccountCancellation.status, 200);
+      const otherCancellationResult = await otherAccountCancellation.json() as { reply?: string; profileUpdate?: { status?: string } };
+      assert.equal(otherCancellationResult.profileUpdate, undefined);
+      assert.match(otherCancellationResult.reply ?? "", /ยังไม่มีข้อมูล/);
+
       const confirmed = await fetch(`${route.url}/api/support/chat`, {
         method: "POST",
         headers,
@@ -115,11 +151,48 @@ describe("KnightSupport profile update confirmation", () => {
         [accountId],
       );
       assert.equal(afterCancel.rows[0]?.tax_name, "บริษัทใหม่ จำกัด");
+
+      const expiringMessage = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ message: "ชื่อภาษีใหม่: บริษัทหมดอายุ จำกัด เบอร์โทร: 0833333333" }),
+      });
+      assert.equal(expiringMessage.status, 200);
+      const expiringPending = await expiringMessage.json() as { profileUpdate?: { status?: string } };
+      assert.equal(expiringPending.profileUpdate?.status, "confirmation_required");
+      await pool.query(
+        "UPDATE customer_profile_update_confirmations SET expires_at = NOW() - INTERVAL '1 second' WHERE account_id = $1",
+        [accountId],
+      );
+
+      const expiredConfirmation = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ message: "ยืนยัน" }),
+      });
+      assert.equal(expiredConfirmation.status, 200);
+      const expiredResult = await expiredConfirmation.json() as { reply?: string; profileUpdate?: { status?: string } };
+      assert.equal(expiredResult.profileUpdate, undefined);
+      assert.match(expiredResult.reply ?? "", /ยังไม่มีข้อมูล/);
+      const unchangedAfterExpiry = await pool.query<{ tax_name: string; phone: string }>(
+        "SELECT tax_name, phone FROM customer_accounts WHERE id = $1",
+        [accountId],
+      );
+      assert.equal(unchangedAfterExpiry.rows[0]?.tax_name, "บริษัทใหม่ จำกัด");
+      assert.equal(unchangedAfterExpiry.rows[0]?.phone, "0822222222");
+      const leadAfterExpiry = await pool.query<{ tax_name: string; phone: string }>(
+        "SELECT tax_name, phone FROM customer_leads WHERE id = $1",
+        [leadId],
+      );
+      assert.equal(leadAfterExpiry.rows[0]?.tax_name, "บริษัทใหม่ จำกัด");
+      assert.equal(leadAfterExpiry.rows[0]?.phone, "0822222222");
     } finally {
       await route.close();
       await pool.query("DELETE FROM customer_leads WHERE id = $1", [leadId]);
       await pool.query("DELETE FROM customer_sessions WHERE account_id = $1", [accountId]);
+      await pool.query("DELETE FROM customer_sessions WHERE account_id = $1", [secondAccountId]);
       await pool.query("DELETE FROM customer_accounts WHERE id = $1", [accountId]);
+      await pool.query("DELETE FROM customer_accounts WHERE id = $1", [secondAccountId]);
       await pool.end();
     }
   });
