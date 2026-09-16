@@ -321,6 +321,15 @@ It exits non-zero and lists every unexpected tracked path under
 `artifacts/api-server/uploads/`. Do not bypass the check; remove test fixtures
 from Git and keep production uploads on the deployment host.
 
+The release-validation workflow runs this guard on pull requests, pushes to
+`main`, and manual dispatch before a release can proceed. Its regression test
+also confirms that an untracked deployment-host upload is allowed while a
+tracked upload fails and reports its path:
+
+```bash
+bash deploy/hostinger/check-upload-files.test.sh
+```
+
 Run the web asset gate after copying the storefront and reloading Nginx. It
 fetches `/`, extracts the JavaScript URL with Python 3's standard library, then
 requires a `/assets/` path, HTTP 200, a JavaScript content type, and a non-HTML
