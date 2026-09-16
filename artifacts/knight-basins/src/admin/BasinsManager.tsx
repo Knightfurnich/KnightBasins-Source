@@ -39,6 +39,15 @@ import {
 import { ImageUploadField } from "./ImageUploadField";
 import { VideoUploadField } from "./VideoUploadField";
 import { isTallBasinSku, normalizeDimensionInput, sanitizePriceInput } from "@/data/input-sanitizers";
+import { AdminSortableHeader } from "./AdminSortableHeader";
+import {
+  compareAdminBoolean,
+  compareAdminNumber,
+  compareAdminText,
+  sortAdminItems,
+  toggleAdminSort,
+  type AdminSortState,
+} from "./adminArchive";
 
 const basinSchema = z.object({
   sku: z.string().min(1, "กรุณากรอก SKU"),
@@ -65,6 +74,7 @@ export function BasinsManager() {
   const [isArchiveOpen, setIsArchiveOpen] = useState<number | null>(null);
   const [visibility, setVisibility] = useState<AdminVisibility>("active");
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [sort, setSort] = useState<AdminSortState<"sku" | "colorName" | "category" | "price" | "active">>(null);
   
   const queryClient = useQueryClient();
   const archiveMutation = useUpdateAdminBasin();
@@ -78,6 +88,13 @@ export function BasinsManager() {
     search,
     ["sku", "colorName", "colorCode"],
   );
+  const sortedBasins = sortAdminItems(filteredBasins, sort, (left, right, key) => {
+    if (key === "sku") return compareAdminText(left.sku, right.sku);
+    if (key === "colorName") return compareAdminText(left.colorName, right.colorName);
+    if (key === "category") return compareAdminText(left.category, right.category);
+    if (key === "price") return compareAdminNumber(left.priceTHB, right.priceTHB);
+    return compareAdminBoolean(left.active, right.active);
+  });
 
   const handleArchive = () => {
     const basin = basins?.find((item) => item.id === isArchiveOpen);
@@ -132,13 +149,13 @@ export function BasinsManager() {
           <Table className="min-w-[600px]">
             <TableHeader>
               <TableRow className="border-[var(--line)] hover:bg-transparent">
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs">SKU</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs">สี</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs">หมวดหมู่</TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs"><AdminSortableHeader label="SKU" active={sort?.key === "sku"} direction={sort?.key === "sku" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "sku"))} /></TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs"><AdminSortableHeader label="สี" active={sort?.key === "colorName"} direction={sort?.key === "colorName" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "colorName"))} /></TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs"><AdminSortableHeader label="หมวดหมู่" active={sort?.key === "category"} direction={sort?.key === "category" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "category"))} /></TableHead>
                 <TableHead className="text-[var(--ink-soft)] font-mono text-xs">ภาพ HD</TableHead>
                 <TableHead className="text-[var(--ink-soft)] font-mono text-xs">สื่อ</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-right">ราคา (฿)</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-center">สถานะ</TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-right"><AdminSortableHeader label="ราคา (฿)" align="right" active={sort?.key === "price"} direction={sort?.key === "price" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "price"))} /></TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-center"><AdminSortableHeader label="สถานะ" align="center" active={sort?.key === "active"} direction={sort?.key === "active" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "active"))} /></TableHead>
                 <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
@@ -149,7 +166,7 @@ export function BasinsManager() {
                     ไม่พบข้อมูล
                   </TableCell>
                 </TableRow>
-              ) : filteredBasins.map(basin => (
+              ) : sortedBasins.map(basin => (
                 <TableRow key={basin.id} className="border-[var(--line)] hover:bg-[var(--line)]/20 transition-colors">
                   <TableCell className="font-mono text-xs font-medium">{basin.sku}</TableCell>
                   <TableCell>

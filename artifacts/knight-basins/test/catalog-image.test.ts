@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { basinProductFromCatalog, filterBasinProducts, PRODUCTS, removeStoneSelection, toggleBasinSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
+import { toggleAdminItemActive } from "../src/admin/adminArchive.ts";
+import { basinProductFromCatalog, filterBasinProducts, PRODUCTS, reconcileStoneSelections, removeStoneSelection, stoneColorsForMode, stoneColorsFromCatalog, toggleBasinSelection, toggleStoneSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
 
 describe("storefront basin image mapping", () => {
   it("preserves a saved imageUrl from the active catalog response", () => {
@@ -63,6 +64,97 @@ describe("storefront multi-selection state", () => {
     const nw: StoneConfig = { ...bw, color: "NW013" };
     const selected = removeStoneSelection([bw, nw], "BW010");
     assert.deepEqual(selected, [nw]);
+  });
+
+  it("can deselect the last stone without creating a replacement selection", () => {
+    const bw: StoneConfig = { enabled: true, mode: "whole-sheet", color: "BW010", quantity: 2, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 };
+    assert.deepEqual(toggleStoneSelection([bw], "BW010", bw), []);
+  });
+
+  it("maps the latest catalog image and prices into selectable stone colors", () => {
+    const colors = stoneColorsFromCatalog(
+      [{ code: "MU010", name: "Evermoin Ultra Bright", tone: "#fff", aliases: ["MU 010"], pricePerSqmTHB: 8100, imageUrl: "https://cdn.example.test/mu-installed.png" }],
+      [{ code: "MU010", name: "Evermoin Ultra Bright", tone: "#fff", aliases: ["MU 010"], basePriceTHB: 7600, imageUrl: "https://cdn.example.test/mu-sheet.png" }],
+    );
+    assert.deepEqual(colors, [{
+      code: "MU010",
+      name: "Evermoin Ultra Bright",
+      tone: "#fff",
+      sheetPriceTHB: 7600,
+      installedPriceTHB: 8100,
+      documentCodes: ["MU 010"],
+      imageUrl: "https://cdn.example.test/mu-installed.png",
+    }]);
+  });
+
+  it("keeps sheet and installed selections isolated by order mode", () => {
+    type ActiveCatalogStone = {
+      active: boolean;
+      code: string;
+      name: string;
+      tone: string;
+      pricePerSqmTHB?: number;
+      basePriceTHB?: number;
+    };
+    let installed: ActiveCatalogStone[] = [
+      { active: true, code: "INSTALLED", name: "Installed only", tone: "#111", pricePerSqmTHB: 8500 },
+      { active: true, code: "BOTH", name: "Both", tone: "#222", pricePerSqmTHB: 9000 },
+    ];
+    let sheet: ActiveCatalogStone[] = [
+      { active: true, code: "SHEET", name: "Sheet only", tone: "#333", basePriceTHB: 7000 },
+      { active: true, code: "BOTH", name: "Both", tone: "#222", basePriceTHB: 6500 },
+    ];
+    const refetchCustomerModes = () => ({
+      installed: stoneColorsForMode(
+        installed.filter((stone) => stone.active),
+        sheet.filter((stone) => stone.active),
+        "installed",
+      ).map((color) => color.code),
+      wholeSheet: stoneColorsForMode(
+        installed.filter((stone) => stone.active),
+        sheet.filter((stone) => stone.active),
+        "whole-sheet",
+      ).map((color) => color.code),
+    });
+
+    assert.deepEqual(refetchCustomerModes(), {
+      installed: ["INSTALLED", "BOTH"],
+      wholeSheet: ["SHEET", "BOTH"],
+    });
+
+    sheet = [sheet[0], toggleAdminItemActive(sheet[1])];
+    assert.deepEqual(refetchCustomerModes(), {
+      installed: ["INSTALLED", "BOTH"],
+      wholeSheet: ["SHEET"],
+    });
+
+    sheet = [sheet[0], toggleAdminItemActive(sheet[1])];
+    installed = [installed[0], toggleAdminItemActive(installed[1])];
+    assert.deepEqual(refetchCustomerModes(), {
+      installed: ["INSTALLED"],
+      wholeSheet: ["SHEET", "BOTH"],
+    });
+
+    installed = [installed[0], toggleAdminItemActive(installed[1])];
+    assert.deepEqual(refetchCustomerModes(), {
+      installed: ["INSTALLED", "BOTH"],
+      wholeSheet: ["SHEET", "BOTH"],
+    });
+  });
+
+  it("preserves active mode-specific selections and reports hidden records", () => {
+    const selected: StoneConfig[] = [
+      { enabled: true, mode: "whole-sheet", color: "SHEET", quantity: 4, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 },
+      { enabled: true, mode: "installed", color: "BOTH", quantity: 1, widthCm: 120, lengthCm: 240, areaSqM: 2.88, unitPrice: 0, installationPrice: 0 },
+      { enabled: true, mode: "whole-sheet", color: "HIDDEN", quantity: 2, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 },
+    ];
+    const result = reconcileStoneSelections(selected, {
+      "whole-sheet": [{ code: "SHEET", name: "Sheet", tone: "#fff", sheetPriceTHB: 7000, installedPriceTHB: null, documentCodes: [] }],
+      installed: [{ code: "BOTH", name: "Both", tone: "#222", sheetPriceTHB: null, installedPriceTHB: 9000, documentCodes: [] }],
+    });
+
+    assert.deepEqual(result.active, [selected[0], selected[1]]);
+    assert.deepEqual(result.hidden, [selected[2]]);
   });
 
   it("studio basin search reaches every catalog model", () => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type SetStateAction } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
 import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, Minus, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
@@ -29,6 +29,7 @@ import {
   studioEdgeTotals,
   studioEstimate,
   studioBasinCatalogEntries,
+  resolveStudioCatalogChange,
   replaceStudioBasin,
   removeStudioBasin,
   studioPieceById,
@@ -64,7 +65,7 @@ import {
 import { StudioFootprint } from "./StudioFootprint";
 import { BasinVisual } from "./BasinVisual";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
-import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraftRecord, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
+import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraftRecord, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, upsertStoredStudioDraft, writeStoredStudioDraft, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
@@ -218,30 +219,37 @@ function numericValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-type StudioPreset = "i" | "l-left" | "l-right";
+type StudioPreset = "i" | "l-left" | "l-right" | "u";
 
 const studioPresetCopy: Record<StudioPreset, { label: string; description: string }> = {
   i: { label: "📐 ทรงตรง", description: "I-Shape · 1500 × 600 มม." },
   "l-left": { label: "📐 ทรงฉากซ้าย", description: "L-Shape Left · 1500 × 1200 มม." },
   "l-right": { label: "📐 ทรงฉากขวา", description: "L-Shape Right · 1500 × 1200 มม." },
+  u: { label: "📐 ทรงตัวยู", description: "U-Shape · 1500 × 1800 มม." },
 };
 
 function createPresetPiece(preset: StudioPreset): StudioPiece {
   const rectangles = preset === "i"
     ? [makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นหลัก" })]
+    : preset === "u"
+      ? [
+        makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นฐาน" }),
+        makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, label: "แผ่นซ้าย" }),
+        makeRectangle(2, { widthMm: 600, lengthMm: 1200, xMm: 900, yMm: 600, label: "แผ่นขวา" }),
+      ]
     : [
       makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นบน" }),
       makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: preset === "l-left" ? 0 : 900, yMm: 600, label: "แผ่นฉาก" }),
     ];
-  return { id: `piece-${Date.now()}-preset`, name: preset === "i" ? "ชิ้นงานตรง" : preset === "l-left" ? "ชิ้นงานฉากซ้าย" : "ชิ้นงานฉากขวา", rectangles, sideStatuses: {} };
+  return { id: `piece-${Date.now()}-preset`, name: preset === "i" ? "ชิ้นงานตรง" : preset === "u" ? "ชิ้นงานตัวยู" : preset === "l-left" ? "ชิ้นงานฉากซ้าย" : "ชิ้นงานฉากขวา", rectangles, sideStatuses: {} };
 }
 
 function studioStateWithPreset(state: StudioState, preset: StudioPreset): StudioState {
   const piece = createPresetPiece(preset);
   return {
     ...state,
-    shape: preset === "i" ? "I" : "L",
-    dimensions: { depthMm: 600, runAMm: 1500, runBMm: preset === "i" ? 0 : 1200, runCMm: 0 },
+    shape: preset === "i" ? "I" : preset === "u" ? "U" : "L",
+    dimensions: { depthMm: 600, runAMm: 1500, runBMm: preset === "i" ? 0 : 1200, runCMm: preset === "u" ? 1200 : 0 },
     pieces: [piece],
     activePieceId: piece.id,
     basinPlacements: [],
@@ -278,7 +286,7 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
    </div>;
  }
 
-function StudioShortlists({ state, setState, stoneColors, basinProducts }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct> }) {
+function StudioShortlists({ state, setState, stoneColors, basinProducts, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; onCatalogChangeResolved: (sku: string) => void }) {
   const [basinQuery, setBasinQuery] = useState("");
   const visibleBasins = useMemo(() => filterBasinProducts(basinProducts, basinQuery), [basinProducts, basinQuery]);
   const basinEntries = studioBasinCatalogEntries(state, basinProducts);
@@ -304,8 +312,12 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts }: { sta
     const product = basinProducts.find((item) => item.sku === nextSku);
     if (!product) return;
     setState((current) => replaceStudioBasin(current, previousSku, product));
+    onCatalogChangeResolved(previousSku);
   };
-  const removeHiddenBasin = (sku: string) => setState((current) => removeStudioBasin(current, sku));
+  const removeHiddenBasin = (sku: string) => {
+    setState((current) => removeStudioBasin(current, sku));
+    onCatalogChangeResolved(sku);
+  };
   return <div className="studio-shortlists">
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน 2–3 สี</h3></div><span>{state.stoneColors.length} / 3</span></div>
@@ -504,6 +516,59 @@ function StudioPieceEditor({
   const bounds = pieceBounds(piece);
   const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? state.pieces?.[0]?.id) === piece.id);
   const selectedPlacement = placements.find((placement) => placement.id === selectedPlacementId);
+  const pointerDrag = useRef<{ kind: "rectangle" | "placement"; id: string; offsetX: number; offsetY: number } | null>(null);
+  const canvasPoint = (event: ReactPointerEvent<HTMLElement>) => {
+    const canvas = event.currentTarget.closest(".studio-canvas");
+    if (!(canvas instanceof HTMLElement)) return null;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      xMm: ((event.clientX - rect.left) / Math.max(1, rect.width)) * bounds.widthMm,
+      yMm: ((event.clientY - rect.top) / Math.max(1, rect.height)) * bounds.heightMm,
+    };
+  };
+  const beginPointerDrag = (event: ReactPointerEvent<HTMLElement>, kind: "rectangle" | "placement", id: string) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const point = canvasPoint(event);
+    if (!point) return;
+    const item = kind === "rectangle"
+      ? piece.rectangles.find((rectangle) => rectangle.id === id)
+      : state.basinPlacements.find((placement) => placement.id === id);
+    if (!item) return;
+    pointerDrag.current = { kind, id, offsetX: point.xMm - item.xMm, offsetY: point.yMm - item.yMm };
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Synthetic pointer events and browsers without active capture can still drag via bubbling events.
+    }
+    if (kind === "rectangle") {
+      setSelectedRectangleId(id);
+      setSelectedPlacementId(null);
+    } else {
+      setSelectedPlacementId(id);
+      setSelectedRectangleId(null);
+    }
+  };
+  const movePointerDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = pointerDrag.current;
+    if (!drag) return;
+    const point = canvasPoint(event);
+    if (!point) return;
+    const xMm = point.xMm - drag.offsetX;
+    const yMm = point.yMm - drag.offsetY;
+    if (drag.kind === "rectangle") {
+      moveRectangle(drag.id, xMm, yMm);
+    } else {
+      setState((current) => ({
+        ...current,
+        basinPlacements: current.basinPlacements.map((placement) => placement.id === drag.id
+          ? { ...placement, pieceId: piece.id, xMm: Math.round(xMm), yMm: Math.round(yMm) }
+          : placement),
+      }));
+    }
+  };
+  const endPointerDrag = () => {
+    pointerDrag.current = null;
+  };
   const activeRectangle = piece.rectangles.find((rectangle) => rectangle.id === selectedRectangleId) ?? piece.rectangles[0];
   const updateRectangle = (updater: (rectangle: StudioRectangle) => StudioRectangle) => {
     if (!activeRectangle) return;
@@ -607,9 +672,9 @@ function StudioPieceEditor({
             const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
             const product = basinProducts.find((item) => item.sku === placement.sku);
             const inactive = !product;
-            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${inactive ? "studio-placement--inactive" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} />}</span><strong>{placement.sku}</strong><small>{inactive ? "ไม่เปิดใช้งานแล้ว · เปลี่ยนรุ่นหรือนำออก" : unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : placement.id); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${inactive ? "studio-placement--inactive" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onPointerDown={(event) => beginPointerDrag(event, "placement", placement.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} />}</span><strong>{placement.sku}</strong><small>{inactive ? "ไม่เปิดใช้งานแล้ว · เปลี่ยนรุ่นหรือนำออก" : unknown ? "ขนาดหลุมไม่ระบุ" : `${placement.widthMm} × ${placement.depthMm} มม. · ลากเพื่อย้าย`}</small><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : placement.id); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
           })}
-          {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className={`studio-rectangle-drag-target ${rectangle.id === activeRectangle?.id ? "is-selected" : ""}`} draggable onClick={() => { setSelectedRectangleId(rectangle.id); setSelectedPlacementId(null); }} onDragStart={(event) => { setSelectedRectangleId(rectangle.id); event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id); }} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`เลือกแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
+          {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className={`studio-rectangle-drag-target ${rectangle.id === activeRectangle?.id ? "is-selected" : ""}`} draggable onClick={() => { setSelectedRectangleId(rectangle.id); setSelectedPlacementId(null); }} onPointerDown={(event) => beginPointerDrag(event, "rectangle", rectangle.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedRectangleId(rectangle.id); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id); }} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`ลากแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
         </StudioFootprint>
         <p className="studio-canvas-hint"><GripVertical size={14} /> คลิกแผ่นหรืออ่างเพื่อเปิดตัวแก้ไข · ลากเพื่อจัดตำแหน่ง · ขอบที่ชนกันจะ snap ต่อกัน</p>
       </div>
@@ -770,7 +835,17 @@ function StudioDraftDrawer({ drafts, onClose, onOpen, onCopy, onDelete }: { draf
   </div>;
 }
 
-function StudioCatalogChangeNotice({ notice }: { notice: { savedAt: string; comparison: StudioCatalogComparison } }) {
+type StudioCatalogNotice = {
+  savedAt: string;
+  context: StudioCatalogContext;
+  comparison: StudioCatalogComparison;
+};
+
+function studioCatalogNotice(context: StudioCatalogContext, basinProducts: ReadonlyArray<BasinProduct>): StudioCatalogNotice {
+  return { savedAt: context.savedAt, context, comparison: compareStudioCatalog(context, basinProducts) };
+}
+
+function StudioCatalogChangeNotice({ notice }: { notice: StudioCatalogNotice }) {
   const fieldLabels: Record<StudioCatalogField, string> = {
     colorName: "สี",
     priceTHB: "ราคา",
@@ -782,7 +857,7 @@ function StudioCatalogChangeNotice({ notice }: { notice: { savedAt: string; comp
     if (field === "priceTHB") return typeof value === "number" ? formatTHB(value) : "ไม่ระบุ";
     return value ?? "ไม่ระบุ";
   };
-  if (!notice.comparison.catalogUpdated) return null;
+  if (!notice.comparison.catalogUpdated && notice.comparison.resolvedChanges.length === 0) return null;
   return <div className="studio-catalog-change-banner" role="status" data-testid="studio-catalog-change-banner">
     <div>
       <strong>แคตตาล็อกอ่างเปลี่ยนแปลงตั้งแต่บันทึกแบบร่าง</strong>
@@ -801,8 +876,17 @@ function StudioCatalogChangeNotice({ notice }: { notice: { savedAt: string; comp
              </ul>
            </div>}
       </li>)}</ul>
-      : <p>รุ่นอ่างที่เลือกยังตรงกับรายการปัจจุบัน แต่มีรายการอื่นในแคตตาล็อกอัปเดตแล้ว</p>}
-    <p>ตรวจสอบรายการอ่างด้านบนเพื่อใช้การแทนที่หรือนำรุ่นที่ไม่ใช้งานแล้วออกจากแบบ</p>
+      : notice.comparison.resolvedChanges.length === 0 && <p>รุ่นอ่างที่เลือกยังตรงกับรายการปัจจุบัน แต่มีรายการอื่นในแคตตาล็อกอัปเดตแล้ว</p>}
+    {notice.comparison.resolvedChanges.length > 0 && <div className="studio-catalog-resolved" data-testid="studio-catalog-resolved">
+      <strong>จัดการแล้ว</strong>
+      <ul>{notice.comparison.resolvedChanges.map((change) => <li key={change.sku} data-testid={`studio-catalog-resolved-${change.sku}`}>
+        <code>{change.sku}</code>
+        {change.kind === "removed"
+          ? <span>นำออกจากแบบหรือแทนที่แล้ว — เก็บรายการเปลี่ยนแปลงไว้สำหรับตรวจสอบ</span>
+          : <span>ตรวจสอบแล้ว — {change.changedFields.length > 0 ? "รายละเอียดแคตตาล็อกเดิมยังดูได้ในรายการนี้" : "รายการนี้ได้รับการยืนยันแล้ว"}</span>}
+      </li>)}</ul>
+    </div>}
+    {notice.comparison.changes.length > 0 && <p>ตรวจสอบรายการอ่างด้านบนเพื่อใช้การแทนที่หรือนำรุ่นที่ไม่ใช้งานแล้วออกจากแบบ</p>}
   </div>;
 }
 
@@ -821,8 +905,9 @@ export function StudioPage({
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
-  const [catalogNotice, setCatalogNotice] = useState<{ savedAt: string; comparison: StudioCatalogComparison } | null>(() => linkedDraft.catalogContext ? { savedAt: linkedDraft.catalogContext.savedAt, comparison: compareStudioCatalog(linkedDraft.catalogContext, basinProducts) } : null);
+  const [catalogNotice, setCatalogNotice] = useState<StudioCatalogNotice | null>(() => linkedDraft.catalogContext ? studioCatalogNotice(linkedDraft.catalogContext, basinProducts) : null);
   const [namedDrafts, setNamedDrafts] = useState<NamedStudioDraftRecord[]>(() => mode === "studio" ? readStoredStudioDrafts() : []);
+  const [editingNamedDraftId, setEditingNamedDraftId] = useState<string | null>(null);
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false);
   const [draftName, setDraftName] = useState("");
@@ -872,22 +957,31 @@ export function StudioPage({
     }
     const timer = window.setTimeout(() => {
       const savedAt = new Date().toISOString();
-      const catalogContext = createStudioCatalogContext(state, basinProducts, savedAt);
+      const catalogContext = catalogNotice?.context ?? createStudioCatalogContext(state, basinProducts, savedAt);
       const saved = writeStoredStudioDraft({ version: 1, savedAt, state, catalogContext });
       if (saved) setLastSavedAt(savedAt);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [mode, state, basinProducts]);
+  }, [mode, state, basinProducts, catalogNotice]);
+  const acknowledgeCatalogChange = (sku: string) => {
+    setCatalogNotice((current) => {
+      if (!current) return current;
+      const context = resolveStudioCatalogChange(current.context, sku);
+      return context === current.context ? current : studioCatalogNotice(context, basinProducts);
+    });
+  };
   const resumeDraft = () => {
     if (!draftNotice) return;
+    setEditingNamedDraftId(null);
     setState(draftNotice.state);
     setLastSavedAt(draftNotice.savedAt);
-    setCatalogNotice(draftNotice.catalogContext ? { savedAt: draftNotice.catalogContext.savedAt, comparison: compareStudioCatalog(draftNotice.catalogContext, basinProducts) } : null);
+    setCatalogNotice(draftNotice.catalogContext ? studioCatalogNotice(draftNotice.catalogContext, basinProducts) : null);
     setDraftNotice(null);
     setDraftResult("ดึงแบบร่างเดิมแล้ว");
   };
   const startNewDraft = () => {
     clearStoredStudioDraft();
+    setEditingNamedDraftId(null);
     skipNextDraftSave.current = true;
     setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts));
     setLastSavedAt(null);
@@ -899,8 +993,8 @@ export function StudioPage({
     setSelectedRectangleId(null);
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   };
-  const copyStateLink = async (draftState: StudioState, successMessage: string, createLink: typeof createStudioShareLink = createStudioShareLink) => {
-    const catalogContext = createStudioCatalogContext(draftState, basinProducts);
+  const copyStateLink = async (draftState: StudioState, successMessage: string, createLink: typeof createStudioShareLink = createStudioShareLink, savedCatalogContext?: StudioCatalogContext) => {
+    const catalogContext = savedCatalogContext ?? catalogNotice?.context ?? createStudioCatalogContext(draftState, basinProducts);
     const url = createLink(draftState, window.location.origin, catalogContext);
     try {
       await navigator.clipboard.writeText(url);
@@ -911,13 +1005,14 @@ export function StudioPage({
   };
   const copyDraftLink = async () => {
     const savedAt = new Date().toISOString();
-    const catalogContext = createStudioCatalogContext(state, basinProducts, savedAt);
+    const catalogContext = catalogNotice?.context ?? createStudioCatalogContext(state, basinProducts, savedAt);
     writeStoredStudioDraft({ version: 1, savedAt, state, catalogContext });
     setLastSavedAt(savedAt);
-    await copyStateLink(state, "บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้");
+    await copyStateLink(state, "บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้", createStudioShareLink, catalogContext);
   };
   const openSaveDraftDialog = () => {
-    setDraftName(defaultNamedDraft());
+    const editingDraft = editingNamedDraftId ? namedDrafts.find((draft) => draft.id === editingNamedDraftId) : undefined;
+    setDraftName(editingDraft?.name ?? defaultNamedDraft());
     setSaveDraftDialogOpen(true);
   };
   const saveNamedDraft = (event: FormEvent<HTMLFormElement>) => {
@@ -925,29 +1020,41 @@ export function StudioPage({
     const name = draftName.trim();
     if (!name) return;
     const now = new Date().toISOString();
-    const draft: NamedStudioDraftRecord = {
-      version: 1,
-      id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name,
-      createdAt: now,
-      savedAt: now,
-      state,
-      catalogContext: createStudioCatalogContext(state, basinProducts, now),
-    };
-    const next = [draft, ...namedDrafts];
-    if (!writeStoredStudioDrafts(next)) {
+    const existingDraft = editingNamedDraftId ? namedDrafts.find((draft) => draft.id === editingNamedDraftId) : undefined;
+    const draft: NamedStudioDraftRecord = existingDraft
+      ? {
+        ...existingDraft,
+        name,
+        savedAt: now,
+        state,
+        catalogContext: catalogNotice?.context ?? createStudioCatalogContext(state, basinProducts, now),
+      }
+      : {
+        version: 1,
+        id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name,
+        createdAt: now,
+        savedAt: now,
+        state,
+        catalogContext: catalogNotice?.context ?? createStudioCatalogContext(state, basinProducts, now),
+      };
+    if (!upsertStoredStudioDraft(draft)) {
       setDraftResult("บันทึกแบบร่างไม่สำเร็จ กรุณาตรวจสอบพื้นที่จัดเก็บของเบราว์เซอร์");
       return;
     }
-    setNamedDrafts(next);
+    setNamedDrafts((current) => current.some((item) => item.id === draft.id)
+      ? current.map((item) => item.id === draft.id ? draft : item)
+      : [draft, ...current]);
+    setEditingNamedDraftId(draft.id);
     setSaveDraftDialogOpen(false);
     setDraftDrawerOpen(true);
-    setDraftResult(`บันทึกแบบร่าง “${name}” แล้ว`);
+    setDraftResult(`${existingDraft ? "อัปเดต" : "บันทึก"}แบบร่าง “${name}” แล้ว`);
   };
   const openNamedDraft = (draft: NamedStudioDraftRecord) => {
+    setEditingNamedDraftId(draft.id);
     setState(draft.state);
     setLastSavedAt(draft.savedAt);
-    setCatalogNotice(draft.catalogContext ? { savedAt: draft.catalogContext.savedAt, comparison: compareStudioCatalog(draft.catalogContext, basinProducts) } : null);
+    setCatalogNotice(draft.catalogContext ? studioCatalogNotice(draft.catalogContext, basinProducts) : null);
     setDraftDrawerOpen(false);
     setDraftResult(`เปิดแบบร่าง “${draft.name}” แล้ว`);
   };
@@ -968,6 +1075,7 @@ export function StudioPage({
       return;
     }
     setNamedDrafts((current) => current.filter((item) => item.id !== draft.id));
+    setEditingNamedDraftId((current) => current === draft.id ? null : current);
     setDraftResult(`ลบแบบร่าง “${draft.name}” แล้ว`);
   };
   const exportFiles = async (format: "dxf" | "pdf" | "png") => {
@@ -1085,10 +1193,12 @@ export function StudioPage({
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
-     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> บันทึกแบบร่าง</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
+     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
-     <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} />
-      {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
+      <div className="studio-design-layout">
+        <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} onCatalogChangeResolved={acknowledgeCatalogChange} />
+        {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
+      </div>
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
       <aside className="studio-panel studio-estimate-panel">

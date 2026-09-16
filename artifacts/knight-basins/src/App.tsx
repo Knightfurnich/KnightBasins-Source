@@ -27,6 +27,7 @@ import {
   toggleStoneSelection,
   upsertStoneSelection,
   type CustomerDetails,
+  type BasinProduct,
   type QuoteBasinLine,
   type StoneColor,
   type StoneConfig,
@@ -252,6 +253,11 @@ function categoryTestId(name: string) {
   return `button-filter-category-${slug || "custom"}`;
 }
 
+function compareProductNames(left: BasinProduct, right: BasinProduct) {
+  return left.colorName.localeCompare(right.colorName, "th", { numeric: true, sensitivity: "base" })
+    || left.sku.localeCompare(right.sku, "en", { numeric: true });
+}
+
 function HomePage({ cart, setCart, categories }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; categories?: StorefrontCategory[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -265,14 +271,26 @@ function HomePage({ cart, setCart, categories }: { cart: QuoteBasinLine[]; setCa
   const categoryCounts = useMemo(() => new Map(
     visibleCategories.map((item) => [item.name, PRODUCTS.filter((product) => product.category === item.name).length]),
   ), [visibleCategories]);
-   const toggle = (sku: string) => setCart((current) => toggleBasinSelection(current, sku));
-  const filtered = useMemo(() => PRODUCTS.filter((product) => {
+  const toggle = (sku: string) => setCart((current) => toggleBasinSelection(current, sku));
+  const filtered = useMemo(() => {
+    const selectedSkus = new Set(cart.map((line) => line.sku));
+    const products = PRODUCTS.filter((product) => {
     const haystack = `${product.sku} ${product.colorCode} ${product.colorName}`.toLowerCase();
     return (category === "all" || product.category === category) && haystack.includes(query.toLowerCase());
-  }).sort((a, b) => sort === "price-low" ? a.priceTHB - b.priceTHB : sort === "price-high" ? b.priceTHB - a.priceTHB : a.sku.localeCompare(b.sku)), [category, query, sort]);
+    });
+    return products.sort((left, right) => {
+      if (sort === "name-az") return compareProductNames(left, right);
+      if (sort === "name-za") return compareProductNames(right, left);
+      if (sort === "sku-az") return left.sku.localeCompare(right.sku, "en", { numeric: true });
+      if (sort === "price-low") return left.priceTHB - right.priceTHB || compareProductNames(left, right);
+      if (sort === "price-high") return right.priceTHB - left.priceTHB || compareProductNames(left, right);
+      if (sort === "selected") return Number(selectedSkus.has(right.sku)) - Number(selectedSkus.has(left.sku)) || compareProductNames(left, right);
+      return 0;
+    });
+  }, [cart, category, query, sort]);
    return <div className="page-wrap">
       <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></section>
-     <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><select value={sort} onChange={(event) => setSort(event.target.value)} data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option></select><ChevronDown size={14} /></label></div></section>
+      <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><select value={sort} onChange={(event) => setSort(event.target.value)} data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รุ่น / SKU: KF001–KF030</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><ChevronDown size={14} /></label></div></section>
      {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} cart={cart} onToggle={toggle} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
     <section className="catalog-note"><span className="note-mark">i</span><p>ราคาอ่างล้างหน้าทุกชิ้นยังไม่รวม VAT · ค่าดำเนินการติดตั้ง <strong>5,000 บาท/ชุด</strong> และฟรีค่าดำเนินการเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</p><Link href="/quote" data-testid="link-catalog-note">ไปยังใบเสนอราคา <ArrowRight size={15} /></Link></section>
   </div>;

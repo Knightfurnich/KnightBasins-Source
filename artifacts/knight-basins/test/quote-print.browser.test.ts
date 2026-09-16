@@ -346,6 +346,31 @@ describe("long formal quote print flow", { concurrency: false }, () => {
 
   });
 
+  it("offers catalog name, SKU, price, and selected-first sorting", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="select-sort"]\') !== null'),
+      Boolean,
+      "catalog sort control",
+    );
+    const options = await browser.page.evaluate(`(() => [...document.querySelectorAll('[data-testid="select-sort"] option')].map((option) => ({ value: option.value, label: option.textContent ?? "" })))()`);
+    assert.deepEqual(options.map((option) => option.value), ["catalog", "name-az", "name-za", "sku-az", "price-low", "price-high", "selected"]);
+    await setSelectValue(browser.page, "select-sort", "name-az");
+    const firstName = await browser.page.evaluate('document.querySelector(".product-card h3")?.textContent ?? ""');
+    await setSelectValue(browser.page, "select-sort", "price-low");
+    const firstPrice = await browser.page.evaluate('document.querySelector(".product-price")?.textContent ?? ""');
+    assert.notEqual(firstName, "");
+    assert.notEqual(firstPrice, "");
+  });
+
   it("shows both real Studio download actions for the current layout", async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
@@ -574,6 +599,18 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
     }))()`);
     assert.deepEqual(rightPreset, { xs: ["900"], ys: ["600"] });
+
+    await clickTestId(browser.page, "button-studio-preset-u");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-piece-rectangle\').length === 3'),
+      Boolean,
+      "U preset rectangles",
+    );
+    const uPreset = await browser.page.evaluate(`(() => ({
+      count: document.querySelectorAll('[data-testid="studio-canvas"] .studio-piece-rectangle').length,
+      sizes: [...document.querySelectorAll('[data-testid="studio-canvas"] .studio-piece-size')].map((item) => item.textContent),
+    }))()`);
+    assert.deepEqual(uPreset, { count: 3, sizes: ["1500 × 600", "600 × 1200", "600 × 1200"] });
 
     await clickTestId(browser.page, "button-studio-preset-i");
     const dropped = await browser.page.evaluate(`(() => {
@@ -1202,6 +1239,37 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "removed basin replacement",
     );
     assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="button-studio-basin-${replacementSku}"]')?.getAttribute("aria-pressed")`), "true");
+    const replacedNotice = await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-catalog-change-banner"]\')?.textContent ?? ""'),
+      (value) => value.includes("จัดการแล้ว") && value.includes(removedSku),
+      "resolved replacement catalog notice",
+    );
+    assert.doesNotMatch(replacedNotice, /ไม่มีในแคตตาล็อกปัจจุบัน/);
+    const persistedReplacementResolution = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const raw = localStorage.getItem("knight-studio-draft-v1");
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        return parsed.catalogContext?.resolvedSkus?.includes("${removedSku}") === true;
+      })()`),
+      Boolean,
+      "resolved replacement autosave",
+    );
+    assert.equal(persistedReplacementResolution, true);
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-resume-studio-draft"]\') !== null'),
+      Boolean,
+      "resolved Studio draft reopen banner",
+    );
+    await clickTestId(browser.page, "button-resume-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="studio-catalog-resolved-${removedSku}"]') !== null`),
+      Boolean,
+      "resolved replacement after draft reopen",
+    );
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="select-replace-studio-basin-${removedSku}"]') === null`), true);
 
     await browser.page.command("Page.navigate", {
       url: sharedStudioDraftUrl(removedState, removedContext),
@@ -1217,6 +1285,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "removed basin removal",
     );
+    const removedResolvedNotice = await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-catalog-resolved"]\')?.textContent ?? ""'),
+      (value) => value.includes(removedSku),
+      "resolved removal catalog notice",
+    );
+    assert.match(removedResolvedNotice, /นำออกจากแบบหรือแทนที่แล้ว/);
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="select-replace-studio-basin-${removedSku}"]') === null`), true);
 
     const changedContext = {
       ...savedDraft.catalogContext,
@@ -1545,6 +1620,32 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.equal(resumed, "2250");
 
+    await setTextInput(browser.page, widthId, "2350");
+    await clickTestId(browser.page, "button-save-named-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-save-draft-dialog"]\') !== null'),
+      Boolean,
+      "update named draft dialog",
+    );
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="input-studio-draft-name"]')?.value ?? ""`), "ห้องน้ำชั้น 1");
+    await clickTestId(browser.page, "button-confirm-save-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const drafts = JSON.parse(localStorage.getItem("knight-studio-drafts-v1") || "[]");
+        return drafts.length === 1 && drafts[0]?.state?.pieces?.[0]?.rectangles?.[0]?.widthMm === 2350;
+      })()`),
+      Boolean,
+      "updated named draft without duplicate",
+    );
+    const updatedDraft = await browser.page.evaluate(`(() => {
+      const drafts = JSON.parse(localStorage.getItem("knight-studio-drafts-v1") || "[]");
+      return { count: drafts.length, id: drafts[0]?.id ?? "", name: drafts[0]?.name ?? "", width: drafts[0]?.state?.pieces?.[0]?.rectangles?.[0]?.widthMm ?? 0 };
+    })()`);
+    assert.equal(updatedDraft.count, 1);
+    assert.equal(updatedDraft.name, "ห้องน้ำชั้น 1");
+    assert.equal(updatedDraft.width, 2350);
+    await clickTestId(browser.page, "button-close-studio-drafts");
+
     await clickTestId(browser.page, "button-open-studio-drafts");
     await browser.page.evaluate("window.confirm = () => true");
     await browser.page.evaluate("document.querySelector('[data-testid^=\"button-delete-studio-draft-\"]')?.click()");
@@ -1566,6 +1667,115 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       return input instanceof HTMLInputElement ? input.value : "";
     })()`);
     assert.equal(linkedWidth, "2250");
+    await browser.page.evaluate("localStorage.clear()");
+  });
+
+  it("preserves resolved catalog context when named Studio drafts are reopened", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "fresh Studio canvas for named catalog draft",
+    );
+    const storedDraft = await waitFor(
+      () => browser.page.evaluate('localStorage.getItem("knight-studio-draft-v1")'),
+      (value) => Boolean(value),
+      "Studio catalog context before named save",
+    );
+    const savedDraft = JSON.parse(storedDraft) as {
+      state: { basinSkus: string[] };
+      catalogContext: { revision: string; basinItems: Array<Record<string, unknown>> };
+    };
+    assert.ok(savedDraft.catalogContext);
+
+    const removedSku = "KF999";
+    const removedState = {
+      ...savedDraft.state,
+      basinSkus: [...savedDraft.state.basinSkus, removedSku],
+    };
+    const removedContext = {
+      ...savedDraft.catalogContext,
+      revision: "basins-before-named-removal",
+      basinItems: [
+        ...savedDraft.catalogContext.basinItems,
+        { sku: removedSku, colorName: "รุ่นที่ยกเลิกสำหรับแบบร่างที่ตั้งชื่อ" },
+      ],
+    };
+    await browser.page.command("Page.navigate", {
+      url: sharedStudioDraftUrl(removedState, removedContext),
+    });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-catalog-change-banner"]\')?.textContent ?? ""'),
+      (value) => value.includes(removedSku),
+      "named draft removed basin notice",
+    );
+    await clickTestId(browser.page, `button-remove-hidden-studio-basin-${removedSku}`);
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="studio-catalog-resolved-${removedSku}"]') !== null`),
+      Boolean,
+      "named draft resolved catalog notice",
+    );
+
+    await clickTestId(browser.page, "button-save-named-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-save-draft-dialog"]\') !== null'),
+      Boolean,
+      "named catalog draft dialog",
+    );
+    await setTextInput(browser.page, "input-studio-draft-name", "แบบร่างที่ยืนยันแคตตาล็อกแล้ว");
+    await clickTestId(browser.page, "button-confirm-save-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-drafts-drawer"]\') !== null'),
+      Boolean,
+      "named catalog draft saved",
+    );
+    const namedDraftRecord = await browser.page.evaluate(`(() => {
+      const drafts = JSON.parse(localStorage.getItem("knight-studio-drafts-v1") || "[]");
+      const draft = drafts[0];
+      return {
+        basinSkus: draft?.state?.basinSkus ?? [],
+        savedCatalogSkus: draft?.catalogContext?.basinItems?.map((item) => item.sku) ?? [],
+        resolvedSkus: draft?.catalogContext?.resolvedSkus ?? [],
+      };
+    })()`);
+    assert.equal(namedDraftRecord.basinSkus.includes(removedSku), false);
+    assert.equal(namedDraftRecord.savedCatalogSkus.includes(removedSku), true);
+    assert.equal(namedDraftRecord.resolvedSkus.includes(removedSku), true);
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-new-studio-draft"]\') !== null'),
+      Boolean,
+      "fresh Studio draft action",
+    );
+    await clickTestId(browser.page, "button-new-studio-draft");
+    await clickTestId(browser.page, "button-open-studio-drafts");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-drafts-drawer"]\') !== null'),
+      Boolean,
+      "named catalog draft drawer after reopen",
+    );
+    await browser.page.evaluate('document.querySelector(\'[data-testid^="button-open-studio-draft-"]\')?.click()');
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="studio-catalog-resolved-${removedSku}"]') !== null`),
+      Boolean,
+      "resolved catalog entry after named draft reopen",
+    );
+    const reopenedNotice = await browser.page.evaluate(`(() => ({
+      resolved: document.querySelector('[data-testid="studio-catalog-resolved-${removedSku}"]')?.textContent ?? "",
+      activeWarning: document.querySelector('[data-testid="select-replace-studio-basin-${removedSku}"]') !== null ||
+        document.querySelector('[data-testid="button-remove-hidden-studio-basin-${removedSku}"]') !== null,
+    }))()`);
+    assert.match(reopenedNotice.resolved, new RegExp(removedSku));
+    assert.equal(reopenedNotice.activeWarning, false);
     await browser.page.evaluate("localStorage.clear()");
   });
 

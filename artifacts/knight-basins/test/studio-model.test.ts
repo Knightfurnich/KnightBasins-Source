@@ -24,6 +24,7 @@ import {
   studioSubmissionValidationMessage,
   touchingRectangleKeys,
   unknownBasinPlacements,
+  resolveStudioCatalogChange,
   replaceStudioBasin,
   removeStudioBasin,
   type StudioPiece,
@@ -275,6 +276,17 @@ test("catalog context identifies removed and updated selected basins after a dra
     { sku: "KF002", kind: "updated" },
   ]);
   assert.deepEqual(comparison.changes[1]?.changedFields, ["colorName"]);
+});
+
+test("catalog changes can be resolved without losing their audit context", () => {
+  const context = createStudioCatalogContext(baseState({ basinSkus: ["KF001"] }), PRODUCTS, "2026-09-15T04:00:00.000Z");
+  const changedProducts = PRODUCTS.filter((product) => product.sku !== "KF001");
+  const resolvedContext = resolveStudioCatalogChange(context, "KF001");
+  const comparison = compareStudioCatalog(resolvedContext, changedProducts);
+
+  assert.deepEqual(resolvedContext.resolvedSkus, ["KF001"]);
+  assert.deepEqual(comparison.changes, []);
+  assert.deepEqual(comparison.resolvedChanges.map((change) => ({ sku: change.sku, kind: change.kind })), [{ sku: "KF001", kind: "removed" }]);
 });
 
 test("stale basin entries stay inspectable while replacement preserves placement coordinates", () => {

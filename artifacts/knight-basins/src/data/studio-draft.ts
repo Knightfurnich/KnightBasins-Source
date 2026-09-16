@@ -67,7 +67,8 @@ function looksLikeCatalogContext(value: unknown): value is StudioCatalogContext 
   return typeof candidate.savedAt === "string" &&
     typeof candidate.revision === "string" &&
     Array.isArray(candidate.basinItems) &&
-    candidate.basinItems.every((item) => Boolean(item) && typeof item === "object" && typeof (item as { sku?: unknown }).sku === "string");
+    candidate.basinItems.every((item) => Boolean(item) && typeof item === "object" && typeof (item as { sku?: unknown }).sku === "string") &&
+    (candidate.resolvedSkus === undefined || (Array.isArray(candidate.resolvedSkus) && candidate.resolvedSkus.every((sku) => typeof sku === "string")));
 }
 
 function looksLikeDraftPayload(value: unknown): value is StudioDraftPayload {
@@ -263,6 +264,18 @@ export function writeStoredStudioDrafts(drafts: NamedStudioDraftRecord[], storag
   } catch {
     return false;
   }
+}
+
+export function upsertStoredStudioDraft(
+  draft: NamedStudioDraftRecord,
+  storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
+) {
+  const drafts = readStoredStudioDrafts(storage);
+  const exists = drafts.some((item) => item.id === draft.id);
+  const next = exists
+    ? drafts.map((item) => item.id === draft.id ? draft : item)
+    : [draft, ...drafts];
+  return writeStoredStudioDrafts(next, storage);
 }
 
 export function removeStoredStudioDraft(draftId: string, storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage) {

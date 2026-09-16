@@ -76,6 +76,7 @@ export type StudioCatalogContext = {
   savedAt: string;
   revision: string;
   basinItems: StudioCatalogItemSnapshot[];
+  resolvedSkus?: string[];
 };
 
 export type StudioCatalogChange = {
@@ -91,6 +92,7 @@ export type StudioCatalogField = "colorName" | "priceTHB" | "category" | "dimens
 export type StudioCatalogComparison = {
   catalogUpdated: boolean;
   changes: StudioCatalogChange[];
+  resolvedChanges: StudioCatalogChange[];
 };
 
 export type StudioState = {
@@ -494,7 +496,8 @@ export function compareStudioCatalog(
   products: ReadonlyArray<BasinProduct>,
 ): StudioCatalogComparison {
   const productsBySku = new Map(products.map((product) => [product.sku, product]));
-  const changes: StudioCatalogChange[] = context.basinItems.flatMap<StudioCatalogChange>((saved) => {
+  const resolvedSkus = new Set(context.resolvedSkus ?? []);
+  const allChanges: StudioCatalogChange[] = context.basinItems.flatMap<StudioCatalogChange>((saved) => {
     const product = productsBySku.get(saved.sku);
     if (!product) return [{ sku: saved.sku, kind: "removed" as const, saved, changedFields: [] }];
     const current = studioCatalogItemSnapshot(product);
@@ -506,7 +509,16 @@ export function compareStudioCatalog(
   });
   return {
     catalogUpdated: context.revision !== studioCatalogFingerprint(products),
-    changes,
+    changes: allChanges.filter((change) => !resolvedSkus.has(change.sku)),
+    resolvedChanges: allChanges.filter((change) => resolvedSkus.has(change.sku)),
+  };
+}
+
+export function resolveStudioCatalogChange(context: StudioCatalogContext, sku: string): StudioCatalogContext {
+  if (!context.basinItems.some((item) => item.sku === sku)) return context;
+  return {
+    ...context,
+    resolvedSkus: [...new Set([...(context.resolvedSkus ?? []), sku])],
   };
 }
 

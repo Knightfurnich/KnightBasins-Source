@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createStudioDraftLink, createStudioShareLink, decodeStudioDraft, decodeStudioDraftRecord, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
+import { createStudioDraftLink, createStudioShareLink, decodeStudioDraft, decodeStudioDraftRecord, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, upsertStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
 import { createStudioCatalogContext } from "../src/data/studio-model.ts";
 import { PRODUCTS } from "../src/data/catalog.ts";
 import type { StudioState } from "../src/data/studio-model.ts";
@@ -98,4 +98,26 @@ test("named Studio drafts persist, list, and delete independently", () => {
   assert.deepEqual(readStoredStudioDrafts(storage), [first, second]);
   assert.equal(removeStoredStudioDraft(first.id, storage), true);
   assert.deepEqual(readStoredStudioDrafts(storage), [second]);
+});
+
+test("updating a named Studio draft replaces it without creating a duplicate", () => {
+  const storage = memoryStorage();
+  const original: NamedStudioDraftRecord = {
+    version: 1,
+    id: "draft-1",
+    name: "ห้องน้ำชั้น 1",
+    createdAt: "2026-09-15T04:00:00.000Z",
+    savedAt: "2026-09-15T04:00:00.000Z",
+    state,
+  };
+  const updated: NamedStudioDraftRecord = {
+    ...original,
+    name: "ห้องน้ำชั้น 1 ปรับปรุง",
+    savedAt: "2026-09-17T04:00:00.000Z",
+    state: { ...state, discountTHB: 900 },
+  };
+
+  assert.equal(upsertStoredStudioDraft(original, storage), true);
+  assert.equal(upsertStoredStudioDraft(updated, storage), true);
+  assert.deepEqual(readStoredStudioDrafts(storage), [updated]);
 });

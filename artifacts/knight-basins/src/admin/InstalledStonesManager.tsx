@@ -7,6 +7,7 @@ import {
   useCreateAdminInstalledStoneCategory,
   useUpdateAdminInstalledStoneCategory,
   useDeleteAdminInstalledStoneCategory,
+  getGetCatalogQueryKey,
 } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +38,15 @@ import {
   toggleAdminItemActive,
 } from "./adminArchive";
 import { ImageUploadField } from "./ImageUploadField";
+import { AdminSortableHeader } from "./AdminSortableHeader";
+import {
+  compareAdminBoolean,
+  compareAdminNumber,
+  compareAdminText,
+  sortAdminItems,
+  toggleAdminSort,
+  type AdminSortState,
+} from "./adminArchive";
 
 const stoneSchema = z.object({
   code: z.string().min(1, "กรุณากรอกรหัสสินค้า"),
@@ -59,6 +69,7 @@ export function InstalledStonesManager() {
   const [isArchiveOpen, setIsArchiveOpen] = useState<number | null>(null);
   const [visibility, setVisibility] = useState<AdminVisibility>("active");
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [sort, setSort] = useState<AdminSortState<"code" | "name" | "category" | "price" | "active">>(null);
   
   const queryClient = useQueryClient();
   const archiveMutation = useUpdateAdminInstalledStone();
@@ -72,6 +83,17 @@ export function InstalledStonesManager() {
     search,
     ["code", "name"],
   );
+  const sortedStones = sortAdminItems(filteredStones, sort, (left, right, key) => {
+    if (key === "code") return compareAdminText(left.code, right.code);
+    if (key === "name") return compareAdminText(left.name, right.name);
+    if (key === "category") {
+      const leftCategory = categories?.find((category) => category.id === left.categoryId)?.name ?? "";
+      const rightCategory = categories?.find((category) => category.id === right.categoryId)?.name ?? "";
+      return compareAdminText(leftCategory, rightCategory);
+    }
+    if (key === "price") return compareAdminNumber(left.pricePerSqmTHB, right.pricePerSqmTHB);
+    return compareAdminBoolean(left.active, right.active);
+  });
 
   const handleArchive = () => {
     const stone = stones?.find((item) => item.id === isArchiveOpen);
@@ -80,7 +102,10 @@ export function InstalledStonesManager() {
         code: stone.code, name: stone.name, pricePerSqmTHB: stone.pricePerSqmTHB, tone: stone.tone,
         categoryId: stone.categoryId, aliases: stone.aliases, imageUrl: stone.imageUrl || null, active: toggleAdminItemActive(stone).active, sortOrder: stone.sortOrder,
       } }, createAdminArchiveMutationCallbacks({
-        invalidate: () => { void queryClient.invalidateQueries({ queryKey: ["/api/admin/installed-stones"] }); },
+        invalidate: () => {
+          void queryClient.invalidateQueries({ queryKey: ["/api/admin/installed-stones"] });
+          void queryClient.invalidateQueries({ queryKey: getGetCatalogQueryKey() });
+        },
         closeDialog: () => setIsArchiveOpen(null),
         toast,
         successMessage: stone.active ? "ซ่อนรายการแล้ว รายการยังเก็บอยู่ใน Archived" : "กู้คืนรายการแล้ว รายการกลับมาแสดงในแคตตาล็อก",
@@ -135,12 +160,12 @@ export function InstalledStonesManager() {
           <Table className="min-w-[600px]">
             <TableHeader>
               <TableRow className="border-[var(--line)] hover:bg-transparent">
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs">รหัสสินค้า</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs">ชื่อสี</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs">หมวดหมู่</TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs"><AdminSortableHeader label="รหัสสินค้า" active={sort?.key === "code"} direction={sort?.key === "code" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "code"))} /></TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs"><AdminSortableHeader label="ชื่อสี" active={sort?.key === "name"} direction={sort?.key === "name" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "name"))} /></TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs"><AdminSortableHeader label="หมวดหมู่" active={sort?.key === "category"} direction={sort?.key === "category" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "category"))} /></TableHead>
                 <TableHead className="text-[var(--ink-soft)] font-mono text-xs">ภาพ HD</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-right">ราคา/ตร.ม. (฿)</TableHead>
-                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-center">สถานะ</TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-right"><AdminSortableHeader label="ราคา/ตร.ม. (฿)" align="right" active={sort?.key === "price"} direction={sort?.key === "price" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "price"))} /></TableHead>
+                <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-center"><AdminSortableHeader label="สถานะ" align="center" active={sort?.key === "active"} direction={sort?.key === "active" ? sort.direction : undefined} onClick={() => setSort((current) => toggleAdminSort(current, "active"))} /></TableHead>
                 <TableHead className="text-[var(--ink-soft)] font-mono text-xs text-right">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
@@ -151,7 +176,7 @@ export function InstalledStonesManager() {
                     ไม่พบข้อมูล
                   </TableCell>
                 </TableRow>
-              ) : filteredStones.map(stone => (
+              ) : sortedStones.map(stone => (
                 <TableRow key={stone.id} className="border-[var(--line)] hover:bg-[var(--line)]/20 transition-colors">
                   <TableCell className="font-mono text-xs font-medium">{stone.code}</TableCell>
                   <TableCell className="font-medium">{stone.name}</TableCell>

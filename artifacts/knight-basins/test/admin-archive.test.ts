@@ -2,8 +2,12 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   ADMIN_ARCHIVE_ERROR_MESSAGE,
+  compareAdminNumber,
+  compareAdminText,
   createAdminArchiveMutationCallbacks,
   filterAdminItems,
+  sortAdminItems,
+  toggleAdminSort,
   toggleAdminItemActive,
 } from "../src/admin/adminArchive.ts";
 
@@ -110,5 +114,35 @@ describe("admin archive and restore behavior", () => {
     assert.deepEqual(calls, [
       `toast:destructive:${ADMIN_ARCHIVE_ERROR_MESSAGE}`,
     ]);
+  });
+});
+
+describe("admin table sorting", () => {
+  it("toggles the selected column between ascending and descending", () => {
+    const first = toggleAdminSort(null, "price");
+    const second = toggleAdminSort(first, "price");
+    const other = toggleAdminSort(second, "name");
+
+    assert.deepEqual(first, { key: "price", direction: "asc" });
+    assert.deepEqual(second, { key: "price", direction: "desc" });
+    assert.deepEqual(other, { key: "name", direction: "asc" });
+  });
+
+  it("sorts numbers and text while keeping sortOrder as a stable tie-breaker", () => {
+    const items = [
+      { id: 1, name: "White 10", price: 7500, active: true, sortOrder: 2 },
+      { id: 2, name: "White 2", price: 5900, active: true, sortOrder: 1 },
+      { id: 3, name: "White 2", price: 5900, active: true, sortOrder: 0 },
+    ];
+
+    const byPrice = sortAdminItems(items, { key: "price", direction: "asc" }, (left, right, key) =>
+      key === "price" ? compareAdminNumber(left.price, right.price) : 0,
+    );
+    const byNameDesc = sortAdminItems(items, { key: "name", direction: "desc" }, (left, right, key) =>
+      key === "name" ? compareAdminText(left.name, right.name) : 0,
+    );
+
+    assert.deepEqual(byPrice.map((item) => item.id), [3, 2, 1]);
+    assert.deepEqual(byNameDesc.map((item) => item.id), [1, 2, 3]);
   });
 });
