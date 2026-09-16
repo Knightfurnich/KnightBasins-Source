@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,12 +10,7 @@ import net from "node:net";
 const baseUrl = process.env["BROWSER_TEST_BASE_URL"] ?? "http://127.0.0.1:80";
 const adminPassword = process.env["ADMIN_PASSWORD"];
 const chromiumPath = process.env["CHROMIUM_BIN"] ?? "/repl/tools/bin/chromium";
-const uploadDirectory =
-  process.env["BROWSER_TEST_UPLOAD_DIR"] ??
-  path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../../api-server/uploads",
-  );
+let uploadDirectory = "";
 const managedUploadFilename =
   /^(?:catalog|sketch)-[a-z0-9]+-[a-f0-9]{16}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/i;
 
@@ -115,6 +110,79 @@ async function freePort() {
   const port = address.port;
   await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   return port;
+}
+
+async function startIsolatedApiServer(directory: string) {
+  const port = await freePort();
+  const apiProcess = spawn(
+    "pnpm",
+    ["--filter", "@workspace/api-server", "run", "dev"],
+    {
+      cwd: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.."),
+      detached: true,
+      env: {
+        ...process.env,
+        NODE_ENV: "development",
+        PORT: String(port),
+        UPLOAD_DIR: directory,
+        PUBLIC_UPLOAD_ORIGIN: "",
+        CORS_ORIGINS: new URL(baseUrl).origin,
+        ADMIN_PASSWORD: adminPassword ?? "",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  let output = "";
+  apiProcess.stdout?.on("data", (chunk: Buffer) => {
+    output += chunk.toString();
+  });
+  apiProcess.stderr?.on("data", (chunk: Buffer) => {
+    output += chunk.toString();
+  });
+
+  const url = `http://127.0.0.1:${port}`;
+  try {
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      if (apiProcess.exitCode !== null) {
+        throw new Error(`Isolated API server exited before becoming ready:\n${output}`);
+      }
+      try {
+        const response = await fetch(`${url}/api/healthz`);
+        if (response.ok) return { url, process: apiProcess };
+      } catch {
+        // The API build or startup is still in progress.
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw new Error(`Timed out waiting for the isolated API server:\n${output}`);
+  } catch (error) {
+    await stopIsolatedApiServer({ process: apiProcess });
+    throw error;
+  }
+}
+
+async function stopIsolatedApiServer(apiServer: {
+  process: ChildProcess;
+}) {
+  const { process: apiProcess } = apiServer;
+  if (apiProcess.exitCode === null && apiProcess.signalCode === null) {
+    const exited = new Promise<void>((resolve) => {
+      apiProcess.once("exit", () => resolve());
+    });
+    if (apiProcess.pid) {
+      process.kill(-apiProcess.pid, "SIGTERM");
+    } else {
+      apiProcess.kill("SIGTERM");
+    }
+    await Promise.race([
+      exited,
+      new Promise<void>((resolve) => setTimeout(resolve, 2_000)),
+    ]);
+  }
+  if (apiProcess.exitCode === null && apiProcess.signalCode === null && apiProcess.pid) {
+    process.kill(-apiProcess.pid, "SIGKILL");
+  }
 }
 
 async function waitFor<T>(read: () => Promise<T>, predicate: (value: T) => boolean, label: string) {
@@ -233,9 +301,60 @@ async function stopBrowser(browser: {
   });
 }
 
-async function listUploadFiles() {
+async function isolatedAdminCookie(apiUrl: string) {
+  const response = await fetch(`${apiUrl}/api/admin/session`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ password: adminPassword }),
+  });
+  assert.equal(response.status, 200, "Could not authenticate with the isolated API server");
+  const cookie = response.headers
+    .get("set-cookie")
+    ?.match(/(?:^|,\s*)knight_admin_session=([^;]+)/)?.[1];
+  assert.ok(cookie, "The isolated API server did not return an admin session cookie");
+  return `knight_admin_session=${cookie}`;
+}
+
+async function routeBrowserUploads(
+  page: CdpPage,
+  apiUrl: string,
+  adminCookie: string,
+) {
+  page.on("Fetch.requestPaused", (params) => {
+    const requestId = String(params["requestId"] ?? "");
+    const request = params["request"] as {
+      url?: string;
+      headers?: Record<string, string>;
+    } | undefined;
+    if (!requestId || !request?.url) return;
+
+    const requestPath = new URL(request.url).pathname;
+    if (!requestPath.endsWith("/api/admin/upload")) {
+      void page.command("Fetch.continueRequest", { requestId });
+      return;
+    }
+
+    const headers = Object.entries(request.headers ?? {})
+      .filter(([name]) => name.toLowerCase() !== "cookie")
+      .map(([name, value]) => ({ name, value }));
+    headers.push({ name: "Cookie", value: adminCookie });
+    void page.command("Fetch.continueRequest", {
+      requestId,
+      url: `${apiUrl}/api/admin/upload`,
+      headers,
+    });
+  });
+  await page.command("Fetch.enable", {
+    patterns: [{
+      urlPattern: "*://*/api/admin/upload*",
+      requestStage: "Request",
+    }],
+  });
+}
+
+async function listUploadFiles(directory = uploadDirectory) {
   try {
-    return new Set(await readdir(uploadDirectory));
+    return new Set(await readdir(directory));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return new Set<string>();
@@ -244,8 +363,11 @@ async function listUploadFiles() {
   }
 }
 
-async function removeGeneratedUploads(beforeTest: Set<string>) {
-  const afterTest = await listUploadFiles();
+async function removeGeneratedUploads(
+  beforeTest: Set<string>,
+  directory = uploadDirectory,
+) {
+  const afterTest = await listUploadFiles(directory);
   await Promise.all(
     [...afterTest]
       .filter(
@@ -253,16 +375,73 @@ async function removeGeneratedUploads(beforeTest: Set<string>) {
           !beforeTest.has(filename) && managedUploadFilename.test(filename),
       )
       .map((filename) =>
-        rm(path.join(uploadDirectory, filename), { force: true }),
+        rm(path.join(directory, filename), { force: true }),
       ),
   );
 }
 
+describe("admin upload browser cleanup", () => {
+  it("removes new managed image and video uploads without deleting pre-existing uploads", async () => {
+    const isolatedUploadDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "knight-basins-upload-cleanup-"),
+    );
+    const existingFilename = "catalog-mu0existing-0123456789abcdef.png";
+    const newImageFilename = "catalog-mu0newupload-fedcba9876543210.png";
+    const newVideoFilename = "catalog-mu0newvideo-fedcba9876543210.mp4";
+    const existingContents = Buffer.from("existing production upload");
+
+    try {
+      await writeFile(
+        path.join(isolatedUploadDirectory, existingFilename),
+        existingContents,
+      );
+      const uploadFilesBeforeTest = await listUploadFiles(
+        isolatedUploadDirectory,
+      );
+      await writeFile(
+        path.join(isolatedUploadDirectory, newImageFilename),
+        "new upload",
+      );
+      await writeFile(
+        path.join(isolatedUploadDirectory, newVideoFilename),
+        "new video upload",
+      );
+
+      await removeGeneratedUploads(
+        uploadFilesBeforeTest,
+        isolatedUploadDirectory,
+      );
+
+      assert.deepEqual(
+        await listUploadFiles(isolatedUploadDirectory),
+        new Set([existingFilename]),
+      );
+      await assert.rejects(
+        readFile(path.join(isolatedUploadDirectory, newImageFilename)),
+        { code: "ENOENT" },
+      );
+      await assert.rejects(
+        readFile(path.join(isolatedUploadDirectory, newVideoFilename)),
+        { code: "ENOENT" },
+      );
+      assert.deepEqual(
+        await readFile(path.join(isolatedUploadDirectory, existingFilename)),
+        existingContents,
+      );
+    } finally {
+      await rm(isolatedUploadDirectory, { force: true, recursive: true });
+    }
+  });
+});
+
 describe("admin image upload browser flow", () => {
   let browser: Awaited<ReturnType<typeof launchBrowser>>;
+  let apiServer: Awaited<ReturnType<typeof startIsolatedApiServer>>;
   let fixtureDirectory = "";
   let uploadFilesBeforeTest = new Set<string>();
   let uploadCleanupEnabled = false;
+  const existingUploadFilename = "catalog-mu0existing-0123456789abcdef.png";
+  const existingUploadContents = Buffer.from("existing upload seeded before the browser flow");
 
   before(async () => {
     if (!adminPassword) {
@@ -271,29 +450,68 @@ describe("admin image upload browser flow", () => {
     fixtureDirectory = await mkdtemp(
       path.join(os.tmpdir(), "knight-basins-upload-fixtures-"),
     );
+    uploadDirectory = await mkdtemp(
+      path.join(os.tmpdir(), "knight-basins-upload-api-"),
+    );
+    await writeFile(
+      path.join(uploadDirectory, existingUploadFilename),
+      existingUploadContents,
+    );
     await writeFile(path.join(fixtureDirectory, "unsupported.txt"), "not an image");
+    const supportedImage = Buffer.from([
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a,
+      0x03,
+    ]);
     await writeFile(
       path.join(fixtureDirectory, "supported.png"),
-      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x03]),
+      supportedImage,
     );
     uploadFilesBeforeTest = await listUploadFiles();
     uploadCleanupEnabled = true;
+    apiServer = await startIsolatedApiServer(uploadDirectory);
     browser = await launchBrowser();
     await browser.page.command("Runtime.enable");
     await browser.page.command("Page.enable");
     await browser.page.command("DOM.enable");
     await browser.page.command("Network.enable");
+    await routeBrowserUploads(
+      browser.page,
+      apiServer.url,
+      await isolatedAdminCookie(apiServer.url),
+    );
   });
 
   after(async () => {
     try {
       if (browser) await stopBrowser(browser);
     } finally {
-      if (uploadCleanupEnabled) {
-        await removeGeneratedUploads(uploadFilesBeforeTest);
-      }
-      if (fixtureDirectory) {
-        await rm(fixtureDirectory, { force: true, recursive: true });
+      try {
+        if (uploadCleanupEnabled) {
+          await removeGeneratedUploads(uploadFilesBeforeTest);
+          assert.deepEqual(
+            await listUploadFiles(),
+            new Set([existingUploadFilename]),
+          );
+          assert.deepEqual(
+            await readFile(path.join(uploadDirectory, existingUploadFilename)),
+            existingUploadContents,
+          );
+        }
+      } finally {
+        if (apiServer) await stopIsolatedApiServer(apiServer);
+        if (uploadDirectory) {
+          await rm(uploadDirectory, { force: true, recursive: true });
+        }
+        if (fixtureDirectory) {
+          await rm(fixtureDirectory, { force: true, recursive: true });
+        }
       }
     }
   });
@@ -359,6 +577,29 @@ describe("admin image upload browser flow", () => {
     })()`);
     assert.match(preview.src, /\/api\/uploads\/catalog-[a-z0-9]+-[a-f0-9]{16}\.png\?v=[a-z0-9]+$/);
     assert.match(preview.text, /\/api\/uploads\/catalog-/);
+    const uploadedFilename = preview.src.match(
+      /\/api\/uploads\/(catalog-[a-z0-9]+-[a-f0-9]{16}\.png)\?v=/,
+    )?.[1];
+    assert.ok(uploadedFilename);
+    assert.deepEqual(
+      await readFile(path.join(uploadDirectory, uploadedFilename)),
+      Buffer.from([
+        0x89,
+        0x50,
+        0x4e,
+        0x47,
+        0x0d,
+        0x0a,
+        0x1a,
+        0x0a,
+        0x03,
+      ]),
+    );
+    assert.equal(
+      (await listUploadFiles()).has(existingUploadFilename),
+      true,
+      "The pre-existing upload should remain beside the browser upload",
+    );
 
     assert.equal(uploadRequests.length, 2);
     assert.deepEqual(uploadRequests.map((request) => request.status), [400, 201]);
