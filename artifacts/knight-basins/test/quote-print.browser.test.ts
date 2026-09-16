@@ -162,7 +162,7 @@ async function setTextInput(page: CdpPage, testId: string, value: string) {
   assert.equal(changed, true, `Could not set ${testId}`);
 }
 
-describe("long formal quote print flow", () => {
+describe("long formal quote print flow", { concurrency: false }, () => {
   let browser: Awaited<ReturnType<typeof launchBrowser>>;
 
   before(async () => {
@@ -450,6 +450,119 @@ describe("long formal quote print flow", () => {
     );
     assert.equal(printStatus, true);
     assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
+  });
+
+  it("supports one-click Studio presets, basin alignment, zoom, and the mobile estimate bar", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio preset order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "Studio preset canvas",
+    );
+
+    await clickTestId(browser.page, "button-studio-preset-l-left");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-rectangle-editor").length === 2'),
+      Boolean,
+      "left L preset rectangles",
+    );
+    const leftPreset = await browser.page.evaluate(`(() => ({
+      widths: [...document.querySelectorAll('[data-testid^="input-rectangle-width-"]')].map((input) => input.value),
+      lengths: [...document.querySelectorAll('[data-testid^="input-rectangle-length-"]')].map((input) => input.value),
+      xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
+      ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
+    }))()`);
+    assert.deepEqual(leftPreset, { widths: ["1500", "600"], lengths: ["600", "1200"], xs: ["0", "0"], ys: ["0", "600"] });
+
+    await clickTestId(browser.page, "button-studio-preset-l-right");
+    const rightPreset = await browser.page.evaluate(`(() => ({
+      xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
+      ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
+    }))()`);
+    assert.deepEqual(rightPreset, { xs: ["0", "900"], ys: ["0", "600"] });
+
+    await clickTestId(browser.page, "button-studio-preset-i");
+    const dropped = await browser.page.evaluate(`(() => {
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.12, clientY: rect.top + rect.height * 0.12 }));
+      return true;
+    })()`);
+    assert.equal(dropped, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
+      Boolean,
+      "preset basin placement",
+    );
+    await browser.page.evaluate("document.querySelector('.studio-placement')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))");
+    await clickTestId(browser.page, "button-center-selected-basin");
+    const centered = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const placement = document.querySelector('.studio-placement');
+        return { left: Number.parseFloat(placement?.getAttribute('style')?.match(/left: ([0-9.]+)%/)?.[1] ?? "0"), top: Number.parseFloat(placement?.getAttribute('style')?.match(/top: ([0-9.]+)%/)?.[1] ?? "0") };
+      })()`),
+      (value) => Math.abs(value.left - 38.3333) < 0.1 && Math.abs(value.top - 8.3333) < 0.1,
+      "centered basin placement",
+    );
+    assert.ok(Math.abs(centered.left - 38.3333) < 0.1);
+    assert.ok(Math.abs(centered.top - 8.3333) < 0.1);
+
+    await clickTestId(browser.page, "button-studio-zoom-in");
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-zoom-value"]\')?.textContent'), "125%");
+    await clickTestId(browser.page, "button-studio-zoom-reset");
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-zoom-value"]\')?.textContent'), "100%");
+
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "mobile Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-mobile-estimate-bar"]\') !== null'),
+      Boolean,
+      "mobile estimate bar",
+    );
+    const mobileEstimate = await browser.page.evaluate(`(() => {
+      const bar = document.querySelector('[data-testid="studio-mobile-estimate-bar"]');
+      return {
+        display: bar instanceof HTMLElement ? getComputedStyle(bar).display : "",
+        position: bar instanceof HTMLElement ? getComputedStyle(bar).position : "",
+        total: bar?.textContent ?? "",
+        detailButton: document.querySelector('[data-testid="button-mobile-studio-details"]')?.textContent ?? "",
+        submitButton: document.querySelector('[data-testid="button-mobile-studio-submit"]')?.textContent ?? "",
+      };
+    })()`);
+    assert.equal(mobileEstimate.display, "flex");
+    assert.equal(mobileEstimate.position, "fixed");
+    assert.match(mobileEstimate.total, /ยอดประเมินรวม:/);
+    assert.match(mobileEstimate.total, /฿/);
+    assert.equal(mobileEstimate.detailButton, "ดูรายละเอียด");
+    assert.equal(mobileEstimate.submitButton, "ส่งขอราคา");
   });
 
   it("shows and blocks the Studio joint, disconnected-rectangle, and discount validations", async () => {
@@ -817,10 +930,10 @@ describe("long formal quote print flow", () => {
     await clickTestId(browser.page, "button-submit-studio");
     const submitResult = await waitFor(
       () => browser.page.evaluate("window.location.href"),
-      (value) => value.includes("/quote/view?quote="),
+      (value) => value.includes("/quote/view?token="),
       "small rectangle non-blocking submit",
     );
-    assert.match(submitResult, /\/quote\/view\?quote=/);
+    assert.match(submitResult, /\/quote\/view\?token=/);
     assert.match(warning, /ขนาด 10 มม/);
   });
 
@@ -1271,5 +1384,117 @@ describe("long formal quote print flow", () => {
     assert.equal(support.zIndex, "100");
     assert.ok(support.panelWidth <= 351);
     assert.ok(support.bodyWidth <= support.viewportWidth);
+  });
+
+  it("flows authenticated profile defaults into a quote and toggles the condo floor field", async () => {
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.addScriptToEvaluateOnNewDocument", {
+      source: `(() => {
+        const realFetch = window.fetch.bind(window);
+        window.fetch = async (input, init) => {
+          const url = input instanceof Request ? input.url : String(input);
+          if (url.includes("/api/auth/line/status")) {
+            return new Response(JSON.stringify({ authenticated: true, displayName: "คุณโปรไฟล์" }), { status: 200, headers: { "Content-Type": "application/json" } });
+          }
+          if (url.includes("/api/customer/profile")) {
+            return new Response(JSON.stringify({
+              id: 7,
+              lineUserId: "Uprofile",
+              displayName: "คุณโปรไฟล์",
+              fullName: "คุณโปรไฟล์",
+              phone: "0812345678",
+              email: "profile@example.com",
+              company: "บริษัทโปรไฟล์ จำกัด",
+              project: "โครงการจากโปรไฟล์",
+              address: "99 ถนนสุขุมวิท กรุงเทพฯ",
+              taxName: "บริษัทโปรไฟล์ จำกัด",
+              taxId: "0105559012345",
+              taxBranch: "สำนักงานใหญ่",
+              taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
+              preferredContact: "line",
+              customerRole: "homeowner",
+              createdAt: "2026-09-15T00:00:00.000Z",
+              updatedAt: "2026-09-15T00:00:00.000Z"
+            }), { status: 200, headers: { "Content-Type": "application/json" } });
+          }
+          if (url.includes("/api/customer/quotes")) {
+            return new Response("[]", { status: 200, headers: { "Content-Type": "application/json" } });
+          }
+          return realFetch(input, init);
+        };
+      })();`,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-quick-purchase"]\') !== null'),
+      Boolean,
+      "storefront before clearing browser state",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="card-product-KF001"]\') !== null'),
+      Boolean,
+      "catalog with authenticated profile",
+    );
+    await clickTestId(browser.page, "card-product-KF001");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-name"]\')?.value === "คุณโปรไฟล์"'),
+      Boolean,
+      "profile defaults in quote",
+    );
+
+    const profileDefaults = await browser.page.evaluate(`(() => ({
+      name: document.querySelector('[data-testid="input-customer-name"]')?.value ?? "",
+      phone: document.querySelector('[data-testid="input-customer-phone"]')?.value ?? "",
+      project: document.querySelector('[data-testid="input-customer-project"]')?.value ?? "",
+      taxAddress: document.querySelector('[data-testid="input-customer-tax-address"]')?.value ?? "",
+      preferredContact: document.querySelector('[data-testid="input-customer-preferred-contact"]')?.value ?? "",
+      role: document.querySelector('[data-testid="input-customer-role"]')?.value ?? "",
+    }))()`);
+    assert.deepEqual(profileDefaults, {
+      name: "คุณโปรไฟล์",
+      phone: "0812345678",
+      project: "โครงการจากโปรไฟล์",
+      taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
+      preferredContact: "line",
+      role: "homeowner",
+    });
+
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-property-type"]\') !== null'),
+      Boolean,
+      "quote site fields",
+    );
+    await browser.page.evaluate(`(() => {
+      const select = document.querySelector('[data-testid="input-customer-property-type"]');
+      if (!(select instanceof HTMLSelectElement)) return false;
+      select.value = "condo";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    })()`);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-condo-floor"]\') !== null'),
+      Boolean,
+      "condo floor field",
+    );
+    await browser.page.evaluate(`(() => {
+      const select = document.querySelector('[data-testid="input-customer-property-type"]');
+      if (!(select instanceof HTMLSelectElement)) return false;
+      select.value = "house-townhome";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    })()`);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-condo-floor"]\') === null'),
+      Boolean,
+      "condo floor field hidden for houses",
+    );
   });
 });

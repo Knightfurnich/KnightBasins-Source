@@ -176,7 +176,7 @@ export function CustomerProfilePage() {
         {!!history.data?.length && <div className="profile-history-list">{history.data.map((quote) => <article className="profile-quote-row" key={quote.id}>
           <div className="profile-quote-main"><strong>{quote.quoteNumber}</strong><span>{quote.orderMode === "studio" ? "2D Studio" : "ซื้อด่วนจากแคตตาล็อก"} · {formatThaiDateTime(new Date(quote.issuedAt))}</span></div>
           <strong className="profile-quote-total">{quote.amountTHB === null || quote.amountTHB === undefined ? "รอยืนยันราคา" : formatTHB(quote.amountTHB)}</strong>
-          <div className="profile-quote-actions"><a href={quote.viewUrl} className="text-link" data-testid={`link-open-quote-${quote.id}`}><ExternalLink size={14} /> เปิดดู</a><a href={`${quote.viewUrl}&print=1`} className="text-link" target="_blank" rel="noreferrer" data-testid={`link-download-quote-${quote.id}`}><Download size={14} /> พิมพ์ / PDF</a></div>
+          <div className="profile-quote-actions">{quote.viewUrl ? <><a href={quote.viewUrl} className="text-link" data-testid={`link-open-quote-${quote.id}`}><ExternalLink size={14} /> เปิดดู</a><a href={`${quote.viewUrl}&print=1`} className="text-link" target="_blank" rel="noreferrer" data-testid={`link-download-quote-${quote.id}`}><Download size={14} /> พิมพ์ / PDF</a></> : <span className="profile-muted">ลิงก์กำลังเตรียม</span>}</div>
         </article>)}</div>}
       </section>
     </div>

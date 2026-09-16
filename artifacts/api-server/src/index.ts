@@ -19,7 +19,7 @@ if (Number.isNaN(port) || port <= 0) {
 async function start() {
   await seedCatalogIfEmpty();
 
-  app.listen(port, (err) => {
+  const server = app.listen(port, (err) => {
     if (err) {
       logger.error({ err }, "Error listening on port");
       process.exit(1);
@@ -27,6 +27,9 @@ async function start() {
 
     logger.info({ port }, "Server listening");
   });
+  server.requestTimeout = 30_000;
+  server.headersTimeout = 35_000;
+  server.keepAliveTimeout = 5_000;
 }
 
 start().catch((error) => {

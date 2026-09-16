@@ -3,6 +3,7 @@ import { UpdateCustomerProfileBody } from "@workspace/api-zod";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
+import { publicQuoteTokenForLead } from "../lib/quote-access";
 
 const router: IRouter = Router();
 
@@ -133,6 +134,7 @@ router.get("/customer/quotes", async (req, res, next) => {
         quoteNumber: customerLeads.quoteNumber,
         orderMode: customerLeads.orderMode,
         studioData: customerLeads.studioData,
+        quoteAccessSecret: customerLeads.quoteAccessSecret,
         createdAt: customerLeads.createdAt,
         updatedAt: customerLeads.updatedAt,
       })
@@ -153,7 +155,15 @@ router.get("/customer/quotes", async (req, res, next) => {
         issuedAt: lead.createdAt,
         updatedAt: lead.updatedAt,
         amountTHB: quotationTotal(lead.studioData),
-        viewUrl: `/quote/view?quote=${encodeURIComponent(lead.quoteNumber!)}`,
+         viewUrl: publicQuoteTokenForLead({
+           quoteNumber: lead.quoteNumber,
+           quoteAccessSecret: lead.quoteAccessSecret,
+         })
+           ? `/quote/view?token=${encodeURIComponent(publicQuoteTokenForLead({
+               quoteNumber: lead.quoteNumber,
+               quoteAccessSecret: lead.quoteAccessSecret,
+             })!)}`
+           : "",
       })));
   } catch (error) {
     return next(error);

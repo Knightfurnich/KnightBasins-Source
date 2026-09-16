@@ -232,7 +232,10 @@ describe("admin image upload browser flow", () => {
     if (!adminPassword) throw new Error("ADMIN_PASSWORD is required for the browser upload test");
     fixtureDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-upload-fixtures-"));
     await writeFile(path.join(fixtureDirectory, "unsupported.txt"), "not an image");
-    await writeFile(path.join(fixtureDirectory, "supported.png"), "browser png fixture");
+     await writeFile(
+       path.join(fixtureDirectory, "supported.png"),
+       Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x03]),
+     );
     browser = await launchBrowser();
     await browser.page.command("Runtime.enable");
     await browser.page.command("Page.enable");

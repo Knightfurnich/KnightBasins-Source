@@ -5,11 +5,17 @@ import { Router, type IRouter, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
 import { readMultipartForm, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
+import {
+  createQuoteAccessSecret,
+  publicQuoteResponse,
+  publicQuoteTokenForLead,
+  quoteAccessSecretMatches,
+  verifyPublicQuoteToken,
+} from "../lib/quote-access";
+import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
 import { notifyQuote, notifySketch } from "../lib/sales-notifications";
 import { formatQuoteMonth } from "../lib/date-time";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
-
-const router: IRouter = Router();
 
 function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
@@ -26,18 +32,36 @@ export function createQuoteNumber(now = new Date()) {
   return `${month} / US / ${serial}`;
 }
 
-router.post("/leads", async (req, res, next) => {
+export function createLeadsRouter(database: typeof db = db): IRouter {
+  const router: IRouter = Router();
+  const leadRateLimit = createRateLimiter({ name: "leads", max: 30, windowMs: 60 * 1000 });
+  const sketchRateLimit = createRateLimiter({ name: "sketch-upload", max: 5, windowMs: 10 * 60 * 1000 });
+  const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
+  const notificationRateLimit = createRateLimiter({
+    name: "quote-notification",
+    max: 3,
+    windowMs: 15 * 60 * 1000,
+    key: (req) => `${req.ip}:${String(req.body?.token ?? "")}`,
+  });
+
+ router.post("/leads", leadRateLimit, async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
   if (!parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
 
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
-    const [existing] = await db
-      .select({ quoteNumber: customerLeads.quoteNumber })
+    const [existing] = await database
+      .select({
+        quoteNumber: customerLeads.quoteNumber,
+        quoteAccessSecret: customerLeads.quoteAccessSecret,
+      })
       .from(customerLeads)
       .where(eq(customerLeads.leadKey, parsed.data.leadKey))
       .limit(1);
     const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? createQuoteNumber() : null);
+    const quoteAccessSecret = quoteNumber
+      ? existing?.quoteAccessSecret ?? createQuoteAccessSecret()
+      : existing?.quoteAccessSecret ?? null;
     const statusPriority = {
       new_lead: 0,
       selecting: 1,
@@ -45,12 +69,13 @@ router.post("/leads", async (req, res, next) => {
       closed: 3,
     } as const;
     const requestedPriority = statusPriority[parsed.data.status];
-    const [lead] = await db
+    const [lead] = await database
       .insert(customerLeads)
       .values({
         ...parsed.data,
         expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
         quoteNumber,
+        quoteAccessSecret,
         customerAccountId: account?.id ?? null,
       })
       .onConflictDoUpdate({
@@ -76,6 +101,7 @@ router.post("/leads", async (req, res, next) => {
            expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
           productSkus: parsed.data.productSkus,
            quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
+            quoteAccessSecret: quoteAccessSecret ?? customerLeads.quoteAccessSecret,
            orderMode: parsed.data.orderMode,
            studioData: parsed.data.studioData,
            sketchUrl: parsed.data.sketchUrl,
@@ -85,51 +111,66 @@ router.post("/leads", async (req, res, next) => {
       })
       .returning();
 
-    return res.json(lead);
+    return res.json({
+      ...lead,
+      publicQuoteToken: publicQuoteTokenForLead(lead),
+    });
   } catch (error) {
     return next(error);
   }
 });
 
 router.get("/quotes", async (req, res, next) => {
-  const quoteNumber = typeof req.query.quoteNumber === "string" ? req.query.quoteNumber.trim() : "";
-  if (!quoteNumber) return invalid(res, "quoteNumber is required");
+  const token = typeof req.query.token === "string" ? req.query.token.trim() : "";
+  const access = verifyPublicQuoteToken(token);
+  if (!access) return res.status(404).json({ message: "Quote not found" });
 
   try {
-    const [lead] = await db
+    const [lead] = await database
       .select()
       .from(customerLeads)
-      .where(eq(customerLeads.quoteNumber, quoteNumber))
+      .where(eq(customerLeads.quoteNumber, access.quoteNumber))
       .limit(1);
-    if (!lead || !["studio", "quick-purchase"].includes(lead.orderMode) || !lead.studioData) {
+    if (
+      !lead ||
+      !["studio", "quick-purchase"].includes(lead.orderMode) ||
+      !lead.studioData ||
+      !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
+    ) {
       return res.status(404).json({ message: "Quote not found" });
     }
-    return res.json(lead);
+    return res.json(publicQuoteResponse(lead));
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/quotes/notify", async (req, res, next) => {
-  const quoteNumber = typeof req.body?.quoteNumber === "string" ? req.body.quoteNumber.trim() : "";
-  if (!quoteNumber) return invalid(res, "quoteNumber is required");
+  router.post("/quotes/notify", notificationRateLimit, async (req, res, next) => {
+  const token = typeof req.body?.token === "string" ? req.body.token.trim() : "";
+  const access = verifyPublicQuoteToken(token);
+  if (!access) return res.status(404).json({ message: "Quote not found" });
   try {
-    const [lead] = await db
+    const [lead] = await database
       .select()
       .from(customerLeads)
-      .where(eq(customerLeads.quoteNumber, quoteNumber))
+      .where(eq(customerLeads.quoteNumber, access.quoteNumber))
       .limit(1);
-    if (!lead || !["studio", "quick-purchase"].includes(lead.orderMode) || !lead.studioData) {
+    if (
+      !lead ||
+      !["studio", "quick-purchase"].includes(lead.orderMode) ||
+      !lead.studioData ||
+      !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
+    ) {
       return res.status(404).json({ message: "Quote not found" });
     }
-    const result = await notifyQuote(lead, requestOrigin(req), `/quote/view?quote=${encodeURIComponent(quoteNumber)}`);
+    const result = await notifyQuote(lead, requestOrigin(req), `/quote/view?token=${encodeURIComponent(token)}`);
     return res.json(result);
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/leads/sketch", async (req, res, next) => {
+  router.post("/leads/sketch", sketchRateLimit, uploadConcurrency, async (req, res, next) => {
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
     const { media, fields } = await readMultipartForm(req, "image");
@@ -144,7 +185,7 @@ router.post("/leads/sketch", async (req, res, next) => {
       return invalid(res, "Invalid sketch lead data", parsed.success ? undefined : parsed.error.flatten());
     }
     const upload = await saveUploadedMedia(media, "sketch");
-    const [lead] = await db
+    const [lead] = await database
       .insert(customerLeads)
       .values({
         ...parsed.data,
@@ -186,13 +227,18 @@ router.post("/leads/sketch", async (req, res, next) => {
     const result = await notifySketch(
       lead,
       requestOrigin(req),
-      lead.quoteNumber ? `/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}` : undefined,
+      publicQuoteTokenForLead(lead)
+        ? `/quote/view?token=${encodeURIComponent(publicQuoteTokenForLead(lead)!)}`
+        : undefined,
     );
-    return res.status(201).json({ lead, ...result });
+    return res.status(201).json({ lead: { ...lead, publicQuoteToken: publicQuoteTokenForLead(lead) }, ...result });
   } catch (error) {
     if (error instanceof Error && /required|invalid|choose|allowed|large|metadata/i.test(error.message)) return invalid(res, error.message);
     return next(error);
   }
 });
 
-export default router;
+  return router;
+}
+
+export default createLeadsRouter();

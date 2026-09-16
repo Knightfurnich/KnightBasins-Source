@@ -57,14 +57,15 @@ describe("public quote origin", () => {
     );
   });
 
-  it("forces HTTPS for production header fallback", async () => {
+  it("rejects production requests without a configured public origin", async () => {
     process.env["NODE_ENV"] = "production";
     delete process.env["PUBLIC_APP_ORIGIN"];
     delete process.env["PUBLIC_UPLOAD_ORIGIN"];
 
-    assert.equal(
-      (await module()).requestOrigin(request("http", { host: "public.example.test", "x-forwarded-proto": "http" })),
-      "https://public.example.test",
+    const originModule = await module();
+    assert.throws(
+      () => originModule.requestOrigin(request("http", { host: "public.example.test", "x-forwarded-proto": "http" })),
+      /PUBLIC_APP_ORIGIN or PUBLIC_UPLOAD_ORIGIN/,
     );
   });
 

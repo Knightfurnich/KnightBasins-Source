@@ -67,9 +67,10 @@ test("admin lead filtering keeps status and local filters independent", () => {
 });
 
 test("admin quote links encode the quote number without exposing lead data", () => {
+  const signedToken = "eyJxdW90ZU51bWJlciI6IlNlcCAyNiAvIFVTTiAvIDI5NjU3OSJ9.signature";
   assert.equal(
-    adminQuoteUrl("Sep 26 / US / 296579", "https://example.com"),
-    "https://example.com/quote/view?quote=Sep+26+%2F+US+%2F+296579",
+    adminQuoteUrl(signedToken, "https://example.com"),
+    `https://example.com/quote/view?token=${encodeURIComponent(signedToken)}`,
   );
-  assert.doesNotMatch(adminQuoteUrl("Sep 26 / US / 296579", "https://example.com"), /lead-one|somchai/i);
+  assert.doesNotMatch(adminQuoteUrl(signedToken, "https://example.com"), /lead-one|somchai/i);
 });

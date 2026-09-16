@@ -80,6 +80,49 @@ describe("sales notifications", () => {
     });
   });
 
+  it("includes tax and site details in both Telegram and LINE summaries", async () => {
+    const detailedLead = {
+      ...lead,
+      taxName: "บริษัททดสอบ จำกัด",
+      taxId: "0105559012345",
+      taxBranch: "สำนักงานใหญ่",
+      taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
+      preferredContact: "line",
+      customerRole: "homeowner",
+      propertyType: "condo",
+      condoFloor: "18",
+      expectedInstallationDate: "2026-10-15",
+    };
+
+    for (const channel of ["telegram", "line"] as const) {
+      process.env["NOTIFY_CHANNEL"] = channel;
+      process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+      process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+      process.env["LINE_CHANNEL_ACCESS_TOKEN"] = "line-token";
+      process.env["LINE_SALES_DESTINATION_ID"] = "line-destination";
+      let requestBody = "";
+      globalThis.fetch = async (_input, init) => {
+        requestBody = String(init?.body ?? "");
+        return new Response(channel === "telegram" ? JSON.stringify({ ok: true }) : "{}", { status: 200 });
+      };
+
+      const result = await (await module()).notifyQuote(detailedLead, "https://example.com", "/quote/view?quote=x");
+      assert.equal(result.notificationStatus, "notified");
+      const text = channel === "telegram"
+        ? (JSON.parse(requestBody) as { text: string }).text
+        : (JSON.parse(requestBody) as { messages: Array<{ text: string }> }).messages[0]?.text ?? "";
+
+      assert.match(text, /บริษัททดสอบ จำกัด/);
+      assert.match(text, /Tax ID 0105559012345/);
+      assert.match(text, /สำนักงานใหญ่/);
+      assert.match(text, /99 ถนนสุขุมวิท กรุงเทพฯ 10110/);
+      assert.match(text, /LINE/);
+      assert.match(text, /ลูกค้าบ้านพักอาศัย/);
+      assert.match(text, /คอนโด · ชั้น 18/);
+      assert.match(text, /15 ต\.ค\. 2569/);
+    }
+  });
+
   it("keeps Studio service lines in the Telegram summary", async () => {
     process.env["NOTIFY_CHANNEL"] = "telegram";
     process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
@@ -195,7 +238,7 @@ describe("sales notifications", () => {
     assert.doesNotMatch(requestBody, /"ลิงก์":/);
   });
 
-  it("keeps the quote link and quote button for a sketch that already has a quote", async () => {
+  it("does not infer a public quote link from a quote number", async () => {
     process.env["NOTIFY_CHANNEL"] = "telegram";
     process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
     process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
@@ -206,12 +249,12 @@ describe("sales notifications", () => {
     };
     const result = await (await module()).notifySketch(lead, "https://example.com");
     assert.equal(result.notificationStatus, "notified");
-    assert.match(requestBody, /quote\/view\?quote=Sep%2026%20%2F%20US%20%2F%20123456/);
-    assert.doesNotMatch(requestBody, /แนบรูปมาแล้วในข้อความนี้/);
+    assert.doesNotMatch(requestBody, /quote\/view/);
+    assert.match(requestBody, /แนบรูปมาแล้วในข้อความนี้/);
     const payload = JSON.parse(requestBody) as { reply_markup?: { inline_keyboard?: Array<Array<{ text: string; url: string }>> } };
     assert.deepEqual(payload.reply_markup?.inline_keyboard?.[0]?.[0], {
-      text: "เปิดใบเสนอราคา",
-      url: "https://example.com/quote/view?quote=Sep%2026%20%2F%20US%20%2F%20123456",
+      text: "เปิดดูรูปเต็ม",
+      url: "https://example.com/api/uploads/sketch.png",
     });
   });
 

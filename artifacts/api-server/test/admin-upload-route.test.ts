@@ -38,7 +38,7 @@ let uploadDirectory = "";
 function imageFormData(
   fileName = "basin.png",
   contentType = "image/png",
-  bytes = Buffer.from("png-fixture"),
+  bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01]),
   fieldName = "file",
 ) {
   const formData = new FormData();
@@ -49,7 +49,7 @@ function imageFormData(
 function videoFormData(
   fileName = "basin.mp4",
   contentType = "video/mp4",
-  bytes = Buffer.from("mp4-fixture"),
+  bytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32]),
 ) {
   return imageFormData(fileName, contentType, bytes);
 }
@@ -141,7 +141,7 @@ describe("protected admin image upload route", () => {
   it("accepts a valid multipart image and returns a versioned public URL", async () => {
     const server = await startAdminRoute({});
     const cookie = `knight_admin_session=${createAdminToken()}`;
-    const bytes = Buffer.from("valid-png-fixture");
+    const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x02]);
     let uploadedFilename: string | undefined;
 
     try {
@@ -178,7 +178,7 @@ describe("protected admin image upload route", () => {
   it("accepts a valid basin video without changing image upload validation", async () => {
     const server = await startAdminRoute({});
     const cookie = `knight_admin_session=${createAdminToken()}`;
-    const bytes = Buffer.from("valid-mp4-fixture");
+    const bytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32]);
     let uploadedFilename: string | undefined;
 
     try {

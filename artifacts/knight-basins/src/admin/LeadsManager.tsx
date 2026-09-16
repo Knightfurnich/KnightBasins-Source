@@ -66,11 +66,11 @@ export function LeadsManager() {
     );
   };
 
-  const copyQuoteLink = async (quoteNumber: string) => {
+  const copyQuoteLink = async (quoteNumber: string, publicQuoteToken: string) => {
     setCopyError("");
     try {
       if (!navigator.clipboard?.writeText) throw new Error("clipboard-unavailable");
-      await navigator.clipboard.writeText(adminQuoteUrl(quoteNumber));
+      await navigator.clipboard.writeText(adminQuoteUrl(publicQuoteToken));
       setCopiedQuote(quoteNumber);
       window.setTimeout(() => setCopiedQuote((current) => current === quoteNumber ? null : current), 1800);
     } catch {
@@ -161,7 +161,7 @@ export function LeadsManager() {
                    <p className="text-xs text-[var(--ink-soft)] mt-2">สินค้า: {lead.productSkus.join(", ") || "ยังไม่ได้เลือก"}</p>
                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                      <span>สร้างเมื่อ {formatLeadDate(lead.createdAt)}</span>
-                     {lead.quoteNumber && <><span className="font-mono text-[var(--brand-blue)]">{lead.quoteNumber}</span><a className="text-[var(--brand-blue)] underline" href={adminQuoteUrl(lead.quoteNumber)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา</a><Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyQuoteLink(lead.quoteNumber!)} data-testid={`button-copy-quote-link-${lead.id}`}>{copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> คัดลอกลิงก์</>}</Button></>}
+                    {lead.quoteNumber && <><span className="font-mono text-[var(--brand-blue)]">{lead.quoteNumber}</span>{lead.publicQuoteToken ? <><a className="text-[var(--brand-blue)] underline" href={adminQuoteUrl(lead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา</a><Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyQuoteLink(lead.quoteNumber!, lead.publicQuoteToken!)} data-testid={`button-copy-quote-link-${lead.id}`}>{copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> คัดลอกลิงก์</>}</Button></> : <span className="text-[var(--ink-soft)]">กำลังสร้างลิงก์ปลอดภัย...</span>}</>}
                    </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <span className="border border-[var(--line)] px-2 py-1 text-[var(--brand-blue)]">{modeLabels[lead.orderMode ?? "quick-purchase"] ?? lead.orderMode ?? "quick-purchase"}</span>

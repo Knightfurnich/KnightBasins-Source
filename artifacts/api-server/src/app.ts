@@ -8,6 +8,9 @@ import { UPLOAD_DIR } from "./lib/image-upload";
 
 const app: Express = express();
 
+app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,
@@ -27,12 +30,48 @@ app.use(
     },
   }),
 );
-app.use(cors({ credentials: true, origin: true }));
+const configuredCorsOrigins = [
+  process.env["PUBLIC_APP_ORIGIN"],
+  process.env["PUBLIC_ADMIN_ORIGIN"],
+  ...(process.env["CORS_ORIGINS"]?.split(",") ?? []),
+]
+  .map((origin) => origin?.trim())
+  .filter((origin): origin is string => Boolean(origin));
+const developmentCorsOrigins = process.env["NODE_ENV"] === "production"
+  ? []
+  : [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      ...(process.env["REPLIT_DEV_DOMAIN"] ? [`https://${process.env["REPLIT_DEV_DOMAIN"]}`] : []),
+    ];
+const allowedCorsOrigins = new Set([...configuredCorsOrigins, ...developmentCorsOrigins]);
+
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin || allowedCorsOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(null, false);
+  },
+}));
+app.use((_req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (process.env["NODE_ENV"] === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  next();
+});
 app.use(cookieParser());
 app.use("/kb/images/uploads", express.static(UPLOAD_DIR));
 app.use("/api/uploads", express.static(UPLOAD_DIR));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "256kb" }));
+app.use(express.urlencoded({ extended: true, limit: "64kb" }));
 
 app.use("/api", router);
 

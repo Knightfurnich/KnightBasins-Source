@@ -1,14 +1,15 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import { mkdir, open, readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import type { Request } from "express";
 
 export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_VIDEO_UPLOAD_BYTES = 100 * 1024 * 1024;
 export const DEFAULT_UPLOAD_RETENTION_HOURS = 24;
 export const UPLOAD_DIR = process.env["UPLOAD_DIR"] ?? path.resolve(process.cwd(), "uploads");
-const PUBLIC_UPLOAD_ORIGIN =
-  process.env["PUBLIC_UPLOAD_ORIGIN"] ?? "https://knightbasins.srv1964473.hstgr.cloud/api/uploads";
+const PUBLIC_UPLOAD_ORIGIN = process.env["PUBLIC_UPLOAD_ORIGIN"] ?? "";
 const UPLOAD_RETENTION_HOURS = parseRetentionHours(process.env["UPLOAD_RETENTION_HOURS"]);
 
 const MIME_EXTENSIONS: Record<string, string> = {
@@ -47,6 +48,7 @@ function parseRetentionHours(value: string | undefined) {
 }
 
 function publicUploadPath() {
+  if (!PUBLIC_UPLOAD_ORIGIN) return "/api/uploads";
   try {
     return new URL(PUBLIC_UPLOAD_ORIGIN).pathname.replace(/\/+$/, "");
   } catch {
@@ -56,6 +58,7 @@ function publicUploadPath() {
 
 function filenameFromUploadUrl(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return undefined;
+  if (!PUBLIC_UPLOAD_ORIGIN) return undefined;
 
   let parsed: URL;
   let origin: URL;
@@ -145,6 +148,27 @@ function headerValue(headers: string, name: string) {
   return line?.slice(line.indexOf(":") + 1).trim() ?? "";
 }
 
+function hasFileSignature(buffer: Buffer, contentType: string) {
+  if (contentType === "image/jpeg") return buffer.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]));
+  if (contentType === "image/png") return buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (contentType === "image/webp") return buffer.subarray(0, 4).toString() === "RIFF" && buffer.subarray(8, 12).toString() === "WEBP";
+  if (contentType === "image/gif") return buffer.subarray(0, 6).toString() === "GIF87a" || buffer.subarray(0, 6).toString() === "GIF89a";
+  if (contentType === "video/webm") return buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
+  if (contentType === "video/mp4" || contentType === "video/quicktime") return buffer.subarray(4, 8).toString() === "ftyp";
+  return false;
+}
+
+function assertRequestSize(req: Request, maxBytes: number, message: string) {
+  const declaredLength = Number(req.headers["content-length"]);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes + 1024 * 1024) {
+    throw new Error(message);
+  }
+}
+
+function assertAllowedFile(buffer: Buffer, contentType: string, message: string) {
+  if (!hasFileSignature(buffer, contentType)) throw new Error(message);
+}
+
 export async function readMultipartMedia(
   req: Request,
   kind: "image" | "video",
@@ -155,6 +179,7 @@ export async function readMultipartMedia(
   const allowed = isImage
     ? "Only JPG, PNG, WEBP, and GIF images are allowed"
     : "Only MP4, WEBM, and MOV videos are allowed";
+  assertRequestSize(req, maxBytes, isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
   const contentType = req.headers["content-type"] ?? "";
   const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
   if (!boundaryMatch) throw new Error(`A multipart ${label} file is required`);
@@ -193,6 +218,7 @@ export async function readMultipartMedia(
   if (fileBuffer.length === 0 || fileBuffer.length > maxBytes) {
     throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
   }
+  assertAllowedFile(fileBuffer, partType, allowed);
 
   return { buffer: fileBuffer, contentType: partType, originalName: nameMatch[1] };
 }
@@ -208,6 +234,7 @@ export async function readMultipartVideo(req: Request): Promise<UploadedVideo> {
 export async function readMultipartForm(req: Request, kind: "image" | "video") {
   const isImage = kind === "image";
   const maxBytes = isImage ? MAX_IMAGE_UPLOAD_BYTES : MAX_VIDEO_UPLOAD_BYTES;
+  assertRequestSize(req, maxBytes, isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
   const contentType = req.headers["content-type"] ?? "";
   const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
   if (!boundaryMatch) throw new Error(`A multipart ${isImage ? "image" : "video"} file is required`);
@@ -244,6 +271,7 @@ export async function readMultipartForm(req: Request, kind: "image" | "video") {
         throw new Error(isImage ? "Only JPG, PNG, WEBP, and GIF images are allowed" : "Only MP4, WEBM, and MOV videos are allowed");
       }
       if (content.length === 0 || content.length > maxBytes) throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
+      assertAllowedFile(content, partType, isImage ? "Only JPG, PNG, WEBP, and GIF images are allowed" : "Only MP4, WEBM, and MOV videos are allowed");
       media = { buffer: content, contentType: partType, originalName: fileName };
     } else if (fieldName) {
       fields[fieldName] = content.toString("utf8");
@@ -256,11 +284,32 @@ export async function readMultipartForm(req: Request, kind: "image" | "video") {
 
 export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog") {
   const extension = MIME_EXTENSIONS[media.contentType];
+  if (!extension) throw new Error("Unsupported uploaded media type");
+  if (!/^(?:catalog|sketch)$/.test(prefix)) throw new Error("Invalid upload prefix");
+  if (!PUBLIC_UPLOAD_ORIGIN && process.env["NODE_ENV"] === "production") {
+    throw new Error("PUBLIC_UPLOAD_ORIGIN must be configured in production");
+  }
   const version = Date.now().toString(36);
   const token = randomBytes(8).toString("hex");
   const filename = `${prefix}-${version}-${token}.${extension}`;
+  const safeFilename = path.basename(filename);
+  if (safeFilename !== filename || !MANAGED_FILENAME.test(safeFilename)) {
+    throw new Error("Invalid upload filename");
+  }
   await mkdir(UPLOAD_DIR, { recursive: true });
-  await writeFile(path.join(UPLOAD_DIR, filename), media.buffer, { flag: "wx" });
+  const uploadRoot = path.resolve(UPLOAD_DIR);
+  const filePath = path.resolve(uploadRoot, safeFilename);
+  if (!filePath.startsWith(`${uploadRoot}${path.sep}`)) throw new Error("Invalid upload filename");
+  const fileUrl = new URL(safeFilename, pathToFileURL(`${uploadRoot}${path.sep}`));
+  const handle = await open(fileUrl,
+    constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
+    0o600,
+  );
+  try {
+    await handle.writeFile(media.buffer);
+  } finally {
+    await handle.close();
+  }
 
   return {
     filename,
@@ -268,7 +317,7 @@ export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog"
     size: media.buffer.length,
     originalName: media.originalName,
     version,
-    url: `${PUBLIC_UPLOAD_ORIGIN.replace(/\/$/, "")}/${filename}?v=${version}`,
+    url: `${(PUBLIC_UPLOAD_ORIGIN || "/api/uploads").replace(/\/$/, "")}/${filename}?v=${version}`,
   };
 }
 

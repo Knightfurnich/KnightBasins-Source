@@ -162,6 +162,27 @@ export const customerSessions = pgTable(
   ],
 );
 
+export const customerProfileUpdateConfirmations = pgTable(
+  "customer_profile_update_confirmations",
+  {
+    id: serial("id").primaryKey(),
+    accountId: integer("account_id").notNull(),
+    fields: jsonb("fields").notNull(),
+    comparison: jsonb("comparison").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("customer_profile_update_confirmations_account_id_unique").on(table.accountId),
+    index("customer_profile_update_confirmations_expires_at_idx").on(table.expiresAt),
+    foreignKey({
+      columns: [table.accountId],
+      foreignColumns: [customerAccounts.id],
+      name: "customer_profile_update_confirmations_account_id_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
 export const supportProfileUpdates = pgTable(
   "support_profile_updates",
   {
@@ -199,6 +220,7 @@ export const customerLeads = pgTable(
     notes: text("notes"),
     productSkus: text("product_skus").array().default(sql`ARRAY[]::text[]`).notNull(),
     quoteNumber: varchar("quote_number", { length: 64 }),
+    quoteAccessSecret: varchar("quote_access_secret", { length: 64 }),
     studioData: jsonb("studio_data"),
     sketchUrl: text("sketch_url"),
     customerAccountId: integer("customer_account_id"),
@@ -231,5 +253,7 @@ export type InstalledStonePrice = typeof installedStonePrices.$inferSelect;
 export type SheetStonePrice = typeof sheetStonePrices.$inferSelect;
 export type CustomerAccount = typeof customerAccounts.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
+
+export type CustomerProfileUpdateConfirmation = typeof customerProfileUpdateConfirmations.$inferSelect;
 export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;
 export type CustomerLead = typeof customerLeads.$inferSelect;

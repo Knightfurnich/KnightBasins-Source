@@ -439,14 +439,15 @@ paths:
     get:
       operationId: getSavedQuote
       tags: [quotes]
-      summary: Get a saved studio quotation by quote number
+      summary: Get a saved studio quotation by signed public token
       parameters:
-        - name: quoteNumber
+        - name: token
           in: query
           required: true
           schema:
             type: string
-            maxLength: 64
+            minLength: 32
+            maxLength: 512
       responses:
         "200":
           description: Saved quotation
@@ -923,6 +924,7 @@ components:
           type: array
           items: { type: string }
         quoteNumber: { type: [string, "null"] }
+        publicQuoteToken: { type: [string, "null"] }
         orderMode:
           type: string
           enum: [quick-purchase, studio, sketch]
@@ -934,9 +936,9 @@ components:
         updatedAt: { type: string, format: date-time }
     NotifyQuoteInput:
       type: object
-      required: [quoteNumber]
+      required: [token]
       properties:
-        quoteNumber: { type: string, maxLength: 64 }
+        token: { type: string, minLength: 32, maxLength: 512 }
     QuoteNotificationResponse:
       type: object
       required: [notificationStatus, message]

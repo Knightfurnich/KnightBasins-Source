@@ -584,10 +584,10 @@ function StudioLayoutSnapshot({ state, quoteNumber, language = "TH" }: { state: 
 
 function SavedQuotePage() {
   const [location, setLocation] = useLocation();
-  const quoteNumber = new URLSearchParams(window.location.search).get("quote") ?? "";
+  const publicQuoteToken = new URLSearchParams(window.location.search).get("token") ?? "";
   const { data: lead, isLoading, error } = useGetSavedQuote(
-    { quoteNumber },
-    { query: { enabled: Boolean(quoteNumber), retry: false, queryKey: ["saved-quote", quoteNumber] } },
+    { token: publicQuoteToken },
+    { query: { enabled: Boolean(publicQuoteToken), retry: false, queryKey: ["saved-quote", publicQuoteToken] } },
   );
   const [copied, setCopied] = useState(false);
   const [language, setLanguage] = useState<QuoteLanguage>("TH");
@@ -604,8 +604,8 @@ function SavedQuotePage() {
     return () => window.clearTimeout(timer);
   }, [shouldPrint, lead?.quoteNumber]);
 
-  if (!quoteNumber) {
-    return <div className="page-wrap empty-state"><span className="empty-number">—</span><h3>ไม่พบเลขที่ใบเสนอราคา</h3><Link href="/quote" className="text-link">กลับไปสร้างใบเสนอราคา <ArrowRight size={15} /></Link></div>;
+  if (!publicQuoteToken) {
+    return <div className="page-wrap empty-state"><span className="empty-number">—</span><h3>ไม่พบลิงก์ใบเสนอราคา</h3><p>ต้องใช้ลิงก์สาธารณะที่ลงลายมือชื่อแล้วเพื่อเปิดเอกสารนี้</p><Link href="/quote" className="text-link">กลับไปสร้างใบเสนอราคา <ArrowRight size={15} /></Link></div>;
   }
   if (isLoading) {
     return <div className="page-wrap empty-state" data-testid="status-saved-quote-loading"><span className="empty-number">…</span><h3>กำลังเปิดใบเสนอราคา</h3><p>กำลังโหลดแบบและตัวเลขที่บันทึกไว้</p></div>;
@@ -755,7 +755,7 @@ function SavedQuotePage() {
      vat = saved.notification?.vat ?? Boolean(state.vat);
      lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nชิ้นงาน ${estimate.pieceCount ?? 1} ชิ้น · บัว ${estimate.upstandLengthM?.toFixed(2) ?? "0.00"} ม. · ขอบ ${estimate.openEdgeLengthM?.toFixed(2) ?? "0.00"} ม.\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
   }
-  const savedQuoteNumber = lead.quoteNumber ?? quoteNumber;
+  const savedQuoteNumber = lead.quoteNumber ?? "saved-quote";
   const printSavedQuote = () => {
     const previousTitle = document.title;
     const cleanup = () => {
@@ -774,7 +774,7 @@ function SavedQuotePage() {
   const sendNotification = async () => {
     setNotificationMessage("กำลังส่งแจ้งเตือน...");
     try {
-      const result = await notifyMutation.mutateAsync({ data: { quoteNumber: savedQuoteNumber } });
+      const result = await notifyMutation.mutateAsync({ data: { token: publicQuoteToken } });
       setNotificationMessage(result.message);
     } catch (error) {
       setNotificationMessage(error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่");
@@ -1104,24 +1104,24 @@ function Storefront() {
       orderMode: "quick-purchase",
       studioData: snapshot,
     });
-    if (!lead.quoteNumber) throw new Error("ระบบยังไม่ได้สร้างเลขที่ใบเสนอราคา");
+    if (!lead.quoteNumber || !lead.publicQuoteToken) throw new Error("ระบบยังไม่ได้สร้างลิงก์ใบเสนอราคา");
     let notificationMessage = "";
     if (notify) {
       try {
-        const result = await notifyQuoteMutation.mutateAsync({ data: { quoteNumber: lead.quoteNumber } });
+        const result = await notifyQuoteMutation.mutateAsync({ data: { token: lead.publicQuoteToken } });
         notificationMessage = result.message;
       } catch (error) {
         notificationMessage = error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่";
       }
     }
     const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
-    setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}${notificationQuery}`);
+    setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}${notificationQuery}`);
   };
   const submitStudio = async ({ state, estimate, contact, notification }: StudioSubmission) => {
     setCustomer((current) => ({ ...current, ...contact }));
     const lead = await syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification } });
-    if (!lead.quoteNumber) throw new Error("ระบบยังไม่ได้สร้างเลขที่ใบเสนอราคา");
-    setLocation(`/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`);
+    if (!lead.quoteNumber || !lead.publicQuoteToken) throw new Error("ระบบยังไม่ได้สร้างลิงก์ใบเสนอราคา");
+    setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}`);
   };
   return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }

@@ -32,6 +32,11 @@ import {
 } from "../middlewares/admin-auth";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
 import {
+  createQuoteAccessSecret,
+  publicQuoteTokenForLead,
+} from "../lib/quote-access";
+import { createRateLimiter, createConcurrencyLimiter } from "../lib/rate-limit";
+import {
   cleanupUnreferencedUploadedImages,
   readMultipartImage,
   readMultipartVideo,
@@ -83,12 +88,15 @@ function isDuplicateCategory(error: unknown) {
 
 export function createAdminRouter(database: AdminDatabase): IRouter {
   const router: IRouter = Router();
+  const adminLoginRateLimit = createRateLimiter({ name: "admin-login", max: 5, windowMs: 60 * 1000 });
+  const uploadRateLimit = createRateLimiter({ name: "admin-upload", max: 20, windowMs: 10 * 60 * 1000 });
+  const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
 
   router.get("/admin/session", (req, res) => {
     res.json({ authenticated: isAdminTokenValid(req.cookies?.[COOKIE_NAME]) });
   });
 
-  router.post("/admin/session", (req, res) => {
+  router.post("/admin/session", adminLoginRateLimit, (req, res) => {
     const parsed = CreateAdminSessionBody.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid login", parsed.error.flatten());
     if (!process.env["ADMIN_PASSWORD"]) {
@@ -111,7 +119,20 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
   router.get("/admin/leads", async (_req, res, next) => {
     try {
       const leads = await database.select().from(customerLeads).orderBy(desc(customerLeads.updatedAt), desc(customerLeads.id));
-      return res.json(leads);
+      const hydrated = await Promise.all(leads.map(async (lead: any) => {
+        if (!lead.quoteNumber || lead.quoteAccessSecret) return lead;
+        const quoteAccessSecret = createQuoteAccessSecret();
+        const [updated] = await database
+          .update(customerLeads)
+          .set({ quoteAccessSecret, updatedAt: new Date() })
+          .where(eq(customerLeads.id, lead.id))
+          .returning();
+        return updated ?? { ...lead, quoteAccessSecret };
+      }));
+      return res.json(hydrated.map((lead: any) => ({
+        ...lead,
+        publicQuoteToken: publicQuoteTokenForLead(lead),
+      })));
     } catch (error) {
       return next(error);
     }
@@ -133,7 +154,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.post("/admin/upload", async (req, res, next) => {
+  router.post("/admin/upload", uploadRateLimit, uploadConcurrency, async (req, res, next) => {
     try {
       const image = await readMultipartImage(req);
       return res.status(201).json(await saveUploadedImage(image));
@@ -145,7 +166,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.post("/admin/upload/video", async (req, res, next) => {
+  router.post("/admin/upload/video", uploadRateLimit, uploadConcurrency, async (req, res, next) => {
     try {
       const video = await readMultipartVideo(req);
       return res.status(201).json(await saveUploadedVideo(video));

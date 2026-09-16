@@ -64,8 +64,8 @@ export function filterAdminLeads(
   );
 }
 
-export function adminQuoteUrl(quoteNumber: string, origin = window.location.origin) {
+export function adminQuoteUrl(publicQuoteToken: string, origin = window.location.origin) {
   const url = new URL("/quote/view", origin);
-  url.searchParams.set("quote", quoteNumber);
+  url.searchParams.set("token", publicQuoteToken);
   return url.toString();
 }

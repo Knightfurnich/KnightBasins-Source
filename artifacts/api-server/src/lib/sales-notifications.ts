@@ -277,9 +277,7 @@ export async function notifySketch(
   const photoUrl = publicUrl(origin, photoPath);
   const quoteUrl = quotePath
     ? publicUrl(origin, quotePath)
-    : lead.quoteNumber
-      ? publicUrl(origin, `/quote/view?quote=${encodeURIComponent(lead.quoteNumber)}`)
-      : "";
+    : "";
   const caption = quoteSummary(lead, quoteUrl, "มีแบบร่างใหม่");
   if (configuredChannel() === "telegram") {
     const button = quoteUrl

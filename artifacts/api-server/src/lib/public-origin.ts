@@ -22,6 +22,9 @@ function configuredPublicOrigin() {
 export function requestOrigin(req: OriginRequest) {
   const configured = configuredPublicOrigin();
   if (configured) return configured;
+  if (process.env["NODE_ENV"] === "production") {
+    throw new Error("PUBLIC_APP_ORIGIN or PUBLIC_UPLOAD_ORIGIN must be configured in production");
+  }
 
   const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const protocol = process.env["NODE_ENV"] === "production"

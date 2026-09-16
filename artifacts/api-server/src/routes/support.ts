@@ -14,6 +14,7 @@ import {
   type SupportProfileFields,
 } from "../lib/support-profile";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
+import { createRateLimiter } from "../lib/rate-limit";
 
 const router: IRouter = Router();
 
@@ -134,7 +135,7 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
   });
 }
 
-router.post("/support/chat", async (req, res, next) => {
+ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, windowMs: 60 * 1000 }), async (req, res, next) => {
   const message = cleanMessage(req.body?.message);
   if (!message) {
     res.status(400).json({ message: "กรุณาพิมพ์คำถามก่อนส่ง" });
