@@ -1,15 +1,32 @@
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import { after, before, describe, it, mock } from "node:test";
+import crypto from "node:crypto";
+import fsPromises from "node:fs/promises";
 import { mkdtemp, readFile, readdir, rm, utimes, writeFile } from "node:fs/promises";
+import { syncBuiltinESMExports } from "node:module";
 import path from "node:path";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "node:url";
+import { MAX_IMAGE_UPLOAD_BYTES } from "../src/lib/image-upload.ts";
 import { createAdminToken } from "../src/middlewares/admin-auth.ts";
 import { importTypeScriptModule } from "./route-harness.ts";
 
 type AdminRouteModule = {
   createAdminRouter: (database: unknown) => Parameters<typeof express["use"]>[1];
+};
+
+type UploadModule = {
+  saveUploadedImage: (image: {
+    buffer: Buffer;
+    contentType: string;
+    originalName: string;
+  }) => Promise<UploadResponse>;
+  saveUploadedVideo: (video: {
+    buffer: Buffer;
+    contentType: string;
+    originalName: string;
+  }) => Promise<UploadResponse>;
 };
 
 type UploadResponse = {
@@ -31,6 +48,9 @@ const ORIGINAL_ENV = {
 
 const adminRoute = fileURLToPath(
   new URL("../src/routes/admin-router.ts", import.meta.url),
+);
+const uploadModule = fileURLToPath(
+  new URL("../src/lib/image-upload.ts", import.meta.url),
 );
 const uploadOrigin = "https://uploads.example.test/catalog";
 let uploadDirectory = "";
@@ -72,9 +92,19 @@ function cleanupDatabase(
 async function startAdminRoute(database: unknown) {
   const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
   const app = express();
+  const errors: unknown[] = [];
   app.use(cookieParser());
   app.use(express.json());
   app.use("/api", routeModule.createAdminRouter(database));
+  app.use((
+    error: unknown,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    errors.push(error);
+    res.status(500).json({ message: "Internal server error" });
+  });
   const server = await new Promise<ReturnType<typeof app.listen>>(
     (resolve, reject) => {
       const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
@@ -90,6 +120,7 @@ async function startAdminRoute(database: unknown) {
 
   return {
     url: `http://127.0.0.1:${address.port}`,
+    errors,
     close: () =>
       new Promise<void>((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),
@@ -200,6 +231,275 @@ describe("protected admin image upload route", () => {
     }
   });
 
+  it("removes a newly created file when the storage write fails", async () => {
+    const { saveUploadedImage } =
+      await importTypeScriptModule<UploadModule>(uploadModule);
+    const filesBefore = await readdir(uploadDirectory);
+    const writeError = new Error("simulated storage write failure");
+    const originalOpen = fsPromises.open;
+    let filesAtWriteFailure: string[] | undefined;
+    const openMock = mock.method(
+      fsPromises,
+      "open",
+      async (...args: Parameters<typeof fsPromises.open>) => {
+        const handle = await originalOpen(...args);
+        filesAtWriteFailure = await readdir(uploadDirectory);
+
+        return new Proxy(handle, {
+          get(target, property, receiver) {
+            if (property === "writeFile") {
+              return async () => {
+                throw writeError;
+              };
+            }
+            return Reflect.get(target, property, receiver);
+          },
+        });
+      },
+    );
+    syncBuiltinESMExports();
+
+    try {
+      await assert.rejects(
+        saveUploadedImage({
+          buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+          contentType: "image/png",
+          originalName: "failed-write.png",
+        }),
+        (error) => {
+          assert.strictEqual(error, writeError);
+          return true;
+        },
+      );
+      assert.equal(filesAtWriteFailure?.length, filesBefore.length + 1);
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      openMock.mock.restore();
+      syncBuiltinESMExports();
+    }
+  });
+
+  it("removes a newly created video file when the storage write fails", async () => {
+    const { saveUploadedVideo } =
+      await importTypeScriptModule<UploadModule>(uploadModule);
+    const filesBefore = await readdir(uploadDirectory);
+    const writeError = new Error("simulated video storage write failure");
+    const originalOpen = fsPromises.open;
+    let filesAtWriteFailure: string[] | undefined;
+    const openMock = mock.method(
+      fsPromises,
+      "open",
+      async (...args: Parameters<typeof fsPromises.open>) => {
+        const handle = await originalOpen(...args);
+        filesAtWriteFailure = await readdir(uploadDirectory);
+
+        return new Proxy(handle, {
+          get(target, property, receiver) {
+            if (property === "writeFile") {
+              return async () => {
+                throw writeError;
+              };
+            }
+            return Reflect.get(target, property, receiver);
+          },
+        });
+      },
+    );
+    syncBuiltinESMExports();
+
+    try {
+      await assert.rejects(
+        saveUploadedVideo({
+          buffer: Buffer.from([
+            0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70,
+            0x34, 0x32,
+          ]),
+          contentType: "video/mp4",
+          originalName: "failed-write.mp4",
+        }),
+        (error) => {
+          assert.strictEqual(error, writeError);
+          return true;
+        },
+      );
+      assert.equal(filesAtWriteFailure?.length, filesBefore.length + 1);
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      openMock.mock.restore();
+      syncBuiltinESMExports();
+    }
+  });
+
+  it("returns a server error and cleans up when the video route storage write fails", async () => {
+    const filesBefore = await readdir(uploadDirectory);
+    const writeError = new Error("simulated video route storage write failure");
+    const originalOpen = fsPromises.open;
+    let filesAtWriteFailure: string[] | undefined;
+    const openMock = mock.method(
+      fsPromises,
+      "open",
+      async (...args: Parameters<typeof fsPromises.open>) => {
+        const handle = await originalOpen(...args);
+        filesAtWriteFailure = await readdir(uploadDirectory);
+
+        return new Proxy(handle, {
+          get(target, property, receiver) {
+            if (property === "writeFile") {
+              return async () => {
+                throw writeError;
+              };
+            }
+            return Reflect.get(target, property, receiver);
+          },
+        });
+      },
+    );
+    syncBuiltinESMExports();
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/upload/video`, {
+        method: "POST",
+        headers: { cookie },
+        body: videoFormData("failed-route-write.mp4"),
+      });
+
+      assert.equal(response.status, 500);
+      assert.deepEqual(await response.json(), {
+        message: "Internal server error",
+      });
+      assert.strictEqual(server.errors.at(-1), writeError);
+      assert.equal(filesAtWriteFailure?.length, filesBefore.length + 1);
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      await server.close();
+      openMock.mock.restore();
+      syncBuiltinESMExports();
+    }
+  });
+
+  it("returns a server error and cleans up when the image route storage write fails", async () => {
+    const filesBefore = await readdir(uploadDirectory);
+    const writeError = new Error("simulated image route storage write failure");
+    const originalOpen = fsPromises.open;
+    let filesAtWriteFailure: string[] | undefined;
+    const openMock = mock.method(
+      fsPromises,
+      "open",
+      async (...args: Parameters<typeof fsPromises.open>) => {
+        const handle = await originalOpen(...args);
+        filesAtWriteFailure = await readdir(uploadDirectory);
+
+        return new Proxy(handle, {
+          get(target, property, receiver) {
+            if (property === "writeFile") {
+              return async () => {
+                throw writeError;
+              };
+            }
+            return Reflect.get(target, property, receiver);
+          },
+        });
+      },
+    );
+    syncBuiltinESMExports();
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: { cookie },
+        body: imageFormData("failed-route-write.png"),
+      });
+
+      assert.equal(response.status, 500);
+      assert.deepEqual(await response.json(), {
+        message: "Internal server error",
+      });
+      assert.strictEqual(server.errors.at(-1), writeError);
+      assert.equal(filesAtWriteFailure?.length, filesBefore.length + 1);
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      await server.close();
+      openMock.mock.restore();
+      syncBuiltinESMExports();
+    }
+  });
+
+  it("rejects a filename collision without replacing the existing image", async () => {
+    const now = 1_758_000_000_000;
+    const fixedToken = Buffer.alloc(8, 0xab);
+    const dateMock = mock.method(Date, "now", () => now);
+    const randomBytesMock = mock.method(crypto, "randomBytes", () => fixedToken);
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    const existingBytes = Buffer.from("existing catalog photo");
+    const replacementBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01,
+    ]);
+    const filename = `catalog-${now.toString(36)}-${fixedToken.toString("hex")}.png`;
+
+    try {
+      await writeFile(path.join(uploadDirectory, filename), existingBytes);
+      const response = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: { cookie },
+        body: imageFormData("replacement.png", "image/png", replacementBytes),
+      });
+
+      assert.equal(response.status, 409);
+      assert.match((await response.json()).message, /already exists/i);
+      assert.deepEqual(
+        await readFile(path.join(uploadDirectory, filename)),
+        existingBytes,
+      );
+    } finally {
+      await server.close();
+      await rm(path.join(uploadDirectory, filename), { force: true });
+      randomBytesMock.mock.restore();
+      dateMock.mock.restore();
+    }
+  });
+
+  it("rejects a video filename collision without replacing the existing video", async () => {
+    const now = 1_758_000_000_000;
+    const fixedToken = Buffer.alloc(8, 0xcd);
+    const dateMock = mock.method(Date, "now", () => now);
+    const randomBytesMock = mock.method(crypto, "randomBytes", () => fixedToken);
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    const existingBytes = Buffer.from("existing catalog video");
+    const replacementBytes = Buffer.from([
+      0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32,
+    ]);
+    const filename = `catalog-${now.toString(36)}-${fixedToken.toString("hex")}.mp4`;
+
+    try {
+      await writeFile(path.join(uploadDirectory, filename), existingBytes);
+      const filesBefore = await readdir(uploadDirectory);
+      const response = await fetch(`${server.url}/api/admin/upload/video`, {
+        method: "POST",
+        headers: { cookie },
+        body: videoFormData("replacement.mp4", "video/mp4", replacementBytes),
+      });
+
+      assert.equal(response.status, 409);
+      assert.match((await response.json()).message, /already exists/i);
+      assert.deepEqual(
+        await readFile(path.join(uploadDirectory, filename)),
+        existingBytes,
+      );
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      await server.close();
+      await rm(path.join(uploadDirectory, filename), { force: true });
+      randomBytesMock.mock.restore();
+      dateMock.mock.restore();
+    }
+  });
+
   it("returns a client error for malformed or unsupported multipart input", async () => {
     const server = await startAdminRoute({});
     const cookie = `knight_admin_session=${createAdminToken()}`;
@@ -236,6 +536,33 @@ describe("protected admin image upload route", () => {
       assert.deepEqual(await readdir(uploadDirectory), filesBefore);
     } finally {
       await server.close();
+    }
+  });
+
+  it("rejects an oversized image without creating an upload file", async () => {
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    const existingFile = "existing-upload.txt";
+    await writeFile(path.join(uploadDirectory, existingFile), "keep this file");
+    const filesBefore = await readdir(uploadDirectory);
+    const oversizedImage = Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      Buffer.alloc(MAX_IMAGE_UPLOAD_BYTES),
+    ]);
+
+    try {
+      const response = await fetch(`${server.url}/api/admin/upload`, {
+        method: "POST",
+        headers: { cookie },
+        body: imageFormData("too-large.png", "image/png", oversizedImage),
+      });
+
+      assert.equal(response.status, 400);
+      assert.match((await response.json()).message, /Image is too large/i);
+      assert.deepEqual(await readdir(uploadDirectory), filesBefore);
+    } finally {
+      await server.close();
+      await rm(path.join(uploadDirectory, existingFile), { force: true });
     }
   });
 
