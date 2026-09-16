@@ -15,4 +15,16 @@ describe("KnightSupport conversational replies", () => {
   it("keeps casual questions friendly and on topic", () => {
     assert.match(getSupportIntentReply("ไปเที่ยวกันมั้ย") ?? "", /ผู้ช่วยข้อมูลสินค้า/);
   });
+
+  it("explains why a formal quote may not be generated", () => {
+    const reply = getSupportIntentReply("กดออกใบเสนอราคาไม่ได้ ต้องทำอย่างไร");
+    assert.match(reply ?? "", /ชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ/);
+    assert.match(reply ?? "", /พาไปยังช่องแรก/);
+  });
+
+  it("explains the main Knight Basins customer flow", () => {
+    const reply = getSupportIntentReply("วิธีใช้งานเว็บไซต์ทำอย่างไร");
+    assert.match(reply ?? "", /เลือกอ่างหรือหิน/);
+    assert.match(reply ?? "", /ออกใบเสนอราคาทางการ/);
+  });
 });

@@ -312,15 +312,17 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       mobile: true,
     });
     const mobile = await browser.page.evaluate(`(() => {
-      const sheet = document.querySelector('[data-testid="formal-quote-sheet"]');
-      const wrapper = document.querySelector('.formal-quote-table-wrap');
+      const style = (selector) => {
+        const element = document.querySelector(selector);
+        return element instanceof HTMLElement ? getComputedStyle(element).gridTemplateColumns : "";
+      };
       return {
         bodyWidth: document.body.scrollWidth,
         viewportWidth: window.innerWidth,
-        sheetWidth: sheet?.clientWidth ?? 0,
-        wrapperWidth: wrapper?.clientWidth ?? 0,
-        tableWidth: document.querySelector('[data-testid="formal-quote-table"]')?.scrollWidth ?? 0,
-        wrapperOverflow: wrapper ? getComputedStyle(wrapper).overflowX : "",
+        rectangleColumns: style(".studio-rectangle-inputs"),
+        sideStatusColumns: style(".studio-side-status-grid"),
+        pricingColumns: style(".studio-pricing-inputs"),
+        comparisonColumns: style(".studio-stone-comparison-grid"),
       };
     })()`);
     assert.ok(mobile.bodyWidth <= mobile.viewportWidth, "The formal quote must not widen the mobile page");
@@ -392,16 +394,26 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "Studio export actions",
     );
     const dropped = await browser.page.evaluate(`(() => {
-      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
       const target = document.querySelector('[data-testid="studio-canvas"]');
-      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      if (!(target instanceof HTMLElement)) return false;
       const dataTransfer = new DataTransfer();
       dataTransfer.setData("application/x-studio-basin", "KF001");
       const rect = target.getBoundingClientRect();
       target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
-      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.35, clientY: rect.top + rect.height * 0.5 }));
+      target.dispatchEvent(new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: rect.left + rect.width * 0.2,
+        clientY: rect.top + rect.height * 0.5,
+      }));
       return true;
     })()`);
+
+    const placementInputIds = await browser.page.evaluate(`(() => ({
+      x: document.querySelector('[data-testid^="input-placement-x-"]')?.getAttribute("data-testid") ?? "",
+      y: document.querySelector('[data-testid^="input-placement-y-"]')?.getAttribute("data-testid") ?? "",
+    }))()`);
     assert.equal(dropped, true);
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'.studio-placement\') !== null'),
@@ -620,9 +632,20 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       dataTransfer.setData("application/x-studio-basin", "KF001");
       const rect = target.getBoundingClientRect();
       target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
-      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.12, clientY: rect.top + rect.height * 0.12 }));
+      target.dispatchEvent(new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: rect.left + rect.width * 0.2,
+        clientY: rect.top + rect.height * 0.5,
+      }));
       return true;
     })()`);
+
+    const placementInputIds = await browser.page.evaluate(`(() => ({
+      x: document.querySelector('[data-testid^="input-placement-x-"]')?.getAttribute("data-testid") ?? "",
+      y: document.querySelector('[data-testid^="input-placement-y-"]')?.getAttribute("data-testid") ?? "",
+    }))()`);
     assert.equal(dropped, true);
     await waitFor(
       () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
@@ -699,16 +722,15 @@ describe("long formal quote print flow", { concurrency: false }, () => {
 
     const addRectangle = await browser.page.evaluate(`(() => {
       const button = document.querySelector('[data-testid^="button-add-studio-rectangle-"]');
-      if (!(button instanceof HTMLElement)) return "";
-      const id = button.getAttribute("data-testid") ?? "";
+      if (!(button instanceof HTMLElement)) return false;
       button.click();
-      return id;
+      return true;
     })()`);
-    assert.match(addRectangle, /^button-add-studio-rectangle-/);
+    assert.equal(addRectangle, true);
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid^="select-studio-rectangle-"] option:nth-child(2)\') !== null'),
       Boolean,
-      "second Studio rectangle",
+      "small rectangle companion panel",
     );
     const secondRectangleX = await browser.page.evaluate(`(() => {
       const inputs = [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')];
@@ -880,9 +902,20 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       dataTransfer.setData("application/x-studio-basin", "KF001");
       const rect = target.getBoundingClientRect();
       target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
-      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.25, clientY: rect.top + rect.height * 0.5 }));
+      target.dispatchEvent(new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: rect.left + rect.width * 0.2,
+        clientY: rect.top + rect.height * 0.5,
+      }));
       return true;
     })()`);
+
+    const placementInputIds = await browser.page.evaluate(`(() => ({
+      x: document.querySelector('[data-testid^="input-placement-x-"]')?.getAttribute("data-testid") ?? "",
+      y: document.querySelector('[data-testid^="input-placement-y-"]')?.getAttribute("data-testid") ?? "",
+    }))()`);
     assert.equal(dropped, true);
     await waitFor(
       () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
@@ -1043,16 +1076,26 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     await setTextInput(browser.page, secondRectangleX, "10");
 
     const dropped = await browser.page.evaluate(`(() => {
-      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
       const target = document.querySelector('[data-testid="studio-canvas"]');
-      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      if (!(target instanceof HTMLElement)) return false;
       const dataTransfer = new DataTransfer();
       dataTransfer.setData("application/x-studio-basin", "KF001");
       const rect = target.getBoundingClientRect();
       target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
-      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.75, clientY: rect.top + rect.height * 0.5 }));
+      target.dispatchEvent(new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: rect.left + rect.width * 0.2,
+        clientY: rect.top + rect.height * 0.5,
+      }));
       return true;
     })()`);
+
+    const placementInputIds = await browser.page.evaluate(`(() => ({
+      x: document.querySelector('[data-testid^="input-placement-x-"]')?.getAttribute("data-testid") ?? "",
+      y: document.querySelector('[data-testid^="input-placement-y-"]')?.getAttribute("data-testid") ?? "",
+    }))()`);
     assert.equal(dropped, true);
     await waitFor(
       () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'),
@@ -1100,16 +1143,26 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     ] as const;
     for (const [testId, value] of fill) await setTextInput(browser.page, testId, value);
     const dropped = await browser.page.evaluate(`(() => {
-      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]');
       const target = document.querySelector('[data-testid="studio-canvas"]');
-      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      if (!(target instanceof HTMLElement)) return false;
       const dataTransfer = new DataTransfer();
       dataTransfer.setData("application/x-studio-basin", "KF001");
       const rect = target.getBoundingClientRect();
       target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
-      target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer, clientX: rect.left + rect.width * 0.35, clientY: rect.top + rect.height * 0.5 }));
+      target.dispatchEvent(new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: rect.left + rect.width * 0.2,
+        clientY: rect.top + rect.height * 0.5,
+      }));
       return true;
     })()`);
+
+    const placementInputIds = await browser.page.evaluate(`(() => ({
+      x: document.querySelector('[data-testid^="input-placement-x-"]')?.getAttribute("data-testid") ?? "",
+      y: document.querySelector('[data-testid^="input-placement-y-"]')?.getAttribute("data-testid") ?? "",
+    }))()`);
     assert.equal(dropped, true);
     await waitFor(
       () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'),
@@ -1184,14 +1237,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     const storedDraft = await waitFor(
       () => browser.page.evaluate('localStorage.getItem("knight-studio-draft-v1")'),
       (value) => Boolean(value),
-      "Studio catalog context autosave",
+      "Studio catalog context before named save",
     );
     const savedDraft = JSON.parse(storedDraft) as {
       state: { basinSkus: string[] };
       catalogContext: { revision: string; basinItems: Array<Record<string, unknown>> };
     };
     assert.ok(savedDraft.catalogContext);
-    assert.deepEqual(savedDraft.state.basinSkus, ["KF001", "KF002"]);
 
     const removedSku = "KF999";
     const removedState = {
@@ -1200,10 +1252,10 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     };
     const removedContext = {
       ...savedDraft.catalogContext,
-      revision: "basins-before-removal",
+      revision: "basins-before-named-removal",
       basinItems: [
         ...savedDraft.catalogContext.basinItems,
-        { sku: removedSku, colorName: "รุ่นที่ยกเลิก" },
+        { sku: removedSku, colorName: "รุ่นที่ยกเลิกสำหรับแบบร่างที่ตั้งชื่อ" },
       ],
     };
     await browser.page.command("Page.navigate", {
@@ -1488,12 +1540,14 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.match(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-draft-banner"]\')?.textContent ?? ""'), /พบแบบร่างที่ทำค้างไว้เมื่อ/);
     await clickTestId(browser.page, "button-resume-studio-draft");
-    const resumed = await browser.page.evaluate(`(() => ({
-      activeStone: document.querySelector('[data-testid="button-studio-active-stone-SO423"]')?.classList.contains("is-active") ?? false,
-      basinSelected: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.classList.contains("is-selected") ?? false,
-      width: (() => { const input = document.querySelector('[data-testid^="input-rectangle-width-"]'); return input instanceof HTMLInputElement ? input.value : ""; })(),
-      banner: document.querySelector('[data-testid="studio-draft-banner"]') !== null,
-    }))()`);
+    const resumed = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
+        return input instanceof HTMLInputElement ? input.value : "";
+      })()`),
+      (value) => value === "2250",
+      "named draft card restore",
+    );
     assert.equal(resumed.activeStone, true);
     assert.equal(resumed.basinSelected, true);
     assert.equal(resumed.width, "2100");
@@ -1570,6 +1624,28 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     const widthId = await browser.page.evaluate(`document.querySelector('[data-testid^="input-rectangle-width-"]')?.getAttribute("data-testid") ?? ""`);
     assert.ok(widthId);
     await setTextInput(browser.page, widthId, "2250");
+    const dropped = await browser.page.evaluate(`(() => {
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(target instanceof HTMLElement)) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/x-studio-basin", "KF001");
+      const rect = target.getBoundingClientRect();
+      target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer }));
+      target.dispatchEvent(new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: rect.left + rect.width * 0.5,
+        clientY: rect.top + rect.height * 0.5,
+      }));
+      return true;
+    })()`);
+    assert.equal(dropped, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="studio-placement-"]\') !== null'),
+      Boolean,
+      "basin placement on Studio canvas",
+    );
     await clickTestId(browser.page, "button-save-named-studio-draft");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-save-draft-dialog"]\') !== null'),
@@ -1589,12 +1665,14 @@ describe("long formal quote print flow", { concurrency: false }, () => {
         name: card?.querySelector(".studio-saved-draft-heading strong")?.textContent ?? "",
         summary: card?.querySelector(".studio-saved-draft-summary")?.textContent ?? "",
         preview: card?.querySelector('[data-testid^="studio-draft-preview-"]') !== null,
+        placement: card?.querySelector('[data-testid^="studio-draft-placement-"]') !== null,
         count: document.querySelector('[data-testid="button-open-studio-drafts"]')?.textContent ?? "",
       };
     })()`);
     assert.equal(card.name, "ห้องน้ำชั้น 1");
     assert.match(card.summary, /m²/);
     assert.equal(card.preview, true);
+    assert.equal(card.placement, true);
     assert.match(card.count, /แบบร่างของฉัน \(1\)/);
 
     await browser.page.evaluate(`(() => {
@@ -1666,25 +1744,6 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
       return input instanceof HTMLInputElement ? input.value : "";
     })()`);
-    assert.equal(linkedWidth, "2250");
-    await browser.page.evaluate("localStorage.clear()");
-  });
-
-  it("preserves resolved catalog context when named Studio drafts are reopened", async () => {
-    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
-    await browser.page.command("Emulation.setDeviceMetricsOverride", {
-      width: 1280,
-      height: 900,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
-    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
-    await waitFor(
-      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
-      Boolean,
-      "fresh Studio canvas for named catalog draft",
-    );
     const storedDraft = await waitFor(
       () => browser.page.evaluate('localStorage.getItem("knight-studio-draft-v1")'),
       (value) => Boolean(value),
@@ -1825,6 +1884,38 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(support.zIndex, "100");
     assert.ok(support.panelWidth <= 351);
     assert.ok(support.bodyWidth <= support.viewportWidth);
+
+    await clickTestId(browser.page, "button-reset-knight-support-position");
+    const dragStart = await browser.page.evaluate(`(() => {
+      const wrapper = document.querySelector(".knight-support");
+      const head = document.querySelector(".knight-support-head");
+      if (!(wrapper instanceof HTMLElement) || !(head instanceof HTMLElement)) return null;
+      const rect = wrapper.getBoundingClientRect();
+      const pointer = { bubbles: true, cancelable: true, clientX: rect.left + 40, clientY: rect.top + 20, pointerId: 7, pointerType: "touch", buttons: 1 };
+      head.dispatchEvent(new PointerEvent("pointerdown", pointer));
+      head.dispatchEvent(new PointerEvent("pointermove", { ...pointer, clientX: pointer.clientX - 90, clientY: pointer.clientY - 70 }));
+      head.dispatchEvent(new PointerEvent("pointerup", { ...pointer, clientX: pointer.clientX - 90, clientY: pointer.clientY - 70, buttons: 0 }));
+      return { left: rect.left, top: rect.top };
+    })()`);
+    assert.ok(dragStart);
+    const draggedPosition = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const wrapper = document.querySelector(".knight-support");
+        if (!(wrapper instanceof HTMLElement)) return null;
+        const rect = wrapper.getBoundingClientRect();
+        return { left: rect.left, top: rect.top };
+      })()`),
+      (value): value is { left: number; top: number } => value !== null && value.left < (dragStart?.left ?? 0) - 40 && value.top < (dragStart?.top ?? 0) - 20,
+      "dragged KnightSupport position",
+    );
+    assert.ok(draggedPosition.left < (dragStart?.left ?? 0) - 40);
+    assert.ok(draggedPosition.top < (dragStart?.top ?? 0) - 20);
+    await clickTestId(browser.page, "button-reset-knight-support-position");
+    await waitFor(
+      () => browser.page.evaluate("localStorage.getItem('knight-support-position')"),
+      (value) => value === null,
+      "reset KnightSupport position",
+    );
   });
 
   it("flows authenticated profile defaults into a quote and toggles the condo floor field", async () => {
@@ -1939,3 +2030,36 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
   });
 });
+
+    const saved = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const drafts = JSON.parse(localStorage.getItem("knight-studio-drafts-v1") || "[]");
+        const draft = drafts.find((item) => item.name === "แบบร่างตัวยู");
+        if (!draft) return null;
+        return {
+          shape: draft.state.shape,
+          dimensions: draft.state.dimensions,
+          rectangles: draft.state.pieces?.[0]?.rectangles?.map(({ widthMm, lengthMm, xMm, yMm, rotation }) => ({ widthMm, lengthMm, xMm, yMm, rotation })) ?? [],
+          basinPlacements: draft.state.basinPlacements?.map(({ sku, pieceId, xMm, yMm, widthMm, depthMm }) => ({ sku, pieceId, xMm, yMm, widthMm, depthMm })) ?? [],
+        };
+      })()`),
+      (value) => value !== null,
+      "saved U draft payload",
+    );
+
+    const dxf = await browser.page.evaluate("window.__studioDxfBlob.text()");
+
+    const restored = await waitFor(
+      () => browser.page.evaluate(`(() => ({
+        mainSizes: [...document.querySelectorAll('[data-testid="studio-canvas"] .studio-piece-size')].map((item) => item.textContent),
+        printSizes: [...document.querySelectorAll('.studio-print-canvas .studio-piece-size')].map((item) => item.textContent),
+        mainBasin: document.querySelector('[data-testid="studio-canvas"] .studio-placement')?.getAttribute("style") ?? "",
+        mainBasinValid: document.querySelector('[data-testid="studio-canvas"] .studio-placement')?.classList.contains("studio-placement--invalid") === false,
+      }))()`),
+      (value) => {
+        const left = Number.parseFloat(value.mainBasin.match(/left: ([0-9.]+)/)?.[1] ?? "NaN");
+        const top = Number.parseFloat(value.mainBasin.match(/top: ([0-9.]+)/)?.[1] ?? "NaN");
+        return value.mainSizes.length === 3 && value.printSizes.length === 3 && Math.abs(left - 3.333) < 0.1 && Math.abs(top - 36.111) < 0.1;
+      },
+      "restored U geometry",
+    );

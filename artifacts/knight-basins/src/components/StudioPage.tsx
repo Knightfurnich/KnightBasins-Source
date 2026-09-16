@@ -809,13 +809,35 @@ function StudioPrintLayout({ state }: { state: StudioState }) {
 function StudioDraftCard({ draft, onOpen, onCopy, onDelete }: { draft: NamedStudioDraftRecord; onOpen: () => void; onCopy: () => void; onDelete: () => void }) {
   const estimate = studioEstimate(draft.state, PRODUCTS);
   const piece = getStudioPieces(draft.state)[0];
+  const bounds = piece ? pieceBounds(piece) : null;
+  const placements = piece
+    ? draft.state.basinPlacements.filter((placement) => (placement.pieceId ?? piece.id) === piece.id)
+    : [];
   return <article className="studio-saved-draft-card" data-testid={`studio-saved-draft-${draft.id}`}>
     <div className="studio-saved-draft-preview">
-      {piece ? <StudioFootprint piece={piece} stoneTone={stoneColorByName(draft.state.activeStone).tone} className="studio-saved-draft-canvas" testId={`studio-draft-preview-${draft.id}`} ariaLabel={`ตัวอย่างแบบร่าง ${draft.name}`}><span /></StudioFootprint> : <span>ไม่มีผัง</span>}
+      {piece && bounds ? <StudioFootprint piece={piece} stoneTone={stoneColorByName(draft.state.activeStone).tone} className="studio-saved-draft-canvas" testId={`studio-draft-preview-${draft.id}`} ariaLabel={`ตัวอย่างแบบร่าง ${draft.name}`}>
+        {placements.map((placement) => {
+          const unknown = placement.widthMm === null || placement.depthMm === null;
+          return <div
+            key={placement.id}
+            className={`studio-placement studio-placement--draft-preview ${unknown ? "studio-placement--unknown" : ""}`}
+            style={{
+              left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`,
+              top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`,
+              width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`,
+              height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%`,
+            }}
+            data-testid={`studio-draft-placement-${draft.id}-${placement.id}`}
+            aria-label={`ตำแหน่งอ่าง ${placement.sku}`}
+          >
+            <strong>{placement.sku}</strong>
+          </div>;
+        })}
+      </StudioFootprint> : <span>ไม่มีผัง</span>}
     </div>
     <div className="studio-saved-draft-content">
       <div className="studio-saved-draft-heading"><div><strong>{draft.name}</strong><small>บันทึกล่าสุด {formatDraftTimestamp(draft.savedAt)}</small></div><span>{draft.state.activeStone}</span></div>
-      <div className="studio-saved-draft-summary"><span>{estimate.counterAreaSqM.toFixed(4)} m²</span><strong>{formatTHB(estimate.totalTHB)}</strong></div>
+      <div className="studio-saved-draft-summary"><span>{estimate.counterAreaSqM.toFixed(4)} m² · อ่าง {placements.length} จุด</span><strong>{formatTHB(estimate.totalTHB)}</strong></div>
       <div className="studio-saved-draft-actions">
         <button type="button" className="button button--accent" onClick={onOpen} data-testid={`button-open-studio-draft-${draft.id}`}><Pencil size={14} /> เปิดทำต่อ</button>
         <button type="button" className="button button--outline" onClick={onCopy} data-testid={`button-copy-studio-draft-${draft.id}`}><Link2 size={14} /> คัดลอกลิงก์</button>

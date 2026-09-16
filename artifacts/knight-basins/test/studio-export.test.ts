@@ -38,6 +38,32 @@ const state = (overrides: Partial<StudioState> = {}): StudioState => ({
   ...overrides,
 });
 
+const uState = (overrides: Partial<StudioState> = {}): StudioState => state({
+  shape: "U",
+  dimensions: { depthMm: 600, runAMm: 1500, runBMm: 1200, runCMm: 1200 },
+  pieces: [{
+    id: "u-piece",
+    name: "ชิ้นงานตัวยู",
+    rectangles: [
+      { id: "u-base", widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, rotation: 0, label: "แผ่นฐาน" },
+      { id: "u-left", widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, rotation: 0, label: "แผ่นซ้าย" },
+      { id: "u-right", widthMm: 600, lengthMm: 1200, xMm: 900, yMm: 600, rotation: 0, label: "แผ่นขวา" },
+    ],
+    sideStatuses: {},
+  }],
+  activePieceId: "u-piece",
+  basinPlacements: [{
+    id: "u-basin",
+    sku: "KF001",
+    pieceId: "u-piece",
+    xMm: 50,
+    yMm: 650,
+    widthMm: 500,
+    depthMm: 500,
+  }],
+  ...overrides,
+});
+
 type DxfEntity = { type: string; groups: Array<[string, string]> };
 
 function dxfEntities(dxf: string): DxfEntity[] {
@@ -60,6 +86,12 @@ function dxfEntities(dxf: string): DxfEntity[] {
 
 function dxfGroupValues(entity: DxfEntity, code: string) {
   return entity.groups.filter(([groupCode]) => groupCode === code).map(([, value]) => value);
+}
+
+function dxfPolylinePoints(entity: DxfEntity) {
+  const xs = dxfGroupValues(entity, "10");
+  const ys = dxfGroupValues(entity, "20");
+  return xs.map((x, index) => [Number(x), Number(ys[index])] as const);
 }
 
 test("export model keeps every piece, rectangle, rotation, basin, and edge status", () => {
@@ -110,4 +142,53 @@ test("PNG SVG uses the shared layout model, selected stone tone, dimensions, and
   assert.match(svg, /1800 × 600 mm/);
   assert.match(svg, /KF001/);
   assert.match(svg, /ติดบัว/);
+});
+
+test("U layouts keep all three rectangles and the basin in the shared export model", () => {
+  const u = uState();
+  const model = createStudioExportModel(u);
+  assert.equal(model.pieceCount, 1);
+  assert.equal(model.rectangleCount, 3);
+  assert.deepEqual(
+    model.pieces[0].rectangles.map(({ rectangleId, xMm, yMm, widthMm, heightMm }) => ({ rectangleId, xMm, yMm, widthMm, heightMm })),
+    [
+      { rectangleId: "u-base", xMm: 0, yMm: 0, widthMm: 1500, heightMm: 600 },
+      { rectangleId: "u-left", xMm: 0, yMm: 600, widthMm: 600, heightMm: 1200 },
+      { rectangleId: "u-right", xMm: 900, yMm: 600, widthMm: 600, heightMm: 1200 },
+    ],
+  );
+  assert.deepEqual(model.pieces[0].joints.map((joint) => joint.lengthMm), [600, 600]);
+  assert.deepEqual(model.basins, [{
+    sku: "KF001",
+    pieceId: "u-piece",
+    xMm: 50,
+    yMm: 650,
+    widthMm: 500,
+    heightMm: 500,
+    label: "500 × 500 mm",
+    dxfLabel: "500 x 500 mm",
+    unknownDimensions: false,
+  }]);
+});
+
+test("U DXF and PNG exports retain the same three rectangle coordinates", () => {
+  const u = uState();
+  const dxf = createStudioDxf(u);
+  const outlineEntities = dxfEntities(dxf)
+    .filter((entity) => entity.type === "LWPOLYLINE" && dxfGroupValues(entity, "8")[0] === "PIECE_OUTLINE");
+  assert.equal(outlineEntities.length, 3);
+  assert.deepEqual(outlineEntities.map(dxfPolylinePoints), [
+    [[0, 0], [1500, 0], [1500, 600], [0, 600]],
+    [[0, 600], [600, 600], [600, 1800], [0, 1800]],
+    [[900, 600], [1500, 600], [1500, 1800], [900, 1800]],
+  ]);
+  assert.equal((dxf.match(/PANEL JOINT - VERIFY 90 DEGREE/g) ?? []).length, 2);
+
+  const svg = createStudioPngSvg(u, "#090a09");
+  assert.equal((svg.match(/1500 × 600 mm/g) ?? []).length, 1);
+  assert.equal((svg.match(/600 × 1200 mm/g) ?? []).length, 2);
+  assert.match(svg, /<rect x="0" y="0" width="1500" height="600"/);
+  assert.match(svg, /<rect x="0" y="600" width="600" height="1200"/);
+  assert.match(svg, /<rect x="900" y="600" width="600" height="1200"/);
+  assert.match(svg, /<text[^>]*>KF001 · 500 × 500 mm<\/text>/);
 });

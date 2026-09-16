@@ -100,6 +100,9 @@ export async function getCatalogData(activeOnly = true) {
 
 router.get("/catalog", async (_req, res, next) => {
   try {
+    // The storefront polls this endpoint to keep other tabs and sessions fresh.
+    // Never let an intermediary replay an older active/archived catalog response.
+    res.setHeader("Cache-Control", "no-store, max-age=0");
     res.json(await getCatalogData(true));
   } catch (error) {
     next(error);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { MessageCircle, Send, X } from "lucide-react";
+import { GripVertical, MessageCircle, RotateCcw, Send, X } from "lucide-react";
 import { Link } from "wouter";
 import { useGetLineAuthStatus, useSendSupportChatMessage, type SupportProfileUpdate } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -100,13 +100,29 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
     dragRef.current = { offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
     setPosition({ left: rect.left, top: rect.top });
     setDragging(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Keep pointer movement working when capture is unavailable.
+    }
   };
 
   const stopDragging = (event: ReactPointerEvent<HTMLDivElement>) => {
     dragRef.current = null;
     setDragging(false);
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    try {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // Synthetic pointer events may not have an active capture.
+    }
+  };
+
+  const resetPosition = () => {
+    dragRef.current = null;
+    setDragging(false);
+    setPosition(null);
+    window.localStorage.removeItem(SUPPORT_POSITION_KEY);
   };
 
   const send = (requestedMessage?: string) => {
@@ -143,10 +159,13 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
             onPointerMove={updatePosition}
             onPointerUp={stopDragging}
             onPointerCancel={stopDragging}
-            title="ลากเพื่อย้ายตำแหน่งกล่องแชต"
+            title="ลากแถบนี้เพื่อย้ายตำแหน่งกล่องแชต"
           >
-            <div><strong>น้องไนท์ (ผู้ช่วยทีมขาย)</strong><small>ถามสินค้า ราคา หรือวิธีใช้งาน Knight Basins ได้เลยค่ะ</small></div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="ปิดน้องไนท์"><X size={16} /></button>
+            <div className="knight-support-title"><GripVertical size={15} aria-hidden="true" /><div><strong>น้องไนท์ (ผู้ช่วยทีมขาย)</strong><small>ถามสินค้า ราคา หรือวิธีใช้งาน Knight Basins ได้เลยค่ะ</small></div></div>
+            <div className="knight-support-head-actions">
+              <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={resetPosition} aria-label="รีเซ็ตตำแหน่งกล่องแชต" title="รีเซ็ตตำแหน่งกล่องแชต" data-testid="button-reset-knight-support-position"><RotateCcw size={14} /></button>
+              <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => setOpen(false)} aria-label="ปิดน้องไนท์"><X size={16} /></button>
+            </div>
           </div>
           <div className="knight-support-messages" aria-live="polite">
              {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}{message.role === "assistant" && message.profileUpdate?.status === "confirmation_required" && <div className="knight-support-actions"><button type="button" onClick={() => send("ยืนยัน")} disabled={chat.isPending}>ยืนยันการอัปเดต</button><button type="button" onClick={() => send("ยกเลิก")} disabled={chat.isPending}>ยกเลิก</button></div>}</div>)}
