@@ -4,7 +4,9 @@ import { PRODUCTS } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
   basinPlacementOverlapWarnings,
+  centerBasinPlacementPosition,
   createBasinPlacement,
+  distributeBasinPlacementPositions,
   disconnectedRectangleIds,
   placementCrossesPanelJoint,
   pieceOverlapWarnings,
@@ -251,4 +253,27 @@ test("catalog products without basin dimensions remain unknown", () => {
   assert.deepEqual(basinDimensionsForProduct(product), { widthMm: null, depthMm: null });
   assert.deepEqual({ widthMm: placement.widthMm, depthMm: placement.depthMm, xMm: placement.xMm, yMm: placement.yMm }, { widthMm: null, depthMm: null, xMm: 0, yMm: 0 });
   assert.deepEqual(unknownBasinPlacements({ basinPlacements: [placement] }), [placement.id]);
+});
+
+test("centers a basin inside the rectangle that owns it", () => {
+  const layout = piece([rectangle("r1", { widthMm: 1500, lengthMm: 600 })]);
+  assert.deepEqual(centerBasinPlacementPosition(layout, {
+    id: "basin-1",
+    sku: "KF001",
+    xMm: 0,
+    yMm: 0,
+    widthMm: 500,
+    depthMm: 500,
+  }), { xMm: 500, yMm: 50 });
+});
+
+test("distributes two basins with equal left, middle, and right gaps", () => {
+  const layout = piece([rectangle("r1", { widthMm: 1500, lengthMm: 600 })]);
+  assert.deepEqual(distributeBasinPlacementPositions(layout, [
+    { id: "basin-1", widthMm: 500, depthMm: 500, xMm: 0, yMm: 0 },
+    { id: "basin-2", widthMm: 400, depthMm: 400, xMm: 0, yMm: 0 },
+  ]), [
+    { id: "basin-1", xMm: 200, yMm: 50 },
+    { id: "basin-2", xMm: 900, yMm: 50 },
+  ]);
 });
