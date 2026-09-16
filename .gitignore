@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Runtime catalog/sketch uploads stay on the deployment host and must not enter releases.
+/artifacts/api-server/uploads/*
