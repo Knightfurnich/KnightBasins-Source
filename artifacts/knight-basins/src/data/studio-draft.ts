@@ -1,4 +1,4 @@
-import type { StudioState } from "./studio-model";
+import type { StudioCatalogContext, StudioState } from "./studio-model";
 
 export const STUDIO_DRAFT_STORAGE_KEY = "knight-studio-draft-v1";
 export const STUDIO_NAMED_DRAFTS_STORAGE_KEY = "knight-studio-drafts-v1";
@@ -8,6 +8,7 @@ export type StudioDraftRecord = {
   version: 1;
   savedAt: string;
   state: StudioState;
+  catalogContext?: StudioCatalogContext;
 };
 
 export type NamedStudioDraftRecord = {
@@ -17,6 +18,7 @@ export type NamedStudioDraftRecord = {
   createdAt: string;
   savedAt: string;
   state: StudioState;
+  catalogContext?: StudioCatalogContext;
 };
 
 export type ShortStudioDraftRecord = {
@@ -24,6 +26,12 @@ export type ShortStudioDraftRecord = {
   id: string;
   savedAt: string;
   state: StudioState;
+  catalogContext?: StudioCatalogContext;
+};
+
+export type StudioDraftPayload = {
+  state: StudioState;
+  catalogContext?: StudioCatalogContext;
 };
 
 function base64UrlEncode(value: string) {
@@ -53,17 +61,38 @@ function looksLikeStudioState(value: unknown): value is StudioState {
     Boolean(candidate.dimensions);
 }
 
-export function encodeStudioDraft(state: StudioState) {
-  return base64UrlEncode(JSON.stringify(state));
+function looksLikeCatalogContext(value: unknown): value is StudioCatalogContext {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<StudioCatalogContext>;
+  return typeof candidate.savedAt === "string" &&
+    typeof candidate.revision === "string" &&
+    Array.isArray(candidate.basinItems) &&
+    candidate.basinItems.every((item) => Boolean(item) && typeof item === "object" && typeof (item as { sku?: unknown }).sku === "string");
 }
 
-export function decodeStudioDraft(token: string): StudioState | null {
+function looksLikeDraftPayload(value: unknown): value is StudioDraftPayload {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<StudioDraftPayload>;
+  return looksLikeStudioState(candidate.state) &&
+    (candidate.catalogContext === undefined || looksLikeCatalogContext(candidate.catalogContext));
+}
+
+export function encodeStudioDraft(state: StudioState, catalogContext?: StudioCatalogContext) {
+  return base64UrlEncode(JSON.stringify(catalogContext ? { state, catalogContext } : state));
+}
+
+export function decodeStudioDraftRecord(token: string): StudioDraftPayload | null {
   try {
     const parsed: unknown = JSON.parse(base64UrlDecode(token));
-    return looksLikeStudioState(parsed) ? parsed : null;
+    if (looksLikeStudioState(parsed)) return { state: parsed };
+    return looksLikeDraftPayload(parsed) ? parsed : null;
   } catch {
     return null;
   }
+}
+
+export function decodeStudioDraft(token: string): StudioState | null {
+  return decodeStudioDraftRecord(token)?.state ?? null;
 }
 
 export function readStoredStudioDraft(storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage): StudioDraftRecord | null {
@@ -73,6 +102,7 @@ export function readStoredStudioDraft(storage: Storage | undefined = typeof loca
     if (!parsed || typeof parsed !== "object") return null;
     const candidate = parsed as Partial<StudioDraftRecord>;
     if (candidate.version !== 1 || typeof candidate.savedAt !== "string" || !looksLikeStudioState(candidate.state)) return null;
+    if (candidate.catalogContext !== undefined && !looksLikeCatalogContext(candidate.catalogContext)) return null;
     return candidate as StudioDraftRecord;
   } catch {
     return null;
@@ -105,7 +135,8 @@ function isShortStudioDraft(value: unknown): value is ShortStudioDraftRecord {
     typeof candidate.id === "string" &&
     /^KB-[A-Z0-9]{6}$/.test(candidate.id) &&
     isValidTimestamp(candidate.savedAt) &&
-    looksLikeStudioState(candidate.state);
+    looksLikeStudioState(candidate.state) &&
+    (candidate.catalogContext === undefined || looksLikeCatalogContext(candidate.catalogContext));
 }
 
 function shortDraftSuffix() {
@@ -154,6 +185,7 @@ export function writeShortStudioDraft(
   state: StudioState,
   storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
   savedAt = new Date().toISOString(),
+  catalogContext?: StudioCatalogContext,
 ) {
   const drafts = readStoredShortStudioDrafts(storage);
   const record: ShortStudioDraftRecord = {
@@ -161,6 +193,7 @@ export function writeShortStudioDraft(
     id: nextShortStudioDraftId(drafts),
     savedAt,
     state,
+    catalogContext,
   };
   return writeStoredShortStudioDrafts([record, ...drafts], storage) ? record : null;
 }
@@ -176,19 +209,21 @@ export function createStudioDraftLink(
   state: StudioState,
   origin: string = typeof window === "undefined" ? "http://localhost" : window.location.origin,
   storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage,
+  catalogContext?: StudioCatalogContext,
 ) {
   const url = new URL("/studio", origin);
-  const shortDraft = writeShortStudioDraft(state, storage);
-  url.searchParams.set("draft", shortDraft?.id ?? encodeStudioDraft(state));
+  const shortDraft = writeShortStudioDraft(state, storage, catalogContext?.savedAt, catalogContext);
+  url.searchParams.set("draft", shortDraft?.id ?? encodeStudioDraft(state, catalogContext));
   return url.toString();
 }
 
 export function createStudioShareLink(
   state: StudioState,
   origin: string = typeof window === "undefined" ? "http://localhost" : window.location.origin,
+  catalogContext?: StudioCatalogContext,
 ) {
   const url = new URL("/studio", origin);
-  url.searchParams.set("draft", encodeStudioDraft(state));
+  url.searchParams.set("draft", encodeStudioDraft(state, catalogContext));
   return url.toString();
 }
 
@@ -206,7 +241,8 @@ function isNamedStudioDraft(value: unknown): value is NamedStudioDraftRecord {
     candidate.name.trim().length > 0 &&
     isValidTimestamp(candidate.createdAt) &&
     isValidTimestamp(candidate.savedAt) &&
-    looksLikeStudioState(candidate.state);
+    looksLikeStudioState(candidate.state) &&
+    (candidate.catalogContext === undefined || looksLikeCatalogContext(candidate.catalogContext));
 }
 
 export function readStoredStudioDrafts(storage: Storage | undefined = typeof localStorage === "undefined" ? undefined : localStorage): NamedStudioDraftRecord[] {

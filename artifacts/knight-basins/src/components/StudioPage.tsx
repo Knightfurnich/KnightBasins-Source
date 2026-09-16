@@ -8,12 +8,16 @@ import {
   productBySku,
   stoneColorByName,
   type CustomerDetails,
+  type BasinProduct,
+  type StoneColor,
 } from "@/data/catalog";
 import {
   basinDimensionsForProduct,
   basinPlacementOverlapWarnings,
   centerBasinPlacementPosition,
+  compareStudioCatalog,
   createBasinPlacement,
+  createStudioCatalogContext,
   distributeBasinPlacementPositions,
   disconnectedRectangleIds,
   pieceBounds,
@@ -24,6 +28,9 @@ import {
   snapStudioRectanglePosition,
   studioEdgeTotals,
   studioEstimate,
+  studioBasinCatalogEntries,
+  replaceStudioBasin,
+  removeStudioBasin,
   studioPieceById,
   studioPieceEdges,
   studioPieceJoints,
@@ -45,6 +52,9 @@ import {
   type BasinPlacement,
   type SideStatus,
   type StudioEstimate,
+  type StudioCatalogComparison,
+  type StudioCatalogContext,
+  type StudioCatalogField,
   type StudioLocation,
   type StudioOrderMode,
   type StudioPiece,
@@ -54,7 +64,7 @@ import {
 import { StudioFootprint } from "./StudioFootprint";
 import { BasinVisual } from "./BasinVisual";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
-import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
+import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraftRecord, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
@@ -111,6 +121,8 @@ type StudioPageProps = {
   contactDefaults?: Partial<typeof emptyContact>;
   initialBasinSkus?: string[];
   initialStoneColors?: string[];
+  stoneColors?: ReadonlyArray<StoneColor>;
+  basinProducts?: ReadonlyArray<BasinProduct>;
 };
 
 const makeRectangle = (index: number, overrides: Partial<StudioRectangle> = {}): StudioRectangle => ({
@@ -152,10 +164,11 @@ function createInitialStudioState(
   mode: Extract<StudioOrderMode, "studio" | "sketch">,
   initialBasinSkus: string[] = [],
   initialStoneColors: string[] = [],
+  basinProducts: ReadonlyArray<BasinProduct> = PRODUCTS,
 ): StudioState {
   const piece = makePiece(0);
   const basinSkus = [...new Set(initialBasinSkus)]
-    .filter((sku) => Boolean(productBySku(sku)))
+    .filter((sku) => basinProducts.some((product) => product.sku === sku))
     .slice(0, STUDIO_MAX_BASINS);
   const selectedBasinSkus = basinSkus.length ? basinSkus : [...initialState.basinSkus];
   const stoneColors = [...new Set(initialStoneColors)]
@@ -179,7 +192,14 @@ function createInitialStudioState(
 function readLinkedDraft() {
   if (typeof window === "undefined") return { token: "", state: null as StudioState | null };
   const token = new URLSearchParams(window.location.search).get("draft") ?? "";
-  return { token, state: token ? decodeStudioDraft(token) ?? readStoredShortStudioDraft(token)?.state ?? null : null };
+  if (!token) return { token, state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined };
+  const linked = decodeStudioDraftRecord(token);
+  const shortDraft = linked ? null : readStoredShortStudioDraft(token);
+  return {
+    token,
+    state: linked?.state ?? shortDraft?.state ?? null,
+    catalogContext: linked?.catalogContext ?? shortDraft?.catalogContext,
+  };
 }
 
 function formatDraftTimestamp(value: string) {
@@ -258,9 +278,11 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
    </div>;
  }
 
-function StudioShortlists({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
+function StudioShortlists({ state, setState, stoneColors, basinProducts }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct> }) {
   const [basinQuery, setBasinQuery] = useState("");
-  const visibleBasins = useMemo(() => filterBasinProducts(PRODUCTS, basinQuery), [basinQuery]);
+  const visibleBasins = useMemo(() => filterBasinProducts(basinProducts, basinQuery), [basinProducts, basinQuery]);
+  const basinEntries = studioBasinCatalogEntries(state, basinProducts);
+  const hiddenBasins = basinEntries.filter((entry) => !entry.product);
   const toggleStone = (code: string) => setState((current) => {
     if (current.stoneColors.includes(code)) {
       if (current.stoneColors.length <= STUDIO_MIN_STONE_COLORS) return current;
@@ -273,26 +295,44 @@ function StudioShortlists({ state, setState }: { state: StudioState; setState: D
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
       if (current.basinSkus.length <= STUDIO_MIN_BASINS) return current;
-      return { ...current, basinSkus: current.basinSkus.filter((item) => item !== sku), basinPlacements: current.basinPlacements.filter((item) => item.sku !== sku) };
+      return removeStudioBasin(current, sku);
     }
     if (current.basinSkus.length >= STUDIO_MAX_BASINS) return current;
     return { ...current, basinSkus: [...current.basinSkus, sku] };
   });
+  const replaceBasin = (previousSku: string, nextSku: string) => {
+    const product = basinProducts.find((item) => item.sku === nextSku);
+    if (!product) return;
+    setState((current) => replaceStudioBasin(current, previousSku, product));
+  };
+  const removeHiddenBasin = (sku: string) => setState((current) => removeStudioBasin(current, sku));
   return <div className="studio-shortlists">
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน 2–3 สี</h3></div><span>{state.stoneColors.length} / 3</span></div>
       <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบ แล้วเลือกสีที่ใช้คำนวณจากรายการด้านล่าง</p>
-      <div className="studio-stone-list">{STONE_COLORS.slice(0, 24).map((stone) => {
+      <div className="studio-stone-list">{stoneColors.slice(0, 24).map((stone) => {
         const selected = state.stoneColors.includes(stone.code);
         return <button type="button" key={stone.code} className={`studio-stone-choice ${selected ? "is-selected" : ""} ${state.activeStone === stone.code ? "is-active" : ""}`} onClick={() => toggleStone(stone.code)} aria-pressed={selected} data-testid={`button-studio-stone-${stone.code}`}><span className="studio-stone-swatch" style={{ background: stone.tone }} /> <strong>{stone.code}</strong><small>{stone.name}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
       })}</div>
-      <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code).installedPriceTHB ?? 0)} / m²</button>)}</div>
+      <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / m²</button>)}</div>
     </section>
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
       <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้ หรือกดเลือกเพื่อเพิ่ม / นำออก</p>
+      {hiddenBasins.length > 0 && <div className="studio-basin-stale" role="status" data-testid="studio-hidden-basins">
+        <strong>มีอ่างในแบบร่างที่ปิดการขายแล้ว</strong>
+        <p>ตำแหน่งและขนาดบนผังเดิมยังคงอยู่ เลือกรุ่นใหม่เพื่อแทนที่ หรือเอารุ่นนี้ออกจากแบบ</p>
+        {hiddenBasins.map((entry) => {
+          const replacementOptions = basinProducts.filter((product) => product.sku === entry.sku || !state.basinSkus.includes(product.sku));
+          return <div className="studio-basin-stale-row" key={entry.sku}>
+            <div><code>{entry.sku}</code><small>{entry.placementCount} จุดบนผัง · ไม่เปิดใช้งาน</small></div>
+            <label>แทนที่ด้วย<select value="" onChange={(event) => replaceBasin(entry.sku, event.target.value)} aria-label={`แทนที่อ่าง ${entry.sku}`} data-testid={`select-replace-studio-basin-${entry.sku}`}><option value="" disabled>เลือกรุ่นที่เปิดใช้งาน</option>{replacementOptions.map((product) => <option value={product.sku} key={product.sku}>{product.sku} · {product.colorName}</option>)}</select></label>
+            <button type="button" className="button button--outline" onClick={() => removeHiddenBasin(entry.sku)} data-testid={`button-remove-hidden-studio-basin-${entry.sku}`}>นำออก</button>
+          </div>;
+        })}
+      </div>}
       <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
-      <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {PRODUCTS.length} รุ่น</p>
+      <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {basinProducts.length} รุ่น</p>
       <div className="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
          return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
@@ -448,6 +488,7 @@ function StudioPieceEditor({
   setSelectedPlacementId,
   selectedRectangleId,
   setSelectedRectangleId,
+  basinProducts,
 }: {
   piece: StudioPiece;
   state: StudioState;
@@ -457,6 +498,7 @@ function StudioPieceEditor({
   setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
   selectedRectangleId: string | null;
   setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
+  basinProducts: ReadonlyArray<BasinProduct>;
 }) {
   const overlaps = pieceOverlapWarnings(piece);
   const bounds = pieceBounds(piece);
@@ -505,7 +547,7 @@ function StudioPieceEditor({
       return;
     }
     const sku = event.dataTransfer.getData("application/x-studio-basin");
-    const product = productBySku(sku);
+    const product = basinProducts.find((item) => item.sku === sku);
     if (!product || !state.basinSkus.includes(sku)) return;
     const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id);
     const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (placement.widthMm ?? 0) / 2;
@@ -563,8 +605,9 @@ function StudioPieceEditor({
           {placements.map((placement) => {
             const unknown = placement.widthMm === null || placement.depthMm === null;
             const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
-            const product = productBySku(placement.sku);
-            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} />}</span><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : placement.id); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+            const product = basinProducts.find((item) => item.sku === placement.sku);
+            const inactive = !product;
+            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${inactive ? "studio-placement--inactive" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} />}</span><strong>{placement.sku}</strong><small>{inactive ? "ไม่เปิดใช้งานแล้ว · เปลี่ยนรุ่นหรือนำออก" : unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : placement.id); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
           })}
           {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className={`studio-rectangle-drag-target ${rectangle.id === activeRectangle?.id ? "is-selected" : ""}`} draggable onClick={() => { setSelectedRectangleId(rectangle.id); setSelectedPlacementId(null); }} onDragStart={(event) => { setSelectedRectangleId(rectangle.id); event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id); }} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`เลือกแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
         </StudioFootprint>
@@ -618,6 +661,7 @@ function StudioCanvas({
   setSelectedPlacementId,
   selectedRectangleId,
   setSelectedRectangleId,
+  basinProducts,
 }: {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
@@ -627,6 +671,7 @@ function StudioCanvas({
   setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
   selectedRectangleId: string | null;
   setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
+  basinProducts: ReadonlyArray<BasinProduct>;
 }) {
   const pieces = getStudioPieces(state);
   const applyPreset = (preset: StudioPreset) => {
@@ -653,7 +698,7 @@ function StudioCanvas({
       <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.min(2, Math.round((current + .25) * 100) / 100))} aria-label="ซูมเข้า" data-testid="button-studio-zoom-in"><Plus size={15} /></button>
       <button type="button" className="button button--outline" onClick={() => setZoom(1)} data-testid="button-studio-zoom-reset">100%</button>
     </div>
-    <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} zoom={zoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} />)}</div>
+    <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} zoom={zoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} />)}</div>
     <button type="button" className="button button--outline" disabled={pieces.length >= STUDIO_MAX_PIECES} onClick={() => setState((current) => ({ ...current, pieces: [...getStudioPieces(current), makePiece(getStudioPieces(current).length)] }))} data-testid="button-add-studio-piece"><Plus size={15} /> เพิ่มชิ้นงาน</button>
   </section>;
 }
@@ -725,6 +770,42 @@ function StudioDraftDrawer({ drafts, onClose, onOpen, onCopy, onDelete }: { draf
   </div>;
 }
 
+function StudioCatalogChangeNotice({ notice }: { notice: { savedAt: string; comparison: StudioCatalogComparison } }) {
+  const fieldLabels: Record<StudioCatalogField, string> = {
+    colorName: "สี",
+    priceTHB: "ราคา",
+    category: "ประเภท",
+    dimensions: "ขนาดตัวอ่าง",
+    basinDimensions: "ขนาดหลุม",
+  };
+  const formatFieldValue = (field: StudioCatalogField, value: string | number | undefined) => {
+    if (field === "priceTHB") return typeof value === "number" ? formatTHB(value) : "ไม่ระบุ";
+    return value ?? "ไม่ระบุ";
+  };
+  if (!notice.comparison.catalogUpdated) return null;
+  return <div className="studio-catalog-change-banner" role="status" data-testid="studio-catalog-change-banner">
+    <div>
+      <strong>แคตตาล็อกอ่างเปลี่ยนแปลงตั้งแต่บันทึกแบบร่าง</strong>
+      <small>แบบร่างนี้บันทึกเมื่อ {formatDraftTimestamp(notice.savedAt)}</small>
+    </div>
+    {notice.comparison.changes.length > 0
+      ? <ul>{notice.comparison.changes.map((change) => <li key={change.sku}>
+        <code>{change.sku}</code>
+        {change.kind === "removed"
+          ? <span>ไม่มีในแคตตาล็อกปัจจุบัน — เลือกรุ่นใหม่เพื่อแทนที่ หรือนำออกจากแบบ</span>
+           : <div className="studio-catalog-change-details" data-testid={`studio-catalog-change-${change.sku}`}>
+             {change.changedFields.includes("colorName") && <span>รายละเอียดแคตตาล็อกเปลี่ยนจาก {change.saved.colorName ?? "รุ่นเดิม"} เป็น {change.current?.colorName ?? "รุ่นปัจจุบัน"}</span>}
+             {!change.changedFields.includes("colorName") && <span>รายละเอียดแคตตาล็อกมีการเปลี่ยนแปลง</span>}
+             <ul data-testid={`studio-catalog-change-fields-${change.sku}`}>
+               {change.changedFields.map((field) => <li key={field}><strong>{fieldLabels[field]}:</strong> {formatFieldValue(field, change.saved[field])} → {formatFieldValue(field, change.current?.[field])}</li>)}
+             </ul>
+           </div>}
+      </li>)}</ul>
+      : <p>รุ่นอ่างที่เลือกยังตรงกับรายการปัจจุบัน แต่มีรายการอื่นในแคตตาล็อกอัปเดตแล้ว</p>}
+    <p>ตรวจสอบรายการอ่างด้านบนเพื่อใช้การแทนที่หรือนำรุ่นที่ไม่ใช้งานแล้วออกจากแบบ</p>
+  </div>;
+}
+
 export function StudioPage({
   mode,
   leadKey,
@@ -732,12 +813,15 @@ export function StudioPage({
   contactDefaults,
   initialBasinSkus = [],
   initialStoneColors = [],
+  stoneColors = STONE_COLORS,
+  basinProducts = PRODUCTS,
 }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
-  const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors));
+  const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts));
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
+  const [catalogNotice, setCatalogNotice] = useState<{ savedAt: string; comparison: StudioCatalogComparison } | null>(() => linkedDraft.catalogContext ? { savedAt: linkedDraft.catalogContext.savedAt, comparison: compareStudioCatalog(linkedDraft.catalogContext, basinProducts) } : null);
   const [namedDrafts, setNamedDrafts] = useState<NamedStudioDraftRecord[]>(() => mode === "studio" ? readStoredStudioDrafts() : []);
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false);
@@ -751,7 +835,7 @@ export function StudioPage({
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
-  const estimate = useMemo(() => studioEstimate(state, PRODUCTS), [state]);
+  const estimate = useMemo(() => studioEstimate(state, basinProducts), [state, basinProducts]);
   const activeStone = stoneColorByName(state.activeStone);
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
@@ -788,24 +872,27 @@ export function StudioPage({
     }
     const timer = window.setTimeout(() => {
       const savedAt = new Date().toISOString();
-      const saved = writeStoredStudioDraft({ version: 1, savedAt, state });
+      const catalogContext = createStudioCatalogContext(state, basinProducts, savedAt);
+      const saved = writeStoredStudioDraft({ version: 1, savedAt, state, catalogContext });
       if (saved) setLastSavedAt(savedAt);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [mode, state]);
+  }, [mode, state, basinProducts]);
   const resumeDraft = () => {
     if (!draftNotice) return;
     setState(draftNotice.state);
     setLastSavedAt(draftNotice.savedAt);
+    setCatalogNotice(draftNotice.catalogContext ? { savedAt: draftNotice.catalogContext.savedAt, comparison: compareStudioCatalog(draftNotice.catalogContext, basinProducts) } : null);
     setDraftNotice(null);
     setDraftResult("ดึงแบบร่างเดิมแล้ว");
   };
   const startNewDraft = () => {
     clearStoredStudioDraft();
     skipNextDraftSave.current = true;
-    setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors));
+    setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts));
     setLastSavedAt(null);
     setDraftNotice(null);
+    setCatalogNotice(null);
     setDraftResult("");
     setCanvasZoom(1);
     setSelectedPlacementId(null);
@@ -813,7 +900,8 @@ export function StudioPage({
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   };
   const copyStateLink = async (draftState: StudioState, successMessage: string, createLink: typeof createStudioShareLink = createStudioShareLink) => {
-    const url = createLink(draftState);
+    const catalogContext = createStudioCatalogContext(draftState, basinProducts);
+    const url = createLink(draftState, window.location.origin, catalogContext);
     try {
       await navigator.clipboard.writeText(url);
       setDraftResult(successMessage);
@@ -823,7 +911,8 @@ export function StudioPage({
   };
   const copyDraftLink = async () => {
     const savedAt = new Date().toISOString();
-    writeStoredStudioDraft({ version: 1, savedAt, state });
+    const catalogContext = createStudioCatalogContext(state, basinProducts, savedAt);
+    writeStoredStudioDraft({ version: 1, savedAt, state, catalogContext });
     setLastSavedAt(savedAt);
     await copyStateLink(state, "บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้");
   };
@@ -843,6 +932,7 @@ export function StudioPage({
       createdAt: now,
       savedAt: now,
       state,
+      catalogContext: createStudioCatalogContext(state, basinProducts, now),
     };
     const next = [draft, ...namedDrafts];
     if (!writeStoredStudioDrafts(next)) {
@@ -857,11 +947,19 @@ export function StudioPage({
   const openNamedDraft = (draft: NamedStudioDraftRecord) => {
     setState(draft.state);
     setLastSavedAt(draft.savedAt);
+    setCatalogNotice(draft.catalogContext ? { savedAt: draft.catalogContext.savedAt, comparison: compareStudioCatalog(draft.catalogContext, basinProducts) } : null);
     setDraftDrawerOpen(false);
     setDraftResult(`เปิดแบบร่าง “${draft.name}” แล้ว`);
   };
   const copyNamedDraftLink = async (draft: NamedStudioDraftRecord) => {
-    await copyStateLink(draft.state, `คัดลอกลิงก์แบบร่าง “${draft.name}” แล้ว เปิดใน Incognito เพื่อแก้ไขต่อได้`, createStudioDraftLink);
+    const catalogContext = draft.catalogContext ?? createStudioCatalogContext(draft.state, basinProducts, draft.savedAt);
+    const url = createStudioDraftLink(draft.state, window.location.origin, undefined, catalogContext);
+    try {
+      await navigator.clipboard.writeText(url);
+      setDraftResult(`คัดลอกลิงก์แบบร่าง “${draft.name}” แล้ว เปิดใน Incognito เพื่อแก้ไขต่อได้`);
+    } catch {
+      setDraftResult(`คัดลอกลิงก์ไม่สำเร็จ คัดลอก URL นี้ด้วยตนเอง: ${url}`);
+    }
   };
   const deleteNamedDraft = (draft: NamedStudioDraftRecord) => {
     if (!window.confirm(`ลบแบบร่าง “${draft.name}” หรือไม่`)) return;
@@ -922,7 +1020,7 @@ export function StudioPage({
       const basinCounts = new Map<string, number>();
       state.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
       const notificationItems: StudioNotificationItem[] = Array.from(basinCounts.entries()).flatMap(([sku, quantity]) => {
-        const product = productBySku(sku);
+        const product = basinProducts.find((item) => item.sku === sku);
         return product ? [{ kind: "basin" as const, code: product.sku, description: product.colorName, quantity, unit: "ชุด", unitPriceTHB: product.priceTHB, totalTHB: Math.round(product.priceTHB * quantity) }] : [];
       });
       if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) notificationItems.push({ kind: "stone", code: activeStone.code, description: activeStone.name, quantity: estimate.counterAreaSqM, unit: "ตร.ม.", unitPriceTHB: estimate.stoneUnitPriceTHB, totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB) });
@@ -986,10 +1084,11 @@ export function StudioPage({
   return <div className="page-wrap studio-page">
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
+     {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> บันทึกแบบร่าง</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
-     <StudioShortlists state={state} setState={setState} />
-      {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
+     <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} />
+      {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
       <aside className="studio-panel studio-estimate-panel">

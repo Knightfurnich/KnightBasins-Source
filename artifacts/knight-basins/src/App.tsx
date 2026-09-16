@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import { ArrowRight, Check, ChevronDown, Copy, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
 import {
@@ -9,6 +9,7 @@ import {
   stoneColorByName,
   stoneInstalledUnitPrice,
   stoneSheetUnitPrice,
+  stoneColorsForMode,
   STONE_COLORS,
   STONE_GLUE_PRICE,
   STONE_INSTALLED_MIN_BANGKOK_SQM,
@@ -19,11 +20,15 @@ import {
   STONE_SHEET_THICKNESS,
   VAT_RATE,
   basinProductFromCatalog,
+  reconcileStoneSelections,
   removeStoneSelection,
+  stoneColorsFromCatalog,
   toggleBasinSelection,
+  toggleStoneSelection,
   upsertStoneSelection,
   type CustomerDetails,
   type QuoteBasinLine,
+  type StoneColor,
   type StoneConfig,
 } from "@/data/catalog";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
@@ -68,18 +73,24 @@ function stoneAreaSqM(stone: StoneConfig) {
   return stone.widthCm > 0 && stone.lengthCm > 0 ? (stone.widthCm * stone.lengthCm) / 10000 : 0;
 }
 
-function stoneUnitPrice(stone: StoneConfig) {
-  return stone.mode === "whole-sheet" ? stoneSheetUnitPrice(stone.color, stone.quantity) : stoneInstalledUnitPrice(stone.color);
+function stoneOrderModeLabel(mode: StoneConfig["mode"]) {
+  return mode === "whole-sheet" ? "ซื้อแผ่นเต็ม" : "ซื้อเป็น ตร.ม. · ตัดและติดตั้ง";
 }
 
-function stoneTotal(stone: StoneConfig) {
-  const unitPrice = stoneUnitPrice(stone);
+function stoneUnitPrice(stone: StoneConfig, colors: ReadonlyArray<StoneColor> = STONE_COLORS) {
+  return stone.mode === "whole-sheet"
+    ? stoneSheetUnitPrice(stone.color, stone.quantity, colors)
+    : stoneInstalledUnitPrice(stone.color, colors);
+}
+
+function stoneTotal(stone: StoneConfig, colors: ReadonlyArray<StoneColor> = STONE_COLORS) {
+  const unitPrice = stoneUnitPrice(stone, colors);
   if (!stone.enabled || unitPrice === null) return 0;
   return unitPrice * (stone.mode === "whole-sheet" ? stone.quantity : stoneAreaSqM(stone));
 }
 
-function isInvalidStone(stone: StoneConfig) {
-  return stone.enabled && (stoneUnitPrice(stone) === null || (stone.mode === "installed" && (stone.widthCm < 10 || stone.lengthCm < 10)));
+function isInvalidStone(stone: StoneConfig, colors: ReadonlyArray<StoneColor> = STONE_COLORS) {
+  return stone.enabled && (stoneUnitPrice(stone, colors) === null || (stone.mode === "installed" && (stone.widthCm < 10 || stone.lengthCm < 10)));
 }
 
 function useStored<T>(key: string, fallback: T) {
@@ -105,8 +116,12 @@ function useStoredStones(key: string, fallback: StoneConfig[]) {
   return [value, setValue] as const;
 }
 
-function upsertStone(stones: StoneConfig[], incoming: StoneConfig) {
-  return upsertStoneSelection(stones, incoming);
+function upsertStone(
+  stones: StoneConfig[],
+  incoming: StoneConfig,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) {
+  return upsertStoneSelection(stones, incoming, colors);
 }
 
 function formatDate(date = new Date()) {
@@ -133,7 +148,7 @@ function Footer() {
   return <footer className="site-footer"><div><img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" /><span className="footer-kicker">SOLID SURFACE / BASINS</span><p>พื้นผิวที่ทำให้รายละเอียดเล็ก ๆ<br />มีน้ำหนักขึ้นมา</p></div><div className="footer-meta"><span>TH / 2026 COLLECTION</span><span>ราคาสินค้ายังไม่รวม VAT</span><Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link></div></footer>;
 }
 
-function QuoteDropZone({ cart, setCart, setStones }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; setStones: Dispatch<SetStateAction<StoneConfig[]>> }) {
+function QuoteDropZone({ cart, setCart, setStones, stoneColors }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColors: ReadonlyArray<StoneColor> }) {
   const [dragging, setDragging] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -165,7 +180,7 @@ function QuoteDropZone({ cart, setCart, setStones }: { cart: QuoteBasinLine[]; s
         const payload = JSON.parse(event.dataTransfer.getData("application/x-knight-stone")) as StoneConfig;
         if (payload.enabled) {
           setStones((current) => upsertStone(current, payload));
-          return showFeedback(`เพิ่ม ${stoneColorByName(payload.color).name} ลงใบเสนอราคาแล้ว`);
+           return showFeedback(`เพิ่ม ${stoneColorByName(payload.color, stoneColors).name} ลงใบเสนอราคาแล้ว`);
         }
       } catch {
         showFeedback("ไม่สามารถเพิ่มรายการหินได้ กรุณาลองใหม่");
@@ -182,9 +197,9 @@ function QuoteDropZone({ cart, setCart, setStones }: { cart: QuoteBasinLine[]; s
     {feedback && <div className="drop-feedback"><Check size={15} /> {feedback}</div>}
   </div>;
 }
-function Layout({ children, cart, setCart, stones, setStones, onAddToQuote, onRequestQuote, onLeadEvent }: { children: ReactNode; cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; onAddToQuote: (sku: string) => void; onRequestQuote: (skus: string[]) => void; onLeadEvent: (status: "new_lead" | "selecting", productSkus?: string[]) => void }) {
+function Layout({ children, cart, setCart, stones, setStones, stoneColors, catalogNotice, onDismissCatalogNotice, onAddToQuote, onRequestQuote, onLeadEvent }: { children: ReactNode; cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColors: ReadonlyArray<StoneColor>; catalogNotice?: string; onDismissCatalogNotice?: () => void; onAddToQuote: (sku: string) => void; onRequestQuote: (skus: string[]) => void; onLeadEvent: (status: "new_lead" | "selecting", productSkus?: string[]) => void }) {
   const count = cart.reduce((sum, line) => sum + line.quantity, 0) + stones.length;
-  return <><Header cartCount={count} /><main>{children}</main><QuoteDropZone cart={cart} setCart={setCart} setStones={setStones} /><Footer /><KnightSupport onAddToQuote={onAddToQuote} onRequestQuote={onRequestQuote} onLeadEvent={onLeadEvent} /></>;
+  return <><Header cartCount={count} />{catalogNotice && <div className="catalog-freshness-notice" role="status" aria-live="polite"><span>{catalogNotice}</span>{onDismissCatalogNotice && <button type="button" onClick={onDismissCatalogNotice} aria-label="ปิดการแจ้งเตือนแคตตาล็อก"><X size={15} /></button>}</div>}<main>{children}</main><QuoteDropZone cart={cart} setCart={setCart} setStones={setStones} stoneColors={stoneColors} /><Footer /><KnightSupport onAddToQuote={onAddToQuote} onRequestQuote={onRequestQuote} onLeadEvent={onLeadEvent} /></>;
 }
 
 function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLine[]; onToggle: (sku: string) => void }) {
@@ -203,12 +218,16 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
     onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "basin"); event.dataTransfer.setData("application/x-knight-basin", sku); }}
     data-testid={`card-product-${sku}`}
   >
-     {inQuote && <span className="product-selected-badge" aria-label="เลือกแล้ว"><Check size={15} />✓</span>}
+     {inQuote && <SelectionMarker className="product-selected-badge" />}
      <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
      <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3></div></div>
      <div className="product-specs"><span>{product.dimensions}</span><span>{product.basinDimensions ? `หลุมอ่าง ${product.basinDimensions}` : "งานทรงสูง"}</span></div>
      <strong className="product-price">{formatTHB(product.priceTHB)}</strong>
   </article>;
+}
+
+function SelectionMarker({ className = "" }: { className?: string }) {
+  return <span className={`selection-marker ${className}`.trim()} aria-label="เลือกแล้ว"><Check size={14} aria-hidden="true" /></span>;
 }
 
 type StorefrontCategory = {
@@ -259,61 +278,79 @@ function HomePage({ cart, setCart, categories }: { cart: QuoteBasinLine[]; setCa
   </div>;
 }
 
-function StonePage({ stones, setStones }: { stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>> }) {
+function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColorsByMode: { wholeSheet: ReadonlyArray<StoneColor>; installed: ReadonlyArray<StoneColor> } }) {
   const [dimensionError, setDimensionError] = useState("");
   const [stoneQuery, setStoneQuery] = useState("");
   const [activeColor, setActiveColor] = useState(stones[0]?.color ?? defaultStone.color);
-  const activeStone = stones.find((stone) => stone.color === activeColor) ?? { ...defaultStone, color: activeColor };
+  const activeMode = stones.find((stone) => stone.color === activeColor)?.mode ?? "whole-sheet";
+  const availableColors = activeMode === "whole-sheet" ? stoneColorsByMode.wholeSheet : stoneColorsByMode.installed;
+  const effectiveActiveColor = availableColors.some((color) => color.code === activeColor)
+    ? activeColor
+    : availableColors[0]?.code ?? activeColor;
+  const activeStone = stones.find((stone) => stone.color === effectiveActiveColor) ?? { ...defaultStone, color: effectiveActiveColor, mode: activeMode };
   const isWhole = activeStone.mode === "whole-sheet";
-  const selectedColor = stoneColorByName(activeStone.color);
+  const selectedColor = stoneColorByName(activeStone.color, availableColors);
   const area = stoneAreaSqM(activeStone);
   const invalidInstalledSize = !isWhole && (activeStone.widthCm < 10 || activeStone.lengthCm < 10);
-  const selectedPrice = stoneUnitPrice(activeStone);
+  const selectedPrice = stoneUnitPrice(activeStone, availableColors);
+  useEffect(() => {
+    if (effectiveActiveColor !== activeColor) setActiveColor(effectiveActiveColor);
+  }, [activeColor, effectiveActiveColor]);
   const visibleColors = useMemo(() => {
     const query = stoneQuery.trim().toLowerCase();
-    if (!query) return STONE_COLORS;
-    return STONE_COLORS.filter((color) =>
+    if (!query) return availableColors;
+    return availableColors.filter((color) =>
       [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase().includes(query)),
     );
-  }, [stoneQuery]);
+  }, [availableColors, stoneQuery]);
   const update = (changes: Partial<StoneConfig>) => setStones((current) => {
     const next = { ...activeStone, ...changes, enabled: true };
-    return upsertStone(current, next);
+    return upsertStone(current, next, availableColors);
   });
   const toggleColor = (color: string) => {
     const selected = stones.some((stone) => stone.color === color);
     if (selected) {
-      if (activeColor !== color) {
-        setActiveColor(color);
-        setDimensionError("");
-        return;
-      }
-      setStones((current) => current.filter((stone) => stone.color !== color));
       if (activeColor === color) setActiveColor(stones.find((stone) => stone.color !== color)?.color ?? defaultStone.color);
+      setStones((current) => removeStoneSelection(current, color));
+      setDimensionError("");
       return;
     }
-    const next = { ...defaultStone, color, enabled: true, unitPrice: stoneSheetUnitPrice(color, 1) ?? 0 };
+    const next: StoneConfig = { ...defaultStone, mode: isWhole ? "whole-sheet" : "installed", color, enabled: true, unitPrice: isWhole ? stoneSheetUnitPrice(color, 1, availableColors) ?? 0 : stoneInstalledUnitPrice(color, availableColors) ?? 0 };
     setActiveColor(color);
-    setStones((current) => upsertStone(current, next));
+    setStones((current) => toggleStoneSelection(current, color, next, availableColors));
     setDimensionError("");
   };
-  const switchMode = (mode: StoneConfig["mode"]) => { update({ mode }); setDimensionError(""); };
+  const switchMode = (mode: StoneConfig["mode"]) => {
+    const targetColors = mode === "whole-sheet" ? stoneColorsByMode.wholeSheet : stoneColorsByMode.installed;
+    const targetColor = targetColors.some((color) => color.code === activeStone.color)
+      ? activeStone.color
+      : targetColors[0]?.code;
+    if (!targetColor) {
+      setStones((current) => removeStoneSelection(current, activeStone.color));
+      setDimensionError("ยังไม่มีรายการหินที่เปิดใช้งานสำหรับรูปแบบนี้");
+      return;
+    }
+    const next: StoneConfig = { ...activeStone, mode, color: targetColor, enabled: true };
+    setActiveColor(targetColor);
+    setStones((current) => upsertStone(current, next, targetColors));
+    setDimensionError("");
+  };
   const validateDimensions = () => { if (!activeStone.widthCm || !activeStone.lengthCm || activeStone.widthCm < 10 || activeStone.lengthCm < 10) setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. เพื่อคำนวณพื้นที่"); else setDimensionError(""); };
   return <div className="page-wrap stone-page"><section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>หินสังเคราะห์<br /><em>ตามพื้นที่ของคุณ</em></h1><p className="hero-copy">เริ่มจากแผ่นมาตรฐาน หรือบอกขนาดพื้นที่ที่ต้องการติดตั้ง ระบบจะจัดโครงสร้างราคาให้เห็นก่อนส่งต่อเป็นใบเสนอราคา</p></div><div className="material-swatch" style={{ background: selectedColor.tone }}><span>{selectedColor.code}</span></div></section>
     <div className="config-layout"><section className="config-main"><div className="section-heading"><span className="step">01</span><div><p className="eyebrow">CHOOSE FORMAT</p><h2>เลือกรูปแบบการสั่งซื้อ</h2></div></div><div className="mode-switch"><button className={isWhole ? "is-active" : ""} onClick={() => switchMode("whole-sheet")} data-testid="button-stone-whole-sheet"><span>แผ่นเต็ม</span><small>ราคาขายแผ่นมาตรฐาน</small></button><button className={!isWhole ? "is-active" : ""} onClick={() => switchMode("installed")} data-testid="button-stone-installed"><span>ตัดและติดตั้ง</span><small>ราคาต่อตารางเมตร รวมติดตั้ง</small></button></div>
-        <div className="section-heading"><span className="step">02</span><div><p className="eyebrow">SURFACE TONE</p><h2>เลือกสีหิน <span>/ เลือกได้หลายสี</span></h2></div></div><div className="stone-search-row"><label className="search-field"><Search size={16} /><input value={stoneQuery} onChange={(event) => setStoneQuery(event.target.value)} placeholder="ค้นหาชื่อหรือรหัสสินค้า" data-testid="input-stone-search" />{stoneQuery && <button onClick={() => setStoneQuery("")} aria-label="ล้างการค้นหาหิน" data-testid="button-clear-stone-search"><X size={14} /></button>}</label><span>{stones.length} สีที่เลือก · {visibleColors.length} / {STONE_COLORS.length} รายการ</span></div><div className="stone-price-legend"><span>ราคาขายแผ่น</span><span>ราคารวมติดตั้ง</span></div><div className="stone-colors">{visibleColors.length ? visibleColors.map((color) => { const selected = stones.some((stone) => stone.color === color.code); return <button key={color.code} className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`} onClick={() => toggleColor(color.code)} aria-pressed={selected} data-testid={`button-stone-color-${color.code}`}><span className="stone-card-image-wrap" style={{ background: color.tone }}>{color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span><strong>{color.name}</strong><small>{color.code}</small><small className="stone-card-prices">แผ่น {formatStonePrice(color.sheetPriceTHB)} · ติดตั้ง {formatStonePrice(color.installedPriceTHB)}</small>{selected && <Check size={14} />}</button>; }) : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}</div>
+         <div className="section-heading"><span className="step">02</span><div><p className="eyebrow">SURFACE TONE</p><h2>เลือกสีหิน <span>/ เลือกได้หลายสี</span></h2></div></div><div className="stone-search-row"><label className="search-field"><Search size={16} /><input value={stoneQuery} onChange={(event) => setStoneQuery(event.target.value)} placeholder="ค้นหาชื่อหรือรหัสสินค้า" data-testid="input-stone-search" />{stoneQuery && <button onClick={() => setStoneQuery("")} aria-label="ล้างการค้นหาหิน" data-testid="button-clear-stone-search"><X size={14} /></button>}</label><span>{stones.length} สีที่เลือก · {visibleColors.length} / {availableColors.length} รายการ</span></div><div className="stone-price-legend"><span>ราคาขายแผ่น</span><span>ราคารวมติดตั้ง</span></div><div className="stone-colors">{visibleColors.length ? visibleColors.map((color) => { const selected = stones.some((stone) => stone.color === color.code); return <button key={color.code} className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`} onClick={() => toggleColor(color.code)} aria-pressed={selected} data-testid={`button-stone-color-${color.code}`}><span className="stone-card-image-wrap" style={{ background: color.tone }}>{color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span><strong>{color.name}</strong><small>{color.code}</small><small className="stone-card-prices">แผ่น {formatStonePrice(color.sheetPriceTHB)} · ติดตั้ง {formatStonePrice(color.installedPriceTHB)}</small>{selected && <Check size={14} />}</button>; }) : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}</div>
        <div className="section-heading"><span className="step">03</span><div><p className="eyebrow">SIZE & QUANTITY</p><h2>{isWhole ? "จำนวนแผ่น" : "ขนาดพื้นที่"} <span>/ กำลังแก้ไข {selectedColor.code}</span></h2></div></div>{isWhole ? <div className="quantity-editor large"><button onClick={() => update({ quantity: Math.max(1, activeStone.quantity - 1) })} data-testid="button-stone-quantity-minus"><Minus size={16} /></button><strong data-testid="text-stone-quantity">{activeStone.quantity}</strong><button onClick={() => update({ quantity: activeStone.quantity + 1 })} data-testid="button-stone-quantity-plus"><Plus size={16} /></button><span>แผ่นมาตรฐาน / 760 × 3680 mm</span></div> : <div className="dimensions-form"><label>กว้าง (ซม.)<input type="number" min="10" value={activeStone.widthCm || ""} onChange={(event) => update({ widthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-width" /></label><span>×</span><label>ยาว (ซม.)<input type="number" min="10" value={activeStone.lengthCm || ""} onChange={(event) => update({ lengthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-length" /></label><div className="area-result"><small>พื้นที่รวม</small><strong>{area.toFixed(2)} m²</strong></div>{dimensionError && <p className="field-error" data-testid="status-stone-dimension-error">{dimensionError}</p>}</div>}</section>
-         <aside className="config-summary" draggable={activeStone.enabled && !invalidInstalledSize && selectedPrice !== null} onDragStart={(event) => { if (!activeStone.enabled || invalidInstalledSize || selectedPrice === null) return; event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "stone"); event.dataTransfer.setData("application/x-knight-stone", JSON.stringify(activeStone)); }}><p className="eyebrow">CONFIGURATION NOTE</p><div className="summary-swatch" style={{ background: selectedColor.tone }} /><h3>{selectedColor.name}</h3><p className="muted">{isWhole ? "แผ่นเต็มมาตรฐาน" : "ตัดตามขนาดและติดตั้ง"} · {selectedColor.code}</p><div className="summary-divider" /><div className="summary-row"><span>{isWhole ? "ราคาขายแผ่น" : "ราคารวมติดตั้ง"}<small>{isWhole ? `${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS}` : "คิดตามพื้นที่แผ่นตัด"}</small></span><strong>{formatStonePrice(selectedPrice)} {isWhole ? "/ แผ่น" : "/ m²"}</strong></div>{!isWhole && <div className="summary-row"><span>ค่าแรงติดตั้ง</span><strong>{selectedPrice === null ? "ไม่มีราคา" : "รวมในราคาแล้ว"}</strong></div>}<div className="summary-total"><span>ประมาณการ</span><strong>{selectedPrice === null ? "—" : formatTHB(stoneTotal(activeStone))}</strong></div>{activeStone.enabled && !invalidInstalledSize && selectedPrice !== null && <p className="drag-summary-hint"><GripVertical size={14} /> ลากสรุปนี้ไปเพิ่มในใบเสนอราคา</p>}<Link href="/quote" className={`button button--dark full-width ${invalidInstalledSize || selectedPrice === null ? "is-disabled" : ""}`} onClick={(event) => { if (invalidInstalledSize) { event.preventDefault(); setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. ก่อนเพิ่มลงใบเสนอราคา"); } else if (selectedPrice === null) { event.preventDefault(); setDimensionError("รายการนี้ไม่มีราคาในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้"); } }} data-testid="link-stone-to-quote">ดูใบเสนอราคา <ArrowRight size={16} /></Link><p className="price-note">{selectedPrice === null ? "ไม่มีราคาของรูปแบบนี้ในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้" : isWhole ? `ราคาขายแผ่นยังไม่รวม VAT และกาว 250 ml (${formatTHB(STONE_GLUE_PRICE)} / หลอด)` : `กรุงเทพฯ/ปริมณฑลขั้นต่ำ ${STONE_INSTALLED_MIN_BANGKOK_SQM} m² · ต่างจังหวัดขั้นต่ำ ${STONE_INSTALLED_MIN_PROVINCE_SQM} m²`}</p>{!isWhole && selectedPrice !== null && <p className="price-note">งานต่ำกว่าขั้นต่ำคิดค่าดำเนินการ {formatTHB(STONE_SMALL_JOB_BANGKOK_FEE)} ในกรุงเทพฯ หรือ {formatTHB(STONE_SMALL_JOB_PROVINCE_FEE)} ต่างจังหวัด</p>}</aside>
+         <aside className="config-summary" draggable={activeStone.enabled && !invalidInstalledSize && selectedPrice !== null} onDragStart={(event) => { if (!activeStone.enabled || invalidInstalledSize || selectedPrice === null) return; event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "stone"); event.dataTransfer.setData("application/x-knight-stone", JSON.stringify(activeStone)); }}><p className="eyebrow">CONFIGURATION NOTE</p><div className="summary-swatch" style={{ background: selectedColor.tone }}>{selectedColor.imageUrl && <img src={selectedColor.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</div><h3>{selectedColor.name}</h3><p className="muted">{stoneOrderModeLabel(activeStone.mode)} · {selectedColor.code}</p><div className="summary-divider" /><div className="summary-row"><span>{isWhole ? "ราคาขายแผ่น" : "ราคารวมติดตั้ง"}<small>{isWhole ? `${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS}` : "คิดตามพื้นที่แผ่นตัด"}</small></span><strong>{formatStonePrice(selectedPrice)} {isWhole ? "/ แผ่น" : "/ m²"}</strong></div>{!isWhole && <div className="summary-row"><span>ค่าแรงติดตั้ง</span><strong>{selectedPrice === null ? "ไม่มีราคา" : "รวมในราคาแล้ว"}</strong></div>}<div className="summary-total"><span>ประมาณการ</span><strong>{selectedPrice === null ? "—" : formatTHB(stoneTotal(activeStone, availableColors))}</strong></div>{activeStone.enabled && !invalidInstalledSize && selectedPrice !== null && <p className="drag-summary-hint"><GripVertical size={14} /> ลากสรุปนี้ไปเพิ่มในใบเสนอราคา</p>}<Link href="/quote" className={`button button--dark full-width ${invalidInstalledSize || selectedPrice === null ? "is-disabled" : ""}`} onClick={(event) => { if (invalidInstalledSize) { event.preventDefault(); setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. ก่อนเพิ่มลงใบเสนอราคา"); } else if (selectedPrice === null) { event.preventDefault(); setDimensionError("รายการนี้ไม่มีราคาในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้"); } }} data-testid="link-stone-to-quote">ดูใบเสนอราคา <ArrowRight size={16} /></Link><p className="price-note">{selectedPrice === null ? "ไม่มีราคาของรูปแบบนี้ในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้" : isWhole ? `ราคาขายแผ่นยังไม่รวม VAT และกาว 250 ml (${formatTHB(STONE_GLUE_PRICE)} / หลอด)` : `กรุงเทพฯ/ปริมณฑลขั้นต่ำ ${STONE_INSTALLED_MIN_BANGKOK_SQM} m² · ต่างจังหวัดขั้นต่ำ ${STONE_INSTALLED_MIN_PROVINCE_SQM} m²`}</p>{!isWhole && selectedPrice !== null && <p className="price-note">งานต่ำกว่าขั้นต่ำคิดค่าดำเนินการ {formatTHB(STONE_SMALL_JOB_BANGKOK_FEE)} ในกรุงเทพฯ หรือ {formatTHB(STONE_SMALL_JOB_PROVINCE_FEE)} ต่างจังหวัด</p>}</aside>
      </div><div className="source-note"><span>แหล่งอ้างอิง</span> ราคาขายแผ่นและราคารวมติดตั้งจากเอกสาร Knight Furnich ที่แนบมา · ราคายังไม่รวม VAT 7%</div></div>;
 }
 
-function QuoteStoneRow({ stone, onRemove }: { stone: StoneConfig; onRemove: (color: string) => void }) {
-  const selectedStone = stoneColorByName(stone.color);
-  const currentStoneUnitPrice = stoneUnitPrice(stone);
+function QuoteStoneRow({ stone, onRemove, stoneColors }: { stone: StoneConfig; onRemove: (color: string) => void; stoneColors: ReadonlyArray<StoneColor> }) {
+  const selectedStone = stoneColorByName(stone.color, stoneColors);
+  const currentStoneUnitPrice = stoneUnitPrice(stone, stoneColors);
   return <div className="stone-line" data-testid={`row-quote-stone-${selectedStone.code}`}>
-    <span className="stone-chip" style={{ background: selectedStone.tone }} />
-    <div><strong>{selectedStone.name} · {selectedStone.code}</strong><small>{stone.mode === "whole-sheet" ? `${stone.quantity} แผ่นมาตรฐาน · ราคาขายแผ่น` : `พื้นที่ ${stoneAreaSqM(stone).toFixed(2)} m² · ราคารวมติดตั้ง`}</small></div>
-    <strong className="line-price">{currentStoneUnitPrice === null ? "ไม่มีราคา" : formatTHB(stoneTotal(stone))}</strong>
+    <span className="stone-chip" style={{ background: selectedStone.tone }}>{selectedStone.imageUrl && <img src={selectedStone.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span>
+    <div><strong>{selectedStone.name} · {selectedStone.code}</strong><small>รูปแบบ: {stoneOrderModeLabel(stone.mode)} · {stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น · ราคาขายแผ่น` : `พื้นที่ ${stoneAreaSqM(stone).toFixed(2)} m² · ราคารวมติดตั้ง`}</small></div>
+    <strong className="line-price">{currentStoneUnitPrice === null ? "ไม่มีราคา" : formatTHB(stoneTotal(stone, stoneColors))}</strong>
     <button type="button" className="icon-button stone-remove-button" onClick={() => onRemove(stone.color)} aria-label={`ลบหิน ${selectedStone.name} ออกจากใบเสนอราคา`} title={`ลบ ${selectedStone.name}`} data-testid={`button-remove-quote-stone-${selectedStone.code}`}><Trash2 size={15} /></button>
   </div>;
 }
@@ -804,7 +841,7 @@ function SavedQuotePage() {
   </div>;
 }
 
-function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, vat, setVat, onSubmitQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; customer: CustomerDetails; setCustomer: Dispatch<SetStateAction<CustomerDetails>>; vat: boolean; setVat: Dispatch<SetStateAction<boolean>>; onSubmitQuote: (snapshot: QuickQuoteSnapshot, notify?: boolean) => Promise<void> }) {
+function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, setCustomer, vat, setVat, onSubmitQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColors: ReadonlyArray<StoneColor>; customer: CustomerDetails; setCustomer: Dispatch<SetStateAction<CustomerDetails>>; vat: boolean; setVat: Dispatch<SetStateAction<boolean>>; onSubmitQuote: (snapshot: QuickQuoteSnapshot, notify?: boolean) => Promise<void> }) {
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -820,15 +857,15 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   const basinSets = cart.reduce((sum, line) => sum + line.quantity, 0);
   const requestedInstallationCharge = cart.reduce((sum, line) => sum + (line.installationSelected ? INSTALLATION_PRICE * line.quantity : 0), 0);
   const stoneActive = stones.length > 0;
-  const totalStone = stones.reduce((sum, stone) => sum + stoneTotal(stone), 0);
+  const totalStone = stones.reduce((sum, stone) => sum + stoneTotal(stone, stoneColors), 0);
   const { installationDiscount, installationCharge, grossSubtotal, subtotal, vatAmount, total } = calculateFormalQuoteTotals({ basinSubtotal, requestedInstallationCharge, basinSets, stoneTotal: totalStone, vat, vatRate: VAT_RATE });
-  const hasMissing = !customer.name.trim() || !customer.phone.trim() || !customer.email.trim() || !customer.project.trim();
   const hasInvalidEmail = !isValidEmailAddress(customer.email);
+  const hasMissing = false;
   const hasInvalidTaxId = Boolean(customer.taxId && !/^[0-9]{13}$/.test(customer.taxId));
   const hasPastInstallationDate = Boolean(customer.expectedInstallationDate && customer.expectedInstallationDate < today);
   const missingTaxIdForVat = vat && !/^[0-9]{13}$/.test(customer.taxId);
-  const hasInvalidStone = stones.some(isInvalidStone);
-  const canGenerate = !hasMissing && !hasInvalidEmail && !hasInvalidTaxId && !hasPastInstallationDate && !hasInvalidStone && cart.length > 0;
+  const hasInvalidStone = stones.some((stone) => isInvalidStone(stone, stoneColors));
+  const canGenerate = !hasInvalidEmail && !hasInvalidTaxId && !hasPastInstallationDate && !hasInvalidStone && cart.length > 0;
   const formalItems: FormalQuoteItem[] = cart.map((line) => {
     const product = productBySku(line.sku)!;
     return {
@@ -844,16 +881,16 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   });
    if (requestedInstallationCharge > 0) formalItems.push({ code: "INSTALL", description: quoteFormat === "OF" ? `ค่าติดตั้ง / ค่าแรง แยกรายจุด · ${customer.site || customer.project || "ตามแบบ"}` : "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: requestedInstallationCharge / INSTALLATION_PRICE, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallationCharge, notificationKind: "service" });
   stones.forEach((stone) => {
-    const selectedStone = stoneColorByName(stone.color);
-    const currentStoneUnitPrice = stoneUnitPrice(stone);
-    if (currentStoneUnitPrice === null || isInvalidStone(stone)) return;
+     const selectedStone = stoneColorByName(stone.color, stoneColors);
+     const currentStoneUnitPrice = stoneUnitPrice(stone, stoneColors);
+     if (currentStoneUnitPrice === null || isInvalidStone(stone, stoneColors)) return;
     formalItems.push({
       code: selectedStone.code,
-      description: `${selectedStone.name} · ${stone.mode === "whole-sheet" ? "แผ่นมาตรฐาน 760 × 3680 mm" : `ตัดและติดตั้ง ${stone.widthCm} × ${stone.lengthCm} cm`}`,
+      description: `${selectedStone.name} · ${stoneOrderModeLabel(stone.mode)} · ${stone.mode === "whole-sheet" ? "แผ่นมาตรฐาน 760 × 3680 mm" : `พื้นที่ ${stone.widthCm} × ${stone.lengthCm} cm`}`,
       quantity: stone.mode === "whole-sheet" ? stone.quantity : stoneAreaSqM(stone),
       unit: stone.mode === "whole-sheet" ? "แผ่น" : "ตร.ม.",
       unitPrice: currentStoneUnitPrice,
-      total: stoneTotal(stone),
+       total: stoneTotal(stone, stoneColors),
        notificationKind: "stone",
     });
   });
@@ -864,7 +901,7 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
     `ประเภทสถานที่: ${customer.propertyType || "-"}${customer.condoFloor ? ` · ชั้น ${customer.condoFloor}` : ""} · วันที่คาดว่าจะติดตั้ง: ${customer.expectedInstallationDate || "-"}`,
     `ใบกำกับภาษี: ${customer.taxName || "-"} · ${customer.taxId || "-"} · ${customer.taxBranch || "-"}`,
     `สินค้า: ${cart.map((line) => `${line.sku} x${line.quantity}`).join(", ") || "-"}`,
-    `หินสังเคราะห์: ${stoneActive ? stones.map((stone) => `${stoneColorByName(stone.color).code} ${stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น` : `${stoneAreaSqM(stone).toFixed(2)} m²`}`).join(", ") : "ไม่ได้เลือก"}`,
+    `หินสังเคราะห์: ${stoneActive ? stones.map((stone) => `${stoneColorByName(stone.color).code} · ${stoneOrderModeLabel(stone.mode)} · ${stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น` : `${stoneAreaSqM(stone).toFixed(2)} m²`}`).join(", ") : "ไม่ได้เลือก"}`,
     `ยอดสุทธิประมาณการ: ${formatTHB(total)}`,
     `เอกสารมีอายุ 30 วันนับจากวันที่ออกเอกสาร (${formatDate(expiryDate)})`,
     "ขอให้ทีมงานยืนยันแบบและติดต่อกลับเพื่อสรุปหน้างาน",
@@ -889,8 +926,31 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
     total,
     vat,
   };
+  const focusQuoteRequirement = () => {
+    const targetTestId = !cart.length
+      ? "link-add-more"
+      : hasInvalidEmail
+        ? "input-customer-email"
+        : hasInvalidTaxId
+          ? "input-customer-taxId"
+          : hasPastInstallationDate
+            ? "input-customer-expectedInstallationDate"
+            : hasInvalidStone
+              ? "link-edit-stone"
+              : "";
+    if (!targetTestId) return;
+    window.setTimeout(() => {
+      const target = document.querySelector<HTMLElement>(`[data-testid="${targetTestId}"]`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.focus();
+    }, 0);
+  };
   const saveQuote = async (notify = false) => {
-    if (!canGenerate) return;
+    if (!canGenerate) {
+      setSubmitted(true);
+      focusQuoteRequirement();
+      return;
+    }
     setSubmitted(true);
     setSaveError("");
     setSaving(true);
@@ -908,6 +968,7 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
   const printQuote = () => {
     if (!canGenerate) {
       setSubmitted(true);
+      focusQuoteRequirement();
       return;
     }
     setSubmitted(true);
@@ -924,17 +985,38 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
     }, 80);
   };
   const customerFields: Array<{ key: keyof CustomerDetails; label: string; placeholder: string; required?: boolean }> = [
-    { key: "name", label: "ชื่อผู้ติดต่อ", placeholder: "เช่น คุณนรินทร์", required: true },
-    { key: "company", label: "บริษัท / สำนักงาน", placeholder: "ถ้ามี" },
-    { key: "taxName", label: "ชื่อออกใบกำกับภาษี", placeholder: "ถ้ามี" },
-    { key: "taxId", label: "เลขประจำตัวผู้เสียภาษีลูกค้า", placeholder: "ถ้ามี" },
-    { key: "taxBranch", label: "สาขา", placeholder: "สำนักงานใหญ่ / ถ้ามี" },
-    { key: "phone", label: "โทรศัพท์", placeholder: "08x-xxx-xxxx", required: true },
-    { key: "email", label: "อีเมล", placeholder: "name@company.com", required: true },
+    { key: "name", label: "ชื่อลูกค้า", placeholder: "เช่น คุณนรินทร์" },
+    { key: "phone", label: "เบอร์ติดต่อ", placeholder: "08x-xxx-xxxx" },
+    { key: "email", label: "อีเมล", placeholder: "name@company.com" },
+    { key: "company", label: "บริษัท / นิติบุคคล", placeholder: "ถ้ามี" },
+    { key: "project", label: "ชื่อโครงการ", placeholder: "ถ้ามี เช่น บ้านพักอาศัยสุขุมวิท" },
     { key: "purchasingDepartment", label: "ฝ่ายจัดซื้อ / บัญชี", placeholder: "ถ้ามี" },
-    { key: "project", label: "ชื่อโครงการ", placeholder: "เช่น บ้านพักอาศัยสุขุมวิท", required: true },
-    { key: "site", label: "สถานที่ติดตั้ง (SITE)", placeholder: "เช่น ห้องน้ำชั้น 2" },
+    { key: "taxName", label: "ชื่อสำหรับออกใบกำกับภาษี", placeholder: "ถ้าต้องการใบกำกับภาษี" },
+    { key: "taxId", label: "เลขประจำตัวนิติบุคคล / ผู้เสียภาษี", placeholder: "13 หลัก (ถ้ามี)" },
+    { key: "taxBranch", label: "สาขา", placeholder: "สำนักงานใหญ่ / ถ้ามี" },
+    { key: "site", label: "โลเคชันหน้างาน", placeholder: "เช่น ห้องน้ำชั้น 2" },
   ];
+  const renderCustomerField = (field: (typeof customerFields)[number]) => (
+    <label key={field.key}>
+      {field.label}{field.required && <sup>*</sup>}
+      <input
+        type={field.key === "email" ? "email" : field.key === "phone" ? "tel" : undefined}
+        inputMode={field.key === "phone" || field.key === "taxId" ? "numeric" : undefined}
+        value={customer[field.key] ?? ""}
+        placeholder={field.placeholder}
+        onChange={(event) => setCustomer((current) => ({
+          ...current,
+          [field.key]: field.key === "taxId"
+            ? event.target.value.replace(/\D/g, "").slice(0, 13)
+            : field.key === "phone"
+              ? event.target.value.replace(/\D/g, "").slice(0, 10)
+              : event.target.value,
+        }))}
+        data-testid={`input-customer-${field.key}`}
+        aria-invalid={(field.key === "email" && hasInvalidEmail) || (field.key === "taxId" && hasInvalidTaxId)}
+      />
+    </label>
+  );
   return <div className="page-wrap quote-page">
     <div className="quote-editor">
       <div className="saved-quote-actions quote-notification-actions">
@@ -944,8 +1026,8 @@ function QuotePage({ cart, setCart, stones, setStones, customer, setCustomer, va
       <section className="quote-heading"><div><p className="eyebrow accent">QUOTE BUILDER / {quoteNumber}</p><h1>จากรายการ<br /><em>สู่ตัวเลขที่ชัดเจน</em></h1><p className="hero-copy">ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทางการสำหรับโปรเจกต์ของคุณ</p></div><div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={printQuote} data-testid="button-print-quote"><Printer size={15} /> พิมพ์ / PDF ทางการ</button></div></section>
        <section className="quote-format-panel"><div><p className="eyebrow">DOCUMENT FORMAT</p><strong>เลือกรูปแบบใบเสนอราคา</strong><small>US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จุดติดตั้ง</small></div><div className="quote-format-switch"><button className={quoteFormat === "US" ? "is-active" : ""} onClick={() => setQuoteFormat("US")} data-testid="button-quote-format-us"><span>US</span><small>พื้นที่ / แผ่น</small></button><button className={quoteFormat === "OF" ? "is-active" : ""} onClick={() => setQuoteFormat("OF")} data-testid="button-quote-format-of"><span>OF</span><small>รายห้อง / จุด</small></button></div><div className="quote-language-choice"><p className="eyebrow">DOCUMENT LANGUAGE</p><strong>เลือกภาษาสำหรับ PDF / Print</strong><small>ค่าเริ่มต้นเป็นภาษาไทย และบันทึกไปกับใบเสนอราคา</small></div><div className="quote-language-switch quote-language-switch--builder" role="group" aria-label="ภาษาของใบเสนอราคา"><span>PDF / Print</span><button type="button" className={quoteLanguage === "TH" ? "is-active" : ""} onClick={() => setQuoteLanguage("TH")} aria-pressed={quoteLanguage === "TH"} data-testid="button-quote-language-th">TH</button><button type="button" className={quoteLanguage === "EN" ? "is-active" : ""} onClick={() => setQuoteLanguage("EN")} aria-pressed={quoteLanguage === "EN"} data-testid="button-quote-language-en">EN</button></div></section>
       <div className="quote-layout"><section className="quote-main"><div className="quote-block"><div className="block-header"><div><p className="eyebrow">01 / BASINS</p><h2>รายการอ่างล้างหน้า</h2></div><Link href="/" className="text-link" data-testid="link-add-more">เพิ่มรายการ <Plus size={15} /></Link></div>{cart.length ? cart.map((line) => { const product = productBySku(line.sku)!; return <div className="quote-line" key={line.sku} data-testid={`row-quote-${line.sku}`}><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={product.category === "tall vertical washbasin"} /><div className="quote-line-name"><span className="eyebrow">{product.sku} / {product.colorCode}</span><strong>{product.colorName}</strong><small>{product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง"} · {product.dimensions}</small></div><div className="line-quantity"><button onClick={() => updateLine(line.sku, { quantity: line.quantity - 1 })} aria-label={`ลดจำนวน ${line.sku}`} data-testid={`button-quantity-minus-${line.sku}`}><Minus size={13} /></button><span data-testid={`text-quantity-${line.sku}`}>{line.quantity}</span><button onClick={() => updateLine(line.sku, { quantity: line.quantity + 1 })} aria-label={`เพิ่มจำนวน ${line.sku}`} data-testid={`button-quantity-plus-${line.sku}`}><Plus size={13} /></button></div><label className="install-toggle"><input type="checkbox" checked={line.installationSelected} onChange={(event) => updateLine(line.sku, { installationSelected: event.target.checked })} data-testid={`input-installation-${line.sku}`} /><span />ติดตั้ง</label><strong className="line-price">{formatTHB(product.priceTHB * line.quantity)}</strong><button className="icon-button" onClick={() => setCart((lines) => lines.filter((item) => item.sku !== line.sku))} aria-label={`ลบ ${line.sku}`} data-testid={`button-remove-${line.sku}`}><Trash2 size={15} /></button></div>; }) : <div className="quote-empty" data-testid="status-quote-empty"><ShoppingBag size={22} /><p>ยังไม่มีสินค้าในใบเสนอราคา</p><Link href="/" className="text-link" data-testid="link-empty-catalog">เลือกจากแคตตาล็อก <ArrowRight size={15} /></Link></div>}<div className="install-note">ค่าติดตั้งอ่าง <strong>5,000 บาท/ชุด</strong> · ฟรีค่าดำเนินการติดตั้งเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</div></div>
-           <div className="quote-block"><div className="block-header"><div><p className="eyebrow">02 / STONE</p><h2>หินสังเคราะห์</h2></div><Link href="/stone" className="text-link" data-testid="link-edit-stone">{stoneActive ? "แก้ไขการกำหนดค่า" : "เพิ่มหินสังเคราะห์"} <ArrowRight size={15} /></Link></div>{stoneActive ? stones.map((stone) => <QuoteStoneRow key={stone.color} stone={stone} onRemove={removeStone} />) : <div className="quote-empty quote-empty--compact" data-testid="status-stone-empty"><p>ยังไม่ได้เลือกหินสังเคราะห์</p><Link href="/stone" className="text-link" data-testid="link-empty-stone">เลือกสีและรูปแบบการสั่งซื้อ <ArrowRight size={15} /></Link></div>}</div>
-           <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2></div>{hasMissing && <span className="missing-badge" data-testid="status-customer-missing">กรุณากรอกข้อมูลที่จำเป็น</span>}</div><div className="customer-grid">{customerFields.map((field) => <label key={field.key}>{field.label}{field.required && <sup>*</sup>}<input type={field.key === "email" ? "email" : undefined} value={customer[field.key] ?? ""} placeholder={field.placeholder} onChange={(event) => setCustomer((current) => ({ ...current, [field.key]: field.key === "taxId" ? event.target.value.replace(/\D/g, "").slice(0, 13) : event.target.value }))} data-testid={`input-customer-${field.key}`} aria-invalid={(field.key === "email" && hasInvalidEmail) || (field.key === "taxId" && hasInvalidTaxId)} /></label>)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">เลือกช่องทาง</option><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">เลือกบทบาท</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label><label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">เลือกประเภท</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label className="span-2">ที่อยู่ลูกค้า / สถานที่จัดส่ง<textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} data-testid="input-customer-address" /></label><label className="span-2">ที่อยู่สำหรับใบกำกับภาษี<textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} data-testid="input-customer-tax-address" /></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}{hasPastInstallationDate && <p className="summary-warning" role="alert" data-testid="status-quote-installation-date-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}</div>
+           <div className="quote-block"><div className="block-header"><div><p className="eyebrow">02 / STONE</p><h2>หินสังเคราะห์</h2></div><Link href="/stone" className="text-link" data-testid="link-edit-stone">{stoneActive ? "แก้ไขการกำหนดค่า" : "เพิ่มหินสังเคราะห์"} <ArrowRight size={15} /></Link></div>{stoneActive ? stones.map((stone) => <QuoteStoneRow key={stone.color} stone={stone} stoneColors={stoneColors} onRemove={removeStone} />) : <div className="quote-empty quote-empty--compact" data-testid="status-stone-empty"><p>ยังไม่ได้เลือกหินสังเคราะห์</p><Link href="/stone" className="text-link" data-testid="link-empty-stone">เลือกสีและรูปแบบการสั่งซื้อ <ArrowRight size={15} /></Link></div>}</div>
+           <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2><p className="customer-intro">กรอกเท่าที่มีได้เลยครับ ข้อมูลที่ยังไม่พร้อมสามารถเติมภายหลังได้ และยังออกใบเสนอราคาได้</p></div>{hasMissing && <span className="missing-badge" data-testid="status-customer-missing">ข้อมูลยังไม่ครบ · ยังออกใบเสนอราคาได้</span>}</div><div className="customer-grid"><div className="customer-group-title span-2"><strong>ข้อมูลติดต่อ</strong><small>ใช้สำหรับให้ทีมงานติดต่อกลับ</small></div>{customerFields.slice(0, 6).map(renderCustomerField)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">ยังไม่ระบุ</option><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label><div className="customer-group-title span-2"><strong>ข้อมูลสำหรับออกใบเสนอราคา</strong><small>ที่อยู่และชื่อโครงการช่วยให้เอกสารชัดเจนขึ้น แต่ไม่บังคับ</small></div><label className="span-2">ที่อยู่ในการออกใบเสนอราคา / จัดส่ง<textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์" data-testid="input-customer-address" /></label><div className="customer-group-title span-2"><strong>ข้อมูลใบกำกับภาษี</strong><small>กรอกเมื่อคุณต้องการเอกสารภาษีในนามบริษัทหรือนิติบุคคล</small></div>{customerFields.slice(6, 9).map(renderCustomerField)}<label className="span-2">ที่อยู่สำหรับใบกำกับภาษี<textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} placeholder="กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา" data-testid="input-customer-tax-address" /></label><div className="customer-group-title span-2"><strong>รายละเอียดหน้างาน</strong><small>ช่วยให้ทีมงานประเมินและติดต่อกลับได้ตรงจุด</small></div>{customerFields.slice(9).map(renderCustomerField)}<label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">ยังไม่ระบุ</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">ยังไม่ระบุ</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} placeholder="ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน" data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}{hasPastInstallationDate && <p className="summary-warning" role="alert" data-testid="status-quote-installation-date-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}</div>
          </section><aside className="quote-summary"><p className="eyebrow">04 / TOTAL</p><h2>สรุปใบเสนอราคา</h2><div className="total-rows"><div><span>สินค้าอ่างล้างหน้า <small>{basinSets} ชุด</small></span><strong>{formatTHB(basinSubtotal)}</strong></div><div><span>ค่าติดตั้งอ่าง</span><strong className={installationCharge === 0 ? "free-text" : ""}>{installationCharge === 0 ? "ฟรี" : formatTHB(installationCharge)}</strong></div>{stoneActive && <div><span>หินสังเคราะห์ <small>{stones.length} สี · อ้างอิงราคาจากเอกสาร</small></span><strong>{hasInvalidStone ? "ตรวจสอบรายการ" : formatTHB(totalStone)}</strong></div>}<div className="discount-row"><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{installationDiscount ? `-${formatTHB(installationDiscount)}` : "—"}</strong></div></div><div className="vat-row"><label><input type="checkbox" checked={vat} onChange={(event) => setVat(event.target.checked)} data-testid="input-vat" /><span />คิด VAT 7%</label><strong>{formatTHB(vatAmount)}</strong></div>{missingTaxIdForVat && <p className="summary-warning" role="status" data-testid="status-quote-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}<div className="grand-total"><span>ยอดรวมทั้งสิ้น</span><strong data-testid="text-grand-total">{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div><button className="button button--accent full-width" onClick={generateQuote} data-testid="button-generate-quote">{submitted && canGenerate ? <><Check size={16} /> สร้างใบเสนอราคาแล้ว</> : <>ออกใบเสนอราคาทางการ <ArrowRight size={16} /></>}</button>{hasMissing && <p className="summary-warning" data-testid="status-quote-validation">กรอกชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ เพื่อสร้างใบเสนอราคาที่สมบูรณ์</p>}{hasPastInstallationDate && <p className="summary-warning" data-testid="status-quote-installation-date-summary-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}{hasInvalidStone && <p className="summary-warning" data-testid="status-quote-stone-validation">กลับไปหน้าหินสังเคราะห์และกรอกขนาดอย่างน้อย 10 × 10 ซม. หรือเลือกสีที่มีราคาในเอกสาร ก่อนสร้างใบเสนอราคา</p>}{!cart.length && <p className="summary-warning" data-testid="status-quote-cart-validation">เพิ่มสินค้าอย่างน้อย 1 รายการก่อนออกใบเสนอราคา</p>}{submitted && canGenerate && <div className="success-message" data-testid="status-quote-success"><Check size={16} /> {quoteNumber} พร้อมพิมพ์หรือบันทึกเป็น PDF</div>}<div className="quote-share"><strong>ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ</strong><p>กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิด LINE เพื่อส่งต่อได้ทันที</p><div className="quote-share-actions"><button type="button" className="button button--dark" onClick={copyLineSummary} data-testid="button-copy-line-summary">{copied ? <><Check size={15} /> คัดลอกแล้ว</> : "คัดลอกสรุปส่ง LINE"}</button><a className="button button--outline" href={`https://line.me/R/msg/text/?text=${encodeURIComponent(lineSummary)}`} target="_blank" rel="noreferrer" data-testid="link-send-line-summary">เปิด LINE</a></div></div><div className="quote-terms"><strong>หมายเหตุจากแคตตาล็อก</strong><p>ราคาสินค้าไม่รวม VAT · หินตัดและติดตั้งใช้อัตรารวมติดตั้งแล้ว · งานหินต่ำกว่าพื้นที่ขั้นต่ำอาจมีค่าดำเนินการเพิ่มตามพื้นที่</p></div></aside></div>
     </div>
     {submitted && canGenerate && <FormalQuote format={quoteFormat} quoteNumber={quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={installationDiscount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} language={quoteLanguage} />}
@@ -980,17 +1062,36 @@ function OrderModeTabs({ mode, setMode }: { mode: StudioOrderMode; setMode: Disp
 }
 
 function Storefront() {
-  const { data: remoteCatalog } = useGetCatalog();
+  const { data: remoteCatalog } = useGetCatalog({
+    query: {
+      staleTime: 0,
+      refetchInterval: 15_000,
+      refetchIntervalInBackground: true,
+      refetchOnMount: "always",
+      refetchOnReconnect: true,
+    },
+  });
   const { data: lineAuth } = useGetLineAuthStatus();
   const { data: customerProfile } = useGetCustomerProfile({ query: { queryKey: ["customer-profile"], enabled: lineAuth?.authenticated === true, retry: false } });
-  const [, setCatalogRevision] = useState(0);
+  const [catalogStoneColors, setCatalogStoneColors] = useState<{
+    wholeSheet: ReadonlyArray<StoneColor>;
+    installed: ReadonlyArray<StoneColor>;
+    all: ReadonlyArray<StoneColor>;
+  }>({
+    wholeSheet: STONE_COLORS,
+    installed: STONE_COLORS,
+    all: STONE_COLORS,
+  });
   const [cart, setCart] = useStored<QuoteBasinLine[]>("knight-cart", []);
   const [stones, setStones] = useStoredStones("knight-stones", []);
   const [customer, setCustomer] = useStored<CustomerDetails>("knight-customer", emptyCustomer);
   const [vat, setVat] = useStored<boolean>("knight-vat", true);
+  const activeBasinProducts = useMemo(() => remoteCatalog?.basins.map(basinProductFromCatalog) ?? PRODUCTS, [remoteCatalog?.basins]);
+  const [catalogNotice, setCatalogNotice] = useState("");
   const [orderMode, setOrderMode] = useState<StudioOrderMode>("quick-purchase");
   const [leadKey] = useStored("knight-lead-key", `lead-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const [, setLocation] = useLocation();
+  const lastCatalogFingerprint = useRef<string | null>(null);
   const upsertLead = useUpsertLead();
   const notifyQuoteMutation = useNotifySavedQuote();
   const contactDefaults = useMemo(() => ({
@@ -1033,27 +1134,37 @@ function Storefront() {
   }, [customerProfile?.id, customerProfile?.updatedAt]);
   useEffect(() => {
     if (!remoteCatalog) return;
-     PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
-
-    const installedByCode = new Map(remoteCatalog.installedStones.map((item) => [item.code, item]));
-    const sheetByCode = new Map(remoteCatalog.sheetStones.map((item) => [item.code, item]));
-    const codes = [...new Set([...installedByCode.keys(), ...sheetByCode.keys()])];
-    STONE_COLORS.splice(0, STONE_COLORS.length, ...codes.map((code) => {
-      const installed = installedByCode.get(code);
-      const sheet = sheetByCode.get(code);
-      const source = installed ?? sheet!;
-      return {
-        code,
-        name: source.name,
-        tone: source.tone,
-        sheetPriceTHB: sheet?.basePriceTHB ?? null,
-        installedPriceTHB: installed?.pricePerSqmTHB ?? null,
-        documentCodes: [...new Set([...(installed?.aliases ?? []), ...(sheet?.aliases ?? [])])],
-        imageUrl: installed?.imageUrl ?? sheet?.imageUrl,
-      };
-    }));
-    setCatalogRevision((revision) => revision + 1);
-  }, [remoteCatalog]);
+    const catalogFingerprint = JSON.stringify({
+      basins: remoteCatalog.basins.map((basin) => [basin.sku, basin.priceTHB, basin.active, basin.sortOrder]),
+      categories: remoteCatalog.categories.map((category) => [category.name, category.active, category.sortOrder]),
+      installedStones: remoteCatalog.installedStones.map((stone) => [stone.code, stone.name, stone.pricePerSqmTHB, stone.active, stone.sortOrder]),
+      sheetStones: remoteCatalog.sheetStones.map((stone) => [stone.code, stone.name, stone.basePriceTHB, stone.active, stone.sortOrder]),
+    });
+    const catalogChanged = lastCatalogFingerprint.current !== null && lastCatalogFingerprint.current !== catalogFingerprint;
+    lastCatalogFingerprint.current = catalogFingerprint;
+    PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
+    const wholeSheet = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "whole-sheet");
+    const installed = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "installed");
+    const all = stoneColorsFromCatalog(remoteCatalog.installedStones, remoteCatalog.sheetStones);
+    setCatalogStoneColors({ wholeSheet, installed, all });
+    STONE_COLORS.splice(0, STONE_COLORS.length, ...all);
+    const stoneReconciliation = reconcileStoneSelections(stones, { "whole-sheet": wholeSheet, installed });
+    const activeBasinSkus = new Set(remoteCatalog.basins.map((basin) => basin.sku));
+    const removedBasinSkus = cart.filter((line) => !activeBasinSkus.has(line.sku)).map((line) => line.sku);
+    if (stoneReconciliation.hidden.length) setStones(stoneReconciliation.active);
+    if (removedBasinSkus.length) setCart((current) => current.filter((line) => activeBasinSkus.has(line.sku)));
+    if (catalogChanged || stoneReconciliation.hidden.length || removedBasinSkus.length) {
+      const hiddenStones = stoneReconciliation.hidden.map((stone) => stone.color).join(", ");
+      const hiddenBasins = [...new Set(removedBasinSkus)].join(", ");
+      const removed = [
+        hiddenStones && `หิน ${hiddenStones} ถูกซ่อนและนำออกจากรายการที่กำลังเลือก`,
+        hiddenBasins && `อ่าง ${hiddenBasins} ไม่เปิดใช้งานแล้วและนำออกจากใบเสนอราคา`,
+      ].filter(Boolean);
+      setCatalogNotice(removed.length
+        ? `แคตตาล็อกอัปเดตแล้ว · ${removed.join(" · ")} รายการที่ยังเปิดใช้และรายละเอียดที่กำลังแก้ไขยังคงเดิม`
+        : "แคตตาล็อกอัปเดตแล้ว · รายการที่เปิดใช้งานล่าสุดพร้อมให้เลือกแล้ว");
+    }
+  }, [cart, remoteCatalog, stones]);
   const addToQuote = (sku: string) => setCart((current) => current.some((line) => line.sku === sku) ? current.map((line) => line.sku === sku ? { ...line, quantity: line.quantity + 1 } : line) : [...current, { sku, quantity: 1, installationSelected: false }]);
   const syncLead = (status: "new_lead" | "selecting" | "quote_requested", source: string, details: Partial<CustomerDetails> & { productSkus?: string[]; orderMode?: StudioOrderMode; studioData?: unknown } = {}) => {
     return upsertLead.mutateAsync({
@@ -1117,7 +1228,7 @@ function Storefront() {
   };
   const initialBasinSkus = useMemo(() => [...new Set(cart.map((line) => line.sku))].slice(0, 2), [cart]);
   const initialStoneColors = useMemo(() => [...new Set(stones.filter((stone) => stone.enabled).map((stone) => stone.color))].slice(0, 3), [stones]);
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

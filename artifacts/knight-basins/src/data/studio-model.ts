@@ -57,6 +57,42 @@ export type BasinPlacement = {
   depthMm: number | null;
 };
 
+export type StudioBasinCatalogEntry = {
+  sku: string;
+  product?: BasinProduct;
+  placementCount: number;
+};
+
+export type StudioCatalogItemSnapshot = {
+  sku: string;
+  colorName?: string;
+  priceTHB?: number;
+  category?: string;
+  dimensions?: string;
+  basinDimensions?: string;
+};
+
+export type StudioCatalogContext = {
+  savedAt: string;
+  revision: string;
+  basinItems: StudioCatalogItemSnapshot[];
+};
+
+export type StudioCatalogChange = {
+  sku: string;
+  kind: "removed" | "updated";
+  saved: StudioCatalogItemSnapshot;
+  current?: StudioCatalogItemSnapshot;
+  changedFields: StudioCatalogField[];
+};
+
+export type StudioCatalogField = "colorName" | "priceTHB" | "category" | "dimensions" | "basinDimensions";
+
+export type StudioCatalogComparison = {
+  catalogUpdated: boolean;
+  changes: StudioCatalogChange[];
+};
+
 export type StudioState = {
   mode: StudioOrderMode;
   /** Legacy fields remain optional at runtime so old saved quotes can render. */
@@ -108,6 +144,7 @@ export type StudioEstimate = {
   openEdgePriceInvalid: boolean;
   upstandHeightInvalid: boolean;
   basinOverlapWarnings: string[];
+  inactiveBasinSkus: string[];
   overlapWarnings: string[];
   unsafePlacements: string[];
   crossJointPlacements: string[];
@@ -399,6 +436,99 @@ export function basinDimensionsForProduct(product?: BasinProduct) {
   return { widthMm: values[0] ?? null, depthMm: values[1] ?? null };
 }
 
+export function studioBasinCatalogEntries(state: Pick<StudioState, "basinSkus" | "basinPlacements">, products: ReadonlyArray<BasinProduct>): StudioBasinCatalogEntry[] {
+  const productsBySku = new Map(products.map((product) => [product.sku, product]));
+  return state.basinSkus.map((sku) => ({
+    sku,
+    product: productsBySku.get(sku),
+    placementCount: state.basinPlacements.filter((placement) => placement.sku === sku).length,
+  }));
+}
+
+function studioCatalogItemSnapshot(product: BasinProduct): StudioCatalogItemSnapshot {
+  return {
+    sku: product.sku,
+    colorName: product.colorName,
+    priceTHB: product.priceTHB,
+    category: product.category,
+    dimensions: product.dimensions,
+    basinDimensions: product.basinDimensions,
+  };
+}
+
+function studioCatalogFingerprint(products: ReadonlyArray<BasinProduct>) {
+  const source = [...products]
+    .sort((first, second) => first.sku.localeCompare(second.sku))
+    .map((product) => JSON.stringify(studioCatalogItemSnapshot(product)))
+    .join("|");
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `basins-${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+export function studioCatalogRevision(products: ReadonlyArray<BasinProduct>) {
+  return studioCatalogFingerprint(products);
+}
+
+export function createStudioCatalogContext(
+  state: Pick<StudioState, "basinSkus">,
+  products: ReadonlyArray<BasinProduct>,
+  savedAt = new Date().toISOString(),
+): StudioCatalogContext {
+  const productsBySku = new Map(products.map((product) => [product.sku, product]));
+  return {
+    savedAt,
+    revision: studioCatalogFingerprint(products),
+    basinItems: state.basinSkus.map((sku) => {
+      const product = productsBySku.get(sku);
+      return product ? studioCatalogItemSnapshot(product) : { sku };
+    }),
+  };
+}
+
+export function compareStudioCatalog(
+  context: StudioCatalogContext,
+  products: ReadonlyArray<BasinProduct>,
+): StudioCatalogComparison {
+  const productsBySku = new Map(products.map((product) => [product.sku, product]));
+  const changes: StudioCatalogChange[] = context.basinItems.flatMap<StudioCatalogChange>((saved) => {
+    const product = productsBySku.get(saved.sku);
+    if (!product) return [{ sku: saved.sku, kind: "removed" as const, saved, changedFields: [] }];
+    const current = studioCatalogItemSnapshot(product);
+    const changedFields = (["colorName", "priceTHB", "category", "dimensions", "basinDimensions"] as StudioCatalogField[])
+      .filter((field) => saved[field] !== current[field]);
+    return changedFields.length === 0
+      ? []
+      : [{ sku: saved.sku, kind: "updated" as const, saved, current, changedFields }];
+  });
+  return {
+    catalogUpdated: context.revision !== studioCatalogFingerprint(products),
+    changes,
+  };
+}
+
+export function replaceStudioBasin(state: StudioState, previousSku: string, product: BasinProduct): StudioState {
+  const size = basinDimensionsForProduct(product);
+  return {
+    ...state,
+    basinSkus: state.basinSkus.map((sku) => sku === previousSku ? product.sku : sku),
+    basinPlacements: state.basinPlacements.map((placement) => placement.sku === previousSku
+      ? { ...placement, sku: product.sku, ...size }
+      : placement),
+  };
+}
+
+export function removeStudioBasin(state: StudioState, sku: string): StudioState {
+  return {
+    ...state,
+    basinSkus: state.basinSkus.filter((item) => item !== sku),
+    basinPlacements: state.basinPlacements.filter((placement) => placement.sku !== sku),
+  };
+}
+
 function placementFitsRectangle(placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">, rectangle: StudioRectangle) {
   if (placement.widthMm === null || placement.depthMm === null) return true;
   const size = studioRectangleSize(rectangle);
@@ -641,7 +771,7 @@ function legacyStudioStatePieces(state: StudioState) {
   return studioPieces(state);
 }
 
-export function studioEstimate(state: StudioState, products: BasinProduct[]): StudioEstimate {
+export function studioEstimate(state: StudioState, products: ReadonlyArray<BasinProduct>): StudioEstimate {
   const pieces = legacyStudioStatePieces(state);
   const rectangles = pieces.flatMap((piece) => piece.rectangles);
   const isNewLayout = state.pieces !== undefined;
@@ -682,6 +812,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
   const total = subtotal + vatAmount;
   const overlapWarnings = pieces.flatMap((piece) => pieceOverlapWarnings(piece).map((pair) => `${piece.name}: ${pair}`));
   const basinOverlapWarnings = basinPlacementOverlapWarnings(state);
+  const inactiveBasinSkus = state.basinSkus.filter((sku) => !products.some((product) => product.sku === sku));
   const disconnectedRectangles = isNewLayout ? pieces.flatMap((piece) => disconnectedRectangleIds(piece).map((id) => `${piece.name}: ${id}`)) : [];
   const unsafe = isNewLayout ? state.basinPlacements.filter((placement) => {
     const piece = studioPieceById(state, placement.pieceId);
@@ -710,6 +841,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
      ...(upstandHeightInvalid ? ["ความสูงบัวต้องอยู่ระหว่าง 0–500 มม."] : []),
     ...(overlapWarnings.length ? ["มีสี่เหลี่ยมซ้อนกัน พื้นที่ยังคิดตามแผ่นเต็มแต่ต้องตรวจสอบแบบ"] : []),
      ...(basinOverlapWarnings.length ? ["มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน"] : []),
+     ...(inactiveBasinSkus.length ? [`อ่าง ${inactiveBasinSkus.join(", ")} ไม่เปิดใช้งานแล้ว กรุณาเปลี่ยนรุ่นหรือนำออกจากแบบ`] : []),
      ...(disconnectedRectangles.length ? ["สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน"] : []),
      ...(crossJointPlacements.length ? ["อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว"] : []),
   ];
@@ -744,6 +876,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
     openEdgePriceInvalid,
      upstandHeightInvalid,
      basinOverlapWarnings,
+    inactiveBasinSkus,
     overlapWarnings,
     unsafePlacements: unsafe,
     crossJointPlacements,
@@ -761,6 +894,7 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
       !upstandHeightInvalid &&
       !discountInvalid &&
       !basinOverlapWarnings.length &&
+      !inactiveBasinSkus.length &&
       !overlapWarnings.length &&
       !disconnectedRectangles.length &&
       !crossJointPlacements.length &&
@@ -772,13 +906,14 @@ export function studioEstimate(state: StudioState, products: BasinProduct[]): St
 
 export function studioSubmissionValidationMessage(
   state: StudioState,
-  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "upstandHeightInvalid" | "basinOverlapWarnings" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">,
+  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "upstandHeightInvalid" | "basinOverlapWarnings" | "inactiveBasinSkus" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">,
 ) {
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
   if (state.basinPlacements.length === 0) return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง";
   if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
   if (estimate.unknownDimensionPlacements.length > 0) return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
+  if (estimate.inactiveBasinSkus.length > 0) return "มีอ่างที่ไม่เปิดใช้งานในแบบร่าง กรุณาเปลี่ยนรุ่นหรือนำออกก่อนส่งคำขอ";
   if (estimate.basinOverlapWarnings.length > 0) return "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน";
   if (estimate.overlapWarnings.length > 0) return "มีสี่เหลี่ยมซ้อนกัน กรุณาขยับแผ่นให้ไม่ซ้อนกันก่อนส่งคำขอ";
   if (estimate.disconnectedRectangles.length > 0) return "สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน";

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createStudioDraftLink, createStudioShareLink, decodeStudioDraft, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
+import { createStudioDraftLink, createStudioShareLink, decodeStudioDraft, decodeStudioDraftRecord, encodeStudioDraft, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, STUDIO_SHORT_DRAFTS_STORAGE_KEY, writeStoredStudioDraft, writeStoredStudioDrafts, type NamedStudioDraftRecord, type StudioDraftRecord, type ShortStudioDraftRecord } from "../src/data/studio-draft.ts";
+import { createStudioCatalogContext } from "../src/data/studio-model.ts";
+import { PRODUCTS } from "../src/data/catalog.ts";
 import type { StudioState } from "../src/data/studio-model.ts";
 
 const state: StudioState = {
@@ -64,6 +66,15 @@ test("shared Studio links restore without browser storage", () => {
   assert.deepEqual(decodeStudioDraft(token), state);
 });
 
+test("shared Studio links retain the saved catalog context", () => {
+  const savedAt = "2026-09-15T04:00:00.000Z";
+  const catalogContext = createStudioCatalogContext(state, PRODUCTS, savedAt);
+  const link = createStudioShareLink(state, "https://example.test", catalogContext);
+  const token = new URL(link).searchParams.get("draft") ?? "";
+
+  assert.deepEqual(decodeStudioDraftRecord(token), { state, catalogContext });
+});
+
 test("studio drafts round-trip through browser storage", () => {
   const storage = memoryStorage();
   const record: StudioDraftRecord = { version: 1, savedAt: "2026-09-15T04:00:00.000Z", state };
@@ -80,7 +91,8 @@ test("invalid studio draft links and storage records are rejected", () => {
 
 test("named Studio drafts persist, list, and delete independently", () => {
   const storage = memoryStorage();
-  const first: NamedStudioDraftRecord = { version: 1, id: "draft-1", name: "ห้องน้ำชั้น 1", createdAt: "2026-09-15T04:00:00.000Z", savedAt: "2026-09-15T04:00:00.000Z", state };
+  const catalogContext = createStudioCatalogContext(state, PRODUCTS, "2026-09-15T04:00:00.000Z");
+  const first: NamedStudioDraftRecord = { version: 1, id: "draft-1", name: "ห้องน้ำชั้น 1", createdAt: "2026-09-15T04:00:00.000Z", savedAt: "2026-09-15T04:00:00.000Z", state, catalogContext };
   const second: NamedStudioDraftRecord = { ...first, id: "draft-2", name: "ห้องน้ำชั้น 2" };
   assert.equal(writeStoredStudioDrafts([first, second], storage), true);
   assert.deepEqual(readStoredStudioDrafts(storage), [first, second]);

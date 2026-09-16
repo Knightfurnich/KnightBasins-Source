@@ -162,6 +162,23 @@ async function setTextInput(page: CdpPage, testId: string, value: string) {
   assert.equal(changed, true, `Could not set ${testId}`);
 }
 
+async function setSelectValue(page: CdpPage, testId: string, value: string) {
+  const changed = await page.evaluate(`(() => {
+    const select = document.querySelector(${JSON.stringify(`[data-testid="${testId}"]`)});
+    if (!(select instanceof HTMLSelectElement)) return false;
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")?.set;
+    setter?.call(select, ${JSON.stringify(value)});
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    return select.value === ${JSON.stringify(value)};
+  })()`);
+  assert.equal(changed, true, `Could not set ${testId}`);
+}
+
+function sharedStudioDraftUrl(state: unknown, catalogContext: unknown) {
+  const token = Buffer.from(JSON.stringify({ state, catalogContext }), "utf8").toString("base64url");
+  return `${baseUrl}/studio?draft=${token}`;
+}
+
 describe("long formal quote print flow", { concurrency: false }, () => {
   let browser: Awaited<ReturnType<typeof launchBrowser>>;
 
@@ -916,6 +933,29 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
   });
 
+  it("creates a formal quote when customer details are still incomplete", async () => {
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="card-product-KF001"]\') !== null'),
+      Boolean,
+      "catalog for partial quote",
+    );
+    await clickTestId(browser.page, "card-product-KF001");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-name"]\') !== null'),
+      Boolean,
+      "partial quote form",
+    );
+    await clickTestId(browser.page, "button-generate-quote");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"]\') !== null'),
+      Boolean,
+      "formal quote with partial customer details",
+    );
+  });
+
   it("shows a non-blocking warning for rectangle dimensions under 400 mm", async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
@@ -1087,6 +1127,133 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'), true);
     assert.equal(await browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'), true);
+  });
+
+  it("guides shared Studio drafts through basin catalog changes", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "shared Studio draft canvas",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "fresh shared Studio draft canvas",
+    );
+    await clickTestId(browser.page, "button-studio-basin-KF002");
+    const storedDraft = await waitFor(
+      () => browser.page.evaluate('localStorage.getItem("knight-studio-draft-v1")'),
+      (value) => Boolean(value),
+      "Studio catalog context autosave",
+    );
+    const savedDraft = JSON.parse(storedDraft) as {
+      state: { basinSkus: string[] };
+      catalogContext: { revision: string; basinItems: Array<Record<string, unknown>> };
+    };
+    assert.ok(savedDraft.catalogContext);
+    assert.deepEqual(savedDraft.state.basinSkus, ["KF001", "KF002"]);
+
+    const removedSku = "KF999";
+    const removedState = {
+      ...savedDraft.state,
+      basinSkus: [...savedDraft.state.basinSkus, removedSku],
+    };
+    const removedContext = {
+      ...savedDraft.catalogContext,
+      revision: "basins-before-removal",
+      basinItems: [
+        ...savedDraft.catalogContext.basinItems,
+        { sku: removedSku, colorName: "รุ่นที่ยกเลิก" },
+      ],
+    };
+    await browser.page.command("Page.navigate", {
+      url: sharedStudioDraftUrl(removedState, removedContext),
+    });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-catalog-change-banner"]\')?.textContent ?? ""'),
+      (value) => value.includes(removedSku),
+      "removed basin catalog notice",
+    );
+    const removedNotice = await browser.page.evaluate(`(() => ({
+      banner: document.querySelector('[data-testid="studio-catalog-change-banner"]')?.textContent ?? "",
+      hidden: document.querySelector('[data-testid="studio-hidden-basins"]')?.textContent ?? "",
+      replacement: document.querySelector('[data-testid="select-replace-studio-basin-${removedSku}"]') !== null,
+      removal: document.querySelector('[data-testid="button-remove-hidden-studio-basin-${removedSku}"]') !== null,
+    }))()`);
+    assert.match(removedNotice.banner, new RegExp(removedSku));
+    assert.match(removedNotice.banner, /ไม่มีในแคตตาล็อกปัจจุบัน/);
+    assert.match(removedNotice.hidden, new RegExp(removedSku));
+    assert.equal(removedNotice.replacement, true);
+    assert.equal(removedNotice.removal, true);
+
+    const replacementSku = await browser.page.evaluate(`(() => {
+      const select = document.querySelector('[data-testid="select-replace-studio-basin-${removedSku}"]');
+      if (!(select instanceof HTMLSelectElement)) return "";
+      return [...select.options].find((option) => option.value)?.value ?? "";
+    })()`);
+    assert.ok(replacementSku, "A replacement basin should be available");
+    await setSelectValue(browser.page, `select-replace-studio-basin-${removedSku}`, replacementSku);
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="select-replace-studio-basin-${removedSku}"]') === null`),
+      Boolean,
+      "removed basin replacement",
+    );
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="button-studio-basin-${replacementSku}"]')?.getAttribute("aria-pressed")`), "true");
+
+    await browser.page.command("Page.navigate", {
+      url: sharedStudioDraftUrl(removedState, removedContext),
+    });
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="button-remove-hidden-studio-basin-${removedSku}"]') !== null`),
+      Boolean,
+      "removed basin removal control",
+    );
+    await clickTestId(browser.page, `button-remove-hidden-studio-basin-${removedSku}`);
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="studio-hidden-basins"]') === null`),
+      Boolean,
+      "removed basin removal",
+    );
+
+    const changedContext = {
+      ...savedDraft.catalogContext,
+      revision: "basins-before-update",
+      basinItems: savedDraft.catalogContext.basinItems.map((item) =>
+        item.sku === "KF001"
+          ? { ...item, colorName: "ชื่อสีก่อนหน้า", priceTHB: Number(item.priceTHB) + 1000, basinDimensions: "360 × 510 × 130 mm" }
+          : item,
+      ),
+    };
+    await browser.page.command("Page.navigate", {
+      url: sharedStudioDraftUrl(savedDraft.state, changedContext),
+    });
+    const changedNotice = await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-catalog-change-banner"]\')?.textContent ?? ""'),
+      (value) => value.includes("KF001") && value.includes("ชื่อสีก่อนหน้า"),
+      "changed basin catalog notice",
+    );
+    assert.match(changedNotice, /รายละเอียดแคตตาล็อกเปลี่ยนจาก ชื่อสีก่อนหน้า/);
+    assert.match(changedNotice, /ราคา: ฿[\d,]+ → ฿[\d,]+/);
+    assert.match(changedNotice, /ขนาดหลุม: 360 × 510 × 130 mm →/);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-hidden-basins"]\') === null'), true);
+
+    const staleContext = {
+      ...savedDraft.catalogContext,
+      revision: "basins-before-other-catalog-change",
+    };
+    await browser.page.command("Page.navigate", {
+      url: sharedStudioDraftUrl(savedDraft.state, staleContext),
+    });
+    const unchangedSelectionNotice = await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-catalog-change-banner"]\')?.textContent ?? ""'),
+      (value) => value.includes("รุ่นอ่างที่เลือกยังตรงกับรายการปัจจุบัน"),
+      "unchanged selected basin catalog notice",
+    );
+    assert.match(unchangedSelectionNotice, /มีรายการอื่นในแคตตาล็อกอัปเดตแล้ว/);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-hidden-basins"]\') === null'), true);
   });
 
   it("keeps Studio controls within the viewport on mobile", async () => {
@@ -1442,7 +1609,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "KnightSupport panel",
     );
     assert.equal(support.title, "น้องไนท์ (ผู้ช่วยทีมขาย)");
-    assert.equal(support.description, "สอบถามสินค้า ราคา และวิธีออกแบบ 2D ได้เลยค่ะ");
+    assert.equal(support.description, "ถามสินค้า ราคา หรือวิธีใช้งาน Knight Basins ได้เลยค่ะ");
     assert.equal(support.fontSize, "14px");
     assert.ok(support.maxHeight <= support.expectedMaxHeight + 1);
     assert.equal(support.zIndex, "100");

@@ -5,7 +5,9 @@ import {
   basinDimensionsForProduct,
   basinPlacementOverlapWarnings,
   centerBasinPlacementPosition,
+  compareStudioCatalog,
   createBasinPlacement,
+  createStudioCatalogContext,
   distributeBasinPlacementPositions,
   disconnectedRectangleIds,
   placementCrossesPanelJoint,
@@ -13,6 +15,7 @@ import {
   pieceBounds,
   snapStudioRectanglePosition,
   studioAreaSqM,
+  studioBasinCatalogEntries,
   studioEdgeTotals,
   studioEstimate,
   studioPieceJoints,
@@ -21,6 +24,8 @@ import {
   studioSubmissionValidationMessage,
   touchingRectangleKeys,
   unknownBasinPlacements,
+  replaceStudioBasin,
+  removeStudioBasin,
   type StudioPiece,
   type StudioState,
 } from "../src/data/studio-model.ts";
@@ -253,6 +258,46 @@ test("catalog products without basin dimensions remain unknown", () => {
   assert.deepEqual(basinDimensionsForProduct(product), { widthMm: null, depthMm: null });
   assert.deepEqual({ widthMm: placement.widthMm, depthMm: placement.depthMm, xMm: placement.xMm, yMm: placement.yMm }, { widthMm: null, depthMm: null, xMm: 0, yMm: 0 });
   assert.deepEqual(unknownBasinPlacements({ basinPlacements: [placement] }), [placement.id]);
+});
+
+test("catalog context identifies removed and updated selected basins after a draft is saved", () => {
+  const savedAt = "2026-09-15T04:00:00.000Z";
+  const context = createStudioCatalogContext(baseState({ basinSkus: ["KF001", "KF002"] }), PRODUCTS, savedAt);
+  const changedProducts = PRODUCTS
+    .filter((product) => product.sku !== "KF001")
+    .map((product) => product.sku === "KF002" ? { ...product, colorName: "Updated basin" } : product);
+  const comparison = compareStudioCatalog(context, changedProducts);
+
+  assert.equal(context.savedAt, savedAt);
+  assert.equal(comparison.catalogUpdated, true);
+  assert.deepEqual(comparison.changes.map((change) => ({ sku: change.sku, kind: change.kind })), [
+    { sku: "KF001", kind: "removed" },
+    { sku: "KF002", kind: "updated" },
+  ]);
+  assert.deepEqual(comparison.changes[1]?.changedFields, ["colorName"]);
+});
+
+test("stale basin entries stay inspectable while replacement preserves placement coordinates", () => {
+  const placement = { id: "basin-stale", sku: "KF001", pieceId: "piece-1", xMm: 320, yMm: 140, widthMm: 500, depthMm: 500 };
+  const state = baseState({ basinSkus: ["KF001", "KF002"], basinPlacements: [placement] });
+  const entries = studioBasinCatalogEntries(state, PRODUCTS.filter((product) => product.sku !== "KF001"));
+  assert.equal(entries[0].product, undefined);
+  assert.equal(entries[0].placementCount, 1);
+  assert.equal(entries[1].product?.sku, "KF002");
+
+  const replacement = PRODUCTS.find((product) => product.sku === "KF003");
+  assert.ok(replacement);
+  const replaced = replaceStudioBasin(state, "KF001", replacement);
+  assert.deepEqual(replaced.basinSkus, ["KF003", "KF002"]);
+  assert.deepEqual(replaced.basinPlacements[0], { ...placement, sku: "KF003", widthMm: 350, depthMm: 500 });
+  const removed = removeStudioBasin(state, "KF001");
+  assert.deepEqual(removed.basinSkus, ["KF002"]);
+  assert.equal(removed.basinPlacements.length, 0);
+
+  const staleEstimate = studioEstimate(baseState(), PRODUCTS.filter((product) => product.sku !== "KF001"));
+  assert.deepEqual(staleEstimate.inactiveBasinSkus, ["KF001"]);
+  assert.equal(staleEstimate.isValid, false);
+  assert.equal(studioSubmissionValidationMessage(baseState(), staleEstimate), "มีอ่างที่ไม่เปิดใช้งานในแบบร่าง กรุณาเปลี่ยนรุ่นหรือนำออกก่อนส่งคำขอ");
 });
 
 test("centers a basin inside the rectangle that owns it", () => {

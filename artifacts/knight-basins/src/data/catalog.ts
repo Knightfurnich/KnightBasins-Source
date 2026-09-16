@@ -173,15 +173,101 @@ export const STONE_COLORS: StoneColor[] = stoneCatalogRows.map(([code, name, she
   documentCodes: documentCodes ?? [],
 }));
 
-export const stoneColorByName = (identifier: string) => {
-  const normalized = identifier.trim().toLowerCase();
-  return STONE_COLORS.find((color) =>
-    [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase() === normalized),
-  ) ?? STONE_COLORS[0];
+export type CatalogStoneRecord = {
+  code: string;
+  name: string;
+  tone: string;
+  aliases?: string[] | null;
+  imageUrl?: string | null;
+  pricePerSqmTHB?: number | null;
+  basePriceTHB?: number | null;
 };
 
-export const stoneSheetUnitPrice = (colorIdentifier: string, quantity: number) => {
-  const color = stoneColorByName(colorIdentifier);
+export function stoneColorsFromCatalog(
+  installedStones: ReadonlyArray<CatalogStoneRecord>,
+  sheetStones: ReadonlyArray<CatalogStoneRecord>,
+): StoneColor[] {
+  const installedByCode = new Map(installedStones.map((stone) => [stone.code, stone]));
+  const sheetByCode = new Map(sheetStones.map((stone) => [stone.code, stone]));
+  const codes = [...new Set([...installedByCode.keys(), ...sheetByCode.keys()])];
+
+  return codes.map((code) => {
+    const installed = installedByCode.get(code);
+    const sheet = sheetByCode.get(code);
+    const source = installed ?? sheet!;
+    return {
+      code,
+      name: source.name,
+      tone: source.tone,
+      sheetPriceTHB: sheet?.basePriceTHB ?? null,
+      installedPriceTHB: installed?.pricePerSqmTHB ?? null,
+      documentCodes: [...new Set([...(installed?.aliases ?? []), ...(sheet?.aliases ?? [])])],
+      imageUrl: installed?.imageUrl?.trim() || sheet?.imageUrl?.trim() || undefined,
+    };
+  });
+}
+
+export function stoneColorsForMode(
+  installedStones: ReadonlyArray<CatalogStoneRecord>,
+  sheetStones: ReadonlyArray<CatalogStoneRecord>,
+  mode: StoneConfig["mode"],
+) {
+  return mode === "whole-sheet"
+    ? stoneColorsFromCatalog([], sheetStones)
+    : stoneColorsFromCatalog(installedStones, []);
+}
+
+export type StoneSelectionReconciliation = {
+  active: StoneConfig[];
+  hidden: StoneConfig[];
+};
+
+function stoneColorMatchesSelection(color: StoneColor, identifier: string) {
+  const normalized = identifier.trim().toLowerCase();
+  return [color.code, color.name, ...color.documentCodes]
+    .some((value) => value.trim().toLowerCase() === normalized);
+}
+
+/**
+ * Reconcile persisted selections against the active catalog for each order mode.
+ * A selection stays intact when its record is still active so in-progress
+ * dimensions and quantities survive a catalog refresh. Hidden records are
+ * returned separately so the UI can explain what changed before removing them.
+ */
+export function reconcileStoneSelections(
+  stones: ReadonlyArray<StoneConfig>,
+  colorsByMode: {
+    "whole-sheet": ReadonlyArray<StoneColor>;
+    installed: ReadonlyArray<StoneColor>;
+  },
+): StoneSelectionReconciliation {
+  return stones.reduce<StoneSelectionReconciliation>((result, stone) => {
+    const colors = colorsByMode[stone.mode];
+    if (colors.some((color) => stoneColorMatchesSelection(color, stone.color))) {
+      result.active.push(stone);
+    } else {
+      result.hidden.push(stone);
+    }
+    return result;
+  }, { active: [], hidden: [] });
+}
+
+export const stoneColorByName = (
+  identifier: string,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) => {
+  const normalized = identifier.trim().toLowerCase();
+  return colors.find((color) =>
+    [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase() === normalized),
+  ) ?? colors[0] ?? STONE_COLORS[0];
+};
+
+export const stoneSheetUnitPrice = (
+  colorIdentifier: string,
+  quantity: number,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) => {
+  const color = stoneColorByName(colorIdentifier, colors);
   if (color.sheetPriceTHB === null) return null;
   const promotionExcluded = ["BW010", "NW013"].includes(color.code);
   if (quantity >= 50 && !promotionExcluded) return Math.round(color.sheetPriceTHB * 0.95);
@@ -189,8 +275,10 @@ export const stoneSheetUnitPrice = (colorIdentifier: string, quantity: number) =
   return color.sheetPriceTHB;
 };
 
-export const stoneInstalledUnitPrice = (colorIdentifier: string) =>
-  stoneColorByName(colorIdentifier).installedPriceTHB;
+export const stoneInstalledUnitPrice = (
+  colorIdentifier: string,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) => stoneColorByName(colorIdentifier, colors).installedPriceTHB;
 
 export function toggleBasinSelection(lines: QuoteBasinLine[], sku: string): QuoteBasinLine[] {
   return lines.some((line) => line.sku === sku)
@@ -198,16 +286,31 @@ export function toggleBasinSelection(lines: QuoteBasinLine[], sku: string): Quot
     : [...lines, { sku, quantity: 1, installationSelected: false }];
 }
 
-export function upsertStoneSelection(stones: StoneConfig[], incoming: StoneConfig): StoneConfig[] {
+export function upsertStoneSelection(
+  stones: StoneConfig[],
+  incoming: StoneConfig,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): StoneConfig[] {
   const next = stones.filter((stone) => stone.color !== incoming.color);
   const unitPrice = incoming.mode === "whole-sheet"
-    ? stoneSheetUnitPrice(incoming.color, incoming.quantity)
-    : stoneInstalledUnitPrice(incoming.color);
+    ? stoneSheetUnitPrice(incoming.color, incoming.quantity, colors)
+    : stoneInstalledUnitPrice(incoming.color, colors);
   return [...next, { ...incoming, enabled: true, unitPrice: unitPrice ?? 0, installationPrice: 0 }];
 }
 
 export function removeStoneSelection(stones: StoneConfig[], color: string): StoneConfig[] {
   return stones.filter((stone) => stone.color !== color);
+}
+
+export function toggleStoneSelection(
+  stones: StoneConfig[],
+  color: string,
+  createSelection: StoneConfig,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): StoneConfig[] {
+  return stones.some((stone) => stone.color === color)
+    ? removeStoneSelection(stones, color)
+    : upsertStoneSelection(stones, createSelection, colors);
 }
 
 const counterDims = { dimensions: "600 × 800 × 200 mm", basinDimensions: "350 × 500 × 130 mm" };
@@ -268,7 +371,7 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
 export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
-export function filterBasinProducts(products: BasinProduct[], query: string) {
+export function filterBasinProducts(products: ReadonlyArray<BasinProduct>, query: string) {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   if (!normalizedQuery) return products;
   return products.filter((product) => [
