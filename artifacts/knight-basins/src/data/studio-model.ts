@@ -412,6 +412,64 @@ export function placementFitsStudioPiece(piece: StudioPiece, placement: Pick<Bas
   return piece.rectangles.some((rectangle) => placementFitsRectangle(placement, rectangle));
 }
 
+function placementHostRectangle(piece: StudioPiece, placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "xMm" | "yMm">) {
+  if (placement.widthMm === null || placement.depthMm === null) return piece.rectangles[0];
+  const placementWidth = placement.widthMm;
+  const placementDepth = placement.depthMm;
+  return piece.rectangles.find((rectangle) => placementFitsRectangle(placement, rectangle))
+    ?? piece.rectangles.reduce((best, rectangle) => {
+      const bestSize = studioRectangleSize(best);
+      const size = studioRectangleSize(rectangle);
+      const bestScore = Math.min(bestSize.widthMm - placementWidth, bestSize.heightMm - placementDepth);
+      const score = Math.min(size.widthMm - placementWidth, size.heightMm - placementDepth);
+      return score > bestScore ? rectangle : best;
+    }, piece.rectangles[0]);
+}
+
+function clampPlacementAxis(start: number, available: number, size: number, center: number) {
+  if (size >= available) return start;
+  return Math.max(start, Math.min(start + available - size, center));
+}
+
+export function centerBasinPlacementPosition(
+  piece: StudioPiece,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "xMm" | "yMm">,
+) {
+  if (placement.widthMm === null || placement.depthMm === null || !piece.rectangles.length) {
+    return { xMm: placement.xMm, yMm: placement.yMm };
+  }
+  const rectangle = placementHostRectangle(piece, placement);
+  const size = studioRectangleSize(rectangle);
+  return {
+    xMm: Math.round(clampPlacementAxis(rectangle.xMm, size.widthMm, placement.widthMm, rectangle.xMm + (size.widthMm - placement.widthMm) / 2)),
+    yMm: Math.round(clampPlacementAxis(rectangle.yMm, size.heightMm, placement.depthMm, rectangle.yMm + (size.heightMm - placement.depthMm) / 2)),
+  };
+}
+
+export function distributeBasinPlacementPositions(
+  piece: StudioPiece,
+  placements: Array<Pick<BasinPlacement, "id" | "widthMm" | "depthMm" | "xMm" | "yMm">>,
+) {
+  if (placements.length !== 2 || !piece.rectangles.length || placements.some((placement) => placement.widthMm === null || placement.depthMm === null)) {
+    return placements.map((placement) => ({ id: placement.id, xMm: placement.xMm, yMm: placement.yMm }));
+  }
+  const first = placements[0];
+  const second = placements[1];
+  const host = piece.rectangles.find((rectangle) => {
+    const size = studioRectangleSize(rectangle);
+    return (first.widthMm ?? 0) + (second.widthMm ?? 0) <= size.widthMm &&
+      Math.max(first.depthMm ?? 0, second.depthMm ?? 0) <= size.heightMm;
+  }) ?? placementHostRectangle(piece, first);
+  const size = studioRectangleSize(host);
+  const totalWidth = (first.widthMm ?? 0) + (second.widthMm ?? 0);
+  const gap = Math.max(0, Math.round((size.widthMm - totalWidth) / 3));
+  const yMm = Math.round(host.yMm + Math.max(0, (size.heightMm - Math.max(first.depthMm ?? 0, second.depthMm ?? 0)) / 2));
+  return [
+    { id: first.id, xMm: Math.round(host.xMm + gap), yMm },
+    { id: second.id, xMm: Math.round(host.xMm + gap + (first.widthMm ?? 0) + gap), yMm },
+  ];
+}
+
 export function placementCrossesPanelJoint(
   piece: StudioPiece,
   placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
