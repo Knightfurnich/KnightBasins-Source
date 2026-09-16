@@ -1,0 +1,9 @@
+[Unit]
+Description=Knight Basins PostgreSQL backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/bin/bash /opt/knight-basins/deploy/hostinger/backup.sh

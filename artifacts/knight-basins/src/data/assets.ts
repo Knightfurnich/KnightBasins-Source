@@ -1,0 +1,1 @@
+export const knightFurnichLogo = `${import.meta.env.BASE_URL}knight-furnich-logo.png`;
