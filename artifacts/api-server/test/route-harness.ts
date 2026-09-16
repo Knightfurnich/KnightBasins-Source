@@ -30,7 +30,7 @@ async function bundleTypeScriptModule(entryPoint: string): Promise<{
     await build({
       entryPoints: [entryPoint],
       bundle: true,
-      external: ["express", "pg"],
+      external: ["express", "pg", "@workspace/db", "@workspace/db/*"],
       format: "esm",
       logLevel: "silent",
       outfile: outputFile,
@@ -47,7 +47,6 @@ async function bundleTypeScriptModule(entryPoint: string): Promise<{
     throw error;
   }
 }
-
 export async function importTypeScriptModule<T>(
   entryPoint: string,
 ): Promise<T> {
