@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import { ArrowRight, Check, ChevronDown, Copy, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
 import {
@@ -33,6 +33,7 @@ import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } fr
 import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
+import { BasinVisual } from "@/components/BasinVisual";
 import { isValidEmailAddress } from "@/data/validation";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
 
@@ -109,15 +110,6 @@ function upsertStone(stones: StoneConfig[], incoming: StoneConfig) {
 
 function formatDate(date = new Date()) {
   return formatThaiDate(date);
-}
-
-function BasinVisual({ tone, imageUrl, alt, tall = false }: { tone: string; imageUrl?: string; alt?: string; tall?: boolean }) {
-  return <div className={`basin-visual ${tall ? "basin-visual--tall" : ""}`} style={{ "--basin-tone": tone } as CSSProperties & { "--basin-tone": string }}>
-    <div className="basin-shadow" />
-    <div className="basin-body"><div className="basin-bowl" /><div className="basin-drain" /></div>
-    {tall && <div className="basin-stem" />}
-    {imageUrl && <img className="basin-image" src={imageUrl} alt={alt ?? ""} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
-  </div>;
 }
 
 function Header({ cartCount }: { cartCount: number }) {
