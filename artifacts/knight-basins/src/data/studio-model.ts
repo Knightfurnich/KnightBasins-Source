@@ -407,6 +407,69 @@ export function studioPieces(state: Pick<StudioState, "pieces" | "shape" | "dime
   return [{ id: "legacy-piece-1", name: "ชิ้นงาน 1", rectangles: legacyRectangles, sideStatuses: {} }];
 }
 
+function mirroredSide(side: StudioEdge["side"]): StudioEdge["side"] {
+  if (side === "left") return "right";
+  if (side === "right") return "left";
+  return side;
+}
+
+function mirroredRectangleLabel(label: string | undefined) {
+  if (label === "แผ่นซ้าย") return "แผ่นขวา";
+  if (label === "แผ่นขวา") return "แผ่นซ้าย";
+  return label;
+}
+
+function mirroredPieceName(name: string) {
+  if (name.includes("ซ้าย")) return name.replaceAll("ซ้าย", "ขวา");
+  if (name.includes("ขวา")) return name.replaceAll("ขวา", "ซ้าย");
+  return name;
+}
+
+/**
+ * Mirror the shared rectangle model horizontally. This is intentionally
+ * geometry-level so the canvas, edge totals, basin safety, and exports all
+ * observe the same L layout after switching sides.
+ */
+export function mirrorStudioPiece(piece: StudioPiece): StudioPiece {
+  const bounds = pieceBounds(piece);
+  const rectangles = piece.rectangles.map((rectangle) => {
+    const size = studioRectangleSize(rectangle);
+    return {
+      ...rectangle,
+      xMm: Math.max(0, bounds.widthMm - rectangle.xMm - size.widthMm),
+      label: mirroredRectangleLabel(rectangle.label),
+    };
+  });
+  const sideStatuses = Object.fromEntries(
+    Object.entries(piece.sideStatuses).map(([key, status]) => {
+      const separator = key.lastIndexOf(":");
+      if (separator < 0) return [key, status];
+      const rectangleId = key.slice(0, separator);
+      const side = key.slice(separator + 1) as StudioEdge["side"];
+      return [sideStatusKey(rectangleId, mirroredSide(side)), status];
+    }),
+  );
+  return { ...piece, name: mirroredPieceName(piece.name), rectangles, sideStatuses };
+}
+
+export function mirrorStudioLState(state: StudioState): StudioState {
+  if (state.shape !== "L" || !state.pieces?.length) return state;
+  const piece = state.pieces[0];
+  const bounds = pieceBounds(piece);
+  return {
+    ...state,
+    pieces: [mirrorStudioPiece(piece), ...state.pieces.slice(1)],
+    basinPlacements: state.basinPlacements.map((placement) => {
+      if ((placement.pieceId ?? piece.id) !== piece.id) return placement;
+      const widthMm = placement.widthMm ?? 0;
+      return {
+        ...placement,
+        xMm: Math.max(0, Math.round(bounds.widthMm - placement.xMm - widthMm)),
+      };
+    }),
+  };
+}
+
 export function studioPieceById(state: Pick<StudioState, "pieces" | "shape" | "dimensions">, pieceId?: string) {
   const pieces = studioPieces(state);
   return pieces.find((piece) => piece.id === pieceId) ?? pieces[0];

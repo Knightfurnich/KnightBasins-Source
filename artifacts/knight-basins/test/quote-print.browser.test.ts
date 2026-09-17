@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -174,6 +174,18 @@ async function setSelectValue(page: CdpPage, testId: string, value: string) {
   assert.equal(changed, true, `Could not set ${testId}`);
 }
 
+async function setFileInput(page: CdpPage, filePath: string) {
+  const documentResult = await page.command("DOM.getDocument");
+  const root = documentResult["root"] as { nodeId: number };
+  const queryResult = await page.command("DOM.querySelector", {
+    nodeId: root.nodeId,
+    selector: 'input[data-testid="input-studio-sketch"]',
+  });
+  const nodeId = queryResult["nodeId"] as number;
+  assert.ok(nodeId, "Could not find the Studio sketch file input");
+  await page.command("DOM.setFileInputFiles", { nodeId, files: [filePath] });
+}
+
 function sharedStudioDraftUrl(state: unknown, catalogContext: unknown) {
   const token = Buffer.from(JSON.stringify({ state, catalogContext }), "utf8").toString("base64url");
   return `${baseUrl}/studio?draft=${token}`;
@@ -186,6 +198,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     browser = await launchBrowser();
     await browser.page.command("Runtime.enable");
     await browser.page.command("Page.enable");
+    await browser.page.command("DOM.enable");
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 900,
@@ -356,15 +369,23 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       deviceScaleFactor: 1,
       mobile: false,
     });
-    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="select-sort"]\') !== null'),
       Boolean,
       "catalog sort control",
     );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="select-sort"]\') !== null'),
+      Boolean,
+      "catalog sort control after clearing state",
+    );
     const options = await browser.page.evaluate(`(() => [...document.querySelectorAll('[data-testid="select-sort"] option')].map((option) => ({ value: option.value, label: option.textContent ?? "" })))()`);
     assert.deepEqual(options.map((option) => option.value), ["catalog", "name-az", "name-za", "sku-az", "price-low", "price-high", "selected"]);
+    assert.match(options.find((option) => option.value === "sku-az")?.label ?? "", /SKU.*น้อยไปมาก/);
+    assert.match(await browser.page.evaluate('document.querySelector(\'[data-testid="text-sort-help"]\')?.textContent ?? ""'), /ทุกรุ่นที่เปิดใช้งาน/);
     await setSelectValue(browser.page, "select-sort", "name-az");
     const firstName = await browser.page.evaluate('document.querySelector(".product-card h3")?.textContent ?? ""');
     await setSelectValue(browser.page, "select-sort", "price-low");
@@ -550,11 +571,11 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "Studio preset canvas",
     );
 
-    await clickTestId(browser.page, "button-studio-preset-l-left");
+    await clickTestId(browser.page, "button-studio-preset-l");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid^="select-studio-rectangle-"] option:nth-child(2)\') !== null'),
       Boolean,
-      "left L preset rectangles",
+      "L preset rectangles",
     );
     const leftFirstRectangle = await browser.page.evaluate(`(() => ({
       widths: [...document.querySelectorAll('[data-testid^="input-rectangle-width-"]')].map((input) => input.value),
@@ -583,34 +604,20 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     }))()`);
     assert.deepEqual(leftSecondRectangle, { widths: ["600"], lengths: ["1200"], xs: ["0"], ys: ["600"] });
 
-    await clickTestId(browser.page, "button-studio-preset-l-right");
-    await waitFor(
-      () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-x-"]\')?.value === "0"'),
-      Boolean,
-      "right L first rectangle selection",
-    );
-    const rightFirstRectangle = await browser.page.evaluate(`(() => ({
-      xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
-      ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
-    }))()`);
-    assert.deepEqual(rightFirstRectangle, { xs: ["0"], ys: ["0"] });
-    await browser.page.evaluate(`(() => {
-      const select = document.querySelector('[data-testid^="select-studio-rectangle-"]');
-      if (!(select instanceof HTMLSelectElement)) return false;
-      select.value = select.options[1]?.value ?? "";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-      return true;
-    })()`);
+    await clickTestId(browser.page, "button-studio-mirror-l");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-x-"]\')?.value === "900"'),
       Boolean,
-      "right L second rectangle selection",
+      "mirrored L second rectangle selection",
     );
     const rightPreset = await browser.page.evaluate(`(() => ({
       xs: [...document.querySelectorAll('[data-testid^="input-rectangle-x-"]')].map((input) => input.value),
       ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
     }))()`);
     assert.deepEqual(rightPreset, { xs: ["900"], ys: ["600"] });
+    assert.equal(await browser.page.evaluate('document.querySelectorAll(\'[data-testid^="button-studio-preset-"]\').length'), 3);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-preset-l-left"]\') === null'), true);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-preset-l-right"]\') === null'), true);
 
     await clickTestId(browser.page, "button-studio-preset-u");
     await waitFor(
@@ -967,6 +974,14 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "quick quote customer form",
     );
+    assert.equal(
+      await browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-lineContact"]\') !== null'),
+      true,
+    );
+    assert.deepEqual(
+      await browser.page.evaluate(`Array.from(document.querySelector('[data-testid="input-customer-preferred-contact"]')?.options ?? []).map((option) => option.textContent)`),
+      ["ยังไม่ระบุ", "LINE", "โทรศัพท์", "อีเมล"],
+    );
     await setTextInput(browser.page, "input-customer-email", "abc@xyz");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="status-quote-email-validation"]\')?.textContent === "กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)"'),
@@ -1018,11 +1033,17 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "partial quote form",
     );
+    await setTextInput(browser.page, "input-customer-lineContact", "@partial-quote");
+    await setTextInput(browser.page, "input-customer-site", "ห้องน้ำชั้น 2");
     await clickTestId(browser.page, "button-generate-quote");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"]\') !== null'),
       Boolean,
       "formal quote with partial customer details",
+    );
+    assert.equal(
+      await browser.page.evaluate('document.querySelector(\'[data-testid="formal-quote-sheet"]\')?.textContent?.includes("@partial-quote")'),
+      true,
     );
   });
 
@@ -1449,6 +1470,198 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(tablet.sideStatusColumns.split(" ").length, 4);
     assert.equal(tablet.pricingColumns.split(" ").length, 3);
     assert.equal(tablet.comparisonColumns.split(" ").length, 3);
+  });
+
+  it("previews the latest hand sketch file without widening the mobile page", async () => {
+    const fixtureDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-sketch-preview-"));
+    const pngBytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
+    const firstFile = path.join(fixtureDirectory, "first-sketch.png");
+    const secondFile = path.join(fixtureDirectory, "latest-sketch.png");
+    await writeFile(firstFile, pngBytes);
+    await writeFile(secondFile, pngBytes);
+    try {
+      await browser.page.command("Emulation.setDeviceMetricsOverride", {
+        width: 375,
+        height: 1200,
+        deviceScaleFactor: 1,
+        mobile: true,
+      });
+      await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+      await waitFor(
+        () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-sketch"]\') !== null'),
+        Boolean,
+        "hand sketch order mode",
+      );
+      await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+      await clickTestId(browser.page, "button-order-mode-sketch");
+      await waitFor(
+        () => browser.page.evaluate('document.querySelector(\'[data-testid="input-studio-sketch"]\') !== null'),
+        Boolean,
+        "hand sketch file input",
+      );
+      await browser.page.evaluate(`(() => {
+        window.__revokedSketchObjectUrls = [];
+        const nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+        URL.revokeObjectURL = (url) => {
+          window.__revokedSketchObjectUrls.push(url);
+          nativeRevokeObjectURL(url);
+        };
+      })()`);
+
+      await setFileInput(browser.page, firstFile);
+      const firstPreview = await waitFor(
+        () => browser.page.evaluate(`(() => {
+          const image = document.querySelector('[data-testid="img-studio-sketch-preview"]');
+          const fileInput = document.querySelector('[data-testid="input-studio-sketch"]');
+          return {
+            src: image?.getAttribute("src") ?? "",
+            alt: image?.getAttribute("alt") ?? "",
+            fileName: fileInput instanceof HTMLInputElement ? fileInput.files?.[0]?.name ?? "" : "",
+            naturalWidth: image instanceof HTMLImageElement ? image.naturalWidth : 0,
+          };
+        })()`),
+        (value) => Boolean(value.src) && value.naturalWidth > 0,
+        "first hand sketch preview",
+      );
+      assert.match(firstPreview.alt, /first-sketch\.png/);
+      assert.equal(firstPreview.fileName, "first-sketch.png");
+
+      await setFileInput(browser.page, secondFile);
+      const secondPreview = await waitFor(
+        () => browser.page.evaluate(`(() => {
+          const image = document.querySelector('[data-testid="img-studio-sketch-preview"]');
+          const fileInput = document.querySelector('[data-testid="input-studio-sketch"]');
+          return {
+            src: image?.getAttribute("src") ?? "",
+            alt: image?.getAttribute("alt") ?? "",
+            fileName: fileInput instanceof HTMLInputElement ? fileInput.files?.[0]?.name ?? "" : "",
+            naturalWidth: image instanceof HTMLImageElement ? image.naturalWidth : 0,
+          };
+        })()`),
+        (value) => value.fileName === "latest-sketch.png" && value.naturalWidth > 0 && value.src !== firstPreview.src,
+        "latest hand sketch preview",
+      );
+      assert.match(secondPreview.alt, /latest-sketch\.png/);
+      assert.equal(secondPreview.fileName, "latest-sketch.png");
+      assert.ok(secondPreview.src.startsWith("blob:"));
+      assert.equal(await browser.page.evaluate(`window.__revokedSketchObjectUrls.includes(${JSON.stringify(firstPreview.src)})`), true);
+
+      const mobileLayout = await browser.page.evaluate(`(() => {
+        const drop = document.querySelector(".studio-file-drop");
+        return {
+          bodyWidth: document.body.scrollWidth,
+          viewportWidth: window.innerWidth,
+          previewWidth: drop?.querySelector("img")?.getBoundingClientRect().width ?? 0,
+          dropWidth: drop instanceof HTMLElement ? drop.getBoundingClientRect().width : 0,
+        };
+      })()`);
+      assert.ok(mobileLayout.bodyWidth <= mobileLayout.viewportWidth, "Hand sketch preview must not widen the mobile page");
+      assert.ok(mobileLayout.previewWidth <= mobileLayout.dropWidth, "Hand sketch preview must stay inside the upload frame");
+
+      await setTextInput(browser.page, "input-studio-name", "คุณทดสอบ");
+      await setTextInput(browser.page, "input-studio-phone", "0812345678");
+      await setTextInput(browser.page, "input-studio-project", "โครงการทดสอบ preview");
+      await browser.page.evaluate(`(() => {
+        window.fetch = async () => new Response(JSON.stringify({ message: "ส่งแบบร่างเรียบร้อยแล้ว" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      })()`);
+      await clickTestId(browser.page, "button-submit-sketch");
+      await waitFor(
+        () => browser.page.evaluate(`(() => ({
+          preview: document.querySelector('[data-testid="img-studio-sketch-preview"]') !== null,
+          fileCount: document.querySelector('[data-testid="input-studio-sketch"]') instanceof HTMLInputElement
+            ? document.querySelector('[data-testid="input-studio-sketch"]').files?.length ?? 0
+            : -1,
+          revoked: window.__revokedSketchObjectUrls.includes(${JSON.stringify(secondPreview.src)}),
+        }))()`),
+        (value) => !value.preview && value.fileCount === 0 && value.revoked,
+        "cleared hand sketch preview after submit",
+      );
+    } finally {
+      await rm(fixtureDirectory, { force: true, recursive: true });
+    }
+  });
+
+  it("shows the Studio basin shortlist as a responsive two-or-three card grid", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "basin grid Studio order mode",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-basin-list"]\') !== null'),
+      Boolean,
+      "basin shortlist",
+    );
+
+    const readBasinGrid = () => browser.page.evaluate(`(() => {
+      const list = document.querySelector(".studio-basin-list");
+      const cards = [...document.querySelectorAll(".studio-basin-choice")];
+      const art = document.querySelector(".studio-basin-choice-art");
+      const columns = list instanceof HTMLElement
+        ? getComputedStyle(list).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length
+        : 0;
+      return {
+        columns,
+        bodyWidth: document.body.scrollWidth,
+        viewportWidth: window.innerWidth,
+        cardCount: cards.length,
+        artWidth: art instanceof HTMLElement ? art.getBoundingClientRect().width : 0,
+        artHeight: art instanceof HTMLElement ? art.getBoundingClientRect().height : 0,
+      };
+    })()`);
+
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 375,
+      height: 1200,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    const mobile = await readBasinGrid();
+    assert.equal(mobile.columns, 2);
+    assert.ok(mobile.bodyWidth <= mobile.viewportWidth, "The mobile basin shortlist must not widen the page");
+    assert.ok(mobile.artWidth >= 100, `Mobile basin art is too narrow: ${JSON.stringify(mobile)}`);
+    assert.ok(mobile.artHeight >= 100, `Mobile basin art is too short: ${JSON.stringify(mobile)}`);
+
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1920,
+      height: 1200,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    const desktop = await readBasinGrid();
+    assert.equal(desktop.columns, 3, `Desktop basin grid is not three columns: ${JSON.stringify(desktop)}`);
+    assert.ok(desktop.bodyWidth <= desktop.viewportWidth, "The desktop basin shortlist must not widen the page");
+    assert.ok(desktop.artWidth > 100);
+    assert.ok(desktop.artHeight > 100);
+
+    await clickTestId(browser.page, "button-studio-basin-KF001");
+    await clickTestId(browser.page, "button-studio-basin-KF002");
+    await clickTestId(browser.page, "button-studio-basin-KF019");
+    const selectedBeforeSearch = await browser.page.evaluate(`(() => ({
+      selected: [...document.querySelectorAll(".studio-basin-choice.is-selected")].length,
+      first: document.querySelector('[data-testid="button-studio-basin-KF001"]')?.getAttribute("aria-pressed") ?? "",
+      second: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.getAttribute("aria-pressed") ?? "",
+      third: document.querySelector('[data-testid="button-studio-basin-KF019"]')?.getAttribute("aria-pressed") ?? "",
+    }))()`);
+    assert.equal(selectedBeforeSearch.selected, 2);
+    assert.equal(selectedBeforeSearch.first, "true");
+    assert.equal(selectedBeforeSearch.second, "true");
+    assert.equal(selectedBeforeSearch.third, "false");
+
+    await setTextInput(browser.page, "input-studio-basin-search", "KF002");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(".studio-basin-choice").length === 1'),
+      Boolean,
+      "filtered basin shortlist",
+    );
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF002"]\')?.getAttribute("aria-pressed")'), "true");
   });
 
   it("shows Studio measurement guidance, swaps deep dimensions, and cleans phone input", async () => {

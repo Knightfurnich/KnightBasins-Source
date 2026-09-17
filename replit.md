@@ -40,6 +40,17 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 _Populate as you build — sharp edges, "always run X before Y" rules._
 
+## GitHub Release Policy
+
+- Push to `Knightfurnich/KnightBasins-Source` on `main` with the `GITHUB_TOKEN` secret through an ephemeral HTTPS remote; never print or persist the token.
+- Include application code under `artifacts/knight-basins/src/`, `artifacts/api-server/src/`, and `lib/`.
+- Include configuration files: `package.json`, `tsconfig.json`, `vite.config.ts`, `drizzle.config.ts`, and `.env.example`.
+- Include tests and deployment files under `test/`, `deploy/`, and `.github/workflows/`. Workflow files require a token with GitHub workflow permission.
+- Never push storefront/admin runtime uploads from `artifacts/knight-basins/public/uploads/`.
+- Never push `.agents/`, `tmp/`, `screenshots/`, or `node_modules/`.
+- Preserve the remote `main` history and avoid force-pushes. Verify the remote commit SHA after pushing.
+- After a successful push, summarize the commit SHA and changed areas, then end the handoff with: `push ขึ้น GitHub แล้ว` so David can deploy to the production VPS.
+
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details

@@ -157,7 +157,8 @@ export function LeadsManager() {
                     <span className="text-xs border border-[var(--line)] px-2 py-1">{statusLabels[lead.status]}</span>
                   </div>
                   <p className="text-sm text-[var(--ink-soft)] mt-1">{lead.project || "ยังไม่ระบุโครงการ"} · แหล่งที่มา {lead.source}</p>
-                  <p className="text-sm mt-3">{[lead.phone, lead.email, lead.company].filter(Boolean).join(" · ") || "ยังไม่มีข้อมูลติดต่อ"}</p>
+                   <p className="text-xs text-[var(--ink-soft)] mt-1">หน้างาน: {lead.site || "ยังไม่ระบุ"}</p>
+                   <p className="text-sm mt-3">{[lead.phone, lead.lineContact && `LINE: ${lead.lineContact}`, lead.email, lead.company].filter(Boolean).join(" · ") || "ยังไม่มีข้อมูลติดต่อ"}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-2">สินค้า: {lead.productSkus.join(", ") || "ยังไม่ได้เลือก"}</p>
                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                      <span>สร้างเมื่อ {formatLeadDate(lead.createdAt)}</span>

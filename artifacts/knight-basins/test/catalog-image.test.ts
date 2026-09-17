@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { toggleAdminItemActive } from "../src/admin/adminArchive.ts";
-import { basinProductFromCatalog, filterBasinProducts, PRODUCTS, reconcileStoneSelections, removeStoneSelection, stoneColorsForMode, stoneColorsFromCatalog, toggleBasinSelection, toggleStoneSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
+import { basinProductFromCatalog, filterBasinProducts, PRODUCTS, reconcileStoneSelections, removeStoneSelection, sortBasinProductsBySku, stoneColorsForMode, stoneColorsFromCatalog, toggleBasinSelection, toggleStoneSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
 
 describe("storefront basin image mapping", () => {
   it("preserves a saved imageUrl from the active catalog response", () => {
@@ -161,5 +161,19 @@ describe("storefront multi-selection state", () => {
     assert.equal(filterBasinProducts(PRODUCTS, "").length, 30);
     assert.deepEqual(filterBasinProducts(PRODUCTS, "KF029").map((product) => product.sku), ["KF029"]);
     assert.deepEqual(filterBasinProducts(PRODUCTS, "KF030").map((product) => product.sku), ["KF030"]);
+  });
+
+  it("sorts active models naturally, including future SKUs outside the original range", () => {
+    const models = ["KF031", "KF002", "AB10", "AB2"].map((sku) => basinProductFromCatalog({
+      sku,
+      colorCode: `CODE-${sku}`,
+      colorName: sku,
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      imageTone: "#dfe4df",
+    }));
+
+    assert.deepEqual(sortBasinProductsBySku(models).map((product) => product.sku), ["AB2", "AB10", "KF002", "KF031"]);
   });
 });

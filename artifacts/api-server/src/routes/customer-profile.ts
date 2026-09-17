@@ -23,6 +23,7 @@ function profileResponse(account: NonNullable<Awaited<ReturnType<typeof findAuth
     pictureUrl: account.pictureUrl,
     fullName: account.fullName ?? "",
     phone: account.phone ?? "",
+    lineContact: account.lineContact ?? "",
     email: account.email ?? "",
     company: account.company ?? "",
     project: account.project ?? "",
@@ -72,6 +73,7 @@ router.put("/customer/profile", async (req, res, next) => {
       .set({
         fullName: parsed.data.fullName,
         phone: parsed.data.phone,
+        lineContact: parsed.data.lineContact || null,
         email: parsed.data.email || null,
         company: parsed.data.company || null,
         project: parsed.data.project || null,
@@ -101,6 +103,7 @@ router.put("/customer/profile", async (req, res, next) => {
         pictureUrl: customerAccounts.pictureUrl,
         fullName: customerAccounts.fullName,
         phone: customerAccounts.phone,
+        lineContact: customerAccounts.lineContact,
         email: customerAccounts.email,
         company: customerAccounts.company,
         project: customerAccounts.project,

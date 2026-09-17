@@ -91,6 +91,7 @@ export async function findAuthenticatedAccount(cookieValue: string | undefined) 
       pictureUrl: customerAccounts.pictureUrl,
       fullName: customerAccounts.fullName,
       phone: customerAccounts.phone,
+      lineContact: customerAccounts.lineContact,
       email: customerAccounts.email,
       company: customerAccounts.company,
       project: customerAccounts.project,

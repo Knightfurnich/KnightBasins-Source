@@ -10,7 +10,10 @@ import { formatThaiDateOnly, formatThaiDateTime } from "./date-time";
 type LeadNotificationData = {
   name: string | null;
   phone: string | null;
+  lineContact?: string | null;
   project: string | null;
+  site?: string | null;
+  purchasingDepartment?: string | null;
   address?: string | null;
   productSkus: string[];
   quoteNumber?: string | null;
@@ -166,6 +169,9 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     `เลขที่: ${lead.quoteNumber || "-"}`,
     `ผู้ติดต่อ: ${lead.name || "-"} · โครงการ: ${lead.project || "-"}`,
     `โทร: ${lead.phone || "-"}`,
+    `LINE ติดต่อ: ${lead.lineContact || "-"}`,
+    `หน้างาน: ${labelValue(lead.site)}`,
+    `ฝ่ายจัดซื้อ / บัญชี: ${labelValue(lead.purchasingDepartment)}`,
     `ประเภทลูกค้า: ${customerRoleLabel(lead.customerRole)} · ติดต่อสะดวกทาง: ${preferredContactLabel(lead.preferredContact)}`,
     `สถานที่ติดตั้ง: ${propertyTypeLabel(lead.propertyType)}${lead.condoFloor ? ` · ชั้น ${lead.condoFloor}` : ""} · ที่อยู่ ${labelValue(lead.address)}`,
     `วันที่คาดว่าจะติดตั้ง: ${formatThaiDateOnly(lead.expectedInstallationDate)}`,

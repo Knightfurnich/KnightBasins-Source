@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatTHB } from "@/data/catalog";
+import { CUSTOMER_CONTACT_OPTIONS, CUSTOMER_ROLE_OPTIONS, PROPERTY_TYPE_OPTIONS } from "@/data/catalog";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress } from "@/data/validation";
 import { LineLoginButton } from "./KnightSupport";
@@ -17,6 +18,7 @@ import { LineLoginButton } from "./KnightSupport";
 const emptyProfile: CustomerProfileInput = {
   fullName: "",
   phone: "",
+  lineContact: "",
   email: "",
   company: "",
   project: "",
@@ -50,6 +52,7 @@ export function CustomerProfilePage() {
     setForm({
       fullName: profile.data.fullName ?? "",
       phone: profile.data.phone ?? "",
+      lineContact: profile.data.lineContact ?? "",
       email: profile.data.email ?? "",
       company: profile.data.company ?? "",
       project: profile.data.project ?? "",
@@ -91,12 +94,13 @@ export function CustomerProfilePage() {
       return;
     }
     updateProfile.mutate(
-         { data: { ...form, fullName: form.fullName.trim(), phone: form.phone.trim(), email: form.email.trim(), company: form.company.trim(), project: form.project.trim(), address: form.address.trim(), taxName: form.taxName.trim(), taxId: form.taxId.trim(), taxBranch: form.taxBranch.trim(), taxAddress: form.taxAddress.trim(), expectedInstallationDate: form.expectedInstallationDate || null } },
+         { data: { ...form, fullName: form.fullName.trim(), phone: form.phone.trim(), lineContact: (form.lineContact ?? "").trim(), email: form.email.trim(), company: form.company.trim(), project: form.project.trim(), address: form.address.trim(), taxName: form.taxName.trim(), taxId: form.taxId.trim(), taxBranch: form.taxBranch.trim(), taxAddress: form.taxAddress.trim(), expectedInstallationDate: form.expectedInstallationDate || null } },
       {
         onSuccess: (saved) => {
           setForm({
             fullName: saved.fullName ?? "",
             phone: saved.phone ?? "",
+            lineContact: saved.lineContact ?? "",
             email: saved.email ?? "",
             company: saved.company ?? "",
             project: saved.project ?? "",
@@ -154,14 +158,15 @@ export function CustomerProfilePage() {
           <label>บริษัท<input value={form.company} onChange={(event) => update("company", event.target.value)} maxLength={200} data-testid="input-profile-company" /></label>
           <label>โครงการ<input value={form.project} onChange={(event) => update("project", event.target.value)} maxLength={240} data-testid="input-profile-project" /></label>
           <label className="profile-field-wide">ที่อยู่จัดส่ง / ติดตั้งเริ่มต้น<textarea value={form.address} onChange={(event) => update("address", event.target.value)} maxLength={4000} rows={4} data-testid="input-profile-address" /></label>
-           <label>ประเภทสถานที่<select value={form.propertyType ?? "house-townhome"} onChange={(event) => setForm((current) => ({ ...current, propertyType: event.target.value as CustomerProfileInput["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-profile-property-type"><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>
+            <label>ประเภทสถานที่<select value={form.propertyType ?? "house-townhome"} onChange={(event) => setForm((current) => ({ ...current, propertyType: event.target.value as CustomerProfileInput["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-profile-property-type">{PROPERTY_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
            {form.propertyType === "condo" && <label>ชั้นคอนโด<input value={form.condoFloor ?? ""} onChange={(event) => update("condoFloor", event.target.value)} maxLength={32} data-testid="input-profile-condo-floor" /></label>}
            <label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={form.expectedInstallationDate ?? ""} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-profile-installation-date" /></label>
           <label>ชื่อสำหรับใบกำกับภาษี<input value={form.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-profile-tax-name" /></label>
            <label>เลขประจำตัวผู้เสียภาษี 13 หลัก<input value={form.taxId} onChange={(event) => update("taxId", event.target.value.replace(/\D/g, "").slice(0, 13))} inputMode="numeric" maxLength={13} aria-invalid={hasInvalidTaxId} data-testid="input-profile-tax-id" />{hasInvalidTaxId && <span className="field-error" role="alert" data-testid="status-profile-tax-id-validation">กรุณากรอกเลขประจำตัวผู้เสียภาษีให้ครบ 13 หลัก</span>}</label>
           <label>สาขา<input value={form.taxBranch} onChange={(event) => update("taxBranch", event.target.value)} maxLength={120} data-testid="input-profile-tax-branch" /></label>
-          <label>ช่องทางติดต่อที่สะดวก<select value={form.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-profile-preferred-contact"><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label>
-          <label>บทบาทลูกค้า<select value={form.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-profile-customer-role"><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label>
+           <label>LINE สำหรับติดต่อ<input value={form.lineContact} onChange={(event) => update("lineContact", event.target.value)} maxLength={120} placeholder="@ไอดี หรือชื่อบัญชี" data-testid="input-profile-line-contact" /></label>
+           <label>ช่องทางติดต่อที่สะดวก<select value={form.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-profile-preferred-contact">{CUSTOMER_CONTACT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+           <label>บทบาทลูกค้า<select value={form.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-profile-customer-role">{CUSTOMER_ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label className="profile-field-wide">ที่อยู่สำหรับใบกำกับภาษี<textarea value={form.taxAddress} onChange={(event) => update("taxAddress", event.target.value)} maxLength={4000} rows={4} data-testid="input-profile-tax-address" /></label>
         </div>
         {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}

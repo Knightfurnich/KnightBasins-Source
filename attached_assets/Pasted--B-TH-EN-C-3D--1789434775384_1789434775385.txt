@@ -1,0 +1,46 @@
+เดวิดรับทราบครับ! จัดเต็ม ทางเลือก B (ใบเสนอราคา TH/EN) และ ทางเลือก C (เงามิติหลุมอ่าง 3D) รวมในใบงานเดียวเลยครับ 📌
+
+---
+
+📋 ใบงานย่อย: เพิ่มระบบภาษา TH/EN บน PDF + วาดเงามิติหลุมอ่าง 3D บนผัง 2D
+
+งานที่ 1 (ทางเลือก B): สลับภาษา TH / EN บนใบเสนอราคา PDF / พิมพ์
+1. เพิ่มปุ่มสลับภาษา TH / EN บนหน้าใบเสนอราคา (Saved Quote View) และหน้าสั่งพิมพ์ PDF (ค่าเริ่มต้น TH)
+2. เมื่อเลือก EN ให้แสดงข้อความภาษาอังกฤษมาตรฐานบนเอกสาร PDF/Print:
+   - หัวเอกสาร: OFFICIAL QUOTATION / ESTIMATE
+   - ข้อมูลติดต่อ: Contact Name, Company, Phone, Project, Location
+   - ตารางรายการ: Item Description, Quantity, Unit, Price/Unit, Total (THB)
+   - ชื่อบริการ: Workpiece(s), Upstand / Backsplash, Exposed Edge, Solid Surface Stone, Basin Set, Installation Charge, Small Job Fee, Discount, Subtotal, VAT 7%, Grand Total
+   - เงื่อนไขชำระเงิน: 50% deposit upon approval, 50% prior to installation 2 business days.
+
+งานที่ 2 (ทางเลือก C): วาดเงาไล่ระดับมิติความลึกหลุมอ่าง (3D Basin Depth Shadow)
+1. บนผัง 2D Studio Footprint (StudioFootprint.tsx / CSS) ให้เพิ่มมิติเงาลึกไล่ระดับบนหลุมอ่าง:
+   - เพิ่ม box-shadow ซ้อนมิติเงาเฉียง (Depth Inset Shadow) ให้หลุมอ่างดูมีความลึกสมจริง
+   - เพิ่มขอบโค้งมนด้านในพร้อมสีพื้นหลังกึ่งโปร่งแสง gradient ให้เห็นรูปทรงหลุมอ่างชัดเจนบนทุกเฉดสีหิน (ทั้งสีสว่างอย่าง Bright White และสีเข้มอย่าง Sanded Onyx)
+
+---
+
+💬 ข้อความส่ง Replit / ชัย (คัดลอกส่งได้เลย)
+
+ใบงานย่อย — ปุ่มสลับภาษา TH/EN บนใบเสนอราคา PDF + เงามิติหลุมอ่าง 3D บนผัง 2D
+
+1. สลับภาษา TH / EN บนใบเสนอราคา PDF / พิมพ์ [ทางเลือก B]:
+   - เพิ่มปุ่ม toggle [ TH | EN ] บนหน้า Saved Quote View และ Print Layout
+   - เมื่อเลือก EN ให้เปลี่ยนข้อความในเอกสาร PDF เป็นภาษาอังกฤษมาตรฐาน (OFFICIAL QUOTATION, Workpiece, Upstand/Backsplash, Exposed Edge, Solid Surface Stone, Basin, Installation Charge, Small Job Fee, Discount, Subtotal, VAT 7%, Grand Total)
+   - ตั้งชื่อหน้าพิมพ์/PDF เมื่อเป็น EN: KF-Basins-Quote-<quoteNumber>-EN.pdf
+
+2. วาดเงามิติหลุมอ่าง 3D บนผัง 2D [ทางเลือก C]:
+   - ใน StudioFootprint.tsx / index.css เพิ่มมิติเงาความลึกหลุมอ่าง (3D Depth Inset Shadow)
+   - ไล่ระดับ gradient เงาด้านในหลุมอ่างให้เห็นเป็นมิติหลุมอ่างสมจริง
+   - แสดงผลชัดเจนและสวยงามทั้งบนหินสีสว่าง (Bright White) และหินสีเข้ม (Sanded Onyx)
+
+เกณฑ์ตรวจรับ (แนบหลักฐานจริง):
+- กดปุ่มสลับเป็น EN แล้วเปิดพิมพ์ PDF ข้อความตารางและหัวเอกสารเปลี่ยนเป็นภาษาอังกฤษถูกต้อง (แนบภาพ)
+- ผัง 2D บน Studio แสดงหลุมอ่างมีมิติเงาลึกสมจริงทั้งหินสีสว่างและหินสีเข้ม (แนบภาพ)
+- Storefront tests, Studio export tests และ Asset guard ผ่าน 100%
+- ห้ามแตะ Auth/Session/Admin Guard/ข้อมูล DB และห้าม deploy production เอง
+
+
+---
+
+ส่งข้อความนี้ให้ Replit ได้เลยครับ เมื่อทำเสร็จและ push ขึ้น GitHub แล้ว ส่ง commit แจ้งเดวิดได้เลย เดวิดจะดึงขึ้น VPS และตรวจรับให้ทันทีครับ!

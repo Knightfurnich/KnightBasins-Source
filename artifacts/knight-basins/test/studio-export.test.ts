@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createStudioDxf, createStudioExportModel, createStudioPngSvg, STUDIO_EXPORT_LAYERS, STUDIO_EXPORT_NOTE, studioPrintTitle } from "../src/data/studio-export.ts";
-import type { StudioState } from "../src/data/studio-model.ts";
+import { mirrorStudioLState, type StudioState } from "../src/data/studio-model.ts";
 
 const state = (overrides: Partial<StudioState> = {}): StudioState => ({
   mode: "studio",
@@ -191,4 +191,35 @@ test("U DXF and PNG exports retain the same three rectangle coordinates", () => 
   assert.match(svg, /<rect x="0" y="600" width="600" height="1200"/);
   assert.match(svg, /<rect x="900" y="600" width="600" height="1200"/);
   assert.match(svg, /<text[^>]*>KF001 · 500 × 500 mm<\/text>/);
+});
+
+test("mirroring an L layout keeps the joint, edge statuses, labels, and basins aligned", () => {
+  const left = state({
+    shape: "L",
+    dimensions: { depthMm: 600, runAMm: 1500, runBMm: 1200, runCMm: 0 },
+    pieces: [{
+      id: "l-piece",
+      name: "ชิ้นงานฉากซ้าย",
+      rectangles: [
+        { id: "l-top", widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, rotation: 0, label: "แผ่นบน" },
+        { id: "l-leg", widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, rotation: 0, label: "แผ่นซ้าย" },
+      ],
+      sideStatuses: { "l-top:bottom": "wall-flush", "l-leg:left": "open-edge" },
+    }],
+    activePieceId: "l-piece",
+    basinPlacements: [{ id: "l-basin", sku: "KF001", pieceId: "l-piece", xMm: 50, yMm: 700, widthMm: 500, depthMm: 500 }],
+  });
+  const mirrored = mirrorStudioLState(left);
+  const piece = mirrored.pieces?.[0];
+  assert.ok(piece);
+  assert.deepEqual(piece.rectangles.map(({ id, xMm, yMm, label }) => ({ id, xMm, yMm, label })), [
+    { id: "l-top", xMm: 0, yMm: 0, label: "แผ่นบน" },
+    { id: "l-leg", xMm: 900, yMm: 600, label: "แผ่นขวา" },
+  ]);
+  assert.equal(piece.sideStatuses["l-top:bottom"], "wall-flush");
+  assert.equal(piece.sideStatuses["l-leg:right"], "open-edge");
+  assert.equal(piece.sideStatuses["l-leg:left"], undefined);
+  assert.equal(mirrored.basinPlacements[0].xMm, 950);
+  assert.equal(createStudioExportModel(mirrored).pieces[0].joints.length, 1);
+  assert.deepEqual(mirrorStudioLState(mirrored).pieces?.[0].rectangles.map((rectangle) => rectangle.xMm), [0, 0]);
 });

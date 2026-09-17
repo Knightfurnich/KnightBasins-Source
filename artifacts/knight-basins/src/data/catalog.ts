@@ -39,6 +39,7 @@ export type CustomerDetails = {
   taxBranch: string;
   taxAddress: string;
   phone: string;
+  lineContact: string;
   email: string;
   purchasingDepartment: string;
   address: string;
@@ -51,6 +52,24 @@ export type CustomerDetails = {
   expectedInstallationDate: string;
   notes: string;
 };
+
+export const CUSTOMER_CONTACT_OPTIONS = [
+  { value: "line", label: "LINE" },
+  { value: "phone", label: "โทรศัพท์" },
+  { value: "email", label: "อีเมล" },
+] as const;
+
+export const CUSTOMER_ROLE_OPTIONS = [
+  { value: "homeowner", label: "เจ้าของบ้าน / ผู้ใช้งาน" },
+  { value: "architect-interior", label: "สถาปนิก / อินทีเรีย" },
+  { value: "contractor", label: "ผู้รับเหมา / ช่าง" },
+] as const;
+
+export const PROPERTY_TYPE_OPTIONS = [
+  { value: "house-townhome", label: "บ้านเดี่ยว / ทาวน์โฮม" },
+  { value: "condo", label: "คอนโดมิเนียม" },
+  { value: "commercial", label: "อาคารพาณิชย์ / สำนักงาน" },
+] as const;
 
 export const INSTALLATION_PRICE = 5000;
 export const VAT_RATE = 0.07;
@@ -380,6 +399,15 @@ export function filterBasinProducts(products: ReadonlyArray<BasinProduct>, query
     product.colorName,
     product.category,
   ].join(" ").toLocaleLowerCase().includes(normalizedQuery));
+}
+
+export function compareBasinProductSkus(left: BasinProduct, right: BasinProduct) {
+  return left.sku.localeCompare(right.sku, "en", { numeric: true, sensitivity: "base" })
+    || left.colorName.localeCompare(right.colorName, "th", { numeric: true, sensitivity: "base" });
+}
+
+export function sortBasinProductsBySku(products: ReadonlyArray<BasinProduct>) {
+  return [...products].sort(compareBasinProductSkus);
 }
 
 export function basinProductFromCatalog(item: {

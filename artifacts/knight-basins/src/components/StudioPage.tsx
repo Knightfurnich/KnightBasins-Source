@@ -3,6 +3,9 @@ import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVerti
 import {
   PRODUCTS,
   STONE_COLORS,
+  CUSTOMER_CONTACT_OPTIONS,
+  CUSTOMER_ROLE_OPTIONS,
+  PROPERTY_TYPE_OPTIONS,
   filterBasinProducts,
   formatTHB,
   productBySku,
@@ -43,6 +46,7 @@ import {
   studioSubmissionValidationMessage,
   studioStoneName,
   studioStateDimensionsValid,
+  mirrorStudioLState,
   studioPieces as getStudioPieces,
   STUDIO_MAX_PIECES,
   STUDIO_MAX_RECTANGLES,
@@ -70,10 +74,11 @@ import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
 
-const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "email" | "project" | "address" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
+const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineContact" | "email" | "project" | "address" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
   name: "",
   company: "",
   phone: "",
+  lineContact: "",
   email: "",
   project: "",
   address: "",
@@ -219,12 +224,11 @@ function numericValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-type StudioPreset = "i" | "l-left" | "l-right" | "u";
+type StudioPreset = "i" | "l" | "u";
 
 const studioPresetCopy: Record<StudioPreset, { label: string; description: string }> = {
   i: { label: "📐 ทรงตรง", description: "I-Shape · 1500 × 600 มม." },
-  "l-left": { label: "📐 ทรงฉากซ้าย", description: "L-Shape Left · 1500 × 1200 มม." },
-  "l-right": { label: "📐 ทรงฉากขวา", description: "L-Shape Right · 1500 × 1200 มม." },
+  l: { label: "📐 ทรงฉาก L", description: "L-Shape · 2 แผ่น · 1500 × 1200 มม." },
   u: { label: "📐 ทรงตัวยู", description: "U-Shape · 1500 × 1800 มม." },
 };
 
@@ -239,9 +243,9 @@ function createPresetPiece(preset: StudioPreset): StudioPiece {
       ]
     : [
       makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นบน" }),
-      makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: preset === "l-left" ? 0 : 900, yMm: 600, label: "แผ่นฉาก" }),
+      makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, label: "แผ่นซ้าย" }),
     ];
-  return { id: `piece-${Date.now()}-preset`, name: preset === "i" ? "ชิ้นงานตรง" : preset === "u" ? "ชิ้นงานตัวยู" : preset === "l-left" ? "ชิ้นงานฉากซ้าย" : "ชิ้นงานฉากขวา", rectangles, sideStatuses: {} };
+  return { id: `piece-${Date.now()}-preset`, name: preset === "i" ? "ชิ้นงานตรง" : preset === "u" ? "ชิ้นงานตัวยู" : "ชิ้นงานฉากซ้าย", rectangles, sideStatuses: {} };
 }
 
 function studioStateWithPreset(state: StudioState, preset: StudioPreset): StudioState {
@@ -274,9 +278,10 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
        const phoneField = key === "phone";
        return <label key={key}>{label}{required && <span> *</span>}<input required={required} type={phoneField ? "tel" : emailField ? "email" : undefined} inputMode={phoneField ? "numeric" : undefined} pattern={phoneField ? "[0-9]{9,10}" : undefined} minLength={phoneField ? 9 : undefined} maxLength={phoneField ? 10 : undefined} placeholder={phoneField ? "0812345678 (10 หลัก)" : emailField ? "name@example.com" : undefined} value={contact[key]} onChange={(event) => update(key, phoneField ? cleanPhoneInput(event.target.value) : event.target.value)} data-testid={`input-studio-${key}`} aria-invalid={emailField && !isValidEmailAddress(contact.email)} /></label>;
       })}
-      <label>ช่องทางติดต่อที่สะดวก<select value={contact.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-studio-preferred-contact"><option value="">เลือกช่องทาง</option><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label>
-      <label>บทบาทลูกค้า<select value={contact.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-studio-customer-role"><option value="">เลือกบทบาท</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label>
-      <label>ประเภทสถานที่<select value={contact.propertyType} onChange={(event) => update("propertyType", event.target.value)} data-testid="input-studio-property-type"><option value="">เลือกประเภท</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>
+      <label>LINE สำหรับติดต่อ<input value={contact.lineContact} onChange={(event) => update("lineContact", event.target.value)} maxLength={120} placeholder="@ไอดี หรือชื่อบัญชี" data-testid="input-studio-line-contact" /></label>
+      <label>ช่องทางติดต่อที่สะดวก<select value={contact.preferredContact} onChange={(event) => update("preferredContact", event.target.value)} data-testid="input-studio-preferred-contact"><option value="">ยังไม่ระบุ</option>{CUSTOMER_CONTACT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+      <label>บทบาทลูกค้า<select value={contact.customerRole} onChange={(event) => update("customerRole", event.target.value)} data-testid="input-studio-customer-role"><option value="">ยังไม่ระบุ</option>{CUSTOMER_ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+      <label>ประเภทสถานที่<select value={contact.propertyType} onChange={(event) => update("propertyType", event.target.value)} data-testid="input-studio-property-type"><option value="">ยังไม่ระบุ</option>{PROPERTY_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
       {contact.propertyType === "condo" && <label>ชั้นคอนโด<input value={contact.condoFloor} onChange={(event) => update("condoFloor", event.target.value)} maxLength={32} data-testid="input-studio-condo-floor" /></label>}
        <label>วันที่คาดว่าจะติดตั้ง<input type="date" min={thaiDateInputValue(new Date())} value={contact.expectedInstallationDate} onChange={(event) => update("expectedInstallationDate", event.target.value)} data-testid="input-studio-installation-date" /></label>
       <label>ชื่อสำหรับใบกำกับภาษี<input value={contact.taxName} onChange={(event) => update("taxName", event.target.value)} maxLength={240} data-testid="input-studio-tax-name" /></label>
@@ -345,7 +350,7 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, onCatal
       </div>}
       <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
       <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {basinProducts.length} รุ่น</p>
-      <div className="studio-basin-list">{visibleBasins.map((product) => {
+      <div className="studio-basin-list" data-testid="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
          return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
@@ -692,7 +697,7 @@ function StudioPieceEditor({
          {activeRectangle && <div className="studio-inspector-section">
            <label className="studio-rectangle-select">เลือกแผ่น
              <select value={activeRectangle.id} onChange={(event) => { setSelectedRectangleId(event.target.value); setSelectedPlacementId(null); }} data-testid={`select-studio-rectangle-${piece.id}`}>
-               {piece.rectangles.map((rectangle, index) => <option key={rectangle.id} value={rectangle.id}>แผ่น {index + 1} · {rectangle.widthMm} × {rectangle.lengthMm} มม.</option>)}
+               {piece.rectangles.map((rectangle, index) => <option key={rectangle.id} value={rectangle.id}>{rectangle.label ?? `แผ่น ${index + 1}`} · {rectangle.widthMm} × {rectangle.lengthMm} มม.</option>)}
              </select>
            </label>
           <div className="studio-rectangle-editor">
@@ -744,6 +749,9 @@ function StudioCanvas({
     setSelectedPlacementId(null);
     setSelectedRectangleId(null);
   };
+  const mirrorL = () => {
+    setState((current) => mirrorStudioLState(current));
+  };
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading"><div><p className="eyebrow">03 / RECTANGLE WORKPIECES</p><h3>ประกอบผังจากสี่เหลี่ยม</h3></div><span>{pieces.length} / {STUDIO_MAX_PIECES} ชิ้นงาน</span></div>
     <p className="studio-helper">แต่ละชิ้นงานมีได้สูงสุด 6 แผ่น · ขอบที่ชนกันจะแสดงเส้นประและข้อความต้องได้ฉาก 90° · แผ่นซ้อนกันจะแจ้งเตือน</p>
@@ -755,6 +763,7 @@ function StudioCanvas({
       <div className="studio-preset-actions">
         {(Object.keys(studioPresetCopy) as StudioPreset[]).map((preset) => <button type="button" key={preset} className="button button--outline studio-preset-button" onClick={() => applyPreset(preset)} data-testid={`button-studio-preset-${preset}`}><span>{studioPresetCopy[preset].label}</span><small>{studioPresetCopy[preset].description}</small></button>)}
       </div>
+      {state.shape === "L" && state.pieces && state.pieces.length > 0 && <button type="button" className="button button--outline studio-mirror-button" onClick={mirrorL} data-testid="button-studio-mirror-l"><RotateCw size={14} /> สลับข้าง L (ซ้าย ↔ ขวา)</button>}
     </div>
     <div className="studio-zoom-toolbar" aria-label="ควบคุมการซูมผัง 2D">
       <span>ขยายผัง 2D</span>
@@ -937,6 +946,8 @@ export function StudioPage({
   const hasMountedDraftEffect = useRef(false);
   const [contact, setContact] = useState(() => ({ ...emptyContact, ...contactDefaults }));
   const [sketchFile, setSketchFile] = useState<File | null>(null);
+  const [sketchPreviewUrl, setSketchPreviewUrl] = useState<string | null>(null);
+  const sketchInputRef = useRef<HTMLInputElement | null>(null);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [canvasZoom, setCanvasZoom] = useState(1);
@@ -950,6 +961,15 @@ export function StudioPage({
   const today = thaiDateInputValue(new Date());
   const hasPastInstallationDate = Boolean(contact.expectedInstallationDate && contact.expectedInstallationDate < today);
   const missingTaxIdForVat = state.vat && !/^[0-9]{13}$/.test(contact.taxId);
+  useEffect(() => {
+    if (!sketchFile) {
+      setSketchPreviewUrl(null);
+      return;
+    }
+    const previewUrl = URL.createObjectURL(sketchFile);
+    setSketchPreviewUrl(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [sketchFile]);
   useEffect(() => {
     if (!contactDefaults) return;
     setContact((current) => ({
@@ -1197,13 +1217,14 @@ export function StudioPage({
     setResult("");
     const form = new FormData();
     form.append("file", sketchFile);
-    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, email: email || null, project, address: address || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
+    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };
       if (!response.ok) throw new Error(payload.message || "ส่งไฟล์ไม่สำเร็จ");
       setResult(payload.message || (payload.notificationStatus === "notified" ? "ส่งแบบร่างเรียบร้อยแล้ว ทีมขายได้รับการแจ้งเตือน" : "บันทึกแบบร่างเรียบร้อยแล้ว"));
       setSketchFile(null);
+       if (sketchInputRef.current) sketchInputRef.current.value = "";
     } catch (error) {
       setResult(error instanceof Error ? error.message : "ส่งไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง");
     } finally {
@@ -1219,7 +1240,7 @@ export function StudioPage({
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} onCatalogChangeResolved={acknowledgeCatalogChange} />
-        {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className="studio-file-drop"><Upload size={22} /><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
+        {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className={`studio-file-drop ${sketchPreviewUrl ? "studio-file-drop--preview" : ""}`}>{sketchPreviewUrl ? <img className="studio-file-preview" src={sketchPreviewUrl} alt={`ตัวอย่างไฟล์ ${sketchFile?.name ?? "แบบร่าง"}`} data-testid="img-studio-sketch-preview" /> : <Upload size={22} />}<span className="studio-file-drop-copy"><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small></span><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
       </div>
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>

@@ -83,6 +83,8 @@ describe("sales notifications", () => {
   it("includes tax and site details in both Telegram and LINE summaries", async () => {
     const detailedLead = {
       ...lead,
+      lineContact: "@knight-customer",
+      site: "ห้องน้ำชั้น 18",
       taxName: "บริษัททดสอบ จำกัด",
       taxId: "0105559012345",
       taxBranch: "สำนักงานใหญ่",
@@ -117,6 +119,8 @@ describe("sales notifications", () => {
       assert.match(text, /สำนักงานใหญ่/);
       assert.match(text, /99 ถนนสุขุมวิท กรุงเทพฯ 10110/);
       assert.match(text, /LINE/);
+      assert.match(text, /@knight-customer/);
+      assert.match(text, /ห้องน้ำชั้น 18/);
       assert.match(text, /ลูกค้าบ้านพักอาศัย/);
       assert.match(text, /คอนโด · ชั้น 18/);
       assert.match(text, /15 ต\.ค\. 2569/);

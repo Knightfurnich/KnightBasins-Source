@@ -1,0 +1,51 @@
+เดวิดทบทวนและสแกนการแสดงผล Responsive ทุกขนาดหน้าจอ (Desktop 1280px, Tablet 768px, Mobile 375px) เรียบร้อยแล้วครับ 📱💻
+
+---
+
+📊 ผลการตรวจทาน Responsive (Audit Result)
+
+1. [ดีเยี่ยม] Desktop (1280px+) & Tablet (768px):
+   - การจัดวาง 2 คอลัมน์สมบูรณ์แบบ ปุ่มเลือกสีหิน ผัง 2D และการ์ดเปรียบเทียบราคาแสดงผลสวยงาม คมชัด ไม่มีส่วนเกิน
+
+2. [จุดที่ต้องปรับบนมือถือ (Mobile 375px–430px)]:
+   - ช่องกรอกขนาดสี่เหลี่ยม & สถานะรายด้าน (.studio-rectangle-inputs, .studio-side-status-grid): บนมือถือแสดง 4 คอลัมน์เบียดกัน ทำให้กล่องยืดกว้างเกินขอบจอ (Horizontal Overflow)
+   - ช่องกรอกราคา (.studio-pricing-inputs): แสดง 3 คอลัมน์เบียดกันบนจอมือถือเล็ก
+   - การ์ดเปรียบเทียบราคาสีหิน (.studio-stone-comparison-grid): ควรปรับเป็น 1 คอลัมน์บนมือถือจอกว้าง <480px เพื่อให้อ่านง่าย ไม่เบียดกัน
+
+---
+
+💬 ใบงานย่อยส่ง Replit / ชัย (คัดลอกส่งได้เลย)
+
+ใบงานย่อย — ปรับแต่ง Responsive CSS สำหรับ Studio 2D บนมือถือ (Mobile ≤720px)
+
+สิ่งที่ต้องทำใน artifacts/knight-basins/src/index.css:
+
+1. เพิ่มกฎ CSS ใน @media (max-width: 720px):
+   .studio-rectangle-inputs, .studio-side-status-grid {
+     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+   }
+   .studio-pricing-inputs {
+     grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+   }
+   .studio-piece-heading {
+     flex-wrap: wrap !important;
+   }
+
+2. เพิ่มกฎ CSS ใน @media (max-width: 480px):
+   .studio-stone-comparison-grid {
+     grid-template-columns: 1fr !important;
+   }
+
+เกณฑ์ตรวจรับ (แนบหลักฐานจริง):
+- เปิดหน้า Studio 2D บนมือถือ 375px (iPhone) แล้วไม่มี Horizontal Scroll Overflow
+- ช่องกรอกขนาดสี่เหลี่ยมและสถานะรายด้านเรียบร้อยเป็น 2 คอลัมน์ อ่านง่าย สวยงาม
+- การ์ดเปรียบเทียบราคาสีหินบนมือถือซ้อนกัน 1 คอลัมน์ คมชัด ไม่ถูกบีบ
+- Storefront tests และ Asset guard ผ่าน 100%
+
+
+---
+
+ส่งใบงานนี้ให้ Replit ได้เลยครับ เมื่อทำเสร็จและ push ขึ้น GitHub แล้ว ส่ง commit แจ้งเดวิดได้เลย เดวิดจะดึงขึ้น VPS และตรวจรับการแสดงผลบนมือถือจริงให้อีกครั้งครับ!
+
+⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run git status or read_file to confirm.
+  • /tmp/kbsrc21/artifacts/knight-basins/src/index.css — [patch] Write denied: '/tmp/kbsrc21/artifacts/knight-basins/src/index.css' is outside HERMES_WRITE_SAFE_ROOT (/opt/data). Unset the variable or add this path's directory prefix.

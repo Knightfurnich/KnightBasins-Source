@@ -19,7 +19,11 @@ import {
   STONE_SHEET_SIZE,
   STONE_SHEET_THICKNESS,
   VAT_RATE,
+  CUSTOMER_CONTACT_OPTIONS,
+  CUSTOMER_ROLE_OPTIONS,
+  PROPERTY_TYPE_OPTIONS,
   basinProductFromCatalog,
+  sortBasinProductsBySku,
   reconcileStoneSelections,
   removeStoneSelection,
   stoneColorsFromCatalog,
@@ -41,6 +45,7 @@ import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDi
 import { StudioFootprint } from "@/components/StudioFootprint";
 import { BasinVisual } from "@/components/BasinVisual";
 import { isValidEmailAddress } from "@/data/validation";
+import { stoneHeroFrame } from "@/data/stone-hero";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
 import { knightFurnichLogo } from "@/data/assets";
 
@@ -52,6 +57,7 @@ const emptyCustomer: CustomerDetails = {
   taxBranch: "",
   taxAddress: "",
   phone: "",
+  lineContact: "",
   email: "",
   purchasingDepartment: "",
   address: "",
@@ -258,44 +264,84 @@ function compareProductNames(left: BasinProduct, right: BasinProduct) {
     || left.sku.localeCompare(right.sku, "en", { numeric: true });
 }
 
-function HomePage({ cart, setCart, categories }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; categories?: StorefrontCategory[] }) {
+function HomePage({ cart, setCart, categories, products = PRODUCTS }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; categories?: StorefrontCategory[]; products?: ReadonlyArray<BasinProduct> }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("catalog");
-  const catalogCount = PRODUCTS.length;
+  const catalogCount = products.length;
   const visibleCategories = useMemo(() => {
     const persistedCategories = categories?.filter((item) => item.active !== false && item.name.trim()) ?? [];
     if (persistedCategories.length) return persistedCategories;
-    return [...new Set(PRODUCTS.map((product) => product.category))].map((name, sortOrder) => ({ name, sortOrder }));
-  }, [categories]);
+    return [...new Set(products.map((product) => product.category))].map((name, sortOrder) => ({ name, sortOrder }));
+  }, [categories, products]);
   const categoryCounts = useMemo(() => new Map(
-    visibleCategories.map((item) => [item.name, PRODUCTS.filter((product) => product.category === item.name).length]),
-  ), [visibleCategories]);
+    visibleCategories.map((item) => [item.name, products.filter((product) => product.category === item.name).length]),
+  ), [products, visibleCategories]);
   const toggle = (sku: string) => setCart((current) => toggleBasinSelection(current, sku));
   const filtered = useMemo(() => {
     const selectedSkus = new Set(cart.map((line) => line.sku));
-    const products = PRODUCTS.filter((product) => {
+    const visibleProducts = products.filter((product) => {
     const haystack = `${product.sku} ${product.colorCode} ${product.colorName}`.toLowerCase();
     return (category === "all" || product.category === category) && haystack.includes(query.toLowerCase());
     });
-    return products.sort((left, right) => {
+    if (sort === "sku-az") return sortBasinProductsBySku(visibleProducts);
+    return visibleProducts.sort((left, right) => {
       if (sort === "name-az") return compareProductNames(left, right);
       if (sort === "name-za") return compareProductNames(right, left);
-      if (sort === "sku-az") return left.sku.localeCompare(right.sku, "en", { numeric: true });
       if (sort === "price-low") return left.priceTHB - right.priceTHB || compareProductNames(left, right);
       if (sort === "price-high") return right.priceTHB - left.priceTHB || compareProductNames(left, right);
       if (sort === "selected") return Number(selectedSkus.has(right.sku)) - Number(selectedSkus.has(left.sku)) || compareProductNames(left, right);
       return 0;
     });
-  }, [cart, category, query, sort]);
+  }, [cart, category, products, query, sort]);
    return <div className="page-wrap">
       <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></section>
-      <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><select value={sort} onChange={(event) => setSort(event.target.value)} data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รุ่น / SKU: KF001–KF030</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><ChevronDown size={14} /></label></div></section>
+      <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
      {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} cart={cart} onToggle={toggle} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
-    <section className="catalog-note"><span className="note-mark">i</span><p>ราคาอ่างล้างหน้าทุกชิ้นยังไม่รวม VAT · ค่าดำเนินการติดตั้ง <strong>5,000 บาท/ชุด</strong> และฟรีค่าดำเนินการเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</p><Link href="/quote" data-testid="link-catalog-note">ไปยังใบเสนอราคา <ArrowRight size={15} /></Link></section>
   </div>;
 }
 
+function StoneHeroMedia({ colors, fallbackColor }: { colors: ReadonlyArray<StoneColor>; fallbackColor: StoneColor }) {
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [failedImageUrls, setFailedImageUrls] = useState<ReadonlySet<string>>(() => new Set());
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const heroColors = colors.length ? colors : [fallbackColor];
+  const heroSignature = heroColors.map((color) => `${color.code}:${color.imageUrl?.trim() ?? ""}`).join("|");
+
+  useEffect(() => {
+    setHeroIndex(0);
+  }, [heroSignature]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener?.("change", updatePreference);
+    return () => mediaQuery.removeEventListener?.("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion || heroColors.length < 2) return;
+    const timer = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % heroColors.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [heroColors.length, reducedMotion]);
+
+  const { color: heroColor, imageUrl, showImage } = stoneHeroFrame(colors, heroIndex, fallbackColor, failedImageUrls);
+
+  return <div
+    className="material-swatch"
+    style={{ backgroundColor: heroColor.tone }}
+    data-testid="stone-hero-media"
+    data-stone-code={heroColor.code}
+    data-image-state={showImage ? "image" : "tone"}
+    aria-label={`${heroColor.code} ${heroColor.name}`}
+  >
+    {showImage && <img key={`${heroColor.code}:${imageUrl}`} src={imageUrl} alt={`${heroColor.code} ${heroColor.name}`} onError={() => setFailedImageUrls((current) => new Set(current).add(imageUrl))} />}
+    <span><strong>{heroColor.code}</strong><small>{heroColor.name}</small></span>
+  </div>;
+}
 function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColorsByMode: { wholeSheet: ReadonlyArray<StoneColor>; installed: ReadonlyArray<StoneColor> } }) {
   const [dimensionError, setDimensionError] = useState("");
   const [stoneQuery, setStoneQuery] = useState("");
@@ -354,7 +400,7 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
     setDimensionError("");
   };
   const validateDimensions = () => { if (!activeStone.widthCm || !activeStone.lengthCm || activeStone.widthCm < 10 || activeStone.lengthCm < 10) setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. เพื่อคำนวณพื้นที่"); else setDimensionError(""); };
-  return <div className="page-wrap stone-page"><section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>หินสังเคราะห์<br /><em>ตามพื้นที่ของคุณ</em></h1><p className="hero-copy">เริ่มจากแผ่นมาตรฐาน หรือบอกขนาดพื้นที่ที่ต้องการติดตั้ง ระบบจะจัดโครงสร้างราคาให้เห็นก่อนส่งต่อเป็นใบเสนอราคา</p></div><div className="material-swatch" style={{ background: selectedColor.tone }}><span>{selectedColor.code}</span></div></section>
+  return <div className="page-wrap stone-page"><section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>หินสังเคราะห์<br /><em>ตามพื้นที่ของคุณ</em></h1><p className="hero-copy">เริ่มจากแผ่นมาตรฐาน หรือบอกขนาดพื้นที่ที่ต้องการติดตั้ง ระบบจะจัดโครงสร้างราคาให้เห็นก่อนส่งต่อเป็นใบเสนอราคา</p></div><StoneHeroMedia colors={availableColors} fallbackColor={selectedColor} /></section>
     <div className="config-layout"><section className="config-main"><div className="section-heading"><span className="step">01</span><div><p className="eyebrow">CHOOSE FORMAT</p><h2>เลือกรูปแบบการสั่งซื้อ</h2></div></div><div className="mode-switch"><button className={isWhole ? "is-active" : ""} onClick={() => switchMode("whole-sheet")} data-testid="button-stone-whole-sheet"><span>แผ่นเต็ม</span><small>ราคาขายแผ่นมาตรฐาน</small></button><button className={!isWhole ? "is-active" : ""} onClick={() => switchMode("installed")} data-testid="button-stone-installed"><span>ตัดและติดตั้ง</span><small>ราคาต่อตารางเมตร รวมติดตั้ง</small></button></div>
          <div className="section-heading"><span className="step">02</span><div><p className="eyebrow">SURFACE TONE</p><h2>เลือกสีหิน <span>/ เลือกได้หลายสี</span></h2></div></div><div className="stone-search-row"><label className="search-field"><Search size={16} /><input value={stoneQuery} onChange={(event) => setStoneQuery(event.target.value)} placeholder="ค้นหาชื่อหรือรหัสสินค้า" data-testid="input-stone-search" />{stoneQuery && <button onClick={() => setStoneQuery("")} aria-label="ล้างการค้นหาหิน" data-testid="button-clear-stone-search"><X size={14} /></button>}</label><span>{stones.length} สีที่เลือก · {visibleColors.length} / {availableColors.length} รายการ</span></div><div className="stone-price-legend"><span>ราคาขายแผ่น</span><span>ราคารวมติดตั้ง</span></div><div className="stone-colors">{visibleColors.length ? visibleColors.map((color) => { const selected = stones.some((stone) => stone.color === color.code); return <button key={color.code} className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`} onClick={() => toggleColor(color.code)} aria-pressed={selected} data-testid={`button-stone-color-${color.code}`}><span className="stone-card-image-wrap" style={{ background: color.tone }}>{color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span><strong>{color.name}</strong><small>{color.code}</small><small className="stone-card-prices">แผ่น {formatStonePrice(color.sheetPriceTHB)} · ติดตั้ง {formatStonePrice(color.installedPriceTHB)}</small>{selected && <Check size={14} />}</button>; }) : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}</div>
        <div className="section-heading"><span className="step">03</span><div><p className="eyebrow">SIZE & QUANTITY</p><h2>{isWhole ? "จำนวนแผ่น" : "ขนาดพื้นที่"} <span>/ กำลังแก้ไข {selectedColor.code}</span></h2></div></div>{isWhole ? <div className="quantity-editor large"><button onClick={() => update({ quantity: Math.max(1, activeStone.quantity - 1) })} data-testid="button-stone-quantity-minus"><Minus size={16} /></button><strong data-testid="text-stone-quantity">{activeStone.quantity}</strong><button onClick={() => update({ quantity: activeStone.quantity + 1 })} data-testid="button-stone-quantity-plus"><Plus size={16} /></button><span>แผ่นมาตรฐาน / 760 × 3680 mm</span></div> : <div className="dimensions-form"><label>กว้าง (ซม.)<input type="number" min="10" value={activeStone.widthCm || ""} onChange={(event) => update({ widthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-width" /></label><span>×</span><label>ยาว (ซม.)<input type="number" min="10" value={activeStone.lengthCm || ""} onChange={(event) => update({ lengthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-length" /></label><div className="area-result"><small>พื้นที่รวม</small><strong>{area.toFixed(2)} m²</strong></div>{dimensionError && <p className="field-error" data-testid="status-stone-dimension-error">{dimensionError}</p>}</div>}</section>
@@ -517,7 +563,7 @@ function FormalQuote({
       <div><span>{isEnglish ? "Company / Office" : "ชื่อออกใบกำกับภาษี"}</span><strong>{isEnglish ? customer.company || "—" : customer.taxName || customer.company || customer.name || "—"}</strong></div>
       <div><span>{isEnglish ? "Phone" : "ผู้ติดต่อ"}</span><strong>{isEnglish ? customer.phone || "—" : customer.name || "—"}</strong></div>
       <div><span>{isEnglish ? "Purchasing / Accounts" : "ฝ่ายจัดซื้อ / บัญชี"}</span><strong>{customer.purchasingDepartment || "—"}</strong></div>
-      <div><span>{isEnglish ? "Phone · Email" : "โทรศัพท์ · อีเมล"}</span><strong>{customer.phone || "—"} · {customer.email || "—"}</strong></div>
+      <div><span>{isEnglish ? "Phone · LINE · Email" : "โทรศัพท์ · LINE · อีเมล"}</span><strong>{customer.phone || "—"} · {customer.lineContact || "—"} · {customer.email || "—"}</strong></div>
       <div><span>{isEnglish ? "Project" : "โครงการ / สถานที่ติดตั้ง (SITE)"}</span><strong>{isEnglish ? customer.project || "—" : `${customer.project || "—"} · ${customer.site || customer.address || "—"}`}</strong></div>
       <div><span>{isEnglish ? "Tax ID / Branch" : "เลขผู้เสียภาษี / สาขา"}</span><strong>{customer.taxId || "—"} · {customer.taxBranch || "—"}</strong></div>
       <div className="formal-customer-wide"><span>{isEnglish ? "Location / Tax Address" : "ที่อยู่ติดตั้ง / ที่อยู่ออกใบกำกับภาษี"}</span><strong>{isEnglish ? `${customer.site || customer.address || "—"} · ${customer.taxAddress || "—"}` : `${customer.address || "—"} · ${customer.taxAddress || "—"}`}</strong></div>
@@ -690,7 +736,7 @@ function SavedQuotePage() {
     vatAmount = saved.vatAmount;
     total = saved.total;
     vat = saved.vat;
-    lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${saved.customer.project || ""}\nยอดรวม ${formatTHB(saved.total)}`;
+    lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${saved.customer.project || ""}\nโทร ${saved.customer.phone || "-"} · LINE ${saved.customer.lineContact || "-"} · ${saved.customer.email || "-"}\nยอดรวม ${formatTHB(saved.total)}`;
   } else {
     state = saved.state;
     const estimate = saved.estimate;
@@ -702,6 +748,7 @@ function SavedQuotePage() {
       taxBranch: lead.taxBranch ?? "",
       taxAddress: lead.taxAddress ?? "",
       phone: lead.phone ?? "",
+      lineContact: lead.lineContact ?? "",
       email: lead.email ?? "",
       purchasingDepartment: "",
       address: lead.address ?? "",
@@ -1002,24 +1049,24 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
       window.setTimeout(cleanup, 1000);
     }, 80);
   };
-  const customerFields: Array<{ key: keyof CustomerDetails; label: string; placeholder: string; required?: boolean }> = [
-    { key: "name", label: "ชื่อลูกค้า", placeholder: "เช่น คุณนรินทร์" },
-    { key: "phone", label: "เบอร์ติดต่อ", placeholder: "08x-xxx-xxxx" },
-    { key: "email", label: "อีเมล", placeholder: "name@company.com" },
+  const customerFields: Array<{ key: keyof CustomerDetails; label: string; placeholder: string; inputMode?: "numeric" }> = [
+    { key: "name", label: "ชื่อผู้ติดต่อ", placeholder: "เช่น คุณนรินทร์" },
     { key: "company", label: "บริษัท / นิติบุคคล", placeholder: "ถ้ามี" },
-    { key: "project", label: "ชื่อโครงการ", placeholder: "ถ้ามี เช่น บ้านพักอาศัยสุขุมวิท" },
+    { key: "phone", label: "เบอร์โทรศัพท์", placeholder: "0812345678 (ถ้ามี)", inputMode: "numeric" },
+    { key: "lineContact", label: "LINE สำหรับติดต่อ", placeholder: "@ไอดี หรือชื่อบัญชี (ถ้ามี)" },
+    { key: "email", label: "อีเมล", placeholder: "name@company.com (ถ้ามี)" },
+    { key: "project", label: "ชื่อโครงการ", placeholder: "เช่น บ้านพักอาศัยสุขุมวิท" },
     { key: "purchasingDepartment", label: "ฝ่ายจัดซื้อ / บัญชี", placeholder: "ถ้ามี" },
-    { key: "taxName", label: "ชื่อสำหรับออกใบกำกับภาษี", placeholder: "ถ้าต้องการใบกำกับภาษี" },
-    { key: "taxId", label: "เลขประจำตัวนิติบุคคล / ผู้เสียภาษี", placeholder: "13 หลัก (ถ้ามี)" },
+    { key: "taxName", label: "ชื่อสำหรับใบกำกับภาษี", placeholder: "ถ้าต้องการใบกำกับภาษี" },
+    { key: "taxId", label: "เลขประจำตัวผู้เสียภาษี", placeholder: "13 หลัก (ถ้ามี)", inputMode: "numeric" },
     { key: "taxBranch", label: "สาขา", placeholder: "สำนักงานใหญ่ / ถ้ามี" },
-    { key: "site", label: "โลเคชันหน้างาน", placeholder: "เช่น ห้องน้ำชั้น 2" },
   ];
   const renderCustomerField = (field: (typeof customerFields)[number]) => (
     <label key={field.key}>
-      {field.label}{field.required && <sup>*</sup>}
+      {field.label}
       <input
         type={field.key === "email" ? "email" : field.key === "phone" ? "tel" : undefined}
-        inputMode={field.key === "phone" || field.key === "taxId" ? "numeric" : undefined}
+        inputMode={field.inputMode}
         value={customer[field.key] ?? ""}
         placeholder={field.placeholder}
         onChange={(event) => setCustomer((current) => ({
@@ -1045,7 +1092,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
        <section className="quote-format-panel"><div><p className="eyebrow">DOCUMENT FORMAT</p><strong>เลือกรูปแบบใบเสนอราคา</strong><small>US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จุดติดตั้ง</small></div><div className="quote-format-switch"><button className={quoteFormat === "US" ? "is-active" : ""} onClick={() => setQuoteFormat("US")} data-testid="button-quote-format-us"><span>US</span><small>พื้นที่ / แผ่น</small></button><button className={quoteFormat === "OF" ? "is-active" : ""} onClick={() => setQuoteFormat("OF")} data-testid="button-quote-format-of"><span>OF</span><small>รายห้อง / จุด</small></button></div><div className="quote-language-choice"><p className="eyebrow">DOCUMENT LANGUAGE</p><strong>เลือกภาษาสำหรับ PDF / Print</strong><small>ค่าเริ่มต้นเป็นภาษาไทย และบันทึกไปกับใบเสนอราคา</small></div><div className="quote-language-switch quote-language-switch--builder" role="group" aria-label="ภาษาของใบเสนอราคา"><span>PDF / Print</span><button type="button" className={quoteLanguage === "TH" ? "is-active" : ""} onClick={() => setQuoteLanguage("TH")} aria-pressed={quoteLanguage === "TH"} data-testid="button-quote-language-th">TH</button><button type="button" className={quoteLanguage === "EN" ? "is-active" : ""} onClick={() => setQuoteLanguage("EN")} aria-pressed={quoteLanguage === "EN"} data-testid="button-quote-language-en">EN</button></div></section>
       <div className="quote-layout"><section className="quote-main"><div className="quote-block"><div className="block-header"><div><p className="eyebrow">01 / BASINS</p><h2>รายการอ่างล้างหน้า</h2></div><Link href="/" className="text-link" data-testid="link-add-more">เพิ่มรายการ <Plus size={15} /></Link></div>{cart.length ? cart.map((line) => { const product = productBySku(line.sku)!; return <div className="quote-line" key={line.sku} data-testid={`row-quote-${line.sku}`}><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={product.category === "tall vertical washbasin"} /><div className="quote-line-name"><span className="eyebrow">{product.sku} / {product.colorCode}</span><strong>{product.colorName}</strong><small>{product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง"} · {product.dimensions}</small></div><div className="line-quantity"><button onClick={() => updateLine(line.sku, { quantity: line.quantity - 1 })} aria-label={`ลดจำนวน ${line.sku}`} data-testid={`button-quantity-minus-${line.sku}`}><Minus size={13} /></button><span data-testid={`text-quantity-${line.sku}`}>{line.quantity}</span><button onClick={() => updateLine(line.sku, { quantity: line.quantity + 1 })} aria-label={`เพิ่มจำนวน ${line.sku}`} data-testid={`button-quantity-plus-${line.sku}`}><Plus size={13} /></button></div><label className="install-toggle"><input type="checkbox" checked={line.installationSelected} onChange={(event) => updateLine(line.sku, { installationSelected: event.target.checked })} data-testid={`input-installation-${line.sku}`} /><span />ติดตั้ง</label><strong className="line-price">{formatTHB(product.priceTHB * line.quantity)}</strong><button className="icon-button" onClick={() => setCart((lines) => lines.filter((item) => item.sku !== line.sku))} aria-label={`ลบ ${line.sku}`} data-testid={`button-remove-${line.sku}`}><Trash2 size={15} /></button></div>; }) : <div className="quote-empty" data-testid="status-quote-empty"><ShoppingBag size={22} /><p>ยังไม่มีสินค้าในใบเสนอราคา</p><Link href="/" className="text-link" data-testid="link-empty-catalog">เลือกจากแคตตาล็อก <ArrowRight size={15} /></Link></div>}<div className="install-note">ค่าติดตั้งอ่าง <strong>5,000 บาท/ชุด</strong> · ฟรีค่าดำเนินการติดตั้งเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</div></div>
            <div className="quote-block"><div className="block-header"><div><p className="eyebrow">02 / STONE</p><h2>หินสังเคราะห์</h2></div><Link href="/stone" className="text-link" data-testid="link-edit-stone">{stoneActive ? "แก้ไขการกำหนดค่า" : "เพิ่มหินสังเคราะห์"} <ArrowRight size={15} /></Link></div>{stoneActive ? stones.map((stone) => <QuoteStoneRow key={stone.color} stone={stone} stoneColors={stoneColors} onRemove={removeStone} />) : <div className="quote-empty quote-empty--compact" data-testid="status-stone-empty"><p>ยังไม่ได้เลือกหินสังเคราะห์</p><Link href="/stone" className="text-link" data-testid="link-empty-stone">เลือกสีและรูปแบบการสั่งซื้อ <ArrowRight size={15} /></Link></div>}</div>
-           <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2><p className="customer-intro">กรอกเท่าที่มีได้เลยครับ ข้อมูลที่ยังไม่พร้อมสามารถเติมภายหลังได้ และยังออกใบเสนอราคาได้</p></div>{hasMissing && <span className="missing-badge" data-testid="status-customer-missing">ข้อมูลยังไม่ครบ · ยังออกใบเสนอราคาได้</span>}</div><div className="customer-grid"><div className="customer-group-title span-2"><strong>ข้อมูลติดต่อ</strong><small>ใช้สำหรับให้ทีมงานติดต่อกลับ</small></div>{customerFields.slice(0, 6).map(renderCustomerField)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">ยังไม่ระบุ</option><option value="line">LINE</option><option value="phone">โทรศัพท์</option><option value="email">อีเมล</option></select></label><div className="customer-group-title span-2"><strong>ข้อมูลสำหรับออกใบเสนอราคา</strong><small>ที่อยู่และชื่อโครงการช่วยให้เอกสารชัดเจนขึ้น แต่ไม่บังคับ</small></div><label className="span-2">ที่อยู่ในการออกใบเสนอราคา / จัดส่ง<textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์" data-testid="input-customer-address" /></label><div className="customer-group-title span-2"><strong>ข้อมูลใบกำกับภาษี</strong><small>กรอกเมื่อคุณต้องการเอกสารภาษีในนามบริษัทหรือนิติบุคคล</small></div>{customerFields.slice(6, 9).map(renderCustomerField)}<label className="span-2">ที่อยู่สำหรับใบกำกับภาษี<textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} placeholder="กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา" data-testid="input-customer-tax-address" /></label><div className="customer-group-title span-2"><strong>รายละเอียดหน้างาน</strong><small>ช่วยให้ทีมงานประเมินและติดต่อกลับได้ตรงจุด</small></div>{customerFields.slice(9).map(renderCustomerField)}<label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">ยังไม่ระบุ</option><option value="house-townhome">บ้านเดี่ยว / ทาวน์โฮม</option><option value="condo">คอนโด</option><option value="commercial">อาคารพาณิชย์</option></select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">ยังไม่ระบุ</option><option value="homeowner">เจ้าของบ้าน</option><option value="architect-interior">สถาปนิก / อินทีเรีย</option><option value="contractor">ผู้รับเหมา</option></select></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} placeholder="ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน" data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}{hasPastInstallationDate && <p className="summary-warning" role="alert" data-testid="status-quote-installation-date-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}</div>
+           <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2><p className="customer-intro">กรอกเท่าที่มีได้เลยครับ ข้อมูลลูกค้ายังไม่ครบก็ออกใบเสนอราคาได้ ระบบจะแจ้งเฉพาะค่าที่กรอกแล้วแต่รูปแบบไม่ถูกต้อง</p></div></div><div className="customer-grid"><div className="customer-group-title span-2"><strong>1 / ข้อมูลลูกค้าและที่อยู่ใบเสนอราคา</strong><small>ชื่อและที่อยู่ช่วยให้ทีมขายจัดทำเอกสารได้ตรงใจ แต่ไม่บังคับ</small></div>{customerFields.slice(0, 2).map(renderCustomerField)}<label className="span-2">ที่อยู่สำหรับใบเสนอราคา<textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์" data-testid="input-customer-address" /></label><div className="customer-group-title span-2"><strong>2 / ช่องทางติดต่อ</strong><small>กรอกช่องทางที่สะดวกอย่างน้อยหนึ่งช่องทางได้ตามต้องการ</small></div>{customerFields.slice(2, 5).map(renderCustomerField)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">ยังไม่ระบุ</option>{CUSTOMER_CONTACT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><div className="customer-group-title span-2"><strong>3 / ข้อมูลใบกำกับภาษี (ไม่บังคับ)</strong><small>กรอกเมื่อขอใบกำกับภาษีในนามบริษัทหรือนิติบุคคล</small></div>{customerFields.slice(7, 10).map(renderCustomerField)}<label className="span-2">ที่อยู่สำหรับใบกำกับภาษี<textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} placeholder="กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา" data-testid="input-customer-tax-address" /></label><div className="customer-group-title span-2"><strong>4 / รายละเอียดหน้างาน (ไม่บังคับ)</strong><small>ช่วยให้ทีมงานประเมินงานและนัดหมายได้ตรงจุด</small></div><label>โลเคชันหน้างาน<input value={customer.site ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, site: event.target.value }))} placeholder="เช่น ห้องน้ำชั้น 2" data-testid="input-customer-site" /></label><label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">ยังไม่ระบุ</option>{PROPERTY_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">ยังไม่ระบุ</option>{CUSTOMER_ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} placeholder="ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน" data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}{hasPastInstallationDate && <p className="summary-warning" role="alert" data-testid="status-quote-installation-date-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}</div>
          </section><aside className="quote-summary"><p className="eyebrow">04 / TOTAL</p><h2>สรุปใบเสนอราคา</h2><div className="total-rows"><div><span>สินค้าอ่างล้างหน้า <small>{basinSets} ชุด</small></span><strong>{formatTHB(basinSubtotal)}</strong></div><div><span>ค่าติดตั้งอ่าง</span><strong className={installationCharge === 0 ? "free-text" : ""}>{installationCharge === 0 ? "ฟรี" : formatTHB(installationCharge)}</strong></div>{stoneActive && <div><span>หินสังเคราะห์ <small>{stones.length} สี · อ้างอิงราคาจากเอกสาร</small></span><strong>{hasInvalidStone ? "ตรวจสอบรายการ" : formatTHB(totalStone)}</strong></div>}<div className="discount-row"><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{installationDiscount ? `-${formatTHB(installationDiscount)}` : "—"}</strong></div></div><div className="vat-row"><label><input type="checkbox" checked={vat} onChange={(event) => setVat(event.target.checked)} data-testid="input-vat" /><span />คิด VAT 7%</label><strong>{formatTHB(vatAmount)}</strong></div>{missingTaxIdForVat && <p className="summary-warning" role="status" data-testid="status-quote-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}<div className="grand-total"><span>ยอดรวมทั้งสิ้น</span><strong data-testid="text-grand-total">{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div><button className="button button--accent full-width" onClick={generateQuote} data-testid="button-generate-quote">{submitted && canGenerate ? <><Check size={16} /> สร้างใบเสนอราคาแล้ว</> : <>ออกใบเสนอราคาทางการ <ArrowRight size={16} /></>}</button>{hasMissing && <p className="summary-warning" data-testid="status-quote-validation">กรอกชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ เพื่อสร้างใบเสนอราคาที่สมบูรณ์</p>}{hasPastInstallationDate && <p className="summary-warning" data-testid="status-quote-installation-date-summary-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}{hasInvalidStone && <p className="summary-warning" data-testid="status-quote-stone-validation">กลับไปหน้าหินสังเคราะห์และกรอกขนาดอย่างน้อย 10 × 10 ซม. หรือเลือกสีที่มีราคาในเอกสาร ก่อนสร้างใบเสนอราคา</p>}{!cart.length && <p className="summary-warning" data-testid="status-quote-cart-validation">เพิ่มสินค้าอย่างน้อย 1 รายการก่อนออกใบเสนอราคา</p>}{submitted && canGenerate && <div className="success-message" data-testid="status-quote-success"><Check size={16} /> {quoteNumber} พร้อมพิมพ์หรือบันทึกเป็น PDF</div>}<div className="quote-share"><strong>ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ</strong><p>กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิด LINE เพื่อส่งต่อได้ทันที</p><div className="quote-share-actions"><button type="button" className="button button--dark" onClick={copyLineSummary} data-testid="button-copy-line-summary">{copied ? <><Check size={15} /> คัดลอกแล้ว</> : "คัดลอกสรุปส่ง LINE"}</button><a className="button button--outline" href={`https://line.me/R/msg/text/?text=${encodeURIComponent(lineSummary)}`} target="_blank" rel="noreferrer" data-testid="link-send-line-summary">เปิด LINE</a></div></div><div className="quote-terms"><strong>หมายเหตุจากแคตตาล็อก</strong><p>ราคาสินค้าไม่รวม VAT · หินตัดและติดตั้งใช้อัตรารวมติดตั้งแล้ว · งานหินต่ำกว่าพื้นที่ขั้นต่ำอาจมีค่าดำเนินการเพิ่มตามพื้นที่</p></div></aside></div>
     </div>
     {submitted && canGenerate && <FormalQuote format={quoteFormat} quoteNumber={quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={installationDiscount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} language={quoteLanguage} />}
@@ -1120,6 +1167,7 @@ function Storefront() {
     taxBranch: customerProfile?.taxBranch || "",
     taxAddress: customerProfile?.taxAddress || "",
     phone: customerProfile?.phone || "",
+    lineContact: customerProfile?.lineContact || "",
     email: customerProfile?.email || "",
     project: customerProfile?.project || "",
     address: customerProfile?.address || "",
@@ -1128,7 +1176,7 @@ function Storefront() {
     propertyType: (customerProfile?.propertyType || "") as CustomerDetails["propertyType"],
     condoFloor: customerProfile?.condoFloor || "",
     expectedInstallationDate: customerProfile?.expectedInstallationDate || "",
-  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole, customerProfile?.propertyType, customerProfile?.condoFloor, customerProfile?.expectedInstallationDate]);
+  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.lineContact, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole, customerProfile?.propertyType, customerProfile?.condoFloor, customerProfile?.expectedInstallationDate]);
   useEffect(() => {
     if (!customerProfile) return;
     setCustomer((current) => ({
@@ -1140,6 +1188,7 @@ function Storefront() {
        taxBranch: contactDefaults.taxBranch || current.taxBranch,
        taxAddress: contactDefaults.taxAddress || current.taxAddress,
       phone: contactDefaults.phone || current.phone,
+      lineContact: contactDefaults.lineContact || current.lineContact,
       email: contactDefaults.email || current.email,
       project: contactDefaults.project || current.project,
       address: contactDefaults.address || current.address,
@@ -1194,9 +1243,12 @@ function Storefront() {
         name: details.name ?? (customer.name || null),
         company: details.company ?? (customer.company || null),
         phone: details.phone ?? (customer.phone || null),
+        lineContact: details.lineContact ?? (customer.lineContact || null),
         email: details.email ?? (customer.email || null),
         project: details.project ?? (customer.project || null),
         address: details.address ?? (customer.address || null),
+        site: details.site ?? (customer.site || null),
+        purchasingDepartment: details.purchasingDepartment ?? (customer.purchasingDepartment || null),
         notes: details.notes ?? (customer.notes || null),
         taxName: details.taxName ?? (customer.taxName || null),
         taxId: details.taxId ?? (customer.taxId || null),
@@ -1246,7 +1298,7 @@ function Storefront() {
   };
   const initialBasinSkus = useMemo(() => [...new Set(cart.map((line) => line.sku))].slice(0, 2), [cart]);
   const initialStoneColors = useMemo(() => [...new Set(stones.filter((stone) => stone.enabled).map((stone) => stone.color))].slice(0, 3), [stones]);
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

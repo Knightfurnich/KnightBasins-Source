@@ -1082,9 +1082,15 @@ export const upsertLeadBodyCompanyMax = 200;
 
 export const upsertLeadBodyPhoneMax = 64;
 
+export const upsertLeadBodyLineContactMax = 120;
+
 export const upsertLeadBodyEmailMax = 240;
 
 export const upsertLeadBodyProjectMax = 240;
+
+export const upsertLeadBodySiteMax = 240;
+
+export const upsertLeadBodyPurchasingDepartmentMax = 160;
 
 export const upsertLeadBodyTaxNameMax = 240;
 
@@ -1110,9 +1116,12 @@ export const UpsertLeadBody = zod.object({
   "name": zod.string().max(upsertLeadBodyNameMax).nullish(),
   "company": zod.string().max(upsertLeadBodyCompanyMax).nullish(),
   "phone": zod.string().max(upsertLeadBodyPhoneMax).nullish(),
+  "lineContact": zod.string().max(upsertLeadBodyLineContactMax).nullish(),
   "email": zod.string().max(upsertLeadBodyEmailMax).nullish(),
   "project": zod.string().max(upsertLeadBodyProjectMax).nullish(),
   "address": zod.string().nullish(),
+  "site": zod.string().max(upsertLeadBodySiteMax).nullish(),
+  "purchasingDepartment": zod.string().max(upsertLeadBodyPurchasingDepartmentMax).nullish(),
   "notes": zod.string().nullish(),
   "taxName": zod.string().max(upsertLeadBodyTaxNameMax).nullish(),
   "taxId": zod.string().regex(upsertLeadBodyTaxIdRegExp).nullish(),
@@ -1138,9 +1147,12 @@ export const UpsertLeadResponse = zod.object({
   "name": zod.string().nullish(),
   "company": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
   "email": zod.string().nullish(),
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "taxName": zod.string().nullish(),
   "taxId": zod.string().nullish(),
@@ -1182,9 +1194,12 @@ export const GetSavedQuoteResponse = zod.object({
   "name": zod.string().nullish(),
   "company": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
   "email": zod.string().nullish(),
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "taxName": zod.string().nullish(),
   "taxId": zod.string().nullish(),
@@ -1241,9 +1256,12 @@ export const SubmitSketchLeadResponse = zod.object({
   "name": zod.string().nullish(),
   "company": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
   "email": zod.string().nullish(),
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "taxName": zod.string().nullish(),
   "taxId": zod.string().nullish(),
@@ -1279,9 +1297,12 @@ export const ListAdminLeadsResponseItem = zod.object({
   "name": zod.string().nullish(),
   "company": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
   "email": zod.string().nullish(),
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "taxName": zod.string().nullish(),
   "taxId": zod.string().nullish(),
@@ -1327,9 +1348,12 @@ export const UpdateAdminLeadResponse = zod.object({
   "name": zod.string().nullish(),
   "company": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
   "email": zod.string().nullish(),
   "project": zod.string().nullish(),
   "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "taxName": zod.string().nullish(),
   "taxId": zod.string().nullish(),
@@ -1392,6 +1416,8 @@ export const getCustomerProfileResponseOneTaxBranchMax = 120;
 
 export const getCustomerProfileResponseOneTaxAddressMax = 4000;
 
+export const getCustomerProfileResponseOneLineContactMax = 120;
+
 export const getCustomerProfileResponseOneCondoFloorMax = 32;
 
 
@@ -1407,6 +1433,7 @@ export const GetCustomerProfileResponse = zod.object({
   "taxId": zod.string().regex(getCustomerProfileResponseOneTaxIdRegExp),
   "taxBranch": zod.string().max(getCustomerProfileResponseOneTaxBranchMax),
   "taxAddress": zod.string().max(getCustomerProfileResponseOneTaxAddressMax),
+  "lineContact": zod.string().max(getCustomerProfileResponseOneLineContactMax).optional(),
   "preferredContact": zod.enum(['line', 'phone', 'email']),
   "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor']),
   "propertyType": zod.enum(['house-townhome', 'condo', 'commercial']).optional(),
@@ -1421,6 +1448,7 @@ export const GetCustomerProfileResponse = zod.object({
   "taxId": zod.string(),
   "taxBranch": zod.string(),
   "taxAddress": zod.string(),
+  "lineContact": zod.string().optional(),
   "preferredContact": zod.string(),
   "customerRole": zod.string(),
   "propertyType": zod.string().optional(),
@@ -1452,6 +1480,8 @@ export const updateCustomerProfileBodyTaxBranchMax = 120;
 
 export const updateCustomerProfileBodyTaxAddressMax = 4000;
 
+export const updateCustomerProfileBodyLineContactMax = 120;
+
 export const updateCustomerProfileBodyCondoFloorMax = 32;
 
 
@@ -1467,6 +1497,7 @@ export const UpdateCustomerProfileBody = zod.object({
   "taxId": zod.string().regex(updateCustomerProfileBodyTaxIdRegExp),
   "taxBranch": zod.string().max(updateCustomerProfileBodyTaxBranchMax),
   "taxAddress": zod.string().max(updateCustomerProfileBodyTaxAddressMax),
+  "lineContact": zod.string().max(updateCustomerProfileBodyLineContactMax).optional(),
   "preferredContact": zod.enum(['line', 'phone', 'email']),
   "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor']),
   "propertyType": zod.enum(['house-townhome', 'condo', 'commercial']).optional(),
@@ -1492,6 +1523,8 @@ export const updateCustomerProfileResponseOneTaxBranchMax = 120;
 
 export const updateCustomerProfileResponseOneTaxAddressMax = 4000;
 
+export const updateCustomerProfileResponseOneLineContactMax = 120;
+
 export const updateCustomerProfileResponseOneCondoFloorMax = 32;
 
 
@@ -1507,6 +1540,7 @@ export const UpdateCustomerProfileResponse = zod.object({
   "taxId": zod.string().regex(updateCustomerProfileResponseOneTaxIdRegExp),
   "taxBranch": zod.string().max(updateCustomerProfileResponseOneTaxBranchMax),
   "taxAddress": zod.string().max(updateCustomerProfileResponseOneTaxAddressMax),
+  "lineContact": zod.string().max(updateCustomerProfileResponseOneLineContactMax).optional(),
   "preferredContact": zod.enum(['line', 'phone', 'email']),
   "customerRole": zod.enum(['homeowner', 'architect-interior', 'contractor']),
   "propertyType": zod.enum(['house-townhome', 'condo', 'commercial']).optional(),
@@ -1521,6 +1555,7 @@ export const UpdateCustomerProfileResponse = zod.object({
   "taxId": zod.string(),
   "taxBranch": zod.string(),
   "taxAddress": zod.string(),
+  "lineContact": zod.string().optional(),
   "preferredContact": zod.string(),
   "customerRole": zod.string(),
   "propertyType": zod.string().optional(),

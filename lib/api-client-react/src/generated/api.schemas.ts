@@ -381,6 +381,11 @@ export interface LeadInput {
      */
   phone?: string | null;
   /**
+     * @maxLength 120
+     * @nullable
+     */
+  lineContact?: string | null;
+  /**
      * @maxLength 240
      * @nullable
      */
@@ -392,6 +397,16 @@ export interface LeadInput {
   project?: string | null;
   /** @nullable */
   address?: string | null;
+  /**
+     * @maxLength 240
+     * @nullable
+     */
+  site?: string | null;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  purchasingDepartment?: string | null;
   /** @nullable */
   notes?: string | null;
   /**
@@ -496,11 +511,17 @@ export interface CustomerLead {
   /** @nullable */
   phone?: string | null;
   /** @nullable */
+  lineContact?: string | null;
+  /** @nullable */
   email?: string | null;
   /** @nullable */
   project?: string | null;
   /** @nullable */
   address?: string | null;
+  /** @nullable */
+  site?: string | null;
+  /** @nullable */
+  purchasingDepartment?: string | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */
@@ -634,6 +655,8 @@ export interface CustomerProfileInput {
   taxBranch: string;
   /** @maxLength 4000 */
   taxAddress: string;
+  /** @maxLength 120 */
+  lineContact?: string;
   preferredContact: CustomerProfileInputPreferredContact;
   customerRole: CustomerProfileInputCustomerRole;
   propertyType?: CustomerProfileInputPropertyType;
@@ -653,6 +676,7 @@ export type CustomerProfile = CustomerProfileInput & ({
   taxId?: string;
   taxBranch?: string;
   taxAddress?: string;
+  lineContact?: string;
   preferredContact?: string;
   customerRole?: string;
   propertyType?: string;

@@ -855,9 +855,12 @@ components:
         name: { type: [string, "null"], maxLength: 160 }
         company: { type: [string, "null"], maxLength: 200 }
         phone: { type: [string, "null"], maxLength: 64 }
+        lineContact: { type: [string, "null"], maxLength: 120 }
         email: { type: [string, "null"], maxLength: 240 }
         project: { type: [string, "null"], maxLength: 240 }
         address: { type: [string, "null"] }
+        site: { type: [string, "null"], maxLength: 240 }
+        purchasingDepartment: { type: [string, "null"], maxLength: 160 }
         notes: { type: [string, "null"] }
         taxName: { type: [string, "null"], maxLength: 240 }
         taxId: { type: [string, "null"], pattern: "^$|^[0-9]{13}$" }
@@ -907,9 +910,12 @@ components:
         name: { type: [string, "null"] }
         company: { type: [string, "null"] }
         phone: { type: [string, "null"] }
+        lineContact: { type: [string, "null"] }
         email: { type: [string, "null"] }
         project: { type: [string, "null"] }
         address: { type: [string, "null"] }
+        site: { type: [string, "null"] }
+        purchasingDepartment: { type: [string, "null"] }
         notes: { type: [string, "null"] }
         taxName: { type: [string, "null"] }
         taxId: { type: [string, "null"] }
@@ -989,6 +995,7 @@ components:
         taxId: { type: string, pattern: "^$|^[0-9]{13}$" }
         taxBranch: { type: string, maxLength: 120 }
         taxAddress: { type: string, maxLength: 4000 }
+        lineContact: { type: string, maxLength: 120 }
         preferredContact:
           type: string
           enum: [line, phone, email]
@@ -1014,6 +1021,7 @@ components:
             taxId: { type: string }
             taxBranch: { type: string }
             taxAddress: { type: string }
+            lineContact: { type: string }
             preferredContact: { type: string }
             customerRole: { type: string }
             propertyType: { type: string }
