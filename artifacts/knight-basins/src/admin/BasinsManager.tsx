@@ -4,6 +4,7 @@ import {
   useListAdminBasinCategories,
   useCreateAdminBasin, 
   useUpdateAdminBasin,
+  useDeleteAdminBasin,
   useCreateAdminBasinCategory,
   useUpdateAdminBasinCategory,
   useDeleteAdminBasinCategory,
@@ -27,7 +28,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Edit2, Search, Check, X, Archive, Tags } from "lucide-react";
+import { Loader2, Plus, Edit2, Search, Check, X, Archive, Tags, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { BasinCategory, BasinPrice } from "@workspace/api-client-react";
 import { AdminVisibilityFilter, type AdminVisibility } from "./AdminVisibilityFilter";
@@ -72,12 +73,14 @@ export function BasinsManager() {
   const [editingItem, setEditingItem] = useState<BasinPrice | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState<number | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<number | null>(null);
   const [visibility, setVisibility] = useState<AdminVisibility>("active");
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [sort, setSort] = useState<AdminSortState<"sku" | "colorName" | "category" | "price" | "active">>(null);
   
   const queryClient = useQueryClient();
   const archiveMutation = useUpdateAdminBasin();
+  const deleteMutation = useDeleteAdminBasin();
   const { toast } = useToast();
 
   const activeCount = basins?.filter((basin) => basin.active).length ?? 0;
@@ -110,6 +113,20 @@ export function BasinsManager() {
          successMessage: basin.active ? "ซ่อนรายการแล้ว รายการยังเก็บอยู่ใน Archived" : "กู้คืนรายการแล้ว รายการกลับมาแสดงในแคตตาล็อก",
        }));
     }
+  };
+
+  const handleDelete = () => {
+    const basin = basins?.find((item) => item.id === isDeleteOpen);
+    if (!basin) return;
+    deleteMutation.mutate({ id: basin.id }, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/basins"] });
+        void queryClient.invalidateQueries({ queryKey: ["/api/catalog"] });
+        setIsDeleteOpen(null);
+        toast({ description: `ลบ ${basin.sku} ออกจากระบบถาวรแล้ว` });
+      },
+      onError: () => toast({ description: "ลบอ่างไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", variant: "destructive" }),
+    });
   };
 
   return (
@@ -201,6 +218,9 @@ export function BasinsManager() {
                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--ink-soft)] hover:text-[#a24439]" onClick={() => setIsArchiveOpen(basin.id)} title={basin.active ? "ซ่อนรายการ" : "กู้คืนรายการ"}>
                          <Archive className="w-4 h-4" />
                       </Button>
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-[var(--ink-soft)] hover:text-[#a24439]" onClick={() => setIsDeleteOpen(basin.id)} title="ลบถาวร">
+                          <Trash2 className="w-4 h-4 mr-1" />ลบ
+                        </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -246,6 +266,24 @@ export function BasinsManager() {
              <Button variant={basins?.find((item) => item.id === isArchiveOpen)?.active ? "destructive" : "default"} className="rounded-none bg-[#a24439] hover:bg-[#85342a] text-white" onClick={handleArchive} disabled={archiveMutation.isPending}>
               {archiveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                {basins?.find((item) => item.id === isArchiveOpen)?.active ? "ซ่อนรายการ" : "กู้คืนรายการ"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!isDeleteOpen} onOpenChange={(open) => !open && setIsDeleteOpen(null)}>
+        <DialogContent className="bg-[var(--card-paper)] border-[var(--line)] rounded-none">
+          <DialogHeader>
+            <DialogTitle className="font-display font-semibold text-xl">ลบอ่างล้างหน้าออกจากระบบถาวร?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-sm leading-relaxed">
+            รายการ <strong>{basins?.find((item) => item.id === isDeleteOpen)?.sku}</strong> จะถูกลบจากฐานข้อมูลจริงพร้อมข้อมูลราคา และไม่สามารถกู้คืนได้
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" className="rounded-none border-[var(--line)]" onClick={() => setIsDeleteOpen(null)}>ยกเลิก</Button>
+            <Button variant="destructive" className="rounded-none bg-[#a24439] hover:bg-[#85342a] text-white" onClick={handleDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+              ลบถาวร
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -562,18 +600,12 @@ function BasinCategoryManagerDialog({
     else createMutation.mutate({ data }, options);
   };
 
-  const toggleCategory = (category: BasinCategory) => {
-    if (category.active) {
-      deleteMutation.mutate({ id: category.id }, {
-        onSuccess: () => { refresh(); toast({ description: "ซ่อนหมวดหมู่แล้ว หมวดหมู่เดิมยังอยู่กับสินค้า" }); },
-        onError: () => toast({ description: "ซ่อนหมวดหมู่ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", variant: "destructive" }),
-      });
-    } else {
-      updateMutation.mutate({ id: category.id, data: { name: category.name, active: true, sortOrder: category.sortOrder } }, {
-        onSuccess: () => { refresh(); toast({ description: "กู้คืนหมวดหมู่แล้ว" }); },
-        onError: () => toast({ description: "กู้คืนหมวดหมู่ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", variant: "destructive" }),
-      });
-    }
+  const deleteCategory = (category: BasinCategory) => {
+    if (!window.confirm(`ต้องการลบหมวดหมู่ "${category.name}" ถาวรใช่หรือไม่?`)) return;
+    deleteMutation.mutate({ id: category.id }, {
+      onSuccess: () => { refresh(); toast({ description: "ลบหมวดหมู่ถาวรแล้ว สินค้าที่ใช้หมวดหมู่นี้ยังอยู่" }); },
+      onError: () => toast({ description: "ลบหมวดหมู่ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", variant: "destructive" }),
+    });
   };
 
   const pending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
@@ -593,13 +625,13 @@ function BasinCategoryManagerDialog({
             <Button type="button" onClick={save} disabled={pending} className="rounded-none bg-[var(--ink)] text-[var(--paper)]">{editingId ? "บันทึก" : "เพิ่ม"}</Button>
           </div>
           {editingId && <button type="button" className="text-xs text-[var(--ink-soft)] underline" onClick={resetDraft}>ยกเลิกการแก้ไข</button>}
-          <p className="text-xs leading-relaxed text-[var(--ink-soft)]">การซ่อนจะเก็บหมวดหมู่และการจัดหมวดหมู่เดิมไว้ สินค้าที่ใช้อยู่จะยังแสดงชื่อเดิม</p>
+           <p className="text-xs leading-relaxed text-[var(--ink-soft)]">การลบจะลบหมวดหมู่ออกจากระบบถาวร แต่สินค้าที่ใช้อยู่จะยังอยู่และกลับเป็นยังไม่ระบุหมวดหมู่</p>
           <div className="max-h-64 overflow-y-auto border border-[var(--line)]">
             {categories.length === 0 ? <p className="p-4 text-sm text-[var(--ink-soft)]">ยังไม่มีหมวดหมู่</p> : categories.map((category) => (
               <div key={category.id} className="flex items-center gap-3 border-b border-[var(--line)] last:border-b-0 px-3 py-2">
                 <div className="min-w-0 flex-1"><strong className="block text-sm">{category.name}</strong><span className="text-xs text-[var(--ink-soft)]">ลำดับ {category.sortOrder} · {category.active ? "เปิดใช้" : "ซ่อนอยู่"}</span></div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => { setEditingId(category.id); setName(category.name); setSortOrder(String(category.sortOrder)); }} disabled={pending}>แก้ไข</Button>
-                <Button type="button" variant="ghost" size="sm" className="text-[#a24439]" onClick={() => toggleCategory(category)} disabled={pending}>{category.active ? "ซ่อน" : "กู้คืน"}</Button>
+                 <Button type="button" variant="ghost" size="sm" className="text-[#a24439]" onClick={() => deleteCategory(category)} disabled={pending}>ลบถาวร</Button>
               </div>
             ))}
           </div>

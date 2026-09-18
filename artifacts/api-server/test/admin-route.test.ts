@@ -28,6 +28,7 @@ const adminRoute = fileURLToPath(
 
 function createFakeDatabase(initial: CatalogRecord) {
   let record = initial;
+  let deleted = false;
 
   return {
     update: () => {
@@ -46,6 +47,15 @@ function createFakeDatabase(initial: CatalogRecord) {
       };
       return builder;
     },
+    delete: () => ({
+      where: () => ({
+        returning: async () => {
+          if (deleted) return [];
+          deleted = true;
+          return [{ id: record.id }];
+        },
+      }),
+    }),
   };
 }
 
@@ -215,7 +225,7 @@ describe("admin archive routes", () => {
     });
   }
 
-  it("rejects permanent deletion instead of removing an item", async () => {
+  it("permanently removes an item after the admin confirms", async () => {
     const server = await startAdminRoute(
       createFakeDatabase({
         id: 44,
@@ -232,8 +242,13 @@ describe("admin archive routes", () => {
         headers: { cookie },
       });
 
-      assert.equal(response.status, 405);
-      assert.match((await response.json()).message, /active=false/);
+       assert.equal(response.status, 204);
+
+       const secondResponse = await fetch(`${server.url}/api/admin/installed-stones/44`, {
+         method: "DELETE",
+         headers: { cookie },
+       });
+       assert.equal(secondResponse.status, 404);
     } finally {
       await server.close();
     }

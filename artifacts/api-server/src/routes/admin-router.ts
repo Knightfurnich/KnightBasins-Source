@@ -49,6 +49,7 @@ export type AdminDatabase = {
   select: (...args: any[]) => any;
   insert: (...args: any[]) => any;
   update: (...args: any[]) => any;
+  delete: (...args: any[]) => any;
 };
 
 function idFrom(value: string) {
@@ -256,8 +257,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.delete("/admin/basins/:id", async (_req, res) => {
-    res.status(405).json({ message: "Permanent deletion is disabled. Set active=false to archive this item." });
+  router.delete("/admin/basins/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid basin id");
+    try {
+      const deleted = await database.delete(basinPrices).where(eq(basinPrices.id, id)).returning({ id: basinPrices.id });
+      return deleted.length ? res.status(204).end() : res.status(404).json({ message: "Basin not found" });
+    } catch (error) { return next(error); }
   });
 
   router.get("/admin/basin-categories", async (_req, res, next) => {
@@ -299,11 +305,10 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid basin category id");
     try {
-      const [updated] = await database.update(basinCategories)
-        .set({ active: false, updatedAt: new Date() })
+      const deleted = await database.delete(basinCategories)
         .where(eq(basinCategories.id, id))
-        .returning();
-      if (!updated) return res.status(404).json({ message: "Basin category not found" });
+        .returning({ id: basinCategories.id });
+      if (!deleted.length) return res.status(404).json({ message: "Basin category not found" });
       return res.status(204).end();
     } catch (error) { return next(error); }
   });
@@ -358,11 +363,10 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid installed stone category id");
     try {
-      const [updated] = await database
-        .update(installedStoneCategories)
-        .set({ active: false, updatedAt: new Date() })
-        .where(eq(installedStoneCategories.id, id));
-      if (!updated) return res.status(404).json({ message: "Installed stone category not found" });
+      const deleted = await database.delete(installedStoneCategories)
+        .where(eq(installedStoneCategories.id, id))
+        .returning({ id: installedStoneCategories.id });
+      if (!deleted.length) return res.status(404).json({ message: "Installed stone category not found" });
       return res.status(204).end();
     } catch (error) { return next(error); }
   });
@@ -386,8 +390,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.delete("/admin/installed-stones/:id", async (_req, res) => {
-    res.status(405).json({ message: "Permanent deletion is disabled. Set active=false to archive this item." });
+  router.delete("/admin/installed-stones/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid installed stone id");
+    try {
+      const deleted = await database.delete(installedStonePrices).where(eq(installedStonePrices.id, id)).returning({ id: installedStonePrices.id });
+      return deleted.length ? res.status(204).end() : res.status(404).json({ message: "Installed stone not found" });
+    } catch (error) { return next(error); }
   });
 
   router.get("/admin/sheet-stones", async (_req, res, next) => {
@@ -416,8 +425,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.delete("/admin/sheet-stones/:id", async (_req, res) => {
-    res.status(405).json({ message: "Permanent deletion is disabled. Set active=false to archive this item." });
+  router.delete("/admin/sheet-stones/:id", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid sheet stone id");
+    try {
+      const deleted = await database.delete(sheetStonePrices).where(eq(sheetStonePrices.id, id)).returning({ id: sheetStonePrices.id });
+      return deleted.length ? res.status(204).end() : res.status(404).json({ message: "Sheet stone not found" });
+    } catch (error) { return next(error); }
   });
 
   return router;

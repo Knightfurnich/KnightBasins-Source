@@ -23,4 +23,4 @@
 - [Studio inspector density](studio-inspector-density.md) — show one active rectangle editor and use a selector for multi-sheet workpieces.
 - [Canvas asset base paths](canvas-asset-base-paths.md) — normalize Vite BASE_PATH before joining public asset URLs because the injected value may omit its trailing slash.
 - [Active catalog SKU sorting](catalog-sku-sorting.md) — storefront SKU ordering must use the active API catalog and avoid hardcoded SKU ranges.
-- [Basin image display treatment](basin-image-display.md) — use full-frame cover-fit presentation when removal damages light-finish detail; retain JPG recovery sources.
+- [Studio basin card sizing](studio-basin-card-sizing.md) — the approved shortlist presentation uses three columns with basin images scaled to 115%.

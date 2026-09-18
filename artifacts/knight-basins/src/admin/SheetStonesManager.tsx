@@ -3,6 +3,7 @@ import {
   useListAdminSheetStones, 
   useCreateAdminSheetStone, 
   useUpdateAdminSheetStone,
+  useDeleteAdminSheetStone,
   getGetCatalogQueryKey,
 } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Edit2, Search, Check, X, Archive } from "lucide-react";
+import { Loader2, Plus, Edit2, Search, Check, X, Archive, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { SheetStonePrice } from "@workspace/api-client-react";
 import { AdminVisibilityFilter, type AdminVisibility } from "./AdminVisibilityFilter";
@@ -60,11 +61,13 @@ export function SheetStonesManager() {
   const [editingItem, setEditingItem] = useState<SheetStonePrice | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState<number | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<number | null>(null);
   const [visibility, setVisibility] = useState<AdminVisibility>("active");
   const [sort, setSort] = useState<AdminSortState<"code" | "name" | "price" | "active">>(null);
   
   const queryClient = useQueryClient();
   const archiveMutation = useUpdateAdminSheetStone();
+  const deleteMutation = useDeleteAdminSheetStone();
   const { toast } = useToast();
 
   const activeCount = stones?.filter((stone) => stone.active).length ?? 0;
@@ -98,6 +101,20 @@ export function SheetStonesManager() {
         successMessage: stone.active ? "ซ่อนรายการแล้ว รายการยังเก็บอยู่ใน Archived" : "กู้คืนรายการแล้ว รายการกลับมาแสดงในแคตตาล็อก",
       }));
     }
+  };
+
+  const handleDelete = () => {
+    const stone = stones?.find((item) => item.id === isDeleteOpen);
+    if (!stone) return;
+    deleteMutation.mutate({ id: stone.id }, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/sheet-stones"] });
+        void queryClient.invalidateQueries({ queryKey: getGetCatalogQueryKey() });
+        setIsDeleteOpen(null);
+        toast({ description: `ลบ ${stone.code} ออกจากระบบถาวรแล้ว` });
+      },
+      onError: () => toast({ description: "ลบสีหินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", variant: "destructive" }),
+    });
   };
 
   return (
@@ -175,6 +192,9 @@ export function SheetStonesManager() {
                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--ink-soft)] hover:text-[#a24439]" onClick={() => setIsArchiveOpen(stone.id)} title={stone.active ? "ซ่อนรายการ" : "กู้คืนรายการ"}>
                          <Archive className="w-4 h-4" />
                       </Button>
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-[var(--ink-soft)] hover:text-[#a24439]" onClick={() => setIsDeleteOpen(stone.id)} title="ลบถาวร">
+                          <Trash2 className="w-4 h-4 mr-1" />ลบ
+                        </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -214,6 +234,24 @@ export function SheetStonesManager() {
              <Button variant={stones?.find((item) => item.id === isArchiveOpen)?.active ? "destructive" : "default"} className="rounded-none bg-[#a24439] hover:bg-[#85342a] text-white" onClick={handleArchive} disabled={archiveMutation.isPending}>
               {archiveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                {stones?.find((item) => item.id === isArchiveOpen)?.active ? "ซ่อนรายการ" : "กู้คืนรายการ"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!isDeleteOpen} onOpenChange={(open) => !open && setIsDeleteOpen(null)}>
+        <DialogContent className="bg-[var(--card-paper)] border-[var(--line)] rounded-none">
+          <DialogHeader>
+            <DialogTitle className="font-display font-semibold text-xl">ลบสีหินออกจากระบบถาวร?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-sm leading-relaxed">
+            รายการ <strong>{stones?.find((item) => item.id === isDeleteOpen)?.code}</strong> จะถูกลบจากฐานข้อมูลจริงพร้อมข้อมูลราคา และไม่สามารถกู้คืนได้
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" className="rounded-none border-[var(--line)]" onClick={() => setIsDeleteOpen(null)}>ยกเลิก</Button>
+            <Button variant="destructive" className="rounded-none bg-[#a24439] hover:bg-[#85342a] text-white" onClick={handleDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+              ลบถาวร
             </Button>
           </DialogFooter>
         </DialogContent>

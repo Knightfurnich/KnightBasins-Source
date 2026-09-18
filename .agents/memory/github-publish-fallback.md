@@ -68,3 +68,9 @@ When the GitHub connector can read the repository and create blobs but both tree
 **Why:** The connector can expose the `repo` scope while its GitHub App operation policy denies repository commit mutations; repeated retries do not repair that mismatch.
 
 **How to apply:** Reauthorize once when the failure suggests a stale OAuth grant, retry the failed write once with the original head SHA, then stop and report the connector permission block if it remains.
+
+For GitHub Data API publishes from this workspace, keep local `shellExec`/`readFile` blob preparation outside the `"use impure"` connector function; pass the serialized file payload into the connector call, then upload blobs sequentially.
+
+**Why:** Durable filesystem callbacks cannot be called from an impure connector function, and combining them causes the publish block to fail before any GitHub mutation.
+
+**How to apply:** Read and encode the exact local files first, then let the impure function perform only GitHub reads/writes and remote verification.
