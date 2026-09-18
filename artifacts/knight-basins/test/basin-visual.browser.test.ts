@@ -359,14 +359,14 @@ function summarizeBasinPixels(image: DecodedPng): BasinPixelSnapshot {
 
 const pixelBaselines: Record<string, BasinPixelBaseline> = {
   storefront: {
-    fixturePixelCount: { min: 10000, max: 14000 },
+    fixturePixelCount: { min: 2900, max: 3900 },
     fixtureBounds: {
-      left: { min: 0.00, max: 0.05 },
-      top: { min: 0.05, max: 0.15 },
-      right: { min: 0.95, max: 1.00 },
-      bottom: { min: 0.45, max: 0.55 },
+      left: { min: 0.10, max: 0.18 },
+      top: { min: 0.21, max: 0.30 },
+      right: { min: 0.82, max: 0.90 },
+      bottom: { min: 0.52, max: 0.63 },
     },
-    shadowPixelCount: { min: 1500, max: 2200 },
+    shadowPixelCount: { min: 2000, max: 2600 },
     transparentPoints: [
       { x: 0.08, y: 0.10, rgb: [240, 249, 253] },
       { x: 0.50, y: 0.10, rgb: [236, 247, 252] },
@@ -399,12 +399,12 @@ const pixelBaselines: Record<string, BasinPixelBaseline> = {
     ],
   },
   workbench: {
-    fixturePixelCount: { min: 7000, max: 9500 },
+    fixturePixelCount: { min: 1300, max: 1700 },
     fixtureBounds: {
-      left: { min: 0.05, max: 0.15 },
-      top: { min: 0.00, max: 0.10 },
-      right: { min: 0.85, max: 1.00 },
-      bottom: { min: 0.70, max: 0.90 },
+      left: { min: 0.29, max: 0.36 },
+      top: { min: 0.15, max: 0.25 },
+      right: { min: 0.89, max: 0.96 },
+      bottom: { min: 0.76, max: 0.86 },
     },
     shadowPixelCount: { min: 2000, max: 2700 },
     transparentPoints: [
@@ -522,10 +522,10 @@ function assertLoadedImageVisuals(visuals: BasinVisualSnapshot[], label: string)
     assert.equal(visual.hasImage, "true", `${label} should use the real image layer`);
     assert.equal(visual.imageCount, 1, `${label} should render one basin image`);
     assert.equal(visual.mockupElementCount, 0, `${label} must not render CSS basin elements behind the image`);
-    assert.equal(visual.image?.objectFit, "contain", `${label} image must fit inside its preview frame`);
+    assert.equal(visual.image?.objectFit, "contain", `${label} image must preserve its proportions`);
     assert.ok((visual.image?.width ?? 0) > 0 && (visual.image?.height ?? 0) > 0, `${label} image must have a visible box`);
-     assert.equal(visual.shadow.display, "", `${label} should not render the deleted shadow element`);
-     assert.equal(visual.shadow.width, 0, `${label} should not reserve space for a shadow element`);
+    assert.equal(visual.shadow.display, "block", `${label} must retain the base shadow`);
+    assert.ok(Number(visual.shadow.opacity) > 0 && visual.shadow.width > 0, `${label} shadow must remain visible`);
   }
 }
 
@@ -570,7 +570,8 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     const storefrontVisuals = await readVisuals(browser.page, ".product-card .basin-visual");
     assertLoadedImageVisuals(storefrontVisuals, "storefront cards");
     await applyTransparentBasinFixture(browser.page, ".product-card img.basin-image");
-    assertLoadedImageVisuals(await readVisuals(browser.page, ".product-card .basin-visual"), "filled storefront cards");
+    const storefrontPixels = await captureBasinPixels(browser.page, ".product-card .basin-visual");
+    assertBasinPixelBaseline(storefrontPixels, pixelBaselines.storefront, "storefront cards");
 
     for (const sku of ["KF001", "KF029"]) await clickTestId(browser.page, `card-product-${sku}`);
     await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
@@ -583,7 +584,8 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     await applyTransparentBasinFixture(browser.page, ".quote-line img.basin-image");
     const quoteVisuals = await readVisuals(browser.page, ".quote-line .basin-visual");
     assertLoadedImageVisuals(quoteVisuals, "quote rows");
-    assertLoadedImageVisuals(await readVisuals(browser.page, ".quote-line .basin-visual"), "filled quote rows");
+    const quotePixels = await captureBasinPixels(browser.page, ".quote-line .basin-visual");
+    assertBasinPixelBaseline(quotePixels, pixelBaselines.quote, "quote rows");
 
     const transparentState = await browser.page.evaluate(`(() => {
       const images = [...document.querySelectorAll(".quote-line img.basin-image")];
@@ -615,7 +617,7 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     const failed = fallback.find((visual) => visual.hasImage === "false");
     assert.ok(failed);
     assert.equal(failed?.mockupElementCount, 3, "failed images must restore the body, bowl, and drain CSS visual");
-    assert.equal(failed?.shadow.display, "");
+    assert.equal(failed?.shadow.display, "block");
   });
 
   it("keeps Workbench favourite-basin cards on the same image layer", async () => {
@@ -652,6 +654,7 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     );
     assertLoadedImageVisuals(await readVisuals(browser.page, ".top-basin-art .basin-visual"), "Workbench favourite cards");
     await applyTransparentBasinFixture(browser.page, ".top-basin-art img.basin-image");
-    assertLoadedImageVisuals(await readVisuals(browser.page, ".top-basin-art .basin-visual"), "filled Workbench favourite cards");
+    const workbenchPixels = await captureBasinPixels(browser.page, ".top-basin-art .basin-visual");
+    assertBasinPixelBaseline(workbenchPixels, pixelBaselines.workbench, "Workbench favourite cards");
   });
 });
