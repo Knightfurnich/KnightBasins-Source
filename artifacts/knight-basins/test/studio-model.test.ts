@@ -252,6 +252,17 @@ test("submission no longer mentions an edge-clearance rule", () => {
   assert.doesNotMatch(message, /50/);
 });
 
+test("empty stone and basin shortlists remain valid without adding automatic selections", () => {
+  const state = baseState({ stoneColors: [], activeStone: "", basinSkus: [], basinPlacements: [] });
+  const estimate = studioEstimate(state, PRODUCTS);
+
+  assert.equal(estimate.stoneUnitPriceTHB, null);
+  assert.equal(estimate.stoneTotalTHB, 0);
+  assert.equal(estimate.basinSubtotalTHB, 0);
+  assert.equal(estimate.isValid, true);
+  assert.equal(studioSubmissionValidationMessage(state, estimate), null);
+});
+
 test("catalog products without basin dimensions remain unknown", () => {
   const product = PRODUCTS.find((item) => item.sku === "KF029");
   assert.ok(product);

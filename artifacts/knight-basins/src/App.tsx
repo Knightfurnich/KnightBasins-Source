@@ -70,10 +70,14 @@ const emptyCustomer: CustomerDetails = {
   expectedInstallationDate: "",
   notes: "",
 };
-const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
+const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 };
 
 function formatStonePrice(price: number | null) {
   return price === null ? "—" : formatTHB(price);
+}
+
+function stonePriceForMode(color: StoneColor, isWhole: boolean) {
+  return isWhole ? color.sheetPriceTHB : color.installedPriceTHB;
 }
 
 function stoneAreaSqM(stone: StoneConfig) {
@@ -274,6 +278,10 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS }: { cart: Qu
     if (persistedCategories.length) return persistedCategories;
     return [...new Set(products.map((product) => product.category))].map((name, sortOrder) => ({ name, sortOrder }));
   }, [categories, products]);
+  const selectedProductCount = useMemo(() => {
+    const selectedSkus = new Set(cart.map((line) => line.sku));
+    return products.filter((product) => selectedSkus.has(product.sku)).length;
+  }, [cart, products]);
   const categoryCounts = useMemo(() => new Map(
     visibleCategories.map((item) => [item.name, products.filter((product) => product.category === item.name).length]),
   ), [products, visibleCategories]);
@@ -282,7 +290,10 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS }: { cart: Qu
     const selectedSkus = new Set(cart.map((line) => line.sku));
     const visibleProducts = products.filter((product) => {
     const haystack = `${product.sku} ${product.colorCode} ${product.colorName}`.toLowerCase();
-    return (category === "all" || product.category === category) && haystack.includes(query.toLowerCase());
+    const matchesCategory = category === "all"
+      || (category === "selected" && selectedSkus.has(product.sku))
+      || product.category === category;
+    return matchesCategory && haystack.includes(query.toLowerCase());
     });
     if (sort === "sku-az") return sortBasinProductsBySku(visibleProducts);
     return visibleProducts.sort((left, right) => {
@@ -295,8 +306,8 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS }: { cart: Qu
     });
   }, [cart, category, products, query, sort]);
    return <div className="page-wrap">
-      <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></section>
-      <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
+       <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="catalog-hero-art"><BasinHeroMedia products={products} /><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></div></section>
+       <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button><button className={category === "selected" ? "is-active" : ""} onClick={() => setCategory("selected")} data-testid="button-filter-selected">อ่างที่เลือก {selectedProductCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
      {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} cart={cart} onToggle={toggle} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
   </div>;
 }
@@ -342,39 +353,110 @@ function StoneHeroMedia({ colors, fallbackColor }: { colors: ReadonlyArray<Stone
     <span><strong>{heroColor.code}</strong><small>{heroColor.name}</small></span>
   </div>;
 }
+
+function BasinHeroMedia({ products }: { products: ReadonlyArray<BasinProduct> }) {
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const heroProducts = useMemo(() => products.length ? products.slice(0, 8) : PRODUCTS.slice(0, 1), [products]);
+  const heroSignature = heroProducts.map((product) => `${product.sku}:${product.imageUrl?.trim() ?? ""}`).join("|");
+  const heroProduct = heroProducts[heroIndex % heroProducts.length] ?? PRODUCTS[0];
+
+  useEffect(() => {
+    setHeroIndex(0);
+  }, [heroSignature]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener?.("change", updatePreference);
+    return () => mediaQuery.removeEventListener?.("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion || heroProducts.length < 2) return;
+    const timer = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % heroProducts.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [heroProducts.length, reducedMotion]);
+
+  return <div
+    className="catalog-basin-hero"
+    data-testid="catalog-basin-hero-media"
+    data-basin-sku={heroProduct.sku}
+    aria-label={`${heroProduct.sku} ${heroProduct.colorName}`}
+  >
+    <BasinVisual
+      key={heroProduct.sku}
+      tone={heroProduct.imageTone}
+      imageUrl={heroProduct.imageUrl}
+      alt={`${heroProduct.sku} ${heroProduct.colorName}`}
+      tall={heroProduct.category === "tall vertical washbasin"}
+      className="catalog-basin-hero-visual"
+    />
+    <span><strong>{heroProduct.sku}</strong><small>{heroProduct.colorName}</small></span>
+  </div>;
+}
+
 function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColorsByMode: { wholeSheet: ReadonlyArray<StoneColor>; installed: ReadonlyArray<StoneColor> } }) {
   const [dimensionError, setDimensionError] = useState("");
   const [stoneQuery, setStoneQuery] = useState("");
-  const [activeColor, setActiveColor] = useState(stones[0]?.color ?? defaultStone.color);
-  const activeMode = stones.find((stone) => stone.color === activeColor)?.mode ?? "whole-sheet";
+  const [stonePriceFilter, setStonePriceFilter] = useState("all");
+  const [activeColor, setActiveColor] = useState(stones[0]?.color ?? "");
+  const [activeMode, setActiveMode] = useState<StoneConfig["mode"]>(stones[0]?.mode ?? "whole-sheet");
   const availableColors = activeMode === "whole-sheet" ? stoneColorsByMode.wholeSheet : stoneColorsByMode.installed;
   const effectiveActiveColor = availableColors.some((color) => color.code === activeColor)
     ? activeColor
-    : availableColors[0]?.code ?? activeColor;
+    : "";
   const activeStone = stones.find((stone) => stone.color === effectiveActiveColor) ?? { ...defaultStone, color: effectiveActiveColor, mode: activeMode };
   const isWhole = activeStone.mode === "whole-sheet";
-  const selectedColor = stoneColorByName(activeStone.color, availableColors);
+  const selectedColor = effectiveActiveColor ? stoneColorByName(effectiveActiveColor, availableColors) : null;
+  const previewColor = selectedColor ?? availableColors[0] ?? STONE_COLORS[0];
   const area = stoneAreaSqM(activeStone);
   const invalidInstalledSize = !isWhole && (activeStone.widthCm < 10 || activeStone.lengthCm < 10);
-  const selectedPrice = stoneUnitPrice(activeStone, availableColors);
+  const selectedPrice = selectedColor ? stoneUnitPrice(activeStone, availableColors) : null;
+  const priceFilterOptions = useMemo(() => {
+    const counts = new Map<number, number>();
+    availableColors.forEach((color) => {
+      const price = stonePriceForMode(color, isWhole);
+      if (price !== null) counts.set(price, (counts.get(price) ?? 0) + 1);
+    });
+    const selectedCount = availableColors.filter((color) => stones.some((stone) => stone.color === color.code)).length;
+    return [
+      { value: "all", label: "ทั้งหมด", count: availableColors.length },
+      { value: "selected", label: "สีที่เลือก", count: selectedCount },
+      ...[...counts.entries()]
+        .sort(([left], [right]) => left - right)
+        .map(([price, count]) => ({ value: String(price), label: formatTHB(price), count })),
+    ];
+  }, [availableColors, isWhole, stones]);
+  const activePriceFilter = priceFilterOptions.some((option) => option.value === stonePriceFilter) ? stonePriceFilter : "all";
   useEffect(() => {
     if (effectiveActiveColor !== activeColor) setActiveColor(effectiveActiveColor);
   }, [activeColor, effectiveActiveColor]);
   const visibleColors = useMemo(() => {
     const query = stoneQuery.trim().toLowerCase();
-    if (!query) return availableColors;
     return availableColors.filter((color) =>
-      [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase().includes(query)),
+      (activePriceFilter === "all"
+        || (activePriceFilter === "selected" && stones.some((stone) => stone.color === color.code))
+        || (activePriceFilter !== "selected" && String(stonePriceForMode(color, isWhole)) === activePriceFilter))
+      && (!query || [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase().includes(query))),
     );
-  }, [availableColors, stoneQuery]);
+  }, [activePriceFilter, availableColors, isWhole, stoneQuery, stones]);
   const update = (changes: Partial<StoneConfig>) => setStones((current) => {
+    if (!selectedColor) return current;
     const next = { ...activeStone, ...changes, enabled: true };
     return upsertStone(current, next, availableColors);
   });
   const toggleColor = (color: string) => {
     const selected = stones.some((stone) => stone.color === color);
     if (selected) {
-      if (activeColor === color) setActiveColor(stones.find((stone) => stone.color !== color)?.color ?? defaultStone.color);
+      if (activeColor === color) {
+        const nextActive = stones.find((stone) => stone.color !== color);
+        setActiveColor(nextActive?.color ?? "");
+        if (nextActive) setActiveMode(nextActive.mode);
+      }
       setStones((current) => removeStoneSelection(current, color));
       setDimensionError("");
       return;
@@ -386,12 +468,15 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
   };
   const switchMode = (mode: StoneConfig["mode"]) => {
     const targetColors = mode === "whole-sheet" ? stoneColorsByMode.wholeSheet : stoneColorsByMode.installed;
-    const targetColor = targetColors.some((color) => color.code === activeStone.color)
-      ? activeStone.color
-      : targetColors[0]?.code;
+    const targetColor = activeColor && targetColors.some((color) => color.code === activeColor)
+      ? activeColor
+      : "";
+    setActiveMode(mode);
+    setStonePriceFilter("all");
     if (!targetColor) {
-      setStones((current) => removeStoneSelection(current, activeStone.color));
-      setDimensionError("ยังไม่มีรายการหินที่เปิดใช้งานสำหรับรูปแบบนี้");
+      if (activeColor) setStones((current) => removeStoneSelection(current, activeColor));
+      setActiveColor("");
+      setDimensionError("");
       return;
     }
     const next: StoneConfig = { ...activeStone, mode, color: targetColor, enabled: true };
@@ -399,12 +484,76 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
     setStones((current) => upsertStone(current, next, targetColors));
     setDimensionError("");
   };
-  const validateDimensions = () => { if (!activeStone.widthCm || !activeStone.lengthCm || activeStone.widthCm < 10 || activeStone.lengthCm < 10) setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. เพื่อคำนวณพื้นที่"); else setDimensionError(""); };
-  return <div className="page-wrap stone-page"><section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>หินสังเคราะห์<br /><em>ตามพื้นที่ของคุณ</em></h1><p className="hero-copy">เริ่มจากแผ่นมาตรฐาน หรือบอกขนาดพื้นที่ที่ต้องการติดตั้ง ระบบจะจัดโครงสร้างราคาให้เห็นก่อนส่งต่อเป็นใบเสนอราคา</p></div><StoneHeroMedia colors={availableColors} fallbackColor={selectedColor} /></section>
+  const validateDimensions = () => { if (!selectedColor) return; if (!activeStone.widthCm || !activeStone.lengthCm || activeStone.widthCm < 10 || activeStone.lengthCm < 10) setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. เพื่อคำนวณพื้นที่"); else setDimensionError(""); };
+  return <div className="page-wrap stone-page"><section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>หินสังเคราะห์<br /><em>ตามพื้นที่ของคุณ</em></h1><p className="hero-copy">เริ่มจากแผ่นมาตรฐาน หรือบอกขนาดพื้นที่ที่ต้องการติดตั้ง ระบบจะจัดโครงสร้างราคาให้เห็นก่อนส่งต่อเป็นใบเสนอราคา</p></div><StoneHeroMedia colors={availableColors} fallbackColor={previewColor} /></section>
     <div className="config-layout"><section className="config-main"><div className="section-heading"><span className="step">01</span><div><p className="eyebrow">CHOOSE FORMAT</p><h2>เลือกรูปแบบการสั่งซื้อ</h2></div></div><div className="mode-switch"><button className={isWhole ? "is-active" : ""} onClick={() => switchMode("whole-sheet")} data-testid="button-stone-whole-sheet"><span>แผ่นเต็ม</span><small>ราคาขายแผ่นมาตรฐาน</small></button><button className={!isWhole ? "is-active" : ""} onClick={() => switchMode("installed")} data-testid="button-stone-installed"><span>ตัดและติดตั้ง</span><small>ราคาต่อตารางเมตร รวมติดตั้ง</small></button></div>
-         <div className="section-heading"><span className="step">02</span><div><p className="eyebrow">SURFACE TONE</p><h2>เลือกสีหิน <span>/ เลือกได้หลายสี</span></h2></div></div><div className="stone-search-row"><label className="search-field"><Search size={16} /><input value={stoneQuery} onChange={(event) => setStoneQuery(event.target.value)} placeholder="ค้นหาชื่อหรือรหัสสินค้า" data-testid="input-stone-search" />{stoneQuery && <button onClick={() => setStoneQuery("")} aria-label="ล้างการค้นหาหิน" data-testid="button-clear-stone-search"><X size={14} /></button>}</label><span>{stones.length} สีที่เลือก · {visibleColors.length} / {availableColors.length} รายการ</span></div><div className="stone-price-legend"><span>ราคาขายแผ่น</span><span>ราคารวมติดตั้ง</span></div><div className="stone-colors">{visibleColors.length ? visibleColors.map((color) => { const selected = stones.some((stone) => stone.color === color.code); return <button key={color.code} className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`} onClick={() => toggleColor(color.code)} aria-pressed={selected} data-testid={`button-stone-color-${color.code}`}><span className="stone-card-image-wrap" style={{ background: color.tone }}>{color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span><strong>{color.name}</strong><small>{color.code}</small><small className="stone-card-prices">แผ่น {formatStonePrice(color.sheetPriceTHB)} · ติดตั้ง {formatStonePrice(color.installedPriceTHB)}</small>{selected && <Check size={14} />}</button>; }) : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}</div>
-       <div className="section-heading"><span className="step">03</span><div><p className="eyebrow">SIZE & QUANTITY</p><h2>{isWhole ? "จำนวนแผ่น" : "ขนาดพื้นที่"} <span>/ กำลังแก้ไข {selectedColor.code}</span></h2></div></div>{isWhole ? <div className="quantity-editor large"><button onClick={() => update({ quantity: Math.max(1, activeStone.quantity - 1) })} data-testid="button-stone-quantity-minus"><Minus size={16} /></button><strong data-testid="text-stone-quantity">{activeStone.quantity}</strong><button onClick={() => update({ quantity: activeStone.quantity + 1 })} data-testid="button-stone-quantity-plus"><Plus size={16} /></button><span>แผ่นมาตรฐาน / 760 × 3680 mm</span></div> : <div className="dimensions-form"><label>กว้าง (ซม.)<input type="number" min="10" value={activeStone.widthCm || ""} onChange={(event) => update({ widthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-width" /></label><span>×</span><label>ยาว (ซม.)<input type="number" min="10" value={activeStone.lengthCm || ""} onChange={(event) => update({ lengthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-length" /></label><div className="area-result"><small>พื้นที่รวม</small><strong>{area.toFixed(2)} m²</strong></div>{dimensionError && <p className="field-error" data-testid="status-stone-dimension-error">{dimensionError}</p>}</div>}</section>
-         <aside className="config-summary" draggable={activeStone.enabled && !invalidInstalledSize && selectedPrice !== null} onDragStart={(event) => { if (!activeStone.enabled || invalidInstalledSize || selectedPrice === null) return; event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "stone"); event.dataTransfer.setData("application/x-knight-stone", JSON.stringify(activeStone)); }}><p className="eyebrow">CONFIGURATION NOTE</p><div className="summary-swatch" style={{ background: selectedColor.tone }}>{selectedColor.imageUrl && <img src={selectedColor.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</div><h3>{selectedColor.name}</h3><p className="muted">{stoneOrderModeLabel(activeStone.mode)} · {selectedColor.code}</p><div className="summary-divider" /><div className="summary-row"><span>{isWhole ? "ราคาขายแผ่น" : "ราคารวมติดตั้ง"}<small>{isWhole ? `${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS}` : "คิดตามพื้นที่แผ่นตัด"}</small></span><strong>{formatStonePrice(selectedPrice)} {isWhole ? "/ แผ่น" : "/ m²"}</strong></div>{!isWhole && <div className="summary-row"><span>ค่าแรงติดตั้ง</span><strong>{selectedPrice === null ? "ไม่มีราคา" : "รวมในราคาแล้ว"}</strong></div>}<div className="summary-total"><span>ประมาณการ</span><strong>{selectedPrice === null ? "—" : formatTHB(stoneTotal(activeStone, availableColors))}</strong></div>{activeStone.enabled && !invalidInstalledSize && selectedPrice !== null && <p className="drag-summary-hint"><GripVertical size={14} /> ลากสรุปนี้ไปเพิ่มในใบเสนอราคา</p>}<Link href="/quote" className={`button button--dark full-width ${invalidInstalledSize || selectedPrice === null ? "is-disabled" : ""}`} onClick={(event) => { if (invalidInstalledSize) { event.preventDefault(); setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. ก่อนเพิ่มลงใบเสนอราคา"); } else if (selectedPrice === null) { event.preventDefault(); setDimensionError("รายการนี้ไม่มีราคาในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้"); } }} data-testid="link-stone-to-quote">ดูใบเสนอราคา <ArrowRight size={16} /></Link><p className="price-note">{selectedPrice === null ? "ไม่มีราคาของรูปแบบนี้ในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้" : isWhole ? `ราคาขายแผ่นยังไม่รวม VAT และกาว 250 ml (${formatTHB(STONE_GLUE_PRICE)} / หลอด)` : `กรุงเทพฯ/ปริมณฑลขั้นต่ำ ${STONE_INSTALLED_MIN_BANGKOK_SQM} m² · ต่างจังหวัดขั้นต่ำ ${STONE_INSTALLED_MIN_PROVINCE_SQM} m²`}</p>{!isWhole && selectedPrice !== null && <p className="price-note">งานต่ำกว่าขั้นต่ำคิดค่าดำเนินการ {formatTHB(STONE_SMALL_JOB_BANGKOK_FEE)} ในกรุงเทพฯ หรือ {formatTHB(STONE_SMALL_JOB_PROVINCE_FEE)} ต่างจังหวัด</p>}</aside>
+          <div className="section-heading">
+            <span className="step">02</span>
+            <div><p className="eyebrow">SURFACE TONE</p><h2>เลือกสีหิน <span>/ เลือกได้หลายสี</span></h2></div>
+          </div>
+          <div className="stone-search-row">
+            <label className="search-field">
+              <Search size={16} />
+              <input value={stoneQuery} onChange={(event) => setStoneQuery(event.target.value)} placeholder="ค้นหาชื่อหรือรหัสสินค้า" data-testid="input-stone-search" />
+              {stoneQuery && <button onClick={() => setStoneQuery("")} aria-label="ล้างการค้นหาหิน" data-testid="button-clear-stone-search"><X size={14} /></button>}
+            </label>
+            <span>{stones.length} สีที่เลือก · {visibleColors.length} / {availableColors.length} รายการ</span>
+          </div>
+          <div className="stone-price-filters" role="tablist" aria-label={isWhole ? "กรองราคาขายแผ่น" : "กรองราคาตัดและติดตั้ง"}>
+            {priceFilterOptions.map((option) => (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activePriceFilter === option.value}
+                className={activePriceFilter === option.value ? "is-active" : ""}
+                onClick={() => setStonePriceFilter(option.value)}
+                key={option.value}
+                data-testid={`button-stone-price-filter-${option.value}`}
+              >
+                {option.label} <small>{option.count}</small>
+              </button>
+            ))}
+          </div>
+          <div className="stone-price-legend"><span>ราคาขายแผ่น</span><span>ราคารวมติดตั้ง</span></div>
+          <div className="stone-colors">
+            {visibleColors.length
+              ? visibleColors.map((color) => {
+                const selected = stones.some((stone) => stone.color === color.code);
+                return (
+                  <button
+                    key={color.code}
+                    className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`}
+                    onClick={() => toggleColor(color.code)}
+                    aria-pressed={selected}
+                    data-testid={`button-stone-color-${color.code}`}
+                  >
+                    <span className="stone-card-image-wrap" style={{ background: color.tone }}>
+                      {color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                    </span>
+                    <strong>{color.name}</strong>
+                    <small>{color.code}</small>
+                    <small className="stone-card-prices">แผ่น {formatStonePrice(color.sheetPriceTHB)} · ติดตั้ง {formatStonePrice(color.installedPriceTHB)}</small>
+                    {selected && <Check size={14} />}
+                  </button>
+                );
+              })
+              : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}
+          </div>
+        <div className="section-heading"><span className="step">03</span><div><p className="eyebrow">SIZE & QUANTITY</p><h2>{isWhole ? "จำนวนแผ่น" : "ขนาดพื้นที่"} <span>/ {selectedColor ? `กำลังแก้ไข ${selectedColor.code}` : "ยังไม่ได้เลือกสี"}</span></h2></div></div>{selectedColor ? (isWhole ? <div className="quantity-editor large"><button onClick={() => update({ quantity: Math.max(1, activeStone.quantity - 1) })} data-testid="button-stone-quantity-minus"><Minus size={16} /></button><strong data-testid="text-stone-quantity">{activeStone.quantity}</strong><button onClick={() => update({ quantity: activeStone.quantity + 1 })} data-testid="button-stone-quantity-plus"><Plus size={16} /></button><span>แผ่นมาตรฐาน / 760 × 3680 mm</span></div> : <div className="dimensions-form"><label>กว้าง (ซม.)<input type="number" min="10" value={activeStone.widthCm || ""} onChange={(event) => update({ widthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-width" /></label><span>×</span><label>ยาว (ซม.)<input type="number" min="10" value={activeStone.lengthCm || ""} onChange={(event) => update({ lengthCm: Number(event.target.value) })} onBlur={validateDimensions} data-testid="input-stone-length" /></label><div className="area-result"><small>พื้นที่รวม</small><strong>{area.toFixed(2)} m²</strong></div>{dimensionError && <p className="field-error" data-testid="status-stone-dimension-error">{dimensionError}</p>}</div>) : <div className="stone-selection-empty" data-testid="status-stone-no-selection"><strong>ยังไม่ได้เลือกสี</strong><span>เลือกสีหินด้านบนเพื่อกำหนดจำนวนและดูราคา</span></div>}</section>
+         <aside className="config-summary" draggable={activeStone.enabled && !invalidInstalledSize && selectedPrice !== null} onDragStart={(event) => { if (!activeStone.enabled || invalidInstalledSize || selectedPrice === null) return; event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "stone"); event.dataTransfer.setData("application/x-knight-stone", JSON.stringify(activeStone)); }}>
+           <p className="eyebrow">CONFIGURATION NOTE</p>
+           <div className="summary-swatch" style={{ background: previewColor.tone }}>{selectedColor?.imageUrl && <img src={selectedColor.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</div>
+           <h3>{selectedColor?.name ?? "ยังไม่ได้เลือกสี"}</h3>
+           <p className="muted">{selectedColor ? `${stoneOrderModeLabel(activeStone.mode)} · ${selectedColor.code}` : "เลือกสีหินเพื่อเริ่มต้น"}</p>
+           <div className="summary-divider" />
+           <div className="summary-row"><span>{isWhole ? "ราคาขายแผ่น" : "ราคารวมติดตั้ง"}<small>{isWhole ? `${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS}` : "คิดตามพื้นที่แผ่นตัด"}</small></span><strong>{formatStonePrice(selectedPrice)} {isWhole ? "/ แผ่น" : "/ m²"}</strong></div>
+           {!isWhole && <div className="summary-row"><span>ค่าแรงติดตั้ง</span><strong>{selectedPrice === null ? "—" : "รวมในราคาแล้ว"}</strong></div>}
+           <div className="summary-total"><span>ประมาณการ</span><strong>{selectedPrice === null ? "—" : formatTHB(stoneTotal(activeStone, availableColors))}</strong></div>
+           {activeStone.enabled && !invalidInstalledSize && selectedPrice !== null && <p className="drag-summary-hint"><GripVertical size={14} /> ลากสรุปนี้ไปเพิ่มในใบเสนอราคา</p>}
+           <Link href="/quote" className={`button button--dark full-width ${!selectedColor || invalidInstalledSize || selectedPrice === null ? "is-disabled" : ""}`} onClick={(event) => { if (!selectedColor) { event.preventDefault(); setDimensionError("กรุณาเลือกสีหินก่อนดูใบเสนอราคา"); } else if (invalidInstalledSize) { event.preventDefault(); setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. ก่อนเพิ่มลงใบเสนอราคา"); } else if (selectedPrice === null) { event.preventDefault(); setDimensionError("รายการนี้ไม่มีราคาในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้"); } }} data-testid="link-stone-to-quote">ดูใบเสนอราคา <ArrowRight size={16} /></Link>
+           <p className="price-note">{!selectedColor ? "เลือกสีด้านบนเพื่อดูราคาและจำนวน" : selectedPrice === null ? "ไม่มีราคาของรูปแบบนี้ในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้" : isWhole ? `ราคาขายแผ่นยังไม่รวม VAT และกาว 250 ml (${formatTHB(STONE_GLUE_PRICE)} / หลอด)` : `กรุงเทพฯ/ปริมณฑลขั้นต่ำ ${STONE_INSTALLED_MIN_BANGKOK_SQM} m² · ต่างจังหวัดขั้นต่ำ ${STONE_INSTALLED_MIN_PROVINCE_SQM} m²`}</p>
+           {!isWhole && selectedColor && selectedPrice !== null && <p className="price-note">งานต่ำกว่าขั้นต่ำคิดค่าดำเนินการ {formatTHB(STONE_SMALL_JOB_BANGKOK_FEE)} ในกรุงเทพฯ หรือ {formatTHB(STONE_SMALL_JOB_PROVINCE_FEE)} ต่างจังหวัด</p>}
+         </aside>
      </div><div className="source-note"><span>แหล่งอ้างอิง</span> ราคาขายแผ่นและราคารวมติดตั้งจากเอกสาร Knight Furnich ที่แนบมา · ราคายังไม่รวม VAT 7%</div></div>;
 }
 
@@ -1116,13 +1265,13 @@ const queryClient = new QueryClient({
   },
 });
 
-function OrderModeTabs({ mode, setMode }: { mode: StudioOrderMode; setMode: Dispatch<SetStateAction<StudioOrderMode>> }) {
+function OrderModeTabs({ mode, setMode, onModeChange }: { mode: StudioOrderMode; setMode: Dispatch<SetStateAction<StudioOrderMode>>; onModeChange?: (mode: StudioOrderMode) => void }) {
   return <div className="order-mode-tabs" role="tablist" aria-label="รูปแบบการสั่งซื้อ">
     {([
       ["quick-purchase", "ซื้อด่วนจากแคตตาล็อก", "เลือกสินค้าและเพิ่มลงใบเสนอราคา"],
       ["studio", "ออกแบบใน 2D Studio", "กำหนดขนาดและจัดวางอ่าง"],
       ["sketch", "ส่งแบบร่างด้วยมือ", "แนบภาพให้ทีมขายช่วยดูแบบ"],
-    ] as const).map(([value, label, description]) => <button type="button" key={value} role="tab" aria-selected={mode === value} className={mode === value ? "is-active" : ""} onClick={() => setMode(value)} data-testid={`button-order-mode-${value}`}><strong>{label}</strong><small>{description}</small></button>)}
+    ] as const).map(([value, label, description]) => <button type="button" key={value} role="tab" aria-selected={mode === value} className={mode === value ? "is-active" : ""} onClick={() => { setMode(value); onModeChange?.(value); }} data-testid={`button-order-mode-${value}`}><strong>{label}</strong><small>{description}</small></button>)}
   </div>;
 }
 
@@ -1298,7 +1447,11 @@ function Storefront() {
   };
   const initialBasinSkus = useMemo(() => [...new Set(cart.map((line) => line.sku))].slice(0, 2), [cart]);
   const initialStoneColors = useMemo(() => [...new Set(stones.filter((stone) => stone.enabled).map((stone) => stone.color))].slice(0, 3), [stones]);
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  const navigateFromStoneMode = (mode: StudioOrderMode) => {
+    if (mode === "studio") setLocation("/studio");
+    else setLocation("/");
+  };
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} sheetPriceColors={catalogStoneColors.all} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} sheetPriceColors={catalogStoneColors.all} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

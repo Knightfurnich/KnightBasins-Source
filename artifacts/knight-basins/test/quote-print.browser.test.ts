@@ -211,6 +211,59 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     if (browser) await stopBrowser(browser);
   });
 
+  it("starts the stone chooser with no selected color and selects only after a click", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/stone` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-stone-color-BW010"]\') !== null'),
+      Boolean,
+      "stone color buttons",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear(); location.reload()");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-stone-color-BW010"]\') !== null && document.querySelector(\'[data-testid="status-stone-no-selection"]\') !== null'),
+      Boolean,
+      "fresh stone chooser",
+    );
+
+    const initial = await browser.page.evaluate(`(() => {
+      const buttons = [...document.querySelectorAll('[data-testid^="button-stone-color-"]')];
+      const selected = buttons.filter((button) => button.getAttribute("aria-pressed") === "true");
+      return {
+        selectedCount: selected.length,
+        counter: document.querySelector(".stone-search-row > span")?.textContent ?? "",
+        summaryTitle: document.querySelector(".config-summary h3")?.textContent ?? "",
+      };
+    })()`);
+    assert.equal(initial.selectedCount, 0);
+    assert.match(initial.counter, /^0 สีที่เลือก/);
+    assert.equal(initial.summaryTitle, "ยังไม่ได้เลือกสี");
+
+    await clickTestId(browser.page, "button-stone-color-BW010");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-stone-color-BW010"]\')?.getAttribute("aria-pressed") === "true"'),
+      Boolean,
+      "selected stone color",
+    );
+    const selected = await browser.page.evaluate(`(() => ({
+      selectedCount: [...document.querySelectorAll('[data-testid^="button-stone-color-"]')].filter((button) => button.getAttribute("aria-pressed") === "true").length,
+      counter: document.querySelector(".stone-search-row > span")?.textContent ?? "",
+    }))()`);
+    assert.equal(selected.selectedCount, 1);
+    assert.match(selected.counter, /^1 สีที่เลือก/);
+    await clickTestId(browser.page, "button-stone-color-BW010");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-stone-color-BW010"]\')?.getAttribute("aria-pressed") === "false" && document.querySelector(\'[data-testid="status-stone-no-selection"]\') !== null'),
+      Boolean,
+      "cleared stone selection",
+    );
+    const cleared = await browser.page.evaluate(`(() => ({
+      selectedCount: [...document.querySelectorAll('[data-testid^="button-stone-color-"]')].filter((button) => button.getAttribute("aria-pressed") === "true").length,
+      counter: document.querySelector(".stone-search-row > span")?.textContent ?? "",
+    }))()`);
+    assert.equal(cleared.selectedCount, 0);
+    assert.match(cleared.counter, /^0 สีที่เลือก/);
+  });
+
   it("keeps every basin and stone row readable on mobile and across print pages", async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(

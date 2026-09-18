@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { toggleAdminItemActive } from "../src/admin/adminArchive.ts";
-import { basinProductFromCatalog, filterBasinProducts, PRODUCTS, reconcileStoneSelections, removeStoneSelection, sortBasinProductsBySku, stoneColorsForMode, stoneColorsFromCatalog, toggleBasinSelection, toggleStoneSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
+import { basinProductFromCatalog, basinCutoutUrl, basinSourceImageUrl, filterBasinProducts, PRODUCTS, reconcileStoneSelections, removeStoneSelection, sortBasinProductsBySku, stoneColorsForMode, stoneColorsFromCatalog, toggleBasinSelection, toggleStoneSelection, upsertStoneSelection, type StoneConfig } from "../src/data/catalog.ts";
 
 describe("storefront basin image mapping", () => {
   it("preserves a saved imageUrl from the active catalog response", () => {
@@ -32,8 +32,33 @@ describe("storefront basin image mapping", () => {
       imageUrl: "  ",
     });
 
-    assert.equal(product.imageUrl, undefined);
+    assert.equal(product.imageUrl, basinCutoutUrl("KF001"));
+    assert.equal(product.sourceImageUrl, basinSourceImageUrl("KF001"));
     assert.equal(product.imageTone, "#dfe4df");
+  });
+
+  it("maps canonical catalog JPGs to cutouts while preserving the source fallback", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF029",
+      colorCode: "EG595",
+      colorName: "Metallic Galaxy",
+      priceTHB: 16000,
+      category: "tall vertical washbasin",
+      dimensions: "400 × 400 × 1000 mm",
+      imageTone: "#4d5050",
+      imageUrl: "https://api.example.test/kb/images/basin-hd/KF029.jpg",
+    });
+
+    assert.equal(product.imageUrl, basinCutoutUrl("KF029"));
+    assert.equal(product.sourceImageUrl, basinSourceImageUrl("KF029"));
+  });
+
+  it("makes every built-in basin use a cutout and a JPG fallback", () => {
+    assert.equal(PRODUCTS.length, 30);
+    for (const product of PRODUCTS) {
+      assert.equal(product.imageUrl, basinCutoutUrl(product.sku));
+      assert.equal(product.sourceImageUrl, basinSourceImageUrl(product.sku));
+    }
   });
 });
 

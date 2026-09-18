@@ -226,6 +226,54 @@ retention period; invalid values and values below one hour use the 24-hour
 default. Do not run cleanup by deleting files directly: the route checks all
 three catalog tables before removing anything.
 
+### Production-to-Development catalog sync
+
+The maintained catalog sync reads only the four approved catalog tables:
+`basin_categories`, `basin_prices`, `installed_stone_prices`, and
+`sheet_stone_prices`. It does not read or write leads, accounts, quotes, or
+sessions. The pre-write archive is also limited to those four tables.
+
+Set separate PostgreSQL URLs in the operator environment. Do not put these
+URLs in a committed file:
+
+```bash
+export PRODUCTION_DATABASE_URL='postgresql://...'
+export DEVELOPMENT_DATABASE_URL='postgresql://...'
+export CATALOG_SYNC_BACKUP_DIR=/var/backups/knight-basins/catalog-sync
+```
+
+Always inspect the dry run first. It prints row counts and row-level
+differences matched by category name, basin SKU, or stone code:
+
+```bash
+bash deploy/hostinger/catalog-sync.sh --dry-run
+```
+
+After approving the differences, apply the sync. The command creates and
+validates a restrictive, catalog-only Development backup before opening one
+transaction. It includes inactive sheet stones, maps basin category IDs by
+category name, preserves Production media URLs, removes stale catalog rows,
+and checks that the committed state has no remaining differences:
+
+```bash
+bash deploy/hostinger/catalog-sync.sh --apply
+```
+
+The operator flow has an explicit rollback check. It performs the same
+transaction against Development, forces an error, and verifies that the
+catalog is unchanged:
+
+```bash
+bash deploy/hostinger/catalog-sync.sh --rollback-test
+```
+
+Run the isolated regression test from the repository root before changing the
+operator command:
+
+```bash
+bash deploy/hostinger/catalog-sync.test.sh
+```
+
 ## 5. Install and verify the API service
 
 ```bash

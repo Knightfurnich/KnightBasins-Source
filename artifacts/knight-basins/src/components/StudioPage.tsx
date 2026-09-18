@@ -52,8 +52,6 @@ import {
   STUDIO_MAX_RECTANGLES,
   STUDIO_MAX_BASINS,
   STUDIO_MAX_STONE_COLORS,
-  STUDIO_MIN_BASINS,
-  STUDIO_MIN_STONE_COLORS,
   type BasinPlacement,
   type SideStatus,
   type StudioEstimate,
@@ -128,6 +126,7 @@ type StudioPageProps = {
   initialBasinSkus?: string[];
   initialStoneColors?: string[];
   stoneColors?: ReadonlyArray<StoneColor>;
+  sheetPriceColors?: ReadonlyArray<StoneColor>;
   basinProducts?: ReadonlyArray<BasinProduct>;
 };
 
@@ -291,23 +290,76 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
    </div>;
  }
 
-function StudioShortlists({ state, setState, stoneColors, basinProducts, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; onCatalogChangeResolved: (sku: string) => void }) {
+const studioBasinFilterOptions = [
+  { value: "all", label: "ทั้งหมด" },
+  { value: "selected", label: "แบบที่เลือก" },
+  { value: "counter basin", label: "เคาน์เตอร์" },
+  { value: "tall vertical washbasin", label: "ทรงสูง" },
+] as const;
+
+type StudioBasinFilter = typeof studioBasinFilterOptions[number]["value"];
+
+function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basinProducts, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; sheetPriceColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; onCatalogChangeResolved: (sku: string) => void }) {
   const [basinQuery, setBasinQuery] = useState("");
-  const visibleBasins = useMemo(() => filterBasinProducts(basinProducts, basinQuery), [basinProducts, basinQuery]);
+  const [basinFilter, setBasinFilter] = useState<StudioBasinFilter>("all");
+  const [stonePriceFilter, setStonePriceFilter] = useState("all");
+  const sheetPricesByCode = useMemo(() => new Map(sheetPriceColors.map((stone) => [stone.code, stone.sheetPriceTHB])), [sheetPriceColors]);
+  const selectedStoneCodes = useMemo(() => new Set(state.stoneColors), [state.stoneColors]);
+  const stonePriceForFilter = (stone: StoneColor) => sheetPricesByCode.get(stone.code) ?? stone.sheetPriceTHB;
+  const stonePriceFilterOptions = useMemo(() => {
+    const counts = new Map<number, number>();
+    stoneColors.forEach((stone) => {
+      const price = stonePriceForFilter(stone);
+      if (price !== null) counts.set(price, (counts.get(price) ?? 0) + 1);
+    });
+    return [
+      { value: "all", label: "ทั้งหมด", count: stoneColors.length },
+      { value: "selected", label: "สีที่เลือก", count: stoneColors.filter((stone) => selectedStoneCodes.has(stone.code)).length },
+      ...[...counts.entries()]
+        .sort(([left], [right]) => left - right)
+        .map(([price, count]) => ({ value: String(price), label: formatTHB(price), count })),
+    ];
+  }, [selectedStoneCodes, sheetPriceColors, sheetPricesByCode, stoneColors]);
+  const activeStonePriceFilter = stonePriceFilterOptions.some((option) => option.value === stonePriceFilter) ? stonePriceFilter : "all";
+  const visibleStoneColors = useMemo(
+    () => stoneColors.filter((stone) =>
+      activeStonePriceFilter === "all"
+        || (activeStonePriceFilter === "selected" && selectedStoneCodes.has(stone.code))
+        || (activeStonePriceFilter !== "selected" && String(stonePriceForFilter(stone)) === activeStonePriceFilter),
+    ),
+    [activeStonePriceFilter, selectedStoneCodes, sheetPriceColors, sheetPricesByCode, stoneColors],
+  );
+  const categoryBasins = useMemo(
+    () => basinFilter === "all"
+      ? basinProducts
+      : basinFilter === "selected"
+        ? basinProducts.filter((product) => state.basinSkus.includes(product.sku))
+        : basinProducts.filter((product) => product.category === basinFilter),
+    [basinFilter, basinProducts, state.basinSkus],
+  );
+  const visibleBasins = useMemo(() => filterBasinProducts(categoryBasins, basinQuery), [basinQuery, categoryBasins]);
+  const basinFilterCounts = useMemo(() => new Map(
+    studioBasinFilterOptions.map((option) => [
+      option.value,
+      option.value === "all"
+        ? basinProducts.length
+        : option.value === "selected"
+          ? basinProducts.filter((product) => state.basinSkus.includes(product.sku)).length
+          : basinProducts.filter((product) => product.category === option.value).length,
+    ]),
+  ), [basinProducts, state.basinSkus]);
   const basinEntries = studioBasinCatalogEntries(state, basinProducts);
   const hiddenBasins = basinEntries.filter((entry) => !entry.product);
   const toggleStone = (code: string) => setState((current) => {
     if (current.stoneColors.includes(code)) {
-      if (current.stoneColors.length <= STUDIO_MIN_STONE_COLORS) return current;
       const next = current.stoneColors.filter((item) => item !== code);
-      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? next[0] : current.activeStone };
+      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone };
     }
     if (current.stoneColors.length >= STUDIO_MAX_STONE_COLORS) return current;
     return { ...current, stoneColors: [...current.stoneColors, code] };
   });
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
-      if (current.basinSkus.length <= STUDIO_MIN_BASINS) return current;
       return removeStudioBasin(current, sku);
     }
     if (current.basinSkus.length >= STUDIO_MAX_BASINS) return current;
@@ -325,17 +377,20 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, onCatal
   };
   return <div className="studio-shortlists">
     <section className="studio-panel">
-      <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน 2–3 สี</h3></div><span>{state.stoneColors.length} / 3</span></div>
-      <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบ แล้วเลือกสีที่ใช้คำนวณจากรายการด้านล่าง</p>
-      <div className="studio-stone-list">{stoneColors.slice(0, 24).map((stone) => {
+      <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน 0–3 สี</h3></div><span>{state.stoneColors.length} / 3</span></div>
+      <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบได้ หรือข้ามขั้นตอนนี้ได้หากยังไม่ระบุวัสดุ</p>
+       <div className="studio-stone-price-filters" role="tablist" aria-label="กรองราคาขายแผ่น">
+         {stonePriceFilterOptions.map((option) => <button type="button" role="tab" aria-selected={activeStonePriceFilter === option.value} className={activeStonePriceFilter === option.value ? "is-active" : ""} onClick={() => setStonePriceFilter(option.value)} key={option.value} data-testid={`button-studio-stone-price-filter-${option.value}`}>{option.label} <small>{option.count}</small></button>)}
+       </div>
+       <div className="studio-stone-list">{visibleStoneColors.map((stone) => {
         const selected = state.stoneColors.includes(stone.code);
         return <button type="button" key={stone.code} className={`studio-stone-choice ${selected ? "is-selected" : ""} ${state.activeStone === stone.code ? "is-active" : ""}`} onClick={() => toggleStone(stone.code)} aria-pressed={selected} data-testid={`button-studio-stone-${stone.code}`}><span className="studio-stone-swatch" style={{ background: stone.tone }} /> <strong>{stone.code}</strong><small>{stone.name}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
       })}</div>
-      <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / m²</button>)}</div>
+       <div className="studio-active-stone"><span>{state.stoneColors.length ? "กำลังคำนวณด้วย" : "ยังไม่ได้เลือกสีหิน"}</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / m²</button>)}</div>
     </section>
     <section className="studio-panel">
-      <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
-      <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้ หรือกดเลือกเพื่อเพิ่ม / นำออก</p>
+      <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 0–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
+      <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้ หรือข้ามขั้นตอนนี้ได้หากยังไม่ระบุรุ่นอ่าง</p>
       {hiddenBasins.length > 0 && <div className="studio-basin-stale" role="status" data-testid="studio-hidden-basins">
         <strong>มีอ่างในแบบร่างที่ปิดการขายแล้ว</strong>
         <p>ตำแหน่งและขนาดบนผังเดิมยังคงอยู่ เลือกรุ่นใหม่เพื่อแทนที่ หรือเอารุ่นนี้ออกจากแบบ</p>
@@ -348,8 +403,13 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, onCatal
           </div>;
         })}
       </div>}
-      <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
-      <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {basinProducts.length} รุ่น</p>
+       <div className="studio-basin-toolbar">
+         <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
+         <div className="studio-basin-filters" role="tablist" aria-label="กรองประเภทอ่าง">
+            {studioBasinFilterOptions.map((option) => <button type="button" role="tab" aria-selected={basinFilter === option.value} className={basinFilter === option.value ? "is-active" : ""} onClick={() => setBasinFilter(option.value)} key={option.value} data-testid={`button-studio-basin-filter-${option.value === "all" ? "all" : option.value === "selected" ? "selected" : option.value === "counter basin" ? "counter" : "tall"}`}>{option.label} {basinFilterCounts.get(option.value) ?? 0}</button>)}
+         </div>
+       </div>
+       <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {categoryBasins.length} รุ่น</p>
       <div className="studio-basin-list" data-testid="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
          return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
@@ -788,6 +848,7 @@ function StudioStoneComparison({ state, setState }: { state: StudioState; setSta
   return <section className="studio-stone-comparison" data-testid="studio-stone-comparison">
     <div className="studio-stone-comparison-heading"><span>เปรียบเทียบสีหิน</span><small>กดการ์ดเพื่อใช้เป็นสีคำนวณหลัก</small></div>
     <div className="studio-stone-comparison-grid">
+      {comparisons.length === 0 && <p className="studio-helper" data-testid="studio-stone-comparison-empty">ยังไม่ได้เลือกสีหิน จึงยังไม่คำนวณราคาวัสดุ</p>}
       {comparisons.map(({ code, stone, estimate, priceLabel, stoneTotalLabel }) => <button
         type="button"
         key={code}
@@ -929,6 +990,7 @@ export function StudioPage({
   initialBasinSkus = [],
   initialStoneColors = [],
   stoneColors = STONE_COLORS,
+  sheetPriceColors = stoneColors,
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
@@ -954,7 +1016,7 @@ export function StudioPage({
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
   const estimate = useMemo(() => studioEstimate(state, basinProducts), [state, basinProducts]);
-  const activeStone = stoneColorByName(state.activeStone);
+   const activeStone = state.activeStone ? stoneColorByName(state.activeStone) : null;
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
@@ -1127,7 +1189,7 @@ export function StudioPage({
     }
     try {
       if (format === "dxf") await downloadStudioDxf(state, exportName);
-      else if (format === "png") await downloadStudioPng(state, exportName, activeStone.tone);
+      else if (format === "png") await downloadStudioPng(state, exportName, activeStone?.tone ?? "#e8e7df");
       else {
         printStudioLayout(studioPrintTitle(exportName, getStudioPieces(state).length));
         setResult("เปิดหน้าพิมพ์แบบแล้ว เลือกเครื่องพิมพ์เป็น PDF ได้");
@@ -1173,7 +1235,7 @@ export function StudioPage({
         const product = basinProducts.find((item) => item.sku === sku);
         return product ? [{ kind: "basin" as const, code: product.sku, description: product.colorName, quantity, unit: "ชุด", unitPriceTHB: product.priceTHB, totalTHB: Math.round(product.priceTHB * quantity) }] : [];
       });
-      if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) notificationItems.push({ kind: "stone", code: activeStone.code, description: activeStone.name, quantity: estimate.counterAreaSqM, unit: "ตร.ม.", unitPriceTHB: estimate.stoneUnitPriceTHB, totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB) });
+      if (activeStone && estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) notificationItems.push({ kind: "stone", code: activeStone.code, description: activeStone.name, quantity: estimate.counterAreaSqM, unit: "ตร.ม.", unitPriceTHB: estimate.stoneUnitPriceTHB, totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB) });
       notificationItems.push({ kind: "service", code: "WORKPIECES", description: `${estimate.pieceCount} ชิ้นงาน · ${estimate.rectangleCount} แผ่น`, quantity: estimate.pieceCount, unit: "ชิ้นงาน", unitPriceTHB: 0, totalTHB: 0 });
       if (estimate.upstandLengthM > 0) notificationItems.push({ kind: "service", code: "UPSTAND", description: `บัวยาว ${estimate.upstandLengthM.toFixed(2)} ม. · สูง ${state.upstandHeightMm ?? "ไม่ระบุ"} มม.`, quantity: estimate.upstandLengthM, unit: "ม.", unitPriceTHB: estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0, totalTHB: estimate.upstandTotalTHB });
       if (estimate.openEdgeLengthM > 0) notificationItems.push({ kind: "service", code: "OPEN_EDGE", description: `ขอบเปิดยาว ${estimate.openEdgeLengthM.toFixed(2)} ม.`, quantity: estimate.openEdgeLengthM, unit: "ม.", unitPriceTHB: estimate.openEdgeUnitPriceTHB ?? 0, totalTHB: estimate.openEdgeTotalTHB });
@@ -1239,19 +1301,19 @@ export function StudioPage({
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
-        <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} onCatalogChangeResolved={acknowledgeCatalogChange} />
+         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} onCatalogChangeResolved={acknowledgeCatalogChange} />
         {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className={`studio-file-drop ${sketchPreviewUrl ? "studio-file-drop--preview" : ""}`}>{sketchPreviewUrl ? <img className="studio-file-preview" src={sketchPreviewUrl} alt={`ตัวอย่างไฟล์ ${sketchFile?.name ?? "แบบร่าง"}`} data-testid="img-studio-sketch-preview" /> : <Upload size={22} />}<span className="studio-file-drop-copy"><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small></span><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
       </div>
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
       <aside className="studio-panel studio-estimate-panel">
-        <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
+         <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone?.code ?? "ยังไม่เลือก"}</span></div>
         <div className="studio-estimate-lines">
           <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>
           <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>
           <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>
           <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>
-          <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
+           <div><span>หิน {estimate.stoneUnitPriceTHB === null ? "ยังไม่เลือกสี" : `${formatTHB(estimate.stoneUnitPriceTHB)} / m²`}</span><strong>{estimate.stoneUnitPriceTHB === null ? "—" : estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
           <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>
           {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
           <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>

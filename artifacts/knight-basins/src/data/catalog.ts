@@ -10,6 +10,7 @@ export type BasinProduct = {
   basinDimensions?: string;
   imageTone: string;
   imageUrl?: string;
+  sourceImageUrl?: string;
   videoUrl?: string;
 };
 
@@ -334,6 +335,24 @@ export function toggleStoneSelection(
 
 const counterDims = { dimensions: "600 × 800 × 200 mm", basinDimensions: "350 × 500 × 130 mm" };
 const counterWideDims = { dimensions: "600 × 800 × 200 mm", basinDimensions: "400 × 500 × 130 mm" };
+const BASIN_CUTOUT_PATH = "/basin-cutouts";
+const BASIN_SOURCE_PATH = "/basin-originals";
+
+export function basinCutoutUrl(sku: string) {
+  return `${BASIN_CUTOUT_PATH}/${encodeURIComponent(sku)}.png`;
+}
+
+export function basinSourceImageUrl(sku: string) {
+  return `${BASIN_SOURCE_PATH}/${encodeURIComponent(sku)}.jpg`;
+}
+
+function withBasinAssetUrls(product: BasinProduct): BasinProduct {
+  return {
+    ...product,
+    imageUrl: basinCutoutUrl(product.sku),
+    sourceImageUrl: basinSourceImageUrl(product.sku),
+  };
+}
 
 export const BASIN_PRODUCTS: BasinProduct[] = [
   ["KF001", "VS311", "Shine", 19000, counterDims],
@@ -363,7 +382,7 @@ export const BASIN_PRODUCTS: BasinProduct[] = [
   dimensions: (dims as typeof counterDims).dimensions,
   basinDimensions: (dims as typeof counterDims).basinDimensions,
   imageTone: ["#dfe4df", "#d2d0c9", "#c6cdc9", "#ece7db", "#9eaa9a", "#d5dad3"][index % 6],
-}));
+})).map(withBasinAssetUrls);
 
 const tallProducts: Array<[string, string, string, number, string, string | undefined]> = [
   ["KF019", "VD345", "Dusk", 24000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
@@ -385,7 +404,7 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
   category: "tall vertical washbasin",
   dimensions, basinDimensions,
   imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
-}));
+})).map(withBasinAssetUrls);
 
 export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
@@ -422,6 +441,9 @@ export function basinProductFromCatalog(item: {
   imageUrl?: string | null;
   videoUrl?: string | null;
 }): BasinProduct {
+  const remoteImageUrl = item.imageUrl?.trim() || "";
+  const isCanonicalBasinImage = !remoteImageUrl
+    || /\/basin-(?:hd|catalog|images?)\/[^/]+\.jpe?g(?:\?|$)/i.test(remoteImageUrl);
   return {
     sku: item.sku,
     colorCode: item.colorCode,
@@ -431,7 +453,8 @@ export function basinProductFromCatalog(item: {
     dimensions: item.dimensions,
     basinDimensions: item.basinDimensions ?? undefined,
     imageTone: item.imageTone,
-    imageUrl: item.imageUrl?.trim() || undefined,
+    imageUrl: isCanonicalBasinImage ? basinCutoutUrl(item.sku) : remoteImageUrl,
+    sourceImageUrl: basinSourceImageUrl(item.sku),
     videoUrl: item.videoUrl ?? undefined,
   };
 }

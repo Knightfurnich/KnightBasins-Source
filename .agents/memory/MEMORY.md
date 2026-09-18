@@ -1,0 +1,26 @@
+- [Stone price document reconciliation](stone-price-document-reconciliation.md) — keep confirmed code aliases searchable, but never merge genuinely different product codes.
+- [Shared VPS Docker routing](shared-vps-docker-routing.md) — use unique container DNS names when proxying across the shared Hermes network.
+- [Hostinger VPS deployment access](vps-deployment-access.md) — verify remote username and accepted SSH credentials before uploading or restarting production.
+- [Native Node TypeScript tests](native-node-ts-tests.md) — workspace extensionless imports work through the bundler but need a route-test harness for Node's native runner.
+- [Post-merge setup reliability](post-merge-setup-reliability.md) — keep merge setup non-interactive, use exact workspace filters, and allow enough time for install plus schema checks.
+- [Workspace declaration rebuilds](workspace-declaration-rebuilds.md) — rebuild referenced library declarations after schema merges before trusting API typecheck results.
+- [Production media and schema deployment](production-media-and-schema.md) — normalize legacy basin image URLs and grant the VPS app role access to new tables and sequences.
+- [Development schema sync](development-schema-sync.md) — apply new Drizzle tables and columns to development before restarting artifact workflows.
+- [Scoped artifact dependencies](scoped-artifact-dependencies.md) — add packages to the target pnpm workspace package, not the repository root.
+- [GitHub publish fallback](github-publish-fallback.md) — use the GitHub integration when Git auth fails, then hand off through an exact-repo read-only deploy key.
+- [Async quote route tests](async-quote-route-tests.md) — wait for the loaded saved-quote root, not a shared formal-quote selector during navigation.
+- [Production asset root guard](production-asset-root-guard.md) — Hostinger serves the storefront at `/`; validate both build paths and JavaScript response types.
+- [Public quote origin](public-quote-origin.md) — derive exported quote links from the configured public origin, never an internal proxy hop.
+- [Shared studio shape geometry](studio-shape-geometry.md) — keep I/L/U regions, clearance, placement safety, labels, and saved layouts on one geometry model.
+- [Studio export pipeline](studio-export-pipeline.md) — keep DXF millimetres and unknown-hole placeholders honest; rasterize the shared model for visible Thai PDF notes.
+- [Source and artifact parity](source-artifact-parity.md) — rebuild API/web distribution folders after source changes before publishing the release commit.
+- [Thai timezone handling](thai-timezone.md) — make every user-visible date, Bangkok calendar boundary, notification timestamp, and document month explicit.
+- [Studio browser test isolation](studio-browser-test-isolation.md) — clear autosaved Studio state before browser cases that require a fresh layout.
+- [Short Studio draft links](studio-short-links.md) — short URLs are local-storage handles; retain the store when testing resume and clear stale validation results after edits.
+- [Route test harness middleware](route-test-harness.md) — mirror JSON/cookie middleware and externalize CJS database drivers in native route tests.
+- [Storefront build port](storefront-build-port.md) — invoke standalone Vite builds with an explicit PORT; managed workflows inject it automatically.
+- [Lazy media visual checks](lazy-media-visual-checks.md) — scroll representative cards into view before asserting native lazy-loaded image dimensions.
+- [Studio inspector density](studio-inspector-density.md) — show one active rectangle editor and use a selector for multi-sheet workpieces.
+- [Canvas asset base paths](canvas-asset-base-paths.md) — normalize Vite BASE_PATH before joining public asset URLs because the injected value may omit its trailing slash.
+- [Active catalog SKU sorting](catalog-sku-sorting.md) — storefront SKU ordering must use the active API catalog and avoid hardcoded SKU ranges.
+- [Basin image display treatment](basin-image-display.md) — use full-frame cover-fit presentation when removal damages light-finish detail; retain JPG recovery sources.
