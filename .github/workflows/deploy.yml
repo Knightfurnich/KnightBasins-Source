@@ -5,22 +5,55 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH and Deploy on VPS
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build Web App
+        run: |
+          cd artifacts/knight-basins
+          npm ci || npm install
+          PORT=3000 NODE_ENV=production ./node_modules/.bin/vite build --mode production
+
+      - name: Build API Server
+        run: |
+          cd artifacts/api-server
+          npm ci || npm install
+          node ./build.mjs
+
+      - name: Copy Web Dist to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 72.62.79.84
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "artifacts/knight-basins/dist/public/*"
+          target: "/docker/knightbasins/web-dist/"
+          strip_prefix: "artifacts/knight-basins/dist/public/"
+
+      - name: Copy API Dist to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 72.62.79.84
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "artifacts/api-server/dist/*"
+          target: "/docker/knightbasins/api-dist/"
+          strip_prefix: "artifacts/api-server/dist/"
+
+      - name: Restart Docker Containers
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 72.62.79.84
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/data/cache/kbsrc
-            GIT_SSH_COMMAND="ssh -i /opt/data/bin/.ssh/id_ed25519 -o IdentitiesOnly=yes" git fetch --all && git reset --hard origin/main
-            cd /opt/data/cache/kbsrc/artifacts/knight-basins && PORT=3000 NODE_ENV=production ./node_modules/.bin/vite build --mode production
-            cd /opt/data/cache/kbsrc/artifacts/api-server && node ./build.mjs
-            mkdir -p /docker/knightbasins/web-dist /docker/knightbasins/api-dist
-            cp -r /opt/data/cache/kbsrc/artifacts/knight-basins/dist/public/* /docker/knightbasins/web-dist/
-            cp -r /opt/data/cache/kbsrc/artifacts/api-server/dist/* /docker/knightbasins/api-dist/
             chmod -R 755 /docker/knightbasins/web-dist /docker/knightbasins/api-dist
             docker restart knightbasins-api knightbasins-web
