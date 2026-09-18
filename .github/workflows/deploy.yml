@@ -25,14 +25,20 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Build Web App
+        env:
+          PORT: "3000"
+          NODE_ENV: "production"
         run: |
           cd artifacts/knight-basins
-          pnpm run build
+          PORT=3000 NODE_ENV=production pnpm run build
 
       - name: Build API Server
+        env:
+          PORT: "5000"
+          NODE_ENV: "production"
         run: |
           cd artifacts/api-server
-          pnpm run build || node ./build.mjs
+          PORT=5000 NODE_ENV=production pnpm run build || node ./build.mjs
 
       - name: Copy Web Dist to VPS
         uses: appleboy/scp-action@v0.1.7
