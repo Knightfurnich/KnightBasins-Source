@@ -951,6 +951,42 @@ function StudioPieceEditor({
   </section>;
 }
 
+/** Simple CSS-3D "tilted slab" rendering of a piece's footprint, reusing the
+ * exact same rectangle/basin percentage math as the 2D top-down canvas — a
+ * fast, illustrative "what will this actually look like" preview without a
+ * real 3D engine. Approximate: a single flat front edge along the bottom
+ * of the bounding box, which is exactly right for an I-shape and a
+ * reasonable simplification for L/U shapes. */
+function StudioPerspectivePreview({ piece, stoneTone, basinPlacements }: { piece: StudioPiece; stoneTone: string; basinPlacements: ReadonlyArray<BasinPlacement>; }) {
+  const bounds = pieceBounds(piece);
+  return <div className="studio-perspective">
+    <div className="studio-perspective-scene">
+      <div className="studio-perspective-stage" style={{ aspectRatio: `${Math.max(1, bounds.widthMm)} / ${Math.max(1, bounds.heightMm)}` }}>
+        <div className="studio-perspective-top">
+          {piece.rectangles.map((rectangle) => {
+            const size = studioRectangleSize(rectangle);
+            return <div key={rectangle.id} className="studio-perspective-slab" style={{
+              left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`,
+              top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`,
+              width: `${(size.widthMm / Math.max(1, bounds.widthMm)) * 100}%`,
+              height: `${(size.heightMm / Math.max(1, bounds.heightMm)) * 100}%`,
+              background: stoneTone,
+            }} />;
+          })}
+          {basinPlacements.filter((placement) => placement.widthMm !== null && placement.depthMm !== null).map((placement) => <div key={placement.id} className="studio-perspective-basin" style={{
+            left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`,
+            top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`,
+            width: `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`,
+            height: `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%`,
+          }} />)}
+        </div>
+        <div className="studio-perspective-front" style={{ background: stoneTone }} />
+      </div>
+    </div>
+    <p className="studio-perspective-caption">มุมมองเปอร์สเปคทีฟโดยประมาณ · ไม่ใช่ขนาดหรือสัดส่วนจริง</p>
+  </div>;
+}
+
 function StudioCanvas({
   state,
   setState,
@@ -1004,6 +1040,7 @@ function StudioCanvas({
       <button type="button" className="button button--outline" onClick={() => setZoom(1)} data-testid="button-studio-zoom-reset">100%</button>
     </div>
     <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} zoom={zoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} highlightRectangleId={activeLegRectangleId} />)}</div>
+    {pieces[0] && <StudioPerspectivePreview piece={pieces[0]} stoneTone={stoneColorByName(state.activeStone).tone} basinPlacements={state.basinPlacements.filter((placement) => (placement.pieceId ?? pieces[0].id) === pieces[0].id)} />}
     <button type="button" className="button button--outline" disabled={pieces.length >= STUDIO_MAX_PIECES} onClick={() => setState((current) => ({ ...current, pieces: [...getStudioPieces(current), makePiece(getStudioPieces(current).length)] }))} data-testid="button-add-studio-piece"><Plus size={15} /> เพิ่มชิ้นงาน</button>
   </section>;
 }
@@ -1150,6 +1187,26 @@ function StudioCatalogChangeNotice({ notice }: { notice: StudioCatalogNotice }) 
     </div>}
     {notice.comparison.changes.length > 0 && <p>ตรวจสอบรายการอ่างด้านบนเพื่อใช้การแทนที่หรือนำรุ่นที่ไม่ใช้งานแล้วออกจากแบบ</p>}
   </div>;
+}
+
+/** Lightweight orientation cue so a customer can see at a glance how far
+ * through the studio flow they are and what's left — reduces the "how much
+ * more is there" drop-off risk on a long single-page flow. Purely a display
+ * of existing state; doesn't gate navigation (nothing here is required in a
+ * fixed order). */
+function StudioProgressChecklist({ state, contact, estimate }: { state: StudioState; contact: typeof emptyContact; estimate: Pick<StudioEstimate, "counterAreaSqM">; }) {
+  const steps: { label: string; done: boolean; optional?: boolean }[] = [
+    { label: "เลือกสีหิน", done: state.stoneColors.length > 0 },
+    { label: "เลือกอ่าง", done: state.basinSkus.length > 0, optional: true },
+    { label: "จัดผังเคาน์เตอร์", done: estimate.counterAreaSqM > 0 },
+    { label: "ข้อมูลติดต่อ", done: Boolean(contact.name.trim() && contact.phone.trim() && contact.project.trim() && contact.address.trim()) },
+  ];
+  return <ol className="studio-progress" aria-label="ความคืบหน้าการออกแบบ">
+    {steps.map((step, index) => <li key={step.label} className={`studio-progress-step ${step.done ? "is-done" : ""}`}>
+      <span className="studio-progress-step-icon" aria-hidden="true">{step.done ? <Check size={12} /> : index + 1}</span>
+      <span>{step.label}{step.optional && <small> (ไม่บังคับ)</small>}</span>
+    </li>)}
+  </ol>;
 }
 
 export function StudioPage({
@@ -1471,6 +1528,7 @@ export function StudioPage({
   const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
   return <div className="page-wrap studio-page">
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
+    {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
