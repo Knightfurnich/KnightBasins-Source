@@ -231,6 +231,12 @@ const studioPresetLabels: Record<StudioPreset, string> = {
   u: "📐 ทรงตัวยู (U)",
 };
 
+// Common real-world counter depths/run lengths, offered as one-tap fills next
+// to the wizard's numeric inputs so typing exact mm values isn't the only way
+// in — especially fiddly on a phone keyboard.
+const STUDIO_DEPTH_PRESETS_MM = [600, 650, 700];
+const STUDIO_LEG_PRESETS_MM = [1200, 1500, 1800, 2400];
+
 function presetLegDefaults(preset: StudioPreset): number[] {
   if (preset === "i") return [1500];
   if (preset === "u") return [1500, 1200, 1200];
@@ -343,6 +349,7 @@ function StudioShapeWizard({
         <label className="studio-shape-wizard-depth">
           ความลึกเคาน์เตอร์ (มม.)
           <input type="number" min={1} value={depthMm} onChange={(event) => updateDepth(numericValue(event.target.value, depthMm))} data-testid="input-studio-wizard-depth" />
+          <span className="studio-wizard-presets">{STUDIO_DEPTH_PRESETS_MM.map((value) => <button type="button" key={value} className={depthMm === value ? "is-active" : ""} onClick={() => updateDepth(value)} data-testid={`button-studio-wizard-depth-preset-${value}`}>{value}</button>)}</span>
         </label>
         {legLabels.map((label, index) => (
           <label key={index} className="studio-shape-wizard-leg">
@@ -356,6 +363,7 @@ function StudioShapeWizard({
               onChange={(event) => updateLeg(index, numericValue(event.target.value, legs[index] ?? 0))}
               data-testid={`input-studio-wizard-leg-${index}`}
             />
+            <span className="studio-wizard-presets">{STUDIO_LEG_PRESETS_MM.map((value) => <button type="button" key={value} className={legs[index] === value ? "is-active" : ""} onClick={() => updateLeg(index, value)} data-testid={`button-studio-wizard-leg-preset-${index}-${value}`}>{value}</button>)}</span>
           </label>
         ))}
       </div>

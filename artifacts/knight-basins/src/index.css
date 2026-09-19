@@ -1775,6 +1775,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-shape-wizard-depth, .studio-shape-wizard-leg { display: grid; gap: 5px; color: var(--ink-soft); font-size: 10px; }
 .studio-shape-wizard-depth input, .studio-shape-wizard-leg input { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid var(--line); outline: none; background: #fbfdfe; color: var(--ink); font: 11px var(--mono); }
 .studio-shape-wizard-leg input:focus, .studio-shape-wizard-depth input:focus { border-color: #2a9bd0; box-shadow: 0 0 0 2px rgba(42,155,208,.18); }
+.studio-wizard-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.studio-wizard-presets button { padding: 4px 8px; color: var(--ink-soft); background: #fbfdfe; border: 1px solid var(--line); font: 700 9px var(--mono); }
+.studio-wizard-presets button:hover { border-color: #2a9bd0; }
+.studio-wizard-presets button.is-active { color: white; background: #2a9bd0; border-color: #2a9bd0; }
 .studio-canvas-quickbar { display: none; }
 .studio-zoom-toolbar { display: flex; align-items: center; justify-content: end; gap: 7px; margin: 0 0 8px; color: var(--ink-soft); font-size: 10px; }
 .studio-zoom-toolbar strong { min-width: 42px; color: var(--brand-blue); font: 11px var(--mono); text-align: center; }
