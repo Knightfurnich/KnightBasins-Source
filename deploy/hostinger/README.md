@@ -1,92 +1,79 @@
 # Deploy Knight Basins to the shared Hostinger VPS
 
-This deployment contains a Vite React storefront plus an Express API and PostgreSQL-backed administration area. It can live on the same VPS as Knight Design without sharing its process, database, or document root.
+This deployment contains a Vite React storefront plus an Express API and PostgreSQL-backed administration area. It runs as two Docker containers (`knightbasins-api`, `knightbasins-web`) on the same VPS as Knight Design, sharing that VPS's Traefik reverse proxy and its `knightdesign-db` Postgres container (separate database, separate credentials) without sharing a process or document root.
 
-## 1. Build the production files
+## 1. Deployment is automatic via GitHub Actions
 
-Run from the repository root:
+Pushing to `main` on `Knightfurnich/KnightBasins-Source` triggers `.github/workflows/deploy.yml`, which:
 
-```bash
-pnpm install --frozen-lockfile
-PORT=22731 BASE_PATH=/ pnpm --filter @workspace/knight-basins run build
-pnpm --filter @workspace/api-server run build
-```
+1. Builds the storefront (`artifacts/knight-basins`) and the API (`artifacts/api-server`).
+2. Copies the built files over SCP to `/docker/knightbasins/web-dist/` and `/docker/knightbasins/api-dist/` on the VPS (`72.62.79.84`) using the `VPS_SSH_KEY` repository secret.
+3. Restarts the containers: `docker restart knightbasins-api knightbasins-web`.
 
-The storefront build is guarded for the Hostinger document root. Production
-must use `BASE_PATH=/` (or leave `BASE_PATH` unset). The build also inspects
-the generated `dist/public/index.html` and fails unless every JS/CSS reference
-starts with `/assets/`.
+There is no manual rsync/systemd step for a normal release — pushing to `main` is the deploy. The sections below are for the one-time VPS setup and for operators who need to work on the VPS directly.
 
-To demonstrate the guard, this command must fail before emitting a usable
-production build:
+## 2. VPS layout
 
-```bash
-PORT=22731 BASE_PATH=/knight-basins/ \
-  pnpm --filter @workspace/knight-basins run build
-# Error: [production-build] BASE_PATH must be "/" or unset ...
-```
-
-The normal production build must pass:
-
-```bash
-PORT=22731 BASE_PATH=/ \
-  pnpm --filter @workspace/knight-basins run build
-```
-
-The deployable files will be in:
+Everything for this app lives under `/docker/knightbasins/` on the VPS:
 
 ```text
-artifacts/knight-basins/dist/public/
-artifacts/api-server/dist/
+/docker/knightbasins/
+├── docker-compose.yml   # matches deploy/hostinger/docker-compose.yml in this repo
+├── nginx.conf           # matches deploy/hostinger/nginx.conf in this repo
+├── .env                 # real secrets; never committed (see below)
+├── api-dist/            # built by CI, mounted read-only into the api container
+├── web-dist/            # built by CI, mounted read-only into the web container
+└── uploads/              # runtime-uploaded catalog/sketch media (see cleanup below)
 ```
 
-Catalog and sketch uploads are runtime media stored in the API upload directory
-on the deployment host. They are not release assets and must never be committed
-under `artifacts/api-server/uploads/`. The browser upload test removes files it
-creates after each run, and the release check below reports any tracked upload
-path before it can be published.
+`docker-compose.yml` and `nginx.conf` in this repo are copies of what actually runs — keep them in sync if you change the VPS versions. The `web` container's nginx proxies `/api/` to the `api` container over the `hermes-agent-2xwn_default` Docker network (an external network shared with the Hermes Agent stack) and falls back to `index.html` for client-side routes such as `/stone` and `/quote`. TLS and the public hostname (`knightbasins.srv1964473.hstgr.cloud`) are handled entirely by Traefik via the labels on the `web` service — this repo's nginx config only listens on plain port 80.
 
-The API starts only after it has applied its idempotent catalog seed. The seed
-uses the catalog source in `artifacts/knight-basins/src/data/catalog.ts`, so the
-release and the database must come from the same commit.
-
-## 2. Copy the release to the VPS
-
-Create a separate document root. Do not copy over the Knight Design directory:
+To bring the stack up or recreate it after an `.env` change:
 
 ```bash
-sudo mkdir -p /var/www/knight-basins
-sudo chown -R "$USER":"$USER" /var/www/knight-basins
+cd /docker/knightbasins
+docker compose up -d --force-recreate api web
 ```
 
-From the project machine, copy the generated storefront, API bundle, and
-deployment helpers. The API bundle is self-contained. The deployment helpers
-include a PostgreSQL-only migration runner, so the VPS does not need Node,
-pnpm, or a source checkout to apply schema changes.
+## 3. Database
+
+`knight_basins` is a separate database inside the shared `knightdesign-db` Postgres 16 container (not a dedicated container of its own — this saves VPS resources). Provision the database and a non-superuser app role once, from the VPS:
 
 ```bash
-rsync -avz --delete artifacts/knight-basins/dist/public/ \
-  YOUR_VPS_USER@YOUR_VPS_HOST:/var/www/knight-basins/
-
-ssh YOUR_VPS_USER@YOUR_VPS_HOST \
-  'sudo mkdir -p /opt/knight-basins/artifacts/api-server/dist /opt/knight-basins/deploy/hostinger'
-rsync -avz --delete artifacts/api-server/dist/ \
-  YOUR_VPS_USER@YOUR_VPS_HOST:/opt/knight-basins/artifacts/api-server/dist/
-rsync -avz deploy/hostinger/ \
-  YOUR_VPS_USER@YOUR_VPS_HOST:/opt/knight-basins/deploy/hostinger/
+export KNIGHT_BASINS_DB_PASSWORD='choose-a-long-random-password'
+bash deploy/hostinger/provision-postgres.sh
+unset KNIGHT_BASINS_DB_PASSWORD
 ```
 
-Do not copy `.env` files or credentials. The systemd unit runs
-`deploy/hostinger/migrate.sh` as an `ExecStartPre` step before every API start
-or restart. It applies pending files from
-`deploy/hostinger/migrations/` in filename order and records completed files in
-`public.knight_basins_schema_migrations`. A migration failure prevents the API
-from starting with an incomplete schema.
+The script creates `knight_basins` and `knight_basins_app` by default, disallows superuser/role/database creation privileges, removes the public database and schema grants, and grants the app role only the permissions needed by Drizzle and the API. Override the names with `KNIGHT_BASINS_DB_NAME` and `KNIGHT_BASINS_DB_USER` if needed.
 
-For the Docker Compose deployment, run the same helper from the VPS host before
-recreating the API container. When `psql` is not installed on the host, the
-helper automatically uses a temporary PostgreSQL client container in the
-`knightbasins-api` network namespace:
+### `.env`
+
+Create `/docker/knightbasins/.env` (referenced by `docker-compose.yml`'s `env_file:`, readable only by root — never commit this file):
+
+```bash
+DATABASE_URL=postgresql://knight_basins_app:URL_ENCODED_PASSWORD@knightdesign-db:5432/knight_basins
+SESSION_SECRET=use-a-long-random-secret
+ADMIN_PASSWORD=use-a-strong-admin-password
+PORT=8080
+NODE_ENV=production
+LINE_CHANNEL_ID=your-line-channel-id
+LINE_CHANNEL_SECRET=your-line-channel-secret
+LINE_CALLBACK_URL=https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
+PUBLIC_UPLOAD_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud/api/uploads
+PUBLIC_APP_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud
+# Optional sales notification channel for submitted quotes/sketches.
+# Omit both to degrade gracefully ("saved, but not notified") instead of failing.
+NOTIFY_CHANNEL=telegram
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_SALES_CHAT_ID=your-telegram-chat-id
+```
+
+`DATABASE_URL` uses the Docker network hostname `knightdesign-db`, not `127.0.0.1` or `localhost` — the API and the database are different containers on the same Docker network. URL-encode any reserved characters in the password.
+
+### Applying schema migrations
+
+Run the migration helper from the VPS before recreating the API container. It does not require `psql` on the host — when missing, it automatically runs inside a temporary `postgres:16-alpine` container on the API container's network namespace:
 
 ```bash
 export KNIGHT_BASINS_API_CONTAINER=knightbasins-api
@@ -95,112 +82,15 @@ bash /docker/knightbasins/deploy/hostinger/migrate.sh
 unset KNIGHT_BASINS_API_CONTAINER KNIGHT_BASINS_API_ENV_FILE
 ```
 
-Run this before `docker compose up -d --force-recreate api web`. The migration
-container is removed automatically and never stores credentials in the
-repository.
+It applies pending files from `deploy/hostinger/migrations/` in filename order and records completed files in `public.knight_basins_schema_migrations`. Future schema changes must add one new, independently idempotent `.sql` file under `deploy/hostinger/migrations/`; never edit an already-applied migration.
 
-## 3. Add the Nginx site
-
-Copy `knightbasins.srv1964473.hstgr.cloud.nginx.conf` to:
-
-```text
-/etc/nginx/sites-available/knightbasins.srv1964473.hstgr.cloud
-```
-
-Enable it alongside the existing Knight Design site:
-
-```bash
-sudo ln -s /etc/nginx/sites-available/knightbasins.srv1964473.hstgr.cloud \
-  /etc/nginx/sites-enabled/knightbasins.srv1964473.hstgr.cloud
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-The `try_files` fallback is required so direct visits to `/stone` and `/quote` work after refresh.
-
-## 4. Configure PostgreSQL and apply the schema
-
-Install PostgreSQL and the client tools if the shared VPS image does not
-already include them. Then provision the separate database and non-superuser
-role. Run this on the VPS; the password is never stored in the repository:
-
-```bash
-export KNIGHT_BASINS_DB_PASSWORD='choose-a-long-random-password'
-bash /opt/knight-basins/deploy/hostinger/provision-postgres.sh
-unset KNIGHT_BASINS_DB_PASSWORD
-```
-
-The script creates `knight_basins` and `knight_basins_app` by default,
-disallows superuser/role/database creation privileges, removes the public
-database and schema grants, and grants the app role only the permissions
-needed by Drizzle and the API. Override the names with
-`KNIGHT_BASINS_DB_NAME` and `KNIGHT_BASINS_DB_USER` if needed.
-
-Create `/etc/knight-basins/api.env` with permissions readable only by root and
-the service account:
-
-```bash
-sudo install -d -m 0750 -o root -g www-data /etc/knight-basins
-sudo sh -c 'cat > /etc/knight-basins/api.env' <<'EOF'
-DATABASE_URL=postgresql://knight_basins_app:URL_ENCODED_PASSWORD@127.0.0.1:5432/knight_basins
-SESSION_SECRET=use-a-long-random-secret
-ADMIN_PASSWORD=use-a-strong-admin-password
-LINE_CHANNEL_ID=your-line-channel-id
-LINE_CHANNEL_SECRET=your-line-channel-secret
-LINE_CALLBACK_URL=https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
-# Optional; PUBLIC_UPLOAD_ORIGIN is also accepted for public quote links.
-PUBLIC_APP_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud
-EOF
-sudo chown root:www-data /etc/knight-basins/api.env
-sudo chmod 0640 /etc/knight-basins/api.env
-```
-
-URL-encode any reserved characters in the database password. After installing
-or updating the systemd unit, reload it before the first start or restart:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart knight-basins-api
-```
-
-The restart runs the migration runner before Node starts. The Docker Compose
-release command above runs the same migration runner before the containers are
-recreated. Future schema changes must add one new, independently idempotent
-`.sql` file under `deploy/hostinger/migrations/`; never edit an already-applied
-migration.
-
-The API seeds all current basin, installed-stone, and sheet-stone catalog rows
-before it starts listening. After starting it, `/api/catalog` is the
-read-only confirmation that the seed completed.
-
-The LINE Developers channel must use this exact callback URL:
-
-```text
-https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
-```
-
-The API reports LINE configuration state at `/api/healthz` without returning
-the channel ID or secret. In production, the endpoint returns HTTP 503 until
-the channel credentials and exact HTTPS callback URL are configured. For local
-development only, use this explicitly allowed callback instead:
-
-```text
-http://localhost:5000/api/auth/line/callback
-```
-
-Do not use the local callback in the production environment.
+The API seeds all current basin, installed-stone, and sheet-stone catalog rows on first start (idempotent — skips rows that already exist). The seed source is `artifacts/knight-basins/src/data/catalog.ts`, so a code change to that file does **not** retroactively update rows already seeded into a live database — fix already-seeded rows through the `/admin` panel (or a migration) instead. After starting the API, `/api/catalog` is the read-only confirmation that the seed completed.
 
 ### Uploaded product-photo cleanup
 
-By default, every successful image upload is retained for at least 24 hours.
-This gives an administrator time to save an edit or recover from a cancelled
-edit. The authenticated cleanup route then removes only generated `catalog-*`
-files older than the retention period that are not referenced by any basin,
-installed-stone, or sheet-stone row. It never removes central/static catalog
-media or a file still referenced by a catalog row.
+By default, every successful image upload is retained for at least 24 hours. This gives an administrator time to save an edit or recover from a cancelled edit. The authenticated cleanup route then removes only generated `catalog-*` files older than the retention period that are not referenced by any basin, installed-stone, or sheet-stone row. It never removes central/static catalog media or a file still referenced by a catalog row.
 
-Run the cleanup once a day from an operator machine or a protected scheduler.
-Keep the admin session cookie in a temporary file and remove it after the run:
+Run the cleanup once a day from an operator machine or a protected scheduler. Keep the admin session cookie in a temporary file and remove it after the run:
 
 ```bash
 set -euo pipefail
@@ -221,130 +111,72 @@ curl --fail --silent --show-error \
 printf '\n'
 ```
 
-Set `UPLOAD_RETENTION_HOURS` in the API environment to change the minimum
-retention period; invalid values and values below one hour use the 24-hour
-default. Do not run cleanup by deleting files directly: the route checks all
-three catalog tables before removing anything.
+Set `UPLOAD_RETENTION_HOURS` in the API environment to change the minimum retention period; invalid values and values below one hour use the 24-hour default. Do not run cleanup by deleting files directly: the route checks all three catalog tables before removing anything.
 
 ### Production-to-Development catalog sync
 
-The maintained catalog sync reads only the four approved catalog tables:
-`basin_categories`, `basin_prices`, `installed_stone_prices`, and
-`sheet_stone_prices`. It does not read or write leads, accounts, quotes, or
-sessions. The pre-write archive is also limited to those four tables.
+The maintained catalog sync reads only the four approved catalog tables: `basin_categories`, `basin_prices`, `installed_stone_prices`, and `sheet_stone_prices`. It does not read or write leads, accounts, quotes, or sessions. The pre-write archive is also limited to those four tables.
 
-Set separate PostgreSQL URLs in the operator environment. Do not put these
-URLs in a committed file:
+Set separate PostgreSQL URLs in the operator environment. Do not put these URLs in a committed file:
 
 ```bash
 export PRODUCTION_DATABASE_URL='postgresql://...'
 export DEVELOPMENT_DATABASE_URL='postgresql://...'
-export CATALOG_SYNC_BACKUP_DIR=/var/backups/knight-basins/catalog-sync
+export CATALOG_SYNC_BACKUP_DIR=/docker/backups/catalog-sync
 ```
 
-Always inspect the dry run first. It prints row counts and row-level
-differences matched by category name, basin SKU, or stone code:
+Always inspect the dry run first. It prints row counts and row-level differences matched by category name, basin SKU, or stone code:
 
 ```bash
 bash deploy/hostinger/catalog-sync.sh --dry-run
 ```
 
-After approving the differences, apply the sync. The command creates and
-validates a restrictive, catalog-only Development backup before opening one
-transaction. It includes inactive sheet stones, maps basin category IDs by
-category name, preserves Production media URLs, removes stale catalog rows,
-and checks that the committed state has no remaining differences:
+After approving the differences, apply the sync. The command creates and validates a restrictive, catalog-only Development backup before opening one transaction. It includes inactive sheet stones, maps basin category IDs by category name, preserves Production media URLs, removes stale catalog rows, and checks that the committed state has no remaining differences:
 
 ```bash
 bash deploy/hostinger/catalog-sync.sh --apply
 ```
 
-The operator flow has an explicit rollback check. It performs the same
-transaction against Development, forces an error, and verifies that the
-catalog is unchanged:
+The operator flow has an explicit rollback check. It performs the same transaction against Development, forces an error, and verifies that the catalog is unchanged:
 
 ```bash
 bash deploy/hostinger/catalog-sync.sh --rollback-test
 ```
 
-Run the isolated regression test from the repository root before changing the
-operator command:
+Run the isolated regression test from the repository root before changing the operator command:
 
 ```bash
 bash deploy/hostinger/catalog-sync.test.sh
 ```
 
-## 5. Install and verify the API service
+## 4. Backups
 
-```bash
-sudo mkdir -p /etc/knight-basins
-sudo cp deploy/hostinger/knight-basins-api.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now knight-basins-api
-sudo systemctl status knight-basins-api
-curl http://127.0.0.1:8080/api/healthz
-curl http://127.0.0.1:8080/api/catalog
-```
-
-The Nginx configuration proxies `/api/` to this service on localhost port 8080.
-
-## 6. Schedule backups and perform a restore check
-
-The backup service stores PostgreSQL custom-format archives protected by
-restrictive filesystem permissions under `/var/backups/knight-basins`,
-validates each archive before retaining it, and keeps 14 days by default. If
-the VPS requires encryption at rest, place the backup directory on the
-provider's encrypted volume or add host-managed encryption; the script does
-not claim to encrypt database contents.
-
-```bash
-sudo install -d -m 0700 /var/backups/knight-basins
-sudo cp deploy/hostinger/knight-basins-backup.service /etc/systemd/system/
-sudo cp deploy/hostinger/knight-basins-backup.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now knight-basins-backup.timer
-sudo systemctl start knight-basins-backup.service
-sudo systemctl list-timers knight-basins-backup.timer
-sudo bash /opt/knight-basins/deploy/hostinger/restore-check.sh
-```
-
-`restore-check.sh` restores the newest archive into a temporary local
-database, checks all three catalog tables, and drops the temporary database
-when it exits. Run it after the first backup and whenever the backup or
-PostgreSQL setup changes.
-
-## 7. Point DNS and enable HTTPS
-
-Create an `A` record:
+A daily cron job on the VPS host (root's crontab, **not** a systemd timer) runs `/docker/backups/backup-postgres.sh` — a copy of `deploy/hostinger/backup.sh` in this repo:
 
 ```text
-knightbasins.srv1964473.hstgr.cloud -> YOUR_VPS_IP
+0 19 * * * /docker/backups/backup-postgres.sh >> /var/log/knight-backup.log 2>&1
 ```
 
-After DNS resolves, install the certificate without changing the Knight Design server block:
+(19:00 UTC = 02:00 Asia/Bangkok.) It runs `pg_dumpall` inside the shared `knightdesign-db` container, authenticating with that container's own `$POSTGRES_USER` environment variable (the password is never read, printed, or stored by the script or by cron), and writes a gzip-compressed **plain-SQL** dump to `/docker/backups/postgres-all-<timestamp>.sql.gz`. This backs up the entire shared Postgres instance — both `knight_basins` and Knight Design's own database — not Knight Basins alone. Backups older than 14 days are deleted automatically.
+
+Restore a backup with:
 
 ```bash
-sudo certbot --nginx -d knightbasins.srv1964473.hstgr.cloud
+gunzip -c /docker/backups/postgres-all-<timestamp>.sql.gz | \
+  docker exec -i knightdesign-db sh -c 'psql -U "$POSTGRES_USER"'
 ```
 
-Confirm renewal:
+Verify a backup actually restores with `restore-check.sh`. It never touches the live `knightdesign-db` container: it starts a disposable `postgres:16-alpine` container with no persistent volume, restores the newest (or a given) `postgres-all-*.sql.gz` archive into it with `psql`, checks the three catalog tables in `knight_basins`, then destroys the container:
 
 ```bash
-sudo certbot renew --dry-run
+bash deploy/hostinger/restore-check.sh
 ```
 
-Confirm the public endpoints after DNS and TLS are active:
+Run it after the first backup, whenever the backup script or the shared Postgres container changes, and periodically thereafter — a backup that has never been restore-tested is not a verified backup.
 
-```bash
-curl --fail https://knightbasins.srv1964473.hstgr.cloud/api/healthz
-curl --fail https://knightbasins.srv1964473.hstgr.cloud/api/catalog
-```
+## 5. Release validation gate
 
-## 8. Run the release validation gate
-
-Run this as the final validation step after every API deployment, LINE
-environment change, or Nginx/TLS change. This is a release gate, not an
-optional smoke check:
+Run this as the final validation step after every API deployment, LINE environment change, or nginx/TLS change. This is a release gate, not an optional smoke check:
 
 ```bash
 set -euo pipefail
@@ -352,12 +184,7 @@ BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \
   bash deploy/hostinger/check-line-login.sh
 ```
 
-The command exits non-zero and must stop the release when production health is
-degraded, the login endpoint does not return an authorization redirect with the
-exact production callback, or the callback route is unavailable. Do not append
-`|| true`, continue after a failure, or mark the release complete until this
-command succeeds. The check only logs status and fixed diagnostic messages; it
-does not print the LINE channel ID, channel secret, or response body.
+The command exits non-zero and must stop the release when production health is degraded, the login endpoint does not return an authorization redirect with the exact production callback, or the callback route is unavailable. Do not append `|| true`, continue after a failure, or mark the release complete until this command succeeds. The check only logs status and fixed diagnostic messages; it does not print the LINE channel ID, channel secret, or response body.
 
 Before publishing a release commit, run the repository upload guard:
 
@@ -365,36 +192,24 @@ Before publishing a release commit, run the repository upload guard:
 bash deploy/hostinger/check-upload-files.sh
 ```
 
-It exits non-zero and lists every unexpected tracked path under
-`artifacts/api-server/uploads/`. Do not bypass the check; remove test fixtures
-from Git and keep production uploads on the deployment host.
+It exits non-zero and lists every unexpected tracked path under `artifacts/api-server/uploads/`. Do not bypass the check; remove test fixtures from Git and keep production uploads on the deployment host.
 
-The release-validation workflow runs this guard on pull requests, pushes to
-`main`, and manual dispatch before a release can proceed. Its regression test
-also confirms that an untracked deployment-host upload is allowed while a
-tracked upload fails and reports its path:
+The release-validation workflow (`.github/workflows/release-validation.yml`) runs this guard on pull requests, pushes to `main`, and manual dispatch before a release can proceed. Its regression test also confirms that an untracked deployment-host upload is allowed while a tracked upload fails and reports its path:
 
 ```bash
 bash deploy/hostinger/check-upload-files.test.sh
 ```
 
-Run the web asset gate after copying the storefront and reloading Nginx. It
-fetches `/`, extracts the JavaScript URL with Python 3's standard library, then
-requires a `/assets/` path, HTTP 200, a JavaScript content type, and a non-HTML
-response body. This catches both a real 404 and the more subtle case where an
-SPA fallback returns `index.html` with HTTP 200. The checker requires only
-`bash`, `curl`, and `python3`; it does not require Node.js:
+Run the web asset gate after a deploy. It fetches `/`, extracts the JavaScript URL with Python 3's standard library, then requires a `/assets/` path, HTTP 200, a JavaScript content type, and a non-HTML response body. This catches both a real 404 and the more subtle case where an SPA fallback returns `index.html` with HTTP 200. The checker requires only `bash`, `curl`, and `python3`; it does not require Node.js:
 
 ```bash
 BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \
   bash deploy/hostinger/check-web-assets.sh
 ```
 
-The command exits non-zero on a missing asset, an HTML fallback, or a
-non-JavaScript `Content-Type`. Run it before the final production smoke test.
+The command exits non-zero on a missing asset, an HTML fallback, or a non-JavaScript `Content-Type`. Run it before the final production smoke test.
 
-Set `BASE_URL` when validating a different public endpoint that is configured
-to use the same production callback:
+Set `BASE_URL` when validating a different public endpoint that is configured to use the same production callback:
 
 ```bash
 BASE_URL=https://YOUR_PUBLIC_HTTPS_HOST \
@@ -403,14 +218,9 @@ BASE_URL=https://YOUR_PUBLIC_HTTPS_HOST \
 
 ## Notes
 
-- This site uses its own Nginx `server_name` and `/var/www/knight-basins` root.
-- Do not stop or replace the existing Knight Design process.
+- This app has its own Docker containers, its own database, and its own Traefik router rule — it does not share a process with Knight Design, only the VPS, the Traefik instance, and the Postgres server (as separate databases).
+- Do not stop or replace the Knight Design containers (`knightdesign-web`, `knightdesign-api`, `knightdesign-db`) while working on Knight Basins — `knightdesign-db` is a shared dependency.
 - The API server is required for current catalog prices and `/admin`.
-- Keep `/etc/knight-basins/api.env` outside the repository and back up the PostgreSQL database regularly.
-- Keep PostgreSQL listening on localhost unless the VPS has a documented need
-  for remote database access. Verify with
-  `sudo -u postgres psql -Atc 'SHOW listen_addresses'`.
-- If the VPS uses a Node installation outside `/usr/bin/node`, update
-  `ExecStart` in the systemd unit to that absolute Node path; do not use an
-  interactive shell or an NVM-dependent command in systemd.
+- Keep `/docker/knightbasins/.env` outside the repository.
+- `deploy/hostinger/knight-basins-api.service`, `knight-basins-backup.service`, and `knight-basins-backup.timer` (systemd units) and the old host-level nginx `sites-available` config **no longer exist in this repo** — an earlier version of this deployment ran on bare systemd/nginx instead of Docker + Traefik; they were removed once the Docker Compose setup became the real, actually-running deployment, to avoid anyone following stale instructions.
 - Do not put VPS passwords, private keys, or database credentials in this repository or in chat.

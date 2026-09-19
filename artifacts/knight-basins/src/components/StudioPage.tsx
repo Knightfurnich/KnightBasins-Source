@@ -47,6 +47,7 @@ import {
   studioStoneName,
   studioStateDimensionsValid,
   mirrorStudioLState,
+  mirrorStudioPiece,
   studioPieces as getStudioPieces,
   STUDIO_MAX_PIECES,
   STUDIO_MAX_RECTANGLES,
@@ -225,40 +226,148 @@ function numericValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-type StudioPreset = "i" | "l" | "u";
+type StudioPreset = "i" | "l-left" | "l-right" | "u";
 
-const studioPresetCopy: Record<StudioPreset, { label: string; description: string }> = {
-  i: { label: "📐 ทรงตรง", description: "I-Shape · 1500 × 600 มม." },
-  l: { label: "📐 ทรงฉาก L", description: "L-Shape · 2 แผ่น · 1500 × 1200 มม." },
-  u: { label: "📐 ทรงตัวยู", description: "U-Shape · 1500 × 1800 มม." },
+const WIZARD_PIECE_ID = "wizard-piece-main";
+
+const studioPresetLabels: Record<StudioPreset, string> = {
+  i: "📐 ทรงตรง (I)",
+  "l-left": "📐 ทรงฉาก L ซ้าย",
+  "l-right": "📐 ทรงฉาก L ขวา",
+  u: "📐 ทรงตัวยู (U)",
 };
 
-function createPresetPiece(preset: StudioPreset): StudioPiece {
-  const rectangles = preset === "i"
-    ? [makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นหลัก" })]
-    : preset === "u"
-      ? [
-        makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นฐาน" }),
-        makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, label: "แผ่นซ้าย" }),
-        makeRectangle(2, { widthMm: 600, lengthMm: 1200, xMm: 900, yMm: 600, label: "แผ่นขวา" }),
-      ]
-    : [
-      makeRectangle(0, { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นบน" }),
-      makeRectangle(1, { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, label: "แผ่นซ้าย" }),
-    ];
-  return { id: `piece-${Date.now()}-preset`, name: preset === "i" ? "ชิ้นงานตรง" : preset === "u" ? "ชิ้นงานตัวยู" : "ชิ้นงานฉากซ้าย", rectangles, sideStatuses: {} };
+function presetLegDefaults(preset: StudioPreset): number[] {
+  if (preset === "i") return [1500];
+  if (preset === "u") return [1500, 1200, 1200];
+  return [1500, 1200];
 }
 
-function studioStateWithPreset(state: StudioState, preset: StudioPreset): StudioState {
-  const piece = createPresetPiece(preset);
-  return {
-    ...state,
-    shape: preset === "i" ? "I" : preset === "u" ? "U" : "L",
-    dimensions: { depthMm: 600, runAMm: 1500, runBMm: preset === "i" ? 0 : 1200, runCMm: preset === "u" ? 1200 : 0 },
-    pieces: [piece],
-    activePieceId: piece.id,
-    basinPlacements: [],
+function presetLegLabels(preset: StudioPreset): string[] {
+  if (preset === "i") return ["แผ่นที่ 1"];
+  if (preset === "u") return ["แผ่นที่ 1 (หลัง)", "แผ่นที่ 2 (ซ้าย)", "แผ่นที่ 3 (ขวา)"];
+  return preset === "l-left" ? ["แผ่นที่ 1 (บน)", "แผ่นที่ 2 (ซ้าย)"] : ["แผ่นที่ 1 (บน)", "แผ่นที่ 2 (ขวา)"];
+}
+
+/** Builds the wizard's single piece from a shape preset + per-leg lengths + shared depth.
+ * Geometry matches the original fixed-size preset buttons: the back run sits at
+ * the top, side legs hang down starting right where the back run ends (no overlap).
+ * Takes the target piece's id explicitly so callers can keep the id the piece already
+ * had (preserving any basin placements already tied to it) instead of resetting it. */
+function buildWizardPiece(pieceId: string, preset: StudioPreset, legs: number[], depthMm: number): StudioPiece {
+  const depth = Math.max(1, depthMm);
+  const runA = Math.max(1, legs[0] ?? 1500);
+  let rectangles: StudioRectangle[];
+  if (preset === "i") {
+    rectangles = [{ id: "wizard-leg-0", widthMm: runA, lengthMm: depth, xMm: 0, yMm: 0, rotation: 0, label: "แผ่นที่ 1" }];
+  } else if (preset === "u") {
+    const runB = Math.max(1, legs[1] ?? 1200);
+    const runC = Math.max(1, legs[2] ?? 1200);
+    rectangles = [
+      { id: "wizard-leg-0", widthMm: runA, lengthMm: depth, xMm: 0, yMm: 0, rotation: 0, label: "แผ่นที่ 1" },
+      { id: "wizard-leg-1", widthMm: depth, lengthMm: runB, xMm: 0, yMm: depth, rotation: 0, label: "แผ่นที่ 2" },
+      { id: "wizard-leg-2", widthMm: depth, lengthMm: runC, xMm: Math.max(0, runA - depth), yMm: depth, rotation: 0, label: "แผ่นที่ 3" },
+    ];
+  } else {
+    const runB = Math.max(1, legs[1] ?? 1200);
+    rectangles = [
+      { id: "wizard-leg-0", widthMm: runA, lengthMm: depth, xMm: 0, yMm: 0, rotation: 0, label: "แผ่นที่ 1" },
+      { id: "wizard-leg-1", widthMm: depth, lengthMm: runB, xMm: 0, yMm: depth, rotation: 0, label: "แผ่นที่ 2" },
+    ];
+  }
+  const piece: StudioPiece = { id: pieceId, name: "ชิ้นงานหลัก", rectangles, sideStatuses: {} };
+  return preset === "l-right" ? mirrorStudioPiece(piece) : piece;
+}
+
+function StudioShapeWizard({
+  state,
+  setState,
+  activeLegRectangleId,
+  setActiveLegRectangleId,
+}: {
+  state: StudioState;
+  setState: Dispatch<SetStateAction<StudioState>>;
+  activeLegRectangleId: string | null;
+  setActiveLegRectangleId: Dispatch<SetStateAction<string | null>>;
+}) {
+  const [preset, setPreset] = useState<StudioPreset>("i");
+  const [legs, setLegs] = useState<number[]>(presetLegDefaults("i"));
+  const [depthMm, setDepthMm] = useState(600);
+
+  const applyGeometry = (nextPreset: StudioPreset, nextLegs: number[], nextDepth: number, resetBasins: boolean) => {
+    setState((current) => {
+      const existingPieces = getStudioPieces(current);
+      // Reuse the current main piece's id (falling back to the sentinel only when
+      // there isn't one yet) so basin placements already tied to it stay attached
+      // instead of being silently orphaned.
+      const pieceId = existingPieces[0]?.id ?? WIZARD_PIECE_ID;
+      const piece = buildWizardPiece(pieceId, nextPreset, nextLegs, nextDepth);
+      return {
+        ...current,
+        shape: nextPreset === "i" ? "I" : nextPreset === "u" ? "U" : "L",
+        dimensions: { depthMm: nextDepth, runAMm: nextLegs[0] ?? 0, runBMm: nextLegs[1] ?? 0, runCMm: nextLegs[2] ?? 0 },
+        pieces: [piece, ...existingPieces.slice(1)],
+        activePieceId: piece.id,
+        basinPlacements: resetBasins
+          ? current.basinPlacements.filter((placement) => (placement.pieceId ?? pieceId) !== pieceId)
+          : current.basinPlacements,
+      };
+    });
   };
+
+  const selectPreset = (next: StudioPreset) => {
+    const defaults = presetLegDefaults(next);
+    setPreset(next);
+    setLegs(defaults);
+    setActiveLegRectangleId(null);
+    applyGeometry(next, defaults, depthMm, true);
+  };
+
+  const updateLeg = (index: number, value: number) => {
+    const next = legs.map((leg, i) => (i === index ? value : leg));
+    setLegs(next);
+    applyGeometry(preset, next, depthMm, false);
+  };
+
+  const updateDepth = (value: number) => {
+    setDepthMm(value);
+    applyGeometry(preset, legs, value, false);
+  };
+
+  const legLabels = presetLegLabels(preset);
+
+  return (
+    <div className="studio-shape-wizard">
+      <div className="studio-preset-actions">
+        {(["i", "l-left", "l-right", "u"] as StudioPreset[]).map((option) => (
+          <button type="button" key={option} className={`button button--outline studio-preset-button ${preset === option ? "is-active" : ""}`} onClick={() => selectPreset(option)} data-testid={`button-studio-preset-${option}`}>
+            <span>{studioPresetLabels[option]}</span>
+          </button>
+        ))}
+      </div>
+      <div className="studio-shape-wizard-fields">
+        <label className="studio-shape-wizard-depth">
+          ความลึกเคาน์เตอร์ (มม.)
+          <input type="number" min={1} value={depthMm} onChange={(event) => updateDepth(numericValue(event.target.value, depthMm))} data-testid="input-studio-wizard-depth" />
+        </label>
+        {legLabels.map((label, index) => (
+          <label key={index} className="studio-shape-wizard-leg">
+            {label} (มม.)
+            <input
+              type="number"
+              min={1}
+              value={legs[index] ?? 0}
+              onFocus={() => setActiveLegRectangleId(`wizard-leg-${index}`)}
+              onBlur={() => setActiveLegRectangleId((current) => (current === `wizard-leg-${index}` ? null : current))}
+              onChange={(event) => updateLeg(index, numericValue(event.target.value, legs[index] ?? 0))}
+              data-testid={`input-studio-wizard-leg-${index}`}
+            />
+          </label>
+        ))}
+      </div>
+      <p className="studio-helper">กรอกความยาวแต่ละแผ่น · แผ่นที่กำลังกรอกอยู่จะไฮไลต์ในภาพด้านล่าง</p>
+    </div>
+  );
 }
 
 const SMALL_RECTANGLE_STANDARD_MM = 400;
@@ -560,6 +669,22 @@ function StudioPieceEditorLegacy({
   </section>;
 }
 
+/** .studio-canvas-stage fills the same box as .studio-canvas (inset: 0) and is
+ * scaled by `zoom` from its own center (transform-origin: center), so a screen
+ * point must be measured from the canvas rect's center and un-scaled by `zoom`
+ * before it maps onto the unscaled mm coordinate system. Shared by every
+ * pointer/drag handler that converts a screen coordinate into piece-space mm. */
+function zoomAwareCanvasPoint(rect: DOMRect, clientX: number, clientY: number, zoom: number, bounds: { widthMm: number; heightMm: number }) {
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const localX = rect.width / 2 + (clientX - centerX) / zoom;
+  const localY = rect.height / 2 + (clientY - centerY) / zoom;
+  return {
+    xMm: (localX / Math.max(1, rect.width)) * bounds.widthMm,
+    yMm: (localY / Math.max(1, rect.height)) * bounds.heightMm,
+  };
+}
+
 function StudioPieceEditor({
   piece,
   state,
@@ -570,6 +695,7 @@ function StudioPieceEditor({
   selectedRectangleId,
   setSelectedRectangleId,
   basinProducts,
+  highlightRectangleId = null,
 }: {
   piece: StudioPiece;
   state: StudioState;
@@ -580,6 +706,7 @@ function StudioPieceEditor({
   selectedRectangleId: string | null;
   setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
   basinProducts: ReadonlyArray<BasinProduct>;
+  highlightRectangleId?: string | null;
 }) {
   const overlaps = pieceOverlapWarnings(piece);
   const bounds = pieceBounds(piece);
@@ -589,11 +716,7 @@ function StudioPieceEditor({
   const canvasPoint = (event: ReactPointerEvent<HTMLElement>) => {
     const canvas = event.currentTarget.closest(".studio-canvas");
     if (!(canvas instanceof HTMLElement)) return null;
-    const rect = canvas.getBoundingClientRect();
-    return {
-      xMm: ((event.clientX - rect.left) / Math.max(1, rect.width)) * bounds.widthMm,
-      yMm: ((event.clientY - rect.top) / Math.max(1, rect.height)) * bounds.heightMm,
-    };
+    return zoomAwareCanvasPoint(canvas.getBoundingClientRect(), event.clientX, event.clientY, zoom, bounds);
   };
   const beginPointerDrag = (event: ReactPointerEvent<HTMLElement>, kind: "rectangle" | "placement", id: string) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -650,13 +773,13 @@ function StudioPieceEditor({
     const snapped = snapStudioRectanglePosition(current, rectangleId, xMm, yMm);
     return { ...current, rectangles: current.rectangles.map((rectangle) => rectangle.id === rectangleId ? { ...rectangle, ...snapped } : rectangle) };
   });
+  const dropPoint = (event: DragEvent<HTMLDivElement>) =>
+    zoomAwareCanvasPoint(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY, zoom, bounds);
   const drop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const rect = event.currentTarget.getBoundingClientRect();
     const rectangleId = event.dataTransfer.getData("application/x-studio-rectangle");
     if (rectangleId) {
-      const canvasX = ((event.clientX - rect.left) / rect.width) * bounds.widthMm;
-      const canvasY = ((event.clientY - rect.top) / rect.height) * bounds.heightMm;
+      const { xMm: canvasX, yMm: canvasY } = dropPoint(event);
       const moving = piece.rectangles.find((rectangle) => rectangle.id === rectangleId);
       if (moving) {
         setSelectedRectangleId(rectangleId);
@@ -669,8 +792,9 @@ function StudioPieceEditor({
     if (placementId) {
       const moving = state.basinPlacements.find((placement) => placement.id === placementId);
       if (!moving) return;
-      const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (moving.widthMm ?? 0) / 2;
-      const yMm = ((event.clientY - rect.top) / rect.height) * bounds.heightMm - (moving.depthMm ?? 0) / 2;
+      const { xMm: dropX, yMm: dropY } = dropPoint(event);
+      const xMm = dropX - (moving.widthMm ?? 0) / 2;
+      const yMm = dropY - (moving.depthMm ?? 0) / 2;
       setSelectedPlacementId(placementId);
       setState((current) => ({
         ...current,
@@ -684,8 +808,9 @@ function StudioPieceEditor({
     const product = basinProducts.find((item) => item.sku === sku);
     if (!product || !state.basinSkus.includes(sku)) return;
     const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id);
-    const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (placement.widthMm ?? 0) / 2;
-    const yMm = ((event.clientY - rect.top) / rect.height) * bounds.heightMm - (placement.depthMm ?? 0) / 2;
+    const { xMm: dropX, yMm: dropY } = dropPoint(event);
+    const xMm = dropX - (placement.widthMm ?? 0) / 2;
+    const yMm = dropY - (placement.depthMm ?? 0) / 2;
     const size = placement.widthMm !== null && placement.depthMm !== null ? { xMm, yMm } : { xMm: 0, yMm: 0 };
     setSelectedPlacementId(placement.id);
     setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, { ...placement, ...size }] }));
@@ -735,7 +860,7 @@ function StudioPieceEditor({
     </div>
     <div className="studio-piece-workspace">
       <div className="studio-piece-canvas-column">
-        <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+        <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} highlightRectangleId={highlightRectangleId} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
           {placements.map((placement) => {
             const unknown = placement.widthMm === null || placement.depthMm === null;
             const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
@@ -808,27 +933,15 @@ function StudioCanvas({
   basinProducts: ReadonlyArray<BasinProduct>;
 }) {
   const pieces = getStudioPieces(state);
-  const applyPreset = (preset: StudioPreset) => {
-    setState((current) => studioStateWithPreset(current, preset));
-    setSelectedPlacementId(null);
-    setSelectedRectangleId(null);
-  };
+  const [activeLegRectangleId, setActiveLegRectangleId] = useState<string | null>(null);
   const mirrorL = () => {
     setState((current) => mirrorStudioLState(current));
   };
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading"><div><p className="eyebrow">03 / RECTANGLE WORKPIECES</p><h3>ประกอบผังจากสี่เหลี่ยม</h3></div><span>{pieces.length} / {STUDIO_MAX_PIECES} ชิ้นงาน</span></div>
-    <p className="studio-helper">แต่ละชิ้นงานมีได้สูงสุด 6 แผ่น · ขอบที่ชนกันจะแสดงเส้นประและข้อความต้องได้ฉาก 90° · แผ่นซ้อนกันจะแจ้งเตือน</p>
-    <div className="studio-canvas-toolbar">
-      <div>
-        <strong>เริ่มจากทรงสำเร็จรูป</strong>
-        <small>กดครั้งเดียวเพื่อล้างผังเดิมและสร้างขนาดมาตรฐาน</small>
-      </div>
-      <div className="studio-preset-actions">
-        {(Object.keys(studioPresetCopy) as StudioPreset[]).map((preset) => <button type="button" key={preset} className="button button--outline studio-preset-button" onClick={() => applyPreset(preset)} data-testid={`button-studio-preset-${preset}`}><span>{studioPresetCopy[preset].label}</span><small>{studioPresetCopy[preset].description}</small></button>)}
-      </div>
-      {state.shape === "L" && state.pieces && state.pieces.length > 0 && <button type="button" className="button button--outline studio-mirror-button" onClick={mirrorL} data-testid="button-studio-mirror-l"><RotateCw size={14} /> สลับข้าง L (ซ้าย ↔ ขวา)</button>}
-    </div>
+    <p className="studio-helper">เลือกทรงแล้วกรอกขนาดแต่ละแผ่น · ขอบที่ชนกันจะแสดงเส้นประและข้อความต้องได้ฉาก 90° · แผ่นซ้อนกันจะแจ้งเตือน</p>
+    <StudioShapeWizard state={state} setState={setState} activeLegRectangleId={activeLegRectangleId} setActiveLegRectangleId={setActiveLegRectangleId} />
+    {state.shape === "L" && state.pieces && state.pieces.length > 0 && <button type="button" className="button button--outline studio-mirror-button" onClick={mirrorL} data-testid="button-studio-mirror-l"><RotateCw size={14} /> สลับข้าง L (ซ้าย ↔ ขวา)</button>}
     <div className="studio-zoom-toolbar" aria-label="ควบคุมการซูมผัง 2D">
       <span>ขยายผัง 2D</span>
       <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.max(.75, Math.round((current - .25) * 100) / 100))} aria-label="ซูมออก" data-testid="button-studio-zoom-out"><Minus size={15} /></button>
@@ -836,7 +949,7 @@ function StudioCanvas({
       <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.min(2, Math.round((current + .25) * 100) / 100))} aria-label="ซูมเข้า" data-testid="button-studio-zoom-in"><Plus size={15} /></button>
       <button type="button" className="button button--outline" onClick={() => setZoom(1)} data-testid="button-studio-zoom-reset">100%</button>
     </div>
-    <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} zoom={zoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} />)}</div>
+    <div className="studio-piece-list">{pieces.map((piece) => <StudioPieceEditor key={piece.id} piece={piece} state={state} setState={setState} zoom={zoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} highlightRectangleId={activeLegRectangleId} />)}</div>
     <button type="button" className="button button--outline" disabled={pieces.length >= STUDIO_MAX_PIECES} onClick={() => setState((current) => ({ ...current, pieces: [...getStudioPieces(current), makePiece(getStudioPieces(current).length)] }))} data-testid="button-add-studio-piece"><Plus size={15} /> เพิ่มชิ้นงาน</button>
   </section>;
 }

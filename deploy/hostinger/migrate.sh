@@ -6,7 +6,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 if ! command -v psql >/dev/null 2>&1; then
   if [[ "${KNIGHT_BASINS_MIGRATION_IN_CONTAINER:-0}" != "1" ]] && command -v docker >/dev/null 2>&1; then
     api_container="${KNIGHT_BASINS_API_CONTAINER:-knightbasins-api}"
-    api_env_file="${KNIGHT_BASINS_API_ENV_FILE:-/etc/knight-basins/api.env}"
+    api_env_file="${KNIGHT_BASINS_API_ENV_FILE:-/docker/knightbasins/.env}"
     migration_image="${KNIGHT_BASINS_MIGRATION_IMAGE:-postgres:16-alpine}"
     if [[ ! -r "$api_env_file" ]]; then
       echo "Set KNIGHT_BASINS_API_ENV_FILE to the Docker API env file readable by the deploy user" >&2

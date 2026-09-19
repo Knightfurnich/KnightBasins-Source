@@ -1,46 +1,35 @@
 #!/usr/bin/env bash
+# Deployed on the VPS at /docker/backups/backup-postgres.sh and run daily by
+# root's crontab: 0 19 * * * /docker/backups/backup-postgres.sh >> /var/log/knight-backup.log 2>&1
+# (19:00 UTC = 02:00 Asia/Bangkok)
+#
+# This backs up the ENTIRE Postgres instance (pg_dumpall) inside the shared
+# knightdesign-db container -- both the knight_basins database and Knight
+# Design's own database -- not just Knight Basins alone. It authenticates as
+# $POSTGRES_USER using that container's own environment, so no password is
+# read, printed, or stored by this script or by cron.
+#
+# Output is a plain-SQL dump (gzip-compressed), restorable with:
+#   gunzip -c postgres-all-<timestamp>.sql.gz | docker exec -i knightdesign-db \
+#     sh -c 'psql -U "$POSTGRES_USER"'
+# This is NOT a pg_dump --format=custom archive, so pg_restore does not apply
+# here -- see the note in restore-check.sh.
 set -Eeuo pipefail
 
-ENV_FILE="${ENV_FILE:-/etc/knight-basins/api.env}"
-BACKUP_DIR="${BACKUP_DIR:-/var/backups/knight-basins}"
+BACKUP_DIR="${BACKUP_DIR:-/docker/backups}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
+DB_CONTAINER="${DB_CONTAINER:-knightdesign-db}"
 
-if [[ ! -r "$ENV_FILE" ]]; then
-  echo "Cannot read $ENV_FILE" >&2
-  exit 1
-fi
-
-# The env file is root-controlled and contains shell-compatible KEY=value
-# entries. Do not use this with an untrusted file.
-set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-set +a
-
-if [[ -z "${DATABASE_URL:-}" ]]; then
-  echo "DATABASE_URL is missing from $ENV_FILE" >&2
-  exit 1
-fi
-
-install -d -m 0700 "$BACKUP_DIR"
+mkdir -p "$BACKUP_DIR"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-target="$BACKUP_DIR/knight-basins-$timestamp.dump"
+target="$BACKUP_DIR/postgres-all-$timestamp.sql.gz"
 partial="$target.part"
 trap 'rm -f "$partial"' EXIT
 
-pg_dump \
-  --format=custom \
-  --no-owner \
-  --no-acl \
-  --file="$partial" \
-  "$DATABASE_URL"
-
-# Validate the archive before making it visible as a completed backup.
-pg_restore --list "$partial" >/dev/null
+docker exec "$DB_CONTAINER" sh -c 'pg_dumpall -U "$POSTGRES_USER"' | gzip > "$partial"
 mv "$partial" "$target"
-chmod 0600 "$target"
 
-find "$BACKUP_DIR" -type f -name 'knight-basins-*.dump' \
+find "$BACKUP_DIR" -type f -name 'postgres-all-*.sql.gz' \
   -mtime "+$RETENTION_DAYS" -delete
 
-echo "Created and validated $target"
+echo "Created $target"

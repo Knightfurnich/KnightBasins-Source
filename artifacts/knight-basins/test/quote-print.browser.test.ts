@@ -571,7 +571,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "Studio preset canvas",
     );
 
-    await clickTestId(browser.page, "button-studio-preset-l");
+    await clickTestId(browser.page, "button-studio-preset-l-left");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid^="select-studio-rectangle-"] option:nth-child(2)\') !== null'),
       Boolean,
@@ -615,9 +615,8 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       ys: [...document.querySelectorAll('[data-testid^="input-rectangle-y-"]')].map((input) => input.value),
     }))()`);
     assert.deepEqual(rightPreset, { xs: ["900"], ys: ["600"] });
-    assert.equal(await browser.page.evaluate('document.querySelectorAll(\'[data-testid^="button-studio-preset-"]\').length'), 3);
-    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-preset-l-left"]\') === null'), true);
-    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-preset-l-right"]\') === null'), true);
+    assert.equal(await browser.page.evaluate('document.querySelectorAll(\'[data-testid^="button-studio-preset-"]\').length'), 4);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-preset-l-right"]\') !== null'), true);
 
     await clickTestId(browser.page, "button-studio-preset-u");
     await waitFor(

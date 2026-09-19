@@ -17,6 +17,7 @@ type StudioFootprintProps = {
   ariaLabel?: string;
   unsafe?: boolean;
   zoom?: number;
+  highlightRectangleId?: string | null;
   onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void;
   onDrop?: (event: React.DragEvent<HTMLDivElement>) => void;
   children?: ReactNode;
@@ -63,6 +64,7 @@ export function StudioFootprint({
   ariaLabel,
   unsafe = false,
   zoom = 1,
+  highlightRectangleId = null,
   onDragOver,
   onDrop,
   children,
@@ -82,7 +84,7 @@ export function StudioFootprint({
         {piece.rectangles.map((rectangle) => (
           <div
             key={rectangle.id}
-            className="studio-piece-rectangle"
+            className={`studio-piece-rectangle ${rectangle.id === highlightRectangleId ? "studio-piece-rectangle--highlight" : ""}`}
             style={rectangleStyle(piece, rectangle, bounds)}
             aria-label={`${rectangle.widthMm} × ${rectangle.lengthMm} mm`}
           >
