@@ -159,10 +159,6 @@ export type StudioEstimate = {
 
 export const STUDIO_MAX_PIECES = 3;
 export const STUDIO_MAX_RECTANGLES = 6;
-export const STUDIO_MAX_STONE_COLORS = 3;
-export const STUDIO_MIN_STONE_COLORS = 2;
-export const STUDIO_MAX_BASINS = 2;
-export const STUDIO_MIN_BASINS = 1;
 export const STUDIO_SNAP_DISTANCE_MM = 12;
 const STUDIO_EPSILON_MM = 0.01;
 
@@ -959,11 +955,7 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
     disconnectedRectangles,
     discountInvalid,
     warnings,
-    isValid: state.stoneColors.length >= STUDIO_MIN_STONE_COLORS &&
-      state.stoneColors.length <= STUDIO_MAX_STONE_COLORS &&
-      state.basinSkus.length >= STUDIO_MIN_BASINS &&
-      state.basinSkus.length <= STUDIO_MAX_BASINS &&
-      state.basinPlacements.length >= state.basinSkus.length &&
+    isValid: state.basinPlacements.length >= state.basinSkus.length &&
       price !== null &&
       !openEdgePriceInvalid &&
       !upstandHeightInvalid &&
@@ -985,7 +977,7 @@ export function studioSubmissionValidationMessage(
 ) {
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
-  if (state.basinPlacements.length === 0) return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง";
+  if (state.basinSkus.length > 0 && state.basinPlacements.length === 0) return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง";
   if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
   if (estimate.unknownDimensionPlacements.length > 0) return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
   if (estimate.inactiveBasinSkus.length > 0) return "มีอ่างที่ไม่เปิดใช้งานในแบบร่าง กรุณาเปลี่ยนรุ่นหรือนำออกก่อนส่งคำขอ";

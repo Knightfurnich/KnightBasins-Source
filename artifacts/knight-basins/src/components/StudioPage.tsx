@@ -51,8 +51,6 @@ import {
   studioPieces as getStudioPieces,
   STUDIO_MAX_PIECES,
   STUDIO_MAX_RECTANGLES,
-  STUDIO_MAX_BASINS,
-  STUDIO_MAX_STONE_COLORS,
   type BasinPlacement,
   type SideStatus,
   type StudioEstimate,
@@ -174,12 +172,10 @@ function createInitialStudioState(
 ): StudioState {
   const piece = makePiece(0);
   const basinSkus = [...new Set(initialBasinSkus)]
-    .filter((sku) => basinProducts.some((product) => product.sku === sku))
-    .slice(0, STUDIO_MAX_BASINS);
+    .filter((sku) => basinProducts.some((product) => product.sku === sku));
   const selectedBasinSkus = basinSkus;
   const stoneColors = [...new Set(initialStoneColors)]
-    .map((code) => stoneColorByName(code).code)
-    .slice(0, STUDIO_MAX_STONE_COLORS);
+    .map((code) => stoneColorByName(code).code);
   const selectedStoneColors = stoneColors;
   return {
     ...initialState,
@@ -464,14 +460,12 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
       const next = current.stoneColors.filter((item) => item !== code);
       return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone };
     }
-    if (current.stoneColors.length >= STUDIO_MAX_STONE_COLORS) return current;
     return { ...current, stoneColors: [...current.stoneColors, code] };
   });
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
       return removeStudioBasin(current, sku);
     }
-    if (current.basinSkus.length >= STUDIO_MAX_BASINS) return current;
     return { ...current, basinSkus: [...current.basinSkus, sku] };
   });
   const replaceBasin = (previousSku: string, nextSku: string) => {
@@ -486,7 +480,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
   };
   return <div className="studio-shortlists">
     <section className="studio-panel">
-      <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน 2–3 สี</h3></div><span>{state.stoneColors.length} / 3</span></div>
+      <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน</h3></div><span>{state.stoneColors.length} สี</span></div>
       <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบ แล้วเลือกสีที่ใช้คำนวณจากรายการด้านล่าง</p>
        <div className="studio-stone-price-filters" role="tablist" aria-label="กรองราคาขายแผ่น">
          {stonePriceFilterOptions.map((option) => <button type="button" role="tab" aria-selected={activeStonePriceFilter === option.value} className={activeStonePriceFilter === option.value ? "is-active" : ""} onClick={() => setStonePriceFilter(option.value)} key={option.value} data-testid={`button-studio-stone-price-filter-${option.value}`}>{option.label} <small>{option.count}</small></button>)}
@@ -498,7 +492,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
       <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / m²</button>)}</div>
     </section>
     <section className="studio-panel">
-      <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง 1–2 รุ่น</h3></div><span>{state.basinSkus.length} / 2</span></div>
+      <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง</h3></div><span>{state.basinSkus.length} รุ่น</span></div>
       <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้ หรือกดเลือกเพื่อเพิ่ม / นำออก</p>
       {hiddenBasins.length > 0 && <div className="studio-basin-stale" role="status" data-testid="studio-hidden-basins">
         <strong>มีอ่างในแบบร่างที่ปิดการขายแล้ว</strong>
