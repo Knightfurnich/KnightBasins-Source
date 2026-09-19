@@ -438,9 +438,13 @@ function placeBasinOnCanvas(state: StudioState, setState: Dispatch<SetStateActio
   const depthMm = placement.depthMm ?? 0;
   const existingOnPiece = state.basinPlacements.filter((item) => (item.pieceId ?? piece.id) === piece.id).length;
   // Tile across a 4x4 grid of offsets (16 slots) before a position repeats,
-  // rather than cycling every 5th basin back onto an earlier one.
-  const xOffset = (existingOnPiece % 4) * 70;
-  const yOffset = (Math.floor(existingOnPiece / 4) % 4) * 70;
+  // spaced by the basin's own footprint (+ a small gap) so consecutive
+  // tap-placed basins land next to each other instead of overlapping —
+  // real basins run 350-500mm+, so a small fixed offset wasn't enough.
+  const stepX = Math.max(widthMm, 300) + 20;
+  const stepY = Math.max(depthMm, 300) + 20;
+  const xOffset = (existingOnPiece % 4) * stepX;
+  const yOffset = (Math.floor(existingOnPiece / 4) % 4) * stepY;
   const xMm = Math.min(Math.max(0, bounds.widthMm - widthMm), Math.max(0, (bounds.widthMm - widthMm) / 2 + xOffset));
   const yMm = Math.min(Math.max(0, bounds.heightMm - depthMm), Math.max(0, (bounds.heightMm - depthMm) / 2 + yOffset));
   setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, { ...placement, xMm, yMm }] }));
