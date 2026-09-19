@@ -53,8 +53,6 @@ import {
   STUDIO_MAX_RECTANGLES,
   STUDIO_MAX_BASINS,
   STUDIO_MAX_STONE_COLORS,
-  STUDIO_MIN_BASINS,
-  STUDIO_MIN_STONE_COLORS,
   type BasinPlacement,
   type SideStatus,
   type StudioEstimate,
@@ -463,16 +461,14 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
   const hiddenBasins = basinEntries.filter((entry) => !entry.product);
   const toggleStone = (code: string) => setState((current) => {
     if (current.stoneColors.includes(code)) {
-      if (current.stoneColors.length <= STUDIO_MIN_STONE_COLORS) return current;
       const next = current.stoneColors.filter((item) => item !== code);
-      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? next[0] : current.activeStone };
+      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone };
     }
     if (current.stoneColors.length >= STUDIO_MAX_STONE_COLORS) return current;
     return { ...current, stoneColors: [...current.stoneColors, code] };
   });
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
-      if (current.basinSkus.length <= STUDIO_MIN_BASINS) return current;
       return removeStudioBasin(current, sku);
     }
     if (current.basinSkus.length >= STUDIO_MAX_BASINS) return current;
