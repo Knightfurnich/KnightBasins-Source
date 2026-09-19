@@ -2029,6 +2029,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-warning--small { color: #9b5b18; background: #fff4e3; border-color: #efc37d; }
 .studio-warning--small p { margin: 0; }
 .studio-warning--small p + p { margin-top: 4px; }
+.studio-issues-summary { margin: 14px 0; padding: 12px 13px; color: #856000; background: #fff9e8; border: 1px solid #ead58c; }
+.studio-issues-summary strong { display: block; font-size: 11px; }
+.studio-issues-summary ul { margin: 7px 0 0; padding: 0 0 0 16px; }
+.studio-issues-summary li { margin: 3px 0; color: #856000; font-size: 10px; line-height: 1.5; }
 .studio-estimate-panel .button { margin-top: 14px; }
 .studio-result { margin: 12px 0 0; color: var(--success); font-size: 11px; line-height: 1.6; }
 .studio-mobile-estimate-bar { display: none; }

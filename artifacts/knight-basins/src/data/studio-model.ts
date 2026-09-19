@@ -971,26 +971,34 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
   };
 }
 
-export function studioSubmissionValidationMessage(
-  state: StudioState,
-  estimate: Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "upstandHeightInvalid" | "basinOverlapWarnings" | "inactiveBasinSkus" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">,
-) {
+type StudioSubmissionEstimate = Pick<StudioEstimate, "isValid" | "unknownDimensionPlacements" | "unsafePlacements" | "overlapWarnings" | "openEdgePriceInvalid" | "upstandHeightInvalid" | "basinOverlapWarnings" | "inactiveBasinSkus" | "crossJointPlacements" | "disconnectedRectangles" | "discountInvalid">;
+
+/** Every currently-true validation issue, in the same priority order as
+ * studioSubmissionValidationMessage — used for a live "here's everything to
+ * fix" summary so a customer doesn't have to submit-fail-fix-repeat one
+ * message at a time. */
+export function studioSubmissionValidationMessages(state: StudioState, estimate: StudioSubmissionEstimate): string[] {
+  const messages: string[] = [];
   const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
   const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
-  if (state.basinSkus.length > 0 && state.basinPlacements.length === 0) return "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง";
-  if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) return `ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`;
-  if (estimate.unknownDimensionPlacements.length > 0) return "รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ";
-  if (estimate.inactiveBasinSkus.length > 0) return "มีอ่างที่ไม่เปิดใช้งานในแบบร่าง กรุณาเปลี่ยนรุ่นหรือนำออกก่อนส่งคำขอ";
-  if (estimate.basinOverlapWarnings.length > 0) return "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน";
-  if (estimate.overlapWarnings.length > 0) return "มีสี่เหลี่ยมซ้อนกัน กรุณาขยับแผ่นให้ไม่ซ้อนกันก่อนส่งคำขอ";
-  if (estimate.disconnectedRectangles.length > 0) return "สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน";
-  if (estimate.crossJointPlacements.length > 0) return "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว";
-  if (estimate.unsafePlacements.length > 0) return "กรุณาวางอ่างให้อยู่ภายในสี่เหลี่ยมของชิ้นงาน";
-  if (estimate.openEdgePriceInvalid) return "ราคาขอบเปิดติดลบไม่ได้";
-  if (estimate.upstandHeightInvalid) return "ความสูงบัวต้องอยู่ระหว่าง 0–500 มม.";
-  if (estimate.discountInvalid) return "ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด";
-  if (!estimate.isValid) return "กรุณาตรวจสอบจำนวนชิ้นงาน จำนวนแผ่น ขนาดแผ่น และข้อมูลวัสดุก่อนส่งคำขอ";
-  return null;
+  if (state.basinSkus.length > 0 && state.basinPlacements.length === 0) messages.push("ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง");
+  else if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) messages.push(`ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`);
+  if (estimate.unknownDimensionPlacements.length > 0) messages.push("รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ");
+  if (estimate.inactiveBasinSkus.length > 0) messages.push("มีอ่างที่ไม่เปิดใช้งานในแบบร่าง กรุณาเปลี่ยนรุ่นหรือนำออกก่อนส่งคำขอ");
+  if (estimate.basinOverlapWarnings.length > 0) messages.push("มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน");
+  if (estimate.overlapWarnings.length > 0) messages.push("มีสี่เหลี่ยมซ้อนกัน กรุณาขยับแผ่นให้ไม่ซ้อนกันก่อนส่งคำขอ");
+  if (estimate.disconnectedRectangles.length > 0) messages.push("สี่เหลี่ยมในชิ้นงานเดียวกันต้องวางต่อกัน");
+  if (estimate.crossJointPlacements.length > 0) messages.push("อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว");
+  if (estimate.unsafePlacements.length > 0) messages.push("กรุณาวางอ่างให้อยู่ภายในสี่เหลี่ยมของชิ้นงาน");
+  if (estimate.openEdgePriceInvalid) messages.push("ราคาขอบเปิดติดลบไม่ได้");
+  if (estimate.upstandHeightInvalid) messages.push("ความสูงบัวต้องอยู่ระหว่าง 0–500 มม.");
+  if (estimate.discountInvalid) messages.push("ส่วนลดต้องไม่ติดลบและไม่เกินยอดรวมก่อนส่วนลด");
+  if (!estimate.isValid && messages.length === 0) messages.push("กรุณาตรวจสอบจำนวนชิ้นงาน จำนวนแผ่น ขนาดแผ่น และข้อมูลวัสดุก่อนส่งคำขอ");
+  return messages;
+}
+
+export function studioSubmissionValidationMessage(state: StudioState, estimate: StudioSubmissionEstimate) {
+  return studioSubmissionValidationMessages(state, estimate)[0] ?? null;
 }
 
 export function createBasinPlacement(product: BasinProduct, index: number, pieceId?: string): BasinPlacement {

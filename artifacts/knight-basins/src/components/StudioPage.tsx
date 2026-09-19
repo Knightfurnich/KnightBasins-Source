@@ -44,6 +44,7 @@ import {
   studioSideStatuses,
   studioSideStatusLabel,
   studioSubmissionValidationMessage,
+  studioSubmissionValidationMessages,
   studioStoneName,
   studioStateDimensionsValid,
   mirrorStudioLState,
@@ -1278,6 +1279,7 @@ export function StudioPage({
   const sketchInputRef = useRef<HTMLInputElement | null>(null);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
@@ -1289,6 +1291,22 @@ export function StudioPage({
   const today = thaiDateInputValue(new Date());
   const hasPastInstallationDate = Boolean(contact.expectedInstallationDate && contact.expectedInstallationDate < today);
   const missingTaxIdForVat = state.vat && !/^[0-9]{13}$/.test(contact.taxId);
+  // Every currently-outstanding issue, studio-layout ones always live and
+  // contact-field ones only once the customer has tried submitting at least
+  // once — showing "required" errors on fields nobody's reached yet would be
+  // premature nagging, but once they've tried, a full checklist beats
+  // discovering one blocker per submit attempt.
+  const studioIssues = useMemo(() => {
+    const issues = studioSubmissionValidationMessages(state, estimate);
+    if (!hasAttemptedSubmit) return issues;
+    const contactIssues: string[] = [];
+    if (!contact.name.trim() || !contact.phone.trim() || !contact.project.trim() || !contact.address.trim()) contactIssues.push("กรุณากรอกชื่อผู้ติดต่อ โทรศัพท์ ชื่อโครงการ และสถานที่ติดตั้ง");
+    if (contact.phone.trim() && !isValidPhoneNumber(contact.phone)) contactIssues.push("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
+    if (contact.taxId && !/^[0-9]{13}$/.test(contact.taxId)) contactIssues.push("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+    if (hasPastInstallationDate) contactIssues.push("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
+    if (contact.email.trim() && !isValidEmailAddress(contact.email)) contactIssues.push("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
+    return [...issues, ...contactIssues];
+  }, [state, estimate, hasAttemptedSubmit, contact.name, contact.phone, contact.project, contact.address, contact.taxId, contact.email, hasPastInstallationDate]);
   useEffect(() => {
     if (!sketchFile) {
       setSketchPreviewUrl(null);
@@ -1469,6 +1487,7 @@ export function StudioPage({
     }
   };
   const submitStudio = async () => {
+    setHasAttemptedSubmit(true);
     const validationMessage = studioSubmissionValidationMessage(state, estimate);
     if (validationMessage) {
       setResult(validationMessage);
@@ -1607,6 +1626,10 @@ export function StudioPage({
          <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
         {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
         {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
+        {mode === "studio" && studioIssues.length > 0 && <div className="studio-issues-summary" role="status" data-testid="status-studio-issues-summary">
+          <strong>{studioIssues.length === 1 ? "มี 1 จุดที่ต้องแก้ไขก่อนส่งคำขอ" : `มี ${studioIssues.length} จุดที่ต้องแก้ไขก่อนส่งคำขอ`}</strong>
+          <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
+        </div>}
          {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
         <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
         {result && <p className="studio-result" role="status">{result}</p>}
