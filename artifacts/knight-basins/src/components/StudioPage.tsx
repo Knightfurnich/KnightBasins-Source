@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, Minus, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -404,6 +404,26 @@ const studioBasinFilterOptions = [
 
 type StudioBasinFilter = typeof studioBasinFilterOptions[number]["value"];
 
+/** Places a basin on the first piece's canvas at a lightly-staggered default
+ * position, as a tap-friendly alternative to dragging the shortlist card onto
+ * the canvas — native HTML5 drag-and-drop (used for that drag) doesn't fire
+ * from touch on iOS/most mobile browsers, so this is the only way basins can
+ * reach the canvas at all on a phone. Shared by the shortlist card's "วางบนผัง"
+ * button and the canvas quick-access bar. */
+function placeBasinOnCanvas(state: StudioState, setState: Dispatch<SetStateAction<StudioState>>, product: BasinProduct) {
+  const piece = getStudioPieces(state)[0];
+  if (!piece) return;
+  const bounds = pieceBounds(piece);
+  const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id);
+  const widthMm = placement.widthMm ?? 0;
+  const depthMm = placement.depthMm ?? 0;
+  const existingOnPiece = state.basinPlacements.filter((item) => (item.pieceId ?? piece.id) === piece.id).length;
+  const offset = (existingOnPiece % 5) * 60;
+  const xMm = Math.min(Math.max(0, bounds.widthMm - widthMm), Math.max(0, (bounds.widthMm - widthMm) / 2 + offset));
+  const yMm = Math.min(Math.max(0, bounds.heightMm - depthMm), Math.max(0, (bounds.heightMm - depthMm) / 2 + offset));
+  setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, { ...placement, xMm, yMm }] }));
+}
+
 function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basinProducts, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; sheetPriceColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; onCatalogChangeResolved: (sku: string) => void }) {
   const [basinQuery, setBasinQuery] = useState("");
   const [basinFilter, setBasinFilter] = useState<StudioBasinFilter>("all");
@@ -493,7 +513,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
     </section>
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง</h3></div><span>{state.basinSkus.length} รุ่น</span></div>
-      <p className="studio-helper">ลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้ หรือกดเลือกเพื่อเพิ่ม / นำออก</p>
+      <p className="studio-helper">กดเลือกเพื่อเพิ่ม / นำออกจากรายการ · กด "วางบนผัง" หรือลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้</p>
       {hiddenBasins.length > 0 && <div className="studio-basin-stale" role="status" data-testid="studio-hidden-basins">
         <strong>มีอ่างในแบบร่างที่ปิดการขายแล้ว</strong>
         <p>ตำแหน่งและขนาดบนผังเดิมยังคงอยู่ เลือกรุ่นใหม่เพื่อแทนที่ หรือเอารุ่นนี้ออกจากแบบ</p>
@@ -515,7 +535,11 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
        <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {categoryBasins.length} รุ่น</p>
       <div className="studio-basin-list" data-testid="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
-         return <button type="button" key={product.sku} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
+        return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""}`}>
+          <button type="button" draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className="studio-basin-choice-main" onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small></button>
+          {selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}
+          {selected && <button type="button" className="studio-basin-place-button" onClick={() => placeBasinOnCanvas(state, setState, product)} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
+        </div>;
       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
     </section>
   </div>;
@@ -929,6 +953,20 @@ function StudioCanvas({
   };
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading"><div><p className="eyebrow">03 / RECTANGLE WORKPIECES</p><h3>ประกอบผังจากสี่เหลี่ยม</h3></div><span>{pieces.length} / {STUDIO_MAX_PIECES} ชิ้นงาน</span></div>
+    {(state.stoneColors.length > 0 || state.basinSkus.length > 0) && <div className="studio-canvas-quickbar" aria-label="เข้าถึงสีและอ่างที่เลือกไว้อย่างรวดเร็ว">
+      {state.stoneColors.length > 0 && <div className="studio-canvas-quickbar-group">
+        <span>สี</span>
+        {state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-quickbar-stone-${code}`}><span className="studio-canvas-quickbar-swatch" style={{ background: stoneColorByName(code).tone }} />{code}</button>)}
+      </div>}
+      {state.basinSkus.length > 0 && <div className="studio-canvas-quickbar-group">
+        <span>อ่าง</span>
+        {state.basinSkus.map((sku) => {
+          const product = basinProducts.find((item) => item.sku === sku);
+          if (!product) return null;
+          return <button type="button" key={sku} onClick={() => placeBasinOnCanvas(state, setState, product)} data-testid={`button-studio-quickbar-basin-${sku}`}><MapPin size={11} /> {sku}</button>;
+        })}
+      </div>}
+    </div>}
     <p className="studio-helper">เลือกทรงแล้วกรอกขนาดแต่ละแผ่น · ขอบที่ชนกันจะแสดงเส้นประและข้อความต้องได้ฉาก 90° · แผ่นซ้อนกันจะแจ้งเตือน</p>
     <StudioShapeWizard state={state} setState={setState} activeLegRectangleId={activeLegRectangleId} setActiveLegRectangleId={setActiveLegRectangleId} />
     {state.shape === "L" && state.pieces && state.pieces.length > 0 && <button type="button" className="button button--outline studio-mirror-button" onClick={mirrorL} data-testid="button-studio-mirror-l"><RotateCw size={14} /> สลับข้าง L (ซ้าย ↔ ขวา)</button>}
