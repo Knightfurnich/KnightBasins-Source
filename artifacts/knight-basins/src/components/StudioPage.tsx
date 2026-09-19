@@ -1413,7 +1413,12 @@ export function StudioPage({
       if (estimate.smallJobFeeTHB > 0) notificationItems.push({ kind: "service", code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPriceTHB: estimate.smallJobFeeTHB, totalTHB: estimate.smallJobFeeTHB });
       await onSubmitStudio({ state, estimate, contact, notification: { items: notificationItems, grossSubtotal: estimate.grossSubtotalTHB, discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB, subtotal: estimate.subtotalTHB, vatAmount: estimate.vatAmountTHB, total: estimate.totalTHB, vat: state.vat } });
     } catch (error) {
-      setResult(error instanceof Error ? error.message : "สร้างใบเสนอราคาไม่สำเร็จ กรุณาลองอีกครั้ง");
+      // onSubmitStudio only fails via the API client, whose error.message is a
+      // technical "HTTP {status} {statusText}" string meant for logs, not
+      // customers — log it for diagnostics but always show a plain-language
+      // message here.
+      console.error("Studio submission failed:", error);
+      setResult("ส่งใบเสนอราคาไม่สำเร็จ กรุณาลองอีกครั้ง หรือติดต่อทีมขายโดยตรงหากยังพบปัญหา");
     } finally {
       setSubmitting(false);
     }
