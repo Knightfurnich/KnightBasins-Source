@@ -1027,6 +1027,13 @@ function SavedQuotePage() {
       <div><p className="eyebrow accent">SAVED QUOTATION / {lead.quoteNumber}</p><h1>ใบเสนอราคา<br /><em>พร้อมแบบที่บันทึกไว้</em></h1><p className="hero-copy">เอกสารนี้เปิดดูได้จากลิงก์เดิม และข้อมูลในแบบเป็น read-only</p></div>
       <div className="quote-date"><span>{language === "EN" ? "Issue Date" : "วันที่ออกเอกสาร"}</span><strong>{formatQuoteDate(issueDate, language)}</strong><small>{language === "EN" ? `Valid until ${formatQuoteDate(expiryDate, language)} · 30 days` : `ใช้ได้ถึง ${formatQuoteDate(expiryDate, language)} · 30 วัน`}</small><button onClick={printSavedQuote} data-testid="button-print-saved-quote"><Printer size={15} /> {language === "EN" ? "Print / PDF" : "พิมพ์ / PDF ทางการ"}</button></div>
     </section>
+    {language === "TH" && <div className="saved-quote-next-steps" role="status" data-testid="status-saved-quote-next-steps">
+      <Check size={16} />
+      <div>
+        <strong>ส่งใบเสนอราคาเรียบร้อยแล้ว</strong>
+        <p>ทีมขาย Knight Furnich จะติดต่อกลับภายใน 24 ชั่วโมงทำการ{customer.preferredContact ? ` ผ่านทาง${CUSTOMER_CONTACT_OPTIONS.find((option) => option.value === customer.preferredContact)?.label ?? "ช่องทางที่คุณระบุไว้"}` : ""} · เก็บลิงก์นี้ไว้เพื่อเปิดดูแบบและราคาอีกครั้งได้ตลอด</p>
+      </div>
+    </div>}
     <div className="quote-editor saved-quote-editor">
     <div className="saved-quote-actions">
       <div className="quote-language-switch" role="group" aria-label="ภาษาของใบเสนอราคา">

@@ -571,6 +571,21 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
   </div>;
 }
 
+/** Where the active stone's real installed price sits among every color
+ * actually in the catalog, in plain terms — a genuine, computed comparison
+ * (not a fabricated "most customers choose" claim, since we don't track
+ * real order stats to back that up). Bottom/middle/top third of the actual
+ * price distribution. Returns null when there isn't enough priced catalog
+ * data to make the comparison meaningful. */
+function stonePriceTier(price: number | null, colors: ReadonlyArray<StoneColor>): { label: string; total: number } | null {
+  if (price === null) return null;
+  const prices = colors.map((color) => color.installedPriceTHB).filter((value): value is number => value !== null).sort((a, b) => a - b);
+  if (prices.length < 6) return null;
+  const percentile = prices.filter((value) => value <= price).length / prices.length;
+  const label = percentile <= 0.34 ? "ประหยัด" : percentile <= 0.67 ? "ระดับกลาง" : "พรีเมียม";
+  return { label, total: prices.length };
+}
+
 function setPieceState(setState: Dispatch<SetStateAction<StudioState>>, pieceId: string, updater: (piece: StudioPiece) => StudioPiece) {
   setState((current) => ({ ...current, pieces: getStudioPieces(current).map((piece) => piece.id === pieceId ? updater(piece) : piece) }));
 }
@@ -1547,6 +1562,10 @@ export function StudioPage({
           <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>
           <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>
           <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
+          {(() => {
+            const tier = stonePriceTier(stoneColorByName(state.activeStone, stoneColors).installedPriceTHB, stoneColors);
+            return tier && <p className="studio-price-tier" data-testid="text-studio-price-tier">สี {activeStone.code} อยู่ในระดับราคา <strong>{tier.label}</strong> เทียบกับหินทั้งหมด {tier.total} สีในแคตตาล็อก</p>;
+          })()}
           <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>
           {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
           <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>
