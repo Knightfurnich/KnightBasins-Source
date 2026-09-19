@@ -404,27 +404,49 @@ const studioBasinFilterOptions = [
 
 type StudioBasinFilter = typeof studioBasinFilterOptions[number]["value"];
 
-/** Places a basin on the first piece's canvas at a lightly-staggered default
- * position, as a tap-friendly alternative to dragging the shortlist card onto
- * the canvas — native HTML5 drag-and-drop (used for that drag) doesn't fire
- * from touch on iOS/most mobile browsers, so this is the only way basins can
- * reach the canvas at all on a phone. Shared by the shortlist card's "วางบนผัง"
- * button and the canvas quick-access bar. */
-function placeBasinOnCanvas(state: StudioState, setState: Dispatch<SetStateAction<StudioState>>, product: BasinProduct) {
-  const piece = getStudioPieces(state)[0];
+/** Finds the piece the user was most recently interacting with (via a
+ * selected basin placement or rectangle), falling back to the first piece.
+ * Lets tap-to-place land on the piece someone is actually working on instead
+ * of always the first one, for layouts with more than one piece. */
+function resolveActiveBasinPieceId(state: StudioState, selectedRectangleId: string | null, selectedPlacementId: string | null): string | undefined {
+  const pieces = getStudioPieces(state);
+  if (selectedPlacementId) {
+    const placement = state.basinPlacements.find((item) => item.id === selectedPlacementId);
+    if (placement) return placement.pieceId ?? pieces[0]?.id;
+  }
+  if (selectedRectangleId) {
+    const owner = pieces.find((piece) => piece.rectangles.some((rectangle) => rectangle.id === selectedRectangleId));
+    if (owner) return owner.id;
+  }
+  return pieces[0]?.id;
+}
+
+/** Places a basin on the target piece's canvas (defaulting to the first
+ * piece) at a tiled default position, as a tap-friendly alternative to
+ * dragging the shortlist card onto the canvas — native HTML5 drag-and-drop
+ * (used for that drag) doesn't fire from touch on iOS/most mobile browsers,
+ * so this is the only way basins can reach the canvas at all on a phone.
+ * Shared by the shortlist card's "วางบนผัง" button and the canvas quick-access
+ * bar. */
+function placeBasinOnCanvas(state: StudioState, setState: Dispatch<SetStateAction<StudioState>>, product: BasinProduct, pieceId?: string) {
+  const pieces = getStudioPieces(state);
+  const piece = pieces.find((item) => item.id === pieceId) ?? pieces[0];
   if (!piece) return;
   const bounds = pieceBounds(piece);
   const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id);
   const widthMm = placement.widthMm ?? 0;
   const depthMm = placement.depthMm ?? 0;
   const existingOnPiece = state.basinPlacements.filter((item) => (item.pieceId ?? piece.id) === piece.id).length;
-  const offset = (existingOnPiece % 5) * 60;
-  const xMm = Math.min(Math.max(0, bounds.widthMm - widthMm), Math.max(0, (bounds.widthMm - widthMm) / 2 + offset));
-  const yMm = Math.min(Math.max(0, bounds.heightMm - depthMm), Math.max(0, (bounds.heightMm - depthMm) / 2 + offset));
+  // Tile across a 4x4 grid of offsets (16 slots) before a position repeats,
+  // rather than cycling every 5th basin back onto an earlier one.
+  const xOffset = (existingOnPiece % 4) * 70;
+  const yOffset = (Math.floor(existingOnPiece / 4) % 4) * 70;
+  const xMm = Math.min(Math.max(0, bounds.widthMm - widthMm), Math.max(0, (bounds.widthMm - widthMm) / 2 + xOffset));
+  const yMm = Math.min(Math.max(0, bounds.heightMm - depthMm), Math.max(0, (bounds.heightMm - depthMm) / 2 + yOffset));
   setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, { ...placement, xMm, yMm }] }));
 }
 
-function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basinProducts, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; sheetPriceColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; onCatalogChangeResolved: (sku: string) => void }) {
+function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; sheetPriceColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void }) {
   const [basinQuery, setBasinQuery] = useState("");
   const [basinFilter, setBasinFilter] = useState<StudioBasinFilter>("all");
   const [stonePriceFilter, setStonePriceFilter] = useState("all");
@@ -535,10 +557,10 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
        <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {categoryBasins.length} รุ่น</p>
       <div className="studio-basin-list" data-testid="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
-        return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""}`}>
-          <button type="button" draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }} className="studio-basin-choice-main" onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small></button>
+        return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }}>
+          <button type="button" className="studio-basin-choice-main" onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small></button>
           {selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}
-          {selected && <button type="button" className="studio-basin-place-button" onClick={() => placeBasinOnCanvas(state, setState, product)} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
+          {selected && <button type="button" className="studio-basin-place-button" onClick={() => placeBasinOnCanvas(state, setState, product, resolveActiveBasinPieceId(state, selectedRectangleId, selectedPlacementId))} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
         </div>;
       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
     </section>
@@ -963,7 +985,7 @@ function StudioCanvas({
         {state.basinSkus.map((sku) => {
           const product = basinProducts.find((item) => item.sku === sku);
           if (!product) return null;
-          return <button type="button" key={sku} onClick={() => placeBasinOnCanvas(state, setState, product)} data-testid={`button-studio-quickbar-basin-${sku}`}><MapPin size={11} /> {sku}</button>;
+          return <button type="button" key={sku} onClick={() => placeBasinOnCanvas(state, setState, product, resolveActiveBasinPieceId(state, selectedRectangleId, selectedPlacementId))} data-testid={`button-studio-quickbar-basin-${sku}`}><MapPin size={11} /> {sku}</button>;
         })}
       </div>}
     </div>}
@@ -1445,7 +1467,7 @@ export function StudioPage({
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
-         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} onCatalogChangeResolved={acknowledgeCatalogChange} />
+         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
         {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className={`studio-file-drop ${sketchPreviewUrl ? "studio-file-drop--preview" : ""}`}>{sketchPreviewUrl ? <img className="studio-file-preview" src={sketchPreviewUrl} alt={`ตัวอย่างไฟล์ ${sketchFile?.name ?? "แบบร่าง"}`} data-testid="img-studio-sketch-preview" /> : <Upload size={22} />}<span className="studio-file-drop-copy"><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small></span><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
       </div>
     <section className="studio-layout-bottom">
