@@ -1731,8 +1731,8 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-basin-search { display: grid; gap: 5px; min-width: 0; color: var(--ink-soft); font-size: 10px; }
 .studio-basin-search input { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); outline: none; background: #fbfdfe; font-size: 11px; }
 .studio-basin-search input:focus { border-color: #65afd4; box-shadow: 0 0 0 3px rgba(42, 155, 208, .12); }
-.studio-basin-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; min-width: 0; margin: 0; padding: 4px; overflow: hidden; background: #e7f3f9; border-radius: 10px; }
-.studio-basin-filters button { min-width: 0; padding: 7px 5px; color: var(--ink-soft); background: transparent; border: 0; border-radius: 7px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.studio-basin-filters { display: flex; gap: 4px; min-width: 0; margin: 0; padding: 4px; overflow-x: auto; background: #e7f3f9; border-radius: 10px; }
+.studio-basin-filters button { flex: 0 0 auto; min-width: 0; padding: 7px 9px; color: var(--ink-soft); background: transparent; border: 0; border-radius: 7px; font-size: 10px; font-weight: 600; white-space: nowrap; }
 .studio-basin-filters button:hover, .studio-basin-filters button.is-active { color: var(--brand-blue); background: white; box-shadow: 0 2px 9px rgba(18,104,179,.12); }
 .studio-basin-result-count { margin: 0 0 8px; color: var(--ink-soft); font: 9px var(--mono); }
 .studio-basin-empty { grid-column: 1 / -1; margin: 0; padding: 18px 8px; color: var(--ink-soft); font-size: 11px; text-align: center; }

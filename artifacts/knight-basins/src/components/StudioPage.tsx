@@ -406,11 +406,22 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
 const studioBasinFilterOptions = [
   { value: "all", label: "ทั้งหมด" },
   { value: "selected", label: "แบบที่เลือก" },
+  { value: "fits", label: "พอดีกับแผ่น" },
   { value: "counter basin", label: "เคาน์เตอร์" },
   { value: "tall vertical washbasin", label: "ทรงสูง" },
 ] as const;
 
 type StudioBasinFilter = typeof studioBasinFilterOptions[number]["value"];
+
+/** A basin "fits" when its own front-to-back footprint (the depth parsed
+ * from basinDimensions, e.g. "350 × 500 × 130 mm" -> 500) is no deeper than
+ * the counter depth set in the wizard — a plain physical-fit check against
+ * real catalog numbers, not a recommendation/ranking. Basins with unknown
+ * dimensions are excluded rather than guessed into either bucket. */
+function basinFitsCounterDepth(product: BasinProduct, counterDepthMm: number): boolean {
+  const { depthMm } = basinDimensionsForProduct(product);
+  return depthMm !== null && depthMm <= counterDepthMm;
+}
 
 /** Finds the piece the user was most recently interacting with (via a
  * selected basin placement or rectangle), falling back to the first piece.
@@ -493,8 +504,10 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
       ? basinProducts
       : basinFilter === "selected"
         ? basinProducts.filter((product) => state.basinSkus.includes(product.sku))
-        : basinProducts.filter((product) => product.category === basinFilter),
-    [basinFilter, basinProducts, state.basinSkus],
+        : basinFilter === "fits"
+          ? basinProducts.filter((product) => basinFitsCounterDepth(product, state.dimensions.depthMm))
+          : basinProducts.filter((product) => product.category === basinFilter),
+    [basinFilter, basinProducts, state.basinSkus, state.dimensions.depthMm],
   );
   const visibleBasins = useMemo(() => filterBasinProducts(categoryBasins, basinQuery), [basinQuery, categoryBasins]);
   const basinFilterCounts = useMemo(() => new Map(
@@ -504,9 +517,11 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
         ? basinProducts.length
         : option.value === "selected"
           ? basinProducts.filter((product) => state.basinSkus.includes(product.sku)).length
-          : basinProducts.filter((product) => product.category === option.value).length,
+          : option.value === "fits"
+            ? basinProducts.filter((product) => basinFitsCounterDepth(product, state.dimensions.depthMm)).length
+            : basinProducts.filter((product) => product.category === option.value).length,
     ]),
-  ), [basinProducts, state.basinSkus]);
+  ), [basinProducts, state.basinSkus, state.dimensions.depthMm]);
   const basinEntries = studioBasinCatalogEntries(state, basinProducts);
   const hiddenBasins = basinEntries.filter((entry) => !entry.product);
   const toggleStone = (code: string) => setState((current) => {
@@ -563,7 +578,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
        <div className="studio-basin-toolbar">
          <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
          <div className="studio-basin-filters" role="tablist" aria-label="กรองประเภทอ่าง">
-            {studioBasinFilterOptions.map((option) => <button type="button" role="tab" aria-selected={basinFilter === option.value} className={basinFilter === option.value ? "is-active" : ""} onClick={() => setBasinFilter(option.value)} key={option.value} data-testid={`button-studio-basin-filter-${option.value === "all" ? "all" : option.value === "selected" ? "selected" : option.value === "counter basin" ? "counter" : "tall"}`}>{option.label} {basinFilterCounts.get(option.value) ?? 0}</button>)}
+            {studioBasinFilterOptions.map((option) => <button type="button" role="tab" aria-selected={basinFilter === option.value} className={basinFilter === option.value ? "is-active" : ""} onClick={() => setBasinFilter(option.value)} key={option.value} data-testid={`button-studio-basin-filter-${option.value === "all" ? "all" : option.value === "selected" ? "selected" : option.value === "fits" ? "fits" : option.value === "counter basin" ? "counter" : "tall"}`}>{option.label} {basinFilterCounts.get(option.value) ?? 0}</button>)}
          </div>
        </div>
        <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {categoryBasins.length} รุ่น</p>
