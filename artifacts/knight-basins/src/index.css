@@ -1598,6 +1598,9 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 }
 .studio-draft-toolbar > div:first-child { display: grid; gap: 2px; min-width: 0; }
 .studio-draft-toolbar span { color: var(--ink-soft); font-size: 10px; }
+.studio-draft-status.is-saving { display: inline-flex; align-items: center; gap: 5px; color: var(--brand-blue); }
+.studio-draft-status.is-saving::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-blue); animation: studio-draft-pulse 1s ease-in-out infinite; }
+@keyframes studio-draft-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 .studio-draft-toolbar-actions { display: flex; flex: 0 0 auto; flex-wrap: nowrap; justify-content: end; gap: 6px; }
 .studio-draft-result { margin: 10px 0 0; }
 .studio-catalog-change-banner {

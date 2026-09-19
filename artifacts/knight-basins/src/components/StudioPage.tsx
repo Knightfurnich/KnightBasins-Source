@@ -1248,6 +1248,7 @@ export function StudioPage({
   const [draftName, setDraftName] = useState("");
   const skipNextDraftSave = useRef(false);
   const hasMountedDraftEffect = useRef(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [contact, setContact] = useState(() => ({ ...emptyContact, ...contactDefaults }));
   const [sketchFile, setSketchFile] = useState<File | null>(null);
   const [sketchPreviewUrl, setSketchPreviewUrl] = useState<string | null>(null);
@@ -1301,11 +1302,13 @@ export function StudioPage({
       skipNextDraftSave.current = false;
       return;
     }
+    setIsSavingDraft(true);
     const timer = window.setTimeout(() => {
       const savedAt = new Date().toISOString();
       const catalogContext = catalogNotice?.context ?? createStudioCatalogContext(state, basinProducts, savedAt);
       const saved = writeStoredStudioDraft({ version: 1, savedAt, state, catalogContext });
       if (saved) setLastSavedAt(savedAt);
+      setIsSavingDraft(false);
     }, 250);
     return () => window.clearTimeout(timer);
   }, [mode, state, basinProducts, catalogNotice]);
@@ -1546,7 +1549,7 @@ export function StudioPage({
     {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
-     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span>{editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
+     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
          <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
