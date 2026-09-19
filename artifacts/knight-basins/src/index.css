@@ -1602,6 +1602,8 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-draft-status.is-saving::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-blue); animation: studio-draft-pulse 1s ease-in-out infinite; }
 @keyframes studio-draft-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 .studio-draft-toolbar-actions { display: flex; flex: 0 0 auto; flex-wrap: nowrap; justify-content: end; gap: 6px; }
+.studio-draft-toolbar-actions .icon-button { width: 34px; height: 34px; border: 1px solid var(--line); background: white; border-radius: 3px; }
+.studio-draft-toolbar-actions .icon-button:disabled { opacity: .35; cursor: not-allowed; }
 .studio-draft-result { margin: 10px 0 0; }
 .studio-catalog-change-banner {
   display: grid;
@@ -2063,8 +2065,9 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .studio-draft-banner, .studio-draft-toolbar { align-items: stretch; flex-direction: column; }
   .studio-draft-banner-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .studio-draft-banner-actions .button { justify-content: center; }
-  .studio-draft-toolbar-actions { display: grid; grid-template-columns: 1fr; }
-  .studio-draft-toolbar-actions .button { width: 100%; justify-content: center; }
+  .studio-draft-toolbar-actions { display: grid; grid-template-columns: auto auto 1fr; }
+  .studio-draft-toolbar-actions .button { grid-column: 1 / -1; width: 100%; justify-content: center; }
+  .studio-draft-toolbar-actions .icon-button { width: 34px; height: 34px; justify-self: start; }
   .studio-drafts-drawer { padding: 20px 16px; }
   .studio-saved-draft-card { grid-template-columns: 1fr; }
   .studio-saved-draft-preview { min-height: 130px; }

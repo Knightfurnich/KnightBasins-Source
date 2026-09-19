@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
-import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Pencil, Plus, RotateCw, Save, Trash2, Upload, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
+import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -294,6 +294,28 @@ function StudioShapeWizard({
   const [preset, setPreset] = useState<StudioPreset>("i");
   const [legs, setLegs] = useState<number[]>(presetLegDefaults("i"));
   const [depthMm, setDepthMm] = useState(600);
+
+  // Re-hydrate the wizard's own fields whenever the shared state changes for a
+  // reason other than this wizard's own edits (undo/redo, a loaded draft, a
+  // shared-link open) — otherwise the inputs keep showing stale values while
+  // the canvas/estimate have already moved on. Only syncs when the current
+  // main piece still looks wizard-built (rectangle ids `wizard-leg-N`); a
+  // piece built by manual free-form dragging is left alone.
+  useEffect(() => {
+    const mainPiece = getStudioPieces(state)[0];
+    if (!mainPiece?.rectangles.some((rectangle) => rectangle.id === "wizard-leg-0")) return;
+    const nextPreset: StudioPreset = state.shape === "I"
+      ? "i"
+      : state.shape === "U"
+        ? "u"
+        : (mainPiece.rectangles.find((rectangle) => rectangle.id === "wizard-leg-1")?.xMm ?? 0) > 0
+          ? "l-right"
+          : "l-left";
+    const legCount = presetLegDefaults(nextPreset).length;
+    setPreset(nextPreset);
+    setLegs([state.dimensions.runAMm, state.dimensions.runBMm, state.dimensions.runCMm].slice(0, legCount));
+    setDepthMm(state.dimensions.depthMm);
+  }, [state.shape, state.dimensions, state.pieces]);
 
   const applyGeometry = (nextPreset: StudioPreset, nextLegs: number[], nextDepth: number, resetBasins: boolean) => {
     setState((current) => {
@@ -1248,6 +1270,66 @@ function StudioProgressChecklist({ state, contact, estimate }: { state: StudioSt
   </ol>;
 }
 
+const STUDIO_HISTORY_DEBOUNCE_MS = 500;
+const STUDIO_HISTORY_LIMIT = 50;
+
+/** Debounced undo/redo history for the main Studio state. Coalesces rapid
+ * successive edits (typing digits into a field, several drags in a row)
+ * into one history entry once they settle for STUDIO_HISTORY_DEBOUNCE_MS,
+ * so one Undo reverses a whole action instead of a single keystroke.
+ *
+ * This only changes how `state`/`setState` are declared — every one of the
+ * ~30 existing `setState(...)` call sites elsewhere in this file keeps
+ * calling the exact same function with the exact same signature, so none of
+ * them needed to change. */
+function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispatch<SetStateAction<StudioState>>, { undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean }] {
+  const [state, setStateRaw] = useState<StudioState>(initial);
+  const historyRef = useRef<StudioState[]>([]);
+  const indexRef = useRef(0);
+  const mountedRef = useRef(false);
+  const skipSnapshotRef = useRef(false);
+  const [, bumpHistoryVersion] = useState(0);
+
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      historyRef.current = [state];
+      indexRef.current = 0;
+      return;
+    }
+    if (skipSnapshotRef.current) {
+      skipSnapshotRef.current = false;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      // Dropping any "future" redo entries once a new edit branches off,
+      // same as any standard undo stack.
+      const truncated = historyRef.current.slice(0, indexRef.current + 1);
+      historyRef.current = [...truncated, state].slice(-STUDIO_HISTORY_LIMIT);
+      indexRef.current = historyRef.current.length - 1;
+      bumpHistoryVersion((version) => version + 1);
+    }, STUDIO_HISTORY_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [state]);
+
+  const undo = useCallback(() => {
+    if (indexRef.current <= 0) return;
+    indexRef.current -= 1;
+    skipSnapshotRef.current = true;
+    setStateRaw(historyRef.current[indexRef.current]);
+    bumpHistoryVersion((version) => version + 1);
+  }, []);
+  const redo = useCallback(() => {
+    if (indexRef.current >= historyRef.current.length - 1) return;
+    indexRef.current += 1;
+    skipSnapshotRef.current = true;
+    setStateRaw(historyRef.current[indexRef.current]);
+    bumpHistoryVersion((version) => version + 1);
+  }, []);
+
+  return [state, setStateRaw, { undo, redo, canUndo: indexRef.current > 0, canRedo: indexRef.current < historyRef.current.length - 1 }];
+}
+
 export function StudioPage({
   mode,
   leadKey,
@@ -1260,7 +1342,7 @@ export function StudioPage({
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
-  const [state, setState] = useState<StudioState>(() => linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts));
+  const [state, setState, studioHistory] = useUndoableStudioState(() => linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts));
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
@@ -1307,6 +1389,25 @@ export function StudioPage({
     if (contact.email.trim() && !isValidEmailAddress(contact.email)) contactIssues.push("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
     return [...issues, ...contactIssues];
   }, [state, estimate, hasAttemptedSubmit, contact.name, contact.phone, contact.project, contact.address, contact.taxId, contact.email, hasPastInstallationDate]);
+  useEffect(() => {
+    if (mode !== "studio") return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const target = event.target as HTMLElement | null;
+      // Leave native per-field undo alone while typing in a text field.
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      const key = event.key.toLowerCase();
+      if (key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        studioHistory.undo();
+      } else if (key === "y" || (key === "z" && event.shiftKey)) {
+        event.preventDefault();
+        studioHistory.redo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mode, studioHistory.undo, studioHistory.redo]);
   useEffect(() => {
     if (!sketchFile) {
       setSketchPreviewUrl(null);
@@ -1591,7 +1692,7 @@ export function StudioPage({
     {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
-     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
+     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
          <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
