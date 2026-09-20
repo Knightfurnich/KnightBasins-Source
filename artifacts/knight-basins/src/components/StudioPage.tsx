@@ -118,6 +118,8 @@ export type StudioNotificationSnapshot = {
   vat: boolean;
 };
 
+const MAX_SKETCH_FILES = 5;
+
 type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
   leadKey: string;
@@ -1001,7 +1003,14 @@ function StudioPieceEditor({
           {([activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).length > 0) && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${activeRectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{[activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
           {activeRectangle.widthMm > 900 && <div className="studio-dimension-suggestion" aria-live="polite"><span>ความกว้างเกิน 900 มม. ตรวจสอบทิศทาง</span><button type="button" className="button button--outline" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, widthMm: rectangle.lengthMm, lengthMm: rectangle.widthMm }))} data-testid={`button-swap-rectangle-dimensions-${activeRectangle.id}`}><RotateCw size={14} /> สลับ กว้าง ↔ ยาว</button></div>}
           <button type="button" className="button button--outline studio-rotate-button" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, rotation: rectangle.rotation === 0 ? 90 : 0 }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
-          <div className="studio-side-status-grid">{studioSideStatuses(piece, activeRectangle.id).map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(activeRectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option></select></label>)}</div>
+          <div className="studio-side-status-grid">{(() => {
+            const statuses = studioSideStatuses(piece, activeRectangle.id);
+            const bySide = (side: "top" | "right" | "bottom" | "left") => statuses.find((item) => item.side === side)!;
+            // Paired by opposite edges (top+bottom, then left+right) instead of the
+            // natural top/right/bottom/left order, so each row groups the two sides
+            // a person naturally compares against each other.
+            return [bySide("top"), bySide("bottom"), bySide("left"), bySide("right")].map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(activeRectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option></select></label>);
+          })()}</div>
           <p className="studio-helper">ติดบัว = ชิดผนังปูน / ขอบเปิด = โชว์ลอยในอากาศ</p>
            <div className="studio-inspector-actions"><button type="button" className="button button--outline" disabled={piece.rectangles.length >= STUDIO_MAX_RECTANGLES} onClick={addRectangle} data-testid={`button-add-studio-rectangle-${piece.id}`}><Plus size={14} /> เพิ่มแผ่น / ขั้น</button><button type="button" className="icon-button" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.filter((item) => item.id !== activeRectangle.id) }))} disabled={piece.rectangles.length <= 1} aria-label="ลบแผ่นที่เลือก"><Trash2 size={14} /></button></div>
           </div>
@@ -1356,8 +1365,9 @@ export function StudioPage({
   const hasMountedDraftEffect = useRef(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [contact, setContact] = useState(() => ({ ...emptyContact, ...contactDefaults }));
-  const [sketchFile, setSketchFile] = useState<File | null>(null);
-  const [sketchPreviewUrl, setSketchPreviewUrl] = useState<string | null>(null);
+  const [sketchFiles, setSketchFiles] = useState<File[]>([]);
+  const [sketchPreviewUrls, setSketchPreviewUrls] = useState<string[]>([]);
+  const sketchPreviewUrlCache = useRef<Map<File, string>>(new Map());
   const sketchInputRef = useRef<HTMLInputElement | null>(null);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -1409,14 +1419,37 @@ export function StudioPage({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mode, studioHistory.undo, studioHistory.redo]);
   useEffect(() => {
-    if (!sketchFile) {
-      setSketchPreviewUrl(null);
-      return;
+    // Keep each file's preview URL stable across renders instead of
+    // revoking and recreating every slot whenever one file is added or
+    // removed elsewhere in the list.
+    const cache = sketchPreviewUrlCache.current;
+    const activeFiles = new Set(sketchFiles);
+    for (const [file, url] of cache) {
+      if (!activeFiles.has(file)) {
+        URL.revokeObjectURL(url);
+        cache.delete(file);
+      }
     }
-    const previewUrl = URL.createObjectURL(sketchFile);
-    setSketchPreviewUrl(previewUrl);
-    return () => URL.revokeObjectURL(previewUrl);
-  }, [sketchFile]);
+    setSketchPreviewUrls(sketchFiles.map((file) => {
+      let url = cache.get(file);
+      if (!url) {
+        url = URL.createObjectURL(file);
+        cache.set(file, url);
+      }
+      return url;
+    }));
+  }, [sketchFiles]);
+  useEffect(() => () => {
+    sketchPreviewUrlCache.current.forEach((url) => URL.revokeObjectURL(url));
+    sketchPreviewUrlCache.current.clear();
+  }, []);
+  const addSketchFiles = (files: File[]) => {
+    if (!files.length) return;
+    setSketchFiles((current) => [...current, ...files].slice(0, MAX_SKETCH_FILES));
+  };
+  const removeSketchFile = (index: number) => {
+    setSketchFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
+  };
   useEffect(() => {
     if (!contactDefaults) return;
     setContact((current) => ({
@@ -1648,7 +1681,7 @@ export function StudioPage({
     const email = contact.email.trim();
     const project = contact.project.trim();
     const address = contact.address.trim();
-    if (!sketchFile || !name || !phone || !project) {
+    if (!sketchFiles.length || !name || !phone || !project) {
       setResult("กรุณาแนบไฟล์ และกรอกชื่อผู้ติดต่อ โทรศัพท์ และชื่อโครงการ");
       return;
     }
@@ -1671,14 +1704,14 @@ export function StudioPage({
     setSubmitting(true);
     setResult("");
     const form = new FormData();
-    form.append("file", sketchFile);
+    sketchFiles.forEach((file) => form.append("file", file));
     form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };
       if (!response.ok) throw new Error(payload.message || "ส่งไฟล์ไม่สำเร็จ");
       setResult(payload.message || (payload.notificationStatus === "notified" ? "ส่งแบบร่างเรียบร้อยแล้ว ทีมขายได้รับการแจ้งเตือน" : "บันทึกแบบร่างเรียบร้อยแล้ว"));
-      setSketchFile(null);
+      setSketchFiles([]);
        if (sketchInputRef.current) sketchInputRef.current.value = "";
     } catch (error) {
       setResult(error instanceof Error ? error.message : "ส่งไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง");
@@ -1696,7 +1729,17 @@ export function StudioPage({
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
          <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
-        {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><label className={`studio-file-drop ${sketchPreviewUrl ? "studio-file-drop--preview" : ""}`}>{sketchPreviewUrl ? <img className="studio-file-preview" src={sketchPreviewUrl} alt={`ตัวอย่างไฟล์ ${sketchFile?.name ?? "แบบร่าง"}`} data-testid="img-studio-sketch-preview" /> : <Upload size={22} />}<span className="studio-file-drop-copy"><strong>{sketchFile ? sketchFile.name : "เลือกไฟล์แบบร่าง"}</strong><small>JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB</small></span><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setSketchFile(event.target.files?.[0] ?? null)} data-testid="input-studio-sketch" /></label></section>}
+        {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
+      const file = sketchFiles[index];
+      const previewUrl = sketchPreviewUrls[index];
+      if (file && previewUrl) {
+        return <div key={index} className="studio-sketch-slot studio-sketch-slot--filled" data-testid={`slot-studio-sketch-${index}`}><img className="studio-sketch-slot-preview" src={previewUrl} alt={`ตัวอย่างไฟล์ ${file.name}`} data-testid={`img-studio-sketch-preview-${index}`} /><button type="button" className="studio-sketch-slot-remove" onClick={() => removeSketchFile(index)} aria-label={`ลบไฟล์ ${file.name}`} data-testid={`button-remove-studio-sketch-${index}`}><X size={14} /></button></div>;
+      }
+      if (index === sketchFiles.length) {
+        return <button key={index} type="button" className="studio-sketch-slot studio-sketch-slot--add" onClick={() => sketchInputRef.current?.click()} data-testid={`button-add-studio-sketch-${index}`}><Upload size={20} /><small>{index === 0 ? "เลือกไฟล์" : "เพิ่มรูป"}</small></button>;
+      }
+      return <div key={index} className="studio-sketch-slot studio-sketch-slot--empty" aria-hidden="true" />;
+    })}</div><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" /><small className="studio-sketch-hint">JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป</small></section>}
       </div>
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>

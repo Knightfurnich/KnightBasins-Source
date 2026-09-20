@@ -240,9 +240,15 @@ export async function readMultipartVideo(req: Request): Promise<UploadedVideo> {
   return readMultipartMedia(req, "video");
 }
 
-export async function readMultipartForm(req: Request, kind: "image" | "video") {
+export async function readMultipartForm(
+  req: Request,
+  kind: "image" | "video",
+  options: { maxFiles?: number } = {},
+) {
   const isImage = kind === "image";
-  const maxBytes = isImage ? MAX_IMAGE_UPLOAD_BYTES : MAX_VIDEO_UPLOAD_BYTES;
+  const maxFiles = options.maxFiles ?? 1;
+  const perFileMaxBytes = isImage ? MAX_IMAGE_UPLOAD_BYTES : MAX_VIDEO_UPLOAD_BYTES;
+  const maxBytes = perFileMaxBytes * maxFiles;
   assertRequestSize(req, maxBytes, isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
   const contentType = req.headers["content-type"] ?? "";
   const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
@@ -259,7 +265,7 @@ export async function readMultipartForm(req: Request, kind: "image" | "video") {
   const boundary = Buffer.from(`--${boundaryMatch[1] ?? boundaryMatch[2]}`);
   const fields: Record<string, string> = {};
   let cursor = 0;
-  let media: UploadedMedia | undefined;
+  const media: UploadedMedia[] = [];
   while (cursor < body.length) {
     const start = body.indexOf(boundary, cursor);
     if (start < 0) break;
@@ -275,19 +281,22 @@ export async function readMultipartForm(req: Request, kind: "image" | "video") {
     const fieldName = disposition.match(/name="([^"]*)"/i)?.[1];
     const fileName = disposition.match(/filename="([^"]*)"/i)?.[1];
     if (fieldName === "file" && fileName) {
+      if (media.length >= maxFiles) {
+        throw new Error(isImage ? `Choose up to ${maxFiles} images` : `Choose up to ${maxFiles} videos`);
+      }
       const partType = headerValue(headers, "content-type").toLowerCase();
       if (!MIME_EXTENSIONS[partType] || (isImage ? !partType.startsWith("image/") : !partType.startsWith("video/"))) {
         throw new Error(isImage ? "Only JPG, PNG, WEBP, and GIF images are allowed" : "Only MP4, WEBM, and MOV videos are allowed");
       }
-      if (content.length === 0 || content.length > maxBytes) throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
+      if (content.length === 0 || content.length > perFileMaxBytes) throw new Error(isImage ? "Image is too large. Maximum size is 10 MB" : "Video is too large. Maximum size is 100 MB");
       assertAllowedFile(content, partType, isImage ? "Only JPG, PNG, WEBP, and GIF images are allowed" : "Only MP4, WEBM, and MOV videos are allowed");
-      media = { buffer: content, contentType: partType, originalName: fileName };
+      media.push({ buffer: content, contentType: partType, originalName: fileName });
     } else if (fieldName) {
       fields[fieldName] = content.toString("utf8");
     }
     cursor = partEnd;
   }
-  if (!media) throw new Error(isImage ? "Choose an image file" : "Choose a video file");
+  if (!media.length) throw new Error(isImage ? "Choose an image file" : "Choose a video file");
   return { media, fields };
 }
 

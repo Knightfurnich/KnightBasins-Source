@@ -223,6 +223,34 @@ async function sendTelegramText(text: string, button?: TelegramButton): Promise<
   }
 }
 
+async function sendTelegramMediaGroup(photoUrls: string[], caption: string): Promise<NotificationResult> {
+  const token = process.env["TELEGRAM_BOT_TOKEN"];
+  const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
+  if (!token || !chatId) {
+    return missingNotification("บันทึกแล้ว แต่ยังไม่ได้ส่งแจ้งเตือน Telegram เพราะยังไม่ได้ตั้งค่า token หรือ chat ID");
+  }
+  try {
+    const media = photoUrls.map((url, index) => ({
+      type: "photo",
+      media: url,
+      ...(index === 0 ? { caption } : {}),
+    }));
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMediaGroup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, media }),
+    });
+    const payload = await response.json().catch(() => null) as { ok?: boolean; description?: string } | null;
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.description || `Telegram sendMediaGroup returned ${response.status}`);
+    }
+    return { notificationStatus: "notified", message: "ส่งแบบร่างเข้า Telegram แล้ว" };
+  } catch (error) {
+    console.warn("Telegram media group notification failed", error instanceof Error ? error.message : "unknown");
+    return missingNotification("บันทึกแล้ว แต่ส่งแบบร่างเข้า Telegram ไม่สำเร็จ กรุณาลองใหม่");
+  }
+}
+
 async function sendTelegramPhoto(photoUrl: string, caption: string, button?: TelegramButton): Promise<NotificationResult> {
   const token = process.env["TELEGRAM_BOT_TOKEN"];
   const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
@@ -273,14 +301,23 @@ export async function notifyQuote(lead: LeadNotificationData, origin: string, qu
   return configuredChannel() === "telegram" ? sendTelegramText(text, button) : sendLineText(text);
 }
 
+function sketchPhotoPaths(lead: LeadNotificationData): string[] {
+  const studio = lead.studioData as { sketchUrls?: unknown } | null | undefined;
+  const urls = Array.isArray(studio?.sketchUrls)
+    ? studio.sketchUrls.filter((url): url is string => typeof url === "string" && url.length > 0)
+    : [];
+  if (urls.length) return urls;
+  return lead.sketchUrl ? [lead.sketchUrl] : [];
+}
+
 export async function notifySketch(
   lead: LeadNotificationData,
   origin: string,
   quotePath?: string,
 ) {
-  const photoPath = lead.sketchUrl;
-  if (!photoPath) return missingNotification("บันทึกแล้ว แต่ไม่มีไฟล์แบบร่างสำหรับส่งแจ้งเตือน");
-  const photoUrl = publicUrl(origin, photoPath);
+  const photoPaths = sketchPhotoPaths(lead);
+  if (!photoPaths.length) return missingNotification("บันทึกแล้ว แต่ไม่มีไฟล์แบบร่างสำหรับส่งแจ้งเตือน");
+  const photoUrls = photoPaths.map((path) => publicUrl(origin, path));
   const quoteUrl = quotePath
     ? publicUrl(origin, quotePath)
     : "";
@@ -288,8 +325,14 @@ export async function notifySketch(
   if (configuredChannel() === "telegram") {
     const button = quoteUrl
       ? { text: "เปิดใบเสนอราคา", url: quoteUrl }
-      : { text: "เปิดดูรูปเต็ม", url: photoUrl };
-    return sendTelegramPhoto(photoUrl, caption, button);
+      : { text: "เปิดดูรูปเต็ม", url: photoUrls[0]! };
+    if (photoUrls.length === 1) return sendTelegramPhoto(photoUrls[0]!, caption, button);
+    const albumResult = await sendTelegramMediaGroup(photoUrls, caption);
+    if (albumResult.notificationStatus === "notified") {
+      await sendTelegramText(`เปิดดู: ${button.url}`, button);
+    }
+    return albumResult;
   }
-  return sendLineText(quoteUrl ? caption : `${caption}\nไฟล์: ${photoUrl}`);
+  const fileLines = photoUrls.map((url) => `ไฟล์: ${url}`).join("\n");
+  return sendLineText(quoteUrl ? caption : `${caption}\n${fileLines}`);
 }

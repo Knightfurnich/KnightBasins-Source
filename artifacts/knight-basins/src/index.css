@@ -1870,8 +1870,8 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-inspector-section { display: grid; gap: 9px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .studio-rectangle-select { display: grid; gap: 5px; color: var(--ink-soft); font-size: 10px; }
 .studio-rectangle-select select { width: 100%; min-width: 0; padding: 8px 9px; color: var(--ink); border: 1px solid var(--line); background: white; font: 11px var(--mono); }
-.studio-inspector .studio-rectangle-inputs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.studio-inspector .studio-side-status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.studio-inspector .studio-rectangle-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.studio-inspector .studio-side-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .studio-inspector-actions { display: flex; align-items: center; gap: 7px; }
 .studio-inspector-actions .button { flex: 1; margin: 0; font-size: 10px; }
 .studio-inspector-actions .icon-button { width: 33px; height: 33px; border: 1px solid var(--line); background: white; }
@@ -1991,13 +1991,16 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-canvas--saved .studio-placement { cursor: default; }
 .studio-saved-layout-note { margin: 10px 0 0; color: var(--ink-soft); font-size: 10px; }
 .studio-sketch-panel { margin-top: 18px; }
-.studio-file-drop { position: relative; display: grid; place-items: center; gap: 8px; min-width: 0; min-height: 220px; max-width: 100%; padding: 24px; color: var(--brand-blue); border: 1px dashed #82bfd8; background: #f2fafd; text-align: center; cursor: pointer; overflow: hidden; }
-.studio-file-drop--preview { align-content: center; gap: 12px; }
-.studio-file-preview { display: block; width: auto; max-width: 100%; height: auto; max-height: 168px; object-fit: contain; border-radius: 8px; pointer-events: none; }
-.studio-file-drop-copy { display: grid; gap: 5px; min-width: 0; max-width: 100%; }
-.studio-file-drop strong { display: block; overflow-wrap: anywhere; color: var(--ink); font-size: 13px; }
-.studio-file-drop small { display: block; color: var(--ink-soft); font-size: 10px; }
-.studio-file-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.studio-sketch-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.studio-sketch-slot { position: relative; display: grid; place-items: center; gap: 6px; aspect-ratio: 1; min-width: 0; padding: 8px; color: var(--brand-blue); border: 1px dashed #82bfd8; border-radius: 8px; background: #f2fafd; text-align: center; overflow: hidden; }
+.studio-sketch-slot--add { cursor: pointer; font: inherit; }
+.studio-sketch-slot--add small { color: var(--ink-soft); font-size: 9px; }
+.studio-sketch-slot--empty { border-style: solid; border-color: #e1eef4; background: #f7fbfd; opacity: 0.6; }
+.studio-sketch-slot--filled { padding: 0; border-style: solid; }
+.studio-sketch-slot-preview { display: block; width: 100%; height: 100%; object-fit: cover; }
+.studio-sketch-slot-remove { position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 20px; height: 20px; padding: 0; color: #fff; border: none; border-radius: 999px; background: rgba(15, 23, 42, 0.65); cursor: pointer; }
+.studio-sketch-hint { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 10px; }
+.studio-sketch-file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .studio-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .studio-contact-grid label:first-child, .studio-contact-grid label:nth-child(5), .studio-contact-grid label:nth-child(6) { grid-column: span 2; }
 .studio-contact-grid label span { color: #c64d3f; }

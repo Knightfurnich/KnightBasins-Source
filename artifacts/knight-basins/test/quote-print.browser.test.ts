@@ -1510,12 +1510,10 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       await setFileInput(browser.page, firstFile);
       const firstPreview = await waitFor(
         () => browser.page.evaluate(`(() => {
-          const image = document.querySelector('[data-testid="img-studio-sketch-preview"]');
-          const fileInput = document.querySelector('[data-testid="input-studio-sketch"]');
+          const image = document.querySelector('[data-testid="img-studio-sketch-preview-0"]');
           return {
             src: image?.getAttribute("src") ?? "",
             alt: image?.getAttribute("alt") ?? "",
-            fileName: fileInput instanceof HTMLInputElement ? fileInput.files?.[0]?.name ?? "" : "",
             naturalWidth: image instanceof HTMLImageElement ? image.naturalWidth : 0,
           };
         })()`),
@@ -1523,39 +1521,55 @@ describe("long formal quote print flow", { concurrency: false }, () => {
         "first hand sketch preview",
       );
       assert.match(firstPreview.alt, /first-sketch\.png/);
-      assert.equal(firstPreview.fileName, "first-sketch.png");
 
       await setFileInput(browser.page, secondFile);
       const secondPreview = await waitFor(
         () => browser.page.evaluate(`(() => {
-          const image = document.querySelector('[data-testid="img-studio-sketch-preview"]');
-          const fileInput = document.querySelector('[data-testid="input-studio-sketch"]');
+          const image = document.querySelector('[data-testid="img-studio-sketch-preview-1"]');
           return {
             src: image?.getAttribute("src") ?? "",
             alt: image?.getAttribute("alt") ?? "",
-            fileName: fileInput instanceof HTMLInputElement ? fileInput.files?.[0]?.name ?? "" : "",
             naturalWidth: image instanceof HTMLImageElement ? image.naturalWidth : 0,
           };
         })()`),
-        (value) => value.fileName === "latest-sketch.png" && value.naturalWidth > 0 && value.src !== firstPreview.src,
-        "latest hand sketch preview",
+        (value) => Boolean(value.src) && value.naturalWidth > 0,
+        "second hand sketch preview",
       );
       assert.match(secondPreview.alt, /latest-sketch\.png/);
-      assert.equal(secondPreview.fileName, "latest-sketch.png");
       assert.ok(secondPreview.src.startsWith("blob:"));
-      assert.equal(await browser.page.evaluate(`window.__revokedSketchObjectUrls.includes(${JSON.stringify(firstPreview.src)})`), true);
+      assert.notEqual(secondPreview.src, firstPreview.src);
+      // Adding a second file must not disturb the already-shown first slot.
+      const firstSlotAfterSecondUpload = await browser.page.evaluate(
+        `document.querySelector('[data-testid="img-studio-sketch-preview-0"]')?.getAttribute("src") ?? ""`,
+      );
+      assert.equal(firstSlotAfterSecondUpload, firstPreview.src);
+      assert.equal(await browser.page.evaluate(`window.__revokedSketchObjectUrls.includes(${JSON.stringify(firstPreview.src)})`), false);
 
       const mobileLayout = await browser.page.evaluate(`(() => {
-        const drop = document.querySelector(".studio-file-drop");
+        const slots = document.querySelector(".studio-sketch-slots");
+        const filledSlot = slots?.querySelector(".studio-sketch-slot--filled");
         return {
           bodyWidth: document.body.scrollWidth,
           viewportWidth: window.innerWidth,
-          previewWidth: drop?.querySelector("img")?.getBoundingClientRect().width ?? 0,
-          dropWidth: drop instanceof HTMLElement ? drop.getBoundingClientRect().width : 0,
+          previewWidth: filledSlot?.querySelector("img")?.getBoundingClientRect().width ?? 0,
+          slotWidth: filledSlot instanceof HTMLElement ? filledSlot.getBoundingClientRect().width : 0,
         };
       })()`);
       assert.ok(mobileLayout.bodyWidth <= mobileLayout.viewportWidth, "Hand sketch preview must not widen the mobile page");
-      assert.ok(mobileLayout.previewWidth <= mobileLayout.dropWidth, "Hand sketch preview must stay inside the upload frame");
+      assert.ok(mobileLayout.previewWidth <= mobileLayout.slotWidth, "Hand sketch preview must stay inside its upload slot");
+
+      // Removing the first slot must revoke only its own preview URL and
+      // shift the remaining file into its place.
+      await clickTestId(browser.page, "button-remove-studio-sketch-0");
+      await waitFor(
+        () => browser.page.evaluate(
+          `document.querySelector('[data-testid="img-studio-sketch-preview-0"]')?.getAttribute("src") ?? ""`,
+        ),
+        (value) => value === secondPreview.src,
+        "second file shifted into the first slot after removal",
+      );
+      assert.equal(await browser.page.evaluate(`window.__revokedSketchObjectUrls.includes(${JSON.stringify(firstPreview.src)})`), true);
+      assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="img-studio-sketch-preview-1"]')`), null);
 
       await setTextInput(browser.page, "input-studio-name", "คุณทดสอบ");
       await setTextInput(browser.page, "input-studio-phone", "0812345678");
@@ -1569,7 +1583,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       await clickTestId(browser.page, "button-submit-sketch");
       await waitFor(
         () => browser.page.evaluate(`(() => ({
-          preview: document.querySelector('[data-testid="img-studio-sketch-preview"]') !== null,
+          preview: document.querySelector('[data-testid^="img-studio-sketch-preview-"]') !== null,
           fileCount: document.querySelector('[data-testid="input-studio-sketch"]') instanceof HTMLInputElement
             ? document.querySelector('[data-testid="input-studio-sketch"]').files?.length ?? 0
             : -1,

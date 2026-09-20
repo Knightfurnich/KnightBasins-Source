@@ -17,6 +17,8 @@ import { notifyQuote, notifySketch } from "../lib/sales-notifications";
 import { formatQuoteMonth } from "../lib/date-time";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
+const MAX_SKETCH_FILES = 5;
+
 function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
@@ -176,7 +178,7 @@ router.get("/quotes", async (req, res, next) => {
   router.post("/leads/sketch", sketchRateLimit, uploadConcurrency, async (req, res, next) => {
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
-    const { media, fields } = await readMultipartForm(req, "image");
+    const { media, fields } = await readMultipartForm(req, "image", { maxFiles: MAX_SKETCH_FILES });
     let metadata: unknown;
     try {
       metadata = JSON.parse(fields.metadata ?? "");
@@ -187,7 +189,17 @@ router.get("/quotes", async (req, res, next) => {
     if (!parsed.success || parsed.data.orderMode !== "sketch") {
       return invalid(res, "Invalid sketch lead data", parsed.success ? undefined : parsed.error.flatten());
     }
-    const upload = await saveUploadedMedia(media, "sketch");
+    const uploads: Awaited<ReturnType<typeof saveUploadedMedia>>[] = [];
+    try {
+      for (const item of media) {
+        uploads.push(await saveUploadedMedia(item, "sketch"));
+      }
+    } catch (error) {
+      await Promise.all(uploads.map((upload) => removeUploadedMedia(upload.filename))).catch(() => undefined);
+      throw error;
+    }
+    const sketchUrls = uploads.map((upload) => upload.url);
+    const studioData = { ...(parsed.data.studioData ?? {}), sketchUrls };
     let lead;
     try {
       [lead] = await database
@@ -195,7 +207,8 @@ router.get("/quotes", async (req, res, next) => {
         .values({
           ...parsed.data,
           expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
-          sketchUrl: upload.url,
+          sketchUrl: sketchUrls[0],
+          studioData,
           orderMode: "sketch",
           customerAccountId: account?.id ?? null,
         })
@@ -225,8 +238,8 @@ router.get("/quotes", async (req, res, next) => {
             condoFloor: parsed.data.condoFloor,
             expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
             productSkus: parsed.data.productSkus,
-            studioData: parsed.data.studioData,
-            sketchUrl: upload.url,
+            studioData,
+            sketchUrl: sketchUrls[0],
             customerAccountId: account?.id ?? customerLeads.customerAccountId,
             updatedAt: new Date(),
           },
@@ -235,11 +248,11 @@ router.get("/quotes", async (req, res, next) => {
       if (!lead) throw new Error("Lead was not saved");
     } catch (error) {
       try {
-        await removeUploadedMedia(upload.filename);
+        await Promise.all(uploads.map((upload) => removeUploadedMedia(upload.filename)));
       } catch (cleanupError) {
         throw new AggregateError(
           [error, cleanupError],
-          `Lead save failed and sketch upload cleanup failed for ${upload.filename}`,
+          `Lead save failed and sketch upload cleanup failed for ${uploads.map((upload) => upload.filename).join(", ")}`,
         );
       }
       throw error;
