@@ -19,6 +19,14 @@ const loginSchema = z.object({
   password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
 });
 
+const NAV_ITEMS = [
+  { href: "/admin", label: "หน้าแรก", exact: true },
+  { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false },
+  { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false },
+  { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false },
+  { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false },
+] as const;
+
 export default function AdminApp() {
   const { data: session, isLoading } = useGetAdminSession();
   const queryClient = useQueryClient();
@@ -48,13 +56,12 @@ export default function AdminApp() {
         <AdminLogout />
       </header>
       <div className="flex flex-col md:flex-row flex-1 max-w-[1440px] w-full mx-auto">
-         <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6 overflow-x-auto">
-          <nav className="flex flex-row md:flex-col gap-2 min-w-max">
-            <NavButton href="/admin" exact>หน้าแรก</NavButton>
-            <NavButton href="/admin/basins">อ่างล้างหน้า</NavButton>
-            <NavButton href="/admin/installed-stones">หิน (พร้อมติดตั้ง)</NavButton>
-            <NavButton href="/admin/sheet-stones">หิน (ขายแผ่น)</NavButton>
-            <NavButton href="/admin/leads">ลูกค้า / Lead</NavButton>
+         <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
+          <MobileNavSelect />
+          <nav className="hidden md:flex md:flex-col gap-2">
+            {NAV_ITEMS.map((item) => (
+              <NavButton key={item.href} href={item.href} exact={item.exact}>{item.label}</NavButton>
+            ))}
           </nav>
         </aside>
         <main className="admin-main flex-1 p-4 md:p-10 overflow-x-hidden">
@@ -82,6 +89,24 @@ function NavButton({ href, children, exact }: { href: string, children: React.Re
     >
       {children}
     </Button>
+  );
+}
+
+function MobileNavSelect() {
+  const [location, setLocation] = useLocation();
+  const activeHref = NAV_ITEMS.find((item) => item.exact ? location === item.href : location.startsWith(item.href))?.href ?? NAV_ITEMS[0].href;
+  return (
+    <select
+      className="md:hidden w-full mb-4 border border-[var(--line)] bg-transparent px-3 py-2.5 text-sm rounded-none"
+      value={activeHref}
+      onChange={(event) => setLocation(event.target.value)}
+      aria-label="เมนูจัดการ"
+      data-testid="select-admin-mobile-nav"
+    >
+      {NAV_ITEMS.map((item) => (
+        <option key={item.href} value={item.href}>{item.label}</option>
+      ))}
+    </select>
   );
 }
 
