@@ -469,10 +469,24 @@ export const AdminLeadUpdateInputStatus = {
   closed: 'closed',
 } as const;
 
+/**
+ * @nullable
+ */
+export type AdminLeadUpdateInputStaffDimensions = {
+  /** @nullable */
+  widthMm?: number | null;
+  /** @nullable */
+  lengthMm?: number | null;
+  /** @nullable */
+  depthMm?: number | null;
+} | null;
+
 export interface AdminLeadUpdateInput {
   status: AdminLeadUpdateInputStatus;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  staffDimensions?: AdminLeadUpdateInputStaffDimensions;
 }
 
 export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];

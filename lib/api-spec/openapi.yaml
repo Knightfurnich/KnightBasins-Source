@@ -897,6 +897,12 @@ components:
           type: string
           enum: [new_lead, selecting, quote_requested, closed]
         notes: { type: [string, "null"] }
+        staffDimensions:
+          type: [object, "null"]
+          properties:
+            widthMm: { type: [number, "null"] }
+            lengthMm: { type: [number, "null"] }
+            depthMm: { type: [number, "null"] }
     CustomerLead:
       type: object
       required: [id, leadKey, status, source, productSkus, createdAt, updatedAt]

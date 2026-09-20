@@ -1337,7 +1337,12 @@ export const UpdateAdminLeadParams = zod.object({
 
 export const UpdateAdminLeadBody = zod.object({
   "status": zod.enum(['new_lead', 'selecting', 'quote_requested', 'closed']),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "staffDimensions": zod.object({
+  "widthMm": zod.number().nullish(),
+  "lengthMm": zod.number().nullish(),
+  "depthMm": zod.number().nullish()
+}).nullish()
 })
 
 export const UpdateAdminLeadResponse = zod.object({

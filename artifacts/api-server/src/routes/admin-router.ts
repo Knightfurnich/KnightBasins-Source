@@ -145,9 +145,23 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     const parsed = UpdateAdminLeadBody.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid lead data", parsed.success ? undefined : parsed.error.flatten());
     try {
+      let studioData: Record<string, unknown> | undefined;
+      if (parsed.data.staffDimensions !== undefined) {
+        const [existing] = await database
+          .select({ studioData: customerLeads.studioData })
+          .from(customerLeads)
+          .where(eq(customerLeads.id, id))
+          .limit(1);
+        studioData = { ...(existing?.studioData as Record<string, unknown> ?? {}), staffDimensions: parsed.data.staffDimensions };
+      }
       const [updated] = await database
         .update(customerLeads)
-        .set({ status: parsed.data.status, notes: parsed.data.notes, updatedAt: new Date() })
+        .set({
+          status: parsed.data.status,
+          notes: parsed.data.notes,
+          ...(studioData !== undefined ? { studioData } : {}),
+          updatedAt: new Date(),
+        })
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });

@@ -26,6 +26,22 @@ const modeLabels: Record<string, string> = {
   sketch: "แบบร่างมือ",
 };
 
+function sketchImageUrls(lead: { sketchUrl?: string | null; studioData?: unknown }) {
+  const studio = lead.studioData as { sketchUrls?: unknown } | null | undefined;
+  const urls = Array.isArray(studio?.sketchUrls)
+    ? studio.sketchUrls.filter((url): url is string => typeof url === "string" && url.length > 0)
+    : [];
+  if (urls.length) return urls;
+  return lead.sketchUrl ? [lead.sketchUrl] : [];
+}
+
+type StaffDimensions = { widthMm?: number | null; lengthMm?: number | null; depthMm?: number | null };
+
+function staffDimensionsOf(lead: { studioData?: unknown }): StaffDimensions {
+  const studio = lead.studioData as { staffDimensions?: StaffDimensions } | null | undefined;
+  return studio?.staffDimensions ?? {};
+}
+
 function studioSummary(value: unknown) {
   if (!value || typeof value !== "object") return null;
   const data = value as {
@@ -54,6 +70,8 @@ export function LeadsManager() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [editingNotes, setEditingNotes] = useState<Record<number, string>>({});
+  const [editingDimensions, setEditingDimensions] = useState<Record<number, { widthMm: string; lengthMm: string; depthMm: string }>>({});
+  const [savedDimensions, setSavedDimensions] = useState<number | null>(null);
   const [copiedQuote, setCopiedQuote] = useState<string | null>(null);
   const [copyError, setCopyError] = useState("");
   const visibleLeads = useMemo(() => filterAdminLeads(leads ?? [], filter, search, { fromDate, toDate }), [filter, fromDate, leads, search, toDate]);
@@ -63,6 +81,31 @@ export function LeadsManager() {
     updateLead.mutate(
       { id, data: { status, notes: notes ?? null } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] }) },
+    );
+  };
+
+  const saveDimensions = (lead: { id: number; status: CustomerLeadStatus; notes?: string | null }) => {
+    const draft = editingDimensions[lead.id];
+    const toNumberOrNull = (value: string | undefined) => {
+      const trimmed = (value ?? "").trim();
+      if (!trimmed) return null;
+      const parsed = Number(trimmed);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    const staffDimensions = {
+      widthMm: toNumberOrNull(draft?.widthMm),
+      lengthMm: toNumberOrNull(draft?.lengthMm),
+      depthMm: toNumberOrNull(draft?.depthMm),
+    };
+    updateLead.mutate(
+      { id: lead.id, data: { status: lead.status, notes: lead.notes ?? null, staffDimensions } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+          setSavedDimensions(lead.id);
+          window.setTimeout(() => setSavedDimensions((current) => current === lead.id ? null : current), 1800);
+        },
+      },
     );
   };
 
@@ -166,9 +209,17 @@ export function LeadsManager() {
                    </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <span className="border border-[var(--line)] px-2 py-1 text-[var(--brand-blue)]">{modeLabels[lead.orderMode ?? "quick-purchase"] ?? lead.orderMode ?? "quick-purchase"}</span>
-                    {lead.sketchUrl && <a className="text-[var(--brand-blue)] underline" href={lead.sketchUrl} target="_blank" rel="noreferrer">เปิดไฟล์แบบร่าง</a>}
                     {lead.studioData && <span className="text-[var(--ink-soft)]">{studioSummary(lead.studioData) ?? "มีข้อมูลขนาดและประมาณการ"}</span>}
                   </div>
+                  {sketchImageUrls(lead).length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2" data-testid={`gallery-lead-sketch-${lead.id}`}>
+                      {sketchImageUrls(lead).map((url, index) => (
+                        <a key={url} href={url} target="_blank" rel="noreferrer" className="block h-16 w-16 border border-[var(--line)] overflow-hidden" data-testid={`link-lead-sketch-${lead.id}-${index}`}>
+                          <img src={url} alt={`แบบร่าง ${lead.name || ""} รูปที่ ${index + 1}`} className="h-full w-full object-cover" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {statusOptions.map((status) => (
@@ -191,6 +242,39 @@ export function LeadsManager() {
                   placeholder="เช่น นัดส่งตัวอย่างหิน หรือรอยืนยันแบบ"
                 />
               </div>
+              {lead.orderMode === "sketch" && (() => {
+                const saved = staffDimensionsOf(lead);
+                const draft = editingDimensions[lead.id] ?? {
+                  widthMm: saved.widthMm != null ? String(saved.widthMm) : "",
+                  lengthMm: saved.lengthMm != null ? String(saved.lengthMm) : "",
+                  depthMm: saved.depthMm != null ? String(saved.depthMm) : "",
+                };
+                const setField = (field: "widthMm" | "lengthMm" | "depthMm", value: string) => {
+                  setEditingDimensions((current) => ({ ...current, [lead.id]: { ...draft, [field]: value } }));
+                };
+                return (
+                  <div className="mt-4 max-w-2xl">
+                    <label className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ขนาดที่ลูกค้าเขียนกำกับในภาพ (mm)</label>
+                    <div className="mt-1 flex flex-wrap items-end gap-2">
+                      <label className="grid gap-1 text-xs text-[var(--ink-soft)]">
+                        กว้าง
+                        <Input type="number" inputMode="decimal" value={draft.widthMm} onChange={(event) => setField("widthMm", event.target.value)} className="w-28 rounded-none bg-transparent" data-testid={`input-lead-dimension-width-${lead.id}`} />
+                      </label>
+                      <label className="grid gap-1 text-xs text-[var(--ink-soft)]">
+                        ยาว
+                        <Input type="number" inputMode="decimal" value={draft.lengthMm} onChange={(event) => setField("lengthMm", event.target.value)} className="w-28 rounded-none bg-transparent" data-testid={`input-lead-dimension-length-${lead.id}`} />
+                      </label>
+                      <label className="grid gap-1 text-xs text-[var(--ink-soft)]">
+                        หนา/ลึก
+                        <Input type="number" inputMode="decimal" value={draft.depthMm} onChange={(event) => setField("depthMm", event.target.value)} className="w-28 rounded-none bg-transparent" data-testid={`input-lead-dimension-depth-${lead.id}`} />
+                      </label>
+                      <Button type="button" size="sm" variant="outline" className="h-9 rounded-none" disabled={updateLead.isPending} onClick={() => saveDimensions(lead)} data-testid={`button-save-lead-dimensions-${lead.id}`}>
+                        {savedDimensions === lead.id ? <><Check className="w-3 h-3 mr-1" /> บันทึกแล้ว</> : "บันทึกขนาด"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
             </article>
           ))}
         </div>
