@@ -2208,8 +2208,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 }
 
 @media print {
-  @page { size: A4 landscape; margin: 10mm; }
+  @page { size: A4 portrait; margin: 15mm; }
+  @page studio-print-page { size: A4 landscape; margin: 10mm; }
   body { background: white; }
+  body.studio-print-mode .studio-print-layout { page: studio-print-page; }
   body.studio-print-mode > * { visibility: hidden !important; }
   body.studio-print-mode .studio-print-layout,
   body.studio-print-mode .studio-print-layout * { visibility: visible !important; }
