@@ -922,9 +922,9 @@ h1, h2, h3 { color: var(--ink); }
 .formal-customer-grid strong { color: #173f5f; font-size: 11px; font-weight: 700; overflow-wrap: anywhere; }
 .formal-quote-table { width: 100%; border-collapse: collapse; font-size: 10px; }
 .formal-quote-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.formal-quote-table th { padding: 9px 7px; color: white; background: #1a659a; font-size: 9px; font-weight: 700; text-align: left; }
+.formal-quote-table th { padding: 9px 7px; border: 1px solid #1a659a; border-top: 0; color: white; background: #1a659a; font-size: 9px; font-weight: 700; text-align: left; }
 .formal-quote-table th:nth-child(n+3), .formal-quote-table td:nth-child(n+3) { text-align: right; }
-.formal-quote-table td { padding: 9px 7px; border-bottom: 1px solid #dbe6ec; vertical-align: top; }
+.formal-quote-table td { padding: 9px 7px; border: 1px solid #dbe6ec; vertical-align: top; }
 .formal-quote-table tbody tr:last-child td { border-bottom: 2px solid #1a659a; }
 .formal-code { color: #1a659a; font: 700 10px var(--mono); white-space: nowrap; }
 .formal-number, .formal-money { white-space: nowrap; }
@@ -947,6 +947,8 @@ h1, h2, h3 { color: var(--ink); }
 .formal-grand-total small { grid-column: 1 / -1; margin-top: 4px; color: #cce8f6; font-size: 9px; }
 .formal-quote-signature { display: flex; justify-content: space-between; gap: 30px; margin-top: 34px; padding-top: 22px; border-top: 1px solid #d6e2e9; color: #627889; font-size: 10px; line-height: 1.8; }
 .formal-quote-signature b { color: #173f5f; font-weight: 700; }
+.formal-signature-block { display: flex; flex-direction: column; min-width: 220px; }
+.formal-signature-line { height: 34px; margin: 6px 0 4px; border-bottom: 1px solid #173f5f; }
 
 @media (max-width: 720px) {
   .quote-format-panel, .formal-quote-header, .formal-quote-title, .formal-quote-bottom { display: grid; }
@@ -2227,6 +2229,17 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   body.studio-print-mode .studio-placement { cursor: default; }
   .quote-page { max-width: none; padding: 0; color: #111; }
   .quote-editor, .saved-quote-actions, .saved-quote-next-steps, .saved-quote-payment, .saved-quote-support, .source-note { display: none !important; }
+  .saved-quote-heading { min-height: 0; padding: 0 0 10px; border-bottom: 0; }
+  .saved-quote-heading::before, .saved-quote-heading::after { display: none !important; }
+  .saved-quote-heading .eyebrow, .saved-quote-heading .hero-copy, .saved-quote-heading h1 em { display: none !important; }
+  .saved-quote-heading h1 { margin: 0; font-size: 18px; }
+  .formal-quote-header { padding-bottom: 12px; }
+  .formal-company-logo { width: 52px; height: 52px; }
+  .formal-quote-title { padding: 12px 0 10px; }
+  .formal-quote-title h1 { font-size: 17px; }
+  .formal-quote-title .eyebrow { margin-bottom: 4px; }
+  .formal-customer-grid { margin-bottom: 12px; }
+  .formal-customer-grid > div { min-height: 0; padding: 5px 9px; }
   .studio-saved-layout { margin: 0 0 24px; padding: 0; border: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
   .studio-saved-layout-heading { padding-top: 0; }
   .studio-canvas--saved { min-height: 320px; }

@@ -174,7 +174,7 @@ export function CustomerProfilePage() {
         <button type="submit" className="button button--accent" disabled={updateProfile.isPending} data-testid="button-save-profile"><Save size={15} /> {updateProfile.isPending ? "กำลังบันทึก..." : "บันทึกโปรไฟล์"}</button>
       </form>
 
-      <section className="profile-card profile-history" aria-labelledby="profile-history-title">
+      <section id="quote-history" className="profile-card profile-history" aria-labelledby="profile-history-title">
         <div className="profile-history-heading"><div><span className="profile-label">DOCUMENTS</span><h2 id="profile-history-title">ประวัติใบเสนอราคา</h2></div><span className="profile-history-count">{history.data?.length ?? 0} รายการ</span></div>
         {history.isLoading && <p className="profile-muted">กำลังโหลดประวัติใบเสนอราคา...</p>}
         {!history.isLoading && !history.data?.length && <div className="profile-empty-history"><p>ยังไม่มีใบเสนอราคาที่ผูกกับบัญชีนี้</p><Link href="/quote" className="text-link">เริ่มสร้างใบเสนอราคา <ExternalLink size={14} /></Link></div>}
