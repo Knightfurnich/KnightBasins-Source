@@ -859,7 +859,12 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
   const sheetCutPriceWarning = price === 9500;
   const stoneTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(counterArea * price) + roundBaht((upstandArea + backsplashArea) * price);
   const upstandTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(upstandArea * price);
-  const basinSetSkus = state.basinPlacements.length ? state.basinPlacements.map((placement) => placement.sku) : state.basinSkus;
+  // Only basins actually placed on the layout are priced or submitted — a
+  // shortlisted-but-unplaced basin is a comparison, not a commitment, so a
+  // stone-only (or stone + install-only) order must total stone/install cost
+  // alone. This must stay in sync with submitStudio's notificationItems in
+  // StudioPage.tsx, which already only counts state.basinPlacements.
+  const basinSetSkus = state.basinPlacements.map((placement) => placement.sku);
   const basins = basinSetSkus.map((sku) => products.find((product) => product.sku === sku)).filter(Boolean) as BasinProduct[];
   const basinSubtotal = basins.reduce((sum, product) => sum + roundBaht(product.priceTHB), 0);
   const requestedInstallation = roundBaht(basins.length * INSTALLATION_PRICE);
@@ -955,8 +960,7 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
     disconnectedRectangles,
     discountInvalid,
     warnings,
-    isValid: state.basinPlacements.length >= state.basinSkus.length &&
-      price !== null &&
+    isValid: price !== null &&
       !openEdgePriceInvalid &&
       !upstandHeightInvalid &&
       !discountInvalid &&
@@ -979,10 +983,10 @@ type StudioSubmissionEstimate = Pick<StudioEstimate, "isValid" | "unknownDimensi
  * message at a time. */
 export function studioSubmissionValidationMessages(state: StudioState, estimate: StudioSubmissionEstimate): string[] {
   const messages: string[] = [];
-  const placedSkus = new Set(state.basinPlacements.map((placement) => placement.sku));
-  const hasMissingSelectedBasin = state.basinSkus.some((sku) => !placedSkus.has(sku));
-  if (state.basinSkus.length > 0 && state.basinPlacements.length === 0) messages.push("ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง");
-  else if (state.basinPlacements.length < state.basinSkus.length || hasMissingSelectedBasin) messages.push(`ยังวางอ่างไม่ครบทุกแบบที่เลือก (เลือก ${state.basinSkus.length} รุ่น · วางแล้ว ${state.basinPlacements.length} ตัว) กรุณาลากอ่างที่เลือกวางบนผังให้ครบ`);
+  // A shortlisted-but-unplaced basin is a comparison, not a commitment — it
+  // must never block submitting a stone-only (or stone + install-only)
+  // order. The shortlist cards' own "วางบนผัง" button is the nudge to place
+  // one, not a hard gate here. See basinSetSkus in studioEstimate.
   if (estimate.unknownDimensionPlacements.length > 0) messages.push("รุ่นที่เลือกยังไม่ระบุขนาดหลุม ต้องยืนยันขนาดกับทีมขายก่อนส่งคำขอ");
   if (estimate.inactiveBasinSkus.length > 0) messages.push("มีอ่างที่ไม่เปิดใช้งานในแบบร่าง กรุณาเปลี่ยนรุ่นหรือนำออกก่อนส่งคำขอ");
   if (estimate.basinOverlapWarnings.length > 0) messages.push("มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน");

@@ -569,6 +569,8 @@ describe("protected admin image upload route", () => {
   it("removes old unreferenced uploads but preserves referenced and fresh files", async () => {
     const referenced = "catalog-mold-bbbbbbbbbbbbbbbb.png";
     const referencedVideo = "catalog-mold-dddddddddddddddd.mp4";
+    const referencedGallery = "catalog-mold-eeeeeeeeeeeeeeee.png";
+    const referencedQuoteImage = "catalog-mold-ffffffffffffffff.png";
     const orphan = "catalog-mold-aaaaaaaaaaaaaaaa.png";
     const fresh = "catalog-mfresh-cccccccccccccccc.png";
     const unrelated = "keep-this-file.txt";
@@ -576,15 +578,24 @@ describe("protected admin image upload route", () => {
     await writeFile(path.join(uploadDirectory, orphan), "old orphan");
     await writeFile(path.join(uploadDirectory, referenced), "still in catalog");
     await writeFile(path.join(uploadDirectory, referencedVideo), "video still in catalog");
+    await writeFile(path.join(uploadDirectory, referencedGallery), "installed example still in catalog");
+    await writeFile(path.join(uploadDirectory, referencedQuoteImage), "quote image still in catalog");
     await writeFile(path.join(uploadDirectory, fresh), "fresh orphan");
     await writeFile(path.join(uploadDirectory, unrelated), "not managed");
     await utimes(path.join(uploadDirectory, orphan), oldTime, oldTime);
     await utimes(path.join(uploadDirectory, referenced), oldTime, oldTime);
     await utimes(path.join(uploadDirectory, referencedVideo), oldTime, oldTime);
+    await utimes(path.join(uploadDirectory, referencedGallery), oldTime, oldTime);
+    await utimes(path.join(uploadDirectory, referencedQuoteImage), oldTime, oldTime);
 
     const server = await startAdminRoute(
       cleanupDatabase(
-        [{ imageUrl: null, videoUrl: `${uploadOrigin}/${referencedVideo}?v=mold` }],
+        [{
+          imageUrl: null,
+          galleryImageUrls: [`${uploadOrigin}/${referencedGallery}?v=mold`],
+          quoteImageUrl: `${uploadOrigin}/${referencedQuoteImage}?v=mold`,
+          videoUrl: `${uploadOrigin}/${referencedVideo}?v=mold`,
+        }],
         [{ imageUrl: `${uploadOrigin}/${referenced}?v=mold` }],
         [{ imageUrl: "https://central.example.test/slab/SS001.png" }],
       ),
@@ -606,19 +617,23 @@ describe("protected admin image upload route", () => {
 
       assert.equal(response.status, 200);
       assert.equal(payload.retentionHours, 24);
-       assert.equal(payload.scanned, 4);
+       assert.equal(payload.scanned, 6);
       assert.deepEqual(payload.removed, [orphan]);
-       assert.equal(payload.skippedReferenced, 2);
+       assert.equal(payload.skippedReferenced, 4);
       assert.equal(payload.skippedTooNew, 1);
       await assert.rejects(readFile(path.join(uploadDirectory, orphan)));
       assert.deepEqual(await readFile(path.join(uploadDirectory, referenced)), Buffer.from("still in catalog"));
        assert.deepEqual(await readFile(path.join(uploadDirectory, referencedVideo)), Buffer.from("video still in catalog"));
+      assert.deepEqual(await readFile(path.join(uploadDirectory, referencedGallery)), Buffer.from("installed example still in catalog"));
+      assert.deepEqual(await readFile(path.join(uploadDirectory, referencedQuoteImage)), Buffer.from("quote image still in catalog"));
       assert.deepEqual(await readFile(path.join(uploadDirectory, fresh)), Buffer.from("fresh orphan"));
       assert.deepEqual(await readFile(path.join(uploadDirectory, unrelated)), Buffer.from("not managed"));
     } finally {
       await server.close();
       await rm(path.join(uploadDirectory, referenced), { force: true });
        await rm(path.join(uploadDirectory, referencedVideo), { force: true });
+      await rm(path.join(uploadDirectory, referencedGallery), { force: true });
+      await rm(path.join(uploadDirectory, referencedQuoteImage), { force: true });
       await rm(path.join(uploadDirectory, fresh), { force: true });
       await rm(path.join(uploadDirectory, unrelated), { force: true });
     }

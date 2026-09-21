@@ -37,6 +37,20 @@ export function normalizeBasinFields(input: {
   };
 }
 
+export function normalizedGalleryImageUrls(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((url): url is string => typeof url === "string")
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0);
+}
+
+export function normalizedNullableImageUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function withBasinMedia<T extends { sku: string }>(basin: T) {
   const storedImageUrl = "imageUrl" in basin && typeof basin.imageUrl === "string"
     ? basin.imageUrl.trim()
@@ -47,6 +61,12 @@ export function withBasinMedia<T extends { sku: string }>(basin: T) {
     imageUrl: storedImageUrl && !isLegacyBrokenImage
       ? storedImageUrl
       : basinImageUrl(basin.sku),
+    galleryImageUrls: normalizedGalleryImageUrls(
+      "galleryImageUrls" in basin ? (basin as { galleryImageUrls?: unknown }).galleryImageUrls : undefined,
+    ),
+    quoteImageUrl: normalizedNullableImageUrl(
+      "quoteImageUrl" in basin ? (basin as { quoteImageUrl?: unknown }).quoteImageUrl : undefined,
+    ),
     uploadedVideoUrl: "videoUrl" in basin && typeof basin.videoUrl === "string" && basin.videoUrl.trim()
       ? basin.videoUrl.trim()
       : null,

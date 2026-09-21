@@ -3,15 +3,22 @@ import { useState, type CSSProperties } from "react";
 type BasinVisualProps = {
   tone: string;
   imageUrl?: string;
+  hoverImageUrl?: string;
   alt?: string;
   tall?: boolean;
   className?: string;
 };
 
-export function BasinVisual({ tone, imageUrl, alt, tall = false, className = "" }: BasinVisualProps) {
+export function BasinVisual({ tone, imageUrl, hoverImageUrl, alt, tall = false, className = "" }: BasinVisualProps) {
   const normalizedImageUrl = imageUrl?.trim();
+  const normalizedHoverImageUrl = hoverImageUrl?.trim();
   const [imageFailed, setImageFailed] = useState(false);
+  const [hoverImageFailed, setHoverImageFailed] = useState(false);
   const showImage = Boolean(normalizedImageUrl) && !imageFailed;
+  const showHoverImage = showImage
+    && Boolean(normalizedHoverImageUrl)
+    && normalizedHoverImageUrl !== normalizedImageUrl
+    && !hoverImageFailed;
   const visualClassName = [
     "basin-visual",
     tall ? "basin-visual--tall" : "",
@@ -39,6 +46,15 @@ export function BasinVisual({ tone, imageUrl, alt, tall = false, className = "" 
           alt={alt ?? ""}
           loading="lazy"
           onError={() => setImageFailed(true)}
+        />
+      )}
+      {showHoverImage && (
+        <img
+          className="basin-image basin-image--hover"
+          src={normalizedHoverImageUrl}
+          alt=""
+          loading="lazy"
+          onError={() => setHoverImageFailed(true)}
         />
       )}
     </div>

@@ -45,6 +45,8 @@ export const basinPrices = pgTable(
     bowlMm: varchar("bowl_mm", { length: 160 }),
     imageTone: varchar("image_tone", { length: 24 }).notNull(),
     imageUrl: text("image_url"),
+    galleryImageUrls: text("gallery_image_urls").array().default(sql`ARRAY[]::text[]`).notNull(),
+    quoteImageUrl: text("quote_image_url"),
     videoUrl: text("video_url"),
     active: boolean("active").default(true).notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),

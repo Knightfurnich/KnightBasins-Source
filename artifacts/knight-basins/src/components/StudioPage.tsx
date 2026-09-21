@@ -128,7 +128,6 @@ type StudioPageProps = {
   initialBasinSkus?: string[];
   initialStoneColors?: string[];
   stoneColors?: ReadonlyArray<StoneColor>;
-  sheetPriceColors?: ReadonlyArray<StoneColor>;
   basinProducts?: ReadonlyArray<BasinProduct>;
 };
 
@@ -494,13 +493,17 @@ function placeBasinOnCanvas(state: StudioState, setState: Dispatch<SetStateActio
   setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, { ...placement, xMm, yMm }] }));
 }
 
-function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; sheetPriceColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void }) {
+function StudioShortlists({ state, setState, stoneColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void }) {
   const [basinQuery, setBasinQuery] = useState("");
   const [basinFilter, setBasinFilter] = useState<StudioBasinFilter>("all");
   const [stonePriceFilter, setStonePriceFilter] = useState("all");
-  const sheetPricesByCode = useMemo(() => new Map(sheetPriceColors.map((stone) => [stone.code, stone.sheetPriceTHB])), [sheetPriceColors]);
   const selectedStoneCodes = useMemo(() => new Set(state.stoneColors), [state.stoneColors]);
-  const stonePriceForFilter = (stone: StoneColor) => sheetPricesByCode.get(stone.code) ?? stone.sheetPriceTHB;
+  // The Studio only ever quotes cut-and-install work (studioEstimate prices
+  // every layout with stoneInstalledUnitPrice), so these budget filters must
+  // group by the installed price per m² the customer will actually be
+  // charged — grouping by the whole-sheet price put stones in buckets that
+  // did not match their quoted rate.
+  const stonePriceForFilter = (stone: StoneColor) => stone.installedPriceTHB;
   const stonePriceFilterOptions = useMemo(() => {
     const counts = new Map<number, number>();
     stoneColors.forEach((stone) => {
@@ -514,7 +517,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
         .sort(([left], [right]) => left - right)
         .map(([price, count]) => ({ value: String(price), label: formatTHB(price), count })),
     ];
-  }, [selectedStoneCodes, sheetPriceColors, sheetPricesByCode, stoneColors]);
+  }, [selectedStoneCodes, stoneColors]);
   const activeStonePriceFilter = stonePriceFilterOptions.some((option) => option.value === stonePriceFilter) ? stonePriceFilter : "all";
   const visibleStoneColors = useMemo(
     () => stoneColors.filter((stone) =>
@@ -522,7 +525,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
         || (activeStonePriceFilter === "selected" && selectedStoneCodes.has(stone.code))
         || (activeStonePriceFilter !== "selected" && String(stonePriceForFilter(stone)) === activeStonePriceFilter),
     ),
-    [activeStonePriceFilter, selectedStoneCodes, sheetPriceColors, sheetPricesByCode, stoneColors],
+    [activeStonePriceFilter, selectedStoneCodes, stoneColors],
   );
   const categoryBasins = useMemo(
     () => basinFilter === "all"
@@ -554,7 +557,11 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
       const next = current.stoneColors.filter((item) => item !== code);
       return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone };
     }
-    return { ...current, stoneColors: [...current.stoneColors, code] };
+    // Auto-apply the newly shortlisted color to the canvas/estimate only when
+    // nothing is active yet (first pick, or the active color was just removed).
+    // Adding a second/third color to compare must not steal the active slot
+    // from whichever one the customer is already looking at.
+    return { ...current, stoneColors: [...current.stoneColors, code], activeStone: current.activeStone || code };
   });
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
@@ -576,7 +583,7 @@ function StudioShortlists({ state, setState, stoneColors, sheetPriceColors, basi
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน</h3></div><span>{state.stoneColors.length} สี</span></div>
       <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบ แล้วเลือกสีที่ใช้คำนวณจากรายการด้านล่าง</p>
-       <div className="studio-stone-price-filters" role="tablist" aria-label="กรองราคาขายแผ่น">
+       <div className="studio-stone-price-filters" role="tablist" aria-label="กรองราคาต่อตารางเมตร รวมติดตั้ง">
          {stonePriceFilterOptions.map((option) => <button type="button" role="tab" aria-selected={activeStonePriceFilter === option.value} className={activeStonePriceFilter === option.value ? "is-active" : ""} onClick={() => setStonePriceFilter(option.value)} key={option.value} data-testid={`button-studio-stone-price-filter-${option.value}`}>{option.label} <small>{option.count}</small></button>)}
        </div>
        <div className="studio-stone-list">{visibleStoneColors.map((stone) => {
@@ -1347,7 +1354,6 @@ export function StudioPage({
   initialBasinSkus = [],
   initialStoneColors = [],
   stoneColors = STONE_COLORS,
-  sheetPriceColors = stoneColors,
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
@@ -1728,7 +1734,7 @@ export function StudioPage({
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
-         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} sheetPriceColors={sheetPriceColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
+         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
         {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
       const file = sketchFiles[index];
       const previewUrl = sketchPreviewUrls[index];

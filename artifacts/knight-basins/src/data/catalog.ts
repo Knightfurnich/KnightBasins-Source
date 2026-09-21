@@ -10,6 +10,8 @@ export type BasinProduct = {
   basinDimensions?: string;
   imageTone: string;
   imageUrl?: string;
+  galleryImageUrls?: string[];
+  quoteImageUrl?: string;
   videoUrl?: string;
 };
 
@@ -420,8 +422,14 @@ export function basinProductFromCatalog(item: {
   basinDimensions?: string | null;
   imageTone: string;
   imageUrl?: string | null;
+  galleryImageUrls?: string[] | null;
+  quoteImageUrl?: string | null;
   videoUrl?: string | null;
 }): BasinProduct {
+  const galleryImageUrls = (item.galleryImageUrls ?? [])
+    .map((url) => url?.trim())
+    .filter((url): url is string => Boolean(url));
+  const imageUrl = item.imageUrl?.trim() || undefined;
   return {
     sku: item.sku,
     colorCode: item.colorCode,
@@ -431,7 +439,9 @@ export function basinProductFromCatalog(item: {
     dimensions: item.dimensions,
     basinDimensions: item.basinDimensions ?? undefined,
     imageTone: item.imageTone,
-    imageUrl: item.imageUrl?.trim() || undefined,
+    imageUrl,
+    galleryImageUrls: galleryImageUrls.length ? galleryImageUrls : undefined,
+    quoteImageUrl: item.quoteImageUrl?.trim() || imageUrl,
     videoUrl: item.videoUrl ?? undefined,
   };
 }

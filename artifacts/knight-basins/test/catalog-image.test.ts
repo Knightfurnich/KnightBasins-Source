@@ -35,6 +35,72 @@ describe("storefront basin image mapping", () => {
     assert.equal(product.imageUrl, undefined);
     assert.equal(product.imageTone, "#dfe4df");
   });
+
+  it("trims and drops blank entries from the installed-example gallery", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF001",
+      colorCode: "VS311",
+      colorName: "Shine",
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      imageTone: "#dfe4df",
+      imageUrl: "https://uploads.example.test/catalog/catalog-mabc.png?v=mabc",
+      galleryImageUrls: [" https://uploads.example.test/catalog/install-1.png ", "  ", "https://uploads.example.test/catalog/install-2.png"],
+    });
+
+    assert.deepEqual(product.galleryImageUrls, [
+      "https://uploads.example.test/catalog/install-1.png",
+      "https://uploads.example.test/catalog/install-2.png",
+    ]);
+  });
+
+  it("leaves the gallery undefined when no installed-example photos are saved", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF001",
+      colorCode: "VS311",
+      colorName: "Shine",
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      imageTone: "#dfe4df",
+      galleryImageUrls: [],
+    });
+
+    assert.equal(product.galleryImageUrls, undefined);
+  });
+
+  it("falls back to the primary image when no quote image is pinned", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF001",
+      colorCode: "VS311",
+      colorName: "Shine",
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      imageTone: "#dfe4df",
+      imageUrl: "https://uploads.example.test/catalog/catalog-primary.png",
+      quoteImageUrl: null,
+    });
+
+    assert.equal(product.quoteImageUrl, "https://uploads.example.test/catalog/catalog-primary.png");
+  });
+
+  it("uses the pinned quote image over the primary image when set", () => {
+    const product = basinProductFromCatalog({
+      sku: "KF001",
+      colorCode: "VS311",
+      colorName: "Shine",
+      priceTHB: 19000,
+      category: "counter basin",
+      dimensions: "600 × 800 × 200 mm",
+      imageTone: "#dfe4df",
+      imageUrl: "https://uploads.example.test/catalog/catalog-primary.png",
+      quoteImageUrl: " https://uploads.example.test/catalog/install-2.png ",
+    });
+
+    assert.equal(product.quoteImageUrl, "https://uploads.example.test/catalog/install-2.png");
+  });
 });
 
 describe("storefront multi-selection state", () => {

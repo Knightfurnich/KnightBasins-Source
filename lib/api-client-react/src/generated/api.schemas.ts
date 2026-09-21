@@ -101,6 +101,16 @@ export interface BasinPriceInput {
      */
   imageUrl?: string | null;
   /**
+     * @maxItems 4
+     * @items.maxLength 2000
+     */
+  galleryImageUrls?: string[];
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  quoteImageUrl?: string | null;
+  /**
      * @maxLength 2000
      * @nullable
      */
@@ -122,6 +132,7 @@ export type BasinPrice = BasinPriceInput & RecordMetadata & ({
   uploadedVideoUrl: string | null;
   /** @nullable */
   categoryId?: number | null;
+  galleryImageUrls: string[];
 });
 
 export interface BasinCategoryInput {

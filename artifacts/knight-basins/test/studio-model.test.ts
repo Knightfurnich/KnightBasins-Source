@@ -245,11 +245,18 @@ test("9,500 stone rates hand off to sales instead of entering automatic totals",
   assert.match(sheetCutEstimate.warnings.join(" "), /แผ่นตัด/);
 });
 
-test("submission no longer mentions an edge-clearance rule", () => {
-  const estimate = studioEstimate(baseState({ basinPlacements: [] }), PRODUCTS);
-  const message = studioSubmissionValidationMessage({ ...baseState(), basinPlacements: [] }, estimate);
-  assert.equal(message, "ยังไม่ได้วางอ่างบนผัง กรุณาลากอ่างที่เลือกมาวางบนผัง");
-  assert.doesNotMatch(message, /50/);
+test("a shortlisted-but-unplaced basin never blocks submission or gets priced in", () => {
+  const stoneOnlyState = baseState({ basinPlacements: [] });
+  const estimate = studioEstimate(stoneOnlyState, PRODUCTS);
+  const message = studioSubmissionValidationMessage(stoneOnlyState, estimate);
+  assert.equal(message, null);
+  // KF001 is still in basinSkus (shortlisted) but never placed — a stone-only
+  // order must not silently carry its cost into the submitted total.
+  assert.equal(estimate.basinSubtotalTHB, 0);
+  assert.equal(estimate.installationChargeTHB, 0);
+
+  const placedEstimate = studioEstimate(baseState(), PRODUCTS);
+  assert.ok(placedEstimate.basinSubtotalTHB > 0);
 });
 
 test("catalog products without basin dimensions remain unknown", () => {

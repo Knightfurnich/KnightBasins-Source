@@ -672,6 +672,11 @@ components:
           maxLength: 160
         imageTone: { type: string, minLength: 1, maxLength: 24 }
         imageUrl: { type: [string, "null"], maxLength: 2000 }
+        galleryImageUrls:
+          type: array
+          maxItems: 4
+          items: { type: string, maxLength: 2000 }
+        quoteImageUrl: { type: [string, "null"], maxLength: 2000 }
         videoUrl: { type: [string, "null"], maxLength: 2000 }
         active: { type: boolean }
         sortOrder: { type: integer }
@@ -680,12 +685,15 @@ components:
         - $ref: "#/components/schemas/BasinPriceInput"
         - $ref: "#/components/schemas/RecordMetadata"
         - type: object
-          required: [imageUrl, videoUrl, uploadedVideoUrl]
+          required: [imageUrl, videoUrl, uploadedVideoUrl, galleryImageUrls]
           properties:
             imageUrl: { type: string }
             videoUrl: { type: string }
             uploadedVideoUrl: { type: [string, "null"] }
             categoryId: { type: [integer, "null"] }
+            galleryImageUrls:
+              type: array
+              items: { type: string }
     BasinCategoryInput:
       type: object
       required: [name, active, sortOrder]

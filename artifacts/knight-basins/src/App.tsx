@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
-import { ArrowRight, Check, ChevronDown, Copy, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { ArrowRight, BookOpen, Check, ChevronDown, Copy, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
 import {
   formatTHB,
   INSTALLATION_PRICE,
@@ -44,6 +44,7 @@ import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, t
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
 import { BasinVisual } from "@/components/BasinVisual";
+import { BasinGalleryTrigger } from "@/components/BasinGalleryLightbox";
 import { isValidEmailAddress } from "@/data/validation";
 import { stoneHeroFrame } from "@/data/stone-hero";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
@@ -217,6 +218,7 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
   const isTall = product.category === "tall vertical washbasin";
   const inQuote = cart.find((line) => line.sku === sku);
   const toggle = () => onToggle(sku);
+  const galleryImages = [product.imageUrl, ...(product.galleryImageUrls ?? [])].filter((url): url is string => Boolean(url));
   return <article
     className={`product-card ${inQuote ? "is-selected" : ""}`}
     draggable
@@ -229,7 +231,7 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
     data-testid={`card-product-${sku}`}
   >
      {inQuote && <SelectionMarker className="product-selected-badge" />}
-     <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
+     <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} hoverImageUrl={product.quoteImageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{galleryImages.length > 1 && <BasinGalleryTrigger images={galleryImages} alt={`${product.sku} ${product.colorName}`} />}{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
      <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3></div></div>
      <div className="product-specs"><span>{product.dimensions}</span><span>{product.basinDimensions ? `หลุมอ่าง ${product.basinDimensions}` : "งานทรงสูง"}</span></div>
      <strong className="product-price">{formatTHB(product.priceTHB)}</strong>
@@ -567,6 +569,7 @@ type FormalQuoteItem = {
   unit: string;
   unitPrice: number;
   total: number;
+  imageUrl?: string;
   videoUrl?: string;
   notificationKind?: "basin" | "stone" | "service";
 };
@@ -712,7 +715,7 @@ function FormalQuote({
 
     <div className="formal-quote-table-wrap">
     <table className="formal-quote-table" data-testid="formal-quote-table">
-      <thead><tr><th>{isEnglish ? "Code" : "รหัส"}</th><th>{isEnglish ? "Item Description" : "รายการรายละเอียด"}</th><th>{isEnglish ? "Quantity" : "จำนวน"}</th><th>{isEnglish ? "Unit" : "หน่วย"}</th><th>{isEnglish ? "Price/Unit" : "ราคาต่อหน่วย"}</th><th>{isEnglish ? "Total (THB)" : "รวมเงิน"}</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th></tr></thead>
+      <thead><tr><th>{isEnglish ? "Code" : "รหัส"}</th><th>{isEnglish ? "Item Description" : "รายการรายละเอียด"}</th><th>{isEnglish ? "Quantity" : "จำนวน"}</th><th>{isEnglish ? "Unit" : "หน่วย"}</th><th>{isEnglish ? "Price/Unit" : "ราคาต่อหน่วย"}</th><th>{isEnglish ? "Total (THB)" : "รวมเงิน"}</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th><th className="formal-photo-column">{isEnglish ? "Photo" : "รูปภาพ"}</th></tr></thead>
       <tbody>{items.map((item) => <tr key={`${item.code}-${item.unit}`}>
         <td className="formal-code">{item.code}</td>
         <td>{isEnglish ? englishItemDescription(item) : item.description}</td>
@@ -721,6 +724,7 @@ function FormalQuote({
         <td className="formal-money">{formatTHB(item.unitPrice)}</td>
         <td className="formal-money">{formatTHB(item.total)}</td>
         <td className="formal-qr-column">{item.videoUrl && <a href={item.videoUrl} target="_blank" rel="noreferrer"><img src={quoteQrImageUrl(item.videoUrl)} alt={`${isEnglish ? "3D video QR" : "QR วิดีโอ"} ${item.code}`} /><small>{isEnglish ? "Scan for 360°" : "สแกนดู 360°"}</small></a>}</td>
+        <td className="formal-photo-column">{item.imageUrl && <img src={item.imageUrl} alt={item.code} />}</td>
       </tr>)}</tbody>
     </table>
     </div>
@@ -921,6 +925,7 @@ function SavedQuotePage() {
         unit: "ใบ",
         unitPrice: product.priceTHB,
         total: product.priceTHB * quantity,
+        imageUrl: product.quoteImageUrl,
         videoUrl: product.videoUrl,
          notificationKind: "basin",
       });
@@ -1088,6 +1093,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
       unit: "ชุด",
       unitPrice: product.priceTHB,
       total: product.priceTHB * line.quantity,
+      imageUrl: product.quoteImageUrl,
       videoUrl: product.videoUrl,
       notificationKind: "basin",
     };
@@ -1451,7 +1457,7 @@ function Storefront() {
     if (mode === "studio") setLocation("/studio");
     else setLocation("/");
   };
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} />{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} sheetPriceColors={catalogStoneColors.all} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} sheetPriceColors={catalogStoneColors.all} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

@@ -63,14 +63,24 @@ function invalid(res: Response, message: string, details?: unknown) {
 
 async function catalogImageUrls(database: AdminDatabase) {
   const [basins, installedStones, sheetStones, leads] = await Promise.all([
-    database.select({ imageUrl: basinPrices.imageUrl, videoUrl: basinPrices.videoUrl }).from(basinPrices),
+    database.select({
+      imageUrl: basinPrices.imageUrl,
+      galleryImageUrls: basinPrices.galleryImageUrls,
+      quoteImageUrl: basinPrices.quoteImageUrl,
+      videoUrl: basinPrices.videoUrl,
+    }).from(basinPrices),
     database.select({ imageUrl: installedStonePrices.imageUrl }).from(installedStonePrices),
     database.select({ imageUrl: sheetStonePrices.imageUrl }).from(sheetStonePrices),
     database.select({ sketchUrl: customerLeads.sketchUrl }).from(customerLeads),
   ]);
 
   return [
-    ...basins.flatMap((row: { imageUrl?: unknown; videoUrl?: unknown }) => [row.imageUrl, row.videoUrl]),
+    ...basins.flatMap((row: { imageUrl?: unknown; galleryImageUrls?: unknown; quoteImageUrl?: unknown; videoUrl?: unknown }) => [
+      row.imageUrl,
+      ...(Array.isArray(row.galleryImageUrls) ? row.galleryImageUrls : []),
+      row.quoteImageUrl,
+      row.videoUrl,
+    ]),
     ...installedStones.map((row: { imageUrl?: unknown }) => row.imageUrl),
     ...sheetStones.map((row: { imageUrl?: unknown }) => row.imageUrl),
     ...leads.map((row: { sketchUrl?: unknown }) => row.sketchUrl),
@@ -91,7 +101,11 @@ function isDuplicateCategory(error: unknown) {
 export function createAdminRouter(database: AdminDatabase): IRouter {
   const router: IRouter = Router();
   const adminLoginRateLimit = createRateLimiter({ name: "admin-login", max: 5, windowMs: 60 * 1000 });
-  const uploadRateLimit = createRateLimiter({ name: "admin-upload", max: 20, windowMs: 10 * 60 * 1000 });
+  // Each basin can now hold up to 5 photos (primary + 4 gallery), so a bulk photo
+  // session across several basins easily exceeds the old single-image-era cap of 20.
+  // This route already sits behind requireAdmin (line below), so a higher ceiling
+  // only bounds an already-authenticated admin session, not an anonymous attacker.
+  const uploadRateLimit = createRateLimiter({ name: "admin-upload", max: 150, windowMs: 10 * 60 * 1000 });
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
 
   router.get("/admin/session", (req, res) => {

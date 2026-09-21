@@ -37,7 +37,7 @@ import {
   filterAdminItems,
   toggleAdminItemActive,
 } from "./adminArchive";
-import { ImageUploadField } from "./ImageUploadField";
+import { BasinImageManagerField } from "./BasinImageManagerField";
 import { VideoUploadField } from "./VideoUploadField";
 import { isTallBasinSku, normalizeDimensionInput, sanitizePriceInput } from "@/data/input-sanitizers";
 import { AdminSortableHeader } from "./AdminSortableHeader";
@@ -61,6 +61,8 @@ const basinSchema = z.object({
   basinDimensions: z.string().nullable().optional(),
   imageTone: z.string().min(1, "กรุณากรอกโทนสีภาพ"),
   imageUrl: z.string().max(2000).optional(),
+  galleryImageUrls: z.array(z.string().max(2000)).max(4).optional(),
+  quoteImageUrl: z.string().max(2000).nullable().optional(),
   videoUrl: z.string().max(2000).nullable().optional(),
   active: z.boolean(),
   sortOrder: z.coerce.number().int().default(0),
@@ -329,6 +331,8 @@ function BasinFormDialog({
       basinDimensions: initialData.basinDimensions,
       imageTone: initialData.imageTone,
       imageUrl: initialData.imageUrl,
+      galleryImageUrls: initialData.galleryImageUrls ?? [],
+      quoteImageUrl: initialData.quoteImageUrl ?? null,
       videoUrl: initialData.uploadedVideoUrl,
       active: initialData.active,
       sortOrder: initialData.sortOrder,
@@ -343,6 +347,8 @@ function BasinFormDialog({
       basinDimensions: "",
       imageTone: "#ffffff",
       imageUrl: "",
+      galleryImageUrls: [],
+      quoteImageUrl: null,
       videoUrl: null,
       active: true,
       sortOrder: 0,
@@ -350,6 +356,9 @@ function BasinFormDialog({
   });
   const sku = form.watch("sku");
   const bowlLocked = isTallBasinSku(sku);
+  const imageUrl = form.watch("imageUrl");
+  const galleryImageUrls = form.watch("galleryImageUrls");
+  const quoteImageUrl = form.watch("quoteImageUrl");
   useEffect(() => {
     if (bowlLocked && form.getValues("basinDimensions")) {
       form.setValue("basinDimensions", "", { shouldDirty: true, shouldValidate: true });
@@ -500,12 +509,17 @@ function BasinFormDialog({
                 )} />
               </div>
 
-              <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                <FormItem>
-                  <ImageUploadField label="รูปสินค้า" value={field.value} onChange={field.onChange} />
-                  <FormMessage className="text-[#a24439] text-xs" />
-                </FormItem>
-              )} />
+              <FormItem>
+                <BasinImageManagerField
+                  images={[imageUrl, ...(galleryImageUrls ?? [])].filter((url): url is string => Boolean(url))}
+                  quoteImageUrl={quoteImageUrl ?? null}
+                  onImagesChange={(images) => {
+                    form.setValue("imageUrl", images[0] ?? "", { shouldDirty: true, shouldValidate: true });
+                    form.setValue("galleryImageUrls", images.slice(1), { shouldDirty: true, shouldValidate: true });
+                  }}
+                  onQuoteImageChange={(url) => form.setValue("quoteImageUrl", url, { shouldDirty: true, shouldValidate: true })}
+                />
+              </FormItem>
 
               <FormField control={form.control} name="videoUrl" render={({ field }) => (
                 <FormItem>
