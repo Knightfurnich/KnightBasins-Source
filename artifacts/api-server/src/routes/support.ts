@@ -1,9 +1,10 @@
 import { Router, type IRouter } from "express";
-import { and, eq, ne } from "drizzle-orm";
-import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db } from "@workspace/db";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db, paymentSlips } from "@workspace/db";
 import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
+import { askHermesSupport, hermesSupportConfigured } from "../lib/hermes-support";
 import {
   extractSupportProfileFields,
   isSupportCancellation,
@@ -14,7 +15,53 @@ import {
   type SupportProfileFields,
 } from "../lib/support-profile";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
+import { quoteTotalTHB } from "./leads";
 import { createRateLimiter } from "../lib/rate-limit";
+
+const LEAD_STATUS_LABEL: Record<string, string> = {
+  new_lead: "ลูกค้าใหม่ ยังไม่ได้ขอใบเสนอราคา",
+  quote_requested: "ขอใบเสนอราคาแล้ว รอทีมขายติดต่อกลับ",
+  quote_sent: "ส่งใบเสนอราคาแล้ว รอลูกค้าตัดสินใจ",
+  closed: "ปิดงานแล้ว",
+};
+
+async function buildCustomerContextSummary(account: Account): Promise<string> {
+  const leads = await db
+    .select({
+      id: customerLeads.id,
+      quoteNumber: customerLeads.quoteNumber,
+      status: customerLeads.status,
+      studioData: customerLeads.studioData,
+    })
+    .from(customerLeads)
+    .where(and(eq(customerLeads.customerAccountId, account.id), ne(customerLeads.status, "closed")))
+    .orderBy(desc(customerLeads.updatedAt))
+    .limit(5);
+
+  const header = `กำลังคุยกับลูกค้า "${account.fullName ?? "ไม่ทราบชื่อ"}" ที่ล็อกอินด้วย LINE บนเว็บ Knight Basins ตอบเฉพาะข้อมูลของลูกค้าคนนี้เท่านั้น ห้ามเปิดเผยข้อมูลลูกค้ารายอื่น`;
+  if (!leads.length) return `${header}\nลูกค้าคนนี้ยังไม่มีใบเสนอราคาที่เปิดอยู่ในระบบ`;
+
+  const slipsByLead = new Map<number, typeof paymentSlips.$inferSelect[]>();
+  const leadIds = leads.map((lead) => lead.id);
+  const slips = await db.select().from(paymentSlips).where(inArray(paymentSlips.leadId, leadIds));
+  for (const slip of slips) {
+    const list = slipsByLead.get(slip.leadId) ?? [];
+    list.push(slip);
+    slipsByLead.set(slip.leadId, list);
+  }
+
+  const lines = leads.map((lead) => {
+    const total = quoteTotalTHB(lead.studioData);
+    const statusLabel = LEAD_STATUS_LABEL[lead.status] ?? lead.status;
+    const latestSlip = slipsByLead.get(lead.id)?.at(-1);
+    const slipNote = latestSlip
+      ? ` / สลิปล่าสุด: ${latestSlip.status === "verified" ? "ยืนยันแล้ว" : latestSlip.status === "rejected" ? "ยังไม่ยืนยัน (รอทีมขายตรวจสอบ)" : "รอตรวจสอบ"}`
+      : "";
+    return `- ใบเสนอราคา ${lead.quoteNumber ?? lead.id} · สถานะ: ${statusLabel}${total ? ` · ยอดรวม ${total.toLocaleString("th-TH")} บาท` : ""}${slipNote}`;
+  });
+
+  return `${header}\n${lines.join("\n")}`;
+}
 
 const router: IRouter = Router();
 
@@ -319,6 +366,19 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
         matchedCode: stone.code,
       });
       return;
+    }
+
+    if (account && hermesSupportConfigured()) {
+      const contextSummary = await buildCustomerContextSummary(account);
+      const hermesResult = await askHermesSupport({
+        message,
+        userId: account.userId,
+        contextSummary,
+      });
+      if (hermesResult.ok) {
+        res.json({ reply: hermesResult.reply, matchedType: "none" });
+        return;
+      }
     }
 
     res.json({

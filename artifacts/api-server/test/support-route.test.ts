@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, createHmac, randomBytes } from "node:crypto";
-import { describe, it } from "node:test";
+import { afterEach, describe, it, mock } from "node:test";
 import pg from "pg";
 import { serveTypeScriptRoute } from "./route-harness.ts";
 
@@ -8,6 +8,18 @@ function sessionCookie(token: string) {
   const payload = Buffer.from(JSON.stringify({ token })).toString("base64url");
   const signature = createHmac("sha256", process.env["SESSION_SECRET"] ?? "support-route-test-secret").update(payload).digest("hex");
   return `knight_line_session=${payload}.${signature}`;
+}
+
+process.env["DATABASE_URL"] ??= "postgres://support-route-test";
+
+const realFetch = globalThis.fetch;
+
+function mockHermesFetch(handler: (body: Record<string, unknown>) => Response) {
+  mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("hermes.test")) return handler(JSON.parse(String(init?.body ?? "{}")));
+    return realFetch(input as never, init);
+  });
 }
 
 describe("KnightSupport profile update confirmation", () => {
@@ -194,6 +206,101 @@ describe("KnightSupport profile update confirmation", () => {
       await pool.query("DELETE FROM customer_accounts WHERE id = $1", [accountId]);
       await pool.query("DELETE FROM customer_accounts WHERE id = $1", [secondAccountId]);
       await pool.end();
+    }
+  });
+});
+
+describe("KnightSupport Hermes fallback", () => {
+  const originalHermesUrl = process.env["HERMES_API_URL"];
+  const originalHermesKey = process.env["HERMES_API_KEY"];
+
+  afterEach(() => {
+    mock.restoreAll();
+    if (originalHermesUrl === undefined) delete process.env["HERMES_API_URL"];
+    else process.env["HERMES_API_URL"] = originalHermesUrl;
+    if (originalHermesKey === undefined) delete process.env["HERMES_API_KEY"];
+    else process.env["HERMES_API_KEY"] = originalHermesKey;
+  });
+
+  it("routes an unmatched question from a logged-in customer to Hermes, with that customer's own quote in context", async () => {
+    process.env["SESSION_SECRET"] ??= "support-route-test-secret";
+    process.env["HERMES_API_URL"] = "https://hermes.test";
+    process.env["HERMES_API_KEY"] = "test-hermes-key";
+    const pool = new pg.Pool({ connectionString: process.env["DATABASE_URL"] });
+    const suffix = `${Date.now()}-${randomBytes(4).toString("hex")}`;
+    const token = randomBytes(32).toString("base64url");
+    const accountResult = await pool.query<{ id: number }>(
+      `INSERT INTO customer_accounts (line_user_id, display_name, full_name) VALUES ($1, $2, $3) RETURNING id`,
+      [`hermes-test-${suffix}`, "Hermes Test", "คุณเฮอร์มีส"],
+    );
+    const accountId = accountResult.rows[0]?.id;
+    assert.ok(accountId);
+    await pool.query(
+      `INSERT INTO customer_sessions (account_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+      [accountId, createHash("sha256").update(token).digest("hex"), new Date(Date.now() + 60_000)],
+    );
+    const leadResult = await pool.query<{ id: number }>(
+      `INSERT INTO customer_leads (lead_key, status, source, order_mode, quote_number, studio_data, product_skus, customer_account_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::text[], $8) RETURNING id`,
+      [`hermes-lead-${suffix}`, "quote_sent", "test", "quick-purchase", `Q-${suffix}`, JSON.stringify({ total: 20330 }), [], accountId],
+    );
+    const leadId = leadResult.rows[0]?.id;
+    assert.ok(leadId);
+
+    let capturedBody: Record<string, unknown> | undefined;
+    mockHermesFetch((body) => {
+      capturedBody = body;
+      return new Response(JSON.stringify({
+        choices: [{ message: { content: "ยินดีให้ข้อมูลค่ะ" } }],
+      }), { status: 200 });
+    });
+
+    const route = await serveTypeScriptRoute("src/routes/support.ts");
+    try {
+      const response = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Cookie: sessionCookie(token) },
+        body: JSON.stringify({ message: "ใบเสนอราคาของฉันสถานะเป็นยังไงบ้าง" }),
+      });
+      assert.equal(response.status, 200);
+      const result = await response.json() as { reply?: string };
+      assert.equal(result.reply, "ยินดีให้ข้อมูลค่ะ");
+
+      assert.equal(capturedBody?.["user"], `hermes-test-${suffix}`);
+      const messages = capturedBody?.["messages"] as Array<{ role: string; content: string }>;
+      assert.ok(messages.some((m) => m.role === "system" && m.content.includes(`Q-${suffix}`)));
+    } finally {
+      await route.close();
+      await pool.query("DELETE FROM customer_leads WHERE id = $1", [leadId]);
+      await pool.query("DELETE FROM customer_sessions WHERE account_id = $1", [accountId]);
+      await pool.query("DELETE FROM customer_accounts WHERE id = $1", [accountId]);
+      await pool.end();
+    }
+  });
+
+  it("falls back to the generic reply when Hermes errors, and never calls Hermes for anonymous customers", async () => {
+    process.env["SESSION_SECRET"] ??= "support-route-test-secret";
+    process.env["HERMES_API_URL"] = "https://hermes.test";
+    process.env["HERMES_API_KEY"] = "test-hermes-key";
+    let hermesCalls = 0;
+    mockHermesFetch(() => {
+      hermesCalls += 1;
+      return new Response(JSON.stringify({ error: { message: "boom" } }), { status: 500 });
+    });
+
+    const route = await serveTypeScriptRoute("src/routes/support.ts");
+    try {
+      const anonymous = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "ใบเสนอราคาของฉันสถานะเป็นยังไงบ้าง" }),
+      });
+      assert.equal(anonymous.status, 200);
+      const anonymousResult = await anonymous.json() as { reply?: string };
+      assert.match(anonymousResult.reply ?? "", /ผมช่วยค้นหา/);
+      assert.equal(hermesCalls, 0);
+    } finally {
+      await route.close();
     }
   });
 });

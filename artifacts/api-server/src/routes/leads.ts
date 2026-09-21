@@ -20,7 +20,7 @@ import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
 const MAX_SKETCH_FILES = 5;
 
-function quoteTotalTHB(studioData: unknown): number | null {
+export function quoteTotalTHB(studioData: unknown): number | null {
   if (!studioData || typeof studioData !== "object") return null;
   const data = studioData as {
     total?: unknown;

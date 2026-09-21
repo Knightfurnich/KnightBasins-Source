@@ -97,6 +97,13 @@ TELEGRAM_SALES_CHAT_ID=your-telegram-chat-id
 # skipped and reported as unconfigured) instead of failing.
 SLIPOK_API_KEY=your-slipok-api-key
 SLIPOK_BRANCH_ID=your-slipok-branch-id
+# Optional: routes KnightSupport chat questions the built-in keyword matcher
+# can't answer to the Hermes agent that already runs Knight Furnich's LINE
+# bot, for logged-in (LINE) customers only. Passing the customer's LINE user
+# id as `user` keeps the conversation continuous with their LINE DM history.
+# Omit to degrade gracefully (keeps the existing keyword-only fallback reply).
+HERMES_API_URL=https://api.srv1964473.hstgr.cloud
+HERMES_API_KEY=your-hermes-api-server-key
 ```
 
 `DATABASE_URL` uses the Docker network hostname `knightdesign-db`, not `127.0.0.1` or `localhost` — the API and the database are different containers on the same Docker network. URL-encode any reserved characters in the password.
