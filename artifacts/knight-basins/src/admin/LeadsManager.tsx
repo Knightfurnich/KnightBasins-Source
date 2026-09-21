@@ -58,6 +58,7 @@ function studioSummary(value: unknown) {
 const paymentStatusLabels: Record<string, string> = {
   pending: "รอตรวจสอบ",
   verified: "ตรวจสอบแล้ว",
+  needs_review: "ไม่มี QR · ต้องตรวจด้วยตา",
   rejected: "ไม่ผ่านอัตโนมัติ",
 };
 
@@ -79,7 +80,7 @@ function LeadPaymentSlips({ leadId }: { leadId: number }) {
               <img src={slip.slipImageUrl} alt="สลิปโอนเงิน" className="h-full w-full object-cover" />
             </a>
             <div>
-              <span className={slip.status === "verified" ? "text-[#17816d]" : slip.status === "rejected" ? "text-[#a24439]" : "text-[var(--ink-soft)]"}>
+              <span className={slip.status === "verified" ? "text-[#17816d]" : slip.status === "rejected" ? "text-[#a24439]" : slip.status === "needs_review" ? "text-[#a9791f]" : "text-[var(--ink-soft)]"}>
                 {paymentStatusLabels[slip.status] ?? slip.status}
               </span>
               {" · "}{paymentKindLabels[slip.kind] ?? slip.kind}

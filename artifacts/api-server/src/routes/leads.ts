@@ -14,7 +14,7 @@ import {
 } from "../lib/quote-access";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
 import { notifyPaymentSlip, notifyQuote, notifySketch } from "../lib/sales-notifications";
-import { verifySlip } from "../lib/slipok";
+import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
 import { formatQuoteMonth } from "../lib/date-time";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
@@ -312,6 +312,11 @@ router.get("/quotes", async (req, res, next) => {
       try {
         const claimedAmountThb = quoteTotalTHB(lead.studioData);
         const result = await verifySlip(item, claimedAmountThb);
+        // A slip SlipOK can't read as a QR-verifiable image at all (no QR
+        // present, corrupt image, unsupported format) isn't the same as a
+        // genuine mismatch -- no automated provider can check it against
+        // the bank, so it goes to manual review instead of auto-rejection.
+        const needsManualReview = !result.ok && result.errorCode !== null && SLIPOK_UNVERIFIABLE_CODES.has(result.errorCode);
         const [slip] = await database
           .insert(paymentSlips)
           .values(
@@ -330,7 +335,7 @@ router.get("/quotes", async (req, res, next) => {
               : {
                   leadId: lead.id,
                   kind,
-                  status: "rejected",
+                  status: needsManualReview ? "needs_review" : "rejected",
                   slipImageUrl: upload.url,
                   claimedAmountThb,
                   slipokErrorCode: result.errorCode,
@@ -345,7 +350,7 @@ router.get("/quotes", async (req, res, next) => {
           requestOrigin(req),
           upload.url,
           {
-            status: slip.status as "verified" | "rejected",
+            status: slip.status as "verified" | "needs_review" | "rejected",
             claimedAmountThb: slip.claimedAmountThb,
             verifiedAmountThb: slip.verifiedAmountThb,
             senderName: slip.senderName,

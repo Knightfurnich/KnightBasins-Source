@@ -338,7 +338,7 @@ export async function notifySketch(
 }
 
 type PaymentSlipNotificationVerdict = {
-  status: "verified" | "rejected";
+  status: "verified" | "needs_review" | "rejected";
   claimedAmountThb: number | null;
   verifiedAmountThb: number | null;
   senderName: string | null;
@@ -357,7 +357,9 @@ export async function notifyPaymentSlip(
   const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
   const verdictLine = verdict.status === "verified"
     ? `✅ ตรวจสอบสลิปแล้ว: ยอด ${typeof verdict.verifiedAmountThb === "number" ? `${formatBaht(verdict.verifiedAmountThb)} บาท` : "-"} จาก ${verdict.senderName ?? "-"}`
-    : `⚠️ สลิปยังไม่ผ่านการตรวจสอบอัตโนมัติ${verdict.errorCode ? ` (code ${verdict.errorCode})` : ""}: ${verdict.message}`;
+    : verdict.status === "needs_review"
+      ? `👀 ต้องตรวจสอบด้วยตา: สลิปไม่มี QR Code ให้ระบบเช็คอัตโนมัติได้ (มักเป็นสลิป RTGS/SWIFT หรือใบแจ้งยอดบัญชีนิติบุคคล) กรุณาเปิดรูปแล้วยืนยันยอดเงินเอง${verdict.errorCode ? ` (code ${verdict.errorCode})` : ""}`
+      : `⚠️ สลิปยังไม่ผ่านการตรวจสอบอัตโนมัติ${verdict.errorCode ? ` (code ${verdict.errorCode})` : ""}: ${verdict.message}`;
   const caption = [
     `Knight Basins: มีการอัปโหลดสลิปโอนเงิน`,
     `⏰ ${formatThaiDateTime()} น.`,

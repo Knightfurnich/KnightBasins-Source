@@ -27,11 +27,26 @@ export type SlipOkResult = SlipOkSuccess | SlipOkFailure;
 
 /** Documented SlipOK error codes worth surfacing to an admin verbatim. */
 export const SLIPOK_ERROR_CODES: Record<string, string> = {
+  "1005": "ไฟล์ที่อัปโหลดไม่ใช่ไฟล์ภาพที่รองรับ",
+  "1006": "รูปภาพไม่ถูกต้องหรือเสียหาย",
+  "1007": "รูปภาพไม่มี QR Code (มักเป็นสลิปโอนแบบ RTGS/SWIFT หรือใบแจ้งยอดของบัญชีนิติบุคคล)",
   "1010": "สลิปมาช้าเกินไป (delay slip)",
   "1012": "สลิปนี้ถูกใช้ยืนยันไปแล้ว (ซ้ำ)",
   "1013": "ยอดเงินในสลิปไม่ตรงกับยอดที่คาดไว้",
   "1014": "บัญชีผู้รับในสลิปไม่ตรงกับบัญชีที่ผูกไว้",
 };
+
+/**
+ * These codes mean SlipOK could not read the image as a payment-verification
+ * QR slip at all -- most commonly a corporate RTGS/SWIFT transfer receipt or
+ * an older banking portal export, neither of which ever had a QR code to
+ * check. This is fundamentally different from a genuine mismatch (wrong
+ * amount, wrong account, duplicate, expired): no slip-verification provider
+ * on the market can check a slip without a QR code against the bank's own
+ * transaction record, so these cases should route to manual admin review
+ * rather than being auto-rejected as if the payment itself were suspect.
+ */
+export const SLIPOK_UNVERIFIABLE_CODES: ReadonlySet<string> = new Set(["1005", "1006", "1007"]);
 
 function slipOkCredentials() {
   const apiKey = process.env["SLIPOK_API_KEY"];

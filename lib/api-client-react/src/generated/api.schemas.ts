@@ -635,6 +635,7 @@ export type PaymentSlipStatus = typeof PaymentSlipStatus[keyof typeof PaymentSli
 export const PaymentSlipStatus = {
   pending: 'pending',
   verified: 'verified',
+  needs_review: 'needs_review',
   rejected: 'rejected',
 } as const;
 

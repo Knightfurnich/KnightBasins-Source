@@ -1036,7 +1036,7 @@ components:
           enum: [deposit, final]
         status:
           type: string
-          enum: [pending, verified, rejected]
+          enum: [pending, verified, needs_review, rejected]
         slipImageUrl: { type: string }
         claimedAmountThb: { type: [integer, "null"] }
         verifiedAmountThb: { type: [integer, "null"] }

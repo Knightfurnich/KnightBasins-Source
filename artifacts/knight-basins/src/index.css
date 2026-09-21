@@ -2025,6 +2025,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .saved-quote-payment-result { display: flex; align-items: start; gap: 7px; margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 10.5px; line-height: 1.6; }
 .saved-quote-payment-result svg { flex: 0 0 auto; margin-top: 1px; }
 .saved-quote-payment-result.is-verified { color: #17816d; border: 1px solid rgba(23,129,109,.3); background: rgba(23,129,109,.08); }
+.saved-quote-payment-result.is-review { color: #a9791f; border: 1px solid rgba(169,121,31,.3); background: rgba(169,121,31,.08); }
 .saved-quote-payment-result.is-rejected { color: #a24439; border: 1px solid rgba(162,68,57,.3); background: rgba(162,68,57,.08); }
 .saved-quote-support { display: flex; align-items: start; gap: 10px; margin: 0 0 20px; padding: 13px 15px; }
 .saved-quote-support svg { flex: 0 0 auto; margin-top: 2px; color: var(--ink-soft); }

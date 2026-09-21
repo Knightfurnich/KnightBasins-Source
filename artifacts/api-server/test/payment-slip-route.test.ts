@@ -196,4 +196,54 @@ describe("payment slip upload", () => {
       await server.close();
     }
   });
+
+  it("routes a slip with no QR code to manual review instead of auto-rejecting it", async () => {
+    const accessSecret = "d".repeat(64);
+    const database = createFakeDatabase({
+      id: 44,
+      name: "บริษัท ทดสอบ จำกัด",
+      phone: "0812345678",
+      quoteNumber: QUOTE_NUMBER,
+      quoteAccessSecret: accessSecret,
+      orderMode: "quick-purchase",
+      studioData: { total: 20000 },
+    });
+    mockSlipOkFetch(() => new Response(JSON.stringify({ success: false, code: 1007, message: "รูปภาพไม่มี QR Code" }), { status: 200 }));
+    const server = await startLeadsRoute(database);
+    try {
+      const token = await tokenFor(QUOTE_NUMBER, accessSecret);
+      const response = await fetch(`${server.url}/api/leads/payment-slip`, { method: "POST", body: slipForm(token) });
+      const body = await response.json() as Record<string, unknown>;
+      assert.equal(response.status, 201);
+      assert.equal(body.status, "needs_review");
+      assert.equal(body.slipokErrorCode, "1007");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("still rejects (not review) other unreadable-image codes like a corrupt upload", async () => {
+    const accessSecret = "e".repeat(64);
+    const database = createFakeDatabase({
+      id: 45,
+      name: "คุณทดสอบ",
+      phone: "0812345678",
+      quoteNumber: QUOTE_NUMBER,
+      quoteAccessSecret: accessSecret,
+      orderMode: "quick-purchase",
+      studioData: { total: 20000 },
+    });
+    mockSlipOkFetch(() => new Response(JSON.stringify({ success: false, code: 1014, message: "wrong account" }), { status: 200 }));
+    const server = await startLeadsRoute(database);
+    try {
+      const token = await tokenFor(QUOTE_NUMBER, accessSecret);
+      const response = await fetch(`${server.url}/api/leads/payment-slip`, { method: "POST", body: slipForm(token) });
+      const body = await response.json() as Record<string, unknown>;
+      assert.equal(response.status, 201);
+      assert.equal(body.status, "rejected");
+      assert.equal(body.slipokErrorCode, "1014");
+    } finally {
+      await server.close();
+    }
+  });
 });

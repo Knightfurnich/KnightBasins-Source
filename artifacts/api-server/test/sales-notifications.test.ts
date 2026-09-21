@@ -313,6 +313,29 @@ describe("sales notifications", () => {
     assert.doesNotMatch(requestBody, /70,523\.7|4,936\.659|75,460\.359/);
   });
 
+  it("tells the sales team to check a no-QR slip by eye instead of treating it as rejected", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    await (await module()).notifyPaymentSlip(lead, "https://example.com", "/api/uploads/slip.png", {
+      status: "needs_review",
+      claimedAmountThb: 60990,
+      verifiedAmountThb: null,
+      senderName: null,
+      errorCode: "1007",
+      message: "รูปภาพไม่มี QR Code",
+    });
+    assert.match(requestBody, /ต้องตรวจสอบด้วยตา/);
+    assert.match(requestBody, /ไม่มี QR Code/);
+    assert.match(requestBody, /code 1007/);
+    assert.doesNotMatch(requestBody, /ยังไม่ผ่านการตรวจสอบอัตโนมัติ/);
+  });
+
   it("returns a retryable saved-not-notified result when Telegram rejects a message", async () => {
     process.env["NOTIFY_CHANNEL"] = "telegram";
     process.env["TELEGRAM_BOT_TOKEN"] = "test-token";

@@ -824,7 +824,7 @@ function StudioLayoutSnapshot({ state, quoteNumber, language = "TH" }: { state: 
 function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<{ status: "verified" | "rejected"; message: string } | null>(null);
+  const [result, setResult] = useState<{ status: "verified" | "needs_review" | "rejected"; message: string } | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const upload = async () => {
@@ -837,12 +837,14 @@ function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
     form.append("kind", "deposit");
     try {
       const response = await fetch("/api/leads/payment-slip", { method: "POST", body: form });
-      const payload = await response.json() as { status?: "pending" | "verified" | "rejected"; verifiedAmountThb?: number | null; senderName?: string | null; message?: string };
+      const payload = await response.json() as { status?: "pending" | "verified" | "needs_review" | "rejected"; verifiedAmountThb?: number | null; senderName?: string | null; message?: string };
       if (!response.ok) throw new Error(payload.message || "ตรวจสอบสลิปไม่สำเร็จ");
       setResult(
         payload.status === "verified"
           ? { status: "verified", message: `ตรวจสอบสลิปสำเร็จ ยอด ${payload.verifiedAmountThb?.toLocaleString("th-TH") ?? "-"} บาท จาก ${payload.senderName ?? "-"}` }
-          : { status: "rejected", message: "ระบบตรวจสอบสลิปอัตโนมัติยังไม่ผ่าน ทีมขายจะตรวจสอบให้อีกครั้งค่ะ" },
+          : payload.status === "needs_review"
+            ? { status: "needs_review", message: "ได้รับสลิปแล้วค่ะ สลิปนี้ไม่มี QR Code ให้ระบบตรวจสอบอัตโนมัติ (พบได้ทั่วไปกับสลิปโอนบัญชีนิติบุคคล) ทีมขายจะตรวจสอบและยืนยันให้อีกครั้ง" }
+            : { status: "rejected", message: "ระบบตรวจสอบสลิปอัตโนมัติยังไม่ผ่าน ทีมขายจะตรวจสอบให้อีกครั้งค่ะ" },
       );
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
@@ -867,8 +869,8 @@ function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
         {uploading ? "กำลังตรวจสอบ..." : "อัปโหลดและตรวจสอบสลิป"}
       </button>
     </div>
-    {result && <p className={`saved-quote-payment-result ${result.status === "verified" ? "is-verified" : "is-rejected"}`} role="status" data-testid="status-payment-slip-result">
-      {result.status === "verified" ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />} {result.message}
+    {result && <p className={`saved-quote-payment-result ${result.status === "verified" ? "is-verified" : result.status === "needs_review" ? "is-review" : "is-rejected"}`} role="status" data-testid="status-payment-slip-result">
+      {result.status === "verified" ? <CheckCircle2 size={15} /> : result.status === "needs_review" ? <Clock size={15} /> : <AlertTriangle size={15} />} {result.message}
     </p>}
   </div>;
 }
