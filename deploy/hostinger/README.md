@@ -10,7 +10,30 @@ Pushing to `main` on `Knightfurnich/KnightBasins-Source` triggers `.github/workf
 2. Copies the built files over SCP to `/docker/knightbasins/web-dist/` and `/docker/knightbasins/api-dist/` on the VPS (`72.62.79.84`) using the `VPS_SSH_KEY` repository secret.
 3. Restarts the containers: `docker restart knightbasins-api knightbasins-web`.
 
-There is no manual rsync/systemd step for a normal release — pushing to `main` is the deploy. The sections below are for the one-time VPS setup and for operators who need to work on the VPS directly.
+There is no manual rsync/systemd step for a normal release — pushing to `main` is the deploy for **application code**. The sections below are for the one-time VPS setup and for operators who need to work on the VPS directly.
+
+### `deploy/hostinger/` itself is never auto-synced
+
+`deploy.yml` only ever touches `web-dist/` and `api-dist/`. It does **not** copy this `deploy/hostinger/` folder — `migrate.sh`, `backup.sh`, `restore-check.sh`, `provision-postgres.sh`, the `check-*.sh` gates, or this README — to the VPS. The copy that runs on the VPS (`/docker/knightbasins/deploy/hostinger/`) only changes when an operator copies it there by hand, so it can silently drift out of sync with what is committed here (this happened for real: the VPS copy sat stale from the initial 2026-09-14 setup for a week, including a `migrate.sh` with a dead default path and a tampered `restore-check.sh` that always printed success). After changing any file in this folder, sync it to the VPS yourself:
+
+```bash
+scp deploy/hostinger/<file> root@72.62.79.84:/docker/knightbasins/deploy/hostinger/<file>
+ssh root@72.62.79.84 "chmod 755 /docker/knightbasins/deploy/hostinger/<file>"  # scripts only, not README.md
+```
+
+On Windows, extract the file from the git blob first (`git show HEAD:deploy/hostinger/<file>`) rather than scp-ing the working-tree copy directly — `core.autocrlf` can silently turn `\n` into `\r\n`, and a script with `\r` before `pipefail` fails with `set: pipefail: invalid option name` on the VPS's bash.
+
+### The `VPS_SSH_KEY` deploy secret
+
+`VPS_SSH_KEY` is a dedicated ed25519 keypair (comment `github-actions-deploy@knightbasins`) whose public half lives in `root@72.62.79.84`'s `/root/.ssh/authorized_keys`; the private half is stored only as the GitHub Actions secret. If the deploy workflow fails at the SCP/SSH steps with `ssh: no key found` or `ssh: handshake failed: unable to authenticate`, the secret value is missing, truncated, or was pasted with the wrong line endings — regenerate it rather than debugging the existing value:
+
+```bash
+ssh-keygen -t ed25519 -f knightbasins_deploy_key -N "" -C "github-actions-deploy@knightbasins"
+ssh root@72.62.79.84 "cat >> /root/.ssh/authorized_keys" < knightbasins_deploy_key.pub
+gh secret set VPS_SSH_KEY --repo Knightfurnich/KnightBasins-Source < knightbasins_deploy_key
+```
+
+Then re-run the failed workflow (`gh run rerun <run-id>`) to confirm it now reaches the VPS. Never commit the private half of this keypair; store it outside this repository (e.g. alongside the other production secrets already kept out of Git).
 
 ## 2. VPS layout
 
@@ -83,6 +106,8 @@ unset KNIGHT_BASINS_API_CONTAINER KNIGHT_BASINS_API_ENV_FILE
 ```
 
 It applies pending files from `deploy/hostinger/migrations/` in filename order and records completed files in `public.knight_basins_schema_migrations`. Future schema changes must add one new, independently idempotent `.sql` file under `deploy/hostinger/migrations/`; never edit an already-applied migration.
+
+A new migration file must reach both places, and neither happens automatically: `git add` and commit it to this repo (`deploy.yml` does not run migrations or commit anything for you — see "`deploy/hostinger/` itself is never auto-synced" above), and copy it to `/docker/knightbasins/deploy/hostinger/migrations/` on the VPS before running `migrate.sh`. A migration applied on the VPS but never committed is invisible to everyone else and at risk of being lost; a migration committed but never copied to the VPS never runs.
 
 The API seeds all current basin, installed-stone, and sheet-stone catalog rows on first start (idempotent — skips rows that already exist). The seed source is `artifacts/knight-basins/src/data/catalog.ts`, so a code change to that file does **not** retroactively update rows already seeded into a live database — fix already-seeded rows through the `/admin` panel (or a migration) instead. After starting the API, `/api/catalog` is the read-only confirmation that the seed completed.
 
