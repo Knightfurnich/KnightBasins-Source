@@ -1,0 +1,8 @@
+# Scripts and data files parsed/executed on the Linux VPS and CI runner must
+# stay LF regardless of a contributor's local core.autocrlf setting --
+# core.autocrlf=true silently turning these into CRLF broke migrate.sh on
+# the VPS with "set: pipefail: invalid option name" (2026-09-21).
+*.sh text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
