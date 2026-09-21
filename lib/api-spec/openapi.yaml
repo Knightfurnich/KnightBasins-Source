@@ -659,7 +659,7 @@ components:
   schemas:
     HealthStatus:
       type: object
-      required: [status, lineLogin]
+      required: [status, lineLogin, database]
       properties:
         status:
           type: string
@@ -685,6 +685,11 @@ components:
             callbackReason:
               type: string
               enum: [configured, missing, malformed, not_https, unexpected_host, unexpected_path, unexpected_format]
+        database:
+          type: object
+          required: [connected]
+          properties:
+            connected: { type: boolean }
     AdminSession:
       type: object
       required: [authenticated]

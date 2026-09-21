@@ -11,6 +11,14 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// node-postgres crashes the whole process on an unhandled 'error' event from
+// an idle client (e.g. the database container restarting) unless a listener
+// is registered — see https://node-postgres.com/apis/pool#error
+pool.on("error", (error) => {
+  console.error("Unexpected error on idle Postgres client", error);
+});
+
 export const db = drizzle(pool, { schema });
 
 export * from "./schema/index.ts";

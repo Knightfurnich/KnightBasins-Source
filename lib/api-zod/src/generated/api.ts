@@ -22,6 +22,9 @@ export const HealthCheckResponse = zod.object({
   "callbackUrlValid": zod.boolean(),
   "callbackEnvironment": zod.enum(['production', 'development', 'invalid', 'missing']),
   "callbackReason": zod.enum(['configured', 'missing', 'malformed', 'not_https', 'unexpected_host', 'unexpected_path', 'unexpected_format'])
+}),
+  "database": zod.object({
+  "connected": zod.boolean()
 })
 })
 

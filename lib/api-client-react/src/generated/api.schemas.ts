@@ -38,9 +38,14 @@ export type HealthStatusLineLogin = {
   callbackReason: HealthStatusLineLoginCallbackReason;
 };
 
+export type HealthStatusDatabase = {
+  connected: boolean;
+};
+
 export interface HealthStatus {
   status: string;
   lineLogin: HealthStatusLineLogin;
+  database: HealthStatusDatabase;
 }
 
 export interface AdminSession {
