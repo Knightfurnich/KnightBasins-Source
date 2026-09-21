@@ -748,6 +748,10 @@ h1, h2, h3 { color: var(--ink); }
 .line-login-button--compact:not(:hover) { border-color: #b8dfc7; }
 .line-logo-mark { display: inline-grid; place-items: center; min-width: 26px; height: 17px; padding: 0 3px; border-radius: 5px; color: white; background: #06c755; font: 8px var(--mono); }
 .line-login-user { color: #087d3d; font: 9px var(--mono); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.line-login-user-group { display: inline-flex; align-items: center; gap: 8px; }
+.line-logout-button { border: 1px solid #e2b8b8; border-radius: 8px; padding: 6px 9px; color: #a83232; background: #fff5f5; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.line-logout-button:hover:not(:disabled) { background: #ffe9e9; border-color: #d99; }
+.line-logout-button:disabled { opacity: .6; cursor: default; }
 .profile-page { padding-top: 54px; }
 .profile-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
 .profile-heading h1 { margin: 8px 0 10px; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.08; }

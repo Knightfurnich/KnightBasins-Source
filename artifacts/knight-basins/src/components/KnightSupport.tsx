@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { GripVertical, MessageCircle, RotateCcw, Send, X } from "lucide-react";
 import { Link } from "wouter";
-import { useGetLineAuthStatus, useSendSupportChatMessage, type SupportProfileUpdate } from "@workspace/api-client-react";
+import { useDeleteLineSession, useGetLineAuthStatus, useSendSupportChatMessage, type SupportProfileUpdate } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 type ChatMessage = {
@@ -13,6 +13,7 @@ type ChatMessage = {
 
 export function LineLoginButton({ compact = false }: { compact?: boolean }) {
   const { data } = useGetLineAuthStatus();
+  const logoutMutation = useDeleteLineSession();
 
   const startLogin = () => {
     if (!data?.configured) return;
@@ -20,8 +21,25 @@ export function LineLoginButton({ compact = false }: { compact?: boolean }) {
     window.location.assign(`/api/auth/line/login?returnTo=${encodeURIComponent(returnTo)}`);
   };
 
+  const logout = () => {
+    logoutMutation.mutate(undefined, { onSuccess: () => window.location.assign("/") });
+  };
+
   if (data?.authenticated) {
-    return <Link href="/profile" className="line-login-user" title={data.user?.displayName ?? "LINE"} data-testid="link-my-profile">👤 โปรไฟล์ของฉัน</Link>;
+    return (
+      <span className="line-login-user-group">
+        <Link href="/profile" className="line-login-user" title={data.user?.displayName ?? "LINE"} data-testid="link-my-profile">👤 โปรไฟล์ของฉัน</Link>
+        <button
+          type="button"
+          className="line-logout-button"
+          onClick={logout}
+          disabled={logoutMutation.isPending}
+          data-testid="button-line-logout"
+        >
+          ออกจากระบบ
+        </button>
+      </span>
+    );
   }
 
   return (
@@ -33,7 +51,7 @@ export function LineLoginButton({ compact = false }: { compact?: boolean }) {
       data-testid="button-line-login"
     >
       <span className="line-logo-mark">LINE</span>
-      {!compact && "เข้าสู่ระบบ"}
+      เข้าสู่ระบบ
     </button>
   );
 }
