@@ -1,6 +1,8 @@
 # Deploy Knight Basins to the shared Hostinger VPS
 
-This deployment contains a Vite React storefront plus an Express API and PostgreSQL-backed administration area. It runs as two Docker containers (`knightbasins-api`, `knightbasins-web`) on the same VPS as Knight Design, sharing that VPS's Traefik reverse proxy and its `knightdesign-db` Postgres container (separate database, separate credentials) without sharing a process or document root.
+This deployment contains a Vite React storefront plus an Express API and PostgreSQL-backed administration area. It runs as three Docker containers (`knightbasins-db`, `knightbasins-api`, `knightbasins-web`) on the same VPS as Knight Design, sharing only that VPS's Traefik reverse proxy — the database is a dedicated `knightbasins-db` Postgres container with its own data volume, not shared with any other app.
+
+> **Migration note (2026-09-21):** `knight_basins` used to live as a separate database inside the shared `knightdesign-db` container. It is being migrated to its own dedicated `knightbasins-db` container so this app no longer depends on `knightdesign-db` staying up. Until the cutover (switching `DATABASE_URL` and recreating `knightbasins-api`) is verified complete, treat this README's dedicated-database description as the target state, not necessarily what `.env` on the VPS points at yet. Once fully cut over and verified, the old `knight_basins` database and `knight_basins_app` role inside `knightdesign-db` are safe to drop as a separate cleanup step.
 
 ## 1. Deployment is automatic via GitHub Actions
 
@@ -60,22 +62,34 @@ docker compose up -d --force-recreate api web
 
 ## 3. Database
 
-`knight_basins` is a separate database inside the shared `knightdesign-db` Postgres 16 container (not a dedicated container of its own — this saves VPS resources). Provision the database and a non-superuser app role once, from the VPS:
+`knight_basins` runs in its own dedicated `knightbasins-db` Postgres 16 container (added 2026-09-21, mirroring the `knightdesign-db` pattern), with its own named volume (`postgres-data`) so it survives container recreation and is not shared with any other app. This removes the earlier dependency where Knight Basins would go down if the (unrelated) `knightdesign-db` container was ever stopped or removed.
+
+### `.db.env`
+
+Create `/docker/knightbasins/.db.env` (referenced by `docker-compose.yml`'s `db` service `env_file:`, readable only by root — never commit this file). The official `postgres` image uses these three variables to bootstrap the database and its own superuser role on first start only — they have no effect on an already-initialized data volume:
 
 ```bash
-export KNIGHT_BASINS_DB_PASSWORD='choose-a-long-random-password'
-bash deploy/hostinger/provision-postgres.sh
-unset KNIGHT_BASINS_DB_PASSWORD
+POSTGRES_USER=knight_basins_app
+POSTGRES_PASSWORD=choose-a-long-random-password
+POSTGRES_DB=knight_basins
 ```
 
-The script creates `knight_basins` and `knight_basins_app` by default, disallows superuser/role/database creation privileges, removes the public database and schema grants, and grants the app role only the permissions needed by Drizzle and the API. Override the names with `KNIGHT_BASINS_DB_NAME` and `KNIGHT_BASINS_DB_USER` if needed.
+Bring the database container up on its own first, and wait for it to report healthy, before touching the API:
+
+```bash
+cd /docker/knightbasins
+docker compose up -d db
+docker compose ps db   # wait for "healthy"
+```
+
+For the historical, superseded provisioning path (when `knight_basins` lived as one of several databases inside the shared `knightdesign-db` container with a restricted, non-superuser role), see `deploy/hostinger/provision-postgres.sh` — not needed for a fresh dedicated `knightbasins-db` container, since the `postgres` image provisions the role/database itself from `.db.env`.
 
 ### `.env`
 
-Create `/docker/knightbasins/.env` (referenced by `docker-compose.yml`'s `env_file:`, readable only by root — never commit this file):
+Create `/docker/knightbasins/.env` (referenced by `docker-compose.yml`'s `api` service `env_file:`, readable only by root — never commit this file):
 
 ```bash
-DATABASE_URL=postgresql://knight_basins_app:URL_ENCODED_PASSWORD@knightdesign-db:5432/knight_basins
+DATABASE_URL=postgresql://knight_basins_app:URL_ENCODED_PASSWORD@knightbasins-db:5432/knight_basins
 SESSION_SECRET=use-a-long-random-secret
 ADMIN_PASSWORD=use-a-strong-admin-password
 PORT=8080
@@ -257,9 +271,9 @@ BASE_URL=https://YOUR_PUBLIC_HTTPS_HOST \
 
 ## Notes
 
-- This app has its own Docker containers, its own database, and its own Traefik router rule — it does not share a process with Knight Design, only the VPS, the Traefik instance, and the Postgres server (as separate databases).
-- Do not stop or replace the Knight Design containers (`knightdesign-web`, `knightdesign-api`, `knightdesign-db`) while working on Knight Basins — `knightdesign-db` is a shared dependency.
+- This app has its own Docker containers (including its own dedicated `knightbasins-db` since 2026-09-21), its own database, and its own Traefik router rule — it does not share a process, container, or Postgres instance with Knight Design, only the VPS and the Traefik instance.
+- `knightdesign-db` is Knight Design's own container, unrelated to Knight Basins now — do not stop or replace any Knight Design container while working on Knight Basins, but Knight Basins no longer depends on `knightdesign-db` staying up. (Historical: before the 2026-09-21 migration, `knight_basins` lived as a database inside `knightdesign-db`; if that pre-migration state is ever seen again, treat it as a regression, not the current design.)
 - The API server is required for current catalog prices and `/admin`.
-- Keep `/docker/knightbasins/.env` outside the repository.
+- Keep `/docker/knightbasins/.env` and `/docker/knightbasins/.db.env` outside the repository.
 - `deploy/hostinger/knight-basins-api.service`, `knight-basins-backup.service`, and `knight-basins-backup.timer` (systemd units) and the old host-level nginx `sites-available` config **no longer exist in this repo** — an earlier version of this deployment ran on bare systemd/nginx instead of Docker + Traefik; they were removed once the Docker Compose setup became the real, actually-running deployment, to avoid anyone following stale instructions.
 - Do not put VPS passwords, private keys, or database credentials in this repository or in chat.
