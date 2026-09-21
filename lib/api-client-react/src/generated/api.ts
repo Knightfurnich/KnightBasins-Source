@@ -46,10 +46,12 @@ import type {
   LeadInput,
   LineAuthStatus,
   NotifyQuoteInput,
+  PaymentSlip,
   QuoteNotificationResponse,
   SheetStonePrice,
   SheetStonePriceInput,
   SketchLeadResponse,
+  SubmitPaymentSlipBody,
   SubmitSketchLeadBody,
   SupportChatInput,
   SupportChatResponse,
@@ -2573,6 +2575,83 @@ export const useSubmitSketchLead = <TError = ErrorType<unknown>,
       return useMutation(getSubmitSketchLeadMutationOptions(options), queryClient);
     }
 
+export const getSubmitPaymentSlipUrl = () => {
+
+
+
+
+  return `/api/leads/payment-slip`
+}
+
+/**
+ * @summary Upload a bank transfer slip and verify it against the quote total via SlipOK
+ */
+export const submitPaymentSlip = async (submitPaymentSlipBody: SubmitPaymentSlipBody, options?: RequestInit): Promise<PaymentSlip> => {
+    const formData = new FormData();
+formData.append(`file`, submitPaymentSlipBody.file);
+formData.append(`token`, submitPaymentSlipBody.token);
+if(submitPaymentSlipBody.kind !== undefined) {
+ formData.append(`kind`, submitPaymentSlipBody.kind);
+ }
+
+  return customFetch<PaymentSlip>(getSubmitPaymentSlipUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getSubmitPaymentSlipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<SubmitPaymentSlipBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<SubmitPaymentSlipBody>}, TContext> => {
+
+const mutationKey = ['submitPaymentSlip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitPaymentSlip>>, {data: BodyType<SubmitPaymentSlipBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitPaymentSlip(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitPaymentSlipMutationResult = NonNullable<Awaited<ReturnType<typeof submitPaymentSlip>>>
+    export type SubmitPaymentSlipMutationBody = BodyType<SubmitPaymentSlipBody>
+    export type SubmitPaymentSlipMutationError = ErrorType<void>
+
+    /**
+ * @summary Upload a bank transfer slip and verify it against the quote total via SlipOK
+ */
+export const useSubmitPaymentSlip = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<SubmitPaymentSlipBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitPaymentSlip>>,
+        TError,
+        {data: BodyType<SubmitPaymentSlipBody>},
+        TContext
+      > => {
+      return useMutation(getSubmitPaymentSlipMutationOptions(options), queryClient);
+    }
+
 export const getListAdminLeadsUrl = () => {
 
 
@@ -2662,6 +2741,107 @@ export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLea
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListAdminLeadsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListLeadPaymentSlipsUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/leads/${id}/payment-slips`
+}
+
+/**
+ * @summary List payment slips submitted for a lead
+ */
+export const listLeadPaymentSlips = async (id: number, options?: RequestInit): Promise<PaymentSlip[]> => {
+
+  return customFetch<PaymentSlip[]>(getListLeadPaymentSlipsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLeadPaymentSlipsQueryKey = (id: number,) => {
+    return [
+    `/api/admin/leads/${id}/payment-slips`
+    ] as const;
+    }
+
+
+export const getListLeadPaymentSlipsQueryOptions = <TData = Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError = ErrorType<unknown>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLeadPaymentSlipsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLeadPaymentSlips>>> = ({ signal }) => listLeadPaymentSlips(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLeadPaymentSlipsQueryResult = NonNullable<Awaited<ReturnType<typeof listLeadPaymentSlips>>>
+export type ListLeadPaymentSlipsQueryError = ErrorType<unknown>
+
+
+export function useListLeadPaymentSlips<TData = Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError = ErrorType<unknown>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeadPaymentSlips>>,
+          TError,
+          Awaited<ReturnType<typeof listLeadPaymentSlips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeadPaymentSlips<TData = Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeadPaymentSlips>>,
+          TError,
+          Awaited<ReturnType<typeof listLeadPaymentSlips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeadPaymentSlips<TData = Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List payment slips submitted for a lead
+ */
+
+export function useListLeadPaymentSlips<TData = Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeadPaymentSlips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLeadPaymentSlipsQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

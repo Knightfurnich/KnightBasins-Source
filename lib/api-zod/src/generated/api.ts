@@ -1339,6 +1339,37 @@ export const SubmitSketchLeadResponse = zod.object({
 
 
 /**
+ * @summary Upload a bank transfer slip and verify it against the quote total via SlipOK
+ */
+export const submitPaymentSlipBodyTokenMin = 32;
+export const submitPaymentSlipBodyTokenMax = 512;
+
+
+
+export const SubmitPaymentSlipBody = zod.object({
+  "file": zod.string().describe('Uploaded slip image supplied as multipart content'),
+  "token": zod.string().min(submitPaymentSlipBodyTokenMin).max(submitPaymentSlipBodyTokenMax).describe('Public quote access token'),
+  "kind": zod.enum(['deposit', 'final']).optional()
+})
+
+export const SubmitPaymentSlipResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "kind": zod.enum(['deposit', 'final']),
+  "status": zod.enum(['pending', 'verified', 'rejected']),
+  "slipImageUrl": zod.string(),
+  "claimedAmountThb": zod.number().nullish(),
+  "verifiedAmountThb": zod.number().nullish(),
+  "senderName": zod.string().nullish(),
+  "transRef": zod.string().nullish(),
+  "slipokErrorCode": zod.string().nullish(),
+  "reviewedByAdmin": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List storefront leads
  */
 export const ListAdminLeadsResponseItem = zod.object({
@@ -1375,6 +1406,34 @@ export const ListAdminLeadsResponseItem = zod.object({
   "updatedAt": zod.coerce.date()
 })
 export const ListAdminLeadsResponse = zod.array(ListAdminLeadsResponseItem)
+
+
+/**
+ * @summary List payment slips submitted for a lead
+ */
+
+
+
+export const ListLeadPaymentSlipsParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const ListLeadPaymentSlipsResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "kind": zod.enum(['deposit', 'final']),
+  "status": zod.enum(['pending', 'verified', 'rejected']),
+  "slipImageUrl": zod.string(),
+  "claimedAmountThb": zod.number().nullish(),
+  "verifiedAmountThb": zod.number().nullish(),
+  "senderName": zod.string().nullish(),
+  "transRef": zod.string().nullish(),
+  "slipokErrorCode": zod.string().nullish(),
+  "reviewedByAdmin": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListLeadPaymentSlipsResponse = zod.array(ListLeadPaymentSlipsResponseItem)
 
 
 /**

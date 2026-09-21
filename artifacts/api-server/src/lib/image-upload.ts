@@ -22,7 +22,7 @@ const MIME_EXTENSIONS: Record<string, string> = {
   "video/quicktime": "mov",
 };
 
-const MANAGED_FILENAME = /^(?:catalog|sketch)-[a-z0-9]+-[a-f0-9]{16}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/i;
+const MANAGED_FILENAME = /^(?:catalog|sketch|slip)-[a-z0-9]+-[a-f0-9]{16}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/i;
 
 export type UploadedMedia = {
   buffer: Buffer;
@@ -303,7 +303,7 @@ export async function readMultipartForm(
 export async function saveUploadedMedia(media: UploadedMedia, prefix = "catalog") {
   const extension = MIME_EXTENSIONS[media.contentType];
   if (!extension) throw new Error("Unsupported uploaded media type");
-  if (!/^(?:catalog|sketch)$/.test(prefix)) throw new Error("Invalid upload prefix");
+  if (!/^(?:catalog|sketch|slip)$/.test(prefix)) throw new Error("Invalid upload prefix");
   if (!PUBLIC_UPLOAD_ORIGIN && process.env["NODE_ENV"] === "production") {
     throw new Error("PUBLIC_UPLOAD_ORIGIN must be configured in production");
   }

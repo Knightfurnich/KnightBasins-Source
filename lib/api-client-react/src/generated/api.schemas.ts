@@ -616,6 +616,44 @@ export interface SketchLeadResponse {
   message?: string;
 }
 
+export type PaymentSlipKind = typeof PaymentSlipKind[keyof typeof PaymentSlipKind];
+
+
+export const PaymentSlipKind = {
+  deposit: 'deposit',
+  final: 'final',
+} as const;
+
+export type PaymentSlipStatus = typeof PaymentSlipStatus[keyof typeof PaymentSlipStatus];
+
+
+export const PaymentSlipStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+} as const;
+
+export interface PaymentSlip {
+  id: number;
+  leadId: number;
+  kind: PaymentSlipKind;
+  status: PaymentSlipStatus;
+  slipImageUrl: string;
+  /** @nullable */
+  claimedAmountThb?: number | null;
+  /** @nullable */
+  verifiedAmountThb?: number | null;
+  /** @nullable */
+  senderName?: string | null;
+  /** @nullable */
+  transRef?: string | null;
+  /** @nullable */
+  slipokErrorCode?: string | null;
+  reviewedByAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface LineAuthUser {
   userId: string;
   displayName: string;
@@ -753,5 +791,25 @@ export type SubmitSketchLeadBody = {
   file: string;
   /** JSON-encoded LeadInput metadata */
   metadata: string;
+};
+
+export type SubmitPaymentSlipBodyKind = typeof SubmitPaymentSlipBodyKind[keyof typeof SubmitPaymentSlipBodyKind];
+
+
+export const SubmitPaymentSlipBodyKind = {
+  deposit: 'deposit',
+  final: 'final',
+} as const;
+
+export type SubmitPaymentSlipBody = {
+  /** Uploaded slip image supplied as multipart content */
+  file: string;
+  /**
+     * Public quote access token
+     * @minLength 32
+     * @maxLength 512
+     */
+  token: string;
+  kind?: SubmitPaymentSlipBodyKind;
 };
 

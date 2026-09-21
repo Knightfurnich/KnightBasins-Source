@@ -252,6 +252,33 @@ export const customerLeads = pgTable(
   ],
 );
 
+export const paymentSlips = pgTable(
+  "payment_slips",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id").notNull(),
+    kind: varchar("kind", { length: 16 }).default("deposit").notNull(),
+    status: varchar("status", { length: 16 }).default("pending").notNull(),
+    slipImageUrl: text("slip_image_url").notNull(),
+    claimedAmountThb: integer("claimed_amount_thb"),
+    verifiedAmountThb: integer("verified_amount_thb"),
+    senderName: varchar("sender_name", { length: 200 }),
+    transRef: varchar("trans_ref", { length: 64 }),
+    slipokErrorCode: varchar("slipok_error_code", { length: 16 }),
+    slipokRawResponse: jsonb("slipok_raw_response"),
+    reviewedByAdmin: boolean("reviewed_by_admin").default(false).notNull(),
+    ...auditColumns,
+  },
+  (table) => [
+    index("payment_slips_lead_id_idx").on(table.leadId),
+    foreignKey({
+      columns: [table.leadId],
+      foreignColumns: [customerLeads.id],
+      name: "payment_slips_lead_id_customer_leads_id_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
 export type BasinPrice = typeof basinPrices.$inferSelect;
 export type BasinCategory = typeof basinCategories.$inferSelect;
 export type InstalledStoneCategory = typeof installedStoneCategories.$inferSelect;

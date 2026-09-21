@@ -499,6 +499,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SketchLeadResponse"
+  /leads/payment-slip:
+    post:
+      operationId: submitPaymentSlip
+      tags: [leads]
+      summary: Upload a bank transfer slip and verify it against the quote total via SlipOK
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, token]
+              properties:
+                file: { type: string, description: Uploaded slip image supplied as multipart content }
+                token: { type: string, description: Public quote access token, minLength: 32, maxLength: 512 }
+                kind:
+                  type: string
+                  enum: [deposit, final]
+      responses:
+        "201":
+          description: Payment slip saved and verification result recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSlip"
+        "404":
+          description: Quote not found
   /admin/leads:
     get:
       operationId: listAdminLeads
@@ -513,6 +540,22 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CustomerLead"
+  /admin/leads/{id}/payment-slips:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    get:
+      operationId: listLeadPaymentSlips
+      tags: [admin]
+      summary: List payment slips submitted for a lead
+      responses:
+        "200":
+          description: Payment slips for the lead
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentSlip"
   /admin/leads/{id}:
     parameters:
       - $ref: "#/components/parameters/RecordId"
@@ -977,6 +1020,27 @@ components:
           type: string
           enum: [notified, saved_not_notified]
         message: { type: string }
+    PaymentSlip:
+      type: object
+      required: [id, leadId, kind, status, slipImageUrl, reviewedByAdmin, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        leadId: { type: integer }
+        kind:
+          type: string
+          enum: [deposit, final]
+        status:
+          type: string
+          enum: [pending, verified, rejected]
+        slipImageUrl: { type: string }
+        claimedAmountThb: { type: [integer, "null"] }
+        verifiedAmountThb: { type: [integer, "null"] }
+        senderName: { type: [string, "null"] }
+        transRef: { type: [string, "null"] }
+        slipokErrorCode: { type: [string, "null"] }
+        reviewedByAdmin: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
     LineAuthUser:
       type: object
       required: [userId, displayName]

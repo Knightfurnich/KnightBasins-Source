@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
-import { ArrowRight, BookOpen, Check, ChevronDown, Copy, Download, GripVertical, Minus, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, GripVertical, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import {
   formatTHB,
   INSTALLATION_PRICE,
@@ -821,6 +821,58 @@ function StudioLayoutSnapshot({ state, quoteNumber, language = "TH" }: { state: 
   </section>;
 }
 
+function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState<{ status: "verified" | "rejected"; message: string } | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const upload = async () => {
+    if (!file) return;
+    setUploading(true);
+    setResult(null);
+    const form = new FormData();
+    form.append("file", file);
+    form.append("token", publicQuoteToken);
+    form.append("kind", "deposit");
+    try {
+      const response = await fetch("/api/leads/payment-slip", { method: "POST", body: form });
+      const payload = await response.json() as { status?: "pending" | "verified" | "rejected"; verifiedAmountThb?: number | null; senderName?: string | null; message?: string };
+      if (!response.ok) throw new Error(payload.message || "ตรวจสอบสลิปไม่สำเร็จ");
+      setResult(
+        payload.status === "verified"
+          ? { status: "verified", message: `ตรวจสอบสลิปสำเร็จ ยอด ${payload.verifiedAmountThb?.toLocaleString("th-TH") ?? "-"} บาท จาก ${payload.senderName ?? "-"}` }
+          : { status: "rejected", message: "ระบบตรวจสอบสลิปอัตโนมัติยังไม่ผ่าน ทีมขายจะตรวจสอบให้อีกครั้งค่ะ" },
+      );
+      setFile(null);
+      if (inputRef.current) inputRef.current.value = "";
+    } catch (error) {
+      setResult({ status: "rejected", message: error instanceof Error ? error.message : "อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return <div className="saved-quote-payment" data-testid="section-payment-slip-upload">
+    <div className="saved-quote-payment-heading">
+      <Upload size={16} />
+      <div>
+        <strong>อัปโหลดสลิปโอนเงินมัดจำ</strong>
+        <p>ระบบตรวจสอบสลิปอัตโนมัติผ่าน SlipOK — อัปโหลดสลิปหลังโอนมัดจำ 50% เพื่อให้ทีมขายยืนยันได้ทันที</p>
+      </div>
+    </div>
+    <div className="saved-quote-payment-controls">
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setFile(event.target.files?.[0] ?? null)} data-testid="input-payment-slip-file" />
+      <button type="button" className="button button--accent" onClick={upload} disabled={!file || uploading} data-testid="button-upload-payment-slip">
+        {uploading ? "กำลังตรวจสอบ..." : "อัปโหลดและตรวจสอบสลิป"}
+      </button>
+    </div>
+    {result && <p className={`saved-quote-payment-result ${result.status === "verified" ? "is-verified" : "is-rejected"}`} role="status" data-testid="status-payment-slip-result">
+      {result.status === "verified" ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />} {result.message}
+    </p>}
+  </div>;
+}
+
 function SavedQuotePage() {
   const [location, setLocation] = useLocation();
   const publicQuoteToken = new URLSearchParams(window.location.search).get("token") ?? "";
@@ -1053,6 +1105,15 @@ function SavedQuotePage() {
     </div>
     {notificationMessage && <p className="studio-result" role="status" data-testid="status-saved-quote-notification">{notificationMessage}</p>}
     </div>
+    {language === "TH" && <PaymentSlipUpload publicQuoteToken={publicQuoteToken} />}
+    {language === "TH" && <div className="saved-quote-support" data-testid="section-after-sales-contact">
+      <Phone size={16} />
+      <div>
+        <strong>ติดต่อหลังการขาย</strong>
+        <p>โทร 094-496-1949 หรือ LINE Official</p>
+        <p className="saved-quote-support-hours"><Clock size={13} /> จันทร์-ศุกร์ 08:00–17:00 · เสาร์ 08:00–12:00</p>
+      </div>
+    </div>}
     {state && <StudioLayoutSnapshot state={state} quoteNumber={savedQuoteNumber} language={language} />}
      <FormalQuote format={format} quoteNumber={savedQuoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} language={language} />
     <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>

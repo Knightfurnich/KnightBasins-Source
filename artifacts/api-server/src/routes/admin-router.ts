@@ -5,6 +5,7 @@ import {
   installedStonePrices,
   sheetStonePrices,
   customerLeads,
+  paymentSlips,
 } from "@workspace/db/schema";
 import {
   CreateAdminBasinBody,
@@ -179,6 +180,21 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/leads/:id/payment-slips", async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+    try {
+      const slips = await database
+        .select()
+        .from(paymentSlips)
+        .where(eq(paymentSlips.leadId, id))
+        .orderBy(desc(paymentSlips.createdAt));
+      return res.json(slips);
     } catch (error) {
       return next(error);
     }

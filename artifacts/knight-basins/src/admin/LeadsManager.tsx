@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   CustomerLeadStatus,
   useListAdminLeads,
+  useListLeadPaymentSlips,
   useUpdateAdminLead,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -52,6 +53,45 @@ function studioSummary(value: unknown) {
   if (!dimensions) return null;
   const runs = [dimensions.runAMm, dimensions.runBMm, dimensions.runCMm].filter((run): run is number => typeof run === "number" && run > 0).join(" / ");
   return `${data.state?.shape ?? "-"} · ${runs} × ${dimensions.depthMm ?? "-"} mm · ${data.estimate?.stoneAreaSqM?.toFixed(2) ?? "-"} m² · ประมาณ ${data.estimate?.totalTHB?.toLocaleString("th-TH") ?? "-"} บาท · ${data.state?.location === "province" ? "ต่างจังหวัด" : "กรุงเทพฯ/ปริมณฑล"}`;
+}
+
+const paymentStatusLabels: Record<string, string> = {
+  pending: "รอตรวจสอบ",
+  verified: "ตรวจสอบแล้ว",
+  rejected: "ไม่ผ่านอัตโนมัติ",
+};
+
+const paymentKindLabels: Record<string, string> = {
+  deposit: "มัดจำ",
+  final: "งวดสุดท้าย",
+};
+
+function LeadPaymentSlips({ leadId }: { leadId: number }) {
+  const { data: slips } = useListLeadPaymentSlips(leadId);
+  if (!slips?.length) return null;
+  return (
+    <div className="mt-4 max-w-2xl">
+      <label className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">การชำระเงิน</label>
+      <div className="mt-1 grid gap-2">
+        {slips.map((slip) => (
+          <div key={slip.id} className="flex items-center gap-3 border border-[var(--line)] p-2 text-xs" data-testid={`row-payment-slip-${slip.id}`}>
+            <a href={slip.slipImageUrl} target="_blank" rel="noreferrer" className="block h-12 w-12 shrink-0 border border-[var(--line)] overflow-hidden">
+              <img src={slip.slipImageUrl} alt="สลิปโอนเงิน" className="h-full w-full object-cover" />
+            </a>
+            <div>
+              <span className={slip.status === "verified" ? "text-[#17816d]" : slip.status === "rejected" ? "text-[#a24439]" : "text-[var(--ink-soft)]"}>
+                {paymentStatusLabels[slip.status] ?? slip.status}
+              </span>
+              {" · "}{paymentKindLabels[slip.kind] ?? slip.kind}
+              {typeof slip.verifiedAmountThb === "number" && ` · ${slip.verifiedAmountThb.toLocaleString("th-TH")} บาท`}
+              {slip.senderName && ` · จาก ${slip.senderName}`}
+              {slip.slipokErrorCode && ` · code ${slip.slipokErrorCode}`}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function formatLeadDate(value: string) {
@@ -275,6 +315,7 @@ export function LeadsManager() {
                   </div>
                 );
               })()}
+              <LeadPaymentSlips leadId={lead.id} />
             </article>
           ))}
         </div>

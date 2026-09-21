@@ -336,3 +336,40 @@ export async function notifySketch(
   const fileLines = photoUrls.map((url) => `ไฟล์: ${url}`).join("\n");
   return sendLineText(quoteUrl ? caption : `${caption}\n${fileLines}`);
 }
+
+type PaymentSlipNotificationVerdict = {
+  status: "verified" | "rejected";
+  claimedAmountThb: number | null;
+  verifiedAmountThb: number | null;
+  senderName: string | null;
+  errorCode: string | null;
+  message: string;
+};
+
+export async function notifyPaymentSlip(
+  lead: LeadNotificationData,
+  origin: string,
+  slipImageUrl: string,
+  verdict: PaymentSlipNotificationVerdict,
+  quotePath?: string,
+) {
+  const photoUrl = publicUrl(origin, slipImageUrl);
+  const quoteUrl = quotePath ? publicUrl(origin, quotePath) : "";
+  const verdictLine = verdict.status === "verified"
+    ? `✅ ตรวจสอบสลิปแล้ว: ยอด ${typeof verdict.verifiedAmountThb === "number" ? `${formatBaht(verdict.verifiedAmountThb)} บาท` : "-"} จาก ${verdict.senderName ?? "-"}`
+    : `⚠️ สลิปยังไม่ผ่านการตรวจสอบอัตโนมัติ${verdict.errorCode ? ` (code ${verdict.errorCode})` : ""}: ${verdict.message}`;
+  const caption = [
+    `Knight Basins: มีการอัปโหลดสลิปโอนเงิน`,
+    `⏰ ${formatThaiDateTime()} น.`,
+    `เลขที่: ${lead.quoteNumber || "-"}`,
+    `ผู้ติดต่อ: ${lead.name || "-"} · โทร: ${lead.phone || "-"}`,
+    `ยอดที่คาดไว้: ${typeof verdict.claimedAmountThb === "number" ? `${formatBaht(verdict.claimedAmountThb)} บาท` : "-"}`,
+    verdictLine,
+    ...(quoteUrl ? [`ลิงก์ใบเสนอราคา: ${quoteUrl}`] : []),
+  ].join("\n");
+  if (configuredChannel() === "telegram") {
+    const button = quoteUrl ? { text: "เปิดใบเสนอราคา", url: quoteUrl } : undefined;
+    return sendTelegramPhoto(photoUrl, caption, button);
+  }
+  return sendLineText(`${caption}\nไฟล์: ${photoUrl}`);
+}

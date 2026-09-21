@@ -1,4 +1,4 @@
-import { customerLeads } from "@workspace/db/schema";
+import { customerLeads, paymentSlips } from "@workspace/db/schema";
 import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
@@ -13,11 +13,24 @@ import {
   verifyPublicQuoteToken,
 } from "../lib/quote-access";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
-import { notifyQuote, notifySketch } from "../lib/sales-notifications";
+import { notifyPaymentSlip, notifyQuote, notifySketch } from "../lib/sales-notifications";
+import { verifySlip } from "../lib/slipok";
 import { formatQuoteMonth } from "../lib/date-time";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
 const MAX_SKETCH_FILES = 5;
+
+function quoteTotalTHB(studioData: unknown): number | null {
+  if (!studioData || typeof studioData !== "object") return null;
+  const data = studioData as {
+    total?: unknown;
+    notification?: { total?: unknown };
+    quickQuote?: { total?: unknown };
+    estimate?: { totalTHB?: unknown };
+  };
+  const value = data.notification?.total ?? data.total ?? data.quickQuote?.total ?? data.estimate?.totalTHB;
+  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null;
+}
 
 function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
@@ -38,6 +51,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   const router: IRouter = Router();
   const leadRateLimit = createRateLimiter({ name: "leads", max: 30, windowMs: 60 * 1000 });
   const sketchRateLimit = createRateLimiter({ name: "sketch-upload", max: 5, windowMs: 10 * 60 * 1000 });
+  const paymentSlipRateLimit = createRateLimiter({ name: "payment-slip-upload", max: 5, windowMs: 10 * 60 * 1000 });
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
   const notificationRateLimit = createRateLimiter({
     name: "quote-notification",
@@ -270,6 +284,88 @@ router.get("/quotes", async (req, res, next) => {
     return next(error);
   }
 });
+
+  router.post("/leads/payment-slip", paymentSlipRateLimit, uploadConcurrency, async (req, res, next) => {
+    try {
+      const { media, fields } = await readMultipartForm(req, "image", { maxFiles: 1 });
+      const token = (fields.token ?? "").trim();
+      const access = verifyPublicQuoteToken(token);
+      if (!access) return res.status(404).json({ message: "Quote not found" });
+      const kind = fields.kind?.trim() === "final" ? "final" : "deposit";
+
+      const [lead] = await database
+        .select()
+        .from(customerLeads)
+        .where(eq(customerLeads.quoteNumber, access.quoteNumber))
+        .limit(1);
+      if (
+        !lead ||
+        !["studio", "quick-purchase"].includes(lead.orderMode) ||
+        !lead.studioData ||
+        !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
+      ) {
+        return res.status(404).json({ message: "Quote not found" });
+      }
+
+      const item = media[0]!;
+      const upload = await saveUploadedMedia(item, "slip");
+      try {
+        const claimedAmountThb = quoteTotalTHB(lead.studioData);
+        const result = await verifySlip(item, claimedAmountThb);
+        const [slip] = await database
+          .insert(paymentSlips)
+          .values(
+            result.ok
+              ? {
+                  leadId: lead.id,
+                  kind,
+                  status: "verified",
+                  slipImageUrl: upload.url,
+                  claimedAmountThb,
+                  verifiedAmountThb: result.amount,
+                  senderName: result.senderName,
+                  transRef: result.transRef || null,
+                  slipokRawResponse: result.raw,
+                }
+              : {
+                  leadId: lead.id,
+                  kind,
+                  status: "rejected",
+                  slipImageUrl: upload.url,
+                  claimedAmountThb,
+                  slipokErrorCode: result.errorCode,
+                  slipokRawResponse: result.raw,
+                },
+          )
+          .returning();
+        if (!slip) throw new Error("Payment slip was not saved");
+
+        await notifyPaymentSlip(
+          lead,
+          requestOrigin(req),
+          upload.url,
+          {
+            status: slip.status as "verified" | "rejected",
+            claimedAmountThb: slip.claimedAmountThb,
+            verifiedAmountThb: slip.verifiedAmountThb,
+            senderName: slip.senderName,
+            errorCode: slip.slipokErrorCode,
+            message: result.ok ? "" : result.message,
+          },
+          publicQuoteTokenForLead(lead)
+            ? `/quote/view?token=${encodeURIComponent(publicQuoteTokenForLead(lead)!)}`
+            : undefined,
+        );
+        return res.status(201).json(slip);
+      } catch (error) {
+        await removeUploadedMedia(upload.filename).catch(() => undefined);
+        throw error;
+      }
+    } catch (error) {
+      if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) return invalid(res, error.message);
+      return next(error);
+    }
+  });
 
   return router;
 }

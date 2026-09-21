@@ -90,6 +90,13 @@ PUBLIC_APP_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud
 NOTIFY_CHANNEL=telegram
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 TELEGRAM_SALES_CHAT_ID=your-telegram-chat-id
+# Optional: SlipOK-verified payment slip upload on the saved quote page.
+# Sign up at slipok.com, link the receiving bank account (Krungsri
+# 574-1-18925-4), and take the API key + branch ID from there. Omit both
+# to degrade gracefully (upload is saved but SlipOK verification is
+# skipped and reported as unconfigured) instead of failing.
+SLIPOK_API_KEY=your-slipok-api-key
+SLIPOK_BRANCH_ID=your-slipok-branch-id
 ```
 
 `DATABASE_URL` uses the Docker network hostname `knightdesign-db`, not `127.0.0.1` or `localhost` — the API and the database are different containers on the same Docker network. URL-encode any reserved characters in the password.
