@@ -210,22 +210,32 @@ A daily cron job on the VPS host (root's crontab, **not** a systemd timer) runs 
 0 19 * * * /docker/backups/backup-postgres.sh >> /var/log/knight-backup.log 2>&1
 ```
 
-(19:00 UTC = 02:00 Asia/Bangkok.) It runs `pg_dumpall` inside the shared `knightdesign-db` container, authenticating with that container's own `$POSTGRES_USER` environment variable (the password is never read, printed, or stored by the script or by cron), and writes a gzip-compressed **plain-SQL** dump to `/docker/backups/postgres-all-<timestamp>.sql.gz`. This backs up the entire shared Postgres instance — both `knight_basins` and Knight Design's own database — not Knight Basins alone. Backups older than 14 days are deleted automatically.
+(19:00 UTC = 02:00 Asia/Bangkok.) It runs `pg_dumpall` once per container listed in `DB_CONTAINERS` (default: `knightdesign-db knightbasins-db`), authenticating with each container's own `$POSTGRES_USER` environment variable (the password is never read, printed, or stored by the script or by cron), and writes one gzip-compressed **plain-SQL** dump per container. Backups older than 14 days are deleted automatically.
+
+**Since 2026-09-21**, `knight_basins` lives in its own dedicated `knightbasins-db` container (see "Database" above), so it gets its own backup file, separate from `knightdesign-db` (Knight Design's own — now decommissioned — app database, plus a stale copy of `knight_basins` until that old copy is cleaned up as a follow-up step):
+
+- `knightdesign-db` → `/docker/backups/postgres-all-<timestamp>.sql.gz` (unchanged historical filename, no container name in it)
+- `knightbasins-db` → `/docker/backups/postgres-all-knightbasins-db-<timestamp>.sql.gz`
 
 Restore a backup with:
 
 ```bash
 gunzip -c /docker/backups/postgres-all-<timestamp>.sql.gz | \
   docker exec -i knightdesign-db sh -c 'psql -U "$POSTGRES_USER"'
+# or, for the dedicated Knight Basins database:
+gunzip -c /docker/backups/postgres-all-knightbasins-db-<timestamp>.sql.gz | \
+  docker exec -i knightbasins-db sh -c 'psql -U "$POSTGRES_USER"'
 ```
 
-Verify a backup actually restores with `restore-check.sh`. It never touches the live `knightdesign-db` container: it starts a disposable `postgres:16-alpine` container with no persistent volume, restores the newest (or a given) `postgres-all-*.sql.gz` archive into it with `psql`, checks the three catalog tables in `knight_basins`, then destroys the container:
+Verify a backup actually restores with `restore-check.sh`. It never touches any live database container: it starts a disposable `postgres:16-alpine` container with no persistent volume per archive, restores a dump into it with `psql`, checks the three catalog tables in `knight_basins`, then destroys the container. With no argument, it checks the newest backup of **each** filename family (so a new `knightbasins-db` backup can't be skipped just because `knightdesign-db`'s dump happened to land a few seconds later, or vice versa):
 
 ```bash
 bash deploy/hostinger/restore-check.sh
+# or check one specific archive:
+bash deploy/hostinger/restore-check.sh /docker/backups/postgres-all-knightbasins-db-<timestamp>.sql.gz
 ```
 
-Run it after the first backup, whenever the backup script or the shared Postgres container changes, and periodically thereafter — a backup that has never been restore-tested is not a verified backup.
+Run it after the first backup of a new container, whenever the backup script or a source Postgres container changes, and periodically thereafter — a backup that has never been restore-tested is not a verified backup.
 
 ## 5. Release validation gate
 
