@@ -1124,6 +1124,22 @@ export const SendSupportChatMessageResponse = zod.object({
 
 
 /**
+ * Unlike /leads/payment-slip (which has the quote's signed access token from the saved-quote page URL), this endpoint has no token in context -- KnightSupport is the same floating widget on every page. Ownership is proven either by an authenticated LINE session that owns the quote, or by the phone number on file for that quote.
+ * @summary Upload a payment slip through the KnightSupport chat widget
+ */
+export const SubmitSupportPaymentSlipBody = zod.object({
+  "file": zod.string().describe('Uploaded slip image supplied as multipart content'),
+  "quoteNumber": zod.string().describe('The quote number as shown to the customer, e.g. \"Sep 26 \/ US \/ 363533\"'),
+  "phone": zod.string().optional().describe('Phone number on file for the quote')
+})
+
+export const SubmitSupportPaymentSlipResponse = zod.object({
+  "reply": zod.string(),
+  "status": zod.enum(['verified', 'needs_review', 'rejected']).optional()
+})
+
+
+/**
  * @summary Create or update a storefront lead
  */
 export const upsertLeadBodyLeadKeyMin = 12;

@@ -312,6 +312,20 @@ export interface SupportChatResponse {
   profileUpdate?: SupportProfileUpdate;
 }
 
+export type SupportPaymentSlipResponseStatus = typeof SupportPaymentSlipResponseStatus[keyof typeof SupportPaymentSlipResponseStatus];
+
+
+export const SupportPaymentSlipResponseStatus = {
+  verified: 'verified',
+  needs_review: 'needs_review',
+  rejected: 'rejected',
+} as const;
+
+export interface SupportPaymentSlipResponse {
+  reply: string;
+  status?: SupportPaymentSlipResponseStatus;
+}
+
 export type LeadInputStatus = typeof LeadInputStatus[keyof typeof LeadInputStatus];
 
 
@@ -782,6 +796,15 @@ export type CreateAdminSessionBody = {
 
 export type UploadAdminBasinVideoBody = {
   file: string;
+};
+
+export type SubmitSupportPaymentSlipBody = {
+  /** Uploaded slip image supplied as multipart content */
+  file: string;
+  /** The quote number as shown to the customer, e.g. "Sep 26 / US / 363533" */
+  quoteNumber: string;
+  /** Phone number on file for the quote */
+  phone?: string;
 };
 
 export type GetSavedQuoteParams = {

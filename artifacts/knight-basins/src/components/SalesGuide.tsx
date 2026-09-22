@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowLeft, ShoppingBag, Ruler, PenLine, User, Send, Lightbulb } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Ruler, PenLine, User, Send, Lightbulb, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -250,6 +250,41 @@ export default function SalesGuide() {
                   "ใบเสนอราคาที่ส่งแล้วสามารถพิมพ์ออกมาเป็น PDF ได้จากหน้าลิงก์ใบเสนอราคาโดยตรง",
                 ]}
               />
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="payment" className="border border-[var(--line)] rounded-lg px-5 bg-[var(--card-paper)]">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center gap-2.5">
+                <Upload size={18} /> <span className="font-semibold">6. การชำระเงินและอัปโหลดสลิป</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-1">
+              <p className="text-sm text-[var(--ink-soft)]">
+                ลูกค้าอัปโหลดสลิปโอนเงินมัดจำ 50% ได้ 2 ทาง: (1) จากหน้าใบเสนอราคาที่บันทึกไว้ (หน้าที่เปิดจากลิงก์ใบเสนอราคา) หรือ (2) แนบรูปเข้าไปในแชทน้องไนท์ได้เลยจากทุกหน้าของเว็บ (กดไอคอนหนีบกระดาษ 📎 ในกล่องแชท แล้วพิมพ์เลขที่ใบเสนอราคา — ถ้ายังไม่ได้ล็อกอิน LINE ต้องพิมพ์เบอร์โทรที่ให้ไว้ตอนขอใบเสนอราคาด้วย เพื่อยืนยันว่าเป็นเจ้าของใบเสนอราคาจริง) — ทั้งสองทางระบบตรวจสอบสลิปอัตโนมัติผ่าน SlipOK ทันทีที่อัปโหลด แล้วแจ้งผลกลับมาที่ Telegram ทีมขายทันที
+              </p>
+              <div>
+                <p className="font-medium text-sm mb-2">ผลตรวจสอบที่เป็นไปได้ 3 แบบ</p>
+                <div className="space-y-2.5">
+                  <div className="flex gap-3 items-start">
+                    <Badge className="bg-[#17816d] text-white shrink-0 mt-0.5 hover:bg-[#17816d]">ตรวจสอบแล้ว</Badge>
+                    <p className="text-sm text-[var(--ink-soft)]">ระบบเช็คยอดเงินและบัญชีปลายทางกับธนาคารจริงผ่าน QR Code บนสลิปแล้วตรงกัน — ถือว่าชำระเงินแล้ว ไม่ต้องตรวจซ้ำ</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <Badge className="bg-[#a9791f] text-white shrink-0 mt-0.5 hover:bg-[#a9791f] whitespace-nowrap">ไม่มี QR · ต้องตรวจด้วยตา</Badge>
+                    <p className="text-sm text-[var(--ink-soft)]">
+                      ระบบหาข้อมูลยืนยันการโอนในรูปที่แนบมาไม่เจอ — <strong>ไม่ใช่การปฏิเสธ</strong> อาจเป็นสลิปโอนบัญชีนิติบุคคลบางแบบที่ไม่มี QR Code (ระบบตรวจสอบกับธนาคารแบบนี้ไม่ได้จริง ไม่ใช่แค่ SlipOK เจ้าเดียว) <strong>หรืออาจเป็นรูปที่ไม่ใช่สลิปเลยก็ได้</strong> (ลูกค้าแนบรูปผิด) — ทีมขายต้องเปิดรูปดูด้วยตาเองก่อนว่าใช่สลิปไหม ถ้าใช่ให้ยืนยันยอดเงินตามปกติ (เหมือนขั้นตอนก่อนมี SlipOK) ถ้าไม่ใช่ให้ทักลูกค้าขอรูปสลิปที่ถูกต้องใหม่
+                    </p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <Badge className="bg-[#a24439] text-white shrink-0 mt-0.5 hover:bg-[#a24439]">ไม่ผ่านอัตโนมัติ</Badge>
+                    <p className="text-sm text-[var(--ink-soft)]">ยอดเงินหรือบัญชีปลายทางไม่ตรงกับที่คาดไว้ หรือสลิปนี้เคยถูกใช้ยืนยันไปแล้ว (ซ้ำ) — ทีมขายต้องตรวจสอบและติดต่อลูกค้าเพื่อยืนยันก่อนดำเนินการต่อ</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-[var(--ink-soft)]">
+                ดูรูปสลิปและผลตรวจสอบทั้งหมดของแต่ละ lead ได้ที่หน้า <Link href="/admin" className="underline">/admin</Link> แท็บ &quot;ลูกค้า / Lead&quot; — เปิดดูรูปสลิปเต็มขนาดได้จากรูปย่อที่แนบไว้ในรายการ
+              </p>
             </AccordionContent>
           </AccordionItem>
         </Accordion>

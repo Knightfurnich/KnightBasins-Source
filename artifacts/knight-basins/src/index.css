@@ -850,6 +850,10 @@ h1, h2, h3 { color: var(--ink); }
 .knight-support-actions button { padding: 6px 8px; border: 1px solid #8fc5df; border-radius: 7px; color: var(--brand-blue); background: white; font-size: 10px; }
 .knight-support-actions button:hover { background: #eaf7fc; }
 .knight-support-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.knight-support-pending-slip { display: flex; align-items: center; gap: 6px; margin: 0; padding: 6px 10px; font-size: 10.5px; color: var(--ink-soft); background: #f5fbfe; border-top: 1px solid var(--line); }
+.knight-support-pending-slip button { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; color: var(--ink-soft); background: rgba(0,0,0,.06); }
+.knight-support-pending-slip button:hover { background: rgba(0,0,0,.12); }
+.knight-support-pending-slip button:disabled { opacity: .45; cursor: not-allowed; }
 .knight-support-form { display: flex; gap: 7px; padding: 10px; border-top: 1px solid var(--line); background: white; }
 .knight-support-form input { flex: 1; min-width: 0; height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; outline: none; font-size: 11px; }
 .knight-support-form input:focus { border-color: #65afd4; box-shadow: 0 0 0 3px rgba(42, 155, 208, .12); }

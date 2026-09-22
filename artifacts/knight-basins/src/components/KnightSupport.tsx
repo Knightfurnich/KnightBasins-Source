@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { GripVertical, MessageCircle, RotateCcw, Send, X } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { GripVertical, MessageCircle, Paperclip, RotateCcw, Send, X } from "lucide-react";
 import { Link } from "wouter";
 import { useDeleteLineSession, useGetLineAuthStatus, useSendSupportChatMessage, type SupportProfileUpdate } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -92,6 +92,10 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
   ]);
   const chat = useSendSupportChatMessage();
   const queryClient = useQueryClient();
+  const [pendingSlip, setPendingSlip] = useState<File | null>(null);
+  const [slipSending, setSlipSending] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const busy = chat.isPending || slipSending;
 
   useEffect(() => {
     if (position) window.localStorage.setItem(SUPPORT_POSITION_KEY, JSON.stringify(position));
@@ -143,10 +147,37 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
     window.localStorage.removeItem(SUPPORT_POSITION_KEY);
   };
 
+  const sendSlip = async (text: string, file: File) => {
+    setMessages((current) => [...current, { role: "user", text }]);
+    setSlipSending(true);
+    const [quoteNumberPart, phonePart] = text.split(",");
+    const form = new FormData();
+    form.append("file", file);
+    form.append("quoteNumber", (quoteNumberPart ?? "").trim());
+    if (phonePart?.trim()) form.append("phone", phonePart.trim());
+    try {
+      const response = await fetch("/api/support/payment-slip", { method: "POST", body: form });
+      const payload = (await response.json().catch(() => null)) as { reply?: string } | null;
+      setMessages((current) => [
+        ...current,
+        { role: "assistant", text: payload?.reply || "ขออภัยค่ะ ระบบอัปโหลดสลิปขัดข้องชั่วคราว กรุณาลองอีกครั้ง" },
+      ]);
+    } catch {
+      setMessages((current) => [...current, { role: "assistant", text: "ขออภัยค่ะ อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" }]);
+    } finally {
+      setSlipSending(false);
+      setPendingSlip(null);
+    }
+  };
+
   const send = (requestedMessage?: string) => {
     const message = (requestedMessage ?? draft).trim();
-    if (!message || chat.isPending) return;
+    if (!message || busy) return;
     if (!requestedMessage) setDraft("");
+    if (pendingSlip) {
+      void sendSlip(message, pendingSlip);
+      return;
+    }
     setMessages((current) => [...current, { role: "user", text: message }]);
     chat.mutate(
       { data: { message } },
@@ -162,6 +193,20 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
         onError: () => setMessages((current) => [...current, { role: "assistant", text: "ขออภัยครับ ระบบค้นหาข้อมูลขัดข้องชั่วคราว กรุณาลองอีกครั้ง" }]),
       },
     );
+  };
+
+  const handleSlipFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    if (!file) return;
+    setPendingSlip(file);
+    setMessages((current) => [
+      ...current,
+      {
+        role: "assistant",
+        text: "แนบรูปสลิปแล้วค่ะ รบกวนพิมพ์เลขที่ใบเสนอราคา (และเบอร์โทรที่ให้ไว้ ถ้ายังไม่ได้ล็อกอิน LINE) คั่นด้วยจุลภาค เช่น \"Sep 26 / US / 363533, 0812345678\" แล้วกดส่งได้เลยค่ะ",
+      },
+    ]);
   };
 
   return (
@@ -186,12 +231,21 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
             </div>
           </div>
           <div className="knight-support-messages" aria-live="polite">
-             {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}{message.role === "assistant" && message.profileUpdate?.status === "confirmation_required" && <div className="knight-support-actions"><button type="button" onClick={() => send("ยืนยัน")} disabled={chat.isPending}>ยืนยันการอัปเดต</button><button type="button" onClick={() => send("ยกเลิก")} disabled={chat.isPending}>ยกเลิก</button></div>}</div>)}
+             {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}{message.role === "assistant" && message.profileUpdate?.status === "confirmation_required" && <div className="knight-support-actions"><button type="button" onClick={() => send("ยืนยัน")} disabled={busy}>ยืนยันการอัปเดต</button><button type="button" onClick={() => send("ยกเลิก")} disabled={busy}>ยกเลิก</button></div>}</div>)}
             {chat.isPending && <p className="knight-support-message knight-support-message--assistant">กำลังค้นข้อมูล...</p>}
+            {slipSending && <p className="knight-support-message knight-support-message--assistant">กำลังตรวจสอบสลิป...</p>}
           </div>
+          {pendingSlip && (
+            <p className="knight-support-pending-slip" data-testid="text-knight-support-pending-slip">
+              📎 {pendingSlip.name}
+              <button type="button" onClick={() => setPendingSlip(null)} aria-label="ยกเลิกการแนบสลิป" disabled={slipSending}><X size={12} /></button>
+            </p>
+          )}
           <form className="knight-support-form" onSubmit={(event) => { event.preventDefault(); send(); }}>
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="เช่น KF023 หรือ BW010" aria-label="คำถามน้องไนท์" />
-            <button type="submit" aria-label="ส่งคำถาม" disabled={chat.isPending || !draft.trim()}><Send size={15} /></button>
+            <input type="file" ref={fileInputRef} accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleSlipFileChange} style={{ display: "none" }} data-testid="input-knight-support-slip-file" />
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={busy} aria-label="แนบรูปสลิปโอนเงิน" title="แนบรูปสลิปโอนเงิน" data-testid="button-knight-support-attach-slip"><Paperclip size={15} /></button>
+            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={pendingSlip ? "เลขที่ใบเสนอราคา, เบอร์โทร (ถ้ามี)" : "เช่น KF023 หรือ BW010"} aria-label="คำถามน้องไนท์" />
+            <button type="submit" aria-label="ส่งคำถาม" disabled={busy || !draft.trim()}><Send size={15} /></button>
           </form>
         </section>
       )}

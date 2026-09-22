@@ -841,10 +841,10 @@ function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
       if (!response.ok) throw new Error(payload.message || "ตรวจสอบสลิปไม่สำเร็จ");
       setResult(
         payload.status === "verified"
-          ? { status: "verified", message: `ตรวจสอบสลิปสำเร็จ ยอด ${payload.verifiedAmountThb?.toLocaleString("th-TH") ?? "-"} บาท จาก ${payload.senderName ?? "-"}` }
+          ? { status: "verified", message: `ตรวจสอบแล้วค่ะ เงินโอน ${payload.verifiedAmountThb?.toLocaleString("th-TH") ?? "-"} บาท จาก ${payload.senderName ?? "-"} เข้าเรียบร้อย` }
           : payload.status === "needs_review"
-            ? { status: "needs_review", message: "ได้รับสลิปแล้วค่ะ สลิปนี้ไม่มี QR Code ให้ระบบตรวจสอบอัตโนมัติ (พบได้ทั่วไปกับสลิปโอนบัญชีนิติบุคคล) ทีมขายจะตรวจสอบและยืนยันให้อีกครั้ง" }
-            : { status: "rejected", message: "ระบบตรวจสอบสลิปอัตโนมัติยังไม่ผ่าน ทีมขายจะตรวจสอบให้อีกครั้งค่ะ" },
+            ? { status: "needs_review", message: "ได้รับรูปที่แนบมาแล้วค่ะ แต่ระบบตรวจสอบอัตโนมัติหาข้อมูลยืนยันการโอนในรูปนี้ไม่เจอ ถ้าเป็นรูปสลิปโอนเงินจริง ทีมงานจะเปิดดูและยืนยันให้อีกครั้งค่ะ แต่ถ้าไม่ใช่รูปสลิปโอนเงิน รบกวนแนบรูปสลิปที่ถูกต้องมาใหม่อีกครั้งนะคะ" }
+            : { status: "rejected", message: "ตรวจสอบสลิปแล้วยังไม่ผ่านค่ะ (ยอดเงินหรือข้อมูลอาจไม่ตรงกัน) ทีมขายจะติดต่อกลับเพื่อตรวจสอบให้อีกครั้งนะคะ" },
       );
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";

@@ -16,7 +16,12 @@ import {
 } from "../lib/support-profile";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 import { quoteTotalTHB } from "./leads";
-import { createRateLimiter } from "../lib/rate-limit";
+import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
+import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
+import { requestOrigin } from "../lib/public-origin";
+import { publicQuoteTokenForLead } from "../lib/quote-access";
+import { notifyPaymentSlip } from "../lib/sales-notifications";
+import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
 
 const LEAD_STATUS_LABEL: Record<string, string> = {
   new_lead: "ลูกค้าใหม่ ยังไม่ได้ขอใบเสนอราคา",
@@ -386,6 +391,125 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
       matchedType: "none",
     });
   } catch (error) {
+    next(error);
+  }
+});
+
+const supportPaymentSlipRateLimit = createRateLimiter({ name: "support-payment-slip", max: 5, windowMs: 10 * 60 * 1000 });
+const supportUploadConcurrency = createConcurrencyLimiter("KnightSupport upload", 4);
+
+function normalizePhoneDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+/**
+ * Lets a customer upload a payment slip through the KnightSupport chat
+ * widget instead of the dedicated upload button on the saved-quote page.
+ * The widget has no quote token in context (it's the same floating widget
+ * on every page), so ownership of the quote is proven a different way:
+ * either the customer is logged in via LINE and the quote belongs to their
+ * account, or they confirm the phone number on file for that quote --
+ * mirrors how a phone support call would verify identity. A plain typed
+ * quote number alone is not proof of ownership.
+ */
+router.post("/support/payment-slip", supportPaymentSlipRateLimit, supportUploadConcurrency, async (req, res, next) => {
+  try {
+    const { media, fields } = await readMultipartForm(req, "image", { maxFiles: 1 });
+    const quoteNumber = cleanMessage(fields.quoteNumber);
+    const phone = cleanMessage(fields.phone);
+    if (!quoteNumber) {
+      res.status(400).json({ reply: "รบกวนแจ้งเลขที่ใบเสนอราคาด้วยค่ะ เช่น Sep 26 / US / 363533" });
+      return;
+    }
+
+    const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
+    const [lead] = await db
+      .select()
+      .from(customerLeads)
+      .where(eq(customerLeads.quoteNumber, quoteNumber))
+      .limit(1);
+
+    const ownsViaAccount = Boolean(account && lead?.customerAccountId === account.id);
+    const ownsViaPhone = Boolean(lead?.phone && phone && normalizePhoneDigits(lead.phone) === normalizePhoneDigits(phone));
+    const validLead = lead && ["studio", "quick-purchase"].includes(lead.orderMode) && lead.studioData;
+
+    if (!validLead || (!ownsViaAccount && !ownsViaPhone)) {
+      if (validLead && !ownsViaAccount && !phone) {
+        res.status(400).json({ reply: "รบกวนแจ้งเบอร์โทรที่ให้ไว้ตอนขอใบเสนอราคานี้ด้วยค่ะ เพื่อยืนยันว่าเป็นเจ้าของใบเสนอราคาก่อนอัปโหลดสลิป" });
+        return;
+      }
+      // Deliberately vague either way (quote not found vs. phone mismatch) --
+      // same anti-enumeration principle as the public quote-access route.
+      res.status(404).json({ reply: "ไม่พบใบเสนอราคานี้ หรือข้อมูลที่แจ้งมาไม่ตรงกันค่ะ รบกวนตรวจสอบเลขที่ใบเสนอราคาและเบอร์โทรอีกครั้งนะคะ" });
+      return;
+    }
+
+    const item = media[0]!;
+    const upload = await saveUploadedMedia(item, "slip");
+    try {
+      const claimedAmountThb = quoteTotalTHB(lead.studioData);
+      const result = await verifySlip(item, claimedAmountThb);
+      const needsManualReview = !result.ok && result.errorCode !== null && SLIPOK_UNVERIFIABLE_CODES.has(result.errorCode);
+      const [slip] = await db
+        .insert(paymentSlips)
+        .values(
+          result.ok
+            ? {
+                leadId: lead.id,
+                kind: "deposit",
+                status: "verified",
+                slipImageUrl: upload.url,
+                claimedAmountThb,
+                verifiedAmountThb: result.amount,
+                senderName: result.senderName,
+                transRef: result.transRef || null,
+                slipokRawResponse: result.raw,
+              }
+            : {
+                leadId: lead.id,
+                kind: "deposit",
+                status: needsManualReview ? "needs_review" : "rejected",
+                slipImageUrl: upload.url,
+                claimedAmountThb,
+                slipokErrorCode: result.errorCode,
+                slipokRawResponse: result.raw,
+              },
+        )
+        .returning();
+      if (!slip) throw new Error("Payment slip was not saved");
+
+      const quoteToken = publicQuoteTokenForLead(lead);
+      await notifyPaymentSlip(
+        lead,
+        requestOrigin(req),
+        upload.url,
+        {
+          status: slip.status as "verified" | "needs_review" | "rejected",
+          claimedAmountThb: slip.claimedAmountThb,
+          verifiedAmountThb: slip.verifiedAmountThb,
+          senderName: slip.senderName,
+          errorCode: slip.slipokErrorCode,
+          message: result.ok ? "" : result.message,
+        },
+        quoteToken ? `/quote/view?token=${encodeURIComponent(quoteToken)}` : undefined,
+      );
+
+      const reply = slip.status === "verified"
+        ? `✅ ตรวจสอบแล้วค่ะ เงินโอน ${slip.verifiedAmountThb?.toLocaleString("th-TH") ?? "-"} บาท จาก ${slip.senderName ?? "-"} เข้าเรียบร้อย ขอบคุณค่ะ`
+        : slip.status === "needs_review"
+          ? "ได้รับรูปที่แนบมาแล้วค่ะ แต่ระบบตรวจสอบอัตโนมัติหาข้อมูลยืนยันการโอนในรูปนี้ไม่เจอ ถ้าเป็นรูปสลิปโอนเงินจริง ทีมงานจะเปิดดูและยืนยันให้อีกครั้งค่ะ แต่ถ้าไม่ใช่รูปสลิปโอนเงิน รบกวนแนบรูปสลิปที่ถูกต้องมาใหม่อีกครั้งนะคะ"
+          : "ตรวจสอบสลิปแล้วยังไม่ผ่านค่ะ (ยอดเงินหรือข้อมูลอาจไม่ตรงกัน) ทีมขายจะติดต่อกลับเพื่อตรวจสอบให้อีกครั้งนะคะ";
+
+      res.status(201).json({ reply, status: slip.status });
+    } catch (error) {
+      await removeUploadedMedia(upload.filename).catch(() => undefined);
+      throw error;
+    }
+  } catch (error) {
+    if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) {
+      res.status(400).json({ reply: error.message });
+      return;
+    }
     next(error);
   }
 });

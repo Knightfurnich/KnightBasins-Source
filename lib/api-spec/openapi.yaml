@@ -417,6 +417,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SupportChatResponse"
+  /support/payment-slip:
+    post:
+      operationId: submitSupportPaymentSlip
+      tags: [support]
+      summary: Upload a payment slip through the KnightSupport chat widget
+      description: >-
+        Unlike /leads/payment-slip (which has the quote's signed access token
+        from the saved-quote page URL), this endpoint has no token in
+        context -- KnightSupport is the same floating widget on every page.
+        Ownership is proven either by an authenticated LINE session that owns
+        the quote, or by the phone number on file for that quote.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, quoteNumber]
+              properties:
+                file: { type: string, description: Uploaded slip image supplied as multipart content }
+                quoteNumber: { type: string, description: "The quote number as shown to the customer, e.g. \"Sep 26 / US / 363533\"" }
+                phone: { type: string, description: Phone number on file for the quote, required unless the caller is logged in and owns the quote }
+      responses:
+        "201":
+          description: Payment slip saved and verification result recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportPaymentSlipResponse"
+        "400":
+          description: Missing quote number, missing phone confirmation, or an invalid upload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportPaymentSlipResponse"
+        "404":
+          description: Quote not found, or the quote number and phone did not match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportPaymentSlipResponse"
   /leads:
     post:
       operationId: upsertLead
@@ -869,6 +910,14 @@ components:
             $ref: "#/components/schemas/SupportCatalogItem"
         profileUpdate:
           $ref: "#/components/schemas/SupportProfileUpdate"
+    SupportPaymentSlipResponse:
+      type: object
+      required: [reply]
+      properties:
+        reply: { type: string }
+        status:
+          type: string
+          enum: [verified, needs_review, rejected]
     SupportProfileUpdate:
       type: object
       required: [status]

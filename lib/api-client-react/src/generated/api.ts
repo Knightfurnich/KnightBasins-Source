@@ -53,8 +53,10 @@ import type {
   SketchLeadResponse,
   SubmitPaymentSlipBody,
   SubmitSketchLeadBody,
+  SubmitSupportPaymentSlipBody,
   SupportChatInput,
   SupportChatResponse,
+  SupportPaymentSlipResponse,
   UploadAdminBasinVideoBody,
   UploadedMedia
 } from './api.schemas';
@@ -2249,6 +2251,84 @@ export const useSendSupportChatMessage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSendSupportChatMessageMutationOptions(options), queryClient);
+    }
+
+export const getSubmitSupportPaymentSlipUrl = () => {
+
+
+
+
+  return `/api/support/payment-slip`
+}
+
+/**
+ * Unlike /leads/payment-slip (which has the quote's signed access token from the saved-quote page URL), this endpoint has no token in context -- KnightSupport is the same floating widget on every page. Ownership is proven either by an authenticated LINE session that owns the quote, or by the phone number on file for that quote.
+ * @summary Upload a payment slip through the KnightSupport chat widget
+ */
+export const submitSupportPaymentSlip = async (submitSupportPaymentSlipBody: SubmitSupportPaymentSlipBody, options?: RequestInit): Promise<SupportPaymentSlipResponse> => {
+    const formData = new FormData();
+formData.append(`file`, submitSupportPaymentSlipBody.file);
+formData.append(`quoteNumber`, submitSupportPaymentSlipBody.quoteNumber);
+if(submitSupportPaymentSlipBody.phone !== undefined) {
+ formData.append(`phone`, submitSupportPaymentSlipBody.phone);
+ }
+
+  return customFetch<SupportPaymentSlipResponse>(getSubmitSupportPaymentSlipUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getSubmitSupportPaymentSlipMutationOptions = <TError = ErrorType<SupportPaymentSlipResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitSupportPaymentSlip>>, TError,{data: BodyType<SubmitSupportPaymentSlipBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitSupportPaymentSlip>>, TError,{data: BodyType<SubmitSupportPaymentSlipBody>}, TContext> => {
+
+const mutationKey = ['submitSupportPaymentSlip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitSupportPaymentSlip>>, {data: BodyType<SubmitSupportPaymentSlipBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitSupportPaymentSlip(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitSupportPaymentSlipMutationResult = NonNullable<Awaited<ReturnType<typeof submitSupportPaymentSlip>>>
+    export type SubmitSupportPaymentSlipMutationBody = BodyType<SubmitSupportPaymentSlipBody>
+    export type SubmitSupportPaymentSlipMutationError = ErrorType<SupportPaymentSlipResponse>
+
+    /**
+ * @summary Upload a payment slip through the KnightSupport chat widget
+ */
+export const useSubmitSupportPaymentSlip = <TError = ErrorType<SupportPaymentSlipResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitSupportPaymentSlip>>, TError,{data: BodyType<SubmitSupportPaymentSlipBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitSupportPaymentSlip>>,
+        TError,
+        {data: BodyType<SubmitSupportPaymentSlipBody>},
+        TContext
+      > => {
+      return useMutation(getSubmitSupportPaymentSlipMutationOptions(options), queryClient);
     }
 
 export const getUpsertLeadUrl = () => {
