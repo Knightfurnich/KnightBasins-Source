@@ -399,7 +399,11 @@ const supportPaymentSlipRateLimit = createRateLimiter({ name: "support-payment-s
 const supportUploadConcurrency = createConcurrencyLimiter("KnightSupport upload", 4);
 
 function normalizePhoneDigits(value: string) {
-  return value.replace(/\D/g, "");
+  // Thai mobile/landline numbers always start with 0, so a leading +66 or 66
+  // country code unambiguously means "this replaces the 0" -- e.g.
+  // "+66 61 845 9666" and "061-845-9666" are the same number.
+  const withLocalPrefix = value.trim().replace(/^\+?66/, "0");
+  return withLocalPrefix.replace(/\D/g, "");
 }
 
 /**
