@@ -1,8 +1,9 @@
-import { productBySku } from "./catalog.ts";
 import {
   counterBounds,
   counterDimensionsValid,
   counterRegions,
+  calculateBasinCoordinates,
+  placementCutSize,
   studioPieceEdges,
   studioPieceJoints,
   studioPieces,
@@ -37,6 +38,7 @@ export type StudioExportRectangle = StudioExportPoint & { widthMm: number; heigh
 export type StudioExportBasin = {
   sku: string;
   pieceId: string;
+  sheetId?: string;
   xMm: number;
   yMm: number;
   widthMm: number | null;
@@ -153,18 +155,26 @@ export function createStudioExportModel(state: Pick<StudioState, "pieces" | "sha
   const pieceMap = new Map(exportPieces.map((piece) => [piece.piece.id, piece]));
   const basins = state.basinPlacements.map((placement) => {
     const piece = pieceMap.get(placement.pieceId ?? pieces[0]?.id) ?? exportPieces[0];
-    const product = productBySku(placement.sku);
-    const unknownDimensions = placement.widthMm === null || placement.depthMm === null;
-    return {
+    const sheet = piece?.piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId);
+    const coordinates = sheet && placement.offsetXMm !== undefined && placement.offsetYMm !== undefined
+      ? calculateBasinCoordinates(sheet, placement)
+      : { xMm: placement.xMm, yMm: placement.yMm };
+    const cutSize = placementCutSize(placement);
+    const unknownDimensions = cutSize.widthMm === null || cutSize.heightMm === null;
+    const basin = {
       pieceId: piece?.piece.id ?? "",
       sku: placement.sku,
-      xMm: placement.xMm,
-      yMm: placement.yMm,
-      widthMm: placement.widthMm,
-      heightMm: placement.depthMm,
-      label: unknownDimensions ? "แคตตาล็อกไม่ระบุขนาดหลุม" : `${placement.widthMm} × ${placement.depthMm} mm`,
-      dxfLabel: unknownDimensions ? "CUTOUT SIZE NOT SPECIFIED IN CATALOG" : `${placement.widthMm} x ${placement.depthMm} mm`,
+      xMm: coordinates.xMm,
+      yMm: coordinates.yMm,
+      widthMm: cutSize.widthMm,
+      heightMm: cutSize.heightMm,
+      label: unknownDimensions ? "แคตตาล็อกไม่ระบุขนาดหลุม" : `${cutSize.widthMm} × ${cutSize.heightMm} mm`,
+      dxfLabel: unknownDimensions ? "CUTOUT SIZE NOT SPECIFIED IN CATALOG" : `${cutSize.widthMm} x ${cutSize.heightMm} mm`,
       unknownDimensions,
+    };
+    return {
+      ...basin,
+      ...(placement.sheetId ? { sheetId: placement.sheetId } : {}),
     };
   });
   return {

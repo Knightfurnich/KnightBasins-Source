@@ -17,6 +17,7 @@ export type StudioLocation = "bangkok-metro" | "province";
 export type StudioQuoteFormat = "US" | "OF";
 export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "normal";
 export type RectangleRotation = 0 | 90;
+export type BasinOrientation = "horizontal" | "vertical";
 export type BasinAnchor = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
 
 export type StudioDimensions = {
@@ -62,6 +63,8 @@ export type BasinPlacement = {
   yMm: number;
   widthMm: number | null;
   depthMm: number | null;
+  /** Optional for backwards compatibility with saved drafts created before basin orientation existed. */
+  orientation?: BasinOrientation;
 };
 
 export type StudioBasinCatalogEntry = {
@@ -167,6 +170,12 @@ export type StudioEstimate = {
 export const STUDIO_MAX_PIECES = 3;
 export const STUDIO_MAX_RECTANGLES = 6;
 export const STUDIO_SNAP_DISTANCE_MM = 12;
+/** Dimensions used only when a brand-new Studio drawing board is created. */
+export const STUDIO_INITIAL_BOARD_WIDTH_MM = 5000;
+export const STUDIO_INITIAL_BOARD_LENGTH_MM = 5000;
+/** Existing continuation-panel defaults used by “add rectangle/piece”. */
+export const STUDIO_ADDITIONAL_RECTANGLE_WIDTH_MM = 1800;
+export const STUDIO_ADDITIONAL_RECTANGLE_LENGTH_MM = 600;
 const STUDIO_EPSILON_MM = 0.01;
 
 export type CounterRegion = {
@@ -464,7 +473,7 @@ export function mirrorStudioLState(state: StudioState): StudioState {
     pieces: [mirrorStudioPiece(piece), ...state.pieces.slice(1)],
     basinPlacements: state.basinPlacements.map((placement) => {
       if ((placement.pieceId ?? piece.id) !== piece.id) return placement;
-      const widthMm = placement.widthMm ?? 0;
+       const widthMm = placementCutSize(placement).widthMm ?? 0;
       return {
         ...placement,
         xMm: Math.max(0, Math.round(bounds.widthMm - placement.xMm - widthMm)),
@@ -502,6 +511,31 @@ export function studioStateDimensionsValid(state: Pick<StudioState, "pieces" | "
 export function basinDimensionsForProduct(product?: BasinProduct) {
   const values = product?.basinDimensions?.match(/\d+/g)?.map(Number) ?? [];
   return { widthMm: values[0] ?? null, depthMm: values[1] ?? null };
+}
+
+export function basinPlacementOrientation(placement: Pick<BasinPlacement, "orientation" | "rotation">): BasinOrientation {
+  return placement.orientation ?? (placement.rotation === 90 ? "vertical" : "horizontal");
+}
+
+export function basinPlacementDimensions(
+  dimensions: Pick<BasinPlacement, "widthMm" | "depthMm">,
+  orientation: BasinOrientation = "horizontal",
+) {
+  if (orientation === "vertical") {
+    return { widthMm: dimensions.depthMm, depthMm: dimensions.widthMm };
+  }
+  return { widthMm: dimensions.widthMm, depthMm: dimensions.depthMm };
+}
+
+export function setBasinPlacementOrientation(
+  placement: BasinPlacement,
+  orientation: BasinOrientation,
+): BasinPlacement {
+  const current = basinPlacementOrientation(placement);
+  const dimensions = current === orientation
+    ? { widthMm: placement.widthMm, depthMm: placement.depthMm }
+    : basinPlacementDimensions(placement, "vertical");
+  return { ...placement, ...dimensions, orientation, rotation: orientation === "vertical" ? 90 : 0 };
 }
 
 export function studioBasinCatalogEntries(state: Pick<StudioState, "basinSkus" | "basinPlacements">, products: ReadonlyArray<BasinProduct>): StudioBasinCatalogEntry[] {
@@ -594,7 +628,12 @@ export function replaceStudioBasin(state: StudioState, previousSku: string, prod
     ...state,
     basinSkus: state.basinSkus.map((sku) => sku === previousSku ? product.sku : sku),
     basinPlacements: state.basinPlacements.map((placement) => placement.sku === previousSku
-      ? { ...placement, sku: product.sku, ...size }
+      ? {
+        ...placement,
+        sku: product.sku,
+        ...basinPlacementDimensions(size, basinPlacementOrientation(placement)),
+        orientation: basinPlacementOrientation(placement),
+      }
       : placement),
   };
 }
@@ -607,23 +646,34 @@ export function removeStudioBasin(state: StudioState, sku: string): StudioState 
   };
 }
 
-function placementFitsRectangle(placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">, rectangle: StudioRectangle) {
-  if (placement.widthMm === null || placement.depthMm === null) return true;
+function placementFitsRectangle(
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm" | "rotation" | "orientation">,
+  rectangle: StudioRectangle,
+) {
+  const cutSize = placementCutSize(placement);
+  if (cutSize.widthMm === null || cutSize.heightMm === null) return true;
   const size = studioRectangleSize(rectangle);
   return placement.xMm >= rectangle.xMm - STUDIO_EPSILON_MM &&
     placement.yMm >= rectangle.yMm - STUDIO_EPSILON_MM &&
-    placement.xMm + placement.widthMm <= rectangle.xMm + size.widthMm + STUDIO_EPSILON_MM &&
-    placement.yMm + placement.depthMm <= rectangle.yMm + size.heightMm + STUDIO_EPSILON_MM;
+    placement.xMm + cutSize.widthMm <= rectangle.xMm + size.widthMm + STUDIO_EPSILON_MM &&
+    placement.yMm + cutSize.heightMm <= rectangle.yMm + size.heightMm + STUDIO_EPSILON_MM;
 }
 
-export function placementFitsStudioPiece(piece: StudioPiece, placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">) {
+export function placementFitsStudioPiece(
+  piece: StudioPiece,
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm" | "rotation" | "orientation">,
+) {
   return piece.rectangles.some((rectangle) => placementFitsRectangle(placement, rectangle));
 }
 
-function placementHostRectangle(piece: StudioPiece, placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "xMm" | "yMm">) {
-  if (placement.widthMm === null || placement.depthMm === null) return piece.rectangles[0];
-  const placementWidth = placement.widthMm;
-  const placementDepth = placement.depthMm;
+function placementHostRectangle(
+  piece: StudioPiece,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "xMm" | "yMm" | "rotation" | "orientation">,
+) {
+  const cutSize = placementCutSize(placement);
+  if (cutSize.widthMm === null || cutSize.heightMm === null) return piece.rectangles[0];
+  const placementWidth = cutSize.widthMm;
+  const placementDepth = cutSize.heightMm;
   return piece.rectangles.find((rectangle) => placementFitsRectangle(placement, rectangle))
     ?? piece.rectangles.reduce((best, rectangle) => {
       const bestSize = studioRectangleSize(best);
@@ -641,49 +691,54 @@ function clampPlacementAxis(start: number, available: number, size: number, cent
 
 export function centerBasinPlacementPosition(
   piece: StudioPiece,
-  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "xMm" | "yMm">,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "xMm" | "yMm" | "rotation" | "orientation">,
 ) {
-  if (placement.widthMm === null || placement.depthMm === null || !piece.rectangles.length) {
+  const cutSize = placementCutSize(placement);
+  if (cutSize.widthMm === null || cutSize.heightMm === null || !piece.rectangles.length) {
     return { xMm: placement.xMm, yMm: placement.yMm };
   }
   const rectangle = placementHostRectangle(piece, placement);
   const size = studioRectangleSize(rectangle);
   return {
-    xMm: Math.round(clampPlacementAxis(rectangle.xMm, size.widthMm, placement.widthMm, rectangle.xMm + (size.widthMm - placement.widthMm) / 2)),
-    yMm: Math.round(clampPlacementAxis(rectangle.yMm, size.heightMm, placement.depthMm, rectangle.yMm + (size.heightMm - placement.depthMm) / 2)),
+    xMm: Math.round(clampPlacementAxis(rectangle.xMm, size.widthMm, cutSize.widthMm, rectangle.xMm + (size.widthMm - cutSize.widthMm) / 2)),
+    yMm: Math.round(clampPlacementAxis(rectangle.yMm, size.heightMm, cutSize.heightMm, rectangle.yMm + (size.heightMm - cutSize.heightMm) / 2)),
   };
 }
 
 export function distributeBasinPlacementPositions(
   piece: StudioPiece,
-  placements: Array<Pick<BasinPlacement, "id" | "widthMm" | "depthMm" | "xMm" | "yMm">>,
+  placements: Array<Pick<BasinPlacement, "id" | "widthMm" | "depthMm" | "xMm" | "yMm" | "rotation" | "orientation">>,
 ) {
-  if (placements.length !== 2 || !piece.rectangles.length || placements.some((placement) => placement.widthMm === null || placement.depthMm === null)) {
+  if (placements.length !== 2 || !piece.rectangles.length || placements.some((placement) => placementCutSize(placement).widthMm === null || placementCutSize(placement).heightMm === null)) {
     return placements.map((placement) => ({ id: placement.id, xMm: placement.xMm, yMm: placement.yMm }));
   }
   const first = placements[0];
   const second = placements[1];
+  const firstSize = placementCutSize(first);
+  const secondSize = placementCutSize(second);
   const host = piece.rectangles.find((rectangle) => {
     const size = studioRectangleSize(rectangle);
-    return (first.widthMm ?? 0) + (second.widthMm ?? 0) <= size.widthMm &&
-      Math.max(first.depthMm ?? 0, second.depthMm ?? 0) <= size.heightMm;
+    return (firstSize.widthMm ?? 0) + (secondSize.widthMm ?? 0) <= size.widthMm &&
+      Math.max(firstSize.heightMm ?? 0, secondSize.heightMm ?? 0) <= size.heightMm;
   }) ?? placementHostRectangle(piece, first);
   const size = studioRectangleSize(host);
-  const totalWidth = (first.widthMm ?? 0) + (second.widthMm ?? 0);
+  const totalWidth = (firstSize.widthMm ?? 0) + (secondSize.widthMm ?? 0);
   const gap = Math.max(0, Math.round((size.widthMm - totalWidth) / 3));
-  const yMm = Math.round(host.yMm + Math.max(0, (size.heightMm - Math.max(first.depthMm ?? 0, second.depthMm ?? 0)) / 2));
+  const totalHeight = Math.max(firstSize.heightMm ?? 0, secondSize.heightMm ?? 0);
+  const yMm = Math.round(host.yMm + Math.max(0, (size.heightMm - totalHeight) / 2));
   return [
     { id: first.id, xMm: Math.round(host.xMm + gap), yMm },
-    { id: second.id, xMm: Math.round(host.xMm + gap + (first.widthMm ?? 0) + gap), yMm },
+    { id: second.id, xMm: Math.round(host.xMm + gap + (firstSize.widthMm ?? 0) + gap), yMm },
   ];
 }
 
 export function placementCrossesPanelJoint(
   piece: StudioPiece,
-  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm" | "rotation" | "orientation">,
 ) {
-  if (placement.widthMm === null || placement.depthMm === null) return false;
-  const basin = { xMm: placement.xMm, yMm: placement.yMm, widthMm: placement.widthMm, heightMm: placement.depthMm };
+  const cutSize = placementCutSize(placement);
+  if (cutSize.widthMm === null || cutSize.heightMm === null) return false;
+  const basin = { xMm: placement.xMm, yMm: placement.yMm, widthMm: cutSize.widthMm, heightMm: cutSize.heightMm };
   return studioPieceJoints(piece).some((joint) => {
     const first = piece.rectangles.find((rectangle) => rectangle.id === joint.first.rectangleId);
     const second = piece.rectangles.find((rectangle) => rectangle.id === joint.second.rectangleId);
@@ -698,7 +753,7 @@ export function placementCrossesPanelJoint(
 export function placementFitsCounterShape(
   shape: CounterShape,
   dimensions: StudioDimensions,
-  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm">,
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm" | "rotation" | "orientation">,
 ) {
   return placementFitsStudioPiece(studioPieces({ shape, dimensions })[0], placement);
 }
@@ -717,9 +772,11 @@ export function unknownBasinPlacements(state: Pick<StudioState, "basinPlacements
 }
 
 function basinPlacementIntersection(first: BasinPlacement, second: BasinPlacement) {
-  if (first.widthMm === null || first.depthMm === null || second.widthMm === null || second.depthMm === null) return 0;
-  const width = Math.min(first.xMm + first.widthMm, second.xMm + second.widthMm) - Math.max(first.xMm, second.xMm);
-  const depth = Math.min(first.yMm + first.depthMm, second.yMm + second.depthMm) - Math.max(first.yMm, second.yMm);
+  const firstSize = placementCutSize(first);
+  const secondSize = placementCutSize(second);
+  if (firstSize.widthMm === null || firstSize.heightMm === null || secondSize.widthMm === null || secondSize.heightMm === null) return 0;
+  const width = Math.min(first.xMm + firstSize.widthMm, second.xMm + secondSize.widthMm) - Math.max(first.xMm, second.xMm);
+  const depth = Math.min(first.yMm + firstSize.heightMm, second.yMm + secondSize.heightMm) - Math.max(first.yMm, second.yMm);
   return width > STUDIO_EPSILON_MM && depth > STUDIO_EPSILON_MM ? width * depth : 0;
 }
 
@@ -737,15 +794,16 @@ export function basinPlacementOverlapWarnings(state: Pick<StudioState, "basinPla
 }
 
 export function clampBasinPlacementPosition(
-  placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation">,
   xMm: number,
   yMm: number,
   dimensions: StudioDimensions,
   shape: CounterShape = "I",
 ) {
   const piece = studioPieces({ shape, dimensions })[0];
-  const widthMm = placement.widthMm ?? 0;
-  const depthMm = placement.depthMm ?? 0;
+  const cutSize = placementCutSize(placement);
+  const widthMm = cutSize.widthMm ?? 0;
+  const depthMm = cutSize.heightMm ?? 0;
   const candidates = piece.rectangles.map((rectangle) => {
     const size = studioRectangleSize(rectangle);
     return {
@@ -1085,25 +1143,27 @@ export function createBasinPlacement(
     xMm: 0,
     yMm: 0,
     ...size,
+    orientation: "horizontal",
   };
 }
 
-/** Actual cut footprint after applying the basin's own rotation (0 = horizontal, 90 = vertical). */
+/** Actual cut footprint after applying the basin's own rotation. */
 export function placementCutSize(
-  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation">,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation">,
 ): { widthMm: number | null; heightMm: number | null } {
   if (placement.widthMm === null || placement.widthMm === undefined || placement.depthMm === null || placement.depthMm === undefined) {
     return { widthMm: null, heightMm: null };
   }
-  return placement.rotation === 90
+  const rotation = placement.rotation ?? (placement.orientation === "vertical" ? 90 : 0);
+  return rotation === 90
     ? { widthMm: placement.depthMm, heightMm: placement.widthMm }
     : { widthMm: placement.widthMm, heightMm: placement.depthMm };
 }
 
-/** Resolves anchor + edge offsets (measured against sheetId, not the piece's bounding box) into absolute xMm/yMm. */
+/** Resolves anchor + edge offsets measured against the selected sheet into xMm/yMm. */
 export function calculateBasinCoordinates(
   sheet: StudioRectangle,
-  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "anchor" | "offsetXMm" | "offsetYMm">,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation" | "anchor" | "offsetXMm" | "offsetYMm">,
 ): { xMm: number; yMm: number } {
   const sheetSize = studioRectangleSize(sheet);
   const cutSize = placementCutSize(placement);
@@ -1125,10 +1185,10 @@ export function calculateBasinCoordinates(
   }
 }
 
-/** Inverse of calculateBasinCoordinates: derives the edge offsets (for the given anchor) that reproduce coords. */
+/** Inverse of calculateBasinCoordinates: derives offsets that reproduce coords. */
 export function calculateBasinOffsets(
   sheet: StudioRectangle,
-  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation">,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation">,
   coords: { xMm: number; yMm: number },
   anchor: BasinAnchor,
 ): { offsetXMm: number; offsetYMm: number } {
@@ -1156,13 +1216,20 @@ export function calculateBasinOffsets(
   }
 }
 
-/** Toggles 0 <-> 90, keeping anchor + edge offsets fixed and re-deriving xMm/yMm from the host sheet. */
+/** Toggles 0 <-> 90, keeping the selected anchor and edge offsets fixed. */
 export function rotatePlacement(placement: BasinPlacement, piece: StudioPiece): BasinPlacement {
-  const rotation: RectangleRotation = placement.rotation === 90 ? 0 : 90;
+  const currentRotation = placement.rotation ?? (placement.orientation === "vertical" ? 90 : 0);
+  const rotation: RectangleRotation = currentRotation === 90 ? 0 : 90;
   const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId);
-  if (!sheet) return { ...placement, rotation };
+  if (!sheet) return { ...placement, rotation, orientation: rotation === 90 ? "vertical" : "horizontal" };
   const coords = calculateBasinCoordinates(sheet, { ...placement, rotation });
-  return { ...placement, rotation, xMm: coords.xMm, yMm: coords.yMm };
+  return {
+    ...placement,
+    rotation,
+    orientation: rotation === 90 ? "vertical" : "horizontal",
+    xMm: coords.xMm,
+    yMm: coords.yMm,
+  };
 }
 
 /**
@@ -1180,25 +1247,31 @@ export function normalizePlacements(state: StudioState): BasinPlacement[] {
     const sheetId = placement.sheetId ?? (piece ? placementHostRectangle(piece, placement)?.id : undefined);
     const sheet = piece?.rectangles.find((rectangle) => rectangle.id === sheetId);
     const anchor = placement.anchor ?? "top-left";
-    const rotation = placement.rotation ?? 0;
+    const rotation = placement.rotation ?? (placement.orientation === "vertical" ? 90 : 0);
     const offsets = placement.offsetXMm !== undefined && placement.offsetYMm !== undefined
       ? { offsetXMm: placement.offsetXMm, offsetYMm: placement.offsetYMm }
       : sheet
         ? calculateBasinOffsets(sheet, { ...placement, rotation }, { xMm: placement.xMm, yMm: placement.yMm }, anchor)
         : { offsetXMm: placement.offsetXMm ?? 0, offsetYMm: placement.offsetYMm ?? 0 };
+    const coordinates = sheet && placement.offsetXMm !== undefined && placement.offsetYMm !== undefined
+      ? calculateBasinCoordinates(sheet, { ...placement, anchor, rotation, ...offsets })
+      : { xMm: placement.xMm, yMm: placement.yMm };
     return {
       ...placement,
       pieceId,
       sheetId,
       anchor,
       rotation,
+      orientation: rotation === 90 ? "vertical" : "horizontal",
       offsetXMm: offsets.offsetXMm,
       offsetYMm: offsets.offsetYMm,
+      xMm: coordinates.xMm,
+      yMm: coordinates.yMm,
     };
   });
 }
 
-/** Warns when a placement's piece/sheet can no longer be resolved, or the cut no longer fits inside sheetId. */
+/** Warns when a placement's piece/sheet cannot be resolved or the cut exceeds its sheet. */
 export function placementSheetWarnings(placement: BasinPlacement, piece?: StudioPiece): string[] {
   if (!piece) return [`ไม่พบชิ้นงานสำหรับอ่าง ${placement.id}`];
   if (!placement.sheetId) return [`ไม่ได้ระบุแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];

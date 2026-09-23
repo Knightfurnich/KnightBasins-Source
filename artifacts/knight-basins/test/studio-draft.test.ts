@@ -43,6 +43,78 @@ test("studio draft links preserve the full editable state", () => {
   assert.deepEqual(decoded, state);
 });
 
+test("studio draft links preserve basin targets and positions across multiple workpieces", () => {
+  const multiPieceState: StudioState = {
+    ...state,
+    pieces: [
+      ...state.pieces!,
+      {
+        id: "piece-2",
+        name: "ชิ้นงาน 2",
+        rectangles: [{ id: "rectangle-2", widthMm: 1600, lengthMm: 700, xMm: 0, yMm: 0, rotation: 0, label: "แผ่นหลัก" }],
+        sideStatuses: {},
+      },
+    ],
+    basinPlacements: [
+      {
+        ...state.basinPlacements[0],
+        pieceId: "piece-1",
+        sheetId: "rectangle-1",
+        anchor: "top-left",
+        offsetXMm: 700,
+        offsetYMm: 60,
+      },
+      {
+        id: "basin-2",
+        sku: "KF001",
+        pieceId: "piece-2",
+        sheetId: "rectangle-2",
+        anchor: "bottom-right",
+        offsetXMm: 80,
+        offsetYMm: 70,
+        xMm: 1020,
+        yMm: 280,
+        widthMm: 350,
+        depthMm: 500,
+        rotation: 90,
+        orientation: "vertical",
+      },
+    ],
+  };
+
+  const decoded = decodeStudioDraft(encodeStudioDraft(multiPieceState));
+  assert.deepEqual(decoded?.pieces?.map((piece) => piece.id), ["piece-1", "piece-2"]);
+  assert.deepEqual(decoded?.basinPlacements.map(({ pieceId, sheetId, xMm, yMm, offsetXMm, offsetYMm, rotation }) => ({
+    pieceId,
+    sheetId,
+    xMm,
+    yMm,
+    offsetXMm,
+    offsetYMm,
+    rotation,
+  })), [
+    { pieceId: "piece-1", sheetId: "rectangle-1", xMm: 700, yMm: 60, offsetXMm: 700, offsetYMm: 60, rotation: undefined },
+    { pieceId: "piece-2", sheetId: "rectangle-2", xMm: 1020, yMm: 280, offsetXMm: 80, offsetYMm: 70, rotation: 90 },
+  ]);
+});
+
+test("existing draft dimensions remain unchanged when the fresh-board default changes", () => {
+  const existingDraft = {
+    ...state,
+    dimensions: { depthMm: 620, runAMm: 2100, runBMm: 0, runCMm: 0 },
+    pieces: [{
+      ...state.pieces![0],
+      rectangles: [{
+        ...state.pieces![0].rectangles[0],
+        widthMm: 2100,
+        lengthMm: 620,
+      }],
+    }],
+  };
+
+  assert.deepEqual(decodeStudioDraft(encodeStudioDraft(existingDraft)), existingDraft);
+});
+
 test("short Studio draft links stay compact and restore from the local Draft Store", () => {
   const storage = memoryStorage();
   const link = createStudioDraftLink(state, "https://example.test", storage);

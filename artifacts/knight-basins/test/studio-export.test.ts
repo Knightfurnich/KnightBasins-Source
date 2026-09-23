@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createStudioDxf, createStudioExportModel, createStudioPngSvg, STUDIO_EXPORT_LAYERS, STUDIO_EXPORT_NOTE, studioPrintTitle } from "../src/data/studio-export.ts";
-import { mirrorStudioLState, type StudioState } from "../src/data/studio-model.ts";
+import { mirrorStudioLState, STUDIO_INITIAL_BOARD_LENGTH_MM, STUDIO_INITIAL_BOARD_WIDTH_MM, type StudioState } from "../src/data/studio-model.ts";
 
 const state = (overrides: Partial<StudioState> = {}): StudioState => ({
   mode: "studio",
@@ -103,6 +103,81 @@ test("export model keeps every piece, rectangle, rotation, basin, and edge statu
   assert.equal(model.basins[0].pieceId, "piece-a");
 });
 
+test("export geometry uses the swapped basin footprint for vertical orientation", () => {
+  const model = createStudioExportModel(state({
+    basinPlacements: [{
+      id: "vertical-basin",
+      sku: "KF001",
+      pieceId: "piece-a",
+      xMm: 120,
+      yMm: 80,
+      widthMm: 350,
+      depthMm: 500,
+      orientation: "vertical",
+    }],
+  }));
+  assert.deepEqual(
+    model.basins[0] && {
+      xMm: model.basins[0].xMm,
+      yMm: model.basins[0].yMm,
+      widthMm: model.basins[0].widthMm,
+      heightMm: model.basins[0].heightMm,
+      label: model.basins[0].label,
+    },
+    { xMm: 120, yMm: 80, widthMm: 500, heightMm: 350, label: "500 × 350 mm" },
+  );
+  assert.match(createStudioDxf(state({
+    basinPlacements: [{
+      id: "vertical-basin",
+      sku: "KF001",
+      pieceId: "piece-a",
+      xMm: 120,
+      yMm: 80,
+      widthMm: 350,
+      depthMm: 500,
+      orientation: "vertical",
+    }],
+  })), /500 x 350 mm/);
+});
+
+test("multi-piece exports resolve each basin against its own sheet and preserve local offsets", () => {
+  const model = createStudioExportModel(state({
+    basinPlacements: [
+      {
+        id: "piece-a-basin",
+        sku: "KF001",
+        pieceId: "piece-a",
+        sheetId: "a1",
+        anchor: "bottom-right",
+        offsetXMm: 50,
+        offsetYMm: 40,
+        xMm: 0,
+        yMm: 0,
+        widthMm: 500,
+        depthMm: 500,
+      },
+      {
+        id: "piece-b-basin",
+        sku: "KF002",
+        pieceId: "piece-b",
+        sheetId: "b1",
+        anchor: "top-right",
+        offsetXMm: 40,
+        offsetYMm: 30,
+        xMm: 0,
+        yMm: 0,
+        widthMm: 350,
+        depthMm: 500,
+      },
+    ],
+  }));
+
+  assert.deepEqual(model.basins.map(({ pieceId, sheetId, xMm, yMm }) => ({ pieceId, sheetId, xMm, yMm })), [
+    { pieceId: "piece-a", sheetId: "a1", xMm: 1250, yMm: 60 },
+    { pieceId: "piece-b", sheetId: "b1", xMm: 110, yMm: 30 },
+  ]);
+});
+
 test("DXF uses millimetre units and the exact v2 layer set without clearance geometry", () => {
   const dxf = createStudioDxf(state());
   assert.match(dxf, /\$INSUNITS\n70\n4/);
@@ -142,6 +217,46 @@ test("PNG SVG uses the shared layout model, selected stone tone, dimensions, and
   assert.match(svg, /1800 × 600 mm/);
   assert.match(svg, /KF001/);
   assert.match(svg, /ติดบัว/);
+});
+
+test("fresh-board exports use the same 5000 × 5000 geometry and 25 square metre area", () => {
+  const fresh = state({
+    dimensions: {
+      depthMm: STUDIO_INITIAL_BOARD_LENGTH_MM,
+      runAMm: STUDIO_INITIAL_BOARD_WIDTH_MM,
+      runBMm: 0,
+      runCMm: 0,
+    },
+    pieces: [{
+      id: "fresh-piece",
+      name: "ชิ้นงานใหม่",
+      rectangles: [{
+        id: "fresh-rectangle",
+        widthMm: STUDIO_INITIAL_BOARD_WIDTH_MM,
+        lengthMm: STUDIO_INITIAL_BOARD_LENGTH_MM,
+        xMm: 0,
+        yMm: 0,
+        rotation: 0,
+      }],
+      sideStatuses: {},
+    }],
+    basinPlacements: [],
+  });
+  const model = createStudioExportModel(fresh);
+  const dxf = createStudioDxf(fresh);
+  const svg = createStudioPngSvg(fresh);
+
+  assert.equal(model.totalAreaSqM, 25);
+  assert.deepEqual(model.pieces[0]?.rectangles[0], {
+    pieceId: "fresh-piece",
+    rectangleId: "fresh-rectangle",
+    xMm: 0,
+    yMm: 0,
+    widthMm: 5000,
+    heightMm: 5000,
+  });
+  assert.match(dxf, /5000 x 5000 mm/);
+  assert.match(svg, /5000 × 5000 mm/);
 });
 
 test("U layouts keep all three rectangles and the basin in the shared export model", () => {
