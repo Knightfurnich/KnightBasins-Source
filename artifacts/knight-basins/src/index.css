@@ -893,16 +893,12 @@ h1, h2, h3 { color: var(--ink); }
 .quote-format-panel strong { color: var(--brand-blue); font-size: 12px; }
 .quote-format-panel small { color: var(--ink-soft); font-size: 10px; }
 .quote-format-controls { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
-.quote-format-controls .quote-language-switch { margin-right: 0; }
 .quote-format-switch { display: flex; gap: 7px; }
 .quote-format-switch button { display: grid; gap: 2px; min-width: 100px; padding: 9px 12px; border: 1px solid #b8d4e4; border-radius: 8px; color: var(--brand-blue); background: white; text-align: left; }
 .quote-format-switch button span { font: 700 13px var(--mono); }
 .quote-format-switch button small { color: var(--ink-soft); font-size: 9px; }
 .quote-format-switch button.is-active { border-color: var(--brand-blue); color: white; background: var(--brand-blue); }
 .quote-format-switch button.is-active small { color: #d6edf8; }
-.quote-language-choice { display: grid; gap: 4px; }
-.quote-language-choice strong { color: var(--brand-blue); font-size: 12px; }
-.quote-language-switch--builder { margin-right: 0; }
 
 .formal-quote-sheet { box-sizing: border-box; width: min(100%, 1120px); min-width: 0; margin: 36px auto 0; padding: 22px 24px; overflow: hidden; color: #172e43; background-color: #fff; background-image: linear-gradient(rgba(45, 92, 137, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(45, 92, 137, .035) 1px, transparent 1px); background-size: 18px 18px; border: 1px solid #496a8a; box-shadow: 0 18px 50px rgba(21, 62, 94, .1); font-family: var(--app-font-sans); }
 .formal-quote-header { display: grid; grid-template-columns: 155px minmax(0, 1fr) 220px; gap: 16px; align-items: stretch; min-width: 0; padding-bottom: 12px; border-bottom: 2px solid #234c7d; }
@@ -2086,10 +2082,6 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .saved-quote-support strong { display: block; font-size: 12px; }
 .saved-quote-support p { margin: 4px 0 0; color: var(--ink-soft); font-size: 10.5px; line-height: 1.6; }
 .saved-quote-support-hours { display: flex; align-items: center; gap: 5px; }
-.quote-language-switch { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: #f7fbfd; }
-.quote-language-switch span { padding: 0 5px; color: var(--ink-soft); font: 9px var(--mono); }
-.quote-language-switch button { min-width: 32px; padding: 5px 7px; border-radius: 999px; color: var(--ink-soft); background: transparent; font: 700 10px var(--mono); }
-.quote-language-switch button.is-active { color: white; background: var(--brand-blue); }
 .studio-saved-layout { margin: 0 auto 28px; padding: 25px; background: #fff; border: 1px solid #cad9e3; box-shadow: 0 12px 32px rgba(21, 62, 94, .08); }
 .studio-saved-layout-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .studio-saved-layout-heading h2 { margin: 3px 0 0; color: var(--ink); font-size: 23px; }

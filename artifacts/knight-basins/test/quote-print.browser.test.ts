@@ -235,22 +235,11 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "quote editor",
     );
-    const initialLanguage = await browser.page.evaluate(`(() => ({
-      thaiActive: document.querySelector('[data-testid="button-quote-language-th"]')?.classList.contains("is-active") ?? false,
-      englishActive: document.querySelector('[data-testid="button-quote-language-en"]')?.classList.contains("is-active") ?? false,
+    const initialQuoteLanguage = await browser.page.evaluate(`(() => ({
+      englishButtons: document.querySelectorAll('[data-testid$="language-en"]').length,
       total: document.querySelector('[data-testid="text-grand-total"]')?.textContent ?? "",
     }))()`);
-    assert.equal(initialLanguage.thaiActive, true);
-    assert.equal(initialLanguage.englishActive, false);
-    await clickTestId(browser.page, "button-quote-language-en");
-    const selectedLanguage = await browser.page.evaluate(`(() => ({
-      thaiActive: document.querySelector('[data-testid="button-quote-language-th"]')?.classList.contains("is-active") ?? false,
-      englishActive: document.querySelector('[data-testid="button-quote-language-en"]')?.classList.contains("is-active") ?? false,
-      total: document.querySelector('[data-testid="text-grand-total"]')?.textContent ?? "",
-    }))()`);
-    assert.equal(selectedLanguage.thaiActive, false);
-    assert.equal(selectedLanguage.englishActive, true);
-    assert.equal(selectedLanguage.total, initialLanguage.total);
+    assert.equal(initialQuoteLanguage.englishButtons, 0);
     await setTextInput(browser.page, "input-customer-name", "คุณนรินทร์");
     await setTextInput(browser.page, "input-customer-company", "บริษัททดสอบ จำกัด");
     await setTextInput(browser.page, "input-customer-phone", "0812345678");
@@ -265,9 +254,9 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "formal quote",
     );
     await waitFor(
-      () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"] h1\')?.textContent === "OFFICIAL QUOTATION"'),
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"] h1\')?.textContent === "ใบเสนอราคา / สรุปตามพื้นที่"'),
       Boolean,
-      "saved quote language",
+      "saved Thai quote",
     );
 
     const quote = await browser.page.evaluate(`(() => {
@@ -278,6 +267,8 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       return {
         rows,
         hasQrHeader: table?.querySelector('th.formal-qr-column')?.textContent?.includes("3D") ?? false,
+        notes: document.querySelector('.formal-notes')?.textContent ?? "",
+        languageButtons: document.querySelectorAll('[data-testid$="language-en"], [data-testid$="language-th"]').length,
         bodyWidth: document.body.scrollWidth,
         viewportWidth: window.innerWidth,
         sheetWidth: sheet?.clientWidth ?? 0,
@@ -290,47 +281,25 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       assert.ok(quote.rows.some((row) => row.includes(code)), `Formal quote is missing ${code}`);
     }
     assert.equal(quote.hasQrHeader, true);
-    const savedLanguage = await browser.page.evaluate(`(() => ({
-      thaiActive: document.querySelector('[data-testid="button-saved-quote-language-th"]')?.classList.contains("is-active") ?? false,
-      englishActive: document.querySelector('[data-testid="button-saved-quote-language-en"]')?.classList.contains("is-active") ?? false,
-      total: document.querySelector('.formal-grand-total strong')?.textContent ?? "",
-    }))()`);
-    assert.equal(savedLanguage.thaiActive, false);
-    assert.equal(savedLanguage.englishActive, true);
-    assert.equal(savedLanguage.total, initialLanguage.total);
-
-    await clickTestId(browser.page, "button-saved-quote-language-th");
-    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="formal-quote-sheet"] h1\')?.textContent'), "ใบเสนอราคา / สรุปตามพื้นที่");
-    await clickTestId(browser.page, "button-saved-quote-language-en");
-    const englishQuote = await browser.page.evaluate(`(() => ({
-      title: document.querySelector('[data-testid="formal-quote-sheet"] h1')?.textContent ?? "",
-      headers: [...document.querySelectorAll('[data-testid="formal-quote-table"] thead th')].map((cell) => cell.textContent ?? "").join(" | "),
-      body: document.querySelector('[data-testid="formal-quote-table"] tbody')?.textContent ?? "",
-      notes: document.querySelector('.formal-notes')?.textContent ?? "",
+    assert.equal(quote.languageButtons, 0);
+    assert.match(quote.notes, /หินสังเคราะห์คุณภาพสูง Acrylic Solid Surface 100% รับประกันสีไม่เปลี่ยน/);
+    assert.match(quote.notes, /กำหนดรับสินค้า \( จันทร์-ศุกร์ เวลา 08\.30-16\.30\) , \( เสาร์ 08\.30-11\.30\)/);
+    assert.match(quote.notes, /50% เมื่อเซ็นต์อนุมัติสั่งซื้อ \/ ก่อนวัดพื้นที่ \/ ก่อนผลิตงาน/);
+    assert.match(quote.notes, /ยอดสั่งซื้อสินค้าไม่เกิน 40,000 บาท ชำระ 100%/);
+    const quoteDetails = await browser.page.evaluate(`(() => ({
       customer: document.querySelector('.formal-customer-grid')?.textContent ?? "",
       bank: document.querySelector('.formal-bank-details')?.textContent ?? "",
       signature: document.querySelector('.formal-quote-signature')?.textContent ?? "",
-      languageButton: document.querySelector('[data-testid="button-saved-quote-language-en"]')?.classList.contains("is-active") ?? false,
     }))()`);
-    assert.equal(englishQuote.title, "OFFICIAL QUOTATION");
-    assert.match(englishQuote.headers, /Item Description/);
-    assert.match(englishQuote.headers, /Work Area/);
-    assert.match(englishQuote.headers, /Material \/ m²/);
-    assert.match(englishQuote.headers, /Labor \/ m²/);
-    assert.match(englishQuote.headers, /Work Qty/);
-    assert.match(englishQuote.headers, /Total \(THB\)/);
-    assert.match(englishQuote.body, /Basin Set/);
-    assert.match(englishQuote.body, /Solid Surface Stone/);
-    assert.match(englishQuote.customer, /0135553014114/);
-    assert.match(englishQuote.customer, /224\/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000/);
-    assert.match(englishQuote.bank, /สาขาปตท\. ติวานนท์/);
-    assert.match(englishQuote.bank, /574-1-18925-4/);
-    assert.match(englishQuote.signature, /อุไรวรรณ/);
-    assert.equal(englishQuote.languageButton, true);
-    assert.match(englishQuote.notes, /50% deposit upon approval/);
+    assert.match(quoteDetails.customer, /0135553014114/);
+    assert.match(quoteDetails.customer, /224\/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000/);
+    assert.match(quoteDetails.bank, /สาขาปตท\. ติวานนท์/);
+    assert.match(quoteDetails.bank, /574-1-18925-4/);
+    assert.match(quoteDetails.signature, /อุไรวรรณ/);
     await browser.page.evaluate("window.__savedQuotePrintTitle = ''; window.print = () => { window.__savedQuotePrintTitle = document.title; }");
     await clickTestId(browser.page, "button-print-saved-quote");
-    assert.match(await browser.page.evaluate("window.__savedQuotePrintTitle"), /^KF-Basins-Quote-.+-EN\.pdf$/);
+    assert.match(await browser.page.evaluate("window.__savedQuotePrintTitle"), /^KF-Basins-Quote-.+\.pdf$/);
+    assert.doesNotMatch(await browser.page.evaluate("window.__savedQuotePrintTitle"), /-EN\.pdf$/);
 
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 390,
@@ -1278,15 +1247,16 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "saved Studio navigation",
     );
     assert.equal(savedOutcome.saved, true, JSON.stringify(savedOutcome));
-    await clickTestId(browser.page, "button-saved-quote-language-en");
-    const savedEnglish = await browser.page.evaluate(`(() => ({
+    const savedThai = await browser.page.evaluate(`(() => ({
       heading: document.querySelector('[data-testid="saved-studio-layout"] h2')?.textContent ?? "",
       note: document.querySelector('[data-testid="saved-studio-layout"] .studio-saved-layout-note')?.textContent ?? "",
       formalTitle: document.querySelector('[data-testid="formal-quote-sheet"] h1')?.textContent ?? "",
+      englishButtons: document.querySelectorAll('[data-testid$="language-en"]').length,
     }))()`);
-    assert.equal(savedEnglish.heading, "Saved layout");
-    assert.match(savedEnglish.note, /Basin positions are read-only/);
-    assert.equal(savedEnglish.formalTitle, "OFFICIAL QUOTATION");
+    assert.equal(savedThai.heading, "แบบที่บันทึกไว้");
+    assert.match(savedThai.note, /ตำแหน่งอ่างเป็นแบบอ่านอย่างเดียว/);
+    assert.equal(savedThai.formalTitle, "ใบเสนอราคา / สรุปตามพื้นที่");
+    assert.equal(savedThai.englishButtons, 0);
     const savedActions = await browser.page.evaluate(`(() => ({
       dxf: document.querySelector('[data-testid="button-download-saved-studio-dxf"]')?.disabled ?? true,
       pdf: document.querySelector('[data-testid="button-download-saved-studio-pdf"]')?.disabled ?? true,
