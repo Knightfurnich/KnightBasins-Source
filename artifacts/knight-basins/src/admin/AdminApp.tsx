@@ -1,3 +1,4 @@
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { useGetAdminSession, useCreateAdminSession, useDeleteAdminSession } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
@@ -6,7 +7,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { LogOut, Loader2 } from "lucide-react";
+import { LockKeyhole, LogOut, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { BasinsManager } from "./BasinsManager";
@@ -19,17 +20,60 @@ const loginSchema = z.object({
   password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
 });
 
+type AdminPermission = "basins" | "installed-stones" | "sheet-stones" | "leads";
+type AdminRole = "owner" | "staff" | "viewer";
+type AdminAccess = {
+  role: AdminRole;
+  permissions: AdminPermission[];
+  canEdit: boolean;
+  canDelete: boolean;
+  canManageTeam: boolean;
+};
+type AdminSessionPayload = {
+  authenticated: boolean;
+  access?: AdminAccess;
+};
+
+const allAdminPermissions: AdminPermission[] = ["basins", "installed-stones", "sheet-stones", "leads"];
+const defaultAdminAccess: AdminAccess = {
+  role: "owner",
+  permissions: allAdminPermissions,
+  canEdit: true,
+  canDelete: true,
+  canManageTeam: true,
+};
+const roleLabels: Record<AdminRole, string> = {
+  owner: "เจ้าของระบบ",
+  staff: "ทีมงาน",
+  viewer: "ดูข้อมูล",
+};
+
 const NAV_ITEMS = [
-  { href: "/admin", label: "หน้าแรก", exact: true },
-  { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false },
-  { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false },
-  { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false },
-  { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false },
+  { href: "/admin", label: "หน้าแรก", exact: true, permission: null },
+  { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false, permission: "basins" },
+  { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones" },
+  { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
+  { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
 ] as const;
+
+const AdminAccessContext = createContext<AdminAccess>(defaultAdminAccess);
+
+function hasPermission(access: AdminAccess, permission: AdminPermission | null) {
+  return permission === null || access.permissions.includes(permission);
+}
+
+function useAdminAccess() {
+  return useContext(AdminAccessContext);
+}
 
 export default function AdminApp() {
   const { data: session, isLoading } = useGetAdminSession();
   const queryClient = useQueryClient();
+  const adminSession = session as AdminSessionPayload | undefined;
+  const access = useMemo(
+    () => adminSession?.access ?? defaultAdminAccess,
+    [adminSession?.access],
+  );
 
   if (isLoading) {
     return (
@@ -44,49 +88,63 @@ export default function AdminApp() {
   }
 
   return (
-    <div className="admin-app min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col">
-      <header className="admin-header border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img className="admin-logo" src={knightFurnichLogo} alt="Knight Furnich" />
-          <div>
-            <strong className="block text-sm tracking-widest leading-none">KNIGHT ADMIN</strong>
-            <small className="block text-[var(--ink-soft)] font-mono text-[8px] tracking-widest mt-1">MANAGEMENT</small>
+    <AdminAccessContext.Provider value={access}>
+      <div className="admin-app min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col">
+        <header className="admin-header border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img className="admin-logo" src={knightFurnichLogo} alt="Knight Furnich" />
+            <div>
+              <strong className="block text-sm tracking-widest leading-none">KNIGHT ADMIN</strong>
+              <small className="block text-[var(--ink-soft)] font-mono text-[8px] tracking-widest mt-1">MANAGEMENT</small>
+            </div>
           </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-soft)]" data-testid="admin-role">
+              {roleLabels[access.role]}
+            </span>
+            <AdminLogout />
+          </div>
+        </header>
+        <div className="flex flex-col md:flex-row flex-1 max-w-[1440px] w-full mx-auto">
+           <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
+            <MobileNavSelect />
+            <nav className="hidden md:flex md:flex-col gap-2">
+              {NAV_ITEMS.map((item) => (
+                <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission}>{item.label}</NavButton>
+              ))}
+            </nav>
+          </aside>
+          <main className="admin-main flex-1 p-4 md:p-10 overflow-x-hidden">
+            <Switch>
+              <Route path="/admin/access-denied" component={AccessDeniedRoute} />
+              <Route path="/admin" component={DashboardHome} />
+              <Route path="/admin/basins" component={BasinsRoute} />
+              <Route path="/admin/installed-stones" component={InstalledStonesRoute} />
+              <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
+              <Route path="/admin/leads" component={LeadsRoute} />
+            </Switch>
+          </main>
         </div>
-        <AdminLogout />
-      </header>
-      <div className="flex flex-col md:flex-row flex-1 max-w-[1440px] w-full mx-auto">
-         <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
-          <MobileNavSelect />
-          <nav className="hidden md:flex md:flex-col gap-2">
-            {NAV_ITEMS.map((item) => (
-              <NavButton key={item.href} href={item.href} exact={item.exact}>{item.label}</NavButton>
-            ))}
-          </nav>
-        </aside>
-        <main className="admin-main flex-1 p-4 md:p-10 overflow-x-hidden">
-          <Switch>
-            <Route path="/admin" component={DashboardHome} />
-            <Route path="/admin/basins" component={BasinsManager} />
-            <Route path="/admin/installed-stones" component={InstalledStonesManager} />
-            <Route path="/admin/sheet-stones" component={SheetStonesManager} />
-            <Route path="/admin/leads" component={LeadsManager} />
-          </Switch>
-        </main>
       </div>
-    </div>
+    </AdminAccessContext.Provider>
   );
 }
 
-function NavButton({ href, children, exact }: { href: string, children: React.ReactNode, exact?: boolean }) {
+function NavButton({ href, children, exact, permission }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null }) {
   const [location, setLocation] = useLocation();
+  const access = useAdminAccess();
   const isActive = exact ? location === href : location.startsWith(href);
+  const allowed = hasPermission(access, permission);
   return (
-    <Button 
+    <Button
       variant={isActive ? "secondary" : "ghost"} 
-      className={`justify-start ${isActive ? "bg-[var(--line)] text-[var(--ink)]" : "text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--line)]/50"}`}
-      onClick={() => setLocation(href)}
+      className={`justify-start ${isActive ? "bg-[var(--line)] text-[var(--ink)]" : "text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--line)]/50"} ${!allowed ? "opacity-60" : ""}`}
+      onClick={() => setLocation(allowed ? href : "/admin/access-denied")}
+      aria-disabled={!allowed}
+      title={!allowed ? "คุณไม่มีสิทธิ์เข้าถึงเมนูนี้" : undefined}
+      data-testid={`nav-admin-${permission ?? "home"}`}
     >
+      {!allowed && <LockKeyhole className="mr-2 h-3.5 w-3.5" aria-hidden="true" />}
       {children}
     </Button>
   );
@@ -94,17 +152,21 @@ function NavButton({ href, children, exact }: { href: string, children: React.Re
 
 function MobileNavSelect() {
   const [location, setLocation] = useLocation();
+  const access = useAdminAccess();
   const activeHref = NAV_ITEMS.find((item) => item.exact ? location === item.href : location.startsWith(item.href))?.href ?? NAV_ITEMS[0].href;
   return (
     <select
       className="md:hidden w-full mb-4 border border-[var(--line)] bg-transparent px-3 py-2.5 text-sm rounded-none"
       value={activeHref}
-      onChange={(event) => setLocation(event.target.value)}
+      onChange={(event) => {
+        const item = NAV_ITEMS.find((candidate) => candidate.href === event.target.value);
+        setLocation(item && hasPermission(access, item.permission) ? event.target.value : "/admin/access-denied");
+      }}
       aria-label="เมนูจัดการ"
       data-testid="select-admin-mobile-nav"
     >
       {NAV_ITEMS.map((item) => (
-        <option key={item.href} value={item.href}>{item.label}</option>
+        <option key={item.href} value={item.href}>{item.permission && !hasPermission(access, item.permission) ? `🔒 ${item.label}` : item.label}</option>
       ))}
     </select>
   );
@@ -112,6 +174,10 @@ function MobileNavSelect() {
 
 function DashboardHome() {
   const [_, setLocation] = useLocation();
+  const access = useAdminAccess();
+  const openMenu = (href: string, permission: AdminPermission) => {
+    setLocation(hasPermission(access, permission) ? href : "/admin/access-denied");
+  };
   return (
     <div className="admin-dashboard space-y-6">
       <div>
@@ -119,21 +185,67 @@ function DashboardHome() {
         <h1 className="text-3xl font-semibold font-display tracking-tight">ระบบจัดการข้อมูล</h1>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => setLocation("/admin/basins")}>
+        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => openMenu("/admin/basins", "basins")}>
           <h3 className="font-semibold text-lg mb-2">อ่างล้างหน้า</h3>
           <p className="text-sm text-[var(--ink-soft)]">จัดการสินค้า ราคา และข้อมูลอ่างล้างหน้าทั้งหมด</p>
         </div>
-        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => setLocation("/admin/installed-stones")}>
+        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => openMenu("/admin/installed-stones", "installed-stones")}>
           <h3 className="font-semibold text-lg mb-2">หินสังเคราะห์ (ติดตั้ง)</h3>
           <p className="text-sm text-[var(--ink-soft)]">จัดการราคาหินสังเคราะห์แบบสั่งตัดและติดตั้ง</p>
         </div>
-        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => setLocation("/admin/sheet-stones")}>
+        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => openMenu("/admin/sheet-stones", "sheet-stones")}>
           <h3 className="font-semibold text-lg mb-2">หินสังเคราะห์ (แผ่น)</h3>
           <p className="text-sm text-[var(--ink-soft)]">จัดการราคาหินสังเคราะห์แบบขายเป็นแผ่น</p>
         </div>
       </div>
     </div>
   );
+}
+
+function AdminPermissionGate({ permission, resource, children }: { permission: AdminPermission; resource: string; children: ReactNode }) {
+  const access = useAdminAccess();
+  return hasPermission(access, permission) ? <>{children}</> : <AccessDeniedPage resource={resource} />;
+}
+
+function AccessDeniedPage({ resource = "หน้านี้" }: { resource?: string }) {
+  const [, setLocation] = useLocation();
+  return (
+    <div className="flex min-h-[360px] items-center justify-center">
+      <div className="w-full max-w-lg border border-[var(--line)] bg-[var(--card-paper)] p-8 text-center" data-testid="admin-access-denied">
+        <LockKeyhole className="mx-auto h-8 w-8 text-[var(--saffron)]" aria-hidden="true" />
+        <p className="mt-4 text-xs uppercase tracking-widest text-[var(--ink-soft)]">ACCESS RESTRICTED</p>
+        <h1 className="mt-2 text-2xl font-semibold">ไม่มีสิทธิ์เข้าถึงเมนูนี้</h1>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
+          บัญชีของคุณยังไม่ได้รับสิทธิ์สำหรับ “{resource}”
+          <br />
+          กรุณาติดต่อเจ้าของระบบเพื่อขอสิทธิ์เพิ่มเติม
+        </p>
+        <Button type="button" variant="outline" className="mt-6 rounded-none" onClick={() => setLocation("/admin")}>
+          กลับหน้าหลัก
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AccessDeniedRoute() {
+  return <AccessDeniedPage />;
+}
+
+function BasinsRoute() {
+  return <AdminPermissionGate permission="basins" resource="อ่างล้างหน้า"><BasinsManager /></AdminPermissionGate>;
+}
+
+function InstalledStonesRoute() {
+  return <AdminPermissionGate permission="installed-stones" resource="หิน (พร้อมติดตั้ง)"><InstalledStonesManager /></AdminPermissionGate>;
+}
+
+function SheetStonesRoute() {
+  return <AdminPermissionGate permission="sheet-stones" resource="หิน (ขายแผ่น)"><SheetStonesManager /></AdminPermissionGate>;
+}
+
+function LeadsRoute() {
+  return <AdminPermissionGate permission="leads" resource="ลูกค้า / Lead"><LeadsManager /></AdminPermissionGate>;
 }
 
 export function AdminLogin() {

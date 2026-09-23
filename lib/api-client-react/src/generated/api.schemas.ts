@@ -50,6 +50,32 @@ export interface HealthStatus {
 
 export interface AdminSession {
   authenticated: boolean;
+  access?: AdminAccess;
+}
+
+export type AdminAccessRole = typeof AdminAccessRole[keyof typeof AdminAccessRole];
+
+export const AdminAccessRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminAccessPermission = typeof AdminAccessPermission[keyof typeof AdminAccessPermission];
+
+export const AdminAccessPermission = {
+  basins: 'basins',
+  installedStones: 'installed-stones',
+  sheetStones: 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminAccess {
+  role: AdminAccessRole;
+  permissions: AdminAccessPermission[];
+  canEdit: boolean;
+  canDelete: boolean;
+  canManageTeam: boolean;
 }
 
 export interface BasinPriceInput {

@@ -28,7 +28,10 @@ import {
   adminPasswordMatches,
   COOKIE_NAME,
   createAdminToken,
+  adminSessionResponse,
   isAdminTokenValid,
+  requireAdminPermission,
+  requireAnyAdminPermission,
   requireAdmin,
 } from "../middlewares/admin-auth";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
@@ -53,7 +56,8 @@ export type AdminDatabase = {
   delete: (...args: any[]) => any;
 };
 
-function idFrom(value: string) {
+function idFrom(value: string | string[]) {
+  if (Array.isArray(value)) return null;
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
@@ -110,7 +114,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
 
   router.get("/admin/session", (req, res) => {
-    res.json({ authenticated: isAdminTokenValid(req.cookies?.[COOKIE_NAME]) });
+    res.json(adminSessionResponse(isAdminTokenValid(req.cookies?.[COOKIE_NAME])));
   });
 
   router.post("/admin/session", adminLoginRateLimit, (req, res) => {
@@ -123,7 +127,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       return res.status(401).json({ message: "Incorrect password" });
     }
     res.cookie(COOKIE_NAME, createAdminToken(), adminCookieOptions());
-    return res.json({ authenticated: true });
+    return res.json(adminSessionResponse(true));
   });
 
   router.delete("/admin/session", (_req, res) => {
@@ -133,7 +137,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
 
   router.use("/admin", requireAdmin);
 
-  router.get("/admin/leads", async (_req, res, next) => {
+  router.get("/admin/leads", requireAdminPermission("leads"), async (_req, res, next) => {
     try {
       const leads = await database.select().from(customerLeads).orderBy(desc(customerLeads.updatedAt), desc(customerLeads.id));
       const hydrated = await Promise.all(leads.map(async (lead: any) => {
@@ -155,7 +159,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.patch("/admin/leads/:id", async (req, res, next) => {
+  router.patch("/admin/leads/:id", requireAdminPermission("leads", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     const parsed = UpdateAdminLeadBody.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid lead data", parsed.success ? undefined : parsed.error.flatten());
@@ -185,7 +189,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.get("/admin/leads/:id/payment-slips", async (req, res, next) => {
+  router.get("/admin/leads/:id/payment-slips", requireAdminPermission("leads"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid lead id");
     try {
@@ -200,7 +204,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.post("/admin/upload", uploadRateLimit, uploadConcurrency, async (req, res, next) => {
+  router.post("/admin/upload", requireAnyAdminPermission(["basins", "installed-stones", "sheet-stones"], "edit"), uploadRateLimit, uploadConcurrency, async (req, res, next) => {
     try {
       const image = await readMultipartImage(req);
       return res.status(201).json(await saveUploadedImage(image));
@@ -215,7 +219,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.post("/admin/upload/video", uploadRateLimit, uploadConcurrency, async (req, res, next) => {
+  router.post("/admin/upload/video", requireAdminPermission("basins", "edit"), uploadRateLimit, uploadConcurrency, async (req, res, next) => {
     try {
       const video = await readMultipartVideo(req);
       return res.status(201).json(await saveUploadedVideo(video));
@@ -230,7 +234,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.post("/admin/uploads/cleanup", async (_req, res, next) => {
+  router.post("/admin/uploads/cleanup", requireAnyAdminPermission(["basins", "installed-stones", "sheet-stones"], "edit"), async (_req, res, next) => {
     try {
       const result = await cleanupUnreferencedUploadedImages(await catalogImageUrls(database));
       return res.json(result);
@@ -239,7 +243,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.get("/admin/basins", async (_req, res, next) => {
+  router.get("/admin/basins", requireAdminPermission("basins"), async (_req, res, next) => {
     try {
       const basins = await database.select().from(basinPrices).orderBy(asc(basinPrices.sortOrder), asc(basinPrices.id));
       const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
@@ -247,7 +251,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.post("/admin/basins", async (req, res, next) => {
+  router.post("/admin/basins", requireAdminPermission("basins", "edit"), async (req, res, next) => {
     const parsed = CreateAdminBasinBody.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid basin data", parsed.error.flatten());
     try {
@@ -271,7 +275,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.put("/admin/basins/:id", async (req, res, next) => {
+  router.put("/admin/basins/:id", requireAdminPermission("basins", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     const parsed = UpdateAdminBasinBody.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid basin data");
@@ -301,7 +305,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.delete("/admin/basins/:id", async (req, res, next) => {
+  router.delete("/admin/basins/:id", requireAdminPermission("basins", "delete"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid basin id");
     try {
@@ -310,13 +314,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.get("/admin/basin-categories", async (_req, res, next) => {
+  router.get("/admin/basin-categories", requireAdminPermission("basins"), async (_req, res, next) => {
     try {
       return res.json(await basinCategoryRows(database));
     } catch (error) { return next(error); }
   });
 
-  router.post("/admin/basin-categories", async (req, res, next) => {
+  router.post("/admin/basin-categories", requireAdminPermission("basins", "edit"), async (req, res, next) => {
     const parsed = CreateAdminBasinCategoryBody.safeParse(req.body);
     if (!parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid basin category data", parsed.success ? undefined : parsed.error.flatten());
     try {
@@ -328,7 +332,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.put("/admin/basin-categories/:id", async (req, res, next) => {
+  router.put("/admin/basin-categories/:id", requireAdminPermission("basins", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     const parsed = UpdateAdminBasinCategoryBody.safeParse(req.body);
     if (!id || !parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid basin category data", parsed.success ? undefined : parsed.error.flatten());
@@ -345,7 +349,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.delete("/admin/basin-categories/:id", async (req, res, next) => {
+  router.delete("/admin/basin-categories/:id", requireAdminPermission("basins", "delete"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid basin category id");
     try {
@@ -357,14 +361,14 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.get("/admin/installed-stones", async (_req, res, next) => {
+  router.get("/admin/installed-stones", requireAdminPermission("installed-stones"), async (_req, res, next) => {
     try {
       const stones = await database.select().from(installedStonePrices).orderBy(asc(installedStonePrices.sortOrder), asc(installedStonePrices.id));
       res.json(stones.map(withStoneMedia));
     } catch (error) { return next(error); }
   });
 
-  router.get("/admin/installed-stone-categories", async (_req, res, next) => {
+  router.get("/admin/installed-stone-categories", requireAdminPermission("installed-stones"), async (_req, res, next) => {
     try {
       const categories = await database
         .select()
@@ -374,7 +378,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.post("/admin/installed-stone-categories", async (req, res, next) => {
+  router.post("/admin/installed-stone-categories", requireAdminPermission("installed-stones", "edit"), async (req, res, next) => {
     const parsed = CreateAdminInstalledStoneCategoryBody.safeParse(req.body);
     if (!parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid installed stone category data", parsed.success ? undefined : parsed.error.flatten());
     try {
@@ -386,7 +390,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.put("/admin/installed-stone-categories/:id", async (req, res, next) => {
+  router.put("/admin/installed-stone-categories/:id", requireAdminPermission("installed-stones", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     const parsed = UpdateAdminInstalledStoneCategoryBody.safeParse(req.body);
     if (!id || !parsed.success || !parsed.data.name.trim()) return invalid(res, "Invalid installed stone category data", parsed.success ? undefined : parsed.error.flatten());
@@ -403,7 +407,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.delete("/admin/installed-stone-categories/:id", async (req, res, next) => {
+  router.delete("/admin/installed-stone-categories/:id", requireAdminPermission("installed-stones", "delete"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid installed stone category id");
     try {
@@ -415,7 +419,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.post("/admin/installed-stones", async (req, res, next) => {
+  router.post("/admin/installed-stones", requireAdminPermission("installed-stones", "edit"), async (req, res, next) => {
     const parsed = CreateAdminInstalledStoneBody.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid installed stone data", parsed.error.flatten());
     try {
@@ -424,7 +428,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.put("/admin/installed-stones/:id", async (req, res, next) => {
+  router.put("/admin/installed-stones/:id", requireAdminPermission("installed-stones", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     const parsed = UpdateAdminInstalledStoneBody.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid installed stone data");
@@ -434,7 +438,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.delete("/admin/installed-stones/:id", async (req, res, next) => {
+  router.delete("/admin/installed-stones/:id", requireAdminPermission("installed-stones", "delete"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid installed stone id");
     try {
@@ -443,14 +447,14 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.get("/admin/sheet-stones", async (_req, res, next) => {
+  router.get("/admin/sheet-stones", requireAdminPermission("sheet-stones"), async (_req, res, next) => {
     try {
       const stones = await database.select().from(sheetStonePrices).orderBy(asc(sheetStonePrices.sortOrder), asc(sheetStonePrices.id));
       res.json(stones.map(withStoneMedia));
     } catch (error) { return next(error); }
   });
 
-  router.post("/admin/sheet-stones", async (req, res, next) => {
+  router.post("/admin/sheet-stones", requireAdminPermission("sheet-stones", "edit"), async (req, res, next) => {
     const parsed = CreateAdminSheetStoneBody.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid sheet stone data", parsed.error.flatten());
     try {
@@ -459,7 +463,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.put("/admin/sheet-stones/:id", async (req, res, next) => {
+  router.put("/admin/sheet-stones/:id", requireAdminPermission("sheet-stones", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     const parsed = UpdateAdminSheetStoneBody.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid sheet stone data");
@@ -469,7 +473,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
-  router.delete("/admin/sheet-stones/:id", async (req, res, next) => {
+  router.delete("/admin/sheet-stones/:id", requireAdminPermission("sheet-stones", "delete"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid sheet stone id");
     try {

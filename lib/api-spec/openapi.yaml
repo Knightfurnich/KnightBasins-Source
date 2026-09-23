@@ -737,6 +737,26 @@ components:
       properties:
         authenticated:
           type: boolean
+        access:
+          $ref: "#/components/schemas/AdminAccess"
+    AdminAccess:
+      type: object
+      required: [role, permissions, canEdit, canDelete, canManageTeam]
+      properties:
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        canEdit:
+          type: boolean
+        canDelete:
+          type: boolean
+        canManageTeam:
+          type: boolean
     BasinPriceInput:
       type: object
       required: [sku, colorCode, colorName, priceTHB, category, dimensions, imageTone, active, sortOrder]
