@@ -98,39 +98,16 @@ export function maskAddress(value: unknown) {
   return compact.length > 12 ? `${compact.slice(0, 8)}…${compact.slice(-4)}` : "ซ่อนข้อมูลที่อยู่";
 }
 
-function sanitizeStudioData(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-  const source = value as Record<string, unknown>;
-  const customer = source.customer;
-  const sanitizedCustomer = customer && typeof customer === "object" && !Array.isArray(customer)
-    ? {
-        ...(customer as Record<string, unknown>),
-        phone: maskPhone((customer as Record<string, unknown>).phone),
-        taxId: maskTaxId((customer as Record<string, unknown>).taxId),
-        address: maskAddress((customer as Record<string, unknown>).address),
-        taxAddress: maskAddress((customer as Record<string, unknown>).taxAddress),
-      }
-    : customer;
-  return {
-    ...source,
-    ...(customer ? { customer: sanitizedCustomer } : {}),
-  };
-}
-
 export function publicQuoteResponse<T extends Record<string, unknown>>(lead: T) {
   const {
     quoteAccessSecret: _quoteAccessSecret,
     publicQuoteToken: _publicQuoteToken,
     ...safeLead
   } = lead;
-  return {
-    ...safeLead,
-    phone: maskPhone(safeLead.phone),
-    taxId: maskTaxId(safeLead.taxId),
-    address: maskAddress(safeLead.address),
-    taxAddress: maskAddress(safeLead.taxAddress),
-    studioData: sanitizeStudioData(safeLead.studioData),
-  };
+  // The signed quote token is the access control for this document. The
+  // customer-approved quote must remain printable with the same full details
+  // that staff entered, including nested quick-purchase customer data.
+  return safeLead;
 }
 
 export function quoteTokenHash(token: string) {

@@ -569,6 +569,11 @@ type FormalQuoteItem = {
   unit: string;
   unitPrice: number;
   total: number;
+  areaSqM?: number | null;
+  productUnitPrice?: number | null;
+  laborUnitPrice?: number | null;
+  workQuantity?: number | null;
+  workUnit?: string;
   imageUrl?: string;
   videoUrl?: string;
   notificationKind?: "basin" | "stone" | "service";
@@ -617,6 +622,19 @@ function englishUnit(unit: string) {
   }
 }
 
+function FormalItemDescription({ item, format, language }: { item: FormalQuoteItem; format: QuoteFormat; language: QuoteLanguage }) {
+  const description = language === "EN" ? englishItemDescription(item) : item.description;
+  const detailLines = description.split(" · ").filter(Boolean);
+  return <div className={`formal-item-description formal-item-description--${format.toLowerCase()}`}>
+    <div className="formal-item-copy">
+      <strong className="formal-code">{item.code}</strong>
+      <span>{detailLines[0] || "—"}</span>
+      {format === "OF" && detailLines.slice(1).map((line, index) => <small key={`${item.code}-${index}`}>{line}</small>)}
+    </div>
+    {item.imageUrl && <img className="formal-item-image" src={item.imageUrl} alt="" loading="lazy" />}
+  </div>;
+}
+
 function savedQuotePrintTitle(quoteNumber: string, language: QuoteLanguage) {
   const safe = quoteNumber.trim().replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "quote";
   return `KF-Basins-Quote-${safe}-${language}.pdf`;
@@ -642,8 +660,47 @@ const COMPANY_DETAILS = {
   address: "โรงงาน / สำนักงานใหญ่ ปทุมธานี",
   phones: "094-496-1949 · 089-762-2209",
   email: "info@knightfurnich.com",
-  bank: "ธนาคารกรุงศรีอยุธยา · 574-1-18925-4",
+  bankName: "ธนาคารกรุงศรีอยุธยา",
+  bankBranch: "สาขาปตท. ติวานนท์",
+  bankAccountName: "บริษัท ไนท์ เฟอร์นิช จำกัด",
+  bankAccountNumber: "574-1-18925-4",
+  salesRepresentative: "คุณอุไรวรรณ สังข์อารียกุล (นิด)",
+  salesPhone: "091-978-2292",
 };
+
+const QUOTE_PRODUCT_DETAILS = [
+  "สินค้าผลิตตามแบบและรายละเอียดที่ระบุในใบเสนอราคา",
+  "สีและรหัสหินสังเคราะห์ให้ยึดตามรายการที่เลือกในเอกสาร",
+  "ขนาดและตำแหน่งหลุมอ่างให้ตรวจสอบร่วมกับแบบก่อนเริ่มผลิต",
+  "ราคาหินคิดตามพื้นที่หรือจำนวนแผ่นตามรูปแบบใบเสนอราคา US / OF",
+  "งานขอบ บัว ขอบเปิด และงานเจาะคิดตามรายการที่แสดงในตาราง",
+  "รูปภาพและ QR 360° ใช้เป็นข้อมูลประกอบการตรวจสอบสินค้า",
+  "รายการนอกเหนือจากเอกสารนี้ให้ทีมขายประเมินราคาเพิ่มเติม",
+] as const;
+
+const QUOTE_PRODUCT_DETAILS_EN = [
+  "Products are manufactured according to the quotation and approved design.",
+  "The selected solid-surface colour and code follow the items listed in this document.",
+  "Basin dimensions and cutout positions must be checked against the drawing before production.",
+  "Stone pricing is calculated by area or sheet according to the selected US / OF format.",
+  "Edges, upstands, exposed edges, and cutouts are charged according to the table.",
+  "Product images and the 360° QR code are provided for product reference.",
+  "Any item outside this document will be quoted separately by the sales team.",
+] as const;
+
+const QUOTE_NOTE_DETAILS = [
+  "กรุณาตรวจสอบเงื่อนไขให้ชัดเจนก่อนทำการสั่งซื้อและชำระเงิน",
+  "มัดจำ 50% เมื่ออนุมัติใบเสนอราคา และชำระส่วนที่เหลือก่อนติดตั้งอย่างน้อย 2 วันทำการ",
+  "ยอดสั่งซื้อไม่เกิน 40,000 บาท ชำระเต็มจำนวนก่อนเริ่มงาน",
+  "ใบเสนอราคานี้ยืนราคา 30 วัน และอาจเปลี่ยนแปลงเมื่อมีการปรับแบบหรือหน้างาน",
+  "งานนอกขอบเขต งานพื้นที่ต่ำกว่าขั้นต่ำ และค่าใช้จ่ายพิเศษคิดเพิ่มตามการประเมินจริง",
+] as const;
+
+function formatQuoteMetric(value: number | null | undefined, language: QuoteLanguage) {
+  return value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : value.toLocaleString(language === "EN" ? "en-US" : "th-TH", { maximumFractionDigits: 2 });
+}
 
 function FormalQuote({
   format,
@@ -675,21 +732,21 @@ function FormalQuote({
   language?: QuoteLanguage;
 }) {
   const isEnglish = language === "EN";
-  return <section className="formal-quote-sheet" data-testid="formal-quote-sheet">
+  return <section className={`formal-quote-sheet formal-quote-sheet--${format.toLowerCase()}`} data-testid="formal-quote-sheet">
     <header className="formal-quote-header">
+      <div className="formal-document-label"><strong>{isEnglish ? "QUOTATION" : "ใบเสนอราคา"}</strong><span>{isEnglish ? "Official quotation" : "(Quotation)"}</span><small>{format} · {isEnglish ? (format === "US" ? "Area / Sheet" : "Room / Installation") : format === "US" ? "สรุปตามพื้นที่ / แผ่น" : "รายละเอียดตามห้อง / จุดติดตั้ง"}</small></div>
       <div className="formal-company">
-        <img src={knightFurnichLogo} alt="Knight Furnich" className="formal-company-logo" />
         <div>
           <h2>{COMPANY_DETAILS.name}</h2>
           <p>เลขประจำตัวผู้เสียภาษี {COMPANY_DETAILS.taxId}</p>
           <p>{COMPANY_DETAILS.address} · {COMPANY_DETAILS.phones}</p>
           <p>{COMPANY_DETAILS.email}</p>
         </div>
+        <img src={knightFurnichLogo} alt="Knight Furnich" className="formal-company-logo" />
       </div>
       <div className="formal-quote-meta">
-        <p className="eyebrow">{isEnglish ? (format === "US" ? "OFFICIAL QUOTATION" : "ESTIMATE") : `FORMAL QUOTATION / ${format}`}</p>
+        <p className="eyebrow">{isEnglish ? (format === "US" ? "US / AREA SUMMARY" : "OF / DETAILED WORK") : `FORMAL QUOTATION / ${format}`}</p>
         <strong>{quoteNumber}</strong>
-        <span>{isEnglish ? "Issue Date" : "วันที่ออก"} {formatQuoteDate(issueDate, language)}</span>
         <span>{isEnglish ? `Valid for 30 days · Until ${formatQuoteDate(expiryDate, language)}` : `ยืนราคา 30 วัน · ถึง ${formatQuoteDate(expiryDate, language)}`}</span>
       </div>
     </header>
@@ -699,54 +756,60 @@ function FormalQuote({
         <p className="eyebrow">{isEnglish ? "OFFICIAL QUOTATION / ESTIMATE" : "ใบเสนอราคาอย่างเป็นทางการ"}</p>
         <h1>{isEnglish ? (format === "US" ? "OFFICIAL QUOTATION" : "ESTIMATE") : format === "US" ? "ใบเสนอราคา / สรุปตามพื้นที่" : "ใบเสนอราคา / รายละเอียดหน้างาน"}</h1>
       </div>
-      <span className="formal-format-chip">{format} · {isEnglish ? (format === "US" ? "Area / Sheet" : "Room / Installation Point") : format === "US" ? "พื้นที่ / แผ่น" : "รายห้อง / จุดติดตั้ง"}</span>
+      <span className="formal-format-chip">{isEnglish ? (format === "US" ? "Area / Sheet summary" : "Room / Installation detail") : format === "US" ? "สรุปตามพื้นที่ / แผ่น" : "รายละเอียดตามห้อง / จุดติดตั้ง"}</span>
     </div>
 
     <div className="formal-customer-grid">
-      <div><span>{isEnglish ? "Contact Name" : "บริษัท / สำนักงาน"}</span><strong>{isEnglish ? customer.name || "—" : customer.company || "—"}</strong></div>
-      <div><span>{isEnglish ? "Company / Office" : "ชื่อออกใบกำกับภาษี"}</span><strong>{isEnglish ? customer.company || "—" : customer.taxName || customer.company || customer.name || "—"}</strong></div>
-      <div><span>{isEnglish ? "Phone" : "ผู้ติดต่อ"}</span><strong>{isEnglish ? customer.phone || "—" : customer.name || "—"}</strong></div>
-      <div><span>{isEnglish ? "Purchasing / Accounts" : "ฝ่ายจัดซื้อ / บัญชี"}</span><strong>{customer.purchasingDepartment || "—"}</strong></div>
-      <div><span>{isEnglish ? "Phone · LINE · Email" : "โทรศัพท์ · LINE · อีเมล"}</span><strong>{customer.phone || "—"} · {customer.lineContact || "—"} · {customer.email || "—"}</strong></div>
-      <div><span>{isEnglish ? "Project" : "โครงการ / สถานที่ติดตั้ง (SITE)"}</span><strong>{isEnglish ? customer.project || "—" : `${customer.project || "—"} · ${customer.site || customer.address || "—"}`}</strong></div>
-      <div><span>{isEnglish ? "Tax ID / Branch" : "เลขผู้เสียภาษี / สาขา"}</span><strong>{customer.taxId || "—"} · {customer.taxBranch || "—"}</strong></div>
-      <div className="formal-customer-wide"><span>{isEnglish ? "Location / Tax Address" : "ที่อยู่ติดตั้ง / ที่อยู่ออกใบกำกับภาษี"}</span><strong>{isEnglish ? `${customer.site || customer.address || "—"} · ${customer.taxAddress || "—"}` : `${customer.address || "—"} · ${customer.taxAddress || "—"}`}</strong></div>
+      <div><span>{isEnglish ? "Document No." : "เลขที่เอกสาร / Document No."}</span><strong>{quoteNumber}</strong></div>
+       <div><span>{isEnglish ? "Customer" : "ลูกค้า / Customer"}</span><strong>{customer.company || customer.taxName || customer.name || "—"}</strong></div>
+      <div><span>{isEnglish ? "Branch" : "สาขา / Branch"}</span><strong>{customer.taxBranch || "สำนักงานใหญ่"}</strong></div>
+      <div><span>{isEnglish ? "Document Date" : "วันที่เอกสาร / Document Date"}</span><strong>{formatQuoteDate(issueDate, language)}</strong></div>
+      <div className="formal-customer-wide"><span>{isEnglish ? "Address" : "ที่อยู่ / Address"}</span><strong>{customer.address || customer.taxAddress || "—"}</strong></div>
+       <div><span>{isEnglish ? "Tax ID" : "เลขประจำตัวผู้เสียภาษี / Tax ID"}</span><strong>{customer.taxId || "—"}</strong></div>
+       <div><span>{isEnglish ? "Email" : "อีเมล / Email"}</span><strong>{customer.email || "—"}</strong></div>
+       <div><span>{isEnglish ? "Accounting" : "ฝ่ายบัญชี / Accounting"}</span><strong>{customer.purchasingDepartment || "—"}</strong></div>
+      <div><span>{isEnglish ? "Contact" : "ผู้ติดต่อ / Contact"}</span><strong>{customer.name || "—"}</strong></div>
+       <div><span>{isEnglish ? "Phone" : "โทรศัพท์ / Phone"}</span><strong>{customer.phone || "—"}</strong></div>
+      <div className="formal-customer-wide"><span>{isEnglish ? "Project / Site" : "โครงการ / สถานที่ติดตั้ง (SITE)"}</span><strong>{customer.project || customer.site || "—"}</strong></div>
     </div>
 
     <div className="formal-quote-table-wrap">
-    <table className="formal-quote-table" data-testid="formal-quote-table">
-      <thead><tr><th>{isEnglish ? "Code" : "รหัส"}</th><th>{isEnglish ? "Item Description" : "รายการรายละเอียด"}</th><th>{isEnglish ? "Quantity" : "จำนวน"}</th><th>{isEnglish ? "Unit" : "หน่วย"}</th><th>{isEnglish ? "Price/Unit" : "ราคาต่อหน่วย"}</th><th>{isEnglish ? "Total (THB)" : "รวมเงิน"}</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th><th className="formal-photo-column">{isEnglish ? "Photo" : "รูปภาพ"}</th></tr></thead>
-      <tbody>{items.map((item) => <tr key={`${item.code}-${item.unit}`}>
-        <td className="formal-code">{item.code}</td>
-        <td>{isEnglish ? englishItemDescription(item) : item.description}</td>
-        <td className="formal-number">{item.quantity.toLocaleString(isEnglish ? "en-US" : "th-TH", { maximumFractionDigits: 2 })}</td>
-        <td>{isEnglish ? englishUnit(item.unit) : item.unit}</td>
-        <td className="formal-money">{formatTHB(item.unitPrice)}</td>
-        <td className="formal-money">{formatTHB(item.total)}</td>
+     <table className={`formal-quote-table formal-quote-table--${format.toLowerCase()}`} data-testid="formal-quote-table">
+       <thead>{format === "US" ? <tr><th className="formal-index-column">{isEnglish ? "No." : "ลำดับ"}</th><th className="formal-description-cell">{isEnglish ? "Item Description" : "รายละเอียดสินค้า / Product"}</th><th className="formal-us-area-column">{isEnglish ? "Work Area (m²)" : "พื้นที่งาน (ตร.ม.)"}</th><th className="formal-us-price-column">{isEnglish ? "Material / m²" : "ค่าสินค้า / ตร.ม."}</th><th className="formal-us-labor-column">{isEnglish ? "Labor / m²" : "ค่าแรง / ตร.ม."}</th><th className="formal-us-quantity-column">{isEnglish ? "Work Qty" : "จำนวนงาน"}</th><th>{isEnglish ? "Total (THB)" : "จำนวนเงิน (บาท)"}</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th></tr> : <tr><th className="formal-index-column">{isEnglish ? "No." : "ลำดับ"}</th><th>{isEnglish ? "Item Description" : "รายละเอียดงาน / Work Details"}</th><th>{isEnglish ? "Quantity" : "จำนวน"}</th><th>{isEnglish ? "Unit" : "หน่วย"}</th><th>{isEnglish ? "Price/Unit" : "ราคาต่อหน่วย"}</th><th>{isEnglish ? "Total (THB)" : "จำนวนเงิน (บาท)"}</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th></tr>}</thead>
+       <tbody>{items.map((item, index) => <tr key={`${item.code}-${item.unit}`}>
+        <td className="formal-index-column">{index + 1}</td>
+        <td className="formal-description-cell"><FormalItemDescription item={item} format={format} language={language} /></td>
+         {format === "US" ? <>
+           <td className="formal-number formal-us-area-column">{formatQuoteMetric(item.areaSqM, language)}</td>
+           <td className="formal-money formal-us-price-column">{item.productUnitPrice === null || item.productUnitPrice === undefined ? "—" : formatTHB(item.productUnitPrice)}</td>
+           <td className="formal-money formal-us-labor-column">{item.laborUnitPrice === null || item.laborUnitPrice === undefined ? "—" : formatTHB(item.laborUnitPrice)}</td>
+           <td className="formal-number formal-us-quantity-column">{formatQuoteMetric(item.workQuantity ?? item.quantity, language)} {item.workUnit ? <small>{isEnglish ? englishUnit(item.workUnit) : item.workUnit}</small> : null}</td>
+           <td className="formal-money">{formatTHB(item.total)}</td>
+         </> : <>
+           <td className="formal-number">{formatQuoteMetric(item.quantity, language)}</td>
+           <td>{isEnglish ? englishUnit(item.unit) : item.unit}</td>
+           <td className="formal-money">{formatTHB(item.unitPrice)}</td>
+           <td className="formal-money">{formatTHB(item.total)}</td>
+         </>}
         <td className="formal-qr-column">{item.videoUrl && <a href={item.videoUrl} target="_blank" rel="noreferrer"><img src={quoteQrImageUrl(item.videoUrl)} alt={`${isEnglish ? "3D video QR" : "QR วิดีโอ"} ${item.code}`} /><small>{isEnglish ? "Scan for 360°" : "สแกนดู 360°"}</small></a>}</td>
-        <td className="formal-photo-column">{item.imageUrl && <img src={item.imageUrl} alt={item.code} />}</td>
       </tr>)}</tbody>
     </table>
     </div>
 
     <div className="formal-quote-bottom">
-      <div className="formal-notes">
-        <h3>{isEnglish ? "Payment Terms & Notes" : "เงื่อนไขและหมายเหตุ"}</h3>
-        {isEnglish ? <>
-          <p>• 50% deposit upon approval, 50% prior to installation 2 business days.</p>
-          <p>• Orders up to THB 40,000 require full payment before work begins.</p>
-          <p>• This quotation is valid for 30 days and may change after design or site revisions.</p>
-          <p>• Solid surface stone pricing follows the selected US or OF format and excludes out-of-scope work.</p>
-          <p>• Payment to {COMPANY_DETAILS.bank}</p>
-          {customer.notes && <p>• Customer note: {customer.notes}</p>}
-        </> : <>
-          <p>• มัดจำ 50% เมื่อเซ็นอนุมัติใบเสนอราคา และชำระ 50% ก่อนเข้าติดตั้งอย่างน้อย 2 วันทำการ</p>
-          <p>• ยอดสั่งซื้อไม่เกิน 40,000 บาท ชำระเต็มจำนวนก่อนเริ่มงาน</p>
-          <p>• ราคานี้ยืนราคา 30 วัน และอาจเปลี่ยนแปลงเมื่อมีการปรับแบบหรือหน้างาน</p>
-          <p>• ราคาหินสังเคราะห์เป็นไปตามรูปแบบ US หรือ OF ที่เลือก และยังไม่รวมงานนอกขอบเขต</p>
-          <p>• ชำระเงินเข้าบัญชี {COMPANY_DETAILS.bank}</p>
-          {customer.notes && <p>• หมายเหตุลูกค้า: {customer.notes}</p>}
-        </>}
+       <div className="formal-notes">
+         <h3>{isEnglish ? "Product Details" : "รายละเอียดสินค้า"}</h3>
+         {(isEnglish ? QUOTE_PRODUCT_DETAILS_EN : QUOTE_PRODUCT_DETAILS).map((line, index) => <p key={`product-${index}`}>• {line}</p>)}
+         <h3 className="formal-notes-subheading">{isEnglish ? "Notes & Payment Terms" : "หมายเหตุและเงื่อนไข"}</h3>
+         {(isEnglish ? [
+           "Please review all terms before ordering and making payment.",
+           "50% deposit upon approval; the balance is due at least 2 business days before installation.",
+           "Orders up to THB 40,000 require full payment before work begins.",
+           "This quotation is valid for 30 days and may change after design or site revisions.",
+           "Out-of-scope work, minimum-area fees, and special costs are quoted separately.",
+         ] : QUOTE_NOTE_DETAILS).map((line, index) => <p key={`note-${index}`}>• {line}</p>)}
+         <div className="formal-bank-details"><strong>{isEnglish ? "Payment Account" : "บัญชีรับเงิน"}</strong><span>{COMPANY_DETAILS.bankName} · {COMPANY_DETAILS.bankBranch}</span><span>{COMPANY_DETAILS.bankAccountName}</span><span>{COMPANY_DETAILS.bankAccountNumber}</span></div>
+         {customer.notes && <p>• {isEnglish ? `Customer note: ${customer.notes}` : `หมายเหตุลูกค้า: ${customer.notes}`}</p>}
       </div>
       <div className="formal-totals">
         <div><span>{isEnglish ? "Subtotal before discount" : "รวมก่อนส่วนลด"}</span><strong>{formatTHB(grossSubtotal)}</strong></div>
@@ -756,7 +819,7 @@ function FormalQuote({
         <div className="formal-grand-total"><span>{isEnglish ? "Grand Total" : "จำนวนเงินสุทธิ"}</span><strong>{formatTHB(total)}</strong>{!isEnglish && <small>{thaiNumberText(total)}</small>}</div>
       </div>
     </div>
-    <footer className="formal-quote-signature"><span>{isEnglish ? "Prepared by" : "ผู้เสนอราคา"}<br /><b>{isEnglish ? "Knight Furnich Co., Ltd." : "บริษัท ไนท์ เฟอร์นิช จำกัด"}</b></span><span className="formal-signature-block">{isEnglish ? "Approved by / Customer" : "ผู้อนุมัติ / ลูกค้า"}<span className="formal-signature-line" /><b>{isEnglish ? "Signature" : "ลงชื่อ"}</b></span></footer>
+     <footer className="formal-quote-signature"><span>{isEnglish ? "Prepared by" : "ผู้เสนอราคา"}<br /><b>{COMPANY_DETAILS.salesRepresentative}</b><small>{COMPANY_DETAILS.salesPhone}</small></span><span className="formal-signature-block">{isEnglish ? "Approved by / Customer" : "ผู้มีอำนาจอนุมัติสั่งซื้อ / ลูกค้า"}<span className="formal-signature-line" /><b>{isEnglish ? "Signature / Company Stamp" : "ลงชื่อ / ประทับตราบริษัท (ถ้ามี)"}</b></span></footer>
   </section>;
 }
 
@@ -979,15 +1042,18 @@ function SavedQuotePage() {
         unit: "ใบ",
         unitPrice: product.priceTHB,
         total: product.priceTHB * quantity,
+          workQuantity: quantity,
+          workUnit: "ชุด",
         imageUrl: product.quoteImageUrl,
         videoUrl: product.videoUrl,
-         notificationKind: "basin",
+          notificationKind: "basin",
       });
     });
     const requestedInstallation = placements.length * INSTALLATION_PRICE;
      if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation, notificationKind: "service" });
      if (estimate.stoneUnitPriceTHB !== null) {
        const activeStone = stoneColorByName(state.activeStone);
+       const materialUnitPrice = activeStone.sheetPriceTHB;
        formalItems.push({
          code: activeStone.code,
          description: `${activeStone.name} · พื้นที่แผ่นรวมตามแบบ`,
@@ -995,6 +1061,11 @@ function SavedQuotePage() {
          unit: "ตร.ม.",
          unitPrice: estimate.stoneUnitPriceTHB,
          total: Math.max(0, (estimate.stoneTotalTHB ?? 0) - (estimate.upstandTotalTHB ?? 0)),
+          areaSqM: estimate.counterAreaSqM ?? estimate.stoneAreaSqM,
+          productUnitPrice: materialUnitPrice,
+          laborUnitPrice: materialUnitPrice === null ? null : Math.max(0, estimate.stoneUnitPriceTHB - materialUnitPrice),
+          workQuantity: estimate.counterAreaSqM ?? estimate.stoneAreaSqM,
+          workUnit: "ตร.ม.",
          notificationKind: "stone",
        });
        if ((estimate.upstandLengthM ?? 0) > 0) {
@@ -1005,6 +1076,8 @@ function SavedQuotePage() {
            unit: "ม.",
            unitPrice: estimate.upstandTotalTHB && estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0,
            total: estimate.upstandTotalTHB ?? 0,
+            workQuantity: estimate.upstandLengthM,
+            workUnit: "ม.",
            notificationKind: "service",
          });
        }
@@ -1017,6 +1090,8 @@ function SavedQuotePage() {
          unit: "ม.",
          unitPrice: estimate.openEdgeUnitPriceTHB ?? 0,
          total: estimate.openEdgeTotalTHB ?? 0,
+          workQuantity: estimate.openEdgeLengthM,
+          workUnit: "ม.",
          notificationKind: "service",
        });
      }
@@ -1027,9 +1102,11 @@ function SavedQuotePage() {
        unit: "ชิ้นงาน",
        unitPrice: 0,
        total: 0,
+          workQuantity: estimate.pieceCount ?? 1,
+          workUnit: "ชิ้นงาน",
        notificationKind: "service",
      });
-     if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB, notificationKind: "service" });
+      if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB, workQuantity: 1, workUnit: "งาน", notificationKind: "service" });
      if (saved.notification) {
        formalItems = saved.notification.items.map((item) => ({
          code: item.code,
@@ -1038,6 +1115,11 @@ function SavedQuotePage() {
          unit: item.unit,
          unitPrice: item.unitPriceTHB ?? 0,
          total: item.totalTHB ?? Math.round(item.quantity * (item.unitPriceTHB ?? 0)),
+          areaSqM: item.areaSqM,
+          productUnitPrice: item.productUnitPriceTHB,
+          laborUnitPrice: item.laborUnitPriceTHB,
+          workQuantity: item.workQuantity,
+          workUnit: item.workUnit,
          notificationKind: item.kind,
        }));
      }
@@ -1165,23 +1247,31 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
       unit: "ชุด",
       unitPrice: product.priceTHB,
       total: product.priceTHB * line.quantity,
+       workQuantity: line.quantity,
+       workUnit: "ชุด",
       imageUrl: product.quoteImageUrl,
       videoUrl: product.videoUrl,
       notificationKind: "basin",
     };
   });
-   if (requestedInstallationCharge > 0) formalItems.push({ code: "INSTALL", description: quoteFormat === "OF" ? `ค่าติดตั้ง / ค่าแรง แยกรายจุด · ${customer.site || customer.project || "ตามแบบ"}` : "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: requestedInstallationCharge / INSTALLATION_PRICE, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallationCharge, notificationKind: "service" });
+    if (requestedInstallationCharge > 0) formalItems.push({ code: "INSTALL", description: quoteFormat === "OF" ? `ค่าติดตั้ง / ค่าแรง แยกรายจุด · ${customer.site || customer.project || "ตามแบบ"}` : "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: requestedInstallationCharge / INSTALLATION_PRICE, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallationCharge, laborUnitPrice: INSTALLATION_PRICE, workQuantity: requestedInstallationCharge / INSTALLATION_PRICE, workUnit: "ชุด", notificationKind: "service" });
   stones.forEach((stone) => {
      const selectedStone = stoneColorByName(stone.color, stoneColors);
      const currentStoneUnitPrice = stoneUnitPrice(stone, stoneColors);
      if (currentStoneUnitPrice === null || isInvalidStone(stone, stoneColors)) return;
-    formalItems.push({
+     const materialUnitPrice = selectedStone.sheetPriceTHB;
+     formalItems.push({
       code: selectedStone.code,
       description: `${selectedStone.name} · ${stoneOrderModeLabel(stone.mode)} · ${stone.mode === "whole-sheet" ? "แผ่นมาตรฐาน 760 × 3680 mm" : `พื้นที่ ${stone.widthCm} × ${stone.lengthCm} cm`}`,
       quantity: stone.mode === "whole-sheet" ? stone.quantity : stoneAreaSqM(stone),
       unit: stone.mode === "whole-sheet" ? "แผ่น" : "ตร.ม.",
       unitPrice: currentStoneUnitPrice,
        total: stoneTotal(stone, stoneColors),
+       areaSqM: stone.mode === "whole-sheet" ? null : stoneAreaSqM(stone),
+       productUnitPrice: materialUnitPrice,
+       laborUnitPrice: stone.mode === "whole-sheet" || materialUnitPrice === null ? 0 : Math.max(0, currentStoneUnitPrice - materialUnitPrice),
+       workQuantity: stone.mode === "whole-sheet" ? stone.quantity : stoneAreaSqM(stone),
+       workUnit: stone.mode === "whole-sheet" ? "แผ่น" : "ตร.ม.",
        notificationKind: "stone",
     });
   });
@@ -1321,7 +1411,8 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
         <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2><p className="customer-intro">กรอกเท่าที่มีได้เลยครับ ข้อมูลลูกค้ายังไม่ครบก็ออกใบเสนอราคาได้ ระบบจะแจ้งเฉพาะค่าที่กรอกแล้วแต่รูปแบบไม่ถูกต้อง</p></div></div><div className="customer-grid"><div className="customer-group-title span-2"><strong>1 / ข้อมูลลูกค้าและที่อยู่ใบเสนอราคา</strong><small>ชื่อและที่อยู่ช่วยให้ทีมขายจัดทำเอกสารได้ตรงใจ แต่ไม่บังคับ</small></div>{customerFields.slice(0, 2).map(renderCustomerField)}<label className="span-2 customer-address-field"><span>ที่อยู่สำหรับใบเสนอราคา</span><textarea value={customer.address ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์" data-testid="input-customer-address" /></label><div className="customer-group-title span-2"><strong>2 / ช่องทางติดต่อ</strong><small>กรอกช่องทางที่สะดวกอย่างน้อยหนึ่งช่องทางได้ตามต้องการ</small></div>{customerFields.slice(2, 5).map(renderCustomerField)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">ยังไม่ระบุ</option>{CUSTOMER_CONTACT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><div className="customer-group-title span-2"><strong>3 / ข้อมูลใบกำกับภาษี (ไม่บังคับ)</strong><small>กรอกเมื่อขอใบกำกับภาษีในนามบริษัทหรือนิติบุคคล</small></div>{customerFields.slice(7, 10).map(renderCustomerField)}<label className="span-2 customer-address-field"><span>ที่อยู่สำหรับใบกำกับภาษี</span><textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} placeholder="กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา" data-testid="input-customer-tax-address" /></label><div className="customer-group-title span-2"><strong>4 / รายละเอียดหน้างาน (ไม่บังคับ)</strong><small>ช่วยให้ทีมงานประเมินงานและนัดหมายได้ตรงจุด</small></div><label>โลเคชันหน้างาน<input value={customer.site ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, site: event.target.value }))} placeholder="เช่น ห้องน้ำชั้น 2" data-testid="input-customer-site" /></label><label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">ยังไม่ระบุ</option>{PROPERTY_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">ยังไม่ระบุ</option>{CUSTOMER_ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} placeholder="ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน" data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}{hasPastInstallationDate && <p className="summary-warning" role="alert" data-testid="status-quote-installation-date-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}</div>
          </section><aside className="quote-summary"><p className="eyebrow">04 / TOTAL</p><h2>สรุปใบเสนอราคา</h2><div className="total-rows"><div><span>สินค้าอ่างล้างหน้า <small>{basinSets} ชุด</small></span><strong>{formatTHB(basinSubtotal)}</strong></div><div><span>ค่าติดตั้งอ่าง</span><strong className={installationCharge === 0 ? "free-text" : ""}>{installationCharge === 0 ? "ฟรี" : formatTHB(installationCharge)}</strong></div>{stoneActive && <div><span>หินสังเคราะห์ <small>{stones.length} สี · อ้างอิงราคาจากเอกสาร</small></span><strong>{hasInvalidStone ? "ตรวจสอบรายการ" : formatTHB(totalStone)}</strong></div>}<div className="discount-row"><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{installationDiscount ? `-${formatTHB(installationDiscount)}` : "—"}</strong></div></div><div className="vat-row"><label><input type="checkbox" checked={vat} onChange={(event) => setVat(event.target.checked)} data-testid="input-vat" /><span />คิด VAT 7%</label><strong>{formatTHB(vatAmount)}</strong></div>{missingTaxIdForVat && <p className="summary-warning" role="status" data-testid="status-quote-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}<div className="grand-total"><span>ยอดรวมทั้งสิ้น</span><strong data-testid="text-grand-total">{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div><button className="button button--accent full-width" onClick={generateQuote} data-testid="button-generate-quote">{submitted && canGenerate ? <><Check size={16} /> สร้างใบเสนอราคาแล้ว</> : <>ออกใบเสนอราคาทางการ <ArrowRight size={16} /></>}</button>{hasMissing && <p className="summary-warning" data-testid="status-quote-validation">กรอกชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ เพื่อสร้างใบเสนอราคาที่สมบูรณ์</p>}{hasPastInstallationDate && <p className="summary-warning" data-testid="status-quote-installation-date-summary-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}{hasInvalidStone && <p className="summary-warning" data-testid="status-quote-stone-validation">กลับไปหน้าหินสังเคราะห์และกรอกขนาดอย่างน้อย 10 × 10 ซม. หรือเลือกสีที่มีราคาในเอกสาร ก่อนสร้างใบเสนอราคา</p>}{!cart.length && <p className="summary-warning" data-testid="status-quote-cart-validation">เพิ่มสินค้าอย่างน้อย 1 รายการก่อนออกใบเสนอราคา</p>}{submitted && canGenerate && <div className="success-message" data-testid="status-quote-success"><Check size={16} /> {quoteNumber} พร้อมพิมพ์หรือบันทึกเป็น PDF</div>}<div className="quote-share"><strong>ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ</strong><p>กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิด LINE เพื่อส่งต่อได้ทันที</p><div className="quote-share-actions"><button type="button" className="button button--dark" onClick={copyLineSummary} data-testid="button-copy-line-summary">{copied ? <><Check size={15} /> คัดลอกแล้ว</> : "คัดลอกสรุปส่ง LINE"}</button><a className="button button--outline" href={`https://line.me/R/msg/text/?text=${encodeURIComponent(lineSummary)}`} target="_blank" rel="noreferrer" data-testid="link-send-line-summary">เปิด LINE</a></div></div><div className="quote-terms"><strong>หมายเหตุจากแคตตาล็อก</strong><p>ราคาสินค้าไม่รวม VAT · หินตัดและติดตั้งใช้อัตรารวมติดตั้งแล้ว · งานหินต่ำกว่าพื้นที่ขั้นต่ำอาจมีค่าดำเนินการเพิ่มตามพื้นที่</p></div></aside></div>
     </div>
-    {submitted && canGenerate && <FormalQuote format={quoteFormat} quoteNumber={quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={installationDiscount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} language={quoteLanguage} />}
+     <div className="customer-extra-fields quote-block" data-testid="section-quote-project-details"><div><p className="eyebrow">PROJECT DETAILS / ข้อมูลหน้างาน</p><strong>ข้อมูลสำหรับหัวใบเสนอราคา</strong></div><label>ชื่อโครงการ<input value={customer.project ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, project: event.target.value }))} placeholder="เช่น บ้านพักอาศัยสุขุมวิท" data-testid="input-customer-project" /></label><label>ฝ่ายจัดซื้อ / บัญชี<input value={customer.purchasingDepartment ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, purchasingDepartment: event.target.value }))} placeholder="ถ้ามี" data-testid="input-customer-purchasing-department" /></label></div>
+     {submitted && canGenerate && <FormalQuote format={quoteFormat} quoteNumber={quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={installationDiscount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} language={quoteLanguage} />}
     <div className="source-note">ข้อมูลสินค้าจาก Knight Basins Catalogue Part 1–2 · ราคาหินอ้างอิงจากเอกสารราคาขายแผ่นและราคารวมติดตั้งของ Knight Furnich</div>
   </div>;
 }

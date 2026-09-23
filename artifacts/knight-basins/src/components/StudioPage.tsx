@@ -120,6 +120,11 @@ export type StudioNotificationItem = {
   unit: string;
   unitPriceTHB?: number;
   totalTHB?: number;
+  areaSqM?: number | null;
+  productUnitPriceTHB?: number | null;
+  laborUnitPriceTHB?: number | null;
+  workQuantity?: number | null;
+  workUnit?: string;
 };
 
 export type StudioNotificationSnapshot = {
@@ -1883,14 +1888,31 @@ export function StudioPage({
       state.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
       const notificationItems: StudioNotificationItem[] = Array.from(basinCounts.entries()).flatMap(([sku, quantity]) => {
         const product = basinProducts.find((item) => item.sku === sku);
-        return product ? [{ kind: "basin" as const, code: product.sku, description: product.colorName, quantity, unit: "ชุด", unitPriceTHB: product.priceTHB, totalTHB: Math.round(product.priceTHB * quantity) }] : [];
+        return product ? [{ kind: "basin" as const, code: product.sku, description: product.colorName, quantity, unit: "ชุด", unitPriceTHB: product.priceTHB, totalTHB: Math.round(product.priceTHB * quantity), workQuantity: quantity, workUnit: "ชุด" }] : [];
       });
-      if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) notificationItems.push({ kind: "stone", code: activeStone.code, description: activeStone.name, quantity: estimate.counterAreaSqM, unit: "ตร.ม.", unitPriceTHB: estimate.stoneUnitPriceTHB, totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB) });
-      notificationItems.push({ kind: "service", code: "WORKPIECES", description: `${estimate.pieceCount} ชิ้นงาน · ${estimate.rectangleCount} แผ่น`, quantity: estimate.pieceCount, unit: "ชิ้นงาน", unitPriceTHB: 0, totalTHB: 0 });
-      if (estimate.upstandLengthM > 0) notificationItems.push({ kind: "service", code: "UPSTAND", description: `บัวยาว ${estimate.upstandLengthM.toFixed(2)} ม. · สูง ${state.upstandHeightMm ?? "ไม่ระบุ"} มม.`, quantity: estimate.upstandLengthM, unit: "ม.", unitPriceTHB: estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0, totalTHB: estimate.upstandTotalTHB });
-      if (estimate.openEdgeLengthM > 0) notificationItems.push({ kind: "service", code: "OPEN_EDGE", description: `ขอบเปิดยาว ${estimate.openEdgeLengthM.toFixed(2)} ม.`, quantity: estimate.openEdgeLengthM, unit: "ม.", unitPriceTHB: estimate.openEdgeUnitPriceTHB ?? 0, totalTHB: estimate.openEdgeTotalTHB });
-      if (estimate.installationChargeTHB > 0) notificationItems.push({ kind: "service", code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: state.basinPlacements.length, unit: "ชุด", unitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, totalTHB: estimate.installationChargeTHB });
-      if (estimate.smallJobFeeTHB > 0) notificationItems.push({ kind: "service", code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPriceTHB: estimate.smallJobFeeTHB, totalTHB: estimate.smallJobFeeTHB });
+      const stoneMaterialPrice = stoneColorByName(activeStone.code, stoneColors).sheetPriceTHB;
+      const stoneLaborPrice = estimate.stoneUnitPriceTHB !== null && stoneMaterialPrice !== null
+        ? Math.max(0, estimate.stoneUnitPriceTHB - stoneMaterialPrice)
+        : null;
+      if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) notificationItems.push({
+        kind: "stone",
+        code: activeStone.code,
+        description: activeStone.name,
+        quantity: estimate.counterAreaSqM,
+        unit: "ตร.ม.",
+        unitPriceTHB: estimate.stoneUnitPriceTHB,
+        totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB),
+        areaSqM: estimate.counterAreaSqM,
+        productUnitPriceTHB: stoneMaterialPrice,
+        laborUnitPriceTHB: stoneLaborPrice,
+        workQuantity: estimate.counterAreaSqM,
+        workUnit: "ตร.ม.",
+      });
+      notificationItems.push({ kind: "service", code: "WORKPIECES", description: `${estimate.pieceCount} ชิ้นงาน · ${estimate.rectangleCount} แผ่น`, quantity: estimate.pieceCount, unit: "ชิ้นงาน", unitPriceTHB: 0, totalTHB: 0, workQuantity: estimate.pieceCount, workUnit: "ชิ้นงาน" });
+      if (estimate.upstandLengthM > 0) notificationItems.push({ kind: "service", code: "UPSTAND", description: `บัวยาว ${estimate.upstandLengthM.toFixed(2)} ม. · สูง ${state.upstandHeightMm ?? "ไม่ระบุ"} มม.`, quantity: estimate.upstandLengthM, unit: "ม.", unitPriceTHB: estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0, totalTHB: estimate.upstandTotalTHB, workQuantity: estimate.upstandLengthM, workUnit: "ม." });
+      if (estimate.openEdgeLengthM > 0) notificationItems.push({ kind: "service", code: "OPEN_EDGE", description: `ขอบเปิดยาว ${estimate.openEdgeLengthM.toFixed(2)} ม.`, quantity: estimate.openEdgeLengthM, unit: "ม.", unitPriceTHB: estimate.openEdgeUnitPriceTHB ?? 0, totalTHB: estimate.openEdgeTotalTHB, workQuantity: estimate.openEdgeLengthM, workUnit: "ม." });
+      if (estimate.installationChargeTHB > 0) notificationItems.push({ kind: "service", code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: state.basinPlacements.length, unit: "ชุด", unitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, totalTHB: estimate.installationChargeTHB, laborUnitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, workQuantity: state.basinPlacements.length, workUnit: "ชุด" });
+      if (estimate.smallJobFeeTHB > 0) notificationItems.push({ kind: "service", code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPriceTHB: estimate.smallJobFeeTHB, totalTHB: estimate.smallJobFeeTHB, workQuantity: 1, workUnit: "งาน" });
       await onSubmitStudio({ state, estimate, contact, notification: { items: notificationItems, grossSubtotal: estimate.grossSubtotalTHB, discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB, subtotal: estimate.subtotalTHB, vatAmount: estimate.vatAmountTHB, total: estimate.totalTHB, vat: state.vat } });
     } catch (error) {
       // onSubmitStudio only fails via the API client, whose error.message is a

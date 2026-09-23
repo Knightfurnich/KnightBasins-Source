@@ -151,12 +151,13 @@ async function clickTestId(page: CdpPage, testId: string) {
 
 async function setTextInput(page: CdpPage, testId: string, value: string) {
   const changed = await page.evaluate(`(() => {
-    const input = document.querySelector(${JSON.stringify(`[data-testid="${testId}"]`)});
-    if (!(input instanceof HTMLInputElement)) return false;
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-    setter?.call(input, ${JSON.stringify(value)});
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new Event("change", { bubbles: true }));
+    const field = document.querySelector(${JSON.stringify(`[data-testid="${testId}"]`)});
+    if (!(field instanceof HTMLInputElement) && !(field instanceof HTMLTextAreaElement)) return false;
+    const prototype = field instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+    setter?.call(field, ${JSON.stringify(value)});
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
     return true;
   })()`);
   assert.equal(changed, true, `Could not set ${testId}`);
@@ -251,8 +252,11 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(selectedLanguage.englishActive, true);
     assert.equal(selectedLanguage.total, initialLanguage.total);
     await setTextInput(browser.page, "input-customer-name", "คุณนรินทร์");
+    await setTextInput(browser.page, "input-customer-company", "บริษัททดสอบ จำกัด");
     await setTextInput(browser.page, "input-customer-phone", "0812345678");
     await setTextInput(browser.page, "input-customer-email", "customer@example.com");
+    await setTextInput(browser.page, "input-customer-taxId", "0135553014114");
+    await setTextInput(browser.page, "input-customer-address", "224/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000");
     await setTextInput(browser.page, "input-customer-project", "โครงการหลายรายการ");
     await clickTestId(browser.page, "button-generate-quote");
     await waitFor(
@@ -303,15 +307,25 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       headers: [...document.querySelectorAll('[data-testid="formal-quote-table"] thead th')].map((cell) => cell.textContent ?? "").join(" | "),
       body: document.querySelector('[data-testid="formal-quote-table"] tbody')?.textContent ?? "",
       notes: document.querySelector('.formal-notes')?.textContent ?? "",
+      customer: document.querySelector('.formal-customer-grid')?.textContent ?? "",
+      bank: document.querySelector('.formal-bank-details')?.textContent ?? "",
+      signature: document.querySelector('.formal-quote-signature')?.textContent ?? "",
       languageButton: document.querySelector('[data-testid="button-saved-quote-language-en"]')?.classList.contains("is-active") ?? false,
     }))()`);
     assert.equal(englishQuote.title, "OFFICIAL QUOTATION");
     assert.match(englishQuote.headers, /Item Description/);
-    assert.match(englishQuote.headers, /Quantity/);
-    assert.match(englishQuote.headers, /Price\/Unit/);
+    assert.match(englishQuote.headers, /Work Area/);
+    assert.match(englishQuote.headers, /Material \/ m²/);
+    assert.match(englishQuote.headers, /Labor \/ m²/);
+    assert.match(englishQuote.headers, /Work Qty/);
     assert.match(englishQuote.headers, /Total \(THB\)/);
     assert.match(englishQuote.body, /Basin Set/);
     assert.match(englishQuote.body, /Solid Surface Stone/);
+    assert.match(englishQuote.customer, /0135553014114/);
+    assert.match(englishQuote.customer, /224\/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000/);
+    assert.match(englishQuote.bank, /สาขาปตท\. ติวานนท์/);
+    assert.match(englishQuote.bank, /574-1-18925-4/);
+    assert.match(englishQuote.signature, /อุไรวรรณ/);
     assert.equal(englishQuote.languageButton, true);
     assert.match(englishQuote.notes, /50% deposit upon approval/);
     await browser.page.evaluate("window.__savedQuotePrintTitle = ''; window.print = () => { window.__savedQuotePrintTitle = document.title; }");
@@ -332,6 +346,10 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       return {
         bodyWidth: document.body.scrollWidth,
         viewportWidth: window.innerWidth,
+        sheetWidth: document.querySelector('[data-testid="formal-quote-sheet"]')?.clientWidth ?? 0,
+        wrapperWidth: document.querySelector('.formal-quote-table-wrap')?.clientWidth ?? 0,
+        tableWidth: document.querySelector('.formal-quote-table')?.scrollWidth ?? 0,
+        wrapperOverflow: getComputedStyle(document.querySelector('.formal-quote-table-wrap')).overflowX,
         rectangleColumns: style(".studio-rectangle-inputs"),
         sideStatusColumns: style(".studio-side-status-grid"),
         pricingColumns: style(".studio-pricing-inputs"),
@@ -359,6 +377,59 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(printStyles.firstRowBreak, "avoid");
     assert.equal(printStyles.totalBreak, "avoid");
 
+  });
+
+  it("renders the OF format with installation-point details", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="card-product-KF001"]\') !== null'),
+      Boolean,
+      "catalog cards for OF quote",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="card-product-KF001"]\') !== null'),
+      Boolean,
+      "fresh catalog cards for OF quote",
+    );
+    await clickTestId(browser.page, "card-product-KF001");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-name"]\') !== null'),
+      Boolean,
+      "OF quote editor",
+    );
+    await clickTestId(browser.page, "button-quote-format-of");
+    await setTextInput(browser.page, "input-customer-name", "คุณทดสอบ OF");
+    await setTextInput(browser.page, "input-customer-phone", "0812345678");
+    await setTextInput(browser.page, "input-customer-email", "of@example.com");
+    await setTextInput(browser.page, "input-customer-project", "โครงการ OF");
+    await setTextInput(browser.page, "input-customer-site", "ห้องน้ำชั้น 2");
+    await clickTestId(browser.page, "button-generate-quote");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="saved-quote-page"] [data-testid="formal-quote-sheet"]\') !== null'),
+      Boolean,
+      "saved OF formal quote",
+    );
+
+    const ofQuote = await browser.page.evaluate(`(() => {
+      const sheet = document.querySelector('[data-testid="formal-quote-sheet"]');
+      return {
+        className: sheet?.className ?? "",
+        title: sheet?.querySelector("h1")?.textContent ?? "",
+        chip: sheet?.querySelector(".formal-format-chip")?.textContent ?? "",
+        body: sheet?.querySelector("tbody")?.textContent ?? "",
+        hasQrHeader: sheet?.querySelector("th.formal-qr-column")?.textContent?.includes("3D") ?? false,
+        imageCount: sheet?.querySelectorAll(".formal-item-image").length ?? 0,
+      };
+    })()`);
+    assert.match(ofQuote.className, /formal-quote-sheet--of/);
+    assert.equal(ofQuote.title, "ใบเสนอราคา / รายละเอียดหน้างาน");
+    assert.match(ofQuote.chip, /รายละเอียดตามห้อง/);
+    assert.match(ofQuote.body, /จุดติดตั้ง ห้องน้ำชั้น 2/);
+    assert.equal(ofQuote.hasQrHeader, true);
+    assert.ok(ofQuote.imageCount >= 1);
   });
 
   it("offers catalog name, SKU, price, and selected-first sorting", async () => {
