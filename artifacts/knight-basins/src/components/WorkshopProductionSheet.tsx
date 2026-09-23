@@ -25,6 +25,13 @@ const COMPANY_DETAILS = {
   phones: "02-583-0599, 080-606-4444",
 };
 
+function safeFormatThaiDate(date: unknown) {
+  if (!date) return "";
+  const d = date instanceof Date ? date : new Date(String(date));
+  if (Number.isNaN(d.getTime())) return "";
+  return formatThaiDate(d);
+}
+
 export function WorkshopProductionSheet({
   quoteNumber,
   issueDate,
@@ -57,10 +64,10 @@ export function WorkshopProductionSheet({
         <div className="workshop-quote-meta">
           <p className="eyebrow">เอกสารสั่งผลิต / โรงงาน</p>
           <strong>{quoteNumber}</strong>
-          <span>วันที่สั่งงาน: {formatThaiDate(issueDate)}</span>
+          <span>วันที่สั่งงาน: {safeFormatThaiDate(issueDate)}</span>
           {customer.expectedInstallationDate && (
             <span className="install-deadline">
-              กำหนดส่ง/ติดตั้ง: <b>{formatThaiDate(new Date(customer.expectedInstallationDate))}</b>
+              กำหนดส่ง/ติดตั้ง: <b>{safeFormatThaiDate(customer.expectedInstallationDate)}</b>
             </span>
           )}
         </div>
@@ -109,7 +116,7 @@ export function WorkshopProductionSheet({
           </thead>
           <tbody>
             {items.map((item, index) => {
-              const detailLines = item.description.split(" · ").filter(Boolean);
+              const detailLines = (item.description || "").split(" · ").filter(Boolean);
               return (
                 <tr key={`${item.code}-${index}`}>
                   <td className="col-idx">{index + 1}</td>

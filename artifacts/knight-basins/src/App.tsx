@@ -913,6 +913,7 @@ function SavedQuotePage() {
     { query: { enabled: Boolean(publicQuoteToken), retry: false, queryKey: ["saved-quote", publicQuoteToken] } },
   );
   const [copied, setCopied] = useState(false);
+  const [savedSheetMode, setSavedSheetMode] = useState<"formal" | "workshop">("formal");
   const notifyMutation = useNotifySavedQuote();
   const [notificationMessage, setNotificationMessage] = useState(() => new URLSearchParams(window.location.search).get("notification") ?? "");
   const shouldPrint = new URLSearchParams(window.location.search).get("print") === "1";
@@ -1095,7 +1096,6 @@ function SavedQuotePage() {
      lineSummary = `Knight Furnich ใบเสนอราคา ${lead.quoteNumber}\n${lead.project ?? ""}\nชิ้นงาน ${estimate.pieceCount ?? 1} ชิ้น · บัว ${estimate.upstandLengthM?.toFixed(2) ?? "0.00"} ม. · ขอบ ${estimate.openEdgeLengthM?.toFixed(2) ?? "0.00"} ม.\nยอดรวม ${formatTHB(estimate.totalTHB)}`;
   }
   const savedQuoteNumber = lead.quoteNumber ?? "saved-quote";
-  const [savedSheetMode, setSavedSheetMode] = useState<"formal" | "workshop">("formal");
   const printSavedQuote = () => {
     setSavedSheetMode("formal");
     const previousTitle = document.title;
