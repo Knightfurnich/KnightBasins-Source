@@ -917,39 +917,43 @@ h1, h2, h3 { color: var(--ink); }
 .formal-quote-title > * { min-width: 0; }
 .formal-quote-title h1 { margin: 3px 0 0; color: #123f67; font-size: 15px; letter-spacing: -.03em; }
 .formal-format-chip { padding: 5px 8px; border: 1px solid #7aa7c5; color: #1a659a; font: 700 9px var(--mono); white-space: nowrap; }
-.formal-customer-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 16px; border: 1px solid #7189a0; }
-.formal-customer-grid > div { min-width: 0; min-height: 42px; padding: 6px 8px; border-right: 1px solid #b5c5d2; border-bottom: 1px solid #b5c5d2; }
+.formal-customer-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 12px; border: 1px solid #7189a0; }
+.formal-customer-grid > div { min-width: 0; min-height: 32px; padding: 4px 7px; border-right: 1px solid #b5c5d2; border-bottom: 1px solid #b5c5d2; }
 .formal-customer-grid > div:nth-child(4n) { border-right: 0; }
-.formal-customer-grid > div:nth-last-child(-n+4) { border-bottom: 0; }
+.formal-customer-grid > div:nth-last-child(-n+3) { border-bottom: 0; }
 .formal-customer-grid .formal-customer-wide { grid-column: span 2; }
 .formal-customer-grid span, .formal-customer-grid strong { display: block; }
-.formal-customer-grid span { margin-bottom: 3px; color: #4d6d88; font-size: 8px; }
-.formal-customer-grid strong { color: #173f5f; font-size: 10px; font-weight: 700; overflow-wrap: anywhere; }
+.formal-customer-grid span { margin-bottom: 2px; color: #4d6d88; font-size: 7.5px; }
+.formal-customer-grid strong { color: #173f5f; font-size: 9.5px; font-weight: 700; overflow-wrap: anywhere; }
 .formal-quote-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9px; }
 .formal-quote-table-wrap { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.formal-quote-table th { padding: 7px 6px; border: 1px solid #617993; border-top: 2px solid #234c7d; color: #173f5f; background: #dbeaf4; font-size: 8px; font-weight: 700; text-align: left; }
-.formal-quote-table th:nth-child(n+3), .formal-quote-table td:nth-child(n+3) { text-align: right; }
-.formal-quote-table td { padding: 6px; border: 1px solid #8196aa; vertical-align: top; }
+.formal-quote-table th { padding: 6px 6px; border: 1px solid #617993; border-top: 2px solid #234c7d; color: #173f5f; background: #dbeaf4; font-size: 8px; font-weight: 700; text-align: left; }
+.formal-quote-table th:nth-child(n+4), .formal-quote-table td:nth-child(n+4) { text-align: right; }
+.formal-quote-table td { padding: 5px 6px; border: 1px solid #8196aa; vertical-align: middle; }
 .formal-quote-table tbody tr:last-child td { border-bottom: 2px solid #234c7d; }
-.formal-index-column { width: 6%; text-align: center !important; }
-.formal-description-cell { width: 45%; }
-.formal-quote-table--us .formal-index-column { width: 5%; }
+.formal-index-column { width: 5%; text-align: center !important; }
+.formal-description-cell { width: 42%; }
+.formal-qr-column { width: 7%; text-align: center !important; }
+.formal-of-qty-column { width: 8%; text-align: right !important; }
+.formal-of-unit-column { width: 7%; text-align: center !important; }
+.formal-of-price-column { width: 14%; text-align: right !important; }
+.formal-total-column { width: 17%; text-align: right !important; font-weight: 700; }
 .formal-quote-table--us .formal-description-cell { width: 30%; }
-.formal-us-area-column { width: 10%; }
-.formal-us-price-column, .formal-us-labor-column { width: 11%; }
-.formal-us-quantity-column { width: 10%; }
-.formal-quote-table--us .formal-qr-column { width: 8%; }
+.formal-quote-table--us .formal-qr-column { width: 7%; }
+.formal-us-area-column { width: 9%; text-align: right !important; }
+.formal-us-price-column, .formal-us-labor-column { width: 11%; text-align: right !important; }
+.formal-us-quantity-column { width: 9%; text-align: right !important; }
+.formal-quote-table--us .formal-total-column { width: 18%; text-align: right !important; }
 .formal-us-quantity-column small { display: block; color: #526f80; font-size: 7px; }
-.formal-item-description { display: flex; align-items: flex-start; justify-content: space-between; gap: 9px; min-width: 0; }
+.formal-item-description { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; min-width: 0; }
 .formal-item-copy { display: grid; gap: 2px; min-width: 0; line-height: 1.35; }
 .formal-item-copy > span { color: #203f5b; font-weight: 600; }
 .formal-item-copy small { color: #526f80; font-size: 8px; line-height: 1.35; }
 .formal-item-description--of .formal-item-copy > span { font-weight: 700; }
 .formal-code { color: #1a659a; font: 700 8px var(--mono); white-space: nowrap; }
-.formal-item-image { flex: 0 0 auto; width: 74px; height: 54px; object-fit: contain; border: 1px solid #b8c9d6; background: rgba(255,255,255,.8); }
+.formal-item-image { flex: 0 0 auto; width: 60px; height: 44px; object-fit: contain; border: 1px solid #b8c9d6; background: rgba(255,255,255,.8); }
 .formal-number, .formal-money { white-space: nowrap; }
 .formal-money { font-variant-numeric: tabular-nums; }
-.formal-qr-column { width: 8%; text-align: center !important; }
 .formal-qr-column svg { vertical-align: middle; width: 12px; height: 12px; }
 .formal-qr-column a { display: grid; justify-items: center; gap: 2px; color: #1a659a; text-decoration: none; }
 .formal-qr-column img { width: 34px; height: 34px; image-rendering: pixelated; background: white; }
@@ -2312,20 +2316,21 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-item-image { width: 40px; height: 30px; }
   .formal-item-copy > span { font-size: 8px; }
   .formal-item-copy small { font-size: 7px; line-height: 1.2; }
-  .formal-quote-table th:first-child, .formal-quote-table td:first-child { width: 6%; }
-  .formal-quote-table th:nth-child(2), .formal-quote-table td:nth-child(2) { width: 45%; }
-  .formal-quote-table th:nth-child(3), .formal-quote-table td:nth-child(3) { width: 8%; }
-  .formal-quote-table th:nth-child(4), .formal-quote-table td:nth-child(4) { width: 9%; }
-  .formal-quote-table th:nth-child(5), .formal-quote-table td:nth-child(5) { width: 12%; }
-  .formal-quote-table th:nth-child(6), .formal-quote-table td:nth-child(6) { width: 12%; }
+  .formal-quote-table th:first-child, .formal-quote-table td:first-child { width: 5%; }
+  .formal-quote-table th:nth-child(2), .formal-quote-table td:nth-child(2) { width: 42%; }
+  .formal-quote-table th:nth-child(3), .formal-quote-table td:nth-child(3) { width: 7%; }
+  .formal-quote-table th:nth-child(4), .formal-quote-table td:nth-child(4) { width: 8%; }
+  .formal-quote-table th:nth-child(5), .formal-quote-table td:nth-child(5) { width: 7%; }
+  .formal-quote-table th:nth-child(6), .formal-quote-table td:nth-child(6) { width: 14%; }
+  .formal-quote-table th:nth-child(7), .formal-quote-table td:nth-child(7) { width: 17%; }
   .formal-quote-table--us th:nth-child(1), .formal-quote-table--us td:nth-child(1) { width: 5%; }
   .formal-quote-table--us th:nth-child(2), .formal-quote-table--us td:nth-child(2) { width: 30%; }
-  .formal-quote-table--us th:nth-child(3), .formal-quote-table--us td:nth-child(3) { width: 10%; }
-  .formal-quote-table--us th:nth-child(4), .formal-quote-table--us td:nth-child(4) { width: 11%; }
+  .formal-quote-table--us th:nth-child(3), .formal-quote-table--us td:nth-child(3) { width: 7%; }
+  .formal-quote-table--us th:nth-child(4), .formal-quote-table--us td:nth-child(4) { width: 9%; }
   .formal-quote-table--us th:nth-child(5), .formal-quote-table--us td:nth-child(5) { width: 11%; }
-  .formal-quote-table--us th:nth-child(6), .formal-quote-table--us td:nth-child(6) { width: 10%; }
-  .formal-quote-table--us th:nth-child(7), .formal-quote-table--us td:nth-child(7) { width: 15%; }
-  .formal-quote-table--us th:nth-child(8), .formal-quote-table--us td:nth-child(8) { width: 8%; }
+  .formal-quote-table--us th:nth-child(6), .formal-quote-table--us td:nth-child(6) { width: 11%; }
+  .formal-quote-table--us th:nth-child(7), .formal-quote-table--us td:nth-child(7) { width: 9%; }
+  .formal-quote-table--us th:nth-child(8), .formal-quote-table--us td:nth-child(8) { width: 18%; }
   .formal-qr-column { width: auto; }
   .formal-qr-column img { width: 28px; height: 28px; }
   .formal-qr-column small { font-size: 6.5px; }

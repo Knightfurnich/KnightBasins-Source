@@ -734,38 +734,36 @@ function FormalQuote({
     </div>
 
     <div className="formal-customer-grid">
-      <div><span>เลขที่เอกสาร</span><strong>{quoteNumber}</strong></div>
-       <div><span>ลูกค้า</span><strong>{customer.company || customer.taxName || customer.name || "—"}</strong></div>
-      <div><span>สาขา</span><strong>{customer.taxBranch || "สำนักงานใหญ่"}</strong></div>
-      <div><span>วันที่เอกสาร</span><strong>{formatQuoteDate(issueDate)}</strong></div>
-      <div className="formal-customer-wide"><span>ที่อยู่</span><strong>{customer.address || customer.taxAddress || "—"}</strong></div>
-       <div><span>เลขประจำตัวผู้เสียภาษี</span><strong>{customer.taxId || "—"}</strong></div>
-       <div><span>อีเมล</span><strong>{customer.email || "—"}</strong></div>
-       <div><span>ฝ่ายบัญชี</span><strong>{customer.purchasingDepartment || "—"}</strong></div>
+      <div className="formal-customer-wide"><span>ลูกค้า</span><strong>{customer.company || customer.taxName || customer.name || "—"}</strong></div>
       <div><span>ผู้ติดต่อ</span><strong>{customer.name || "—"}</strong></div>
-       <div><span>โทรศัพท์</span><strong>{customer.phone || "—"}</strong></div>
+      <div><span>โทรศัพท์</span><strong>{customer.phone || "—"}</strong></div>
       <div className="formal-customer-wide"><span>โครงการ / สถานที่ติดตั้ง</span><strong>{customer.project || customer.site || "—"}</strong></div>
+      <div><span>เลขประจำตัวผู้เสียภาษี</span><strong>{customer.taxId || "—"}</strong></div>
+      <div><span>สาขา</span><strong>{customer.taxBranch || "สำนักงานใหญ่"}</strong></div>
+      <div className="formal-customer-wide"><span>ที่อยู่</span><strong>{customer.address || customer.taxAddress || "—"}</strong></div>
+      <div><span>อีเมล</span><strong>{customer.email || "—"}</strong></div>
+      <div><span>ฝ่ายบัญชี</span><strong>{customer.purchasingDepartment || "—"}</strong></div>
     </div>
 
     <div className="formal-quote-table-wrap">
      <table className={`formal-quote-table formal-quote-table--${format.toLowerCase()}`} data-testid="formal-quote-table">
-       <thead>{format === "US" ? <tr><th className="formal-index-column">ลำดับ</th><th className="formal-description-cell">รายละเอียดสินค้า</th><th className="formal-us-area-column">พื้นที่งาน (ตร.ม.)</th><th className="formal-us-price-column">ค่าสินค้า / ตร.ม.</th><th className="formal-us-labor-column">ค่าแรง / ตร.ม.</th><th className="formal-us-quantity-column">จำนวนงาน</th><th>จำนวนเงิน (บาท)</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th></tr> : <tr><th className="formal-index-column">ลำดับ</th><th>รายละเอียดงาน</th><th>จำนวน</th><th>หน่วย</th><th>ราคาต่อหน่วย</th><th>จำนวนเงิน (บาท)</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th></tr>}</thead>
+       <thead>{format === "US" ? <tr><th className="formal-index-column">ลำดับ</th><th className="formal-description-cell">รายละเอียดสินค้า</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th><th className="formal-us-area-column">พื้นที่งาน (ตร.ม.)</th><th className="formal-us-price-column">ค่าสินค้า / ตร.ม.</th><th className="formal-us-labor-column">ค่าแรง / ตร.ม.</th><th className="formal-us-quantity-column">จำนวนงาน</th><th className="formal-total-column">จำนวนเงิน (บาท)</th></tr> : <tr><th className="formal-index-column">ลำดับ</th><th className="formal-description-cell">รายละเอียดงาน</th><th className="formal-qr-column"><QrCode size={14} /> 3D</th><th className="formal-of-qty-column">จำนวน</th><th className="formal-of-unit-column">หน่วย</th><th className="formal-of-price-column">ราคาต่อหน่วย</th><th className="formal-total-column">จำนวนเงิน (บาท)</th></tr>}</thead>
        <tbody>{items.map((item, index) => <tr key={`${item.code}-${item.unit}`}>
         <td className="formal-index-column">{index + 1}</td>
-         <td className="formal-description-cell"><FormalItemDescription item={item} format={format} /></td>
+        <td className="formal-description-cell"><FormalItemDescription item={item} format={format} /></td>
+        <td className="formal-qr-column">{item.videoUrl && <a href={item.videoUrl} target="_blank" rel="noreferrer"><img src={quoteQrImageUrl(item.videoUrl)} alt={`QR วิดีโอ ${item.code}`} /><small>สแกนดู 3D</small></a>}</td>
          {format === "US" ? <>
             <td className="formal-number formal-us-area-column">{formatQuoteMetric(item.areaSqM)}</td>
            <td className="formal-money formal-us-price-column">{item.productUnitPrice === null || item.productUnitPrice === undefined ? "—" : formatTHB(item.productUnitPrice)}</td>
            <td className="formal-money formal-us-labor-column">{item.laborUnitPrice === null || item.laborUnitPrice === undefined ? "—" : formatTHB(item.laborUnitPrice)}</td>
             <td className="formal-number formal-us-quantity-column">{formatQuoteMetric(item.workQuantity ?? item.quantity)} {item.workUnit ? <small>{item.workUnit}</small> : null}</td>
-           <td className="formal-money">{formatTHB(item.total)}</td>
+           <td className="formal-money formal-total-column">{formatTHB(item.total)}</td>
          </> : <>
-            <td className="formal-number">{formatQuoteMetric(item.quantity)}</td>
-            <td>{item.unit}</td>
-           <td className="formal-money">{formatTHB(item.unitPrice)}</td>
-           <td className="formal-money">{formatTHB(item.total)}</td>
+            <td className="formal-number formal-of-qty-column">{formatQuoteMetric(item.quantity)}</td>
+            <td className="formal-of-unit-column">{item.unit}</td>
+           <td className="formal-money formal-of-price-column">{formatTHB(item.unitPrice)}</td>
+           <td className="formal-money formal-total-column">{formatTHB(item.total)}</td>
          </>}
-         <td className="formal-qr-column">{item.videoUrl && <a href={item.videoUrl} target="_blank" rel="noreferrer"><img src={quoteQrImageUrl(item.videoUrl)} alt={`QR วิดีโอ ${item.code}`} /><small>สแกนดู 360°</small></a>}</td>
       </tr>)}</tbody>
     </table>
     </div>
