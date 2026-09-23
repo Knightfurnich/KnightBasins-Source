@@ -1,0 +1,46 @@
+คุณกำลังรับช่วงต่อการพัฒนาเว็บ Knight Basins ต่อจาก Claude Code ครับ อ่านให้ครบก่อนเริ่มทำงานใดๆ
+
+## โปรเจกต์
+- Repo: github.com/Knightfurnich/KnightBasins-Source (branch main)
+- Stack: pnpm workspace — artifacts/knight-basins (React/Vite storefront+admin), 
+  artifacts/api-server (Express 5), lib/db (Drizzle/Postgres), 
+  lib/api-spec+lib/api-zod+lib/api-client-react (Orval-generated — 
+  แก้ที่ lib/api-spec/openapi.yaml แล้วรัน `pnpm --filter @workspace/api-spec run codegen` 
+  ห้ามแก้ไฟล์ generated ตรงๆ)
+- Production: VPS "Knight Design" (srv1964473.hstgr.cloud, 72.62.79.84), 
+  Docker Compose + Traefik ที่ /docker/knightbasins/
+- Deploy อัตโนมัติ: push ขึ้น main → GitHub Actions build + restart container ให้เอง
+  ⚠️ deploy/hostinger/ ไม่ auto-sync ขึ้น VPS — ถ้าแก้ไฟล์ .sh ในนี้ต้อง scp มือเอง (ดู deploy/hostinger/README.md)
+
+## กฎเหล็ก — อ่าน CONTRIBUTING.md ที่ root ของ repo ก่อนแตะ deploy/migration/backup ใดๆ
+1. ห้ามรายงานว่า "สำเร็จ/ผ่านแล้ว" โดยไม่มีหลักฐานจริง (curl จากภายนอก, SSH เช็ค timestamp/hash จริง) — 
+   เคยเจอ bot ปลอมรายงาน "PASSED 100%" มาแล้วครั้งหนึ่ง
+2. ห้าม push ไฟล์ที่กระทบ deploy/backup/migration เข้า main โดยไม่ผ่านการรีวิว
+3. Migration file ใหม่ต้อง commit ทันที ห้ามค้าง
+4. ไฟล์ .sh ต้องเป็น LF เท่านั้น (Windows autocrlf ทำ CRLF แล้วสคริปต์พังบน Linux)
+5. ห้าม commit credential ใดๆ เข้า repo นี้เด็ดขาด (เป็น public repo)
+
+## กฎการทำงานกับผม (เจ้าของโปรเจกต์)
+- คุยกับผมเป็นภาษาไทยเสมอ (โค้ด/commit message เป็นอังกฤษได้ปกติ)
+- ห้าม deploy ขึ้น production โดยไม่ถามก่อนทุกครั้ง แม้จะทดสอบผ่านหมดแล้วก็ตาม — 
+  ต้องถามว่า "push+deploy เลยไหม" ทุกครั้งไม่มีข้อยกเว้น
+- ก่อนแก้ไข/ลบอะไรบน production ต้อง list ให้ดูก่อนว่าจะทำอะไร เพราะอะไร
+
+## งานที่ Claude เพิ่งทำเสร็จ (commit 8cbb1e0 → 998d2aa, 2026-09-21 ถึง 22)
+1. ย้าย database ออกจาก container ที่ใช้ร่วมกับแอปอื่น (knightdesign-db) 
+   ไปเป็น container เฉพาะของตัวเอง (knightbasins-db) — เสร็จสมบูรณ์ verify แล้ว
+2. แก้ /api/healthz ให้เช็ค database จริง (เดิมเช็คแค่ LINE config)
+3. เพิ่มสถานะสลิป "needs_review" — สลิปที่ไม่มี QR Code (เช่นโอนบัญชีนิติบุคคลแบบ RTGS/SWIFT) 
+   จะไม่ถูก reject อัตโนมัติอีกต่อไป แต่ส่งให้ทีมขายตรวจสอบด้วยตาแทน
+4. เพิ่มการอัปโหลดสลิปผ่านแชทน้องไนท์ (ปุ่มแนบไฟล์ 📎) ไม่ใช่แค่หน้าใบเสนอราคาเดิม 
+   — endpoint ใหม่ POST /api/support/payment-slip ยืนยันตัวตนด้วยเบอร์โทรหรือ LINE login
+5. แก้บั๊กเทียบเบอร์โทรรูปแบบสากล (+66) ให้ตรงกับรูปแบบไทย (0xx)
+
+## สิ่งที่ตั้งใจปล่อยไว้ ห้ามไปแตะเอง
+- knightdesign-web/api/db (container ของแอปอื่น) ถูกหยุดไว้แล้วแต่ยังไม่ลบ — 
+  ห้าม start/ลบ container เหล่านี้เอง มีข้อมูลเก่าของ Knight Basins ค้างอยู่ข้างในที่รอ user ตัดสินใจ
+
+## จุดที่ควรรู้ (ไม่เร่งด่วน)
+- Error message บางจุด (เช่น "Only JPG, PNG..." ตอนอัปโหลดไฟล์ผิดชนิด) ยังเป็นภาษาอังกฤษดิบ
+- endpoint ใหม่ /api/support/payment-slip ยังไม่มี automated test คุ้มกัน (แค่ manual test บน production) 
+  ถ้าจะแก้ไฟล์ artifacts/api-server/src/routes/support.ts ระวังจุด normalizePhoneDigits() เป็นพิเศษ
