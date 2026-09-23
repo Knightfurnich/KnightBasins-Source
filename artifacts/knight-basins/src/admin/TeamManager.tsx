@@ -1,15 +1,22 @@
 import { useMemo, useState } from "react";
 import {
+  useCreateAdminInvite,
   useCreateAdminMember,
+  useListAdminInvites,
   useListAdminMembers,
+  useRevokeAdminInvite,
   useUpdateAdminMember,
+  type AdminInvite,
+  type AdminInviteInput,
+  type AdminInviteInputPermissionsItem,
+  type AdminInviteInputRole,
   type AdminMember,
   type AdminMemberInput,
   type AdminMemberPermissionsItem,
   type AdminMemberRole,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Pencil, Plus, UserRound, X } from "lucide-react";
+import { Check, Clipboard, Copy, Link2, Loader2, Pencil, Plus, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -26,6 +33,9 @@ const ROLE_LABELS: Record<AdminMemberRole, string> = {
   staff: "ทีมงาน",
   viewer: "ดูข้อมูล",
 };
+
+const INVITE_ROLE_LABELS: Record<AdminInviteInputRole, string> = ROLE_LABELS;
+const INVITE_PERMISSIONS: Array<{ value: AdminInviteInputPermissionsItem; label: string }> = PERMISSIONS;
 
 type MemberDraft = {
   lineUserId: string;
@@ -61,6 +71,176 @@ function errorMessage(error: unknown) {
     return error.message;
   }
   return "บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
+}
+
+function inviteDate(value: string) {
+  return new Intl.DateTimeFormat("th-TH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function InvitePanel() {
+  const queryClient = useQueryClient();
+  const invitesQuery = useListAdminInvites();
+  const createInvite = useCreateAdminInvite();
+  const revokeInvite = useRevokeAdminInvite();
+  const [role, setRole] = useState<AdminInviteInputRole>("staff");
+  const [permissions, setPermissions] = useState<AdminInviteInputPermissionsItem[]>(
+    INVITE_PERMISSIONS.map((item) => item.value),
+  );
+  const [expiresInMinutes, setExpiresInMinutes] = useState(30);
+  const [createdInvite, setCreatedInvite] = useState<AdminInvite | null>(null);
+  const [copyState, setCopyState] = useState<"code" | "link" | null>(null);
+  const [formError, setFormError] = useState("");
+
+  const togglePermission = (permission: AdminInviteInputPermissionsItem, checked: boolean) => {
+    setPermissions((current) => checked
+      ? [...new Set([...current, permission])]
+      : current.filter((value) => value !== permission));
+  };
+
+  const createInviteNow = () => {
+    setFormError("");
+    const data: AdminInviteInput = { role, permissions, expiresInMinutes };
+    createInvite.mutate({ data }, {
+      onSuccess: (invite) => {
+        setCreatedInvite(invite);
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] });
+      },
+      onError: (error) => setFormError(errorMessage(error)),
+    });
+  };
+
+  const copyValue = async (value: string, kind: "code" | "link") => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyState(kind);
+      window.setTimeout(() => setCopyState(null), 1800);
+    } catch {
+      setFormError("คัดลอกไม่สำเร็จ กรุณาเลือกข้อความแล้วคัดลอกด้วยตนเอง");
+    }
+  };
+
+  const recentInvites = invitesQuery.data?.slice(0, 5) ?? [];
+
+  return (
+    <section className="border border-[var(--line)] bg-[var(--card-paper)] p-5 sm:p-6" data-testid="admin-invite-panel">
+      <div className="flex items-start gap-3">
+        <div className="grid h-9 w-9 shrink-0 place-items-center border border-[var(--line)] text-[var(--ink-soft)]">
+          <Link2 className="h-4 w-4" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">เชิญสมาชิกด้วยลิงก์</h2>
+          <p className="mt-1 text-sm text-[var(--ink-soft)]">
+            สร้างคำเชิญแล้วส่งลิงก์หรือรหัสให้ทีมงาน ทีมงานกดลิงก์และเข้าสู่ระบบด้วย LINE ได้เลย ไม่ต้องกรอก LINE User ID
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <label className="space-y-2 text-sm">
+          <span className="font-medium">บทบาท</span>
+          <select
+            value={role}
+            onChange={(event) => {
+              const nextRole = event.target.value as AdminInviteInputRole;
+              setRole(nextRole);
+              if (nextRole === "owner") setPermissions(INVITE_PERMISSIONS.map((item) => item.value));
+            }}
+            className="h-9 w-full border border-[var(--line)] bg-transparent px-3 text-sm"
+            data-testid="select-admin-invite-role"
+          >
+            {Object.entries(INVITE_ROLE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label className="space-y-2 text-sm">
+          <span className="font-medium">อายุคำเชิญ</span>
+          <select
+            value={expiresInMinutes}
+            onChange={(event) => setExpiresInMinutes(Number(event.target.value))}
+            className="h-9 w-full border border-[var(--line)] bg-transparent px-3 text-sm"
+            data-testid="select-admin-invite-expiry"
+          >
+            <option value={30}>30 นาที</option>
+            <option value={60}>1 ชั่วโมง</option>
+            <option value={1440}>24 ชั่วโมง</option>
+          </select>
+        </label>
+        <div className="flex items-end">
+          <Button type="button" className="h-9 w-full rounded-none bg-[var(--ink)] text-[var(--paper)]" onClick={createInviteNow} disabled={createInvite.isPending} data-testid="button-create-admin-invite">
+            {createInvite.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="mr-2 h-4 w-4" />}
+            สร้างคำเชิญ
+          </Button>
+        </div>
+      </div>
+
+      <fieldset className="mt-5">
+        <legend className="text-sm font-medium">เมนูที่ให้เข้าถึง</legend>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {INVITE_PERMISSIONS.map((permission) => (
+            <label key={permission.value} className="flex items-center gap-3 text-sm text-[var(--ink-soft)]">
+              <Checkbox
+                checked={role === "owner" || permissions.includes(permission.value)}
+                disabled={role === "owner"}
+                onCheckedChange={(checked) => togglePermission(permission.value, checked === true)}
+              />
+              <span>{permission.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {formError && <p className="mt-4 text-sm text-[#a24439]" role="alert">{formError}</p>}
+
+      {createdInvite && (
+        <div className="mt-5 border border-[var(--saffron)]/50 bg-[var(--saffron)]/5 p-4" data-testid="admin-invite-created">
+          <p className="text-xs font-medium uppercase tracking-widest text-[var(--ink-soft)]">คำเชิญพร้อมใช้งาน</p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs text-[var(--ink-soft)]">รหัสสำรองสำหรับส่งให้ทีมงาน</p>
+              <p className="mt-1 font-mono text-2xl tracking-[0.18em]" data-testid="admin-invite-code">{createdInvite.code}</p>
+            </div>
+            <Button type="button" variant="outline" className="rounded-none" onClick={() => void copyValue(createdInvite.code, "code")}>
+              {copyState === "code" ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+              {copyState === "code" ? "คัดลอกแล้ว" : "คัดลอกรหัส"}
+            </Button>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Input value={createdInvite.inviteUrl} readOnly className="min-w-0 rounded-none border-[var(--line)] bg-transparent text-xs" data-testid="admin-invite-url" />
+            <Button type="button" variant="outline" className="rounded-none" onClick={() => void copyValue(createdInvite.inviteUrl, "link")}>
+              {copyState === "link" ? <Check className="mr-2 h-4 w-4" /> : <Clipboard className="mr-2 h-4 w-4" />}
+              {copyState === "link" ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-[var(--ink-soft)]">ลิงก์นี้ใช้ได้ครั้งเดียวและหมดอายุ {inviteDate(createdInvite.expiresAt)}</p>
+        </div>
+      )}
+
+      {invitesQuery.error && <p className="mt-4 text-sm text-[#a24439]">โหลดคำเชิญเดิมไม่สำเร็จ กรุณาตรวจสอบ migration ของฐานข้อมูล</p>}
+      {recentInvites.length > 0 && (
+        <div className="mt-5 border-t border-[var(--line)] pt-4">
+          <p className="text-sm font-medium">คำเชิญล่าสุด</p>
+          <div className="mt-3 space-y-2">
+            {recentInvites.map((invite) => {
+              const used = Boolean(invite.usedAt);
+              const expired = !used && new Date(invite.expiresAt).getTime() <= Date.now();
+              return (
+                <div key={invite.id} className="flex flex-col gap-2 border border-[var(--line)] p-3 text-xs sm:flex-row sm:items-center sm:justify-between">
+                  <span>{INVITE_ROLE_LABELS[invite.role]} · {used ? "ใช้แล้ว" : expired ? "หมดอายุ" : `หมดอายุ ${inviteDate(invite.expiresAt)}`}</span>
+                  {!used && !expired && (
+                    <Button type="button" variant="ghost" size="sm" className="self-start rounded-none text-[#a24439] sm:self-auto" onClick={() => revokeInvite.mutate({ id: invite.id }, { onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] }) })}>
+                      ยกเลิกคำเชิญ
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 export function TeamManager() {
@@ -166,10 +346,12 @@ export function TeamManager() {
         </Button>
       </div>
 
+      <InvitePanel />
+
       <section className="border border-[var(--line)] bg-[var(--card-paper)] p-5 sm:p-6" aria-labelledby="team-member-form-title">
         <div className="flex items-center justify-between gap-3">
           <h2 id="team-member-form-title" className="text-lg font-semibold">
-            {editingId === null ? "เพิ่มสมาชิกทีม" : `แก้ไข ${selectedMember?.displayName ?? "สมาชิกทีม"}`}
+            {editingId === null ? "เพิ่มสมาชิกทีมด้วย LINE User ID (วิธีสำรอง)" : `แก้ไข ${selectedMember?.displayName ?? "สมาชิกทีม"}`}
           </h2>
           {editingId !== null && (
             <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
@@ -188,7 +370,7 @@ export function TeamManager() {
               className="rounded-none border-[var(--line)] bg-transparent"
               data-testid="input-admin-member-line-id"
             />
-            {editingId === null && <span className="block text-xs text-[var(--ink-soft)]">คัดลอกจากบัญชี LINE ที่ต้องการอนุมัติ</span>}
+            {editingId === null && <span className="block text-xs text-[var(--ink-soft)]">ใช้วิธีนี้เฉพาะกรณีที่ไม่ใช้คำเชิญจากด้านบน</span>}
           </label>
           <label className="space-y-2 text-sm">
             <span className="font-medium">ชื่อที่แสดง</span>

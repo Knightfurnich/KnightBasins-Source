@@ -139,7 +139,7 @@ function normalizedMemberPermissions(permissions: string[], role: AdminRole) {
   ))];
 }
 
-export function accessForAdminMember(member: Pick<AdminMemberIdentity, "role" | "permissions">): AdminAccess {
+export function accessForAdminMember(member: Pick<AdminMemberIdentity, "role"> & { permissions: string[] }): AdminAccess {
   const role = member.role === "owner" || member.role === "viewer" ? member.role : "staff";
   return {
     role,

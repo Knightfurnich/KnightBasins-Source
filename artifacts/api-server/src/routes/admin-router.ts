@@ -7,9 +7,11 @@ import {
   customerLeads,
   paymentSlips,
   adminMembers,
+  adminInvites,
 } from "@workspace/db/schema";
 import {
   CreateAdminMemberBody,
+  CreateAdminInviteBody,
   CreateAdminBasinBody,
   CreateAdminBasinCategoryBody,
   CreateAdminInstalledStoneCategoryBody,
@@ -24,7 +26,7 @@ import {
   UpdateAdminLeadBody,
   UpdateAdminMemberBody,
 } from "@workspace/api-zod";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
@@ -39,6 +41,8 @@ import {
   ADMIN_PERMISSIONS,
   accessForAdminMember,
 } from "../middlewares/admin-auth";
+import { requestOrigin } from "../lib/public-origin";
+import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-invites";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
 import {
   createQuoteAccessSecret,
@@ -191,6 +195,99 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       return res.json(members.map(serializeAdminMember));
     } catch (error) {
       return next(error);
+    }
+  });
+
+  router.get("/admin/team/invites", requireAdminOwner, async (_req, res, next) => {
+    try {
+      const invites = await database
+        .select({
+          id: adminInvites.id,
+          role: adminInvites.role,
+          permissions: adminInvites.permissions,
+          expiresAt: adminInvites.expiresAt,
+          usedAt: adminInvites.usedAt,
+          createdAt: adminInvites.createdAt,
+        })
+        .from(adminInvites)
+        .orderBy(desc(adminInvites.createdAt));
+      return res.json(invites.map((invite: any) => ({
+        ...invite,
+        role: invite.role === "owner" || invite.role === "viewer" ? invite.role : "staff",
+        permissions: accessForAdminMember({
+          role: invite.role === "owner" || invite.role === "viewer" ? invite.role : "staff",
+          permissions: invite.permissions ?? [],
+        }).permissions,
+      })));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/team/invites", requireAdminOwner, async (req, res, next) => {
+    const parsed = CreateAdminInviteBody.safeParse(req.body);
+    if (!parsed.success) {
+      return invalid(res, "ข้อมูลคำเชิญไม่ถูกต้อง", parsed.error.flatten());
+    }
+    try {
+      const { token, code } = createAdminInviteSecrets();
+      const role = parsed.data.role;
+      const permissions = accessForAdminMember({
+        role,
+        permissions: parsed.data.permissions,
+      }).permissions;
+      const expiresAt = new Date(Date.now() + parsed.data.expiresInMinutes * 60 * 1000);
+      const [created] = await database
+        .insert(adminInvites)
+        .values({
+          tokenHash: hashAdminInviteValue(token),
+          codeHash: hashAdminInviteValue(code),
+          role,
+          permissions,
+          expiresAt,
+        })
+        .returning({
+          id: adminInvites.id,
+          role: adminInvites.role,
+          permissions: adminInvites.permissions,
+          expiresAt: adminInvites.expiresAt,
+          createdAt: adminInvites.createdAt,
+        });
+      if (!created) {
+        res.status(500).json({ message: "สร้างคำเชิญไม่สำเร็จ" });
+        return;
+      }
+      return res.status(201).json({
+        ...created,
+        role: role === "owner" || role === "viewer" ? role : "staff",
+        permissions,
+        code,
+        inviteUrl: `${requestOrigin(req)}/admin?invite=${encodeURIComponent(token)}`,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.delete("/admin/team/invites/:id", requireAdminOwner, async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) {
+      invalid(res, "รหัสคำเชิญไม่ถูกต้อง");
+      return;
+    }
+    try {
+      const [revoked] = await database
+        .update(adminInvites)
+        .set({ usedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(adminInvites.id, id), isNull(adminInvites.usedAt)))
+        .returning({ id: adminInvites.id });
+      if (!revoked) {
+        res.status(404).json({ message: "ไม่พบคำเชิญที่ยังใช้งานได้" });
+        return;
+      }
+      res.status(204).end();
+    } catch (error) {
+      next(error);
     }
   });
 

@@ -118,6 +118,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminMember"
+  /admin/team/invites:
+    get:
+      operationId: listAdminInvites
+      tags: [admin]
+      summary: List active and recent team invitations
+      responses:
+        "200":
+          description: Team invitations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminInviteSummary"
+    post:
+      operationId: createAdminInvite
+      tags: [admin]
+      summary: Create a one-time LINE team invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminInviteInput"
+      responses:
+        "201":
+          description: Team invitation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInvite"
+  /admin/team/invites/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    delete:
+      operationId: revokeAdminInvite
+      tags: [admin]
+      summary: Revoke a team invitation
+      responses:
+        "204":
+          description: Invitation revoked
   /admin/team/{id}:
     parameters:
       - $ref: "#/components/parameters/RecordId"
@@ -869,6 +910,55 @@ components:
             type: string
             enum: [basins, installed-stones, sheet-stones, leads]
         active: { type: boolean }
+    AdminInvite:
+      type: object
+      required: [id, code, inviteUrl, role, permissions, expiresAt, createdAt]
+      properties:
+        id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 8, maxLength: 16 }
+        inviteUrl: { type: string, maxLength: 3000 }
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    AdminInviteSummary:
+      type: object
+      required: [id, role, permissions, expiresAt, usedAt, createdAt]
+      properties:
+        id: { type: integer, minimum: 1 }
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        expiresAt: { type: string, format: date-time }
+        usedAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    AdminInviteInput:
+      type: object
+      required: [role, permissions, expiresInMinutes]
+      properties:
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        expiresInMinutes: { type: integer, minimum: 10, maximum: 1440 }
     BasinPriceInput:
       type: object
       required: [sku, colorCode, colorName, priceTHB, category, dimensions, imageTone, active, sortOrder]

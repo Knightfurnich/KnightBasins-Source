@@ -1,9 +1,11 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { adminMembers, customerAccounts, customerSessions, db } from "@workspace/db";
-import { and, eq, gt } from "drizzle-orm";
+import { adminInvites, adminMembers, customerAccounts, customerSessions, db } from "@workspace/db";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { getLineAuthDiagnostics } from "../lib/line-config";
 import { adminCookieOptions, createAdminToken, COOKIE_NAME } from "../middlewares/admin-auth";
+import { accessForAdminMember } from "../middlewares/admin-auth";
+import { hashAdminInviteValue, inviteValueFromReturnTo, removeInviteFromReturnTo } from "../lib/admin-invites";
 
 const router: IRouter = Router();
 const STATE_COOKIE = "knight_line_oauth_state";
@@ -76,9 +78,73 @@ function returnTo(value: unknown) {
   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "/";
 }
 
-function adminLoginResult(returnPath: string, result: "not-approved") {
+function adminLoginResult(returnPath: string, result: "not-approved" | "invite-invalid") {
   const separator = returnPath.includes("?") ? "&" : "?";
   return `${returnPath}${separator}adminLogin=${result}`;
+}
+
+async function claimAdminInvite(inviteValue: string, profile: LineUser) {
+  const valueHash = hashAdminInviteValue(inviteValue);
+  return db.transaction(async (transaction) => {
+    const [invite] = await transaction
+      .select()
+      .from(adminInvites)
+      .where(and(
+        or(eq(adminInvites.tokenHash, valueHash), eq(adminInvites.codeHash, valueHash)),
+        isNull(adminInvites.usedAt),
+        gt(adminInvites.expiresAt, new Date()),
+      ))
+      .limit(1);
+    if (!invite) return null;
+
+    const [claimed] = await transaction
+      .update(adminInvites)
+      .set({ usedAt: new Date(), updatedAt: new Date() })
+      .where(and(
+        eq(adminInvites.id, invite.id),
+        isNull(adminInvites.usedAt),
+        gt(adminInvites.expiresAt, new Date()),
+      ))
+      .returning({ id: adminInvites.id });
+    if (!claimed) return null;
+
+    const role = invite.role === "owner" || invite.role === "viewer" ? invite.role : "staff";
+    const access = accessForAdminMember({ role, permissions: invite.permissions ?? [] });
+    const [existing] = await transaction
+      .select({ id: adminMembers.id })
+      .from(adminMembers)
+      .where(eq(adminMembers.lineUserId, profile.userId))
+      .limit(1);
+
+    if (existing) {
+      const [updated] = await transaction
+        .update(adminMembers)
+        .set({
+          displayName: profile.displayName,
+          pictureUrl: profile.pictureUrl ?? null,
+          role,
+          permissions: access.permissions,
+          active: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(adminMembers.id, existing.id))
+        .returning({ id: adminMembers.id });
+      return updated?.id ?? null;
+    }
+
+    const [created] = await transaction
+      .insert(adminMembers)
+      .values({
+        lineUserId: profile.userId,
+        displayName: profile.displayName,
+        pictureUrl: profile.pictureUrl ?? null,
+        role,
+        permissions: access.permissions,
+        active: true,
+      })
+      .returning({ id: adminMembers.id });
+    return created?.id ?? null;
+  });
 }
 
 function configured() {
@@ -220,11 +286,17 @@ router.get("/auth/line/callback", async (req, res, next) => {
       throw new Error("LINE customer account could not be saved");
     }
 
-    const [adminMember] = await db
-      .select({ id: adminMembers.id })
-      .from(adminMembers)
-      .where(and(eq(adminMembers.lineUserId, profile.userId), eq(adminMembers.active, true)))
-      .limit(1);
+    const inviteValue = inviteValueFromReturnTo(stateCookie.returnTo);
+    const invitedAdminMemberId = inviteValue
+      ? await claimAdminInvite(inviteValue, profile)
+      : null;
+    const [adminMember] = invitedAdminMemberId
+      ? [{ id: invitedAdminMemberId }]
+      : await db
+        .select({ id: adminMembers.id })
+        .from(adminMembers)
+        .where(and(eq(adminMembers.lineUserId, profile.userId), eq(adminMembers.active, true)))
+        .limit(1);
 
     const sessionToken = randomBytes(32).toString("base64url");
     await db.insert(customerSessions).values({
@@ -242,13 +314,14 @@ router.get("/auth/line/callback", async (req, res, next) => {
     });
     if (adminMember) {
       res.cookie(COOKIE_NAME, createAdminToken(adminMember.id), adminCookieOptions());
-      res.redirect(stateCookie.returnTo);
+      res.redirect(inviteValue ? removeInviteFromReturnTo(stateCookie.returnTo) : stateCookie.returnTo);
       return;
     }
     res.clearCookie(COOKIE_NAME, { path: "/" });
-    res.redirect(stateCookie.returnTo.startsWith("/admin")
-      ? adminLoginResult(stateCookie.returnTo, "not-approved")
-      : stateCookie.returnTo);
+    const adminReturnTo = inviteValue ? removeInviteFromReturnTo(stateCookie.returnTo) : stateCookie.returnTo;
+    res.redirect(adminReturnTo.startsWith("/admin")
+      ? adminLoginResult(adminReturnTo, inviteValue ? "invite-invalid" : "not-approved")
+      : adminReturnTo);
   } catch (error) {
     next(error);
   }

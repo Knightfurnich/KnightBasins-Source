@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { useGetAdminSession, useCreateAdminSession, useDeleteAdminSession } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
@@ -267,8 +267,12 @@ function TeamRoute() {
 export function AdminLogin() {
   const login = useCreateAdminSession();
   const queryClient = useQueryClient();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const lineLoginDenied = location.includes("adminLogin=not-approved");
+  const inviteInvalid = location.includes("adminLogin=invite-invalid");
+  const currentReturnTo = location.includes("?") ? location : `${location}${window.location.search}`;
+  const inviteValue = new URLSearchParams(window.location.search).get("invite") ?? "";
+  const [inviteCode, setInviteCode] = useState("");
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -300,6 +304,16 @@ export function AdminLogin() {
           {lineLoginDenied && (
             <div className="mb-5 border border-[#a24439]/30 bg-[#a24439]/5 p-3 text-sm leading-relaxed text-[#a24439]" role="alert">
               บัญชี LINE นี้ยังไม่ได้รับอนุมัติให้เข้า Admin กรุณาติดต่อเจ้าของระบบ
+            </div>
+          )}
+          {inviteInvalid && (
+            <div className="mb-5 border border-[#a24439]/30 bg-[#a24439]/5 p-3 text-sm leading-relaxed text-[#a24439]" role="alert">
+              คำเชิญนี้หมดอายุ ถูกใช้ไปแล้ว หรือไม่ถูกต้อง กรุณาขอคำเชิญใหม่จากเจ้าของระบบ
+            </div>
+          )}
+          {inviteValue && !inviteInvalid && (
+            <div className="mb-5 border border-[var(--saffron)]/40 bg-[var(--saffron)]/5 p-3 text-sm leading-relaxed text-[var(--ink)]">
+              พบคำเชิญเข้าทีมแล้ว กด “เข้าสู่ระบบด้วย LINE” ด้านล่างเพื่อยืนยันตัวตน
             </div>
           )}
           <Form {...form}>
@@ -337,12 +351,36 @@ export function AdminLogin() {
             <span className="h-px flex-1 bg-[var(--line)]" /> หรือ <span className="h-px flex-1 bg-[var(--line)]" />
           </div>
           <a
-            href="/api/auth/line/login?returnTo=%2Fadmin"
+            href={`/api/auth/line/login?returnTo=${encodeURIComponent(currentReturnTo || "/admin")}`}
             className="flex h-11 w-full items-center justify-center border border-[var(--line)] text-sm text-[var(--ink)] transition-colors hover:bg-[var(--line)]/30"
             data-testid="link-admin-line-login"
           >
             เข้าสู่ระบบด้วย LINE
           </a>
+          {!inviteValue && (
+            <div className="mt-5 border-t border-[var(--line)] pt-5">
+              <p className="text-xs text-[var(--ink-soft)]">มีรหัสเชิญจากเจ้าของระบบ?</p>
+              <div className="mt-2 flex gap-2">
+                <Input
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
+                  placeholder="เช่น A1B2C3D4E5F6"
+                  className="min-w-0 rounded-none border-[var(--line)] bg-transparent font-mono text-xs"
+                  data-testid="input-admin-invite-code"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 rounded-none"
+                  disabled={inviteCode.trim().length < 8}
+                  onClick={() => setLocation(`/admin?invite=${encodeURIComponent(inviteCode.trim())}`)}
+                  data-testid="button-use-admin-invite-code"
+                >
+                  ใช้รหัส
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

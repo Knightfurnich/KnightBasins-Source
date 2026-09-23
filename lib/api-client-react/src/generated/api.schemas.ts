@@ -223,6 +223,103 @@ export interface AdminMemberUpdateInput {
   active: boolean;
 }
 
+export type AdminInviteRole = typeof AdminInviteRole[keyof typeof AdminInviteRole];
+
+
+export const AdminInviteRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminInvitePermissionsItem = typeof AdminInvitePermissionsItem[keyof typeof AdminInvitePermissionsItem];
+
+
+export const AdminInvitePermissionsItem = {
+  basins: 'basins',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminInvite {
+  /** @minimum 1 */
+  id: number;
+  /**
+     * @minLength 8
+     * @maxLength 16
+     */
+  code: string;
+  /** @maxLength 3000 */
+  inviteUrl: string;
+  role: AdminInviteRole;
+  /** @maxItems 4 */
+  permissions: AdminInvitePermissionsItem[];
+  expiresAt: string;
+  createdAt: string;
+}
+
+export type AdminInviteSummaryRole = typeof AdminInviteSummaryRole[keyof typeof AdminInviteSummaryRole];
+
+
+export const AdminInviteSummaryRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminInviteSummaryPermissionsItem = typeof AdminInviteSummaryPermissionsItem[keyof typeof AdminInviteSummaryPermissionsItem];
+
+
+export const AdminInviteSummaryPermissionsItem = {
+  basins: 'basins',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminInviteSummary {
+  /** @minimum 1 */
+  id: number;
+  role: AdminInviteSummaryRole;
+  /** @maxItems 4 */
+  permissions: AdminInviteSummaryPermissionsItem[];
+  expiresAt: string;
+  /** @nullable */
+  usedAt: string | null;
+  createdAt: string;
+}
+
+export type AdminInviteInputRole = typeof AdminInviteInputRole[keyof typeof AdminInviteInputRole];
+
+
+export const AdminInviteInputRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminInviteInputPermissionsItem = typeof AdminInviteInputPermissionsItem[keyof typeof AdminInviteInputPermissionsItem];
+
+
+export const AdminInviteInputPermissionsItem = {
+  basins: 'basins',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminInviteInput {
+  role: AdminInviteInputRole;
+  /** @maxItems 4 */
+  permissions: AdminInviteInputPermissionsItem[];
+  /**
+     * @minimum 10
+     * @maximum 1440
+     */
+  expiresInMinutes: number;
+}
+
 export interface BasinPriceInput {
   /**
      * @minLength 1

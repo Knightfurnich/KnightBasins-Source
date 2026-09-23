@@ -180,6 +180,25 @@ export const adminMembers = pgTable(
   (table) => [uniqueIndex("admin_members_line_user_id_unique").on(table.lineUserId)],
 );
 
+export const adminInvites = pgTable(
+  "admin_invites",
+  {
+    id: serial("id").primaryKey(),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+    codeHash: varchar("code_hash", { length: 64 }).notNull(),
+    role: varchar("role", { length: 16 }).default("staff").notNull(),
+    permissions: text("permissions").array().default(sql`ARRAY[]::text[]`).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("admin_invites_token_hash_unique").on(table.tokenHash),
+    uniqueIndex("admin_invites_code_hash_unique").on(table.codeHash),
+    index("admin_invites_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
 export const customerProfileUpdateConfirmations = pgTable(
   "customer_profile_update_confirmations",
   {
@@ -302,6 +321,7 @@ export type SheetStonePrice = typeof sheetStonePrices.$inferSelect;
 export type CustomerAccount = typeof customerAccounts.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
 export type AdminMember = typeof adminMembers.$inferSelect;
+export type AdminInvite = typeof adminInvites.$inferSelect;
 
 export type CustomerProfileUpdateConfirmation = typeof customerProfileUpdateConfirmations.$inferSelect;
 export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;

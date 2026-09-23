@@ -315,6 +315,75 @@ export const CreateAdminMemberResponse = zod.object({
 
 
 /**
+ * @summary List active and recent team invitations
+ */
+
+export const listAdminInvitesResponsePermissionsMax = 4;
+
+
+
+export const ListAdminInvitesResponseItem = zod.object({
+  "id": zod.number().min(1),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(listAdminInvitesResponsePermissionsMax),
+  "expiresAt": zod.coerce.date(),
+  "usedAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminInvitesResponse = zod.array(ListAdminInvitesResponseItem)
+
+
+/**
+ * @summary Create a one-time LINE team invitation
+ */
+export const createAdminInviteBodyPermissionsMax = 4;
+
+export const createAdminInviteBodyExpiresInMinutesMin = 10;
+export const createAdminInviteBodyExpiresInMinutesMax = 1440;
+
+
+
+export const CreateAdminInviteBody = zod.object({
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(createAdminInviteBodyPermissionsMax),
+  "expiresInMinutes": zod.number().min(createAdminInviteBodyExpiresInMinutesMin).max(createAdminInviteBodyExpiresInMinutesMax)
+})
+
+
+export const createAdminInviteResponseCodeMin = 8;
+export const createAdminInviteResponseCodeMax = 16;
+
+export const createAdminInviteResponseInviteUrlMax = 3000;
+
+export const createAdminInviteResponsePermissionsMax = 4;
+
+
+
+export const CreateAdminInviteResponse = zod.object({
+  "id": zod.number().min(1),
+  "code": zod.string().min(createAdminInviteResponseCodeMin).max(createAdminInviteResponseCodeMax),
+  "inviteUrl": zod.string().max(createAdminInviteResponseInviteUrlMax),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(createAdminInviteResponsePermissionsMax),
+  "expiresAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Revoke a team invitation
+ */
+
+
+
+export const RevokeAdminInviteParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const RevokeAdminInviteResponse = zod.void()
+
+
+/**
  * @summary Update an administration team member
  */
 
