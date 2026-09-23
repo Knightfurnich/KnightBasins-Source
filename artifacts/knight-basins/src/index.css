@@ -2063,7 +2063,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-saved-layout-heading > span { color: var(--ink-soft); font: 10px var(--mono); }
 .studio-saved-layout-meta { display: flex; flex-wrap: wrap; gap: 16px; padding: 14px 0 0; color: var(--ink-soft); font-size: 10px; }
 .studio-saved-layout-meta strong { color: var(--ink); }
-.studio-canvas--saved { margin-top: 18px; min-height: 390px; cursor: default; }
+.studio-canvas--saved { width: 100%; height: auto; min-height: 0; margin-top: 18px; cursor: default; }
 .studio-canvas--saved .studio-placement { cursor: default; }
 .studio-saved-layout-note { margin: 10px 0 0; color: var(--ink-soft); font-size: 10px; }
 .studio-sketch-panel { margin-top: 18px; }
@@ -2264,7 +2264,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-customer-grid > div { min-height: 0; padding: 5px 9px; }
   .studio-saved-layout { margin: 0 0 24px; padding: 0; border: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
   .studio-saved-layout-heading { padding-top: 0; }
-  .studio-canvas--saved { min-height: 320px; }
+  .studio-canvas--saved { min-height: 0; }
   .formal-quote-sheet { display: block; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; box-shadow: none; }
   .formal-quote-header, .formal-quote-title, .formal-customer-grid, .formal-quote-bottom, .formal-quote-signature { break-inside: avoid; page-break-inside: avoid; }
   .formal-quote-table-wrap { overflow: visible; }

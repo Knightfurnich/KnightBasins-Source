@@ -1264,6 +1264,17 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.match(firstPieceName, /^input-piece-name-/);
     await setTextInput(browser.page, firstPieceName, "ครัวหลัก");
+    const firstRectangleInputs = await browser.page.evaluate(`(() => {
+      const canvas = document.querySelector('[data-testid="studio-canvas"]');
+      const rectangle = canvas?.querySelector('.studio-rectangle-drag-target')?.getAttribute('aria-label') ?? "";
+      const width = document.querySelector('[data-testid^="input-rectangle-width-"]')?.getAttribute("data-testid") ?? "";
+      const length = document.querySelector('[data-testid^="input-rectangle-length-"]')?.getAttribute("data-testid") ?? "";
+      return { rectangle, width, length };
+    })()`);
+    assert.match(firstRectangleInputs.width, /^input-rectangle-width-/);
+    assert.match(firstRectangleInputs.length, /^input-rectangle-length-/);
+    await setTextInput(browser.page, firstRectangleInputs.width, "1800");
+    await setTextInput(browser.page, firstRectangleInputs.length, "600");
     await clickTestId(browser.page, "button-add-studio-piece");
     await waitFor(
       () => browser.page.evaluate('document.querySelectorAll(\'[data-testid^="input-piece-name-"]\').length'),
@@ -1353,11 +1364,21 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       pieces: document.querySelectorAll('[data-testid="saved-studio-layout"] .studio-saved-piece').length,
       canvases: document.querySelectorAll('[data-testid^="saved-studio-canvas-"]').length,
       placements: document.querySelectorAll('[data-testid="saved-studio-layout"] .studio-placement').length,
+      canvasBounds: [...document.querySelectorAll('[data-testid^="saved-studio-canvas-"]')].map((canvas) => {
+        const canvasBounds = canvas.getBoundingClientRect();
+        const containerBounds = canvas.parentElement?.getBoundingClientRect();
+        return {
+          canvasWidth: canvasBounds.width,
+          containerWidth: containerBounds?.width ?? 0,
+          fitsContainer: canvasBounds.right <= (containerBounds?.right ?? canvasBounds.right) + 1,
+        };
+      }),
     }))()`);
     assert.match(savedLayout.heading, /2/);
     assert.equal(savedLayout.pieces, 2);
     assert.equal(savedLayout.canvases, 2);
     assert.equal(savedLayout.placements, 2);
+    assert.ok(savedLayout.canvasBounds.every((canvas) => canvas.fitsContainer), JSON.stringify(savedLayout.canvasBounds));
 
     await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
     await clickTestId(browser.page, "button-download-saved-studio-pdf");
