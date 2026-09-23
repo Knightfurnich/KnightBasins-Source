@@ -1,0 +1,56 @@
+WO-1 เสร็จแล้วครับ — branch ขึ้น GitHub เรียบร้อย รอคุณนพเปิด PR
+
+ลิงก์เปิด PR (คลิกเดียว)
+👉 https://github.com/Knightfurnich/KnightBasins-Source/pull/new/feature/wo1-studio-anchor-model
+
+(ฝั่งเดวิดเปิด PR เองไม่ได้ครับ — deploy key เป็น SSH key ไม่ใช่ API token เดวิดจึงสร้าง PR ผ่าน API ไม่ได้ ให้คุณนพคลิกสร้าง หรือสั่ง Replit เปิด PR ก็ได้ครับ)
+
+---
+
+หลักฐานจริง
+
+Branch บน GitHub (git ls-remote origin):
+58e848a13201b73ede58eebdfa6d16dc3e0b52b9   refs/heads/feature/wo1-studio-anchor-model
+98e651e4758e36b834c236701c3c64d4c9f02dd7   refs/heads/main
+
+→ main ไม่ถูกแตะ ยังอยู่ที่ 98e651e ตามเดิม
+
+ไฟล์ที่เปลี่ยน — 2 ไฟล์เท่านั้น:
+artifacts/knight-basins/src/data/studio-model.ts    | 155 +++++++++++-
+artifacts/knight-basins/test/studio-anchor.test.ts  | 292 +++++++++++++++++++++
+2 files changed, 445 insertions(+), 2 deletions(-)
+
+ตรวจแล้ว ไม่มีไฟล์ .tsx / studio-draft / studio-export ในการเปลี่ยนแปลงเลย
+
+ผลรันเทสต์:
+ℹ tests 31
+ℹ pass 31
+ℹ fail 0
+
+= 20 เทสต์เดิมผ่านครบ + 11 เทสต์ใหม่
+
+---
+
+ตรวจตามเงื่อนไข 8 ข้อที่คุณนพระบุ
+
+1. เปลี่ยนเฉพาะ WO-1 (2 ไฟล์) ✅
+2. ไม่แตะ UI / draft / export / .tsx ✅
+3. offset อ้างอิง sheetId ของแผ่นที่เลือก ✅ — มีเทสต์ L/U พิสูจน์ว่าอ้างขอบแผ่น b (0,600) ไม่ใช่กรอบรวมทั้งชิ้นงาน
+4. rotation เฉพาะ 0 | 90 ✅ (ใช้ RectangleRotation เดิมในไฟล์ ไม่เปิด 180/270) — ทดสอบหมุนไป-กลับได้ค่าเดิม
+5. center = offset จากกึ่งกลาง (0,0 = กลางแผ่น) ✅
+6. pieces[0] ใช้เฉพาะ migration v1 ✅
+7. ข้อมูลใหม่ไม่ fallback ✅ — เทสต์วาง pieceId: "piece-gone" แล้วยังคงเป็น piece-gone ไม่ถูกเปลี่ยนเป็นชิ้นงานแรก
+8. เทสต์ครบ 7 กรณี ✅ (L/U · เลือกแผ่นเป้าหมาย · ระยะจากขอบ · หมุนรักษาระยะขอบ · อ่างเกินขอบ · อ่างทับกัน · หา piece/sheet ไม่พบ)
+
+หมายเหตุตรงไปตรงมา 2 จุด:
+- เทสต์ "อ่างทับกัน" ชัยยังไม่ได้ใส่ในรอบแรก เดวิดรันแล้วเจอว่าไม่ครอบคลุม จึงเพิ่มเองอีก 1 เคส (ทับกันในชิ้นงานเดียวกันต้องเตือน / คนละชิ้นงานที่พิกัดเดียวกันต้องไม่เตือน)
+- รอบแรกรันได้ 30/31 เพราะลืม import basinPlacementOverlapWarnings เดวิดแก้แล้วรันซ้ำได้ 31/31
+
+---
+
+เรื่องที่ต้องรายงานเพิ่ม (สำคัญ)
+main ขยับไปแล้ว 14 commit ล่าสุด 98e651e Implement admin invite and member deletion (งาน Admin invite + ลบสมาชิกของ Replit) ซึ่งแตะแค่ AdminApp.tsx / LeadsManager.tsx / TeamManager.tsx — ไม่แตะ studio-model.ts หรือโฟลเดอร์ test ดังนั้น PR นี้จะ merge ได้โดยไม่มี conflict ครับ
+
+tsc --noEmit มี error ค้างอยู่ในไฟล์ LeadsManager.tsx / CustomerProfilePage.tsx (types จาก Orval codegen ตกหล่น) — เป็นของเดิมที่ main มีอยู่แล้ว ไม่ได้เกิดจาก WO-1 และ ไฟล์ที่ WO-1 แก้ไม่มี error เลย ครับ
+
+เปิด PR แล้วส่งลิงก์/ผลตรวจ contract กลับมาได้เลย เดวิดจะยังไม่แตะ Replit จนกว่าคุณนพจะอนุมัติครับ

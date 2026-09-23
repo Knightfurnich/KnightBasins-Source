@@ -2,5 +2,7 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/edge-status/EdgeStatusSelector.tsx": () => import("../components/mockups/edge-status/EdgeStatusSelector.tsx"),
-  "./components/mockups/knight-admin/IntegratedAdmin.tsx": () => import("../components/mockups/knight-admin/IntegratedAdmin.tsx")
+  "./components/mockups/knight-admin/IntegratedAdmin.tsx": () => import("../components/mockups/knight-admin/IntegratedAdmin.tsx"),
+  "./components/mockups/knight-studio/Current.tsx": () => import("../components/mockups/knight-studio/Current.tsx"),
+  "./components/mockups/knight-studio/ScaleOrientation.tsx": () => import("../components/mockups/knight-studio/ScaleOrientation.tsx")
 };

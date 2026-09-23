@@ -542,7 +542,13 @@ describe("admin image upload browser flow", () => {
     await setTextInput(browser.page, 'input[type="password"]', adminPassword!);
     await clickButton(browser.page, "เข้าสู่ระบบ");
     await waitFor(
-      () => browser.page.evaluate('document.body.innerText.includes("จัดการอ่างล้างหน้า")'),
+      () => browser.page.evaluate('window.location.pathname === "/admin" && (document.body?.innerText.includes("ระบบจัดการข้อมูล") ?? false)'),
+      Boolean,
+      "admin dashboard after login",
+    );
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/admin/basins` });
+    await waitFor(
+      () => browser.page.evaluate('document.body?.innerText.includes("จัดการอ่างล้างหน้า") ?? false'),
       Boolean,
       "authenticated basin manager",
     );
@@ -618,6 +624,12 @@ describe("admin image upload browser flow", () => {
     if (needsLogin) {
       await setTextInput(browser.page, 'input[type="password"]', adminPassword!);
       await clickButton(browser.page, "เข้าสู่ระบบ");
+      await waitFor(
+        () => browser.page.evaluate('window.location.pathname === "/admin" && (document.body?.innerText.includes("ระบบจัดการข้อมูล") ?? false)'),
+        Boolean,
+        "admin dashboard after login",
+      );
+      await browser.page.command("Page.navigate", { url: `${baseUrl}/admin/basins` });
     }
     await waitFor(
       () => browser.page.evaluate('document.body?.innerText.includes("จัดการอ่างล้างหน้า") === true'),

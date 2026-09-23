@@ -1,0 +1,61 @@
+ตรวจโค้ดจริงใน repo แล้วครับ (clone อยู่ที่ /opt/data/cache/kbsrc @ 8fd1bc7) — 3 ข้อที่กระทบแผนโดยตรง:
+
+- BasinPlacement ยังไม่มี anchor/rotation/offsets เลย (studio-model.ts:50-58 มีแค่ pieceId? / xMm / yMm / widthMm / depthMm)
+- ต้นเหตุ "ผูกกับชิ้นงานแรก" เจอชัด 9 จุด — fallback placement.pieceId ?? pieces[0]?.id ที่ App.tsx:809, StudioPage.tsx:458/666/823/1120/1168, studio-export.ts:155, studio-model.ts:459 และ studioPieceById() (studio-model.ts:471 ตกไป pieces[0] เอง)
+- draft เป็น version: 1 4 คีย์ (studio-draft.ts:3-11) → เพิ่ม field ใหม่ต้องขึ้น v2 พร้อมตัวอ่าน v1 มิฉะนั้นใบเสนอราคาเก่าที่บันทึกไว้จะเปิดไม่ได้
+- เทสต์เดิม ผ่าน 20/20 (studio-model.test.ts) — ใช้เป็นฐาน regression ได้เลย
+
+---
+
+แผนแยก 3 ใบงาน (ไฟล์ไม่ทับกันเลย)
+
+WO-1 · Data model + tests (ปิดช่อง geometry ทั้งหมด)
+- SCOPE: src/data/studio-model.ts + ไฟล์ใหม่ test/studio-anchor.test.ts
+- ผลลัพธ์: เพิ่ม anchor / offsetXMm / offsetYMm / rotation / sheetId, ฟังก์ชันบริสุทธิ์ทั้งหมด + migration v1→v2, เทสต์หมุนอ่าง / คำนวณ X-Y จากขอบ / validation เกินขอบ-ทับกัน
+- ห้ามแตะ: ไฟล์ .tsx ทุกไฟล์, studio-export.ts, studio-draft.ts (อีก 2 ใบงานถืออยู่)
+- เกณฑ์ผ่าน: node --test test/studio-model.test.ts test/studio-anchor.test.ts → 20 เดิมยังผ่านครบ + ตัวใหม่ผ่าน
+
+WO-2 · Draft / Export / Preview regression (หลายชิ้นงาน)
+- SCOPE: src/data/studio-draft.ts, src/data/studio-export.ts, App.tsx (เฉพาะ saved-layout), test/studio-draft.test.ts, test/studio-export.test.ts
+- ผลลัพธ์: ลบ fallback ?? pieces[0] ออกทั้งหมด, draft v2 อ่าน v1 ได้, export/preview แยกถูกชิ้นงานเมื่อมี 2-3 ชิ้น
+- เริ่มได้หลัง WO-1 merge (ต้องเรียกฟังก์ชันที่ WO-1 export)
+
+WO-3 · UI หลัก Studio
+- SCOPE: StudioPage.tsx + src/components/* + index.css
+- ผลลัพธ์: เลือกแผ่นก่อนวางอ่าง, ช่องกรอกระยะจากขอบ + ตัวเลือกมุมอ้างอิง 5 แบบ, ปุ่มสลับแนวนอน/แนวตั้ง (รักษาระยะขอบ)
+- เริ่มได้หลัง WO-1 merge เช่นกัน แต่เขียนคู่ขนานได้ถ้าอิงสัญญาฟังก์ชันด้านล่าง
+
+ห้ามแตะค่ากระดานเริ่มต้น 5,000 × 5,000 มม. ในทุกใบงาน
+
+---
+
+อินเทอร์เฟซที่ล็อกไว้ (ให้ WO-2/WO-3 เขียนคู่ขนานได้)
+
+export type BasinAnchor = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+export type BasinRotation = 0 | 90 | 180 | 270;
+
+// v2: pieceId บังคับ + sheetId + anchor/offsets/rotation
+// ยังคงเขียน xMm/yMm ที่คำนวณได้ทุกครั้ง เพื่อให้ export/preview เดิมไม่ต้องรื้อ
+placementCutSize(p)                        // สลับ กว้าง/ลึก ตาม rotation
+placementRect(placement, piece)            // → {xMm,yMm,widthMm,heightMm}
+placementFromRect(placement, piece, rect)  // ตอนลากบนจอ → เขียน anchor+offsets กลับ
+rotatePlacement(placement, piece)          // สลับนอน/ตั้ง โดยรักษาระยะจากขอบเดิม
+normalizePlacements(state)                 // migration draft v1 → v2
+placementWarnings(placement, piece)        // เกินขอบ / ทับกัน
+
+
+---
+
+3 ข้อที่ต้องตัดสินก่อน (ผมเสนอค่าเริ่มต้นให้แล้ว)
+
+1. "ระยะจากขอบ" อ้างอิงอะไร → เสนอ ขอบของชิ้นงาน (ไม่ใช่ขอบแผ่น/สี่เหลี่ยมย่อย) เพราะชิ้นงานหนึ่งอาจประกอบจากหลายสี่เหลี่ยม
+2. การหมุน → เสนอ 90° เท่านั้น (0/90/180/270) และเก็บ offset แบบอิงมุมที่เลือก → สลับนอน/ตั้งแล้วระยะจากขอบคงเดิมอัตโนมัติ
+3. ชิ้นงาน/ใบเสนอราคาเก่า → เสนอ migration อัตโนมัติ: บันทึกเก่า (ไม่มี anchor) แปลงเป็น anchor=top-left, offsetX=xMm, offsetY=yMm, rotation=0 และเติม pieceId จาก pieces[0] (พฤติกรรมเดิม) เพื่อไม่ให้ใบเสนอราคาเก่าขยับตำแหน่ง
+
+ทั้ง 3 ข้อนี้เป็นตัวกำหนดตัวเลขที่ลูกค้าเห็น ถ้าคุณนพต้องการแบบอื่นบอกได้เลยครับ
+
+---
+
+สรุปการส่งงาน: model/test (WO-1, WO-2) กับ UI (WO-3) แยกไฟล์กันสนิท จึงไม่ชนกัน แต่ต้อง WO-1 ขึ้นก่อน แล้ว WO-2/WO-3 ถึง merge ตาม
+
+จะให้เดวิดเริ่มเลยไหมครับ — สั่งชัยทำ WO-1 บน branch แยก (ไม่ push เข้า main, รอรีวิวตามกฎ) แล้วเดวิดรันเทสต์ตรวจจริงส่งผลให้ก่อน?

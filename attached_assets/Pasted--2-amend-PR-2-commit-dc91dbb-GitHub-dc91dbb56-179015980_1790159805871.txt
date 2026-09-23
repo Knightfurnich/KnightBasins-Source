@@ -1,0 +1,47 @@
+ตอบทั้ง 2 จุดแล้วครับ — amend PR #2 เรียบร้อย (commit dc91dbb)
+
+ยืนยันปลายทางบน GitHub:
+dc91dbb563aed89d80edf455253ad5544e344918   refs/heads/feature/wo1-studio-anchor-model
+98e651e4758e36b834c236701c3c64d4c9f02dd7   refs/heads/main
+
+main ยังไม่ถูกแตะครับ
+
+---
+
+จุดที่ 1 — createBasinPlacement() สร้าง placement ที่ไม่มี sheetId ได้
+ยอมรับว่าจริง และแก้แล้ว 2 ชั้น:
+
+- pieceId บังคับแล้ว — ตัด ? ออก (pieceId: string) เรียกโดยไม่ระบุชิ้นงานไม่ได้อีก (call site เดิมทั้ง 3 จุดใน StudioPage ส่ง piece.id อยู่แล้ว จึงไม่กระทบ)
+- เพิ่ม placementTargetWarnings(placement, pieces) เป็นตัวบังคับสัญญาใหม่: เตือนเมื่อ (ก) ไม่มี pieceId (ข) ชี้ pieceId ที่ไม่มีจริง — ไม่ fallback ไปชิ้นงานแรก (ค) ไม่มี sheetId (ง) ชี้ sheetId ที่ไม่อยู่ในชิ้นงานนั้น
+- placementSheetWarnings แยกข้อความ "ไม่ได้ระบุแผ่น" ออกจาก "ไม่พบแผ่นเป้าหมาย" แล้ว
+
+ข้อจำกัดที่ต้องรายงานตรงๆ 1 เรื่อง: การบังคับให้ sheetId เป็น required ที่ระดับ type ทำใน WO-1 ไม่ได้ครับ เพราะจะทำให้ 3 call site ใน StudioPage.tsx (บรรทัด 479, 700, 920) เป็น type error ทันที — ซึ่งคือการแตะ .tsx ที่คุณนพห้ามไว้สำหรับใบงานนี้
+
+มี 2 ทาง เลือกได้ครับ:
+- (ก) คงไว้แบบนี้แล้ว merge — WO-1 ยังสะอาดเป็น model+tests ล้วน แล้วให้ WO-3 ทำ 2 อย่างบังคับ: ส่ง sheetId ของแผ่นที่ผู้ใช้เลือกที่ 3 จุดนั้น + เรียก placementTargetWarnings ในขั้น validation
+- (ข) อนุญาต exception ตอนนี้ — ให้ WO-1 แก้ 3 บรรทัดใน StudioPage.tsx (แก้แค่การส่ง argument ไม่แตะ logic/หน้าจอ) แล้ว sheetId เป็น required ตั้งแต่วันนี้
+
+เดวิดแนะนำ (ก) ครับ เพราะตรงกับหลัก "UI ค่อยแก้ใน WO-3" และตัวตรวจสัญญาก็มีอยู่จริงแล้ว
+
+---
+
+จุดที่ 2 — clampBasinPlacementPosition() เลือกชิ้นงาน [0] เอง
+ยอมรับว่าจริง แก้แล้ว:
+
+- เพิ่ม clampPlacementToSheet(placement, piece, xMm, yMm) — หาแผ่นจาก sheetId ในชิ้นงานของ placement นั้นเอง และคิดขนาดตาม rotation
+- ของเดิมคงไว้เพื่อ compatibility แต่ทำเครื่องหมาย @deprecated พร้อมระบุชัดว่าใช้ได้เฉพาะเลย์เอาต์ชิ้นงานเดียว
+- หลักฐานว่าเดิมเป็น dead code: grep ทั้ง repo พบ snapBasinPlacementPosition ไม่มี caller เลย และ clampBasinPlacementPosition ถูกเรียกจาก snapBasinPlacementPosition เท่านั้น — ความเสี่ยงวันนี้ยังเป็นศูนย์ แต่ถ้า WO-3 หยิบไปใช้จะผิดทันที จึงปิดทางไว้ก่อน
+
+---
+
+ผลรันเทสต์ (เพิ่ม 3 เคสใหม่)
+ℹ tests 34
+ℹ pass 34
+ℹ fail 0
+
+(จาก 31 → 34) เคสใหม่ครอบคลุม: บังคับ pieceId+sheetId ของข้อมูลใหม่ (ครบ / ขาดแผ่น / ชิ้นงานหาย / แผ่นไม่อยู่ในชิ้นงาน) · ข้อความ "ไม่ได้ระบุแผ่น" vs "ไม่พบแผ่น" · clamp บนเลย์เอาต์ 2 ชิ้นงาน พิสูจน์ว่าอ่างบนชิ้นงานที่ 2 ถูก clamp ที่ขอบชิ้นงานที่ 2 (x=2000) ไม่ใช่ chิ้นงานแรก (x=0) รวมกรณีหมุน 90°
+
+หลักฐานว่าไม่ได้ทำ typecheck แย่ลง
+tsc --noEmit มี error ค้าง 21 ตัวเท่าเดิมทั้งก่อนและหลัง (พิสูจน์โดย stash commit นี้แล้วรันซ้ำ ได้ 21 เท่ากัน) และ ไม่มี error ในไฟล์ที่ PR นี้แตะ — ทั้ง 21 ตัวอยู่ใน LeadsManager.tsx / CustomerProfilePage.tsx จาก Orval types ที่ยังค้างอยู่ก่อนหน้าแล้ว
+
+รอคุณนพเลือกข้อ (ก)/(ข) แล้วเดวิดจะแจ้งขั้นต่อไปครับ — ถ้าเลือก (ก) ตัว PR พร้อม merge ได้เลย และ WO-3 ก็มี contract ที่ชัดเจนรออยู่แล้วครับ

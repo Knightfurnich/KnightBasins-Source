@@ -631,6 +631,11 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.deepEqual(uPreset, { count: 3, sizes: ["1500 × 600", "600 × 1200", "600 × 1200"] });
 
     await clickTestId(browser.page, "button-studio-preset-i");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid^="input-rectangle-length-"]\')?.value === "600"'),
+      Boolean,
+      "I preset rectangle",
+    );
     const dropped = await browser.page.evaluate(`(() => {
       const target = document.querySelector('[data-testid="studio-canvas"]');
       if (!(target instanceof HTMLElement)) return false;
@@ -1706,7 +1711,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     await clickTestId(browser.page, swapId);
     assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="${widthId}"]')?.value ?? ""`), "600");
-    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="${lengthId}"]')?.value ?? ""`), "1000");
+    assert.equal(await browser.page.evaluate(`document.querySelector('[data-testid="${lengthId}"]')?.value ?? ""`), "5000");
 
     await setTextInput(browser.page, "input-studio-phone", "081-234-5678");
     await waitFor(

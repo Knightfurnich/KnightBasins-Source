@@ -1,0 +1,61 @@
+ตรวจรับงานจริงแล้วครับคุณนพ — Deploy สำเร็จจริง แต่เจอ 1 ปัญหาที่ต้องแก้ก่อนไปต่อ
+
+---
+
+✅ สิ่งที่ยืนยันแล้ว (หลักฐานจริง)
+
+GitHub: main = c5c94a1 Fix multi-piece basin draft and export geometry (7 ไฟล์, +692/-250)
+
+ไฟล์บน VPS จริง (SSH): web-dist และ api-dist ถูกอัปเดต Sep 23 11:14/11:15 · containers knightbasins-api / web / db = Healthy ทั้ง 3 ตัว
+
+Bundle ใหม่ขึ้นจริง — index.html อ้าง index-BiAzQs6q.js และตรวจในไฟล์ JS บนเซิร์ฟเวอร์พบ UI ของงาน #213 ครบทุกตัว:
+select-placement-anchor-       1
+select-placement-sheet-        1
+input-placement-offset-x-      1
+input-placement-offset-y-      1
+button-rotate-studio-basin-    1
+status-placement-warning-      1
+button-select-studio-placement- 1
+saved-studio-canvas-/layout-   1
+
+
+HTTP จากภายนอก:
+/                     200
+/assets/index-BiAzQs6q.js   200
+/assets/index-CYjdEovx.css  200
+/api/healthz          200   (database connected)
+/api/catalog          200   → basins 30 · categories 2 · installed 72 · sheet 71
+/api/health           404
+
+ตัวเลข catalog ตรงกับที่ Replit รายงานเป๊ะ และเรื่อง /api/health 404 — ยืนยันว่า ถูกต้อง ไม่ใช่ deploy พัง เพราะโปรเจกต์มีแต่ /api/healthz (ตัวที่ต้องใช้ตรวจคือ healthz ซึ่ง 200)
+
+---
+
+⚠️ ปัญหาที่เจอ: มี unit test แดง 1 ตัวบน commit ที่ deploy
+
+เดวิด checkout โค้ดที่ deploy จริง (c5c94a1) แล้วรันเอง ได้ผล:
+studio-model.test.ts   19/20  ← แดง 1
+studio-anchor.test.ts  14/14
+studio-draft.test.ts   10/10
+studio-export.test.ts  11/11
+รวม 54/55
+
+
+สาเหตุ: replaceStudioBasin() ตอนนี้เติมฟิลด์ orientation ให้ placement (บรรทัด 635 ของ studio-model.ts) แต่ assert ที่ studio-model.test.ts:311 ยังคาดหวัง object แบบเก่า:
+actual:   { ..., widthMm: 350, depthMm: 500, orientation: 'horizontal' }
+expected: { ..., widthMm: 350, depthMm: 500 }
+
+→ เป็น เทสต์ที่ยังไม่ได้อัปเดตตามโค้ดใหม่ (ไม่ใช่บั๊กของตัวโปรแกรม) แต่ผลคือ claim "focused tests 57/57 ผ่าน" ที่แจ้งมา เดวิดรันซ้ำแล้วไม่ตรง จึงต้องแก้ให้ตรงก่อนครับ
+
+---
+
+📋 ส่วนที่เดวิดยังตรวจไม่ได้ (บอกตรงๆ ไม่สรุปข้าม)
+- ชุด browser regression + งานพิมพ์/export จริง ไม่ได้รัน เพราะต้องใช้ browser harness (Replit ก็ระบุว่ามี failure เดิมจาก environment) — เดวิดจึงยืนยันได้แค่ "โค้ด+bundle มีอยู่จริง" ไม่ใช่ "กดใช้งานแล้วถูกต้อง"
+- ยังไม่ได้ทดสอบ interaction จริงบน /studio (เลือกแผ่น → เลือก anchor → ลาก → หมุน → save draft → print)
+
+---
+
+ขอให้ Replit แก้ 1 จุดก่อนไป #215/#216
+แก้ assert ที่ test/studio-model.test.ts:311 ให้รองรับ orientation แล้วรัน 4 ไฟล์เดิมซ้ำ ต้องได้ 55/55 พร้อมแนบ output จริง จากนั้นค่อยเดินหน้า #215 (regression test ของ rotated safety) และ #216 (browser test หลายชิ้นงาน)
+
+ถ้าคุณนพสะดวกให้เดวิดส่งเป็นใบงานให้ชัยแก้แทนก็บอกได้ครับ — แต่ไฟล์นี้ Replit ถือเวอร์ชันล่าสุดอยู่ น่าจะแก้เองเร็วกว่าและรันเทสต์ในบริบทเดียวกันได้เลยครับ

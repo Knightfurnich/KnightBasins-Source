@@ -159,6 +159,16 @@ paths:
       responses:
         "204":
           description: Invitation revoked
+  /admin/team/invites/{id}/permanent:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    delete:
+      operationId: deleteAdminInvite
+      tags: [admin]
+      summary: Permanently delete a team invitation record
+      responses:
+        "204":
+          description: Invitation record deleted
   /admin/team/{id}:
     parameters:
       - $ref: "#/components/parameters/RecordId"
@@ -179,6 +189,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminMember"
+    delete:
+      operationId: deleteAdminMember
+      tags: [admin]
+      summary: Permanently delete an administration team member
+      responses:
+        "204":
+          description: Administration team member deleted
   /admin/basins:
     get:
       operationId: listAdminBasins

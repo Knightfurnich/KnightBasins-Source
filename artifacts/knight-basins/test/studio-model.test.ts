@@ -3,6 +3,7 @@ import test from "node:test";
 import { PRODUCTS } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
+  basinPlacementOrientation,
   basinPlacementOverlapWarnings,
   centerBasinPlacementPosition,
   compareStudioCatalog,
@@ -20,13 +21,18 @@ import {
   studioEstimate,
   studioPieceJoints,
   studioRectangleSize,
+  studioPieces,
   studioStateDimensionsValid,
+  STUDIO_INITIAL_BOARD_LENGTH_MM,
+  STUDIO_INITIAL_BOARD_WIDTH_MM,
+  standardSheetWarning,
   studioSubmissionValidationMessage,
   touchingRectangleKeys,
   unknownBasinPlacements,
   resolveStudioCatalogChange,
   replaceStudioBasin,
   removeStudioBasin,
+  setBasinPlacementOrientation,
   type StudioPiece,
   type StudioState,
 } from "../src/data/studio-model.ts";
@@ -73,6 +79,41 @@ test("rectangle layouts calculate additive area and preserve stepped/notched geo
   assert.equal(studioAreaSqM(pieces), 1.52);
   assert.deepEqual(pieceBounds(pieces[0]), { widthMm: 2400, heightMm: 900 });
   assert.deepEqual(studioRectangleSize(rectangle("rotated", { rotation: 90, widthMm: 400, lengthMm: 900 })), { widthMm: 900, heightMm: 400 });
+});
+
+test("a fresh 5000 × 5000 board estimates 25 square metres and warns about sheet size", () => {
+  const freshBoard: StudioState = {
+    ...baseState(),
+    dimensions: {
+      depthMm: STUDIO_INITIAL_BOARD_LENGTH_MM,
+      runAMm: STUDIO_INITIAL_BOARD_WIDTH_MM,
+      runBMm: 0,
+      runCMm: 0,
+    },
+    pieces: [{
+      ...piece(),
+      rectangles: [{
+        ...rectangle("fresh-board"),
+        widthMm: STUDIO_INITIAL_BOARD_WIDTH_MM,
+        lengthMm: STUDIO_INITIAL_BOARD_LENGTH_MM,
+      }],
+    }],
+    basinPlacements: [],
+  };
+  const estimate = studioEstimate(freshBoard, PRODUCTS);
+
+  assert.equal(estimate.counterAreaSqM, 25);
+  assert.equal(estimate.standardSheetWarning, true);
+  assert.equal(standardSheetWarning("I", freshBoard.dimensions), true);
+  const legacyFallback = studioPieces({ ...freshBoard, pieces: undefined });
+  assert.deepEqual(legacyFallback[0]?.rectangles[0], {
+    id: "legacy-a",
+    widthMm: 5000,
+    lengthMm: 5000,
+    xMm: 0,
+    yMm: 0,
+    rotation: 0,
+  });
 });
 
 test("overlapping rectangles warn but are still counted additively", () => {
@@ -268,6 +309,14 @@ test("catalog products without basin dimensions remain unknown", () => {
   assert.deepEqual(unknownBasinPlacements({ basinPlacements: [placement] }), [placement.id]);
 });
 
+test("basin orientation swaps the real cutout footprint and defaults legacy placements to horizontal", () => {
+  const legacyPlacement = { id: "basin-orientation", sku: "KF001", xMm: 0, yMm: 0, widthMm: 500, depthMm: 350 };
+  assert.equal(basinPlacementOrientation(legacyPlacement), "horizontal");
+  const vertical = setBasinPlacementOrientation(legacyPlacement, "vertical");
+  assert.deepEqual(vertical, { ...legacyPlacement, widthMm: 350, depthMm: 500, orientation: "vertical", rotation: 90 });
+  assert.deepEqual(setBasinPlacementOrientation(vertical, "horizontal"), { ...legacyPlacement, orientation: "horizontal", rotation: 0 });
+});
+
 test("catalog context identifies removed and updated selected basins after a draft is saved", () => {
   const savedAt = "2026-09-15T04:00:00.000Z";
   const context = createStudioCatalogContext(baseState({ basinSkus: ["KF001", "KF002"] }), PRODUCTS, savedAt);
@@ -308,7 +357,13 @@ test("stale basin entries stay inspectable while replacement preserves placement
   assert.ok(replacement);
   const replaced = replaceStudioBasin(state, "KF001", replacement);
   assert.deepEqual(replaced.basinSkus, ["KF003", "KF002"]);
-  assert.deepEqual(replaced.basinPlacements[0], { ...placement, sku: "KF003", widthMm: 350, depthMm: 500 });
+  assert.deepEqual(replaced.basinPlacements[0], {
+    ...placement,
+    sku: "KF003",
+    widthMm: 350,
+    depthMm: 500,
+    orientation: "horizontal",
+  });
   const removed = removeStudioBasin(state, "KF001");
   assert.deepEqual(removed.basinSkus, ["KF002"]);
   assert.equal(removed.basinPlacements.length, 0);

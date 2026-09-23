@@ -270,8 +270,8 @@ export function AdminLogin() {
   const [location, setLocation] = useLocation();
   const lineLoginDenied = location.includes("adminLogin=not-approved");
   const inviteInvalid = location.includes("adminLogin=invite-invalid");
-  const currentReturnTo = location.includes("?") ? location : `${location}${window.location.search}`;
   const inviteValue = new URLSearchParams(window.location.search).get("invite") ?? "";
+  const currentReturnTo = inviteValue ? `/admin?invite=${encodeURIComponent(inviteValue)}` : "/admin";
   const [inviteCode, setInviteCode] = useState("");
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -283,6 +283,7 @@ export function AdminLogin() {
     login.mutate({ data: { password: values.password } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/session"] });
+        setLocation("/admin");
       },
       onError: () => {
         form.setError("password", { message: "รหัสผ่านไม่ถูกต้อง" });
