@@ -756,6 +756,34 @@ export function clampBasinPlacementPosition(
   return candidates[0] ?? { xMm: Math.max(0, xMm), yMm: Math.max(0, yMm) };
 }
 
+/**
+ * Piece/sheet-aware clamp. This is the one to use from now on: it resolves the
+ * placement's own sheetId inside the placement's own piece, so a basin on the
+ * second workpiece is never clamped against the first one.
+ */
+export function clampPlacementToSheet(
+  placement: BasinPlacement,
+  piece: StudioPiece | undefined,
+  xMm: number,
+  yMm: number,
+): { xMm: number; yMm: number } {
+  if (!piece) return { xMm, yMm };
+  const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId)
+    ?? placementHostRectangle(piece, placement);
+  const cutSize = placementCutSize(placement);
+  if (!sheet || cutSize.widthMm === null || cutSize.heightMm === null) return { xMm, yMm };
+  const size = studioRectangleSize(sheet);
+  return {
+    xMm: Math.round(Math.max(sheet.xMm, Math.min(sheet.xMm + size.widthMm - cutSize.widthMm, xMm))),
+    yMm: Math.round(Math.max(sheet.yMm, Math.min(sheet.yMm + size.heightMm - cutSize.heightMm, yMm))),
+  };
+}
+
+/**
+ * @deprecated Legacy single-piece helper: it rebuilds the piece from shape +
+ * dimensions and can therefore only ever clamp against the FIRST piece. Use
+ * `clampPlacementToSheet(placement, piece, x, y)` for any multi-piece layout.
+ */
 export function snapBasinPlacementPosition(
   placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
   xMm: number,
@@ -1012,10 +1040,35 @@ export function studioSubmissionValidationMessage(state: StudioState, estimate: 
   return studioSubmissionValidationMessages(state, estimate)[0] ?? null;
 }
 
+/**
+ * Contract check for NEW placements: pieceId must resolve, and sheetId must be
+ * present and resolve inside that piece. Legacy v1 drafts are exempt — they go
+ * through `normalizePlacements` first, which fills both from the saved geometry.
+ */
+export function placementTargetWarnings(
+  placement: BasinPlacement,
+  pieces: ReadonlyArray<StudioPiece>,
+): string[] {
+  if (!placement.pieceId) return [`อ่าง ${placement.id} ไม่ได้ระบุชิ้นงาน (pieceId)`];
+  const piece = pieces.find((candidate) => candidate.id === placement.pieceId);
+  if (!piece) return [`ไม่พบชิ้นงานสำหรับอ่าง ${placement.id}`];
+  if (!placement.sheetId) return [`อ่าง ${placement.id} ไม่ได้ระบุแผ่น (sheetId)`];
+  if (!piece.rectangles.some((rectangle) => rectangle.id === placement.sheetId)) {
+    return [`ไม่พบแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];
+  }
+  return [];
+}
+
+/**
+ * Builds a NEW placement. `pieceId` is required — new data must always name its
+ * workpiece. `sheetId` is required by the placement contract too and must be the
+ * sheet the user picked (WO-3 passes it); until a caller supplies it, the
+ * placement is intentionally incomplete and `placementTargetWarnings` reports it.
+ */
 export function createBasinPlacement(
   product: BasinProduct,
   index: number,
-  pieceId?: string,
+  pieceId: string,
   sheetId?: string,
   anchor: BasinAnchor = "top-left",
 ): BasinPlacement {
@@ -1148,6 +1201,7 @@ export function normalizePlacements(state: StudioState): BasinPlacement[] {
 /** Warns when a placement's piece/sheet can no longer be resolved, or the cut no longer fits inside sheetId. */
 export function placementSheetWarnings(placement: BasinPlacement, piece?: StudioPiece): string[] {
   if (!piece) return [`ไม่พบชิ้นงานสำหรับอ่าง ${placement.id}`];
+  if (!placement.sheetId) return [`ไม่ได้ระบุแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];
   const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId);
   if (!sheet) return [`ไม่พบแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];
   const cutSize = placementCutSize(placement);

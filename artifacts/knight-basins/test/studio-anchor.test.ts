@@ -4,10 +4,13 @@ import {
   basinPlacementOverlapWarnings,
   calculateBasinCoordinates,
   calculateBasinOffsets,
+  clampBasinPlacementPosition,
+  clampPlacementToSheet,
   createBasinPlacement,
   normalizePlacements,
   placementCutSize,
   placementSheetWarnings,
+  placementTargetWarnings,
   rotatePlacement,
   type BasinAnchor,
   type BasinPlacement,
@@ -262,6 +265,89 @@ test("createBasinPlacement accepts sheetId and anchor when provided", () => {
   const withoutSheet = createBasinPlacement(product, 1, "piece-1");
   assert.equal(withoutSheet.sheetId, undefined);
   assert.equal(withoutSheet.anchor, "top-left");
+});
+
+test("placementTargetWarnings enforces pieceId + sheetId on new placements (not legacy)", () => {
+  const layout = piece([rectangle("r1", { widthMm: 1000, lengthMm: 600 })]);
+  const pieces = [layout];
+
+  // New placement with both targets resolvable -> clean.
+  assert.deepEqual(
+    placementTargetWarnings(basePlacement({ pieceId: "piece-1", sheetId: "r1" }), pieces),
+    [],
+  );
+
+  // New placement missing the sheet the user picked -> reported, never guessed.
+  assert.deepEqual(
+    placementTargetWarnings(basePlacement({ pieceId: "piece-1", sheetId: undefined }), pieces),
+    [`อ่าง basin-1 ไม่ได้ระบุแผ่น (sheetId)`],
+  );
+
+  // New placement naming a piece that no longer exists -> reported, and NOT
+  // redirected to pieces[0].
+  assert.deepEqual(
+    placementTargetWarnings(basePlacement({ pieceId: "piece-gone", sheetId: "r1" }), pieces),
+    [`ไม่พบชิ้นงานสำหรับอ่าง basin-1`],
+  );
+
+  // New placement naming a sheet that is not inside the named piece.
+  assert.deepEqual(
+    placementTargetWarnings(basePlacement({ pieceId: "piece-1", sheetId: "r-gone" }), pieces),
+    [`ไม่พบแผ่นเป้าหมายสำหรับอ่าง basin-1`],
+  );
+
+  // createBasinPlacement without a sheet is intentionally incomplete until WO-3
+  // passes the picked sheet, and the contract check is what catches it.
+  const product = PRODUCTS.find((item) => item.sku === "KF001");
+  assert.ok(product);
+  const created = createBasinPlacement(product, 0, "piece-1");
+  assert.equal(created.pieceId, "piece-1");
+  assert.deepEqual(
+    placementTargetWarnings(created, pieces),
+    [`อ่าง ${created.id} ไม่ได้ระบุแผ่น (sheetId)`],
+  );
+});
+
+test("placementSheetWarnings distinguishes a missing sheetId from an unknown sheetId", () => {
+  const layout = piece([rectangle("r1", { widthMm: 1000, lengthMm: 600 })]);
+  assert.deepEqual(
+    placementSheetWarnings(basePlacement({ sheetId: undefined }), layout),
+    [`ไม่ได้ระบุแผ่นเป้าหมายสำหรับอ่าง basin-1`],
+  );
+  assert.deepEqual(
+    placementSheetWarnings(basePlacement({ sheetId: "r-gone" }), layout),
+    [`ไม่พบแผ่นเป้าหมายสำหรับอ่าง basin-1`],
+  );
+});
+
+test("clampPlacementToSheet clamps against the placement's own piece, never the first piece", () => {
+  // Piece 1 occupies x 0..1000 ; piece 2 occupies x 2000..3000.
+  const layout1 = piece([rectangle("r1", { xMm: 0, yMm: 0, widthMm: 1000, lengthMm: 600 })], { id: "piece-1" });
+  const layout2 = piece([rectangle("r2", { xMm: 2000, yMm: 0, widthMm: 1000, lengthMm: 600 })], { id: "piece-2" });
+  const onPiece2 = basePlacement({ pieceId: "piece-2", sheetId: "r2", widthMm: 400, depthMm: 300 });
+
+  // Dragging towards x=0 must stop at piece 2's own left edge (2000), not at
+  // piece 1's — the old first-piece helper would have returned 0 here.
+  assert.deepEqual(clampPlacementToSheet(onPiece2, layout2, 0, 0), { xMm: 2000, yMm: 0 });
+
+  // Dragging past the far edge stops at piece 2's own right edge (3000 - 400).
+  assert.deepEqual(clampPlacementToSheet(onPiece2, layout2, 9999, 9999), { xMm: 2600, yMm: 300 });
+
+  // Inside the sheet is left alone (rounded).
+  assert.deepEqual(clampPlacementToSheet(onPiece2, layout2, 2100, 100), { xMm: 2100, yMm: 100 });
+
+  // Unresolvable piece -> coordinates pass through untouched.
+  assert.deepEqual(clampPlacementToSheet(onPiece2, undefined, 123, 456), { xMm: 123, yMm: 456 });
+
+  // Rotation is respected: 400x300 rotated to 90 becomes 300x400.
+  const rotated = { ...onPiece2, rotation: 90 as const };
+  assert.deepEqual(clampPlacementToSheet(rotated, layout2, 9999, 9999), { xMm: 2700, yMm: 200 });
+
+  // The legacy helper is retained but only ever sees the first piece.
+  assert.deepEqual(
+    clampBasinPlacementPosition({ widthMm: 400, depthMm: 300 }, 0, 0, { depthMm: 600, runAMm: 1000, runBMm: 0, runCMm: 0 }, "I"),
+    { xMm: 0, yMm: 0 },
+  );
 });
 
 test("overlapping basins on the same piece are flagged, while basins on different pieces are safe", () => {
