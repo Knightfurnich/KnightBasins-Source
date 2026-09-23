@@ -1956,6 +1956,144 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     await browser.page.evaluate("localStorage.clear()");
   });
 
+  it("restores a named U-shaped draft and prints its three-panel geometry", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "U-shaped Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "U-shaped Studio canvas",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+
+    await clickTestId(browser.page, "button-studio-preset-u");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-piece-rectangle\').length'),
+      (count) => count === 3,
+      "U-shaped three-panel preset",
+    );
+    assert.deepEqual(
+      await browser.page.evaluate(`([...document.querySelectorAll('[data-testid="studio-canvas"] .studio-piece-size')]).map((item) => item.textContent)`),
+      ["1500 × 600", "600 × 1200", "600 × 1200"],
+    );
+
+    await clickTestId(browser.page, "button-studio-basin-KF001");
+    await clickTestId(browser.page, "button-studio-basin-place-KF001");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-placement\').length'),
+      (count) => count === 1,
+      "basin on U-shaped Studio layout",
+    );
+
+    await clickTestId(browser.page, "button-save-named-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-save-draft-dialog"]\') !== null'),
+      Boolean,
+      "U-shaped draft dialog",
+    );
+    await setTextInput(browser.page, "input-studio-draft-name", "แบบร่างตัวยู");
+    await clickTestId(browser.page, "button-confirm-save-studio-draft");
+    const saved = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const drafts = JSON.parse(localStorage.getItem("knight-studio-drafts-v1") || "[]");
+        const draft = drafts.find((item) => item.name === "แบบร่างตัวยู");
+        if (!draft) return null;
+        return {
+          shape: draft.state.shape,
+          dimensions: draft.state.dimensions,
+          rectangles: draft.state.pieces?.[0]?.rectangles?.map(({ widthMm, lengthMm, xMm, yMm, rotation }) => ({ widthMm, lengthMm, xMm, yMm, rotation })) ?? [],
+          basinPlacements: draft.state.basinPlacements?.map(({ sku, pieceId, xMm, yMm, widthMm, depthMm }) => ({ sku, pieceId, xMm, yMm, widthMm, depthMm })) ?? [],
+        };
+      })()`),
+      (value) => value !== null,
+      "saved U-shaped draft payload",
+    );
+    assert.equal(saved?.shape, "U");
+    assert.deepEqual(saved?.dimensions, { depthMm: 600, runAMm: 1500, runBMm: 1200, runCMm: 1200 });
+    assert.deepEqual(saved?.rectangles, [
+      { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, rotation: 0 },
+      { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, rotation: 0 },
+      { widthMm: 600, lengthMm: 1200, xMm: 900, yMm: 600, rotation: 0 },
+    ]);
+    const savedBasin = saved?.basinPlacements[0];
+    assert.ok(savedBasin);
+    assert.match(savedBasin.pieceId, /^piece-/);
+    assert.deepEqual({
+      sku: savedBasin.sku,
+      xMm: savedBasin.xMm,
+      yMm: savedBasin.yMm,
+      widthMm: savedBasin.widthMm,
+      depthMm: savedBasin.depthMm,
+    }, {
+      sku: "KF001",
+      xMm: 575,
+      yMm: 50,
+      widthMm: 350,
+      depthMm: 500,
+    });
+
+    const draftCard = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const card = document.querySelector('[data-testid^="studio-saved-draft-"]');
+        return {
+          name: card?.querySelector(".studio-saved-draft-heading strong")?.textContent ?? "",
+          previews: card?.querySelectorAll('[data-testid^="studio-draft-preview-"]').length ?? 0,
+          openButton: card?.querySelector('[data-testid^="button-open-studio-draft-"]')?.getAttribute("data-testid") ?? "",
+        };
+      })()`),
+      (value) => value.name === "แบบร่างตัวยู" && value.previews === 1 && Boolean(value.openButton),
+      "saved U-shaped draft card",
+    );
+    await clickTestId(browser.page, draftCard.openButton);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-drafts-drawer"]\') === null'),
+      Boolean,
+      "reopened U-shaped draft",
+    );
+
+    const restored = await waitFor(
+      () => browser.page.evaluate(`(() => ({
+        mainSizes: [...document.querySelectorAll('[data-testid="studio-canvas"] .studio-piece-size')].map((item) => item.textContent),
+        printSizes: [...document.querySelectorAll('.studio-print-canvas .studio-piece-size')].map((item) => item.textContent),
+        mainBasin: document.querySelector('[data-testid="studio-canvas"] .studio-placement')?.getAttribute("style") ?? "",
+        mainBasinValid: document.querySelector('[data-testid="studio-canvas"] .studio-placement')?.classList.contains("studio-placement--invalid") === false,
+      }))()`),
+      (value) => {
+        const left = Number.parseFloat(value.mainBasin.match(/left: ([0-9.]+)/)?.[1] ?? "NaN");
+        const top = Number.parseFloat(value.mainBasin.match(/top: ([0-9.]+)/)?.[1] ?? "NaN");
+        return value.mainSizes.length === 3 &&
+          value.printSizes.length === 3 &&
+          value.mainBasinValid &&
+          Number.isFinite(left) &&
+          Number.isFinite(top);
+      },
+      "restored U-shaped geometry",
+    );
+    assert.deepEqual(restored.mainSizes, ["1500 × 600", "600 × 1200", "600 × 1200"]);
+    assert.deepEqual(restored.printSizes, ["1500 × 600", "600 × 1200", "600 × 1200"]);
+
+    await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
+    await clickTestId(browser.page, "button-download-studio-pdf");
+    assert.equal(await waitFor(
+      () => browser.page.evaluate("window.__studioPrintCalled === true"),
+      Boolean,
+      "U-shaped Studio print action",
+    ), true);
+    assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
+  });
+
   it("saves named Studio drafts in My Drafts and restores each card", async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
