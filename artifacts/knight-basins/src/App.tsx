@@ -768,7 +768,7 @@ function FormalQuote({
     </table>
     </div>
 
-    <div className="formal-quote-bottom">
+    <div className={`formal-quote-bottom formal-quote-bottom--${format.toLowerCase()}`}>
       <div className="formal-notes formal-notes-container">
         <div className="formal-notes-col">
           <h3>รายละเอียดสินค้า</h3>

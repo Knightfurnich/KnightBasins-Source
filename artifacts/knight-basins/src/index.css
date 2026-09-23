@@ -960,21 +960,36 @@ h1, h2, h3 { color: var(--ink); }
 .formal-qr-column small { font-size: 6px; white-space: nowrap; }
 .formal-photo-column { width: 60px; text-align: center !important; }
 .formal-photo-column img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid #dbe6ec; }
-.formal-quote-bottom { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-top: 14px; }
-.formal-notes-container { flex: 1 1 0%; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.formal-quote-bottom { display: flex; justify-content: space-between; align-items: flex-start; gap: 0; padding-top: 10px; }
+.formal-notes-container { box-sizing: border-box; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-right: 14px; }
 .formal-notes-col h3 { margin: 0 0 5px; color: #123f67; font-size: 10px; font-weight: 700; border-bottom: 1px solid #c2d6e5; padding-bottom: 3px; }
 .formal-notes-col p { margin: 2.5px 0; color: #526f80; font-size: 8px; line-height: 1.35; }
 .formal-customer-note { margin-top: 6px !important; padding: 4px 6px; background: #fffbe6; border-left: 2px solid #eab308; border-radius: 2px; }
-.formal-summary-sidebar { flex: 0 0 290px; width: 290px; margin-left: auto; display: flex; flex-direction: column; gap: 10px; }
-.formal-bank-details { width: 100%; display: grid; gap: 2px; margin-top: 0; padding: 6px 8px; border: 1px solid #b5c5d2; background: #f8fbfe; color: #405f79; font-size: 8px; line-height: 1.35; border-radius: 4px; }
-.formal-bank-details strong { color: #123f67; font-size: 9px; }
+.formal-summary-sidebar { box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
+/* OF: last two columns are ราคาต่อหน่วย 14% + จำนวนเงิน 17% (= 31% of the sheet) */
+.formal-quote-bottom--of .formal-notes-container { flex: 0 0 69%; width: 69%; }
+.formal-quote-bottom--of .formal-summary-sidebar { flex: 0 0 31%; width: 31%; }
+.formal-quote-bottom--of .formal-totals > div > span, .formal-quote-bottom--of .formal-grand-total > span { flex: 0 0 45.1613%; width: 45.1613%; }
+.formal-quote-bottom--of .formal-totals > div > strong, .formal-quote-bottom--of .formal-grand-total > strong { flex: 0 0 54.8387%; width: 54.8387%; }
+.formal-quote-bottom--of .formal-bank-details { width: 54.8387%; }
+/* US: last two columns are จำนวนงาน 9% + จำนวนเงิน 18% (= 27% of the sheet) */
+.formal-quote-bottom--us .formal-notes-container { flex: 0 0 73%; width: 73%; }
+.formal-quote-bottom--us .formal-summary-sidebar { flex: 0 0 27%; width: 27%; }
+.formal-quote-bottom--us .formal-totals > div > span, .formal-quote-bottom--us .formal-grand-total > span { flex: 0 0 33.3333%; width: 33.3333%; }
+.formal-quote-bottom--us .formal-totals > div > strong, .formal-quote-bottom--us .formal-grand-total > strong { flex: 0 0 66.6667%; width: 66.6667%; }
+.formal-quote-bottom--us .formal-bank-details { width: 66.6667%; }
+.formal-totals { width: 100%; box-sizing: border-box; border: 1px solid #7189a0; background: rgba(255,255,255,.72); }
+.formal-totals > div { display: flex; align-items: center; padding: 0; border-bottom: 1px solid #b5c5d2; }
+.formal-totals > div:last-child { border-bottom: 0; }
+.formal-totals > div > span { padding: 4px 6px; box-sizing: border-box; color: #597486; font-size: 8px; text-align: left; }
+.formal-totals > div > strong { padding: 4px 6px; box-sizing: border-box; border-left: 1px solid #b5c5d2; color: #173f5f; font-size: 8.5px; font-weight: 700; text-align: right; }
+.formal-totals .formal-grand-total { display: flex; flex-wrap: wrap; align-items: center; padding: 0; border: 0; color: white; background: #123f67; }
+.formal-totals .formal-grand-total > span { padding: 6px; box-sizing: border-box; color: white; font-size: 8.5px; font-weight: 700; text-align: left; }
+.formal-totals .formal-grand-total > strong { padding: 6px; box-sizing: border-box; border-left: 1px solid #336699; color: white; font-size: 13px; font-weight: 700; text-align: right; }
+.formal-totals .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 0 6px 4px; box-sizing: border-box; color: #cce8f6; font-size: 7.5px; text-align: right; }
+.formal-bank-details { margin-left: auto; box-sizing: border-box; display: grid; gap: 1.5px; padding: 4px 6px; border: 1px solid #7189a0; background: #f8fbfe; color: #405f79; font-size: 7.5px; line-height: 1.25; }
+.formal-bank-details strong { color: #123f67; font-size: 8px; }
 .formal-quote-signature small { display: block; color: #627889; font-size: 8px; }
-.formal-totals { width: 100%; align-self: start; border: 1px solid #7189a0; background: rgba(255,255,255,.72); }
-.formal-totals > div { display: flex; justify-content: space-between; gap: 16px; padding: 5px 8px; border-bottom: 1px solid #b5c5d2; color: #597486; font-size: 8px; }
-.formal-totals strong { color: #173f5f; font-weight: 700; }
-.formal-totals .formal-grand-total { display: grid; grid-template-columns: 1fr auto; align-items: baseline; margin-top: 0; padding: 9px 8px; border: 0; color: white; background: #123f67; }
-.formal-grand-total strong { color: white; font-size: 15px; }
-.formal-grand-total small { grid-column: 1 / -1; margin-top: 3px; color: #cce8f6; font-size: 8px; }
 .formal-quote-signature { display: flex; justify-content: space-between; gap: 30px; margin-top: 20px; padding-top: 14px; border-top: 1px solid #7189a0; color: #627889; font-size: 8px; line-height: 1.8; }
 .formal-quote-signature b { color: #173f5f; font-weight: 700; }
 .formal-signature-block { display: flex; flex-direction: column; min-width: 220px; }
@@ -2336,22 +2351,32 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-qr-column small { font-size: 6.5px; }
   .formal-photo-column { width: auto; }
   .formal-photo-column img { width: 28px; height: 28px; }
-  .formal-quote-bottom { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-top: 6px; }
-  .formal-notes-container { flex: 1 1 0%; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .formal-quote-bottom { display: flex; justify-content: space-between; align-items: flex-start; gap: 0; margin-top: 6px; }
+  .formal-notes-container { box-sizing: border-box; padding-right: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .formal-notes-col h3 { margin: 0 0 2px; font-size: 7.5px; border-bottom: 0.5px solid #c2d6e5; padding-bottom: 1px; }
   .formal-notes-col p { margin: 1px 0; font-size: 6.5px; line-height: 1.2; }
   .formal-customer-note { margin-top: 3px !important; padding: 2px 4px; font-size: 6.5px; }
-  .formal-summary-sidebar { flex: 0 0 250px; width: 250px; margin-left: auto; display: flex; flex-direction: column; gap: 5px; }
-  .formal-bank-details { width: 100%; margin-top: 0; padding: 3px 6px; font-size: 6.8px; line-height: 1.2; }
-  .formal-bank-details strong { font-size: 7.2px; }
-  .formal-totals { width: 100%; break-inside: avoid; page-break-inside: avoid; }
-  .formal-totals > div { padding: 2px 6px; font-size: 7.5px; min-height: 0; }
-  .formal-totals span { font-size: 7.5px; }
-  .formal-totals strong { font-size: 8px; }
-  .formal-grand-total { padding: 3px 6px !important; }
-  .formal-grand-total span { font-size: 7.5px; }
-  .formal-grand-total strong { font-size: 11px; }
-  .formal-grand-total small { font-size: 6.5px; }
+  .formal-summary-sidebar { box-sizing: border-box; display: flex; flex-direction: column; gap: 5px; }
+  .formal-quote-bottom--of .formal-notes-container { flex: 0 0 69%; width: 69%; }
+  .formal-quote-bottom--of .formal-summary-sidebar { flex: 0 0 31%; width: 31%; }
+  .formal-quote-bottom--of .formal-totals > div > span, .formal-quote-bottom--of .formal-grand-total > span { flex: 0 0 45.1613%; width: 45.1613%; }
+  .formal-quote-bottom--of .formal-totals > div > strong, .formal-quote-bottom--of .formal-grand-total > strong { flex: 0 0 54.8387%; width: 54.8387%; }
+  .formal-quote-bottom--of .formal-bank-details { width: 54.8387%; }
+  .formal-quote-bottom--us .formal-notes-container { flex: 0 0 73%; width: 73%; }
+  .formal-quote-bottom--us .formal-summary-sidebar { flex: 0 0 27%; width: 27%; }
+  .formal-quote-bottom--us .formal-totals > div > span, .formal-quote-bottom--us .formal-grand-total > span { flex: 0 0 33.3333%; width: 33.3333%; }
+  .formal-quote-bottom--us .formal-totals > div > strong, .formal-quote-bottom--us .formal-grand-total > strong { flex: 0 0 66.6667%; width: 66.6667%; }
+  .formal-quote-bottom--us .formal-bank-details { width: 66.6667%; }
+  .formal-totals { width: 100%; box-sizing: border-box; break-inside: avoid; page-break-inside: avoid; }
+  .formal-totals > div { display: flex; align-items: center; padding: 0; }
+  .formal-totals > div > span { padding: 2px 4px; box-sizing: border-box; font-size: 7.5px; }
+  .formal-totals > div > strong { padding: 2px 4px; box-sizing: border-box; border-left: 1px solid #b5c5d2; font-size: 8px; }
+  .formal-grand-total { padding: 0 !important; }
+  .formal-grand-total > span { padding: 3px 4px; box-sizing: border-box; font-size: 7.5px; }
+  .formal-grand-total > strong { padding: 3px 4px; box-sizing: border-box; border-left: 1px solid #336699; font-size: 10.5px; }
+  .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 0 4px 2px; box-sizing: border-box; font-size: 6.5px; }
+  .formal-bank-details { margin-left: auto; box-sizing: border-box; margin-top: 0; padding: 2.5px 5px; font-size: 6.5px; line-height: 1.15; }
+  .formal-bank-details strong { font-size: 7px; }
   .formal-quote-signature { margin-top: 6px; padding-top: 4px; font-size: 7.5px; break-inside: avoid; page-break-inside: avoid; }
   .formal-signature-line { margin: 12px auto 2px; width: 75%; }
 }
