@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, GripVertical, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import {
@@ -108,6 +108,19 @@ function isInvalidStone(stone: StoneConfig, colors: ReadonlyArray<StoneColor> = 
 function useStored<T>(key: string, fallback: T) {
   const [value, setValue] = useState<T>(() => {
     try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; } catch { return fallback; }
+  });
+  useEffect(() => { localStorage.setItem(key, JSON.stringify(value)); }, [key, value]);
+  return [value, setValue] as const;
+}
+
+function readStoredCustomer(value: unknown): CustomerDetails {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { ...emptyCustomer };
+  return { ...emptyCustomer, ...(value as Partial<CustomerDetails>) };
+}
+
+function useStoredCustomer(key: string) {
+  const [value, setValue] = useState<CustomerDetails>(() => {
+    try { return readStoredCustomer(JSON.parse(localStorage.getItem(key) || "null")); } catch { return { ...emptyCustomer }; }
   });
   useEffect(() => { localStorage.setItem(key, JSON.stringify(value)); }, [key, value]);
   return [value, setValue] as const;
@@ -1402,7 +1415,7 @@ function Storefront() {
   });
   const [cart, setCart] = useStored<QuoteBasinLine[]>("knight-cart", []);
   const [stones, setStones] = useStoredStones("knight-stones-v2", []);
-  const [customer, setCustomer] = useStored<CustomerDetails>("knight-customer", emptyCustomer);
+  const [customer, setCustomer] = useStoredCustomer("knight-customer");
   const [vat, setVat] = useStored<boolean>("knight-vat", true);
   const activeBasinProducts = useMemo(() => remoteCatalog?.basins.map(basinProductFromCatalog) ?? PRODUCTS, [remoteCatalog?.basins]);
   const [catalogNotice, setCatalogNotice] = useState("");
@@ -1413,45 +1426,58 @@ function Storefront() {
   const upsertLead = useUpsertLead();
   const notifyQuoteMutation = useNotifySavedQuote();
   const contactDefaults = useMemo(() => ({
-    name: customerProfile?.fullName || customerProfile?.displayName || "",
-    company: customerProfile?.company || "",
-    taxId: customerProfile?.taxId || "",
-    taxName: customerProfile?.taxName || "",
-    taxBranch: customerProfile?.taxBranch || "",
-    taxAddress: customerProfile?.taxAddress || "",
-    phone: customerProfile?.phone || "",
-    lineContact: customerProfile?.lineContact || "",
-    email: customerProfile?.email || "",
-    project: customerProfile?.project || "",
-    address: customerProfile?.address || "",
-    preferredContact: (customerProfile?.preferredContact || "") as CustomerDetails["preferredContact"],
-    customerRole: (customerProfile?.customerRole || "") as CustomerDetails["customerRole"],
-    propertyType: (customerProfile?.propertyType || "") as CustomerDetails["propertyType"],
-    condoFloor: customerProfile?.condoFloor || "",
-    expectedInstallationDate: customerProfile?.expectedInstallationDate || "",
-  }), [customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.lineContact, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole, customerProfile?.propertyType, customerProfile?.condoFloor, customerProfile?.expectedInstallationDate]);
+    name: customerProfile?.fullName || customerProfile?.displayName || customer.name,
+    company: customerProfile?.company || customer.company,
+    taxId: customerProfile?.taxId || customer.taxId,
+    taxName: customerProfile?.taxName || customer.taxName,
+    taxBranch: customerProfile?.taxBranch || customer.taxBranch,
+    taxAddress: customerProfile?.taxAddress || customer.taxAddress,
+    phone: customerProfile?.phone || customer.phone,
+    lineContact: customerProfile?.lineContact || customer.lineContact,
+    email: customerProfile?.email || customer.email,
+    project: customerProfile?.project || customer.project,
+    address: customerProfile?.address || customer.address,
+    site: customer.site,
+    purchasingDepartment: customer.purchasingDepartment,
+    notes: customer.notes,
+    preferredContact: (customerProfile?.preferredContact || customer.preferredContact || "") as CustomerDetails["preferredContact"],
+    customerRole: (customerProfile?.customerRole || customer.customerRole || "") as CustomerDetails["customerRole"],
+    propertyType: (customerProfile?.propertyType || customer.propertyType || "") as CustomerDetails["propertyType"],
+    condoFloor: customerProfile?.condoFloor || customer.condoFloor,
+    expectedInstallationDate: customerProfile?.expectedInstallationDate || customer.expectedInstallationDate,
+  }), [customer, customerProfile?.fullName, customerProfile?.displayName, customerProfile?.company, customerProfile?.taxId, customerProfile?.taxName, customerProfile?.taxBranch, customerProfile?.taxAddress, customerProfile?.phone, customerProfile?.lineContact, customerProfile?.email, customerProfile?.project, customerProfile?.address, customerProfile?.preferredContact, customerProfile?.customerRole, customerProfile?.propertyType, customerProfile?.condoFloor, customerProfile?.expectedInstallationDate]);
   useEffect(() => {
     if (!customerProfile) return;
     setCustomer((current) => ({
       ...current,
       name: contactDefaults.name || current.name,
       company: contactDefaults.company || current.company,
-       taxId: contactDefaults.taxId || current.taxId,
-       taxName: contactDefaults.taxName || current.taxName,
-       taxBranch: contactDefaults.taxBranch || current.taxBranch,
-       taxAddress: contactDefaults.taxAddress || current.taxAddress,
+      taxId: contactDefaults.taxId || current.taxId,
+      taxName: contactDefaults.taxName || current.taxName,
+      taxBranch: contactDefaults.taxBranch || current.taxBranch,
+      taxAddress: contactDefaults.taxAddress || current.taxAddress,
       phone: contactDefaults.phone || current.phone,
       lineContact: contactDefaults.lineContact || current.lineContact,
       email: contactDefaults.email || current.email,
       project: contactDefaults.project || current.project,
       address: contactDefaults.address || current.address,
-       preferredContact: contactDefaults.preferredContact || current.preferredContact,
-       customerRole: contactDefaults.customerRole || current.customerRole,
-        propertyType: contactDefaults.propertyType || current.propertyType,
-        condoFloor: contactDefaults.condoFloor || current.condoFloor,
-        expectedInstallationDate: contactDefaults.expectedInstallationDate || current.expectedInstallationDate,
+      preferredContact: contactDefaults.preferredContact || current.preferredContact,
+      customerRole: contactDefaults.customerRole || current.customerRole,
+      propertyType: contactDefaults.propertyType || current.propertyType,
+      condoFloor: contactDefaults.condoFloor || current.condoFloor,
+      expectedInstallationDate: contactDefaults.expectedInstallationDate || current.expectedInstallationDate,
+      site: contactDefaults.site || current.site,
+      purchasingDepartment: contactDefaults.purchasingDepartment || current.purchasingDepartment,
+      notes: contactDefaults.notes || current.notes,
     }));
   }, [customerProfile?.id, customerProfile?.updatedAt]);
+  const persistStudioContact = useCallback((contact: StudioSubmission["contact"]) => {
+    setCustomer((current) => {
+      const keys = Object.keys(contact) as Array<keyof StudioSubmission["contact"]>;
+      if (keys.every((key) => current[key] === contact[key])) return current;
+      return { ...current, ...contact };
+    });
+  }, [setCustomer]);
   useEffect(() => {
     if (!remoteCatalog) return;
     const catalogFingerprint = JSON.stringify({
@@ -1545,7 +1571,7 @@ function Storefront() {
   };
   const submitStudio = async ({ state, estimate, contact, notification }: StudioSubmission) => {
     setCustomer((current) => ({ ...current, ...contact }));
-    const lead = await syncLead("quote_requested", "studio", { ...contact, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification } });
+    const lead = await syncLead("quote_requested", "studio", { ...contact, site: contact.site || contact.address || undefined, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification } });
     if (!lead.quoteNumber || !lead.publicQuoteToken) throw new Error("ระบบยังไม่ได้สร้างลิงก์ใบเสนอราคา");
     setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}`);
   };
@@ -1555,7 +1581,7 @@ function Storefront() {
     if (mode === "studio") setLocation("/studio");
     else setLocation("/");
   };
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

@@ -86,7 +86,7 @@ import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
 
-const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineContact" | "email" | "project" | "address" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
+const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineContact" | "email" | "project" | "address" | "site" | "purchasingDepartment" | "notes" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
   name: "",
   company: "",
   phone: "",
@@ -94,6 +94,9 @@ const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineCo
   email: "",
   project: "",
   address: "",
+  site: "",
+  purchasingDepartment: "",
+  notes: "",
   taxName: "",
   taxId: "",
   taxBranch: "",
@@ -143,6 +146,7 @@ type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
   leadKey: string;
   onSubmitStudio: (submission: StudioSubmission) => Promise<void> | void;
+  onContactChange?: (contact: typeof emptyContact) => void;
   contactDefaults?: Partial<typeof emptyContact>;
   initialBasinSkus?: string[];
   initialStoneColors?: string[];
@@ -1576,6 +1580,7 @@ export function StudioPage({
   mode,
   leadKey,
   onSubmitStudio,
+  onContactChange,
   contactDefaults,
   initialBasinSkus = [],
   initialStoneColors = [],
@@ -1692,8 +1697,24 @@ export function StudioPage({
       email: contactDefaults.email || current.email,
       project: contactDefaults.project || current.project,
       address: contactDefaults.address || current.address,
+      site: contactDefaults.site || current.site,
+      purchasingDepartment: contactDefaults.purchasingDepartment || current.purchasingDepartment,
+      notes: contactDefaults.notes || current.notes,
+      lineContact: contactDefaults.lineContact || current.lineContact,
+      taxName: contactDefaults.taxName || current.taxName,
+      taxId: contactDefaults.taxId || current.taxId,
+      taxBranch: contactDefaults.taxBranch || current.taxBranch,
+      taxAddress: contactDefaults.taxAddress || current.taxAddress,
+      preferredContact: contactDefaults.preferredContact || current.preferredContact,
+      customerRole: contactDefaults.customerRole || current.customerRole,
+      propertyType: contactDefaults.propertyType || current.propertyType,
+      condoFloor: contactDefaults.condoFloor || current.condoFloor,
+      expectedInstallationDate: contactDefaults.expectedInstallationDate || current.expectedInstallationDate,
     }));
-  }, [contactDefaults?.name, contactDefaults?.company, contactDefaults?.phone, contactDefaults?.email, contactDefaults?.project, contactDefaults?.address]);
+  }, [contactDefaults?.name, contactDefaults?.company, contactDefaults?.phone, contactDefaults?.email, contactDefaults?.project, contactDefaults?.address, contactDefaults?.site, contactDefaults?.purchasingDepartment, contactDefaults?.notes, contactDefaults?.lineContact, contactDefaults?.taxName, contactDefaults?.taxId, contactDefaults?.taxBranch, contactDefaults?.taxAddress, contactDefaults?.preferredContact, contactDefaults?.customerRole, contactDefaults?.propertyType, contactDefaults?.condoFloor, contactDefaults?.expectedInstallationDate]);
+  useEffect(() => {
+    onContactChange?.(contact);
+  }, [contact, onContactChange]);
   useEffect(() => {
     if (!estimate.crossJointPlacements.length && result === "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว") {
       setResult("");
@@ -1956,7 +1977,7 @@ export function StudioPage({
     setResult("");
     const form = new FormData();
     sketchFiles.forEach((file) => form.append("file", file));
-    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
+    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, site: contact.site || address || null, purchasingDepartment: contact.purchasingDepartment || null, notes: contact.notes || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };

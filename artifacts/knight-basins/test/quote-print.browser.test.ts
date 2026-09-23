@@ -3,11 +3,13 @@ import { after, before, describe, it } from "node:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFile, spawn, type ChildProcess } from "node:child_process";
 import net from "node:net";
+import { promisify } from "node:util";
 
 const baseUrl = process.env["BROWSER_TEST_BASE_URL"] ?? "http://127.0.0.1:80";
 const chromiumPath = process.env["CHROMIUM_BIN"] ?? "/repl/tools/bin/chromium";
+const execFileAsync = promisify(execFile);
 
 class CdpPage {
   private readonly socket: WebSocket;
@@ -245,7 +247,11 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     await setTextInput(browser.page, "input-customer-phone", "0812345678");
     await setTextInput(browser.page, "input-customer-email", "customer@example.com");
     await setTextInput(browser.page, "input-customer-taxId", "0135553014114");
-    await setTextInput(browser.page, "input-customer-address", "224/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000");
+    const longThaiAddress = [
+      "224/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000",
+      ...Array.from({ length: 18 }, (_, index) => `อาคารทดสอบ ชั้น ${index + 1} ห้อง ${index + 101} แขวงตลาดขวัญ เขตเมืองนนทบุรี จังหวัดนนทบุรี`),
+    ].join("\n");
+    await setTextInput(browser.page, "input-customer-address", longThaiAddress);
     await setTextInput(browser.page, "input-customer-project", "โครงการหลายรายการ");
     await clickTestId(browser.page, "button-generate-quote");
     await waitFor(
@@ -345,6 +351,28 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(printStyles.sheetShadow, "none");
     assert.equal(printStyles.firstRowBreak, "avoid");
     assert.equal(printStyles.totalBreak, "avoid");
+
+    const pdfDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-quote-pdf-"));
+    const pdfPath = path.join(pdfDirectory, "thai-quote.pdf");
+    try {
+      const pdfResult = await browser.page.command("Page.printToPDF", {
+        printBackground: true,
+        preferCSSPageSize: true,
+      });
+      const pdfData = pdfResult["data"];
+      assert.equal(typeof pdfData, "string");
+      await writeFile(pdfPath, Buffer.from(pdfData as string, "base64"));
+      const { stdout: pdfInfo } = await execFileAsync("pdfinfo", [pdfPath]);
+      const pageCount = Number(pdfInfo.match(/^Pages:\s+(\d+)/m)?.[1] ?? 0);
+      assert.ok(pageCount >= 2, `Long Thai quote should paginate to at least two PDF pages, got ${pageCount}`);
+      const { stdout: pdfText } = await execFileAsync("pdftotext", [pdfPath, "-"]);
+      assert.match(pdfText, /ใบเสนอราคา \/ สรุปตามพื้นที่/);
+      assert.match(pdfText, /0135553014114/);
+      assert.match(pdfText, /224\/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000/);
+      assert.match(pdfText, /จำนวนเงินสุทธิ/);
+    } finally {
+      await rm(pdfDirectory, { force: true, recursive: true });
+    }
 
   });
 
@@ -2542,6 +2570,9 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       name: document.querySelector('[data-testid="input-customer-name"]')?.value ?? "",
       phone: document.querySelector('[data-testid="input-customer-phone"]')?.value ?? "",
       project: document.querySelector('[data-testid="input-customer-project"]')?.value ?? "",
+      taxName: document.querySelector('[data-testid="input-customer-taxName"]')?.value ?? "",
+      taxId: document.querySelector('[data-testid="input-customer-taxId"]')?.value ?? "",
+      taxBranch: document.querySelector('[data-testid="input-customer-taxBranch"]')?.value ?? "",
       taxAddress: document.querySelector('[data-testid="input-customer-tax-address"]')?.value ?? "",
       preferredContact: document.querySelector('[data-testid="input-customer-preferred-contact"]')?.value ?? "",
       role: document.querySelector('[data-testid="input-customer-role"]')?.value ?? "",
@@ -2550,6 +2581,9 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       name: "คุณโปรไฟล์",
       phone: "0812345678",
       project: "โครงการจากโปรไฟล์",
+      taxName: "บริษัทโปรไฟล์ จำกัด",
+      taxId: "0105559012345",
+      taxBranch: "สำนักงานใหญ่",
       taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
       preferredContact: "line",
       role: "homeowner",
@@ -2584,6 +2618,56 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "condo floor field hidden for houses",
     );
+
+    await setTextInput(browser.page, "input-customer-site", "ห้องน้ำชั้น 2");
+    await setTextInput(browser.page, "input-customer-purchasing-department", "ฝ่ายจัดซื้อโครงการ");
+    await setTextInput(browser.page, "input-customer-notes", "เข้าหน้างานช่วงเช้า");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-studio-tax-id"]\')?.value === "0105559012345"'),
+      Boolean,
+      "profile tax defaults in Studio",
+    );
+    const studioDefaults = await browser.page.evaluate(`(() => ({
+      taxName: document.querySelector('[data-testid="input-studio-tax-name"]')?.value ?? "",
+      taxId: document.querySelector('[data-testid="input-studio-tax-id"]')?.value ?? "",
+      taxBranch: document.querySelector('[data-testid="input-studio-tax-branch"]')?.value ?? "",
+      taxAddress: document.querySelector('[data-testid="input-studio-tax-address"]')?.value ?? "",
+      address: document.querySelector('[data-testid="input-studio-address"]')?.value ?? "",
+      storedCustomer: localStorage.getItem("knight-customer") ?? "",
+    }))()`);
+    assert.deepEqual(studioDefaults, {
+      taxName: "บริษัทโปรไฟล์ จำกัด",
+      taxId: "0105559012345",
+      taxBranch: "สำนักงานใหญ่",
+      taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
+      address: "99 ถนนสุขุมวิท กรุงเทพฯ",
+      storedCustomer: studioDefaults.storedCustomer,
+    });
+    assert.match(studioDefaults.storedCustomer, /ห้องน้ำชั้น 2/);
+    assert.match(studioDefaults.storedCustomer, /ฝ่ายจัดซื้อโครงการ/);
+    assert.match(studioDefaults.storedCustomer, /เข้าหน้างานช่วงเช้า/);
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="input-customer-site"]\')?.value === "ห้องน้ำชั้น 2"'),
+      Boolean,
+      "persisted quote site details after Studio navigation",
+    );
+    const persistedCustomer = await browser.page.evaluate(`(() => ({
+      site: document.querySelector('[data-testid="input-customer-site"]')?.value ?? "",
+      purchasingDepartment: document.querySelector('[data-testid="input-customer-purchasing-department"]')?.value ?? "",
+      notes: document.querySelector('[data-testid="input-customer-notes"]')?.value ?? "",
+      taxId: document.querySelector('[data-testid="input-customer-taxId"]')?.value ?? "",
+      taxAddress: document.querySelector('[data-testid="input-customer-tax-address"]')?.value ?? "",
+    }))()`);
+    assert.deepEqual(persistedCustomer, {
+      site: "ห้องน้ำชั้น 2",
+      purchasingDepartment: "ฝ่ายจัดซื้อโครงการ",
+      notes: "เข้าหน้างานช่วงเช้า",
+      taxId: "0105559012345",
+      taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
+    });
   });
 
   it("defaults a custom Studio counter to the selected basin color until the customer chooses a stone", async () => {
