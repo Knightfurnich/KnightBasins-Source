@@ -17,6 +17,7 @@ export type StudioLocation = "bangkok-metro" | "province";
 export type StudioQuoteFormat = "US" | "OF";
 export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "normal";
 export type RectangleRotation = 0 | 90;
+export type BasinAnchor = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
 
 export type StudioDimensions = {
   depthMm: number;
@@ -51,6 +52,12 @@ export type BasinPlacement = {
   id: string;
   sku: string;
   pieceId?: string;
+  /** rectangleId of the target sheet/panel within the piece that edge offsets are measured from. */
+  sheetId?: string;
+  anchor?: BasinAnchor;
+  offsetXMm?: number;
+  offsetYMm?: number;
+  rotation?: RectangleRotation;
   xMm: number;
   yMm: number;
   widthMm: number | null;
@@ -749,6 +756,34 @@ export function clampBasinPlacementPosition(
   return candidates[0] ?? { xMm: Math.max(0, xMm), yMm: Math.max(0, yMm) };
 }
 
+/**
+ * Piece/sheet-aware clamp. This is the one to use from now on: it resolves the
+ * placement's own sheetId inside the placement's own piece, so a basin on the
+ * second workpiece is never clamped against the first one.
+ */
+export function clampPlacementToSheet(
+  placement: BasinPlacement,
+  piece: StudioPiece | undefined,
+  xMm: number,
+  yMm: number,
+): { xMm: number; yMm: number } {
+  if (!piece) return { xMm, yMm };
+  const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId)
+    ?? placementHostRectangle(piece, placement);
+  const cutSize = placementCutSize(placement);
+  if (!sheet || cutSize.widthMm === null || cutSize.heightMm === null) return { xMm, yMm };
+  const size = studioRectangleSize(sheet);
+  return {
+    xMm: Math.round(Math.max(sheet.xMm, Math.min(sheet.xMm + size.widthMm - cutSize.widthMm, xMm))),
+    yMm: Math.round(Math.max(sheet.yMm, Math.min(sheet.yMm + size.heightMm - cutSize.heightMm, yMm))),
+  };
+}
+
+/**
+ * @deprecated Legacy single-piece helper: it rebuilds the piece from shape +
+ * dimensions and can therefore only ever clamp against the FIRST piece. Use
+ * `clampPlacementToSheet(placement, piece, x, y)` for any multi-piece layout.
+ */
 export function snapBasinPlacementPosition(
   placement: Pick<BasinPlacement, "widthMm" | "depthMm">,
   xMm: number,
@@ -1005,9 +1040,179 @@ export function studioSubmissionValidationMessage(state: StudioState, estimate: 
   return studioSubmissionValidationMessages(state, estimate)[0] ?? null;
 }
 
-export function createBasinPlacement(product: BasinProduct, index: number, pieceId?: string): BasinPlacement {
+/**
+ * Contract check for NEW placements: pieceId must resolve, and sheetId must be
+ * present and resolve inside that piece. Legacy v1 drafts are exempt — they go
+ * through `normalizePlacements` first, which fills both from the saved geometry.
+ */
+export function placementTargetWarnings(
+  placement: BasinPlacement,
+  pieces: ReadonlyArray<StudioPiece>,
+): string[] {
+  if (!placement.pieceId) return [`อ่าง ${placement.id} ไม่ได้ระบุชิ้นงาน (pieceId)`];
+  const piece = pieces.find((candidate) => candidate.id === placement.pieceId);
+  if (!piece) return [`ไม่พบชิ้นงานสำหรับอ่าง ${placement.id}`];
+  if (!placement.sheetId) return [`อ่าง ${placement.id} ไม่ได้ระบุแผ่น (sheetId)`];
+  if (!piece.rectangles.some((rectangle) => rectangle.id === placement.sheetId)) {
+    return [`ไม่พบแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];
+  }
+  return [];
+}
+
+/**
+ * Builds a NEW placement. `pieceId` is required — new data must always name its
+ * workpiece. `sheetId` is required by the placement contract too and must be the
+ * sheet the user picked (WO-3 passes it); until a caller supplies it, the
+ * placement is intentionally incomplete and `placementTargetWarnings` reports it.
+ */
+export function createBasinPlacement(
+  product: BasinProduct,
+  index: number,
+  pieceId: string,
+  sheetId?: string,
+  anchor: BasinAnchor = "top-left",
+): BasinPlacement {
   const size = basinDimensionsForProduct(product);
-  return { id: `${product.sku}-${index}-${Date.now()}`, sku: product.sku, pieceId, xMm: 0, yMm: 0, ...size };
+  return {
+    id: `${product.sku}-${index}-${Date.now()}`,
+    sku: product.sku,
+    pieceId,
+    sheetId,
+    anchor,
+    offsetXMm: 0,
+    offsetYMm: 0,
+    rotation: 0,
+    xMm: 0,
+    yMm: 0,
+    ...size,
+  };
+}
+
+/** Actual cut footprint after applying the basin's own rotation (0 = horizontal, 90 = vertical). */
+export function placementCutSize(
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation">,
+): { widthMm: number | null; heightMm: number | null } {
+  if (placement.widthMm === null || placement.widthMm === undefined || placement.depthMm === null || placement.depthMm === undefined) {
+    return { widthMm: null, heightMm: null };
+  }
+  return placement.rotation === 90
+    ? { widthMm: placement.depthMm, heightMm: placement.widthMm }
+    : { widthMm: placement.widthMm, heightMm: placement.depthMm };
+}
+
+/** Resolves anchor + edge offsets (measured against sheetId, not the piece's bounding box) into absolute xMm/yMm. */
+export function calculateBasinCoordinates(
+  sheet: StudioRectangle,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "anchor" | "offsetXMm" | "offsetYMm">,
+): { xMm: number; yMm: number } {
+  const sheetSize = studioRectangleSize(sheet);
+  const cutSize = placementCutSize(placement);
+  const widthMm = cutSize.widthMm ?? 0;
+  const heightMm = cutSize.heightMm ?? 0;
+  const offsetXMm = placement.offsetXMm ?? 0;
+  const offsetYMm = placement.offsetYMm ?? 0;
+  switch (placement.anchor ?? "top-left") {
+    case "top-right":
+      return { xMm: sheet.xMm + sheetSize.widthMm - widthMm - offsetXMm, yMm: sheet.yMm + offsetYMm };
+    case "bottom-left":
+      return { xMm: sheet.xMm + offsetXMm, yMm: sheet.yMm + sheetSize.heightMm - heightMm - offsetYMm };
+    case "bottom-right":
+      return { xMm: sheet.xMm + sheetSize.widthMm - widthMm - offsetXMm, yMm: sheet.yMm + sheetSize.heightMm - heightMm - offsetYMm };
+    case "center":
+      return { xMm: sheet.xMm + (sheetSize.widthMm - widthMm) / 2 + offsetXMm, yMm: sheet.yMm + (sheetSize.heightMm - heightMm) / 2 + offsetYMm };
+    default:
+      return { xMm: sheet.xMm + offsetXMm, yMm: sheet.yMm + offsetYMm };
+  }
+}
+
+/** Inverse of calculateBasinCoordinates: derives the edge offsets (for the given anchor) that reproduce coords. */
+export function calculateBasinOffsets(
+  sheet: StudioRectangle,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation">,
+  coords: { xMm: number; yMm: number },
+  anchor: BasinAnchor,
+): { offsetXMm: number; offsetYMm: number } {
+  const sheetSize = studioRectangleSize(sheet);
+  const cutSize = placementCutSize(placement);
+  const widthMm = cutSize.widthMm ?? 0;
+  const heightMm = cutSize.heightMm ?? 0;
+  switch (anchor) {
+    case "top-right":
+      return { offsetXMm: sheet.xMm + sheetSize.widthMm - coords.xMm - widthMm, offsetYMm: coords.yMm - sheet.yMm };
+    case "bottom-left":
+      return { offsetXMm: coords.xMm - sheet.xMm, offsetYMm: sheet.yMm + sheetSize.heightMm - coords.yMm - heightMm };
+    case "bottom-right":
+      return {
+        offsetXMm: sheet.xMm + sheetSize.widthMm - coords.xMm - widthMm,
+        offsetYMm: sheet.yMm + sheetSize.heightMm - coords.yMm - heightMm,
+      };
+    case "center":
+      return {
+        offsetXMm: coords.xMm - (sheet.xMm + (sheetSize.widthMm - widthMm) / 2),
+        offsetYMm: coords.yMm - (sheet.yMm + (sheetSize.heightMm - heightMm) / 2),
+      };
+    default:
+      return { offsetXMm: coords.xMm - sheet.xMm, offsetYMm: coords.yMm - sheet.yMm };
+  }
+}
+
+/** Toggles 0 <-> 90, keeping anchor + edge offsets fixed and re-deriving xMm/yMm from the host sheet. */
+export function rotatePlacement(placement: BasinPlacement, piece: StudioPiece): BasinPlacement {
+  const rotation: RectangleRotation = placement.rotation === 90 ? 0 : 90;
+  const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId);
+  if (!sheet) return { ...placement, rotation };
+  const coords = calculateBasinCoordinates(sheet, { ...placement, rotation });
+  return { ...placement, rotation, xMm: coords.xMm, yMm: coords.yMm };
+}
+
+/**
+ * v1 migration: legacy drafts saved placements without pieceId/sheetId/anchor.
+ * Missing pieceId is filled from pieces[0] ONLY when it was never set (legacy).
+ * A placement that already names a (possibly stale) pieceId is new-model data
+ * and must never silently fall back to pieces[0].
+ */
+export function normalizePlacements(state: StudioState): BasinPlacement[] {
+  const pieces = studioPieces(state);
+  return state.basinPlacements.map((placement) => {
+    const isLegacyMissingPieceId = placement.pieceId === undefined;
+    const pieceId = isLegacyMissingPieceId ? pieces[0]?.id : placement.pieceId;
+    const piece = pieces.find((candidate) => candidate.id === pieceId);
+    const sheetId = placement.sheetId ?? (piece ? placementHostRectangle(piece, placement)?.id : undefined);
+    const sheet = piece?.rectangles.find((rectangle) => rectangle.id === sheetId);
+    const anchor = placement.anchor ?? "top-left";
+    const rotation = placement.rotation ?? 0;
+    const offsets = placement.offsetXMm !== undefined && placement.offsetYMm !== undefined
+      ? { offsetXMm: placement.offsetXMm, offsetYMm: placement.offsetYMm }
+      : sheet
+        ? calculateBasinOffsets(sheet, { ...placement, rotation }, { xMm: placement.xMm, yMm: placement.yMm }, anchor)
+        : { offsetXMm: placement.offsetXMm ?? 0, offsetYMm: placement.offsetYMm ?? 0 };
+    return {
+      ...placement,
+      pieceId,
+      sheetId,
+      anchor,
+      rotation,
+      offsetXMm: offsets.offsetXMm,
+      offsetYMm: offsets.offsetYMm,
+    };
+  });
+}
+
+/** Warns when a placement's piece/sheet can no longer be resolved, or the cut no longer fits inside sheetId. */
+export function placementSheetWarnings(placement: BasinPlacement, piece?: StudioPiece): string[] {
+  if (!piece) return [`ไม่พบชิ้นงานสำหรับอ่าง ${placement.id}`];
+  if (!placement.sheetId) return [`ไม่ได้ระบุแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];
+  const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId);
+  if (!sheet) return [`ไม่พบแผ่นเป้าหมายสำหรับอ่าง ${placement.id}`];
+  const cutSize = placementCutSize(placement);
+  if (cutSize.widthMm === null || cutSize.heightMm === null) return [];
+  const sheetSize = studioRectangleSize(sheet);
+  const coords = calculateBasinCoordinates(sheet, placement);
+  const exceeds = coords.xMm < sheet.xMm - STUDIO_EPSILON_MM ||
+    coords.yMm < sheet.yMm - STUDIO_EPSILON_MM ||
+    coords.xMm + cutSize.widthMm > sheet.xMm + sheetSize.widthMm + STUDIO_EPSILON_MM ||
+    coords.yMm + cutSize.heightMm > sheet.yMm + sheetSize.heightMm + STUDIO_EPSILON_MM;
+  return exceeds ? [`อ่าง ${placement.id} เกินขอบเขตแผ่น ${sheet.id}`] : [];
 }
 
 export function studioStoneName(code: string) {
