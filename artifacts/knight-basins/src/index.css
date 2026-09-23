@@ -978,16 +978,16 @@ h1, h2, h3 { color: var(--ink); }
 .formal-quote-bottom--us .formal-totals > div > span, .formal-quote-bottom--us .formal-grand-total > span { flex: 0 0 33.3333%; width: 33.3333%; }
 .formal-quote-bottom--us .formal-totals > div > strong, .formal-quote-bottom--us .formal-grand-total > strong { flex: 0 0 66.6667%; width: 66.6667%; }
 .formal-quote-bottom--us .formal-bank-details { width: 66.6667%; }
-.formal-totals { width: 100%; box-sizing: border-box; border: 1px solid #7189a0; background: rgba(255,255,255,.72); }
-.formal-totals > div { display: flex; align-items: center; padding: 0; border-bottom: 1px solid #b5c5d2; }
+.formal-totals { width: 100%; box-sizing: border-box; border: 1.5px solid #234c7d; background: #fff; }
+.formal-totals > div { display: flex; align-items: center; padding: 0; border-bottom: 1px solid #7aa7c5; }
 .formal-totals > div:last-child { border-bottom: 0; }
-.formal-totals > div > span { padding: 4px 6px; box-sizing: border-box; color: #597486; font-size: 8px; text-align: left; }
-.formal-totals > div > strong { padding: 4px 6px; box-sizing: border-box; border-left: 1px solid #b5c5d2; color: #173f5f; font-size: 8.5px; font-weight: 700; text-align: right; }
-.formal-totals .formal-grand-total { display: flex; flex-wrap: wrap; align-items: center; padding: 0; border: 0; color: white; background: #123f67; }
-.formal-totals .formal-grand-total > span { padding: 6px; box-sizing: border-box; color: white; font-size: 8.5px; font-weight: 700; text-align: left; }
-.formal-totals .formal-grand-total > strong { padding: 6px; box-sizing: border-box; border-left: 1px solid #336699; color: white; font-size: 13px; font-weight: 700; text-align: right; }
-.formal-totals .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 0 6px 4px; box-sizing: border-box; color: #cce8f6; font-size: 7.5px; text-align: right; }
-.formal-bank-details { margin-left: auto; box-sizing: border-box; display: grid; gap: 1.5px; padding: 4px 6px; border: 1px solid #7189a0; background: #f8fbfe; color: #405f79; font-size: 7.5px; line-height: 1.25; }
+.formal-totals > div > span { padding: 4px 6px; box-sizing: border-box; color: #173f5f; font-size: 8px; text-align: left; }
+.formal-totals > div > strong { padding: 4px 6px; box-sizing: border-box; border-left: 1px solid #7aa7c5; color: #173f5f; font-size: 8.5px; font-weight: 700; text-align: right; }
+.formal-totals .formal-grand-total { display: flex; flex-wrap: wrap; align-items: center; padding: 0; border-top: 1.5px solid #234c7d; border-bottom: 0; color: #0f2c4d; background: #edf5fa; }
+.formal-totals .formal-grand-total > span { padding: 5px 6px; box-sizing: border-box; color: #0f2c4d; font-size: 8.5px; font-weight: 700; text-align: left; }
+.formal-totals .formal-grand-total > strong { padding: 5px 6px; box-sizing: border-box; border-left: 1px solid #7aa7c5; color: #0f2c4d; font-size: 13px; font-weight: 800; text-align: right; }
+.formal-totals .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 2px 6px 4px; box-sizing: border-box; border-top: 1px dashed #b5c5d2; color: #405f79; font-size: 7.5px; text-align: right; }
+.formal-bank-details { margin-left: auto; box-sizing: border-box; display: grid; gap: 1.5px; padding: 4px 6px; border: 1px solid #234c7d; background: #f8fbfe; color: #405f79; font-size: 7.5px; line-height: 1.25; }
 .formal-bank-details strong { color: #123f67; font-size: 8px; }
 .formal-quote-signature small { display: block; color: #627889; font-size: 8px; }
 .formal-quote-signature { display: flex; justify-content: space-between; gap: 30px; margin-top: 20px; padding-top: 14px; border-top: 1px solid #7189a0; color: #627889; font-size: 8px; line-height: 1.8; }
@@ -2367,16 +2367,17 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-quote-bottom--us .formal-totals > div > span, .formal-quote-bottom--us .formal-grand-total > span { flex: 0 0 33.3333%; width: 33.3333%; }
   .formal-quote-bottom--us .formal-totals > div > strong, .formal-quote-bottom--us .formal-grand-total > strong { flex: 0 0 66.6667%; width: 66.6667%; }
   .formal-quote-bottom--us .formal-bank-details { width: 66.6667%; }
-  .formal-totals { width: 100%; box-sizing: border-box; break-inside: avoid; page-break-inside: avoid; }
-  .formal-totals > div { display: flex; align-items: center; padding: 0; }
-  .formal-totals > div > span { padding: 2px 4px; box-sizing: border-box; font-size: 7.5px; }
-  .formal-totals > div > strong { padding: 2px 4px; box-sizing: border-box; border-left: 1px solid #b5c5d2; font-size: 8px; }
-  .formal-grand-total { padding: 0 !important; }
-  .formal-grand-total > span { padding: 3px 4px; box-sizing: border-box; font-size: 7.5px; }
-  .formal-grand-total > strong { padding: 3px 4px; box-sizing: border-box; border-left: 1px solid #336699; font-size: 10.5px; }
-  .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 0 4px 2px; box-sizing: border-box; font-size: 6.5px; }
-  .formal-bank-details { margin-left: auto; box-sizing: border-box; margin-top: 0; padding: 2.5px 5px; font-size: 6.5px; line-height: 1.15; }
-  .formal-bank-details strong { font-size: 7px; }
+  .formal-totals { width: 100%; box-sizing: border-box; border: 1.5px solid #234c7d !important; break-inside: avoid; page-break-inside: avoid; }
+  .formal-totals > div { display: flex; align-items: center; padding: 0; border-bottom: 1px solid #7aa7c5 !important; }
+  .formal-totals > div:last-child { border-bottom: 0 !important; }
+  .formal-totals > div > span { padding: 2px 4px; box-sizing: border-box; font-size: 7.5px; color: #173f5f !important; }
+  .formal-totals > div > strong { padding: 2px 4px; box-sizing: border-box; border-left: 1px solid #7aa7c5 !important; font-size: 8px; color: #173f5f !important; }
+  .formal-grand-total { padding: 0 !important; border-top: 1.5px solid #234c7d !important; border-bottom: 0 !important; background: #edf5fa !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .formal-grand-total > span { padding: 3px 4px; box-sizing: border-box; font-size: 7.5px; color: #0f2c4d !important; font-weight: 700 !important; }
+  .formal-grand-total > strong { padding: 3px 4px; box-sizing: border-box; border-left: 1px solid #7aa7c5 !important; font-size: 10.5px; color: #0f2c4d !important; font-weight: 800 !important; }
+  .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 1px 4px 2px; box-sizing: border-box; border-top: 1px dashed #b5c5d2 !important; color: #405f79 !important; font-size: 6.5px; }
+  .formal-bank-details { margin-left: auto; box-sizing: border-box; margin-top: 0; padding: 2.5px 5px; border: 1px solid #234c7d !important; font-size: 6.5px; line-height: 1.15; }
+  .formal-bank-details strong { font-size: 7px; color: #123f67 !important; }
   .formal-quote-signature { margin-top: 6px; padding-top: 4px; font-size: 7.5px; break-inside: avoid; page-break-inside: avoid; }
   .formal-signature-line { margin: 12px auto 2px; width: 75%; }
 }
