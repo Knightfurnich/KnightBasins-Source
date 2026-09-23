@@ -86,7 +86,7 @@ export function CustomerProfilePage() {
       return;
     }
     if (hasInvalidTaxId) {
-      setErrorMessage("");
+      setErrorMessage("กรุณากรอกเลขประจำตัวผู้เสียภาษีให้ครบ 13 หลัก");
       return;
     }
     if (form.expectedInstallationDate && form.expectedInstallationDate < today) {
@@ -133,6 +133,15 @@ export function CustomerProfilePage() {
 
   if (profile.isLoading) {
     return <section className="page-wrap empty-state" data-testid="status-profile-loading"><span className="empty-number">…</span><h3>กำลังโหลดโปรไฟล์</h3></section>;
+  }
+
+  if (profile.error) {
+    return <section className="page-wrap empty-state" data-testid="status-profile-error">
+      <span className="empty-number">!</span>
+      <h3>โหลดโปรไฟล์ไม่สำเร็จ</h3>
+      <p>กรุณาลองใหม่อีกครั้ง หากยังไม่สำเร็จให้เข้าสู่ระบบ LINE ใหม่</p>
+      <button type="button" className="button button--outline" onClick={() => void profile.refetch()} data-testid="button-retry-profile">ลองโหลดอีกครั้ง</button>
+    </section>;
   }
 
   return <section className="page-wrap profile-page">

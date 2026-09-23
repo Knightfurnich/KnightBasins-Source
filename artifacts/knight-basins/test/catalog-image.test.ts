@@ -132,6 +132,19 @@ describe("storefront multi-selection state", () => {
     assert.deepEqual(selected, [nw]);
   });
 
+  it("removes a saved stone when the UI uses its canonical code but storage has a document alias", () => {
+    const colors = [{
+      code: "BW010",
+      name: "Bright White",
+      tone: "#fff",
+      sheetPriceTHB: 7000,
+      installedPriceTHB: 7500,
+      documentCodes: ["BW 010"],
+    }];
+    const saved = { enabled: true, mode: "whole-sheet" as const, color: "BW 010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 };
+    assert.deepEqual(removeStoneSelection([saved], "BW010", colors), []);
+  });
+
   it("can deselect the last stone without creating a replacement selection", () => {
     const bw: StoneConfig = { enabled: true, mode: "whole-sheet", color: "BW010", quantity: 2, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: 0, installationPrice: 0 };
     assert.deepEqual(toggleStoneSelection([bw], "BW010", bw), []);
@@ -219,7 +232,7 @@ describe("storefront multi-selection state", () => {
       installed: [{ code: "BOTH", name: "Both", tone: "#222", sheetPriceTHB: null, installedPriceTHB: 9000, documentCodes: [] }],
     });
 
-    assert.deepEqual(result.active, [selected[0], selected[1]]);
+    assert.deepEqual(result.active, [{ ...selected[0] }, { ...selected[1], color: "BOTH" }]);
     assert.deepEqual(result.hidden, [selected[2]]);
   });
 

@@ -243,7 +243,7 @@ export type StoneSelectionReconciliation = {
   hidden: StoneConfig[];
 };
 
-function stoneColorMatchesSelection(color: StoneColor, identifier: string) {
+export function stoneColorMatchesSelection(color: StoneColor, identifier: string) {
   const normalized = identifier.trim().toLowerCase();
   return [color.code, color.name, ...color.documentCodes]
     .some((value) => value.trim().toLowerCase() === normalized);
@@ -264,8 +264,12 @@ export function reconcileStoneSelections(
 ): StoneSelectionReconciliation {
   return stones.reduce<StoneSelectionReconciliation>((result, stone) => {
     const colors = colorsByMode[stone.mode];
-    if (colors.some((color) => stoneColorMatchesSelection(color, stone.color))) {
-      result.active.push(stone);
+    const matchedColor = colors.find((color) => stoneColorMatchesSelection(color, stone.color));
+    if (matchedColor) {
+      // Persist the canonical catalog code. Older local-storage records can
+      // contain a document alias; keeping that alias makes the UI treat a
+      // removed code as a different selection and can make it appear again.
+      result.active.push({ ...stone, color: matchedColor.code });
     } else {
       result.hidden.push(stone);
     }
@@ -279,7 +283,7 @@ export const stoneColorByName = (
 ) => {
   const normalized = identifier.trim().toLowerCase();
   return colors.find((color) =>
-    [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase() === normalized),
+    [color.name, color.code, ...color.documentCodes].some((value) => value.trim().toLowerCase() === normalized),
   ) ?? colors[0] ?? STONE_COLORS[0];
 };
 
@@ -312,15 +316,33 @@ export function upsertStoneSelection(
   incoming: StoneConfig,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ): StoneConfig[] {
-  const next = stones.filter((stone) => stone.color !== incoming.color);
+  const incomingColor = colors.find((color) => stoneColorMatchesSelection(color, incoming.color));
+  const next = stones.filter((stone) =>
+    stone.color !== incoming.color
+    && !(stone.mode === incoming.mode && incomingColor && stoneColorMatchesSelection(incomingColor, stone.color)),
+  );
   const unitPrice = incoming.mode === "whole-sheet"
     ? stoneSheetUnitPrice(incoming.color, incoming.quantity, colors)
     : stoneInstalledUnitPrice(incoming.color, colors);
-  return [...next, { ...incoming, enabled: true, unitPrice: unitPrice ?? 0, installationPrice: 0 }];
+  return [...next, {
+    ...incoming,
+    color: incomingColor?.code ?? incoming.color,
+    enabled: true,
+    unitPrice: unitPrice ?? 0,
+    installationPrice: 0,
+  }];
 }
 
-export function removeStoneSelection(stones: StoneConfig[], color: string): StoneConfig[] {
-  return stones.filter((stone) => stone.color !== color);
+export function removeStoneSelection(
+  stones: StoneConfig[],
+  color: string,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): StoneConfig[] {
+  const selectedColor = colors.find((candidate) => stoneColorMatchesSelection(candidate, color));
+  return stones.filter((stone) =>
+    stone.color !== color
+    && !(selectedColor && stoneColorMatchesSelection(selectedColor, stone.color)),
+  );
 }
 
 export function toggleStoneSelection(
@@ -329,8 +351,12 @@ export function toggleStoneSelection(
   createSelection: StoneConfig,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ): StoneConfig[] {
-  return stones.some((stone) => stone.color === color)
-    ? removeStoneSelection(stones, color)
+  const selectedColor = colors.find((candidate) => stoneColorMatchesSelection(candidate, color));
+  const selected = stones.some((stone) =>
+    stone.color === color || (selectedColor && stoneColorMatchesSelection(selectedColor, stone.color)),
+  );
+  return selected
+    ? removeStoneSelection(stones, color, colors)
     : upsertStoneSelection(stones, createSelection, colors);
 }
 

@@ -544,25 +544,30 @@ function placeBasinOnCanvas(
   const pieces = getStudioPieces(state);
   const resolvedTarget = target ?? (pieces[0] && pieces[0].rectangles[0] ? { piece: pieces[0], sheet: pieces[0].rectangles[0] } : undefined);
   if (!resolvedTarget) return;
-  const { piece, sheet } = resolvedTarget;
-  const sheetSize = studioRectangleSize(sheet);
-  const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id);
-  const cutSize = placementCutSize(placement);
-  const widthMm = cutSize.widthMm ?? 0;
-  const heightMm = cutSize.heightMm ?? 0;
-  const existingOnSheet = state.basinPlacements.filter((item) => item.pieceId === piece.id && item.sheetId === sheet.id).length;
-  // Tile across a 4x4 grid of offsets (16 slots) before a position repeats,
-  // spaced by the basin's own footprint (+ a small gap) so consecutive
-  // tap-placed basins land next to each other instead of overlapping —
-  // real basins run 350-500mm+, so a small fixed offset wasn't enough.
-  const stepX = Math.max(widthMm, 300) + 20;
-  const stepY = Math.max(heightMm, 300) + 20;
-  const xOffset = (existingOnSheet % 4) * stepX;
-  const yOffset = (Math.floor(existingOnSheet / 4) % 4) * stepY;
-  const xMm = sheet.xMm + Math.max(0, (sheetSize.widthMm - widthMm) / 2 + xOffset);
-  const yMm = sheet.yMm + Math.max(0, (sheetSize.heightMm - heightMm) / 2 + yOffset);
-  const nextPlacement = placementAtCoordinates(placement, piece, sheet, xMm, yMm);
-  setState((current) => ({ ...current, basinPlacements: [...current.basinPlacements, nextPlacement] }));
+  const targetIds = { pieceId: resolvedTarget.piece.id, sheetId: resolvedTarget.sheet.id };
+  setState((current) => {
+    const currentPiece = getStudioPieces(current).find((piece) => piece.id === targetIds.pieceId) ?? getStudioPieces(current)[0];
+    const piece = currentPiece;
+    const sheet = piece?.rectangles.find((rectangle) => rectangle.id === targetIds.sheetId) ?? piece?.rectangles[0];
+    if (!piece || !sheet) return current;
+    const sheetSize = studioRectangleSize(sheet);
+    const placement = createBasinPlacement(product, current.basinPlacements.length, piece.id, sheet.id);
+    const cutSize = placementCutSize(placement);
+    const widthMm = cutSize.widthMm ?? 0;
+    const heightMm = cutSize.heightMm ?? 0;
+    const existingOnSheet = current.basinPlacements.filter((item) => item.pieceId === piece.id && item.sheetId === sheet.id).length;
+    // Tile across a 4x4 grid of offsets (16 slots) before a position repeats,
+    // spaced by the basin's own footprint (+ a small gap) so consecutive
+    // tap-placed basins land next to each other instead of overlapping.
+    const stepX = Math.max(widthMm, 300) + 20;
+    const stepY = Math.max(heightMm, 300) + 20;
+    const xOffset = (existingOnSheet % 4) * stepX;
+    const yOffset = (Math.floor(existingOnSheet / 4) % 4) * stepY;
+    const xMm = sheet.xMm + Math.max(0, (sheetSize.widthMm - widthMm) / 2 + xOffset);
+    const yMm = sheet.yMm + Math.max(0, (sheetSize.heightMm - heightMm) / 2 + yOffset);
+    const nextPlacement = placementAtCoordinates(placement, piece, sheet, xMm, yMm);
+    return { ...current, basinPlacements: [...current.basinPlacements, nextPlacement] };
+  });
 }
 
 function StudioShortlists({ state, setState, stoneColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void }) {

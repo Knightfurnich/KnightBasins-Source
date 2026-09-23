@@ -26,6 +26,7 @@ import {
   sortBasinProductsBySku,
   reconcileStoneSelections,
   removeStoneSelection,
+  stoneColorMatchesSelection,
   stoneColorsFromCatalog,
   toggleBasinSelection,
   toggleStoneSelection,
@@ -423,11 +424,14 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
   const [unselectedMode, setUnselectedMode] = useState<StoneConfig["mode"]>("whole-sheet");
   const activeMode = stones.find((stone) => stone.color === activeColor)?.mode ?? unselectedMode;
   const availableColors = activeMode === "whole-sheet" ? stoneColorsByMode.wholeSheet : stoneColorsByMode.installed;
-  const effectiveActiveColor = activeColor && availableColors.some((color) => color.code === activeColor)
-    ? activeColor
+  const effectiveActiveColor = activeColor
+    ? availableColors.find((color) => stoneColorMatchesSelection(color, activeColor))?.code ?? null
     : null;
   const selectedStone = effectiveActiveColor
-    ? stones.find((stone) => stone.color === effectiveActiveColor) ?? { ...defaultStone, color: effectiveActiveColor, mode: activeMode }
+    ? stones.find((stone) => {
+      const color = availableColors.find((candidate) => candidate.code === effectiveActiveColor);
+      return color ? stoneColorMatchesSelection(color, stone.color) : false;
+    }) ?? { ...defaultStone, color: effectiveActiveColor, mode: activeMode }
     : null;
   const editorStone = selectedStone ?? { ...defaultStone, color: "", mode: activeMode };
   const isWhole = editorStone.mode === "whole-sheet";
@@ -441,7 +445,7 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
       const price = stonePriceForMode(color, isWhole);
       if (price !== null) counts.set(price, (counts.get(price) ?? 0) + 1);
     });
-    const selectedCount = availableColors.filter((color) => stones.some((stone) => stone.color === color.code)).length;
+    const selectedCount = availableColors.filter((color) => stones.some((stone) => stoneColorMatchesSelection(color, stone.color))).length;
     return [
       { value: "all", label: "ทั้งหมด", count: availableColors.length },
       { value: "selected", label: "สีที่เลือก", count: selectedCount },
@@ -458,7 +462,7 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
     const query = stoneQuery.trim().toLowerCase();
     return availableColors.filter((color) =>
       (activePriceFilter === "all"
-        || (activePriceFilter === "selected" && stones.some((stone) => stone.color === color.code))
+         || (activePriceFilter === "selected" && stones.some((stone) => stoneColorMatchesSelection(color, stone.color)))
         || (activePriceFilter !== "selected" && String(stonePriceForMode(color, isWhole)) === activePriceFilter))
       && (!query || [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase().includes(query))),
     );
@@ -469,10 +473,11 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
     return upsertStone(current, next, availableColors);
   });
   const toggleColor = (color: string) => {
-    const selected = stones.some((stone) => stone.color === color);
+    const selectedColor = availableColors.find((candidate) => candidate.code === color);
+    const selected = Boolean(selectedColor && stones.some((stone) => stoneColorMatchesSelection(selectedColor, stone.color)));
     if (selected) {
       if (activeColor === color) setActiveColor(stones.find((stone) => stone.color !== color)?.color ?? null);
-      setStones((current) => removeStoneSelection(current, color));
+      setStones((current) => removeStoneSelection(current, color, availableColors));
       setDimensionError("");
       return;
     }
@@ -1242,7 +1247,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     window.setTimeout(() => setCopied(false), 1800);
   };
   const updateLine = (sku: string, changes: Partial<QuoteBasinLine>) => setCart((lines) => lines.map((line) => line.sku === sku ? { ...line, ...changes } : line).filter((line) => line.quantity > 0));
-  const removeStone = (color: string) => setStones((current) => removeStoneSelection(current, color));
+  const removeStone = (color: string) => setStones((current) => removeStoneSelection(current, color, stoneColors));
   const snapshot: QuickQuoteSnapshot = {
     kind: "quick-purchase",
     quoteFormat,
@@ -1495,11 +1500,12 @@ function Storefront() {
     setCatalogStoneColors({ wholeSheet, installed, all });
     STONE_COLORS.splice(0, STONE_COLORS.length, ...all);
     const stoneReconciliation = reconcileStoneSelections(stones, { "whole-sheet": wholeSheet, installed });
+    const canonicalizationChanged = stoneReconciliation.active.some((stone, index) => stone.color !== stones[index]?.color);
     const activeBasinSkus = new Set(remoteCatalog.basins.map((basin) => basin.sku));
     const removedBasinSkus = cart.filter((line) => !activeBasinSkus.has(line.sku)).map((line) => line.sku);
-    if (stoneReconciliation.hidden.length) setStones(stoneReconciliation.active);
+    if (stoneReconciliation.hidden.length || canonicalizationChanged) setStones(stoneReconciliation.active);
     if (removedBasinSkus.length) setCart((current) => current.filter((line) => activeBasinSkus.has(line.sku)));
-    if (catalogChanged || stoneReconciliation.hidden.length || removedBasinSkus.length) {
+    if (catalogChanged || stoneReconciliation.hidden.length || canonicalizationChanged || removedBasinSkus.length) {
       const hiddenStones = stoneReconciliation.hidden.map((stone) => stone.color).join(", ");
       const hiddenBasins = [...new Set(removedBasinSkus)].join(", ");
       const removed = [

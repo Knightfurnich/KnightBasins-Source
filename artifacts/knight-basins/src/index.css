@@ -2180,7 +2180,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .studio-design-layout > .studio-shortlists { position: static; }
   .studio-panel { padding: 17px; }
   .studio-stone-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .studio-basin-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .studio-basin-list, .studio-design-layout .studio-basin-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .studio-dimension-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .studio-contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .studio-rectangle-inputs, .studio-side-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }

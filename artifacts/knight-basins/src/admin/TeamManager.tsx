@@ -134,6 +134,14 @@ function InvitePanel() {
     });
   };
 
+  const revokeInviteRecord = (id: number) => {
+    setFormError("");
+    revokeInvite.mutate({ id }, {
+      onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] }),
+      onError: (error) => setFormError(errorMessage(error)),
+    });
+  };
+
   const recentInvites = invitesQuery.data?.slice(0, 5) ?? [];
 
   return (
@@ -242,7 +250,7 @@ function InvitePanel() {
                   <span>{INVITE_ROLE_LABELS[invite.role]} · {used ? "ใช้แล้ว" : expired ? "หมดอายุ" : `หมดอายุ ${inviteDate(invite.expiresAt)}`}</span>
                   <div className="flex flex-wrap gap-1 self-start sm:self-auto">
                     {!used && !expired && (
-                      <Button type="button" variant="ghost" size="sm" className="rounded-none text-[#a24439]" disabled={revokeInvite.isPending} onClick={() => revokeInvite.mutate({ id: invite.id }, { onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] }) })}>
+                      <Button type="button" variant="ghost" size="sm" className="rounded-none text-[#a24439]" disabled={revokeInvite.isPending} onClick={() => revokeInviteRecord(invite.id)}>
                         ยกเลิกคำเชิญ
                       </Button>
                     )}
@@ -476,7 +484,10 @@ export function TeamManager() {
         {membersQuery.isLoading ? (
           <div className="flex min-h-32 items-center justify-center border border-[var(--line)]"><Loader2 className="h-5 w-5 animate-spin" /></div>
         ) : membersQuery.error ? (
-          <div className="border border-[#a24439]/40 bg-[#a24439]/5 p-5 text-sm text-[#a24439]">โหลดรายชื่อสมาชิกไม่สำเร็จ กรุณาลองใหม่</div>
+          <div className="border border-[#a24439]/40 bg-[#a24439]/5 p-5 text-sm text-[#a24439]">
+            <p>โหลดรายชื่อสมาชิกไม่สำเร็จ กรุณาลองใหม่</p>
+            <Button type="button" variant="outline" size="sm" className="mt-3 rounded-none" onClick={() => void membersQuery.refetch()} data-testid="button-retry-admin-team">ลองโหลดอีกครั้ง</Button>
+          </div>
         ) : members.length === 0 ? (
           <div className="border border-dashed border-[var(--line)] p-8 text-center text-sm text-[var(--ink-soft)]">ยังไม่มีสมาชิก LINE ที่ได้รับอนุมัติ</div>
         ) : (

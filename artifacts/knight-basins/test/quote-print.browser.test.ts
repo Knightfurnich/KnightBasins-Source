@@ -1826,6 +1826,12 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "basin grid Studio order mode",
     );
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "fresh basin grid Studio order mode",
+    );
     await clickTestId(browser.page, "button-order-mode-studio");
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-basin-list"]\') !== null'),
@@ -1876,7 +1882,6 @@ describe("long formal quote print flow", { concurrency: false }, () => {
 
     await clickTestId(browser.page, "button-studio-basin-KF001");
     await clickTestId(browser.page, "button-studio-basin-KF002");
-    await clickTestId(browser.page, "button-studio-basin-KF019");
     const selectedBeforeSearch = await browser.page.evaluate(`(() => ({
       selected: [...document.querySelectorAll(".studio-basin-choice.is-selected")].length,
       first: document.querySelector('[data-testid="button-studio-basin-KF001"]')?.getAttribute("aria-pressed") ?? "",
