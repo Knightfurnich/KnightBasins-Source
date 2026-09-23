@@ -26,6 +26,9 @@ import type {
 
 import type {
   AdminLeadUpdateInput,
+  AdminMember,
+  AdminMemberInput,
+  AdminMemberUpdateInput,
   AdminSession,
   BasinCategory,
   BasinCategoryInput,
@@ -532,6 +535,250 @@ export const useDeleteAdminSession = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteAdminSessionMutationOptions(options), queryClient);
+    }
+
+export const getListAdminMembersUrl = () => {
+
+
+
+
+  return `/api/admin/team`
+}
+
+/**
+ * @summary List administration team members
+ */
+export const listAdminMembers = async ( options?: RequestInit): Promise<AdminMember[]> => {
+
+  return customFetch<AdminMember[]>(getListAdminMembersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminMembersQueryKey = () => {
+    return [
+    `/api/admin/team`
+    ] as const;
+    }
+
+
+export const getListAdminMembersQueryOptions = <TData = Awaited<ReturnType<typeof listAdminMembers>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminMembers>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminMembersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminMembers>>> = ({ signal }) => listAdminMembers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminMembers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminMembersQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminMembers>>>
+export type ListAdminMembersQueryError = ErrorType<unknown>
+
+
+export function useListAdminMembers<TData = Awaited<ReturnType<typeof listAdminMembers>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminMembers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminMembers>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminMembers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminMembers<TData = Awaited<ReturnType<typeof listAdminMembers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminMembers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminMembers>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminMembers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminMembers<TData = Awaited<ReturnType<typeof listAdminMembers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminMembers>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List administration team members
+ */
+
+export function useListAdminMembers<TData = Awaited<ReturnType<typeof listAdminMembers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminMembers>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminMembersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminMemberUrl = () => {
+
+
+
+
+  return `/api/admin/team`
+}
+
+/**
+ * @summary Add an approved LINE account to the administration team
+ */
+export const createAdminMember = async (adminMemberInput: AdminMemberInput, options?: RequestInit): Promise<AdminMember> => {
+
+  return customFetch<AdminMember>(getCreateAdminMemberUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminMemberInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminMember>>, TError,{data: BodyType<AdminMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminMember>>, TError,{data: BodyType<AdminMemberInput>}, TContext> => {
+
+const mutationKey = ['createAdminMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminMember>>, {data: BodyType<AdminMemberInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminMember(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminMemberMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminMember>>>
+    export type CreateAdminMemberMutationBody = BodyType<AdminMemberInput>
+    export type CreateAdminMemberMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add an approved LINE account to the administration team
+ */
+export const useCreateAdminMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminMember>>, TError,{data: BodyType<AdminMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminMember>>,
+        TError,
+        {data: BodyType<AdminMemberInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminMemberMutationOptions(options), queryClient);
+    }
+
+export const getUpdateAdminMemberUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/team/${id}`
+}
+
+/**
+ * @summary Update an administration team member
+ */
+export const updateAdminMember = async (id: number,
+    adminMemberUpdateInput: AdminMemberUpdateInput, options?: RequestInit): Promise<AdminMember> => {
+
+  return customFetch<AdminMember>(getUpdateAdminMemberUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminMemberUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminMember>>, TError,{id: number;data: BodyType<AdminMemberUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminMember>>, TError,{id: number;data: BodyType<AdminMemberUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateAdminMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminMember>>, {id: number;data: BodyType<AdminMemberUpdateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminMember(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminMemberMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminMember>>>
+    export type UpdateAdminMemberMutationBody = BodyType<AdminMemberUpdateInput>
+    export type UpdateAdminMemberMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an administration team member
+ */
+export const useUpdateAdminMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminMember>>, TError,{id: number;data: BodyType<AdminMemberUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminMember>>,
+        TError,
+        {id: number;data: BodyType<AdminMemberUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminMemberMutationOptions(options), queryClient);
     }
 
 export const getListAdminBasinsUrl = () => {
