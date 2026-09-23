@@ -291,6 +291,27 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
+  router.delete("/admin/team/invites/:id/permanent", requireAdminOwner, async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) {
+      invalid(res, "รหัสคำเชิญไม่ถูกต้อง");
+      return;
+    }
+    try {
+      const [deleted] = await database
+        .delete(adminInvites)
+        .where(eq(adminInvites.id, id))
+        .returning({ id: adminInvites.id });
+      if (!deleted) {
+        res.status(404).json({ message: "ไม่พบคำเชิญที่ต้องการลบ" });
+        return;
+      }
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post("/admin/team", requireAdminOwner, async (req, res, next) => {
     const parsed = CreateAdminMemberBody.safeParse(req.body);
     if (!parsed.success || !parsed.data.displayName.trim() || !parsed.data.lineUserId.trim()) {
@@ -326,6 +347,27 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       return updated ? res.json(serializeAdminMember(updated)) : res.status(404).json({ message: "ไม่พบสมาชิกทีม" });
     } catch (error) {
       return next(error);
+    }
+  });
+
+  router.delete("/admin/team/:id", requireAdminOwner, async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) {
+      invalid(res, "รหัสสมาชิกไม่ถูกต้อง");
+      return;
+    }
+    try {
+      const [deleted] = await database
+        .delete(adminMembers)
+        .where(eq(adminMembers.id, id))
+        .returning({ id: adminMembers.id });
+      if (!deleted) {
+        res.status(404).json({ message: "ไม่พบสมาชิกที่ต้องการลบ" });
+        return;
+      }
+      res.status(204).end();
+    } catch (error) {
+      next(error);
     }
   });
 

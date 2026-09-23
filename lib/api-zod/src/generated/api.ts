@@ -384,6 +384,19 @@ export const RevokeAdminInviteResponse = zod.void()
 
 
 /**
+ * @summary Permanently delete a team invitation record
+ */
+
+
+
+export const DeleteAdminInviteParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const DeleteAdminInviteResponse = zod.void()
+
+
+/**
  * @summary Update an administration team member
  */
 
@@ -431,6 +444,19 @@ export const UpdateAdminMemberResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
+
+
+/**
+ * @summary Permanently delete an administration team member
+ */
+
+
+
+export const DeleteAdminMemberParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const DeleteAdminMemberResponse = zod.void()
 
 
 /**

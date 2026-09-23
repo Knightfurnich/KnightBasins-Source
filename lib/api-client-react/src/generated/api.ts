@@ -955,6 +955,77 @@ export const useRevokeAdminInvite = <TError = ErrorType<unknown>,
       return useMutation(getRevokeAdminInviteMutationOptions(options), queryClient);
     }
 
+export const getDeleteAdminInviteUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/team/invites/${id}/permanent`
+}
+
+/**
+ * @summary Permanently delete a team invitation record
+ */
+export const deleteAdminInvite = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdminInviteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAdminInviteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminInvite>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdminInvite>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAdminInvite'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdminInvite>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAdminInvite(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdminInviteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdminInvite>>>
+
+    export type DeleteAdminInviteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Permanently delete a team invitation record
+ */
+export const useDeleteAdminInvite = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminInvite>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdminInvite>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAdminInviteMutationOptions(options), queryClient);
+    }
+
 export const getUpdateAdminMemberUrl = (id: number,) => {
 
 
@@ -1025,6 +1096,77 @@ export const useUpdateAdminMember = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateAdminMemberMutationOptions(options), queryClient);
+    }
+
+export const getDeleteAdminMemberUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/team/${id}`
+}
+
+/**
+ * @summary Permanently delete an administration team member
+ */
+export const deleteAdminMember = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdminMemberUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAdminMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminMember>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdminMember>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAdminMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdminMember>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAdminMember(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdminMemberMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdminMember>>>
+
+    export type DeleteAdminMemberMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Permanently delete an administration team member
+ */
+export const useDeleteAdminMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdminMember>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdminMember>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAdminMemberMutationOptions(options), queryClient);
     }
 
 export const getListAdminBasinsUrl = () => {

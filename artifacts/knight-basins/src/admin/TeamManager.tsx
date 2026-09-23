@@ -4,6 +4,8 @@ import {
   useCreateAdminMember,
   useListAdminInvites,
   useListAdminMembers,
+  useDeleteAdminInvite,
+  useDeleteAdminMember,
   useRevokeAdminInvite,
   useUpdateAdminMember,
   type AdminInvite,
@@ -16,7 +18,7 @@ import {
   type AdminMemberRole,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Clipboard, Copy, Link2, Loader2, Pencil, Plus, UserRound, X } from "lucide-react";
+import { Check, Clipboard, Copy, Link2, Loader2, Pencil, Plus, Trash2, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -84,6 +86,7 @@ function InvitePanel() {
   const queryClient = useQueryClient();
   const invitesQuery = useListAdminInvites();
   const createInvite = useCreateAdminInvite();
+  const deleteInvite = useDeleteAdminInvite();
   const revokeInvite = useRevokeAdminInvite();
   const [role, setRole] = useState<AdminInviteInputRole>("staff");
   const [permissions, setPermissions] = useState<AdminInviteInputPermissionsItem[]>(
@@ -120,6 +123,15 @@ function InvitePanel() {
     } catch {
       setFormError("คัดลอกไม่สำเร็จ กรุณาเลือกข้อความแล้วคัดลอกด้วยตนเอง");
     }
+  };
+
+  const deleteInviteRecord = (id: number) => {
+    if (!window.confirm("ลบรายการคำเชิญนี้ถาวรใช่หรือไม่? ลิงก์หรือรหัสนี้จะใช้งานไม่ได้และรายการจะหายจากประวัติ")) return;
+    setFormError("");
+    deleteInvite.mutate({ id }, {
+      onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] }),
+      onError: (error) => setFormError(errorMessage(error)),
+    });
   };
 
   const recentInvites = invitesQuery.data?.slice(0, 5) ?? [];
@@ -228,11 +240,16 @@ function InvitePanel() {
               return (
                 <div key={invite.id} className="flex flex-col gap-2 border border-[var(--line)] p-3 text-xs sm:flex-row sm:items-center sm:justify-between">
                   <span>{INVITE_ROLE_LABELS[invite.role]} · {used ? "ใช้แล้ว" : expired ? "หมดอายุ" : `หมดอายุ ${inviteDate(invite.expiresAt)}`}</span>
-                  {!used && !expired && (
-                    <Button type="button" variant="ghost" size="sm" className="self-start rounded-none text-[#a24439] sm:self-auto" onClick={() => revokeInvite.mutate({ id: invite.id }, { onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] }) })}>
-                      ยกเลิกคำเชิญ
+                  <div className="flex flex-wrap gap-1 self-start sm:self-auto">
+                    {!used && !expired && (
+                      <Button type="button" variant="ghost" size="sm" className="rounded-none text-[#a24439]" disabled={revokeInvite.isPending} onClick={() => revokeInvite.mutate({ id: invite.id }, { onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/team/invites"] }) })}>
+                        ยกเลิกคำเชิญ
+                      </Button>
+                    )}
+                    <Button type="button" variant="ghost" size="sm" className="rounded-none text-[#a24439]" disabled={deleteInvite.isPending} onClick={() => deleteInviteRecord(invite.id)} data-testid={`button-delete-admin-invite-${invite.id}`}>
+                      <Trash2 className="mr-1 h-3.5 w-3.5" /> ลบ
                     </Button>
-                  )}
+                  </div>
                 </div>
               );
             })}
@@ -247,6 +264,7 @@ export function TeamManager() {
   const queryClient = useQueryClient();
   const membersQuery = useListAdminMembers();
   const createMember = useCreateAdminMember();
+  const deleteMember = useDeleteAdminMember();
   const updateMember = useUpdateAdminMember();
   const [draft, setDraft] = useState<MemberDraft>(emptyDraft);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -287,6 +305,18 @@ export function TeamManager() {
         ? [...new Set([...current.permissions, permission])]
         : current.permissions.filter((value) => value !== permission),
     }));
+  };
+
+  const deleteMemberRecord = (member: AdminMember) => {
+    if (!window.confirm(`ลบสมาชิก "${member.displayName}" ออกจากระบบถาวรใช่หรือไม่? สมาชิกนี้จะไม่สามารถเข้าสู่ระบบ Admin ด้วย LINE ได้อีก`)) return;
+    setFormError("");
+    deleteMember.mutate({ id: member.id }, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/team"] });
+        if (editingId === member.id) resetForm();
+      },
+      onError: (error) => setFormError(errorMessage(error)),
+    });
   };
 
   const saveMember = () => {
@@ -465,9 +495,14 @@ export function TeamManager() {
                     <p className="mt-1 text-xs text-[var(--ink-soft)]">{member.role === "owner" ? "ทุกเมนู" : member.permissions.length ? member.permissions.map((value) => PERMISSIONS.find((item) => item.value === value)?.label).join(" · ") : "ยังไม่ได้เลือกเมนู"}</p>
                   </div>
                 </div>
-                <Button type="button" variant="outline" size="sm" className="rounded-none self-start sm:self-center" onClick={() => beginEdit(member)} data-testid={`button-edit-admin-member-${member.id}`}>
-                  <Pencil className="mr-2 h-3.5 w-3.5" /> แก้ไข
-                </Button>
+                <div className="flex gap-1 self-start sm:self-center">
+                  <Button type="button" variant="outline" size="sm" className="rounded-none" onClick={() => beginEdit(member)} data-testid={`button-edit-admin-member-${member.id}`}>
+                    <Pencil className="mr-2 h-3.5 w-3.5" /> แก้ไข
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="rounded-none text-[#a24439]" disabled={deleteMember.isPending} onClick={() => deleteMemberRecord(member)} data-testid={`button-delete-admin-member-${member.id}`}>
+                    <Trash2 className="mr-1 h-3.5 w-3.5" /> ลบ
+                  </Button>
+                </div>
               </article>
             ))}
           </div>
