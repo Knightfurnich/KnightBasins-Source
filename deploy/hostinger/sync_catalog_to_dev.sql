@@ -278,13 +278,7 @@ SELECT pg_catalog.setval('public.sheet_stone_prices_id_seq', 6278, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict kOmXedgKNzXDehuGgOsDyPoz6yfOQrPQ63U5rUhDgWodjpohxEeQNuAbQfDBQfI
 
 
-SELECT setval('basin_categories_id_seq', (SELECT COALESCE(max(id), 1) FROM basin_categories));
-SELECT setval('basin_prices_id_seq', (SELECT COALESCE(max(id), 1) FROM basin_prices));
-SELECT setval('installed_stone_categories_id_seq', (SELECT COALESCE(max(id), 1) FROM installed_stone_categories));
-SELECT setval('installed_stone_prices_id_seq', (SELECT COALESCE(max(id), 1) FROM installed_stone_prices));
-SELECT setval('sheet_stone_prices_id_seq', (SELECT COALESCE(max(id), 1) FROM sheet_stone_prices));
 
 COMMIT;
