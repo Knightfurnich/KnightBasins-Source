@@ -956,12 +956,13 @@ h1, h2, h3 { color: var(--ink); }
 .formal-qr-column small { font-size: 6px; white-space: nowrap; }
 .formal-photo-column { width: 60px; text-align: center !important; }
 .formal-photo-column img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid #dbe6ec; }
-.formal-quote-bottom { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; padding-top: 16px; }
-.formal-notes { padding-top: 2px; }
-.formal-notes h3 { margin: 0 0 6px; color: #123f67; font-size: 11px; }
-.formal-notes-subheading { margin-top: 13px !important; padding-top: 9px; border-top: 1px dashed #b5c5d2; }
-.formal-notes p { margin: 4px 0; color: #526f80; font-size: 8px; line-height: 1.5; }
-.formal-bank-details { display: grid; gap: 2px; margin-top: 10px; padding: 7px 8px; border: 1px solid #b5c5d2; color: #405f79; font-size: 8px; line-height: 1.4; }
+.formal-quote-bottom { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.85fr); gap: 16px; padding-top: 12px; }
+.formal-notes-container { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.formal-notes-col h3 { margin: 0 0 5px; color: #123f67; font-size: 10px; font-weight: 700; border-bottom: 1px solid #c2d6e5; padding-bottom: 3px; }
+.formal-notes-col p { margin: 2.5px 0; color: #526f80; font-size: 8px; line-height: 1.35; }
+.formal-customer-note { margin-top: 6px !important; padding: 4px 6px; background: #fffbe6; border-left: 2px solid #eab308; border-radius: 2px; }
+.formal-summary-sidebar { display: flex; flex-direction: column; gap: 10px; }
+.formal-bank-details { display: grid; gap: 2px; margin-top: 0; padding: 6px 8px; border: 1px solid #b5c5d2; background: #f8fbfe; color: #405f79; font-size: 8px; line-height: 1.35; border-radius: 4px; }
 .formal-bank-details strong { color: #123f67; font-size: 9px; }
 .formal-quote-signature small { display: block; color: #627889; font-size: 8px; }
 .formal-totals { align-self: start; border: 1px solid #7189a0; background: rgba(255,255,255,.72); }
@@ -2294,23 +2295,23 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-quote-title h1 { font-size: 13px; margin: 0; }
   .formal-quote-title .eyebrow { display: none !important; }
   .formal-format-chip { padding: 3px 6px; font-size: 8px; }
-  .formal-customer-grid { margin-bottom: 8px; }
-  .formal-customer-grid > div { min-height: 0; padding: 3px 6px; }
-  .formal-customer-grid span { margin-bottom: 1px; font-size: 7.5px; }
-  .formal-customer-grid strong { font-size: 9px; line-height: 1.25; }
+  .formal-customer-grid { margin-bottom: 6px; }
+  .formal-customer-grid > div { min-height: 0; padding: 2px 6px; }
+  .formal-customer-grid span { margin-bottom: 0.5px; font-size: 7px; }
+  .formal-customer-grid strong { font-size: 8.5px; line-height: 1.2; }
   .studio-saved-layout { margin: 0 0 24px; padding: 0; border: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
   .studio-saved-layout-heading { padding-top: 0; }
   .studio-canvas--saved { min-height: 0; }
   .formal-quote-table-wrap { overflow: visible; }
   .formal-quote-table { width: 100%; min-width: 0; table-layout: fixed; font-size: 8px; }
   .formal-quote-table thead { display: table-header-group; }
-  .formal-quote-table th { padding: 4px 5px; font-size: 7.5px; line-height: 1.2; }
-  .formal-quote-table td { padding: 4px 5px; font-size: 8px; line-height: 1.25; }
+  .formal-quote-table th { padding: 3.5px 5px; font-size: 7.5px; line-height: 1.2; }
+  .formal-quote-table td { padding: 3.5px 5px; font-size: 8px; line-height: 1.2; }
   .formal-quote-table tr { break-inside: avoid; page-break-inside: avoid; }
   .formal-quote-table th, .formal-quote-table td { overflow-wrap: anywhere; }
-  .formal-item-image { width: 44px; height: 34px; }
-  .formal-item-copy > span { font-size: 8.5px; }
-  .formal-item-copy small { font-size: 7.5px; line-height: 1.25; }
+  .formal-item-image { width: 40px; height: 30px; }
+  .formal-item-copy > span { font-size: 8px; }
+  .formal-item-copy small { font-size: 7px; line-height: 1.2; }
   .formal-quote-table th:first-child, .formal-quote-table td:first-child { width: 6%; }
   .formal-quote-table th:nth-child(2), .formal-quote-table td:nth-child(2) { width: 45%; }
   .formal-quote-table th:nth-child(3), .formal-quote-table td:nth-child(3) { width: 8%; }
@@ -2326,27 +2327,28 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-quote-table--us th:nth-child(7), .formal-quote-table--us td:nth-child(7) { width: 15%; }
   .formal-quote-table--us th:nth-child(8), .formal-quote-table--us td:nth-child(8) { width: 8%; }
   .formal-qr-column { width: auto; }
-  .formal-qr-column img { width: 30px; height: 30px; }
-  .formal-qr-column small { font-size: 7px; }
+  .formal-qr-column img { width: 28px; height: 28px; }
+  .formal-qr-column small { font-size: 6.5px; }
   .formal-photo-column { width: auto; }
-  .formal-photo-column img { width: 30px; height: 30px; }
-  .formal-quote-bottom { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(210px, 0.95fr); gap: 10px; margin-top: 6px; }
-  .formal-notes { padding-top: 0; }
-  .formal-notes h3 { margin: 0 0 2px; font-size: 8px; }
-  .formal-notes p { margin: 1px 0; font-size: 6.8px; line-height: 1.22; }
-  .formal-notes-subheading { margin-top: 4px !important; padding-top: 3px !important; }
-  .formal-bank-details { margin-top: 4px; padding: 3px 6px; font-size: 7px; line-height: 1.25; }
-  .formal-bank-details strong { font-size: 7.5px; }
+  .formal-photo-column img { width: 28px; height: 28px; }
+  .formal-quote-bottom { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(210px, 0.95fr); gap: 12px; margin-top: 6px; }
+  .formal-notes-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .formal-notes-col h3 { margin: 0 0 2px; font-size: 7.5px; border-bottom: 0.5px solid #c2d6e5; padding-bottom: 1px; }
+  .formal-notes-col p { margin: 1px 0; font-size: 6.5px; line-height: 1.2; }
+  .formal-customer-note { margin-top: 3px !important; padding: 2px 4px; font-size: 6.5px; }
+  .formal-summary-sidebar { display: flex; flex-direction: column; gap: 5px; }
+  .formal-bank-details { margin-top: 0; padding: 3px 6px; font-size: 6.8px; line-height: 1.2; }
+  .formal-bank-details strong { font-size: 7.2px; }
   .formal-totals { break-inside: avoid; page-break-inside: avoid; }
-  .formal-totals > div { padding: 2.5px 6px; font-size: 8px; min-height: 0; }
-  .formal-totals span { font-size: 8px; }
-  .formal-totals strong { font-size: 8.5px; }
-  .formal-grand-total { padding: 4px 6px !important; }
-  .formal-grand-total span { font-size: 8px; }
-  .formal-grand-total strong { font-size: 11.5px; }
-  .formal-grand-total small { font-size: 7px; }
-  .formal-quote-signature { margin-top: 6px; padding-top: 5px; font-size: 8px; break-inside: avoid; page-break-inside: avoid; }
-  .formal-signature-line { margin: 14px auto 2px; width: 75%; }
+  .formal-totals > div { padding: 2px 6px; font-size: 7.5px; min-height: 0; }
+  .formal-totals span { font-size: 7.5px; }
+  .formal-totals strong { font-size: 8px; }
+  .formal-grand-total { padding: 3px 6px !important; }
+  .formal-grand-total span { font-size: 7.5px; }
+  .formal-grand-total strong { font-size: 11px; }
+  .formal-grand-total small { font-size: 6.5px; }
+  .formal-quote-signature { margin-top: 6px; padding-top: 4px; font-size: 7.5px; break-inside: avoid; page-break-inside: avoid; }
+  .formal-signature-line { margin: 12px auto 2px; width: 75%; }
 }
 
 /* Quote customer details: keep the form compact and separate optional sections. */

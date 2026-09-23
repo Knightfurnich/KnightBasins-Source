@@ -771,20 +771,31 @@ function FormalQuote({
     </div>
 
     <div className="formal-quote-bottom">
-       <div className="formal-notes">
-         <h3>รายละเอียดสินค้า</h3>
-         {QUOTE_PRODUCT_DETAILS.map((line, index) => <p key={`product-${index}`}>• {line}</p>)}
-         <h3 className="formal-notes-subheading">หมายเหตุและเงื่อนไข</h3>
-         {QUOTE_NOTE_DETAILS.map((line, index) => <p key={`note-${index}`}>• {line}</p>)}
-          <div className="formal-bank-details"><strong>บัญชีรับเงิน</strong><span>{COMPANY_DETAILS.bankName} · {COMPANY_DETAILS.bankBranch}</span><span>{COMPANY_DETAILS.bankAccountName}</span><span>{COMPANY_DETAILS.bankAccountNumber}</span></div>
-          {customer.notes && <p>• หมายเหตุลูกค้า: {customer.notes}</p>}
+      <div className="formal-notes formal-notes-container">
+        <div className="formal-notes-col">
+          <h3>รายละเอียดสินค้า</h3>
+          {QUOTE_PRODUCT_DETAILS.map((line, index) => <p key={`product-${index}`}>• {line}</p>)}
+          {customer.notes && <p className="formal-customer-note">• <strong>หมายเหตุลูกค้า:</strong> {customer.notes}</p>}
+        </div>
+        <div className="formal-notes-col">
+          <h3 className="formal-notes-subheading">หมายเหตุและเงื่อนไข</h3>
+          {QUOTE_NOTE_DETAILS.map((line, index) => <p key={`note-${index}`}>• {line}</p>)}
+        </div>
       </div>
-      <div className="formal-totals">
-         <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(grossSubtotal)}</strong></div>
-         <div><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{discountAmount ? `-${formatTHB(discountAmount)}` : "—"}</strong></div>
-         <div><span>รวมหลังส่วนลด</span><strong>{formatTHB(subtotal)}</strong></div>
-         <div><span>ภาษีมูลค่าเพิ่ม 7% {vat ? "" : "(ยังไม่คิด)"}</span><strong>{formatTHB(vatAmount)}</strong></div>
-         <div className="formal-grand-total"><span>จำนวนเงินสุทธิ</span><strong>{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div>
+      <div className="formal-summary-sidebar">
+        <div className="formal-totals">
+          <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(grossSubtotal)}</strong></div>
+          <div><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{discountAmount ? `-${formatTHB(discountAmount)}` : "—"}</strong></div>
+          <div><span>รวมหลังส่วนลด</span><strong>{formatTHB(subtotal)}</strong></div>
+          <div><span>ภาษีมูลค่าเพิ่ม 7% {vat ? "" : "(ยังไม่คิด)"}</span><strong>{formatTHB(vatAmount)}</strong></div>
+          <div className="formal-grand-total"><span>จำนวนเงินสุทธิ</span><strong>{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div>
+        </div>
+        <div className="formal-bank-details">
+          <strong>บัญชีรับเงิน</strong>
+          <span>{COMPANY_DETAILS.bankName} · {COMPANY_DETAILS.bankBranch}</span>
+          <span>{COMPANY_DETAILS.bankAccountName}</span>
+          <span>{COMPANY_DETAILS.bankAccountNumber}</span>
+        </div>
       </div>
     </div>
       <footer className="formal-quote-signature"><span>ผู้เสนอราคา<br /><b>{COMPANY_DETAILS.salesRepresentative}</b><small>{COMPANY_DETAILS.salesPhone}</small></span><span className="formal-signature-block">ผู้มีอำนาจอนุมัติสั่งซื้อ / ลูกค้า<span className="formal-signature-line" /><b>ลงชื่อ / ประทับตราบริษัท (ถ้ามี)</b></span></footer>
