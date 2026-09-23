@@ -6,7 +6,7 @@ import {
   useUpdateAdminLead,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Clipboard, Loader2, RefreshCw, Search, X } from "lucide-react";
+import { BookOpen, Check, Clipboard, Loader2, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -102,6 +102,49 @@ function formatLeadDate(value: string) {
     : formatThaiDateTime(date);
 }
 
+function LeadPageGuide() {
+  return (
+    <details open className="border border-[var(--brand-blue)]/25 bg-[#eef7fb] text-sm" data-testid="admin-leads-guide">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-[var(--brand-blue)]" />
+          วิธีใช้งานหน้านี้แบบสั้น
+        </span>
+        <span className="text-xs font-normal text-[var(--ink-soft)]">กดเพื่อพับ/กางคู่มือ</span>
+      </summary>
+      <div className="border-t border-[var(--brand-blue)]/15 px-4 py-4">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <p className="font-semibold text-[var(--brand-blue)]">1. หา Lead ที่ต้องการ</p>
+            <p className="mt-1 leading-relaxed text-[var(--ink-soft)]">
+              เลือกแท็บสถานะด้านบน หรือค้นหาด้วยเลขที่ใบเสนอราคา ชื่อลูกค้า ชื่อโครงการ หรือเบอร์โทร
+              ใช้ช่วงเร็ว “วันนี้ / 7 วัน / 30 วัน” หรือกำหนดวันที่เองได้
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-[var(--brand-blue)]">2. อัปเดตการติดตาม</p>
+            <p className="mt-1 leading-relaxed text-[var(--ink-soft)]">
+              กดปุ่มสถานะบนการ์ดเพื่อย้าย Lead ตามงานจริง: New Lead → เลือกสินค้า → ขอใบเสนอราคา → ปิดการขาย
+              พิมพ์บันทึกทีมงาน แล้วคลิกออกจากช่องเพื่อบันทึก
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-[var(--brand-blue)]">3. เปิดข้อมูลประกอบ</p>
+            <p className="mt-1 leading-relaxed text-[var(--ink-soft)]">
+              เปิดใบเสนอราคาหรือคัดลอกลิงก์ส่งลูกค้าได้จากเลขที่ใบเสนอราคา
+              กดรูปแบบร่างเพื่อดูภาพเต็ม และตรวจสถานะสลิปในส่วนการชำระเงิน
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 border-t border-[var(--brand-blue)]/15 pt-3 text-xs leading-relaxed text-[var(--ink-soft)]">
+          <strong className="text-[var(--ink)]">หมายเหตุ:</strong> Lead แบบ “แบบร่างมือ” จะมีช่องกรอกขนาด กว้าง / ยาว / หนา-ลึก (มม.)
+          ให้กรอกตามภาพแล้วกด “บันทึกขนาด” ส่วนปุ่ม “รีเฟรช” มุมขวาบนใช้ดึงข้อมูลล่าสุดจากระบบ
+        </div>
+      </div>
+    </details>
+  );
+}
+
 export function LeadsManager() {
   const { data: leads, isLoading, refetch } = useListAdminLeads();
   const updateLead = useUpdateAdminLead();
@@ -183,6 +226,8 @@ export function LeadsManager() {
           <RefreshCw className="w-4 h-4 mr-2" /> รีเฟรช
         </Button>
       </div>
+
+      <LeadPageGuide />
 
       <div className="flex flex-wrap gap-2">
         <Button variant={filter === "all" ? "secondary" : "ghost"} onClick={() => setFilter("all")} className="rounded-none">
