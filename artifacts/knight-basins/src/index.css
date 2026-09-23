@@ -2435,3 +2435,495 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
     align-items: stretch;
   }
 }
+
+/* Site Photo Upload */
+.site-photo-upload-container {
+  grid-column: span 2;
+  margin-top: 10px;
+  padding: 14px 16px;
+  background: #f8fbfe;
+  border: 1px dashed #b2d2e5;
+  border-radius: 8px;
+}
+.site-photo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.site-photo-title {
+  display: block;
+  color: var(--brand-blue);
+  font-size: 13px;
+  font-weight: 700;
+}
+.site-photo-subtitle {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+.site-photo-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+}
+.site-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+.site-photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.site-photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.site-photo-thumb:hover {
+  transform: scale(1.04);
+}
+.site-photo-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 38, 38, 0.85);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.site-photo-delete-btn:hover {
+  background: rgb(220, 38, 38);
+}
+.site-photo-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(15, 23, 42, 0.7);
+  color: white;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--mono);
+}
+.site-photo-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: center;
+}
+.site-photo-dropzone:hover {
+  border-color: var(--brand-blue);
+  background: #f0f7fb;
+}
+.site-photo-empty-icon {
+  color: #7ba3bc;
+}
+.site-photo-dropzone p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.site-photo-dropzone small {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+.site-photo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.site-photo-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+.site-photo-modal-content img {
+  max-width: 100%;
+  max-height: 85vh;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+.site-photo-modal-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Workshop Production Sheet */
+.workshop-production-sheet {
+  box-sizing: border-box;
+  width: min(100%, 1120px);
+  min-width: 0;
+  margin: 28px auto 0;
+  padding: 22px 24px;
+  overflow: hidden;
+  color: #172e43;
+  background-color: #fff;
+  border: 1px solid #33557a;
+  box-shadow: 0 18px 50px rgba(21, 62, 94, 0.1);
+  font-family: var(--app-font-sans);
+}
+.workshop-sheet-header {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 220px;
+  gap: 16px;
+  align-items: stretch;
+  min-width: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #1a3c61;
+}
+.workshop-document-label {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding-right: 12px;
+  border-right: 1px solid #d3e1eb;
+}
+.workshop-document-label strong {
+  color: #0f2c4d;
+  font-size: 15px;
+  line-height: 1.2;
+}
+.workshop-document-label span {
+  color: #496a8a;
+  font-size: 11px;
+}
+.workshop-document-label small {
+  margin-top: 4px;
+  color: #1268b3;
+  font-size: 9px;
+  font-weight: 700;
+}
+.workshop-company {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.workshop-company h2 {
+  margin: 0 0 4px;
+  color: #0f2c4d;
+  font-size: 13px;
+  font-weight: 700;
+}
+.workshop-company p {
+  margin: 2px 0;
+  color: #556e84;
+  font-size: 10px;
+}
+.workshop-company-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+.workshop-quote-meta {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  text-align: right;
+}
+.workshop-quote-meta strong {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: #0f2c4d;
+}
+.workshop-quote-meta span {
+  font-size: 11px;
+  color: #556e84;
+}
+.install-deadline {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: #fff3e0;
+  border: 1px solid #ffd180;
+  border-radius: 4px;
+  color: #d84315;
+  font-size: 10.5px;
+}
+.workshop-site-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px;
+  background: #f4f8fb;
+  border: 1px solid #c9dbe7;
+  border-radius: 6px;
+}
+.workshop-site-grid > div {
+  display: grid;
+  gap: 2px;
+}
+.workshop-site-grid span {
+  font-size: 10px;
+  color: #556e84;
+}
+.workshop-site-grid strong {
+  font-size: 12px;
+  color: #0f2c4d;
+}
+.workshop-site-wide {
+  grid-column: span 4;
+}
+.workshop-special-notes {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: #fffde7;
+  border-left: 3px solid #fbc02d;
+  border-radius: 2px;
+}
+.workshop-special-notes span {
+  color: #b78103;
+  font-weight: 700;
+}
+.workshop-table-wrap {
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.workshop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.workshop-table th {
+  background: #1a3c61;
+  color: white;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid #1a3c61;
+}
+.workshop-table td {
+  padding: 10px;
+  border: 1px solid #d3e1eb;
+  vertical-align: middle;
+}
+.workshop-table .col-idx { width: 5%; text-align: center; }
+.workshop-table .col-code { width: 14%; }
+.workshop-table .col-desc { width: 50%; }
+.workshop-table .col-qty { width: 15%; text-align: center; }
+.workshop-table .col-qr { width: 10%; text-align: center; }
+.workshop-table .col-check { width: 6%; text-align: center; }
+.workshop-code {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: #1268b3;
+}
+.workshop-item-details strong {
+  display: block;
+  font-size: 12px;
+  color: #0f2c4d;
+  margin-bottom: 3px;
+}
+.workshop-sub-detail {
+  display: block;
+  font-size: 10px;
+  color: #475569;
+}
+.workshop-qr-cell img {
+  width: 38px;
+  height: 38px;
+  margin: 0 auto;
+}
+.workshop-qr-cell small {
+  display: block;
+  font-size: 8px;
+  color: #64748b;
+}
+.workshop-row-checkbox .box,
+.workshop-check-items .box {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid #475569;
+  border-radius: 3px;
+  vertical-align: middle;
+  background: #fff;
+}
+.workshop-photos-section {
+  margin: 18px 0;
+  padding: 12px;
+  border: 1px solid #d3e1eb;
+  border-radius: 6px;
+  background: #fafcfe;
+}
+.workshop-photos-section h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #0f2c4d;
+}
+.workshop-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.workshop-photo-card {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+.workshop-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.workshop-photo-card span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2px 4px;
+  background: rgba(15, 23, 42, 0.7);
+  color: white;
+  font-size: 9px;
+  text-align: center;
+}
+.workshop-bottom {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid #cbd5e1;
+}
+.workshop-checklist h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #0f2c4d;
+}
+.workshop-check-items {
+  display: grid;
+  gap: 6px;
+}
+.workshop-check-items label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  color: #334155;
+}
+.workshop-signatures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: end;
+}
+.sig-box {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+.sig-box span {
+  font-size: 10px;
+  color: #475569;
+  font-weight: 600;
+}
+.sig-line {
+  margin: 30px auto 4px;
+  width: 90%;
+  border-bottom: 1px solid #94a3b8;
+}
+.sig-box small {
+  font-size: 8.5px;
+  color: #64748b;
+  font-family: var(--mono);
+}
+
+/* Document View Mode Switcher in Quote Page */
+.quote-sheet-type-switch {
+  display: flex;
+  gap: 8px;
+  margin: 24px auto 0;
+  width: min(100%, 1120px);
+}
+.quote-sheet-type-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #b8d4e4;
+  border-radius: 6px;
+  background: white;
+  color: var(--brand-blue);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.quote-sheet-type-switch button.is-active {
+  background: var(--brand-blue);
+  color: white;
+  border-color: var(--brand-blue);
+}
+
+/* Print Rules for Workshop Sheet */
+@media print {
+  body.print-workshop .formal-quote-sheet {
+    display: none !important;
+  }
+  body.print-workshop .workshop-production-sheet {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  body:not(.print-workshop) .workshop-production-sheet {
+    display: none !important;
+  }
+  .quote-sheet-type-switch {
+    display: none !important;
+  }
+  .site-photo-upload-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
