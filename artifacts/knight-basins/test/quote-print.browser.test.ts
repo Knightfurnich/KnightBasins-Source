@@ -1244,6 +1244,131 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(await browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'), true);
   });
 
+  it("saves a named multi-piece draft and prints every piece on the saved quote", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "multi-piece Studio canvas",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "fresh multi-piece Studio canvas",
+    );
+
+    const firstPieceName = await browser.page.evaluate(
+      'document.querySelector(\'[data-testid^="input-piece-name-"]\')?.getAttribute("data-testid") ?? ""',
+    );
+    assert.match(firstPieceName, /^input-piece-name-/);
+    await setTextInput(browser.page, firstPieceName, "ครัวหลัก");
+    await clickTestId(browser.page, "button-add-studio-piece");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid^="input-piece-name-"]\').length'),
+      (count) => count === 2,
+      "second Studio workpiece",
+    );
+
+    const pieceNameInputs = await browser.page.evaluate(
+      '([...document.querySelectorAll(\'[data-testid^="input-piece-name-"]\')]).map((input) => input.getAttribute("data-testid") ?? "")',
+    );
+    assert.equal(pieceNameInputs.length, 2);
+    await setTextInput(browser.page, pieceNameInputs[1]!, "ห้องน้ำชั้นสอง");
+
+    await clickTestId(browser.page, "button-studio-basin-KF001");
+    await clickTestId(browser.page, "button-studio-basin-place-KF001");
+    const selectedSecondPiece = await browser.page.evaluate(`(() => {
+      const rectangle = document.querySelector('[data-testid^="studio-canvas-piece-"] .studio-rectangle-drag-target');
+      if (!(rectangle instanceof HTMLElement)) return false;
+      rectangle.click();
+      return true;
+    })()`);
+    assert.equal(selectedSecondPiece, true);
+    await clickTestId(browser.page, "button-studio-basin-KF002");
+    await clickTestId(browser.page, "button-studio-basin-place-KF002");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-placement, [data-testid^="studio-canvas-piece-"] .studio-placement\').length'),
+      (count) => count === 2,
+      "basins on both workpieces",
+    );
+
+    await clickTestId(browser.page, "button-save-named-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-save-draft-dialog"]\') !== null'),
+      Boolean,
+      "named Studio draft dialog",
+    );
+    await setTextInput(browser.page, "input-studio-draft-name", "แบบครัวและห้องน้ำ");
+    await clickTestId(browser.page, "button-confirm-save-studio-draft");
+    const draftSummary = await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const card = document.querySelector('[data-testid^="studio-saved-draft-"]');
+        return {
+          drawer: document.querySelector('[data-testid="studio-drafts-drawer"]') !== null,
+          card: card !== null,
+          name: card?.textContent ?? "",
+          previews: card?.querySelectorAll('[data-testid^="studio-draft-preview-"]').length ?? 0,
+          openButton: card?.querySelector('[data-testid^="button-open-studio-draft-"]')?.getAttribute("data-testid") ?? "",
+        };
+      })()`),
+      (value) => value.drawer && value.card && Boolean(value.openButton),
+      "saved multi-piece draft",
+    );
+    assert.match(draftSummary.name, /แบบครัวและห้องน้ำ/);
+    assert.equal(draftSummary.previews, 2);
+
+    await clickTestId(browser.page, draftSummary.openButton);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-drafts-drawer"]\') === null'),
+      Boolean,
+      "reopened Studio draft",
+    );
+    assert.equal(await browser.page.evaluate('document.querySelectorAll(\'[data-testid^="input-piece-name-"]\').length'), 2);
+    assert.equal(await browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-placement, [data-testid^="studio-canvas-piece-"] .studio-placement\').length'), 2);
+
+    for (const [testId, value] of [
+      ["input-studio-name", "คุณทดสอบหลายชิ้นงาน"],
+      ["input-studio-phone", "0812345678"],
+      ["input-studio-project", "โครงการครัวและห้องน้ำ"],
+      ["input-studio-address", "กรุงเทพฯ"],
+    ] as const) {
+      await setTextInput(browser.page, testId, value);
+    }
+    await clickTestId(browser.page, "button-submit-studio");
+    const savedOutcome = await waitFor(
+      () => browser.page.evaluate(`(() => ({
+        saved: document.querySelector('[data-testid="saved-studio-layout"]') !== null,
+        error: document.querySelector('[data-testid="status-saved-quote-error"]')?.textContent ?? "",
+        invalid: document.querySelector('[data-testid="status-saved-quote-invalid"]')?.textContent ?? "",
+      }))()`),
+      (value) => value.saved || Boolean(value.error) || Boolean(value.invalid),
+      "multi-piece saved quote",
+    );
+    assert.equal(savedOutcome.saved, true, JSON.stringify(savedOutcome));
+
+    const savedLayout = await browser.page.evaluate(`(() => ({
+      heading: document.querySelector('[data-testid="saved-studio-layout"] .studio-saved-layout-heading')?.textContent ?? "",
+      pieces: document.querySelectorAll('[data-testid="saved-studio-layout"] .studio-saved-piece').length,
+      canvases: document.querySelectorAll('[data-testid^="saved-studio-canvas-"]').length,
+      placements: document.querySelectorAll('[data-testid="saved-studio-layout"] .studio-placement').length,
+    }))()`);
+    assert.match(savedLayout.heading, /2/);
+    assert.equal(savedLayout.pieces, 2);
+    assert.equal(savedLayout.canvases, 2);
+    assert.equal(savedLayout.placements, 2);
+
+    await browser.page.evaluate("window.__studioPrintCalled = false; window.print = () => { window.__studioPrintCalled = true; }");
+    await clickTestId(browser.page, "button-download-saved-studio-pdf");
+    assert.equal(await waitFor(
+      () => browser.page.evaluate("window.__studioPrintCalled === true"),
+      Boolean,
+      "multi-piece saved Studio print action",
+    ), true);
+    assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-2ชิ้น$/);
+  });
+
   it("guides shared Studio drafts through basin catalog changes", async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
     await waitFor(
@@ -2261,36 +2386,3 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
   });
 });
-
-    const saved = await waitFor(
-      () => browser.page.evaluate(`(() => {
-        const drafts = JSON.parse(localStorage.getItem("knight-studio-drafts-v1") || "[]");
-        const draft = drafts.find((item) => item.name === "แบบร่างตัวยู");
-        if (!draft) return null;
-        return {
-          shape: draft.state.shape,
-          dimensions: draft.state.dimensions,
-          rectangles: draft.state.pieces?.[0]?.rectangles?.map(({ widthMm, lengthMm, xMm, yMm, rotation }) => ({ widthMm, lengthMm, xMm, yMm, rotation })) ?? [],
-          basinPlacements: draft.state.basinPlacements?.map(({ sku, pieceId, xMm, yMm, widthMm, depthMm }) => ({ sku, pieceId, xMm, yMm, widthMm, depthMm })) ?? [],
-        };
-      })()`),
-      (value) => value !== null,
-      "saved U draft payload",
-    );
-
-    const dxf = await browser.page.evaluate("window.__studioDxfBlob.text()");
-
-    const restored = await waitFor(
-      () => browser.page.evaluate(`(() => ({
-        mainSizes: [...document.querySelectorAll('[data-testid="studio-canvas"] .studio-piece-size')].map((item) => item.textContent),
-        printSizes: [...document.querySelectorAll('.studio-print-canvas .studio-piece-size')].map((item) => item.textContent),
-        mainBasin: document.querySelector('[data-testid="studio-canvas"] .studio-placement')?.getAttribute("style") ?? "",
-        mainBasinValid: document.querySelector('[data-testid="studio-canvas"] .studio-placement')?.classList.contains("studio-placement--invalid") === false,
-      }))()`),
-      (value) => {
-        const left = Number.parseFloat(value.mainBasin.match(/left: ([0-9.]+)/)?.[1] ?? "NaN");
-        const top = Number.parseFloat(value.mainBasin.match(/top: ([0-9.]+)/)?.[1] ?? "NaN");
-        return value.mainSizes.length === 3 && value.printSizes.length === 3 && Math.abs(left - 3.333) < 0.1 && Math.abs(top - 36.111) < 0.1;
-      },
-      "restored U geometry",
-    );

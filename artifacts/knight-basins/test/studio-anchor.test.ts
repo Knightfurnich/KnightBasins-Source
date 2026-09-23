@@ -206,6 +206,26 @@ test("placementSheetWarnings flags missing piece, missing sheet, and out-of-boun
   assert.deepEqual(placementSheetWarnings(unknown, layout), []);
 });
 
+test("placementSheetWarnings uses the rotated basin footprint for safety checks", () => {
+  const layout = piece([rectangle("r1", { widthMm: 1000, lengthMm: 600 })]);
+  const rotatedInBounds = basePlacement({
+    sheetId: "r1",
+    offsetXMm: 700,
+    offsetYMm: 100,
+    widthMm: 500,
+    depthMm: 300,
+    rotation: 90,
+    orientation: "vertical",
+  });
+  const rotatedOutOfBounds = { ...rotatedInBounds, offsetYMm: 101 };
+
+  assert.deepEqual(placementSheetWarnings(rotatedInBounds, layout), []);
+  assert.deepEqual(
+    placementSheetWarnings(rotatedOutOfBounds, layout),
+    [`อ่าง basin-1 เกินขอบเขตแผ่น r1`],
+  );
+});
+
 test("v1 migration fills pieceId from pieces[0] only for legacy placements, never for new data", () => {
   const layout = piece([rectangle("r1", { widthMm: 1000, lengthMm: 600 })]);
   const otherPiece = piece([rectangle("r2", { widthMm: 1000, lengthMm: 600 })], { id: "piece-2", name: "ชิ้นงาน 2" });
