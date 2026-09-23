@@ -87,6 +87,57 @@ paths:
       responses:
         "204":
           description: Logged out
+  /admin/team:
+    get:
+      operationId: listAdminMembers
+      tags: [admin]
+      summary: List administration team members
+      responses:
+        "200":
+          description: Administration team members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminMember"
+    post:
+      operationId: createAdminMember
+      tags: [admin]
+      summary: Add an approved LINE account to the administration team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminMemberInput"
+      responses:
+        "201":
+          description: Team member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMember"
+  /admin/team/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    patch:
+      operationId: updateAdminMember
+      tags: [admin]
+      summary: Update an administration team member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminMemberUpdateInput"
+      responses:
+        "200":
+          description: Updated team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMember"
   /admin/basins:
     get:
       operationId: listAdminBasins
@@ -739,6 +790,14 @@ components:
           type: boolean
         access:
           $ref: "#/components/schemas/AdminAccess"
+        member:
+          type: object
+          required: [id, lineUserId, displayName, pictureUrl]
+          properties:
+            id: { type: integer, minimum: 1 }
+            lineUserId: { type: string, minLength: 1, maxLength: 255 }
+            displayName: { type: string, minLength: 1, maxLength: 160 }
+            pictureUrl: { type: [string, "null"], maxLength: 2000 }
     AdminAccess:
       type: object
       required: [role, permissions, canEdit, canDelete, canManageTeam]
@@ -757,6 +816,59 @@ components:
           type: boolean
         canManageTeam:
           type: boolean
+    AdminMember:
+      type: object
+      required: [id, lineUserId, displayName, pictureUrl, role, permissions, active, createdAt, updatedAt]
+      properties:
+        id: { type: integer, minimum: 1 }
+        lineUserId: { type: string, minLength: 1, maxLength: 255 }
+        displayName: { type: string, minLength: 1, maxLength: 160 }
+        pictureUrl: { type: [string, "null"], maxLength: 2000 }
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        active: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AdminMemberInput:
+      type: object
+      required: [lineUserId, displayName, role, permissions, active]
+      properties:
+        lineUserId: { type: string, minLength: 1, maxLength: 255 }
+        displayName: { type: string, minLength: 1, maxLength: 160 }
+        pictureUrl: { type: [string, "null"], maxLength: 2000 }
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        active: { type: boolean }
+    AdminMemberUpdateInput:
+      type: object
+      required: [displayName, role, permissions, active]
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 160 }
+        pictureUrl: { type: [string, "null"], maxLength: 2000 }
+        role:
+          type: string
+          enum: [owner, staff, viewer]
+        permissions:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            enum: [basins, installed-stones, sheet-stones, leads]
+        active: { type: boolean }
     BasinPriceInput:
       type: object
       required: [sku, colorCode, colorName, priceTHB, category, dimensions, imageTone, active, sortOrder]

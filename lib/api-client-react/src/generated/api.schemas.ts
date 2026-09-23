@@ -48,12 +48,28 @@ export interface HealthStatus {
   database: HealthStatusDatabase;
 }
 
-export interface AdminSession {
-  authenticated: boolean;
-  access?: AdminAccess;
-}
+export type AdminSessionMember = {
+  /** @minimum 1 */
+  id: number;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  lineUserId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  displayName: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  pictureUrl: string | null;
+};
 
 export type AdminAccessRole = typeof AdminAccessRole[keyof typeof AdminAccessRole];
+
 
 export const AdminAccessRole = {
   owner: 'owner',
@@ -61,21 +77,150 @@ export const AdminAccessRole = {
   viewer: 'viewer',
 } as const;
 
-export type AdminAccessPermission = typeof AdminAccessPermission[keyof typeof AdminAccessPermission];
+export type AdminAccessPermissionsItem = typeof AdminAccessPermissionsItem[keyof typeof AdminAccessPermissionsItem];
 
-export const AdminAccessPermission = {
+
+export const AdminAccessPermissionsItem = {
   basins: 'basins',
-  installedStones: 'installed-stones',
-  sheetStones: 'sheet-stones',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
   leads: 'leads',
 } as const;
 
 export interface AdminAccess {
   role: AdminAccessRole;
-  permissions: AdminAccessPermission[];
+  permissions: AdminAccessPermissionsItem[];
   canEdit: boolean;
   canDelete: boolean;
   canManageTeam: boolean;
+}
+
+export interface AdminSession {
+  authenticated: boolean;
+  access?: AdminAccess;
+  member?: AdminSessionMember;
+}
+
+export type AdminMemberRole = typeof AdminMemberRole[keyof typeof AdminMemberRole];
+
+
+export const AdminMemberRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminMemberPermissionsItem = typeof AdminMemberPermissionsItem[keyof typeof AdminMemberPermissionsItem];
+
+
+export const AdminMemberPermissionsItem = {
+  basins: 'basins',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminMember {
+  /** @minimum 1 */
+  id: number;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  lineUserId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  displayName: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  pictureUrl: string | null;
+  role: AdminMemberRole;
+  /** @maxItems 4 */
+  permissions: AdminMemberPermissionsItem[];
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdminMemberInputRole = typeof AdminMemberInputRole[keyof typeof AdminMemberInputRole];
+
+
+export const AdminMemberInputRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminMemberInputPermissionsItem = typeof AdminMemberInputPermissionsItem[keyof typeof AdminMemberInputPermissionsItem];
+
+
+export const AdminMemberInputPermissionsItem = {
+  basins: 'basins',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminMemberInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  lineUserId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  displayName: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  pictureUrl?: string | null;
+  role: AdminMemberInputRole;
+  /** @maxItems 4 */
+  permissions: AdminMemberInputPermissionsItem[];
+  active: boolean;
+}
+
+export type AdminMemberUpdateInputRole = typeof AdminMemberUpdateInputRole[keyof typeof AdminMemberUpdateInputRole];
+
+
+export const AdminMemberUpdateInputRole = {
+  owner: 'owner',
+  staff: 'staff',
+  viewer: 'viewer',
+} as const;
+
+export type AdminMemberUpdateInputPermissionsItem = typeof AdminMemberUpdateInputPermissionsItem[keyof typeof AdminMemberUpdateInputPermissionsItem];
+
+
+export const AdminMemberUpdateInputPermissionsItem = {
+  basins: 'basins',
+  'installed-stones': 'installed-stones',
+  'sheet-stones': 'sheet-stones',
+  leads: 'leads',
+} as const;
+
+export interface AdminMemberUpdateInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  displayName: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  pictureUrl?: string | null;
+  role: AdminMemberUpdateInputRole;
+  /** @maxItems 4 */
+  permissions: AdminMemberUpdateInputPermissionsItem[];
+  active: boolean;
 }
 
 export interface BasinPriceInput {

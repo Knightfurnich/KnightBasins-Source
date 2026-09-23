@@ -1,8 +1,9 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { customerAccounts, customerSessions, db } from "@workspace/db";
+import { adminMembers, customerAccounts, customerSessions, db } from "@workspace/db";
 import { and, eq, gt } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { getLineAuthDiagnostics } from "../lib/line-config";
+import { adminCookieOptions, createAdminToken, COOKIE_NAME } from "../middlewares/admin-auth";
 
 const router: IRouter = Router();
 const STATE_COOKIE = "knight_line_oauth_state";
@@ -73,6 +74,11 @@ function verifyCookie<T>(value: string | undefined) {
 
 function returnTo(value: unknown) {
   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "/";
+}
+
+function adminLoginResult(returnPath: string, result: "not-approved") {
+  const separator = returnPath.includes("?") ? "&" : "?";
+  return `${returnPath}${separator}adminLogin=${result}`;
 }
 
 function configured() {
@@ -214,6 +220,12 @@ router.get("/auth/line/callback", async (req, res, next) => {
       throw new Error("LINE customer account could not be saved");
     }
 
+    const [adminMember] = await db
+      .select({ id: adminMembers.id })
+      .from(adminMembers)
+      .where(and(eq(adminMembers.lineUserId, profile.userId), eq(adminMembers.active, true)))
+      .limit(1);
+
     const sessionToken = randomBytes(32).toString("base64url");
     await db.insert(customerSessions).values({
       accountId: account.id,
@@ -228,7 +240,15 @@ router.get("/auth/line/callback", async (req, res, next) => {
       maxAge: SESSION_AGE_MS,
       path: "/",
     });
-    res.redirect(stateCookie.returnTo);
+    if (adminMember) {
+      res.cookie(COOKIE_NAME, createAdminToken(adminMember.id), adminCookieOptions());
+      res.redirect(stateCookie.returnTo);
+      return;
+    }
+    res.clearCookie(COOKIE_NAME, { path: "/" });
+    res.redirect(stateCookie.returnTo.startsWith("/admin")
+      ? adminLoginResult(stateCookie.returnTo, "not-approved")
+      : stateCookie.returnTo);
   } catch (error) {
     next(error);
   }

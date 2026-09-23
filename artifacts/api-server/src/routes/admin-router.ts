@@ -6,8 +6,10 @@ import {
   sheetStonePrices,
   customerLeads,
   paymentSlips,
+  adminMembers,
 } from "@workspace/db/schema";
 import {
+  CreateAdminMemberBody,
   CreateAdminBasinBody,
   CreateAdminBasinCategoryBody,
   CreateAdminInstalledStoneCategoryBody,
@@ -20,6 +22,7 @@ import {
   UpdateAdminInstalledStoneBody,
   UpdateAdminSheetStoneBody,
   UpdateAdminLeadBody,
+  UpdateAdminMemberBody,
 } from "@workspace/api-zod";
 import { asc, desc, eq } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
@@ -28,11 +31,13 @@ import {
   adminPasswordMatches,
   COOKIE_NAME,
   createAdminToken,
-  adminSessionResponse,
-  isAdminTokenValid,
   requireAdminPermission,
   requireAnyAdminPermission,
   requireAdmin,
+  requireAdminOwner,
+  resolveAdminSession,
+  ADMIN_PERMISSIONS,
+  accessForAdminMember,
 } from "../middlewares/admin-auth";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
 import {
@@ -64,6 +69,41 @@ function idFrom(value: string | string[]) {
 
 function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
+}
+
+function serializeAdminMember(member: any) {
+  const role = member.role === "owner" || member.role === "viewer" ? member.role : "staff";
+  const access = accessForAdminMember({ role, permissions: member.permissions ?? [] });
+  return {
+    id: member.id,
+    lineUserId: member.lineUserId,
+    displayName: member.displayName,
+    pictureUrl: member.pictureUrl ?? null,
+    role,
+    permissions: access.permissions,
+    active: Boolean(member.active),
+    createdAt: member.createdAt,
+    updatedAt: member.updatedAt,
+  };
+}
+
+function memberValues(input: {
+  displayName: string;
+  pictureUrl?: string | null;
+  role: "owner" | "staff" | "viewer";
+  permissions: string[];
+  active: boolean;
+}) {
+  const role = input.role;
+  return {
+    displayName: input.displayName.trim(),
+    pictureUrl: input.pictureUrl ?? null,
+    role,
+    permissions: role === "owner"
+      ? [...ADMIN_PERMISSIONS]
+      : [...new Set(input.permissions.filter((permission) => ADMIN_PERMISSIONS.includes(permission as typeof ADMIN_PERMISSIONS[number])))],
+    active: input.active,
+  };
 }
 
 async function catalogImageUrls(database: AdminDatabase) {
@@ -113,11 +153,15 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
   const uploadRateLimit = createRateLimiter({ name: "admin-upload", max: 150, windowMs: 10 * 60 * 1000 });
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
 
-  router.get("/admin/session", (req, res) => {
-    res.json(adminSessionResponse(isAdminTokenValid(req.cookies?.[COOKIE_NAME])));
+  router.get("/admin/session", async (req, res, next) => {
+    try {
+      res.json(await resolveAdminSession(req.cookies?.[COOKIE_NAME]));
+    } catch (error) {
+      next(error);
+    }
   });
 
-  router.post("/admin/session", adminLoginRateLimit, (req, res) => {
+  router.post("/admin/session", adminLoginRateLimit, async (req, res) => {
     const parsed = CreateAdminSessionBody.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid login", parsed.error.flatten());
     if (!process.env["ADMIN_PASSWORD"]) {
@@ -126,8 +170,9 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     if (!adminPasswordMatches(parsed.data.password)) {
       return res.status(401).json({ message: "Incorrect password" });
     }
-    res.cookie(COOKIE_NAME, createAdminToken(), adminCookieOptions());
-    return res.json(adminSessionResponse(true));
+    const token = createAdminToken();
+    res.cookie(COOKIE_NAME, token, adminCookieOptions());
+    return res.json(await resolveAdminSession(token));
   });
 
   router.delete("/admin/session", (_req, res) => {
@@ -136,6 +181,56 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
   });
 
   router.use("/admin", requireAdmin);
+
+  router.get("/admin/team", requireAdminOwner, async (_req, res, next) => {
+    try {
+      const members = await database
+        .select()
+        .from(adminMembers)
+        .orderBy(asc(adminMembers.active), asc(adminMembers.displayName), asc(adminMembers.id));
+      return res.json(members.map(serializeAdminMember));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/team", requireAdminOwner, async (req, res, next) => {
+    const parsed = CreateAdminMemberBody.safeParse(req.body);
+    if (!parsed.success || !parsed.data.displayName.trim() || !parsed.data.lineUserId.trim()) {
+      return invalid(res, "ข้อมูลสมาชิกทีมไม่ถูกต้อง", parsed.success ? undefined : parsed.error.flatten());
+    }
+    try {
+      const [created] = await database
+        .insert(adminMembers)
+        .values({
+          lineUserId: parsed.data.lineUserId.trim(),
+          ...memberValues(parsed.data),
+        })
+        .returning();
+      return res.status(201).json(serializeAdminMember(created));
+    } catch (error) {
+      if (isDuplicateCategory(error)) return res.status(409).json({ message: "บัญชี LINE นี้มีอยู่ในทีมแล้ว" });
+      return next(error);
+    }
+  });
+
+  router.patch("/admin/team/:id", requireAdminOwner, async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = UpdateAdminMemberBody.safeParse(req.body);
+    if (!id || !parsed.success || !parsed.data.displayName.trim()) {
+      return invalid(res, "ข้อมูลสมาชิกทีมไม่ถูกต้อง", parsed.success ? undefined : parsed.error.flatten());
+    }
+    try {
+      const [updated] = await database
+        .update(adminMembers)
+        .set({ ...memberValues(parsed.data), updatedAt: new Date() })
+        .where(eq(adminMembers.id, id))
+        .returning();
+      return updated ? res.json(serializeAdminMember(updated)) : res.status(404).json({ message: "ไม่พบสมาชิกทีม" });
+    } catch (error) {
+      return next(error);
+    }
+  });
 
   router.get("/admin/leads", requireAdminPermission("leads"), async (_req, res, next) => {
     try {

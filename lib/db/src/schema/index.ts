@@ -165,6 +165,21 @@ export const customerSessions = pgTable(
   ],
 );
 
+export const adminMembers = pgTable(
+  "admin_members",
+  {
+    id: serial("id").primaryKey(),
+    lineUserId: varchar("line_user_id", { length: 255 }).notNull(),
+    displayName: varchar("display_name", { length: 160 }).notNull(),
+    pictureUrl: text("picture_url"),
+    role: varchar("role", { length: 16 }).default("staff").notNull(),
+    permissions: text("permissions").array().default(sql`ARRAY[]::text[]`).notNull(),
+    active: boolean("active").default(true).notNull(),
+    ...auditColumns,
+  },
+  (table) => [uniqueIndex("admin_members_line_user_id_unique").on(table.lineUserId)],
+);
+
 export const customerProfileUpdateConfirmations = pgTable(
   "customer_profile_update_confirmations",
   {
@@ -286,6 +301,7 @@ export type InstalledStonePrice = typeof installedStonePrices.$inferSelect;
 export type SheetStonePrice = typeof sheetStonePrices.$inferSelect;
 export type CustomerAccount = typeof customerAccounts.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
+export type AdminMember = typeof adminMembers.$inferSelect;
 
 export type CustomerProfileUpdateConfirmation = typeof customerProfileUpdateConfirmations.$inferSelect;
 export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;

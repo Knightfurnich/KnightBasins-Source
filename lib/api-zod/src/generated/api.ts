@@ -169,8 +169,30 @@ export const GetCatalogResponse = zod.object({
 /**
  * @summary Check the current admin session
  */
+
+export const getAdminSessionResponseMemberLineUserIdMax = 255;
+
+export const getAdminSessionResponseMemberDisplayNameMax = 160;
+
+export const getAdminSessionResponseMemberPictureUrlMax = 2000;
+
+
+
 export const GetAdminSessionResponse = zod.object({
-  "authenticated": zod.boolean()
+  "authenticated": zod.boolean(),
+  "access": zod.object({
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])),
+  "canEdit": zod.boolean(),
+  "canDelete": zod.boolean(),
+  "canManageTeam": zod.boolean()
+}).optional(),
+  "member": zod.object({
+  "id": zod.number().min(1),
+  "lineUserId": zod.string().min(1).max(getAdminSessionResponseMemberLineUserIdMax),
+  "displayName": zod.string().min(1).max(getAdminSessionResponseMemberDisplayNameMax),
+  "pictureUrl": zod.string().max(getAdminSessionResponseMemberPictureUrlMax).nullable()
+}).optional()
 })
 
 
@@ -185,8 +207,30 @@ export const CreateAdminSessionBody = zod.object({
   "password": zod.string().min(createAdminSessionBodyPasswordMin)
 })
 
+
+export const createAdminSessionResponseMemberLineUserIdMax = 255;
+
+export const createAdminSessionResponseMemberDisplayNameMax = 160;
+
+export const createAdminSessionResponseMemberPictureUrlMax = 2000;
+
+
+
 export const CreateAdminSessionResponse = zod.object({
-  "authenticated": zod.boolean()
+  "authenticated": zod.boolean(),
+  "access": zod.object({
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])),
+  "canEdit": zod.boolean(),
+  "canDelete": zod.boolean(),
+  "canManageTeam": zod.boolean()
+}).optional(),
+  "member": zod.object({
+  "id": zod.number().min(1),
+  "lineUserId": zod.string().min(1).max(createAdminSessionResponseMemberLineUserIdMax),
+  "displayName": zod.string().min(1).max(createAdminSessionResponseMemberDisplayNameMax),
+  "pictureUrl": zod.string().max(createAdminSessionResponseMemberPictureUrlMax).nullable()
+}).optional()
 })
 
 
@@ -194,6 +238,130 @@ export const CreateAdminSessionResponse = zod.object({
  * @summary Log out of the administration area
  */
 export const DeleteAdminSessionResponse = zod.void()
+
+
+/**
+ * @summary List administration team members
+ */
+
+export const listAdminMembersResponseLineUserIdMax = 255;
+
+export const listAdminMembersResponseDisplayNameMax = 160;
+
+export const listAdminMembersResponsePictureUrlMax = 2000;
+
+export const listAdminMembersResponsePermissionsMax = 4;
+
+
+
+export const ListAdminMembersResponseItem = zod.object({
+  "id": zod.number().min(1),
+  "lineUserId": zod.string().min(1).max(listAdminMembersResponseLineUserIdMax),
+  "displayName": zod.string().min(1).max(listAdminMembersResponseDisplayNameMax),
+  "pictureUrl": zod.string().max(listAdminMembersResponsePictureUrlMax).nullable(),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(listAdminMembersResponsePermissionsMax),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListAdminMembersResponse = zod.array(ListAdminMembersResponseItem)
+
+
+/**
+ * @summary Add an approved LINE account to the administration team
+ */
+export const createAdminMemberBodyLineUserIdMax = 255;
+
+export const createAdminMemberBodyDisplayNameMax = 160;
+
+export const createAdminMemberBodyPictureUrlMax = 2000;
+
+export const createAdminMemberBodyPermissionsMax = 4;
+
+
+
+export const CreateAdminMemberBody = zod.object({
+  "lineUserId": zod.string().min(1).max(createAdminMemberBodyLineUserIdMax),
+  "displayName": zod.string().min(1).max(createAdminMemberBodyDisplayNameMax),
+  "pictureUrl": zod.string().max(createAdminMemberBodyPictureUrlMax).nullish(),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(createAdminMemberBodyPermissionsMax),
+  "active": zod.boolean()
+})
+
+
+export const createAdminMemberResponseLineUserIdMax = 255;
+
+export const createAdminMemberResponseDisplayNameMax = 160;
+
+export const createAdminMemberResponsePictureUrlMax = 2000;
+
+export const createAdminMemberResponsePermissionsMax = 4;
+
+
+
+export const CreateAdminMemberResponse = zod.object({
+  "id": zod.number().min(1),
+  "lineUserId": zod.string().min(1).max(createAdminMemberResponseLineUserIdMax),
+  "displayName": zod.string().min(1).max(createAdminMemberResponseDisplayNameMax),
+  "pictureUrl": zod.string().max(createAdminMemberResponsePictureUrlMax).nullable(),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(createAdminMemberResponsePermissionsMax),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update an administration team member
+ */
+
+
+
+export const UpdateAdminMemberParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const updateAdminMemberBodyDisplayNameMax = 160;
+
+export const updateAdminMemberBodyPictureUrlMax = 2000;
+
+export const updateAdminMemberBodyPermissionsMax = 4;
+
+
+
+export const UpdateAdminMemberBody = zod.object({
+  "displayName": zod.string().min(1).max(updateAdminMemberBodyDisplayNameMax),
+  "pictureUrl": zod.string().max(updateAdminMemberBodyPictureUrlMax).nullish(),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(updateAdminMemberBodyPermissionsMax),
+  "active": zod.boolean()
+})
+
+
+export const updateAdminMemberResponseLineUserIdMax = 255;
+
+export const updateAdminMemberResponseDisplayNameMax = 160;
+
+export const updateAdminMemberResponsePictureUrlMax = 2000;
+
+export const updateAdminMemberResponsePermissionsMax = 4;
+
+
+
+export const UpdateAdminMemberResponse = zod.object({
+  "id": zod.number().min(1),
+  "lineUserId": zod.string().min(1).max(updateAdminMemberResponseLineUserIdMax),
+  "displayName": zod.string().min(1).max(updateAdminMemberResponseDisplayNameMax),
+  "pictureUrl": zod.string().max(updateAdminMemberResponsePictureUrlMax).nullable(),
+  "role": zod.enum(['owner', 'staff', 'viewer']),
+  "permissions": zod.array(zod.enum(['basins', 'installed-stones', 'sheet-stones', 'leads'])).max(updateAdminMemberResponsePermissionsMax),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
 
 
 /**

@@ -14,6 +14,7 @@ import { BasinsManager } from "./BasinsManager";
 import { InstalledStonesManager } from "./InstalledStonesManager";
 import { SheetStonesManager } from "./SheetStonesManager";
 import { LeadsManager } from "./LeadsManager";
+import { TeamManager } from "./TeamManager";
 import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
@@ -32,6 +33,7 @@ type AdminAccess = {
 type AdminSessionPayload = {
   authenticated: boolean;
   access?: AdminAccess;
+  member?: { displayName: string };
 };
 
 const allAdminPermissions: AdminPermission[] = ["basins", "installed-stones", "sheet-stones", "leads"];
@@ -54,6 +56,7 @@ const NAV_ITEMS = [
   { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones" },
   { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
   { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
+  { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true },
 ] as const;
 
 const AdminAccessContext = createContext<AdminAccess>(defaultAdminAccess);
@@ -100,7 +103,7 @@ export default function AdminApp() {
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline-flex items-center border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-soft)]" data-testid="admin-role">
-              {roleLabels[access.role]}
+              {adminSession?.member?.displayName ? `${adminSession.member.displayName} · ` : ""}{roleLabels[access.role]}
             </span>
             <AdminLogout />
           </div>
@@ -109,8 +112,8 @@ export default function AdminApp() {
            <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
             <MobileNavSelect />
             <nav className="hidden md:flex md:flex-col gap-2">
-              {NAV_ITEMS.map((item) => (
-                <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission}>{item.label}</NavButton>
+               {NAV_ITEMS.map((item) => (
+                 <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team}>{item.label}</NavButton>
               ))}
             </nav>
           </aside>
@@ -122,6 +125,7 @@ export default function AdminApp() {
               <Route path="/admin/installed-stones" component={InstalledStonesRoute} />
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
+              <Route path="/admin/team" component={TeamRoute} />
             </Switch>
           </main>
         </div>
@@ -130,11 +134,11 @@ export default function AdminApp() {
   );
 }
 
-function NavButton({ href, children, exact, permission }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null }) {
+function NavButton({ href, children, exact, permission, team }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null, team?: boolean }) {
   const [location, setLocation] = useLocation();
   const access = useAdminAccess();
   const isActive = exact ? location === href : location.startsWith(href);
-  const allowed = hasPermission(access, permission);
+  const allowed = team ? access.canManageTeam : hasPermission(access, permission);
   return (
     <Button
       variant={isActive ? "secondary" : "ghost"} 
@@ -142,7 +146,7 @@ function NavButton({ href, children, exact, permission }: { href: string, childr
       onClick={() => setLocation(allowed ? href : "/admin/access-denied")}
       aria-disabled={!allowed}
       title={!allowed ? "คุณไม่มีสิทธิ์เข้าถึงเมนูนี้" : undefined}
-      data-testid={`nav-admin-${permission ?? "home"}`}
+       data-testid={`nav-admin-${team ? "team" : permission ?? "home"}`}
     >
       {!allowed && <LockKeyhole className="mr-2 h-3.5 w-3.5" aria-hidden="true" />}
       {children}
@@ -160,14 +164,16 @@ function MobileNavSelect() {
       value={activeHref}
       onChange={(event) => {
         const item = NAV_ITEMS.find((candidate) => candidate.href === event.target.value);
-        setLocation(item && hasPermission(access, item.permission) ? event.target.value : "/admin/access-denied");
+         const allowed = item ? (("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission)) : false;
+         setLocation(allowed ? event.target.value : "/admin/access-denied");
       }}
       aria-label="เมนูจัดการ"
       data-testid="select-admin-mobile-nav"
     >
-      {NAV_ITEMS.map((item) => (
-        <option key={item.href} value={item.href}>{item.permission && !hasPermission(access, item.permission) ? `🔒 ${item.label}` : item.label}</option>
-      ))}
+       {NAV_ITEMS.map((item) => {
+         const allowed = ("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission);
+        return <option key={item.href} value={item.href}>{!allowed ? `🔒 ${item.label}` : item.label}</option>;
+       })}
     </select>
   );
 }
@@ -178,6 +184,7 @@ function DashboardHome() {
   const openMenu = (href: string, permission: AdminPermission) => {
     setLocation(hasPermission(access, permission) ? href : "/admin/access-denied");
   };
+  const openTeam = () => setLocation(access.canManageTeam ? "/admin/team" : "/admin/access-denied");
   return (
     <div className="admin-dashboard space-y-6">
       <div>
@@ -197,6 +204,10 @@ function DashboardHome() {
           <h3 className="font-semibold text-lg mb-2">หินสังเคราะห์ (แผ่น)</h3>
           <p className="text-sm text-[var(--ink-soft)]">จัดการราคาหินสังเคราะห์แบบขายเป็นแผ่น</p>
         </div>
+          <div className={`admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer ${!access.canManageTeam ? "opacity-60" : ""}`} onClick={openTeam}>
+            <h3 className="font-semibold text-lg mb-2">สมาชิกทีม</h3>
+            <p className="text-sm text-[var(--ink-soft)]">กำหนดบัญชี LINE บทบาท และเมนูที่แต่ละคนเข้าถึงได้</p>
+          </div>
       </div>
     </div>
   );
@@ -248,9 +259,16 @@ function LeadsRoute() {
   return <AdminPermissionGate permission="leads" resource="ลูกค้า / Lead"><LeadsManager /></AdminPermissionGate>;
 }
 
+function TeamRoute() {
+  const access = useAdminAccess();
+  return access.canManageTeam ? <TeamManager /> : <AccessDeniedPage resource="สมาชิกทีม" />;
+}
+
 export function AdminLogin() {
   const login = useCreateAdminSession();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
+  const lineLoginDenied = location.includes("adminLogin=not-approved");
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -279,6 +297,11 @@ export function AdminLogin() {
             <h1 className="text-2xl font-semibold font-display tracking-tight">Knight Admin</h1>
             <p className="text-sm text-[var(--ink-soft)] mt-2">กรุณาเข้าสู่ระบบเพื่อจัดการข้อมูล</p>
           </div>
+          {lineLoginDenied && (
+            <div className="mb-5 border border-[#a24439]/30 bg-[#a24439]/5 p-3 text-sm leading-relaxed text-[#a24439]" role="alert">
+              บัญชี LINE นี้ยังไม่ได้รับอนุมัติให้เข้า Admin กรุณาติดต่อเจ้าของระบบ
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                <input type="text" name="username" value="admin" autoComplete="username" readOnly hidden />
@@ -310,6 +333,16 @@ export function AdminLogin() {
               </Button>
             </form>
           </Form>
+          <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-widest text-[var(--ink-soft)]">
+            <span className="h-px flex-1 bg-[var(--line)]" /> หรือ <span className="h-px flex-1 bg-[var(--line)]" />
+          </div>
+          <a
+            href="/api/auth/line/login?returnTo=%2Fadmin"
+            className="flex h-11 w-full items-center justify-center border border-[var(--line)] text-sm text-[var(--ink)] transition-colors hover:bg-[var(--line)]/30"
+            data-testid="link-admin-line-login"
+          >
+            เข้าสู่ระบบด้วย LINE
+          </a>
         </div>
       </div>
     </div>
