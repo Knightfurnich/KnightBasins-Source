@@ -5,6 +5,9 @@
 
 BEGIN;
 
+ALTER TABLE public.basin_prices ADD COLUMN IF NOT EXISTS gallery_image_urls text[] NOT NULL DEFAULT '{}';
+ALTER TABLE public.basin_prices ADD COLUMN IF NOT EXISTS quote_image_url text;
+
 TRUNCATE TABLE basin_prices, installed_stone_prices, sheet_stone_prices, basin_categories, installed_stone_categories CASCADE;
 
 --
