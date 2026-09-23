@@ -16,6 +16,7 @@ import {
   pieceBounds,
   snapStudioRectanglePosition,
   studioAreaSqM,
+  studioDefaultStoneCode,
   studioBasinCatalogEntries,
   studioEdgeTotals,
   studioEstimate,
@@ -114,6 +115,21 @@ test("a fresh 5000 × 5000 board estimates 25 square metres and warns about shee
     yMm: 0,
     rotation: 0,
   });
+});
+
+test("Studio defaults the counter stone to the first basin color", () => {
+  assert.equal(studioDefaultStoneCode(["KF001"], PRODUCTS), "VS311");
+  assert.equal(studioDefaultStoneCode(["KF002"], PRODUCTS), "VS351");
+  assert.equal(studioDefaultStoneCode([], PRODUCTS), "BW010");
+});
+
+test("Studio falls back to the available catalog when a basin color is unavailable", () => {
+  assert.equal(
+    studioDefaultStoneCode(["KF001"], PRODUCTS, [
+      { code: "SO423", name: "Sanded Onyx", tone: "#343736", sheetPriceTHB: 9000, installedPriceTHB: 8500, documentCodes: [] },
+    ]),
+    "SO423",
+  );
 });
 
 test("overlapping rectangles warn but are still counted additively", () => {

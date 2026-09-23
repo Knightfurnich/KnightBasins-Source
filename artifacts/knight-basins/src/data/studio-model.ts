@@ -1,5 +1,6 @@
 import {
   INSTALLATION_PRICE,
+  STONE_COLORS,
   STONE_INSTALLED_MIN_BANGKOK_SQM,
   STONE_INSTALLED_MIN_PROVINCE_SQM,
   STONE_SMALL_JOB_BANGKOK_FEE,
@@ -8,6 +9,7 @@ import {
   stoneColorByName,
   stoneInstalledUnitPrice,
   type BasinProduct,
+  type StoneColor,
 } from "./catalog.ts";
 
 export type StudioOrderMode = "quick-purchase" | "studio" | "sketch";
@@ -121,6 +123,8 @@ export type StudioState = {
   quoteFormat: StudioQuoteFormat;
   stoneColors: string[];
   activeStone: string;
+  /** Tracks whether the current stone is an automatic basin-matched default or a customer choice. */
+  stoneSelectionSource?: "default" | "user";
   basinSkus: string[];
   basinPlacements: BasinPlacement[];
 };
@@ -177,6 +181,17 @@ export const STUDIO_INITIAL_BOARD_LENGTH_MM = 5000;
 export const STUDIO_ADDITIONAL_RECTANGLE_WIDTH_MM = 1800;
 export const STUDIO_ADDITIONAL_RECTANGLE_LENGTH_MM = 600;
 const STUDIO_EPSILON_MM = 0.01;
+
+export function studioDefaultStoneCode(
+  basinSkus: ReadonlyArray<string>,
+  basinProducts: ReadonlyArray<BasinProduct>,
+  stoneColors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) {
+  const firstBasin = basinSkus
+    .map((sku) => basinProducts.find((product) => product.sku === sku))
+    .find((product): product is BasinProduct => Boolean(product));
+  return stoneColorByName(firstBasin?.colorCode ?? "", stoneColors).code;
+}
 
 export type CounterRegion = {
   xMm: number;

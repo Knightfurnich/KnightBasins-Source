@@ -2523,4 +2523,54 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "condo floor field hidden for houses",
     );
   });
+
+  it("defaults a custom Studio counter to the selected basin color until the customer chooses a stone", async () => {
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF001"]\') !== null'),
+      Boolean,
+      "Studio basin shortlist",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF001"]\') !== null'),
+      Boolean,
+      "fresh Studio basin shortlist",
+    );
+
+    await clickTestId(browser.page, "button-studio-basin-KF001");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-active-stone-VS311"]\')?.classList.contains("is-active") === true'),
+      Boolean,
+      "basin-matched default stone",
+    );
+    const basinMatched = await browser.page.evaluate(`(() => ({
+      selected: document.querySelector('[data-testid="button-studio-stone-VS311"]')?.getAttribute("aria-pressed") === "true",
+      active: document.querySelector('[data-testid="button-studio-active-stone-VS311"]')?.classList.contains("is-active") ?? false,
+      estimateCode: document.querySelector(".studio-estimate-panel .studio-panel-heading > span")?.textContent ?? "",
+    }))()`);
+    assert.equal(basinMatched.selected, true);
+    assert.equal(basinMatched.active, true);
+    assert.equal(basinMatched.estimateCode, "VS311");
+
+    await clickTestId(browser.page, "button-studio-stone-SO423");
+    await clickTestId(browser.page, "button-studio-active-stone-SO423");
+    await clickTestId(browser.page, "button-studio-basin-KF002");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-active-stone-SO423"]\')?.classList.contains("is-active") === true'),
+      Boolean,
+      "customer-selected stone after another basin",
+    );
+    assert.equal(
+      await browser.page.evaluate('document.querySelector(\'.studio-estimate-panel .studio-panel-heading > span\')?.textContent ?? ""'),
+      "SO423",
+    );
+  });
 });

@@ -38,6 +38,7 @@ import {
   snapStudioRectanglePosition,
   studioEdgeTotals,
   studioEstimate,
+  studioDefaultStoneCode,
   studioBasinCatalogEntries,
   resolveStudioCatalogChange,
   replaceStudioBasin,
@@ -175,6 +176,7 @@ const initialState: StudioState = {
   quoteFormat: "US",
   stoneColors: [],
   activeStone: "",
+  stoneSelectionSource: "default",
   basinSkus: [],
   basinPlacements: [],
 };
@@ -184,14 +186,17 @@ function createInitialStudioState(
   initialBasinSkus: string[] = [],
   initialStoneColors: string[] = [],
   basinProducts: ReadonlyArray<BasinProduct> = PRODUCTS,
+  availableStoneColors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ): StudioState {
   const piece = makePiece(0);
   const basinSkus = [...new Set(initialBasinSkus)]
     .filter((sku) => basinProducts.some((product) => product.sku === sku));
   const selectedBasinSkus = basinSkus;
   const stoneColors = [...new Set(initialStoneColors)]
-    .map((code) => stoneColorByName(code).code);
-  const selectedStoneColors = stoneColors;
+    .map((code) => stoneColorByName(code, availableStoneColors).code);
+  const selectedStoneColors = stoneColors.length
+    ? stoneColors
+    : [studioDefaultStoneCode(selectedBasinSkus, basinProducts, availableStoneColors)];
   return {
     ...initialState,
     mode,
@@ -201,6 +206,7 @@ function createInitialStudioState(
     backsplash: { ...initialState.backsplash },
     stoneColors: selectedStoneColors,
     activeStone: selectedStoneColors[0] ?? "",
+    stoneSelectionSource: stoneColors.length ? "user" : "default",
     basinSkus: selectedBasinSkus,
     basinPlacements: [],
   };
@@ -495,8 +501,22 @@ function placementAtAnchorOffset(
   return placementAtCoordinates(targeted, piece, sheet, coordinates.xMm, coordinates.yMm, anchor);
 }
 
-function normalizeStudioState(state: StudioState): StudioState {
-  return { ...state, basinPlacements: normalizePlacements(state) };
+function normalizeStudioState(
+  state: StudioState,
+  basinProducts: ReadonlyArray<BasinProduct> = PRODUCTS,
+  availableStoneColors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): StudioState {
+  const activeStone = state.activeStone || state.stoneColors[0] || studioDefaultStoneCode(state.basinSkus, basinProducts, availableStoneColors);
+  const stoneColors = state.stoneColors.length
+    ? state.stoneColors
+    : [activeStone];
+  return {
+    ...state,
+    stoneColors,
+    activeStone,
+    stoneSelectionSource: state.stoneSelectionSource ?? (state.activeStone || state.stoneColors.length ? "user" : "default"),
+    basinPlacements: normalizePlacements(state),
+  };
 }
 
 /** Places a basin on the target piece's canvas (defaulting to the first
@@ -598,24 +618,41 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, selecte
   const toggleStone = (code: string) => setState((current) => {
     if (current.stoneColors.includes(code)) {
       const next = current.stoneColors.filter((item) => item !== code);
-      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone };
+      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone, stoneSelectionSource: "user" };
     }
     // Auto-apply the newly shortlisted color to the canvas/estimate only when
     // nothing is active yet (first pick, or the active color was just removed).
     // Adding a second/third color to compare must not steal the active slot
     // from whichever one the customer is already looking at.
-    return { ...current, stoneColors: [...current.stoneColors, code], activeStone: current.activeStone || code };
+    return { ...current, stoneColors: [...current.stoneColors, code], activeStone: current.activeStone || code, stoneSelectionSource: "user" };
   });
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
-      return removeStudioBasin(current, sku);
+      const next = removeStudioBasin(current, sku);
+      if (current.stoneSelectionSource === "default") {
+        const defaultStone = studioDefaultStoneCode(next.basinSkus, basinProducts, stoneColors);
+        return { ...next, stoneColors: [defaultStone], activeStone: defaultStone };
+      }
+      return next;
     }
-    return { ...current, basinSkus: [...current.basinSkus, sku] };
+    const nextBasinSkus = [...current.basinSkus, sku];
+    if (current.stoneSelectionSource === "default") {
+      const defaultStone = studioDefaultStoneCode(nextBasinSkus, basinProducts, stoneColors);
+      return { ...current, basinSkus: nextBasinSkus, stoneColors: [defaultStone], activeStone: defaultStone };
+    }
+    return { ...current, basinSkus: nextBasinSkus };
   });
   const replaceBasin = (previousSku: string, nextSku: string) => {
     const product = basinProducts.find((item) => item.sku === nextSku);
     if (!product) return;
-    setState((current) => replaceStudioBasin(current, previousSku, product));
+    setState((current) => {
+      const next = replaceStudioBasin(current, previousSku, product);
+      if (current.stoneSelectionSource === "default") {
+        const defaultStone = studioDefaultStoneCode(next.basinSkus, basinProducts, stoneColors);
+        return { ...next, stoneColors: [defaultStone], activeStone: defaultStone };
+      }
+      return next;
+    });
     onCatalogChangeResolved(previousSku);
   };
   const removeHiddenBasin = (sku: string) => {
@@ -1541,7 +1578,7 @@ export function StudioPage({
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
-  const [state, setState, studioHistory] = useUndoableStudioState(() => normalizeStudioState(linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts)));
+  const [state, setState, studioHistory] = useUndoableStudioState(() => normalizeStudioState(linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts, stoneColors), basinProducts, stoneColors));
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
@@ -1687,7 +1724,7 @@ export function StudioPage({
   const resumeDraft = () => {
     if (!draftNotice) return;
     setEditingNamedDraftId(null);
-    setState(normalizeStudioState(draftNotice.state));
+    setState(normalizeStudioState(draftNotice.state, basinProducts, stoneColors));
     setLastSavedAt(draftNotice.savedAt);
     setCatalogNotice(draftNotice.catalogContext ? studioCatalogNotice(draftNotice.catalogContext, basinProducts) : null);
     setDraftNotice(null);
@@ -1697,7 +1734,7 @@ export function StudioPage({
     clearStoredStudioDraft();
     setEditingNamedDraftId(null);
     skipNextDraftSave.current = true;
-    setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts));
+    setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts, stoneColors));
     setLastSavedAt(null);
     setDraftNotice(null);
     setCatalogNotice(null);
@@ -1719,7 +1756,7 @@ export function StudioPage({
   };
   const copyDraftLink = async () => {
     const savedAt = new Date().toISOString();
-    const normalizedState = normalizeStudioState(state);
+    const normalizedState = normalizeStudioState(state, basinProducts, stoneColors);
     const catalogContext = catalogNotice?.context ?? createStudioCatalogContext(normalizedState, basinProducts, savedAt);
     writeStoredStudioDraft({ version: 1, savedAt, state: normalizedState, catalogContext });
     setLastSavedAt(savedAt);
@@ -1767,14 +1804,14 @@ export function StudioPage({
   };
   const openNamedDraft = (draft: NamedStudioDraftRecord) => {
     setEditingNamedDraftId(draft.id);
-    setState(normalizeStudioState(draft.state));
+    setState(normalizeStudioState(draft.state, basinProducts, stoneColors));
     setLastSavedAt(draft.savedAt);
     setCatalogNotice(draft.catalogContext ? studioCatalogNotice(draft.catalogContext, basinProducts) : null);
     setDraftDrawerOpen(false);
     setDraftResult(`เปิดแบบร่าง “${draft.name}” แล้ว`);
   };
   const copyNamedDraftLink = async (draft: NamedStudioDraftRecord) => {
-    const normalizedState = normalizeStudioState(draft.state);
+    const normalizedState = normalizeStudioState(draft.state, basinProducts, stoneColors);
     const catalogContext = draft.catalogContext ?? createStudioCatalogContext(normalizedState, basinProducts, draft.savedAt);
     const url = createStudioDraftLink(normalizedState, window.location.origin, undefined, catalogContext);
     try {
