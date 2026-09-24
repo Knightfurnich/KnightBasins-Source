@@ -200,6 +200,12 @@ export const STUDIO_INITIAL_BOARD_LENGTH_MM = 5000;
 export const STUDIO_ADDITIONAL_RECTANGLE_WIDTH_MM = 1800;
 export const STUDIO_ADDITIONAL_RECTANGLE_LENGTH_MM = 600;
 const STUDIO_EPSILON_MM = 0.01;
+/**
+ * Minimum clearance a basin cutout must keep from every edge of its stone
+ * panel so the cut doesn't crack the slab. This is a fabrication safety
+ * margin, distinct from STUDIO_EPSILON_MM (a floating-point tolerance).
+ */
+export const STUDIO_BASIN_SAFETY_MARGIN_MM = 100;
 
 export function studioDefaultStoneCode(
   basinSkus: ReadonlyArray<string>,
@@ -978,6 +984,46 @@ export function unsafeBasinPlacements(state: Pick<StudioState, "pieces" | "shape
   return state.basinPlacements
     .filter((placement) => placement.widthMm !== null && placement.depthMm !== null)
     .filter((placement) => !placementFitsStudioPiece(studioPieceById(state, placement.pieceId), placement))
+    .map((placement) => placement.id);
+}
+
+/**
+ * True when the placement's cutout keeps at least `marginMm` of clearance from
+ * every edge (left, right, top, bottom) of the given rectangle. Unknown-size
+ * placements (widthMm/depthMm not yet resolved from the catalog) always pass
+ * here, matching placementFitsRectangle's convention -- they're already
+ * tracked separately as unknownBasinPlacements.
+ */
+export function placementMeetsBasinEdgeClearance(
+  placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm" | "rotation" | "orientation">,
+  rectangle: StudioRectangle,
+  marginMm: number = STUDIO_BASIN_SAFETY_MARGIN_MM,
+): boolean {
+  const cutSize = placementCutSize(placement);
+  if (cutSize.widthMm === null || cutSize.heightMm === null) return true;
+  const size = studioRectangleSize(rectangle);
+  const threshold = marginMm - STUDIO_EPSILON_MM;
+  const leftClearance = placement.xMm - rectangle.xMm;
+  const rightClearance = rectangle.xMm + size.widthMm - (placement.xMm + cutSize.widthMm);
+  const topClearance = placement.yMm - rectangle.yMm;
+  const bottomClearance = rectangle.yMm + size.heightMm - (placement.yMm + cutSize.heightMm);
+  return leftClearance >= threshold &&
+    rightClearance >= threshold &&
+    topClearance >= threshold &&
+    bottomClearance >= threshold;
+}
+
+/** ids of every basin placement whose cutout sits closer than marginMm to its panel's edge. */
+export function basinPlacementsViolatingEdgeClearance(
+  state: Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">,
+  marginMm: number = STUDIO_BASIN_SAFETY_MARGIN_MM,
+): string[] {
+  return state.basinPlacements
+    .filter((placement) => placement.widthMm !== null && placement.depthMm !== null)
+    .filter((placement) => {
+      const piece = studioPieceById(state, placement.pieceId);
+      return !piece.rectangles.some((rectangle) => placementMeetsBasinEdgeClearance(placement, rectangle, marginMm));
+    })
     .map((placement) => placement.id);
 }
 
