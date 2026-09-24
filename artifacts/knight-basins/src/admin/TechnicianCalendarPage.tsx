@@ -470,17 +470,23 @@ export function TechnicianCalendarPage() {
             <div className="flex h-full min-h-0 flex-col">
               <div className="border-b border-[var(--line)] bg-[var(--paper)] px-5 pb-4 pt-6 pr-14 sm:px-6 sm:pr-14">
                 <SheetHeader className="space-y-1 text-left">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--brand-blue)]">Daily dispatch / demo</p>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--brand-blue)]">
+                    {isLive ? "Daily dispatch / live" : "Daily dispatch / demo"}
+                  </p>
                   <SheetTitle className="text-xl font-semibold text-[var(--ink)]" data-testid="calendar-detail-date">
                     {dateFormatter.format(new Date(`${selectedDay.date}T12:00:00`))}
                   </SheetTitle>
                   <SheetDescription className="text-xs text-[var(--ink-soft)]">
-                    {countFormatter.format(selectedDay.totalJobs)} งานตัวอย่าง · ทีมช่าง {countFormatter.format(selectedDay.teams.length)} ทีม
+                    {isLive
+                      ? `${countFormatter.format(selectedDay.totalJobs)} งานติดตั้ง · ทีมช่าง ${countFormatter.format(selectedDay.teams.length)} ทีม`
+                      : `${countFormatter.format(selectedDay.totalJobs)} งานตัวอย่าง · ทีมช่าง ${countFormatter.format(selectedDay.teams.length)} ทีม`}
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <StatusBadge status={selectedDay.dayStatus} testId="calendar-detail-day-status" />
-                  <span className="text-[10px] text-[var(--ink-soft)]">ข้อมูลชั่วคราว ไม่ใช่คิวจริง</span>
+                  <span className="text-[10px] text-[var(--ink-soft)]">
+                    {isLive ? "ซิงก์จากคำสั่งซื้อจริง" : "ข้อมูลชั่วคราว ไม่ใช่คิวจริง"}
+                  </span>
                 </div>
               </div>
 
@@ -503,9 +509,11 @@ export function TechnicianCalendarPage() {
                 </div>
               </div>
 
-              <div className="border-t border-[var(--line)] bg-[var(--paper)] px-4 py-3 text-[10px] leading-relaxed text-[var(--ink-soft)] sm:px-6">
-                หน้านี้ใช้ข้อมูลตัวอย่างแบบกำหนดตายตัวระหว่างรอ API หลังบ้าน กรุณาอย่านำไปใช้จัดคิวงานจริง
-              </div>
+              {!isLive && (
+                <div className="border-t border-[var(--line)] bg-[var(--paper)] px-4 py-3 text-[10px] leading-relaxed text-[var(--ink-soft)] sm:px-6">
+                  หน้านี้ใช้ข้อมูลตัวอย่างแบบกำหนดตายตัวระหว่างรอ API หลังบ้าน กรุณาอย่านำไปใช้จัดคิวงานจริง
+                </div>
+              )}
             </div>
           )}
         </SheetContent>
