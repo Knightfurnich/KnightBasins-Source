@@ -30,6 +30,7 @@ import {
   pieceOverlapWarnings,
   placementCrossesPanelJoint,
   placementCutSize,
+  basinPlacementOrientation,
   placementFitsStudioPiece,
   placementSheetWarnings,
   placementTargetWarnings,
@@ -1783,6 +1784,9 @@ function StudioPlacementPreview({
     aria-label={`ตำแหน่งอ่าง ${placement.sku}`}
   >
     <strong>{placement.sku}</strong>
+    <small>{unknown
+      ? "ขนาดหลุมไม่ระบุ"
+      : `${Math.round(cutSize.widthMm ?? 0).toLocaleString("th-TH")}×${Math.round(cutSize.heightMm ?? 0).toLocaleString("th-TH")} มม. · ${basinPlacementOrientation(placement) === "vertical" ? "แนวตั้ง" : "แนวนอน"}`}</small>
   </div>;
 }
 
