@@ -11,25 +11,13 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Check, ChevronDown, ChevronRight, Clipboard, LayoutGrid, List, Loader2, MapPin, RefreshCw, Search, X } from "lucide-react";
+import { BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { adminQuoteUrl, filterAdminLeads } from "./leads-utils";
+import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, leadStatusLabels as statusLabels } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
-
-const statusLabels: Record<string, string> = {
-  new_lead: "New Lead",
-  selecting: "เลือกสินค้า",
-  quote_requested: "ขอใบเสนอราคา",
-  quote_sent: "ส่งใบเสนอราคาแล้ว",
-  waiting_deposit: "รอมัดจำ",
-  team_reported_paid: "ชำระแล้ว (LINE)",
-  deposit_paid: "มัดจำแล้ว",
-  ready_for_production: "พร้อมผลิต",
-  closed: "ปิดการขาย",
-};
 
 const statusOptions: string[] = [
   "new_lead",
@@ -922,7 +910,19 @@ export function LeadsManager() {
       </div>
 
       <div className="border border-[var(--line)] bg-[var(--card-paper)] p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium"><Search className="w-4 h-4 text-[var(--brand-blue)]" /> ค้นหาใบเสนอราคาและลูกค้า</div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-medium"><Search className="w-4 h-4 text-[var(--brand-blue)]" /> ค้นหาใบเสนอราคาและลูกค้า</div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 rounded-none text-xs"
+            onClick={() => downloadLeadsCsv(visibleLeads)}
+            data-testid="button-export-leads-csv"
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" /> ส่งออก CSV
+          </Button>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-[var(--ink-soft)]">ช่วงเร็ว:</span>
           {[["วันนี้", 1], ["7 วัน", 7], ["30 วัน", 30]].map(([label, days]) => (
