@@ -511,7 +511,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     const bodyStatus = typeof req.body?.status === "string" && req.body.status.length <= 32 ? req.body.status : undefined;
     const bodyForZod = { ...req.body, status: "new_lead" };
     const parsed = UpdateAdminLeadBody.safeParse(bodyForZod);
-    if (!id || !parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
+    if (!id || !parsed.success) return invalid(res, "Invalid lead data", parsed.success ? undefined : parsed.error.flatten());
     const finalStatus = bodyStatus ?? parsed.data.status;
     try {
       let studioData: Record<string, unknown> | undefined;
