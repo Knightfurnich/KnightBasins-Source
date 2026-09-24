@@ -11,10 +11,12 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │       📝 TO DO          │     🔄 IN PROGRESS      │        ✅ DONE          │
 ├─────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ • Task 24 (Replit)      │ • Task 30 (ชัย):        │ • Task 25B (ชัย/เดวิด)  │
-│   สลับ hook จริง         │   PATCH lead studioData │   Fuzzy Match 29/29 LIVE│
-│ • Task 31 (Replit):     │ • แจ้งเตือนอัตโนมัติ     │ • Footer Compact LIVE   │
-│   Studio over sketch    │   Coming Soon           │ • Task 28, 29 Type Scale│
+│ • Task 24 (Replit)      │ • Task 31 (Replit):     │ • Task 30 (ชัย/เดวิด)   │
+│   สลับ hook จริง         │   Studio over sketch    │   PATCH studioData LIVE │
+│ • แจ้งเตือนอัตโนมัติ     │   (ปุ่มวาด+ดูรูปคู่ขนาน)│ • Task 25B (ชัย/เดวิด)  │
+│   Coming Soon           │                         │   Fuzzy Match 29/29 LIVE│
+│                         │                         │ • Footer Compact LIVE   │
+│                         │                         │ • Task 28, 29 Type Scale│
 └─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -59,7 +61,7 @@
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
 | **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
-| **Task 30** | ชัย | ขยาย PATCH /admin/leads/:id ให้บันทึก/merge studioData ครบชุด | `feat/chai-lead-studio-update` | 🔄 ชัยกำลังทำ (`qa/job-30-chai-lead-studio-update.md`) |
+| **Task 30** | ชัย/เดวิด | ขยาย PATCH /admin/leads/:id ให้บันทึก/merge studioData ครบชุดโดยไม่ลบ sketchUrls | `3e255b6` | ✅ **Live บน VPS** · เทสต์ผ่าน ยืนยัน sketchUrls คงอยู่ครบ 100% |
 | **Footer** | เดวิด | ยุบขนาด Footer ลดความสูงจาก 346px -> 175px (ลดพื้นที่ 50%) padding 72->20px | `f11b485` | ✅ **Live บน VPS** · จัดวางแบรนด์+ข้อมูลติดต่อ 2 คอลัมน์ |
 | **Task 26** | Replit | **โหมดง่ายหน้า Studio** — เจ้าของสั่ง 24 ก.ย. ("ทำแบบยุ่งยาก/เบื่อ/อ่านไม่ออก") ซ่อนคอนโทรลละเอียด เหลือ สี·รูปทรง+ขนาด·อ่าง·บัว → ผัง+ราคา | — | 🟡 มอบหมายแล้ว (`qa/job-26-replit-studio-simple-mode.md`) |
 | **Sketch E2E** | เดวิด | ทดสอบ "รับภาพสเก็ตช์" ปลายทางบน production (ค้างตั้งแต่ 14 ก.ย.) | — | ✅ ผ่าน: HTTP 201 · lead เข้า DB · รูป 200 · ลบของทดสอบแล้ว |
