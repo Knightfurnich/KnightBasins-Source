@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState, type Dispatch, type SetStateAction } from 
 import {
   CustomerLeadStatus,
   type CustomerLead,
+  type PaymentSlip,
   useAssignAdminPaymentSlip,
   useListAdminLeads,
   useListAdminUnassignedSlips,
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { adminQuoteUrl, filterAdminLeads, findAutoMatchLead } from "./leads-utils";
+import { adminQuoteUrl, filterAdminLeads } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 
 const statusLabels: Record<string, string> = {
@@ -425,6 +426,10 @@ function LeadsTableView({
   );
 }
 
+// The API server computes this (findAutoMatchLead in artifacts/api-server/src/lib/slip-matching.ts)
+// and attaches it to each unassigned slip; the generated PaymentSlip type predates that field.
+type UnassignedPaymentSlip = PaymentSlip & { suggestedMatch?: { leadId: number; reason: string } | null };
+
 function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   const { data: slips, isLoading } = useListAdminUnassignedSlips();
   const assignSlip = useAssignAdminPaymentSlip();
@@ -473,7 +478,9 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
         {filteredSlips.map((slip) => {
-          const matchedLead = findAutoMatchLead({ referenceValue: slip.referenceValue, senderName: slip.senderName }, leads);
+          const suggestedMatch = (slip as UnassignedPaymentSlip).suggestedMatch;
+          const matchedLead = suggestedMatch ? leads.find((lead) => lead.id === suggestedMatch.leadId) : undefined;
+          const matchedReason = suggestedMatch?.reason;
           return (
           <article key={slip.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-3 flex flex-col justify-between hover:shadow-md transition-shadow text-xs" data-testid={`card-unassigned-slip-${slip.id}`}>
             <div className="space-y-2">
@@ -502,31 +509,39 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
             </div>
             <div className="mt-2 pt-2 border-t border-[var(--line)] space-y-1.5">
               {matchedLead && (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-7 w-full rounded-none text-[11px] bg-[#17816d] text-white hover:bg-[#12634f] flex items-center justify-center gap-1"
-                  disabled={assignSlip.isPending}
-                  onClick={() => {
-                    assignSlip.mutate(
-                      { id: slip.id, data: { leadId: matchedLead.id } },
-                      {
-                        onSuccess: () => {
-                          setSelectedLeads((current) => {
-                            const next = { ...current };
-                            delete next[slip.id];
-                            return next;
-                          });
-                          void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
-                          void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${matchedLead.id}/payment-slips`] });
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    title={matchedReason}
+                    className="h-7 w-full rounded-none text-[11px] bg-[#17816d] text-white hover:bg-[#12634f] flex items-center justify-center gap-1"
+                    disabled={assignSlip.isPending}
+                    onClick={() => {
+                      assignSlip.mutate(
+                        { id: slip.id, data: { leadId: matchedLead.id } },
+                        {
+                          onSuccess: () => {
+                            setSelectedLeads((current) => {
+                              const next = { ...current };
+                              delete next[slip.id];
+                              return next;
+                            });
+                            void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+                            void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${matchedLead.id}/payment-slips`] });
+                          },
                         },
-                      },
-                    );
-                  }}
-                  data-testid={`button-auto-match-unassigned-slip-${slip.id}`}
-                >
-                  <Check className="h-3 w-3" /> ผูกอัตโนมัติ #{matchedLead.id}{matchedLead.quoteNumber ? ` (${matchedLead.quoteNumber})` : ""}
-                </Button>
+                      );
+                    }}
+                    data-testid={`button-auto-match-unassigned-slip-${slip.id}`}
+                  >
+                    <Check className="h-3 w-3" /> ผูกอัตโนมัติ #{matchedLead.id}
+                  </Button>
+                  {matchedReason && (
+                    <p className="text-[10px] text-[#17816d] text-center truncate" title={matchedReason} data-testid={`text-auto-match-reason-${slip.id}`}>
+                      {matchedReason}
+                    </p>
+                  )}
+                </>
               )}
               <select
                 value={selectedLeads[slip.id] ?? ""}
