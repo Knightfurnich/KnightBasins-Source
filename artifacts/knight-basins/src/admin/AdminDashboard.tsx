@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Banknote,
+  CalendarDays,
   CheckCircle2,
   FileText,
   ClipboardList,
@@ -369,7 +370,7 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
     );
     }
 
-    function TechnicianCapacityPanel({ teams }: { teams: AdminDashboardStats["technicianCapacity"] }) {
+    function TechnicianCapacityPanel({ teams, onNavigate }: { teams: AdminDashboardStats["technicianCapacity"]; onNavigate: (href: string) => void }) {
     const visibleTeams = teams.slice(0, 10);
     const maxJobs = Math.max(1, ...visibleTeams.map((team) => Math.max(0, team.activeJobsCount)));
 
@@ -381,9 +382,17 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
             <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สถานะคิวช่าง 10 ทีม</h2>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">จำนวนงานติดตั้งในคิว 7 วันข้างหน้า</p>
           </div>
-          <span className="border border-[var(--line)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]" data-testid="technician-team-count">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="border border-[var(--line)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]" data-testid="technician-team-count">
             {countFormatter.format(visibleTeams.length)} ทีม
           </span>
+            <Button type="button" variant="outline" size="sm" className="h-8 rounded-none px-2.5 text-xs" onClick={() => onNavigate("/admin/calendar")} data-testid="button-open-technician-calendar-full">
+              <CalendarDays className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">เปิดปฏิทินคิวช่างเต็มรูปแบบ</span>
+              <span className="sm:hidden">ปฏิทินคิวช่าง</span>
+              <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
         {visibleTeams.length > 0 ? (
           <ol className="max-h-[34rem] divide-y divide-[var(--line)] overflow-y-auto" data-testid="list-technician-capacity">
@@ -769,7 +778,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
       <div className="grid items-start gap-5 xl:grid-cols-2">
         <MonthlyComparisonPanel items={data.monthlyComparison} />
-        <TechnicianCapacityPanel teams={data.technicianCapacity} />
+        <TechnicianCapacityPanel teams={data.technicianCapacity} onNavigate={onNavigate} />
       </div>
 
       <div className="grid items-start gap-5 xl:grid-cols-2">

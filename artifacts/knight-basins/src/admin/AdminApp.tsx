@@ -16,6 +16,7 @@ import { SheetStonesManager } from "./SheetStonesManager";
 import { LeadsManager } from "./LeadsManager";
 import { TeamManager } from "./TeamManager";
 import { AdminDashboard } from "./AdminDashboard";
+import { TechnicianCalendarPage } from "./TechnicianCalendarPage";
 import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
@@ -57,6 +58,7 @@ const NAV_ITEMS = [
   { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones" },
   { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
   { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
+  { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads" },
   { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true },
 ] as const;
 
@@ -126,6 +128,7 @@ export default function AdminApp() {
               <Route path="/admin/installed-stones" component={InstalledStonesRoute} />
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
+              <Route path="/admin/calendar" component={TechnicianCalendarRoute} />
               <Route path="/admin/team" component={TeamRoute} />
             </Switch>
           </main>
@@ -189,6 +192,7 @@ function AdminDashboardRoute() {
       "/admin/installed-stones": "installed-stones",
       "/admin/sheet-stones": "sheet-stones",
       "/admin/leads": "leads",
+      "/admin/calendar": "leads",
     };
     const permission = permissionByHref[href];
     return permission ? hasPermission(access, permission) : false;
@@ -243,6 +247,10 @@ function SheetStonesRoute() {
 
 function LeadsRoute() {
   return <AdminPermissionGate permission="leads" resource="ลูกค้า / Lead"><LeadsManager /></AdminPermissionGate>;
+}
+
+function TechnicianCalendarRoute() {
+  return <AdminPermissionGate permission="leads" resource="ปฏิทินคิวช่าง"><TechnicianCalendarPage /></AdminPermissionGate>;
 }
 
 function TeamRoute() {
