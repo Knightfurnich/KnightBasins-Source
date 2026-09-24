@@ -55,7 +55,7 @@ export default function SalesGuide() {
             </Badge>
           </div>
           <h1 className="text-2xl md:text-3xl font-semibold font-display tracking-tight text-[#003366] flex items-center gap-2.5">
-            <span>🏢</span> 1. ยินดีต้อนรับสู่ระบบบริการ Knight Basins
+            <span>🏢</span> ยินดีต้อนรับสู่ระบบบริการ Knight Basins
           </h1>
           <p className="text-sm md:text-base text-[var(--ink-soft)] leading-relaxed">
             แพลตฟอร์มศูนย์รวมบริการอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์แบบครบวงจร พัฒนาขึ้นเพื่ออำนวยความสะดวกให้แก่ลูกค้าทั่วไป 
@@ -64,10 +64,10 @@ export default function SalesGuide() {
           </p>
         </section>
 
-        {/* Section 2: 3 Ordering Channels */}
+        {/* Section 1: 3 Ordering Channels */}
         <section className="space-y-4 pt-2">
           <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
-            <span>🛍️</span> 2. 3 ช่องทางการเลือกชมและสั่งผลิต
+            <span>🛍️</span> 1. 3 ช่องทางการเลือกชมและสั่งผลิต
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border border-[var(--line)] bg-[var(--card-paper)] shadow-sm">
@@ -106,10 +106,10 @@ export default function SalesGuide() {
           </div>
         </section>
 
-        {/* Section 3: Engineering Standards */}
+        {/* Section 2: Engineering Standards */}
         <section className="space-y-3 pt-2">
           <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
-            <span>📐</span> 3. มาตรฐานวิศวกรรมและการผลิตของโรงงาน
+            <span>📐</span> 2. มาตรฐานวิศวกรรมและการผลิตของโรงงาน
           </h2>
           <div className="p-5 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] space-y-3 text-sm text-[var(--ink-soft)] leading-relaxed">
             <div className="flex gap-3 items-start">
@@ -127,10 +127,10 @@ export default function SalesGuide() {
           </div>
         </section>
 
-        {/* Section 4: Formal Quotation & Payment */}
+        {/* Section 3: Formal Quotation & Payment */}
         <section className="space-y-3 pt-2">
           <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
-            <span>📄</span> 4. ใบเสนอราคาทางการและการยืนยันคำสั่งซื้อ
+            <span>📄</span> 3. ใบเสนอราคาทางการและการยืนยันคำสั่งซื้อ
           </h2>
           <div className="p-5 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] space-y-3 text-sm text-[var(--ink-soft)] leading-relaxed">
             <div className="flex gap-3 items-start">
@@ -148,10 +148,10 @@ export default function SalesGuide() {
           </div>
         </section>
 
-        {/* Section 5: Dispatch & After-Sales Service */}
+        {/* Section 4: Dispatch & After-Sales Service */}
         <section className="space-y-3 pt-2">
           <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
-            <span>🚚</span> 5. การนัดหมายติดตั้งและบริการหลังการขาย
+            <span>🚚</span> 4. การนัดหมายติดตั้งและบริการหลังการขาย
           </h2>
           <div className="p-5 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] space-y-3 text-sm text-[var(--ink-soft)] leading-relaxed">
             <div className="flex gap-3 items-start">
@@ -169,11 +169,11 @@ export default function SalesGuide() {
           </div>
         </section>
 
-        {/* Section 6: Notifications (Roadmap) */}
+        {/* Section 5: Notifications (Roadmap) */}
         <section className="space-y-3 pt-2">
           <div className="flex items-center gap-2.5">
             <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
-              <span>🔔</span> 6. ระบบการแจ้งเตือนสถานะคำสั่งซื้ออัตโนมัติ
+              <span>🔔</span> 5. ระบบการแจ้งเตือนสถานะคำสั่งซื้ออัตโนมัติ
             </h2>
             <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] py-0.5 font-normal">
               อยู่ระหว่างการพัฒนา · Coming Soon
