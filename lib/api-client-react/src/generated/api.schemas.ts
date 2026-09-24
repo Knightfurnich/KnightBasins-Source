@@ -1050,11 +1050,34 @@ export interface AdminDashboardInstallation {
   notes: string | null;
 }
 
+export interface AdminDashboardPopularItem {
+  sku: string;
+  count: number;
+}
+
+export type AdminDashboardActivityType = typeof AdminDashboardActivityType[keyof typeof AdminDashboardActivityType];
+
+
+export const AdminDashboardActivityType = {
+  lead_created: 'lead_created',
+  payment_received: 'payment_received',
+} as const;
+
+export interface AdminDashboardActivity {
+  id: string;
+  type: AdminDashboardActivityType;
+  title: string;
+  detail: string;
+  timestamp: string;
+}
+
 export interface AdminDashboardStats {
   kpis: AdminDashboardKpis;
   actionItems: AdminDashboardActionItems;
   pipelineRatio: AdminDashboardPipelineRatio;
   upcomingInstallations: AdminDashboardInstallation[];
+  popularItems: AdminDashboardPopularItem[];
+  recentActivities: AdminDashboardActivity[];
   asOf: string;
 }
 

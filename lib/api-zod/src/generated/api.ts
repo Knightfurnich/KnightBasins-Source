@@ -1804,6 +1804,17 @@ export const GetAdminDashboardStatsResponse = zod.object({
   "expectedInstallationDate": zod.string().describe('ISO date (YYYY-MM-DD)'),
   "notes": zod.string().nullable()
 })),
+  "popularItems": zod.array(zod.object({
+  "sku": zod.string(),
+  "count": zod.number()
+})),
+  "recentActivities": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.enum(['lead_created', 'payment_received']),
+  "title": zod.string(),
+  "detail": zod.string(),
+  "timestamp": zod.coerce.date()
+})),
   "asOf": zod.coerce.date()
 })
 
