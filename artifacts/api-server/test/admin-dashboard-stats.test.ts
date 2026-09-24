@@ -70,6 +70,9 @@ type AdminDashboardStats = {
   asOf: string;
 };
 
+type LineFlexBubble = Record<string, unknown>;
+type LineFlexMessage = { type: "flex"; altText: string; contents: LineFlexBubble };
+
 type AdminRouteModule = {
   createAdminRouter: (database: unknown) => Parameters<typeof express["use"]>[1];
   computeTotalRevenueThb: (slips: DashboardSlipRow[]) => number;
@@ -101,7 +104,11 @@ type AdminRouteModule = {
     now: Date,
     windowDays?: number,
   ) => AdminDashboardStats["technicianCapacity"];
-  buildDashboardBriefingText: (stats: AdminDashboardStats, now: Date) => string;
+  buildDashboardBriefingFlexMessage: (
+    stats: AdminDashboardStats,
+    now: Date,
+    dashboardUrl: string,
+  ) => LineFlexMessage;
   computeAdminDashboardStats: (
     leads: DashboardLeadRow[],
     slips: DashboardSlipRow[],
@@ -543,25 +550,92 @@ describe("computeTechnicianCapacity", () => {
   });
 });
 
-describe("buildDashboardBriefingText", () => {
-  it("includes cumulative revenue, total job count, and today's install queue grouped by team", async () => {
-    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
-    const now = new Date("2026-09-24T03:00:00.000Z");
-    const leads = [lead({ id: 1, expectedInstallationDate: "2026-09-24", name: "คุณสมชาย", project: "บ้านสุขุมวิท", notes: "TP" })];
-    const stats = routeModule.computeAdminDashboardStats(leads, [slip({ id: 1, status: "verified", verifiedAmountThb: 12345, leadId: 1 })], now);
-    const text = routeModule.buildDashboardBriefingText(stats, now);
-    assert.match(text, /12,345/);
-    assert.match(text, /จำนวนงานทั้งหมด: 1 งาน/);
-    assert.match(text, /ช่างยี่/);
-    assert.match(text, /คุณสมชาย/);
-  });
+function collectFlexTexts(node: unknown): string[] {
+  if (Array.isArray(node)) return node.flatMap(collectFlexTexts);
+  if (node && typeof node === "object") {
+    const obj = node as Record<string, unknown>;
+    const own = obj["type"] === "text" && typeof obj["text"] === "string" ? [obj["text"] as string] : [];
+    return [...own, ...Object.values(obj).flatMap(collectFlexTexts)];
+  }
+  return [];
+}
 
-  it("shows a fallback line when no team has an installation scheduled today", async () => {
+function findFlexNode(node: unknown, predicate: (candidate: Record<string, unknown>) => boolean): Record<string, unknown> | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findFlexNode(child, predicate);
+      if (found) return found;
+    }
+    return undefined;
+  }
+  if (node && typeof node === "object") {
+    const obj = node as Record<string, unknown>;
+    if (predicate(obj)) return obj;
+    for (const value of Object.values(obj)) {
+      const found = findFlexNode(value, predicate);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+describe("buildDashboardBriefingFlexMessage", () => {
+  it("returns a flex bubble with a Knight-navy header carrying the title and Thai date/time", async () => {
     const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
     const now = new Date("2026-09-24T03:00:00.000Z");
     const stats = routeModule.computeAdminDashboardStats([], [], now);
-    const text = routeModule.buildDashboardBriefingText(stats, now);
-    assert.match(text, /ไม่มีคิวติดตั้งวันนี้/);
+    const message = routeModule.buildDashboardBriefingFlexMessage(stats, now, "https://knightbasins.srv1964473.hstgr.cloud/admin");
+    assert.equal(message.type, "flex");
+    assert.equal(message.contents["type"], "bubble");
+    const header = message.contents["header"] as Record<string, unknown>;
+    assert.equal(header["backgroundColor"], "#003366");
+    const headerTexts = collectFlexTexts(header);
+    assert.ok(headerTexts.some((text) => text.includes("KNIGHT EXECUTIVE BRIEFING")));
+    assert.ok(headerTexts.some((text) => text.includes("น.")), "must include a Thai time string ending in น.");
+  });
+
+  it("shows the revenue figure prominently and the job/action-item summary line in the body", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, status: "ready_for_production" }),
+      lead({ id: 2, status: "new_lead" }),
+    ];
+    const slips = [slip({ id: 1, status: "verified", verifiedAmountThb: 1465374, leadId: 1 })];
+    const stats = routeModule.computeAdminDashboardStats(leads, slips, now);
+    const message = routeModule.buildDashboardBriefingFlexMessage(stats, now, "https://example.com/admin");
+    const bodyTexts = collectFlexTexts(message.contents["body"]);
+    assert.ok(bodyTexts.some((text) => text === "฿1,465,374"), "revenue must be its own prominent text node");
+    assert.ok(bodyTexts.some((text) => text.includes("รวม 2 งาน") && text.includes("พร้อมผลิต 1 งาน") && text.includes("สลิปรอผูก 0 ใบ")));
+    assert.match(message.altText, /1,465,374/, "altText should preview the revenue figure too");
+  });
+
+  it("lists today's technician queue grouped by team, or a fallback line when nobody has a job today", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [lead({ id: 1, expectedInstallationDate: "2026-09-24", notes: "TP" })];
+    const stats = routeModule.computeAdminDashboardStats(leads, [], now);
+    const message = routeModule.buildDashboardBriefingFlexMessage(stats, now, "https://example.com/admin");
+    const bodyTexts = collectFlexTexts(message.contents["body"]);
+    assert.ok(bodyTexts.some((text) => text.includes("ช่างยี่") && text.includes("TP")));
+
+    const emptyStats = routeModule.computeAdminDashboardStats([], [], now);
+    const emptyMessage = routeModule.buildDashboardBriefingFlexMessage(emptyStats, now, "https://example.com/admin");
+    assert.ok(collectFlexTexts(emptyMessage.contents["body"]).some((text) => text.includes("ไม่มีคิวติดตั้งวันนี้")));
+  });
+
+  it("has a footer button linking to the given dashboard URL", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const stats = routeModule.computeAdminDashboardStats([], [], now);
+    const dashboardUrl = "https://knightbasins.srv1964473.hstgr.cloud/admin";
+    const message = routeModule.buildDashboardBriefingFlexMessage(stats, now, dashboardUrl);
+    const button = findFlexNode(message.contents["footer"], (node) => node["type"] === "button");
+    assert.ok(button, "footer must contain a button component");
+    const action = button?.["action"] as Record<string, unknown>;
+    assert.equal(action["type"], "uri");
+    assert.equal(action["uri"], dashboardUrl);
+    assert.equal(action["label"], "เปิดดู Dashboard");
   });
 });
 
@@ -767,9 +841,12 @@ describe("POST /admin/dashboard-briefing/line", () => {
       assert.equal(capturedUrl, "https://api.line.me/v2/bot/message/push");
       assert.equal(capturedAuth, "Bearer test-line-token");
       assert.equal(capturedBody["to"], "test-destination");
-      const messages = capturedBody["messages"] as Array<{ type: string; text: string }>;
-      assert.equal(messages[0]?.type, "text");
-      assert.match(messages[0]?.text ?? "", /Knight Basins Dashboard Briefing/);
+      const messages = capturedBody["messages"] as Array<LineFlexMessage>;
+      assert.equal(messages[0]?.type, "flex");
+      assert.match(messages[0]?.altText ?? "", /Knight Executive Briefing/);
+      const button = findFlexNode(messages[0]?.contents["footer"], (node) => node["type"] === "button");
+      const action = button?.["action"] as Record<string, unknown>;
+      assert.equal(action["uri"], `${server.url}/admin`, "dashboard link is built from the request's own origin");
     } finally {
       await server.close();
       mock.restoreAll();

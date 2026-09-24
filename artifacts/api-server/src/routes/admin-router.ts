@@ -733,27 +733,103 @@ export function computeAdminDashboardStats(
   };
 }
 
-/** Short LINE text summary: cumulative revenue, total job count, and today's install queue by team. */
-export function buildDashboardBriefingText(stats: AdminDashboardStats, now: Date): string {
+type LineFlexBubble = Record<string, unknown>;
+export type LineFlexMessage = { type: "flex"; altText: string; contents: LineFlexBubble };
+
+const KNIGHT_NAVY = "#003366";
+
+/**
+ * LINE Flex "bubble" for the executive morning briefing: dark Knight-navy
+ * header, a large highlighted revenue figure, a job/action-item summary
+ * line, today's technician queue grouped by team, and a footer button
+ * linking to the admin dashboard.
+ */
+export function buildDashboardBriefingFlexMessage(
+  stats: AdminDashboardStats,
+  now: Date,
+  dashboardUrl: string,
+): LineFlexMessage {
   const today = bangkokDateOnly(now);
-  const todaysJobs = stats.technicianCapacity.flatMap((team) =>
-    team.jobs
-      .filter((job) => job.date === today)
-      .map((job) => `- ${team.teamName} (${team.teamCode}): ${job.name || "-"}${job.project ? ` · ${job.project}` : ""}`));
-  return [
-    "📊 Knight Basins Dashboard Briefing",
-    `⏰ ${formatThaiDateTime(now)} น.`,
-    `ยอดรับเงินสะสม: ${stats.kpis.totalRevenueThb.toLocaleString()} บาท`,
-    `จำนวนงานทั้งหมด: ${stats.kpis.totalLeads} งาน`,
-    "คิวช่างวันนี้:",
-    ...(todaysJobs.length ? todaysJobs : ["- ไม่มีคิวติดตั้งวันนี้"]),
-  ].join("\n");
+  const teamsWithJobsToday = stats.technicianCapacity
+    .map((team) => ({ team, jobsToday: team.jobs.filter((job) => job.date === today) }))
+    .filter(({ jobsToday }) => jobsToday.length > 0);
+
+  const revenueText = `฿${stats.kpis.totalRevenueThb.toLocaleString()}`;
+  const jobSummaryText = `รวม ${stats.kpis.totalLeads} งาน · พร้อมผลิต ${stats.kpis.readyForProduction} งาน · สลิปรอผูก ${stats.actionItems.unassignedSlipsCount} ใบ`;
+
+  const queueContents: LineFlexBubble[] = teamsWithJobsToday.length
+    ? teamsWithJobsToday.map(({ team, jobsToday }) => ({
+        type: "text",
+        text: `• ${team.teamName} (${team.teamCode}): ${jobsToday.length} งาน`,
+        size: "sm",
+        color: "#334155",
+        wrap: true,
+      }))
+    : [{ type: "text", text: "ไม่มีคิวติดตั้งวันนี้", size: "sm", color: "#334155", wrap: true }];
+
+  const contents: LineFlexBubble = {
+    type: "bubble",
+    header: {
+      type: "box",
+      layout: "vertical",
+      backgroundColor: KNIGHT_NAVY,
+      paddingAll: "20px",
+      spacing: "xs",
+      contents: [
+        { type: "text", text: "KNIGHT EXECUTIVE BRIEFING", weight: "bold", size: "lg", color: "#ffffff" },
+        { type: "text", text: `${formatThaiDateTime(now)} น.`, size: "sm", color: "#cbd5e1" },
+      ],
+    },
+    body: {
+      type: "box",
+      layout: "vertical",
+      spacing: "md",
+      paddingAll: "20px",
+      contents: [
+        {
+          type: "box",
+          layout: "vertical",
+          backgroundColor: "#f0f4f8",
+          cornerRadius: "8px",
+          paddingAll: "16px",
+          spacing: "xs",
+          contents: [
+            { type: "text", text: "ยอดรับเงินสะสม", size: "xs", color: "#64748b" },
+            { type: "text", text: revenueText, weight: "bold", size: "3xl", color: KNIGHT_NAVY },
+          ],
+        },
+        { type: "text", text: jobSummaryText, size: "sm", color: "#334155", wrap: true },
+        { type: "separator" },
+        { type: "text", text: "คิวช่างวันนี้", weight: "bold", size: "sm", color: KNIGHT_NAVY },
+        { type: "box", layout: "vertical", spacing: "xs", contents: queueContents },
+      ],
+    },
+    footer: {
+      type: "box",
+      layout: "vertical",
+      paddingAll: "12px",
+      contents: [
+        {
+          type: "button",
+          style: "primary",
+          color: KNIGHT_NAVY,
+          action: { type: "uri", label: "เปิดดู Dashboard", uri: dashboardUrl },
+        },
+      ],
+    },
+  };
+
+  return {
+    type: "flex",
+    altText: `Knight Executive Briefing · ${revenueText} · ${jobSummaryText}`,
+    contents,
+  };
 }
 
 type LineSendResult = { ok: true } | { ok: false; message: string };
 
 /** Same LINE Messaging API push pattern as lib/sales-notifications.ts's sendLineText. */
-async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult> {
+async function sendDashboardBriefingToLine(message: LineFlexMessage): Promise<LineSendResult> {
   const accessToken = process.env["LINE_MESSAGING_ACCESS_TOKEN"] ?? process.env["LINE_CHANNEL_ACCESS_TOKEN"];
   const destination = process.env["LINE_SALES_DESTINATION_ID"];
   if (!accessToken || !destination) {
@@ -763,7 +839,7 @@ async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult
     const response = await fetch("https://api.line.me/v2/bot/message/push", {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ to: destination, messages: [{ type: "text", text }] }),
+      body: JSON.stringify({ to: destination, messages: [message] }),
     });
     if (!response.ok) return { ok: false, message: `LINE push returned ${response.status}` };
     return { ok: true };
@@ -1132,7 +1208,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.post("/admin/dashboard-briefing/line", requireAdminPermission("leads"), async (_req, res, next) => {
+  router.post("/admin/dashboard-briefing/line", requireAdminPermission("leads"), async (req, res, next) => {
     try {
       const leadRows: DashboardLeadRow[] = await database
         .select({
@@ -1167,8 +1243,9 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
 
       const now = new Date();
       const stats = computeAdminDashboardStats(leadRows, slipRows, now);
-      const text = buildDashboardBriefingText(stats, now);
-      const result = await sendDashboardBriefingToLine(text);
+      const dashboardUrl = `${requestOrigin(req)}/admin`;
+      const message = buildDashboardBriefingFlexMessage(stats, now, dashboardUrl);
+      const result = await sendDashboardBriefingToLine(message);
       if (!result.ok) {
         res.status(502).json({ message: result.message });
         return;
