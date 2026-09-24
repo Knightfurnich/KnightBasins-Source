@@ -29,6 +29,8 @@ const statusOptions: string[] = [
   "ready_for_production",
   "closed",
 ];
+/** Mirrors the dashboard's own "awaiting contact" grouping (admin-router.ts DASHBOARD_AWAITING_CONTACT_STATUSES). */
+const AWAITING_CONTACT_STATUSES = ["new_lead", "selecting", "quote_requested"];
 const modeLabels: Record<string, string> = {
   "quick-purchase": "ซื้อด่วน",
   studio: "2D Studio",
@@ -198,6 +200,8 @@ function LeadsTableView({
   setExpandedLeadId,
   updateStatus,
   updateLeadPending,
+  quickUpdateStatus,
+  quickStatusPending,
   copyQuoteLink,
   copiedQuote,
   editingNotes,
@@ -212,6 +216,8 @@ function LeadsTableView({
   setExpandedLeadId: (id: number | null) => void;
   updateStatus: (id: number, status: string, notes?: string | null) => void;
   updateLeadPending: boolean;
+  quickUpdateStatus: (id: number, status: string) => void;
+  quickStatusPending: boolean;
   copyQuoteLink: (quoteNumber: string, publicQuoteToken: string) => Promise<void>;
   copiedQuote: string | null;
   editingNotes: Record<number, string>;
@@ -318,17 +324,32 @@ function LeadsTableView({
                           <option key={st} value={st}>{statusLabels[st] ?? st}</option>
                         ))}
                       </select>
+                      {AWAITING_CONTACT_STATUSES.includes(lead.status as string) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-1.5 text-[10px] rounded-none text-[var(--brand-blue)] border-[var(--brand-blue)]/40 bg-[var(--brand-blue)]/10 hover:bg-[var(--brand-blue)]/20 font-semibold"
+                          disabled={quickStatusPending}
+                          onClick={() => quickUpdateStatus(lead.id, "selecting")}
+                          title="กดเมื่อได้ติดต่อลูกค้ารายนี้แล้ว"
+                          data-testid={`button-quick-contacted-${lead.id}`}
+                        >
+                          📞 ติดต่อแล้ว
+                        </Button>
+                      )}
                       {((lead.status as string) === "team_reported_paid" || (lead.status as string) === "deposit_paid") && (
                         <Button
                           type="button"
                           size="sm"
                           variant="outline"
                           className="h-6 px-1.5 text-[10px] rounded-none text-[#17816d] border-[#17816d]/40 bg-[#17816d]/10 hover:bg-[#17816d]/20 font-semibold"
-                          disabled={updateLeadPending}
-                          onClick={() => updateStatus(lead.id, "ready_for_production", lead.notes)}
+                          disabled={quickStatusPending}
+                          onClick={() => quickUpdateStatus(lead.id, "ready_for_production")}
                           title="กดยืนยันเพื่อเปลี่ยนเป็นพร้อมผลิต"
+                          data-testid={`button-quick-production-${lead.id}`}
                         >
-                          <Check className="w-3 h-3 mr-1" /> พร้อมผลิต
+                          🏭 ส่งผลิต
                         </Button>
                       )}
                       {(lead.status as string) === "ready_for_production" && (
@@ -749,7 +770,11 @@ export function LeadsManager() {
   const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
   const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<string>("all");
+  const initialStatusParam = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("status");
+  const [filter, setFilter] = useState<string>(
+    initialStatusParam && initialStatusParam !== "awaiting_contact" ? initialStatusParam : "all",
+  );
+  const [awaitingContactOnly, setAwaitingContactOnly] = useState(initialStatusParam === "awaiting_contact");
   const [quoteTypeFilter, setQuoteTypeFilter] = useState<"all" | "US" | "OF">("all");
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -759,20 +784,51 @@ export function LeadsManager() {
   const [savedDimensions, setSavedDimensions] = useState<number | null>(null);
   const [copiedQuote, setCopiedQuote] = useState<string | null>(null);
   const [copyError, setCopyError] = useState("");
+  const [quickStatusPending, setQuickStatusPending] = useState(false);
   const visibleLeads = useMemo(() => {
     let result = filterAdminLeads(leads ?? [], filter, search, { fromDate, toDate });
     if (quoteTypeFilter !== "all") {
       result = result.filter((lead) => (lead.quoteNumber ?? "").toUpperCase().includes(quoteTypeFilter));
     }
+    if (awaitingContactOnly) {
+      result = result.filter((lead) => AWAITING_CONTACT_STATUSES.includes(lead.status as string));
+    }
     return result;
-  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter]);
+  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly]);
   const hasSearchFilters = Boolean(search || fromDate || toDate || quoteTypeFilter !== "all");
+
+  const clearAwaitingContactOnly = () => {
+    setAwaitingContactOnly(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("status");
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
 
   const updateStatus = (id: number, status: string, notes?: string | null) => {
     updateLead.mutate(
       { id, data: { status: status as any, notes: notes ?? null } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] }) },
     );
+  };
+
+  const quickUpdateStatus = async (id: number, status: string) => {
+    setQuickStatusPending(true);
+    try {
+      const response = await fetch(`/api/admin/leads/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error("quick-status-update-failed");
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+    } catch {
+      window.alert("อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setQuickStatusPending(false);
+    }
   };
 
   const saveDimensions = (lead: { id: number; status: CustomerLeadStatus; notes?: string | null }) => {
@@ -873,6 +929,14 @@ export function LeadsManager() {
         <UnassignedSlipsPanel leads={leads ?? []} />
       ) : (
         <>
+      {awaitingContactOnly && (
+        <div className="flex items-center justify-between gap-2 border border-[var(--brand-blue)]/30 bg-[var(--brand-blue)]/10 px-3 py-2 text-xs text-[var(--ink)]" data-testid="banner-awaiting-contact-filter">
+          <span>กำลังกรอง: ลูกค้ารอติดต่อ (จากหน้า Dashboard)</span>
+          <Button type="button" size="sm" variant="ghost" onClick={clearAwaitingContactOnly} className="h-6 rounded-none px-2 text-xs">
+            <X className="w-3 h-3 mr-1" /> ล้างตัวกรองนี้
+          </Button>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2">
           <Button variant={filter === "all" ? "secondary" : "ghost"} onClick={() => setFilter("all")} className="rounded-none">
@@ -963,6 +1027,8 @@ export function LeadsManager() {
           setExpandedLeadId={setExpandedLeadId}
           updateStatus={updateStatus}
           updateLeadPending={updateLead.isPending}
+          quickUpdateStatus={(id, status) => void quickUpdateStatus(id, status)}
+          quickStatusPending={quickStatusPending}
           copyQuoteLink={copyQuoteLink}
           copiedQuote={copiedQuote}
           editingNotes={editingNotes}
