@@ -73,7 +73,13 @@ function lead(overrides: Partial<DashboardLeadRow> & { id: number }): DashboardL
   };
 }
 
-type FakeLeadRecord = { id: number; technicianTeamCode: string | null; status?: string; updatedAt?: unknown };
+type FakeLeadRecord = {
+  id: number;
+  technicianTeamCode: string | null;
+  expectedInstallationDate?: string | null;
+  status?: string;
+  updatedAt?: unknown;
+};
 
 /** Route-level fake for GET /admin/technician-calendar: select().from().where().orderBy() -> the given rows, unfiltered (date-range filtering is covered by computeTechnicianCalendar's own unit tests). */
 function createFakeCalendarDatabase(leads: DashboardLeadRow[]) {
@@ -415,7 +421,7 @@ describe("PATCH /admin/leads/:id/technician", () => {
     }
   });
 
-  it("rejects a missing technicianTeamCode field", async () => {
+  it("rejects a body with neither technicianTeamCode nor expectedInstallationDate", async () => {
     const server = await startAdminRoute(createFakeLeadDatabase({ id: 1, technicianTeamCode: null }));
     const cookie = `knight_admin_session=${createAdminToken()}`;
     try {
@@ -425,6 +431,77 @@ describe("PATCH /admin/leads/:id/technician", () => {
         body: JSON.stringify({}),
       });
       assert.equal(response.status, 400);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("updates only expectedInstallationDate, leaving technicianTeamCode untouched (backward compatible: technicianTeamCode-only calls still work alone)", async () => {
+    const server = await startAdminRoute(createFakeLeadDatabase({ id: 1, technicianTeamCode: "TP", expectedInstallationDate: "2026-09-01" }));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads/1/technician`, {
+        method: "PATCH",
+        headers: { cookie, "content-type": "application/json" },
+        body: JSON.stringify({ expectedInstallationDate: "2026-10-15" }),
+      });
+      assert.equal(response.status, 200);
+      const payload = await response.json() as FakeLeadRecord;
+      assert.equal(payload.expectedInstallationDate, "2026-10-15");
+      assert.equal(payload.technicianTeamCode, "TP", "team code must be untouched when only the date is sent");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("updates technicianTeamCode and expectedInstallationDate together in one call", async () => {
+    const server = await startAdminRoute(createFakeLeadDatabase({ id: 1, technicianTeamCode: null, expectedInstallationDate: null }));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads/1/technician`, {
+        method: "PATCH",
+        headers: { cookie, "content-type": "application/json" },
+        body: JSON.stringify({ technicianTeamCode: "PP", expectedInstallationDate: "2026-11-03" }),
+      });
+      assert.equal(response.status, 200);
+      const payload = await response.json() as FakeLeadRecord;
+      assert.equal(payload.technicianTeamCode, "PP");
+      assert.equal(payload.expectedInstallationDate, "2026-11-03");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("clears expectedInstallationDate to null", async () => {
+    const server = await startAdminRoute(createFakeLeadDatabase({ id: 1, technicianTeamCode: "TP", expectedInstallationDate: "2026-09-01" }));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads/1/technician`, {
+        method: "PATCH",
+        headers: { cookie, "content-type": "application/json" },
+        body: JSON.stringify({ expectedInstallationDate: null }),
+      });
+      assert.equal(response.status, 200);
+      const payload = await response.json() as FakeLeadRecord;
+      assert.equal(payload.expectedInstallationDate, null);
+      assert.equal(payload.technicianTeamCode, "TP", "team code must be untouched when only the date is cleared");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("rejects a malformed expectedInstallationDate", async () => {
+    const server = await startAdminRoute(createFakeLeadDatabase({ id: 1, technicianTeamCode: null }));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      for (const badDate of ["2026-9-1", "2026/09/01", "26-09-01", "not-a-date", ""]) {
+        const response = await fetch(`${server.url}/api/admin/leads/1/technician`, {
+          method: "PATCH",
+          headers: { cookie, "content-type": "application/json" },
+          body: JSON.stringify({ expectedInstallationDate: badDate }),
+        });
+        assert.equal(response.status, 400, `"${badDate}" should be rejected`);
+      }
     } finally {
       await server.close();
     }
@@ -455,6 +532,100 @@ describe("PATCH /admin/leads/:id/technician", () => {
         body: JSON.stringify({ technicianTeamCode: "TP" }),
       });
       assert.equal(response.status, 404);
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+/**
+ * Not called out by name in the work order's EVIDENCE list (which only
+ * enumerates PATCH /admin/leads/:id/technician cases), but GET /admin/leads
+ * is in this same work order's SCOPE, so it gets baseline coverage here too
+ * rather than shipping the new filter untested.
+ */
+describe("GET /admin/leads?technicianTeamCode", () => {
+  type FakeListLead = { id: number; quoteNumber: string | null; quoteAccessSecret: string | null; technicianTeamCode: string | null };
+
+  function createFakeLeadsListDatabase(leads: FakeListLead[]) {
+    let capturedWhere: unknown = "not-called";
+    return {
+      capturedWhere: () => capturedWhere,
+      select: () => ({
+        from: () => ({
+          where: (condition: unknown) => {
+            capturedWhere = condition;
+            return { orderBy: async () => leads };
+          },
+        }),
+      }),
+    };
+  }
+
+  const SAMPLE_LEADS: FakeListLead[] = [
+    { id: 1, quoteNumber: null, quoteAccessSecret: null, technicianTeamCode: "TP" },
+    { id: 2, quoteNumber: null, quoteAccessSecret: null, technicianTeamCode: null },
+  ];
+
+  it("requires an authenticated admin session", async () => {
+    const server = await startAdminRoute(createFakeLeadsListDatabase(SAMPLE_LEADS));
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads`);
+      assert.equal(response.status, 401);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("queries with no filter condition when technicianTeamCode is omitted (backward compatible)", async () => {
+    const db = createFakeLeadsListDatabase(SAMPLE_LEADS);
+    const server = await startAdminRoute(db);
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads`, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      const payload = await response.json() as FakeListLead[];
+      assert.equal(payload.length, 2);
+      assert.equal(db.capturedWhere(), undefined, "no WHERE condition should be built when the filter is absent");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("builds a filter condition for a real team code", async () => {
+    const db = createFakeLeadsListDatabase(SAMPLE_LEADS);
+    const server = await startAdminRoute(db);
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads?technicianTeamCode=TP`, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      assert.notEqual(db.capturedWhere(), undefined, "a WHERE condition should be built for a team filter");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("builds a filter condition for technicianTeamCode=unassigned", async () => {
+    const db = createFakeLeadsListDatabase(SAMPLE_LEADS);
+    const server = await startAdminRoute(db);
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads?technicianTeamCode=unassigned`, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      assert.notEqual(db.capturedWhere(), undefined, "a WHERE condition should be built for the unassigned filter");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("rejects a technicianTeamCode outside the 10 real codes and \"unassigned\"", async () => {
+    const db = createFakeLeadsListDatabase(SAMPLE_LEADS);
+    const server = await startAdminRoute(db);
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/leads?technicianTeamCode=ZZ`, { headers: { cookie } });
+      assert.equal(response.status, 400);
+      assert.equal(db.capturedWhere(), "not-called", "an invalid filter must be rejected before the database is ever queried");
     } finally {
       await server.close();
     }
