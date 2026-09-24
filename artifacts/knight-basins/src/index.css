@@ -1541,6 +1541,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   font-variant-numeric: tabular-nums;
   letter-spacing: -.02em;
 }
+@media (max-width: 520px) {
+  /* keep long KPI amounts (e.g. ฿1,465,374) on one line in the 2-up card grid */
+  .admin-stat-value { font-size: 1rem; }
+}
 .admin-manager .text-lg { font-size: var(--type-size-heading-md); line-height: var(--type-line-heading-md); }
 .admin-manager .text-sm { font-size: var(--type-size-body); line-height: var(--type-line-body); }
 .admin-manager .text-xs { font-size: var(--type-size-caption); line-height: var(--type-line-caption); }
