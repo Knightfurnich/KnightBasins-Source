@@ -139,6 +139,34 @@ describe("GET /places/autocomplete", () => {
     }
   });
 
+  it("falls back to an empty secondaryText when structuredFormat has a mainText but no secondaryText", async () => {
+    process.env["GOOGLE_PLACES_API_KEY"] = "test-key";
+    mockGooglePlacesFetch(() =>
+      new Response(
+        JSON.stringify({
+          suggestions: [{
+            placePrediction: {
+              placeId: "place-2",
+              text: { text: "123 ถนนพระราม 4 กรุงเทพฯ" },
+              structuredFormat: { mainText: { text: "123 ถนนพระราม 4" } },
+            },
+          }],
+        }),
+        { status: 200 },
+      ));
+    const route = await serveTypeScriptRoute("src/routes/places.ts");
+    try {
+      const response = await fetch(`${route.url}/api/places/autocomplete?input=พระราม 4`);
+      assert.equal(response.status, 200);
+      const payload = await response.json() as { suggestions: Array<{ placeId: string; text: string; primaryText: string; secondaryText: string }> };
+      assert.deepEqual(payload.suggestions, [
+        { placeId: "place-2", text: "123 ถนนพระราม 4 กรุงเทพฯ", primaryText: "123 ถนนพระราม 4", secondaryText: "" },
+      ]);
+    } finally {
+      await route.close();
+    }
+  });
+
   it("returns an empty suggestions array when Google has no matches", async () => {
     process.env["GOOGLE_PLACES_API_KEY"] = "test-key";
     mockGooglePlacesFetch(() => new Response(JSON.stringify({}), { status: 200 }));
