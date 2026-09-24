@@ -436,6 +436,8 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   const queryClient = useQueryClient();
   const [selectedLeads, setSelectedLeads] = useState<Record<number, string>>({});
   const [slipSearch, setSlipSearch] = useState("");
+  const [isBulkAssigning, setIsBulkAssigning] = useState(false);
+  const [bulkError, setBulkError] = useState("");
 
   const filteredSlips = useMemo(() => {
     const query = slipSearch.trim().toLowerCase();
@@ -446,6 +448,41 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
       return sender.includes(query) || amount.includes(query);
     });
   }, [slips, slipSearch]);
+
+  const matchableSlips = useMemo(
+    () =>
+      (slips ?? []).filter((slip) => {
+        const suggestedMatch = (slip as UnassignedPaymentSlip).suggestedMatch;
+        return Boolean(suggestedMatch?.leadId && leads.some((lead) => lead.id === suggestedMatch.leadId));
+      }),
+    [slips, leads],
+  );
+
+  const bulkAssignAll = async () => {
+    if (!matchableSlips.length || isBulkAssigning) return;
+    setBulkError("");
+    setIsBulkAssigning(true);
+    try {
+      const response = await fetch("/api/admin/slips/assign-bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          assignments: matchableSlips.map((slip) => ({
+            slipId: slip.id,
+            leadId: (slip as UnassignedPaymentSlip).suggestedMatch!.leadId,
+          })),
+        }),
+      });
+      if (!response.ok) throw new Error("bulk-assign-failed");
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+    } catch {
+      setBulkError("ผูกอัตโนมัติทั้งหมดไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setIsBulkAssigning(false);
+    }
+  };
 
   if (isLoading) {
     return <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]"><Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลดสลิปรอระบุงาน...</div>;
@@ -462,17 +499,37 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
           พบสลิปรอระบุงานทั้งหมด {slips.length} รายการ
           {filteredSlips.length !== slips.length ? ` (กรองเหลือ ${filteredSlips.length} รายการ)` : ""} (มุมมองแกลเลอรี 6 คอลัมน์)
         </span>
-        <div className="relative w-full sm:w-64">
-          <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
-          <Input
-            value={slipSearch}
-            onChange={(event) => setSlipSearch(event.target.value)}
-            placeholder="ค้นหาชื่อผู้โอน / ยอดเงิน"
-            className="h-7 rounded-none bg-white pl-7 text-xs"
-            data-testid="input-unassigned-slip-search"
-          />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {matchableSlips.length > 0 && (
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 rounded-none text-[11px] bg-[#17816d] text-white hover:bg-[#12634f] whitespace-nowrap"
+              disabled={isBulkAssigning}
+              onClick={() => void bulkAssignAll()}
+              data-testid="button-bulk-auto-match-slips"
+            >
+              {isBulkAssigning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
+              ผูกอัตโนมัติทั้งหมด ({matchableSlips.length} ใบ)
+            </Button>
+          )}
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
+            <Input
+              value={slipSearch}
+              onChange={(event) => setSlipSearch(event.target.value)}
+              placeholder="ค้นหาชื่อผู้โอน / ยอดเงิน"
+              className="h-7 rounded-none bg-white pl-7 text-xs"
+              data-testid="input-unassigned-slip-search"
+            />
+          </div>
         </div>
       </div>
+      {bulkError && (
+        <p className="text-[#a24439] text-xs" role="alert" data-testid="text-bulk-auto-match-error">
+          {bulkError}
+        </p>
+      )}
       {filteredSlips.length === 0 ? (
         <div className="border border-[var(--line)] bg-[var(--card-paper)] p-10 text-center text-sm text-[var(--ink-soft)]">ไม่พบสลิปที่ตรงกับคำค้นหา</div>
       ) : (
