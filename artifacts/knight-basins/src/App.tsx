@@ -669,7 +669,7 @@ const COMPANY_DETAILS = {
   address: "โรงงาน / สำนักงานใหญ่ ปทุมธานี",
   phones: "094-496-1949 · 089-762-2209",
   email: "info@knightfurnich.com",
-  bankName: "ธนาคารกรุงศรีอยุธยา",
+  bankName: "ธ.กรุงศรีอยุธยา",
   bankBranch: "สาขาปตท. ติวานนท์",
   bankAccountName: "บริษัท ไนท์ เฟอร์นิช จำกัด",
   bankAccountNumber: "574-1-18925-4",
