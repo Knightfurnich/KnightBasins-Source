@@ -199,6 +199,25 @@ export const adminInvites = pgTable(
   ],
 );
 
+export const adminApiKeys = pgTable(
+  "admin_api_keys",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    keyPrefix: varchar("key_prefix", { length: 24 }).notNull(),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+    scopes: text("scopes").array().default(sql`ARRAY[]::text[]`).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex("admin_api_keys_token_hash_unique").on(table.tokenHash),
+    index("admin_api_keys_revoked_at_idx").on(table.revokedAt),
+  ],
+);
+
 export const customerProfileUpdateConfirmations = pgTable(
   "customer_profile_update_confirmations",
   {
@@ -351,6 +370,7 @@ export type CustomerAccount = typeof customerAccounts.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
 export type AdminMember = typeof adminMembers.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;
+export type AdminApiKey = typeof adminApiKeys.$inferSelect;
 
 export type CustomerProfileUpdateConfirmation = typeof customerProfileUpdateConfirmations.$inferSelect;
 export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;

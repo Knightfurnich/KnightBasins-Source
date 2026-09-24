@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminApiKey,
+  AdminApiKeyInput,
   AdminInvite,
   AdminInviteInput,
   AdminInviteSummary,
@@ -38,6 +40,7 @@ import type {
   BasinPrice,
   BasinPriceInput,
   Catalog,
+  CreateAdminApiKeyResponse,
   CreateAdminSessionBody,
   CustomerLead,
   CustomerProfile,
@@ -1169,6 +1172,249 @@ export const useDeleteAdminMember = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteAdminMemberMutationOptions(options), queryClient);
+    }
+
+export const getListAdminApiKeysUrl = () => {
+
+
+
+
+  return `/api/admin/api-keys`
+}
+
+/**
+ * @summary List worker API keys without returning secret values
+ */
+export const listAdminApiKeys = async ( options?: RequestInit): Promise<AdminApiKey[]> => {
+
+  return customFetch<AdminApiKey[]>(getListAdminApiKeysUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminApiKeysQueryKey = () => {
+    return [
+    `/api/admin/api-keys`
+    ] as const;
+    }
+
+
+export const getListAdminApiKeysQueryOptions = <TData = Awaited<ReturnType<typeof listAdminApiKeys>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminApiKeys>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminApiKeysQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminApiKeys>>> = ({ signal }) => listAdminApiKeys({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminApiKeys>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminApiKeysQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminApiKeys>>>
+export type ListAdminApiKeysQueryError = ErrorType<unknown>
+
+
+export function useListAdminApiKeys<TData = Awaited<ReturnType<typeof listAdminApiKeys>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminApiKeys>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminApiKeys>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminApiKeys>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminApiKeys<TData = Awaited<ReturnType<typeof listAdminApiKeys>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminApiKeys>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminApiKeys>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminApiKeys>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminApiKeys<TData = Awaited<ReturnType<typeof listAdminApiKeys>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminApiKeys>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List worker API keys without returning secret values
+ */
+
+export function useListAdminApiKeys<TData = Awaited<ReturnType<typeof listAdminApiKeys>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminApiKeys>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminApiKeysQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminApiKeyUrl = () => {
+
+
+
+
+  return `/api/admin/api-keys`
+}
+
+/**
+ * @summary Create a revocable leads intake worker API key
+ */
+export const createAdminApiKey = async (adminApiKeyInput: AdminApiKeyInput, options?: RequestInit): Promise<CreateAdminApiKeyResponse> => {
+
+  return customFetch<CreateAdminApiKeyResponse>(getCreateAdminApiKeyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminApiKeyInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminApiKeyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminApiKey>>, TError,{data: BodyType<AdminApiKeyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminApiKey>>, TError,{data: BodyType<AdminApiKeyInput>}, TContext> => {
+
+const mutationKey = ['createAdminApiKey'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminApiKey>>, {data: BodyType<AdminApiKeyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminApiKey(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminApiKeyMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminApiKey>>>
+    export type CreateAdminApiKeyMutationBody = BodyType<AdminApiKeyInput>
+    export type CreateAdminApiKeyMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a revocable leads intake worker API key
+ */
+export const useCreateAdminApiKey = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminApiKey>>, TError,{data: BodyType<AdminApiKeyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminApiKey>>,
+        TError,
+        {data: BodyType<AdminApiKeyInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminApiKeyMutationOptions(options), queryClient);
+    }
+
+export const getRevokeAdminApiKeyUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/api-keys/${id}`
+}
+
+/**
+ * @summary Revoke a worker API key
+ */
+export const revokeAdminApiKey = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRevokeAdminApiKeyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokeAdminApiKeyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeAdminApiKey>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeAdminApiKey>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['revokeAdminApiKey'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeAdminApiKey>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeAdminApiKey(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeAdminApiKeyMutationResult = NonNullable<Awaited<ReturnType<typeof revokeAdminApiKey>>>
+
+    export type RevokeAdminApiKeyMutationError = ErrorType<void>
+
+    /**
+ * @summary Revoke a worker API key
+ */
+export const useRevokeAdminApiKey = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeAdminApiKey>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeAdminApiKey>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRevokeAdminApiKeyMutationOptions(options), queryClient);
     }
 
 export const getListAdminBasinsUrl = () => {

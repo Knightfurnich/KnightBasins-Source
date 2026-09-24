@@ -594,6 +594,8 @@ type FormalQuoteItem = {
   laborUnitPrice?: number | null;
   workQuantity?: number | null;
   workUnit?: string;
+  dimensions?: string;
+  cutoutDimensions?: string;
   imageUrl?: string;
   videoUrl?: string;
   notificationKind?: "basin" | "stone" | "service";
@@ -632,6 +634,7 @@ type QuickQuoteSnapshot = {
   vatAmount: number;
   total: number;
   vat: boolean;
+  sitePhotos?: string[];
 };
 
 const COMPANY_DETAILS = {
@@ -945,6 +948,16 @@ function SavedQuotePage() {
   if (!saved) {
     return <div className="page-wrap empty-state" data-testid="status-saved-quote-invalid"><span className="empty-number">—</span><h3>เอกสารนี้ไม่มี snapshot ที่บันทึกไว้</h3><Link href="/" className="text-link">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div>;
   }
+  const legacySitePhotos = (() => {
+    if (!lead.studioData || typeof lead.studioData !== "object") return [];
+    const photos = (lead.studioData as Record<string, unknown>).sitePhotos;
+    return Array.isArray(photos)
+      ? photos.filter((photo): photo is string => typeof photo === "string" && photo.length > 0)
+      : [];
+  })();
+  const savedSitePhotos = saved.kind === "quick-purchase"
+    ? (saved.sitePhotos ?? legacySitePhotos)
+    : legacySitePhotos;
 
   const issueDate = new Date(lead.createdAt);
   const expiryDate = new Date(issueDate.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -987,7 +1000,7 @@ function SavedQuotePage() {
       purchasingDepartment: "",
       address: lead.address ?? "",
       project: lead.project ?? "",
-      site: "",
+      site: lead.site ?? "",
       preferredContact: (lead.preferredContact as CustomerDetails["preferredContact"]) ?? "",
       customerRole: (lead.customerRole as CustomerDetails["customerRole"]) ?? "",
       propertyType: (lead.propertyType as CustomerDetails["propertyType"]) ?? "",
@@ -1016,6 +1029,8 @@ function SavedQuotePage() {
         total: product.priceTHB * quantity,
           workQuantity: quantity,
           workUnit: "ชุด",
+        dimensions: product.dimensions,
+        cutoutDimensions: product.basinDimensions,
         imageUrl: product.quoteImageUrl,
         videoUrl: product.videoUrl,
           notificationKind: "basin",
@@ -1092,6 +1107,8 @@ function SavedQuotePage() {
           laborUnitPrice: item.laborUnitPriceTHB,
           workQuantity: item.workQuantity,
           workUnit: item.workUnit,
+          dimensions: item.dimensions,
+          cutoutDimensions: item.cutoutDimensions,
          notificationKind: item.kind,
        }));
      }
@@ -1202,9 +1219,9 @@ function SavedQuotePage() {
     {savedSheetMode === "formal" ? (
       <FormalQuote format={format} quoteNumber={savedQuoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} />
     ) : (
-      <WorkshopProductionSheet quoteNumber={savedQuoteNumber} issueDate={issueDate} customer={customer} items={formalItems as ProductionItem[]} sitePhotos={Array.isArray((lead.studioData as any)?.sitePhotos) ? (lead.studioData as any).sitePhotos : []} />
+      <WorkshopProductionSheet quoteNumber={savedQuoteNumber} issueDate={issueDate} customer={customer} items={formalItems as ProductionItem[]} sitePhotos={savedSitePhotos} />
     )}
-    <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>
+    {savedSheetMode === "formal" && <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>}
   </div>;
 }
 
@@ -1254,6 +1271,8 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
       total: product.priceTHB * line.quantity,
        workQuantity: line.quantity,
        workUnit: "ชุด",
+      dimensions: product.dimensions,
+      cutoutDimensions: product.basinDimensions,
       imageUrl: product.quoteImageUrl,
       videoUrl: product.videoUrl,
       notificationKind: "basin",
@@ -1310,6 +1329,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     vatAmount,
     total,
     vat,
+    sitePhotos,
   };
   const focusQuoteRequirement = () => {
     const targetTestId = !cart.length
@@ -1466,7 +1486,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
          <WorkshopProductionSheet quoteNumber={quoteNumber} issueDate={issueDate} customer={customer} items={formalItems as ProductionItem[]} sitePhotos={sitePhotos} />
        )}
      </>}
-    <div className="source-note">ข้อมูลสินค้าจาก Knight Basins Catalogue Part 1–2 · ราคาหินอ้างอิงจากเอกสารราคาขายแผ่นและราคารวมติดตั้งของ Knight Furnich</div>
+    {sheetMode === "formal" && <div className="source-note">ข้อมูลสินค้าจาก Knight Basins Catalogue Part 1–2 · ราคาหินอ้างอิงจากเอกสารราคาขายแผ่นและราคารวมติดตั้งของ Knight Furnich</div>}
   </div>;
 }
 

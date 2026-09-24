@@ -131,6 +131,16 @@ export function WorkshopProductionSheet({
                           • {line}
                         </span>
                       ))}
+                        {item.dimensions && (
+                          <span className="workshop-sub-detail">
+                            • ขนาดตัวอ่าง: {item.dimensions}
+                          </span>
+                        )}
+                        {item.cutoutDimensions && (
+                          <span className="workshop-sub-detail">
+                            • ขนาดหลุมเจาะ: {item.cutoutDimensions}
+                          </span>
+                        )}
                     </div>
                   </td>
                   <td className="col-qty">

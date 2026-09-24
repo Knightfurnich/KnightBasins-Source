@@ -196,6 +196,49 @@ paths:
       responses:
         "204":
           description: Administration team member deleted
+  /admin/api-keys:
+    get:
+      operationId: listAdminApiKeys
+      tags: [admin]
+      summary: List worker API keys without returning secret values
+      responses:
+        "200":
+          description: Worker API key metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminApiKey"
+    post:
+      operationId: createAdminApiKey
+      tags: [admin]
+      summary: Create a revocable leads intake worker API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminApiKeyInput"
+      responses:
+        "201":
+          description: Worker API key metadata and one-time secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAdminApiKeyResponse"
+  /admin/api-keys/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    delete:
+      operationId: revokeAdminApiKey
+      tags: [admin]
+      summary: Revoke a worker API key
+      responses:
+        "204":
+          description: Worker API key revoked
+        "404":
+          description: Worker API key not found or already revoked
   /admin/basins:
     get:
       operationId: listAdminBasins
@@ -711,6 +754,9 @@ paths:
       operationId: intakeAdminPaymentSlip
       tags: [admin]
       summary: Intake a team-reported payment slip from the LINE archive worker
+      security:
+        - AdminSessionCookie: []
+        - AdminWorkerBearer: []
       requestBody:
         required: true
         content:
@@ -876,6 +922,15 @@ paths:
         "401":
           description: LINE login required
 components:
+  securitySchemes:
+    AdminSessionCookie:
+      type: apiKey
+      in: cookie
+      name: knight_admin_session
+    AdminWorkerBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: KnightWorkerApiKey
   parameters:
     RecordId:
       name: id
@@ -1023,6 +1078,37 @@ components:
             enum: [basins, installed-stones, sheet-stones, leads]
         expiresAt: { type: string, format: date-time }
         createdAt: { type: string, format: date-time }
+    AdminApiKey:
+      type: object
+      required: [id, name, keyPrefix, scopes, expiresAt, revokedAt, lastUsedAt, createdAt, updatedAt]
+      properties:
+        id: { type: integer, minimum: 1 }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        keyPrefix: { type: string, minLength: 1, maxLength: 24 }
+        scopes:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+            enum: [leads:edit]
+        expiresAt: { type: [string, "null"], format: date-time }
+        revokedAt: { type: [string, "null"], format: date-time }
+        lastUsedAt: { type: [string, "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AdminApiKeyInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+    CreateAdminApiKeyResponse:
+      allOf:
+        - $ref: "#/components/schemas/AdminApiKey"
+        - type: object
+          required: [token]
+          properties:
+            token: { type: string, minLength: 40, maxLength: 80 }
     AdminInviteSummary:
       type: object
       required: [id, role, permissions, expiresAt, usedAt, createdAt]

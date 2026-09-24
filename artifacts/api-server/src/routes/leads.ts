@@ -78,12 +78,14 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
     const quoteAccessSecret = quoteNumber
       ? existing?.quoteAccessSecret ?? createQuoteAccessSecret()
       : existing?.quoteAccessSecret ?? null;
-    const statusPriority = {
+    const statusPriority: Record<string, number> = {
       new_lead: 0,
       selecting: 1,
       quote_requested: 2,
+      quote_sent: 2,
+      waiting_deposit: 2,
       closed: 3,
-    } as const;
+    };
     const requestedPriority = statusPriority[parsed.data.status];
     const [lead] = await database
       .insert(customerLeads)

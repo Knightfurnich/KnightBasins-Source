@@ -1812,6 +1812,8 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-active-stone button.is-active { color: white; background: var(--brand-blue); border-color: var(--brand-blue); }
 .studio-basin-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-height: 300px; overflow: auto; }
 .studio-basin-choice { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; align-content: start; align-items: start; gap: 5px; min-height: 188px; padding: 10px; }
+.studio-basin-choice.is-selected { touch-action: none; cursor: grab; }
+.studio-basin-choice.is-touch-dragging { opacity: .7; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(42,155,208,.16); cursor: grabbing; }
 .studio-basin-choice-art { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 100%; height: 108px; overflow: hidden; background: #eef7fa; border: 1px solid rgba(23,63,107,.1); }
 .studio-basin-choice-art .basin-visual { width: 112px; height: 104px; }
 .studio-basin-choice-art .basin-visual--tall { height: 110px; }

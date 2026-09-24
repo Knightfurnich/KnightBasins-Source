@@ -1,5 +1,16 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type { RequestHandler } from "express";
+import { adminApiKeys } from "@workspace/db/schema";
+
+const ADMIN_API_KEY_SCOPE = "leads:edit";
+
+function hashAdminApiKey(value: string) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function isAdminApiKeyShape(value: string | undefined): value is string {
+  return Boolean(value && value.startsWith("kbw_") && value.length >= 40 && value.length <= 80);
+}
 
 const COOKIE_NAME = "knight_admin_session";
 const SESSION_AGE_MS = 12 * 60 * 60 * 1000;
@@ -39,11 +50,23 @@ export type AdminSessionState = {
   member?: Pick<AdminMemberIdentity, "id" | "lineUserId" | "displayName" | "pictureUrl">;
 };
 
+export type AdminAuthDatabase = {
+  select: (...args: any[]) => any;
+  update?: (...args: any[]) => any;
+};
+
+export type AdminApiKeyIdentity = {
+  id: number;
+  name: string;
+  scopes: string[];
+};
+
 declare global {
   namespace Express {
     interface Request {
       adminAccess?: AdminAccess;
       adminMember?: AdminMemberIdentity;
+      adminApiKey?: AdminApiKeyIdentity;
     }
   }
 }
@@ -150,6 +173,17 @@ export function accessForAdminMember(member: Pick<AdminMemberIdentity, "role"> &
   };
 }
 
+export function accessForAdminApiKey(scopes: string[]): AdminAccess {
+  const canEditLeads = scopes.includes(ADMIN_API_KEY_SCOPE);
+  return {
+    role: "staff",
+    permissions: canEditLeads ? ["leads"] : [],
+    canEdit: canEditLeads,
+    canDelete: false,
+    canManageTeam: false,
+  };
+}
+
 async function findActiveAdminMember(memberId: number): Promise<AdminMemberIdentity | null> {
   const [{ db, adminMembers }, { eq }] = await Promise.all([
     import("@workspace/db"),
@@ -171,6 +205,24 @@ async function findActiveAdminMember(memberId: number): Promise<AdminMemberIdent
     permissions: normalizedMemberPermissions(member.permissions, role),
     active: member.active,
   };
+}
+
+async function findActiveAdminApiKey(token: string, database?: AdminAuthDatabase): Promise<AdminApiKeyIdentity | null> {
+  const source = database ?? (await import("@workspace/db")).db;
+  const [key] = await source
+    .select()
+    .from(adminApiKeys)
+    .where((await import("drizzle-orm")).eq(adminApiKeys.tokenHash, hashAdminApiKey(token)))
+    .limit(1);
+  if (!key || key.revokedAt || (key.expiresAt && new Date(key.expiresAt).getTime() <= Date.now())) return null;
+  const scopes = Array.isArray(key.scopes) ? key.scopes.filter((scope: unknown): scope is string => typeof scope === "string") : [];
+  if (source.update) {
+    await source
+      .update(adminApiKeys)
+      .set({ lastUsedAt: new Date(), updatedAt: new Date() })
+      .where((await import("drizzle-orm")).eq(adminApiKeys.id, key.id));
+  }
+  return { id: key.id, name: key.name, scopes };
 }
 
 export async function resolveAdminSession(token: string | undefined): Promise<AdminSessionState> {
@@ -271,5 +323,62 @@ export const requireAdmin: RequestHandler = (req, res, next) => {
     })
     .catch(next);
 };
+
+function requestApiKey(req: Parameters<RequestHandler>[0]) {
+  const header = req.get("authorization")?.trim();
+  if (header) {
+    const [scheme, value] = header.split(/\s+/, 2);
+    if (scheme?.toLowerCase() === "bearer") return value?.trim() || null;
+    return null;
+  }
+  return req.get("x-admin-api-key")?.trim() || null;
+}
+
+export function createAdminAuthMiddleware(database?: AdminAuthDatabase): RequestHandler {
+  return (req, res, next) => {
+    const apiKey = requestApiKey(req);
+    if (apiKey !== null) {
+      if (!isAdminApiKeyShape(apiKey)) {
+        res.status(401).json({ message: "Authentication required" });
+        return;
+      }
+      void findActiveAdminApiKey(apiKey, database)
+        .then((identity) => {
+          if (!identity) {
+            res.status(401).json({ message: "Authentication required" });
+            return;
+          }
+          req.adminApiKey = identity;
+          req.adminAccess = accessForAdminApiKey(identity.scopes);
+          if (!req.adminAccess.canEdit) {
+            res.status(403).json({ code: "ADMIN_PERMISSION_REQUIRED", message: "API key is not authorized for this operation" });
+            return;
+          }
+          next();
+        })
+        .catch(next);
+      return;
+    }
+
+    void resolveAdminSession(req.cookies?.[COOKIE_NAME])
+      .then((session) => {
+        if (!session.authenticated || !session.access) {
+          res.status(401).json({ message: "Authentication required" });
+          return;
+        }
+        req.adminAccess = session.access;
+        if (session.member) {
+          req.adminMember = {
+            ...session.member,
+            role: session.access.role,
+            permissions: session.access.permissions,
+            active: true,
+          };
+        }
+        next();
+      })
+      .catch(next);
+  };
+}
 
 export { COOKIE_NAME };

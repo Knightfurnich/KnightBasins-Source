@@ -913,6 +913,12 @@ describe("long formal quote print flow", { concurrency: false }, () => {
   });
 
   it("blocks overlapping basin placements before a quote request", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "overlap Studio origin",
+    );
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -926,6 +932,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "overlap Studio canvas",
     );
+    await clickTestId(browser.page, "button-studio-basin-KF001");
     await clickTestId(browser.page, "button-studio-basin-KF002");
     const dropBasin = async (sku: string) => {
       const dropped = await browser.page.evaluate(`(() => {
@@ -942,7 +949,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     };
     await dropBasin("KF001");
     await waitFor(
-      () => browser.page.evaluate('document.querySelectorAll(".studio-placement").length === 1'),
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-placement\').length === 1'),
       Boolean,
       "first overlap basin",
     );
@@ -954,10 +961,111 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     await clickTestId(browser.page, "button-submit-studio");
     await waitFor(
-      () => browser.page.evaluate('document.querySelector(\'[role="status"]\')?.textContent === "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน"'),
+      () => browser.page.evaluate('document.querySelector(".studio-result:not(.studio-draft-result)")?.textContent === "มีอ่างวางซ้อนทับกัน กรุณาขยับอ่างให้อยู่ห่างกัน"'),
       Boolean,
       "basin overlap submission block",
     );
+  });
+
+  it("places a selected basin when dragged from the shortlist on a touch screen", async () => {
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "touch Studio origin",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "touch Studio order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "touch Studio canvas",
+    );
+    await clickTestId(browser.page, "button-studio-basin-KF001");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF001"]\')?.getAttribute("aria-pressed") === "true"'),
+      Boolean,
+      "selected basin for touch drag",
+    );
+    const dragPoint = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]')?.closest('.studio-basin-choice');
+      const target = document.querySelector('[data-testid="studio-canvas"]');
+      if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) return false;
+      target.scrollIntoView({ behavior: "instant", block: "center", inline: "nearest" });
+      const sourceRect = source.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const dropX = targetRect.left + targetRect.width * .62;
+      const dropY = targetRect.top + targetRect.height * .46;
+      return {
+        startX: sourceRect.left + sourceRect.width / 2,
+        startY: sourceRect.top + sourceRect.height / 2,
+        dropX,
+        dropY,
+        beforeCount: document.querySelectorAll('[data-testid="studio-canvas"] .studio-placement').length,
+      };
+    })()`);
+    assert.ok(dragPoint, "touch drag source and canvas");
+    const pointerStart = { ...dragPoint, pointerId: 61 };
+    const started = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]')?.closest('.studio-basin-choice');
+      if (!(source instanceof HTMLElement)) return false;
+      source.dispatchEvent(new PointerEvent("pointerdown", {
+        bubbles: true,
+        cancelable: true,
+        pointerId: ${pointerStart.pointerId},
+        pointerType: "touch",
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        clientX: ${pointerStart.startX},
+        clientY: ${pointerStart.startY},
+      }));
+      return true;
+    })()`);
+    assert.equal(started, true);
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(".studio-basin-choice.is-touch-dragging") !== null'),
+      Boolean,
+      "touch basin drag started",
+    );
+    const dragged = await browser.page.evaluate(`(() => {
+      const source = document.querySelector('[data-testid="button-studio-basin-KF001"]')?.closest('.studio-basin-choice');
+      if (!(source instanceof HTMLElement)) return false;
+      const start = {
+        bubbles: true,
+        cancelable: true,
+        pointerId: ${pointerStart.pointerId},
+        pointerType: "touch",
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        clientX: ${pointerStart.startX},
+        clientY: ${pointerStart.startY},
+      };
+      source.dispatchEvent(new PointerEvent("pointermove", { ...start, clientX: ${pointerStart.dropX}, clientY: ${pointerStart.dropY} }));
+      source.dispatchEvent(new PointerEvent("pointerup", { ...start, buttons: 0, clientX: ${pointerStart.dropX}, clientY: ${pointerStart.dropY} }));
+      const hit = document.elementFromPoint(${pointerStart.dropX}, ${pointerStart.dropY});
+      return {
+        canvasPieceId: hit?.closest(".studio-canvas[data-studio-piece-id]")?.getAttribute("data-studio-piece-id") ?? null,
+      };
+    })()`);
+    assert.ok(dragged?.canvasPieceId, JSON.stringify(dragged));
+    assert.equal(dragPoint.beforeCount, 0, JSON.stringify(dragPoint));
+    await waitFor(
+      () => browser.page.evaluate('document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-placement\').length >= 1'),
+      Boolean,
+      "touch-dropped basin placement",
+    );
+    const placements = await browser.page.evaluate('([...document.querySelectorAll(\'[data-testid="studio-canvas"] .studio-placement\')].map((element) => element.textContent ?? ""))');
+    assert.equal(placements.length, 1, JSON.stringify({ dragged, placements }));
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"] .studio-placement\')?.textContent?.includes("KF001") ?? false'), true);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF001"]\')?.getAttribute("aria-pressed")'), "true");
   });
 
   it("blocks invalid Studio upstand heights and phone numbers", async () => {

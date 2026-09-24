@@ -259,6 +259,59 @@ export interface AdminInvite {
   createdAt: string;
 }
 
+export type AdminApiKeyScopesItem = typeof AdminApiKeyScopesItem[keyof typeof AdminApiKeyScopesItem];
+
+
+export const AdminApiKeyScopesItem = {
+  'leads:edit': 'leads:edit',
+} as const;
+
+export interface AdminApiKey {
+  /** @minimum 1 */
+  id: number;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 24
+     */
+  keyPrefix: string;
+  /** @maxItems 1 */
+  scopes: AdminApiKeyScopesItem[];
+  /** @nullable */
+  expiresAt: string | null;
+  /** @nullable */
+  revokedAt: string | null;
+  /** @nullable */
+  lastUsedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminApiKeyInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /**
+     * @minimum 1
+     * @maximum 3650
+     */
+  expiresInDays?: number;
+}
+
+export type CreateAdminApiKeyResponse = AdminApiKey & {
+  /**
+     * @minLength 40
+     * @maxLength 80
+     */
+  token: string;
+};
+
 export type AdminInviteSummaryRole = typeof AdminInviteSummaryRole[keyof typeof AdminInviteSummaryRole];
 
 

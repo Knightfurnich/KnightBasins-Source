@@ -8,6 +8,12 @@ import {
   useDeleteAdminMember,
   useRevokeAdminInvite,
   useUpdateAdminMember,
+  useCreateAdminApiKey,
+  useListAdminApiKeys,
+  useRevokeAdminApiKey,
+  type AdminApiKey,
+  type AdminApiKeyInput,
+  type CreateAdminApiKeyResponse,
   type AdminInvite,
   type AdminInviteInput,
   type AdminInviteInputPermissionsItem,
@@ -18,7 +24,7 @@ import {
   type AdminMemberRole,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Clipboard, Copy, Link2, Loader2, Pencil, Plus, Trash2, UserRound, X } from "lucide-react";
+import { Check, Clipboard, Copy, KeyRound, Link2, Loader2, Pencil, Plus, Trash2, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -268,6 +274,144 @@ function InvitePanel() {
   );
 }
 
+function apiKeyDate(value: string | null) {
+  if (!value) return "ไม่หมดอายุ";
+  return new Intl.DateTimeFormat("th-TH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function WorkerApiKeyPanel() {
+  const queryClient = useQueryClient();
+  const keysQuery = useListAdminApiKeys();
+  const createKey = useCreateAdminApiKey();
+  const revokeKey = useRevokeAdminApiKey();
+  const [name, setName] = useState("David LINE archive worker");
+  const [expiresInDays, setExpiresInDays] = useState(365);
+  const [createdKey, setCreatedKey] = useState<CreateAdminApiKeyResponse | null>(null);
+  const [copyState, setCopyState] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const createKeyNow = () => {
+    setFormError("");
+    const data: AdminApiKeyInput = {
+      name: name.trim(),
+      ...(expiresInDays > 0 ? { expiresInDays } : {}),
+    };
+    if (!data.name) {
+      setFormError("กรุณาตั้งชื่อ credential");
+      return;
+    }
+    createKey.mutate({ data }, {
+      onSuccess: (key) => {
+        setCreatedKey(key);
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/api-keys"] });
+      },
+      onError: (error) => setFormError(errorMessage(error)),
+    });
+  };
+
+  const copyToken = async () => {
+    if (!createdKey?.token) return;
+    try {
+      await navigator.clipboard.writeText(createdKey.token);
+      setCopyState(true);
+      window.setTimeout(() => setCopyState(false), 1800);
+    } catch {
+      setFormError("คัดลอกไม่สำเร็จ กรุณาเลือก token แล้วคัดลอกด้วยตนเอง");
+    }
+  };
+
+  const revokeKeyNow = (key: AdminApiKey) => {
+    if (key.revokedAt || !window.confirm(`ยกเลิก credential "${key.name}" ใช่หรือไม่? Worker จะเรียก intake ไม่ได้อีก`)) return;
+    setFormError("");
+    revokeKey.mutate({ id: key.id }, {
+      onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["/api/admin/api-keys"] }),
+      onError: (error) => setFormError(errorMessage(error)),
+    });
+  };
+
+  return (
+    <section className="border border-[var(--line)] bg-[var(--card-paper)] p-5 sm:p-6" data-testid="admin-worker-api-key-panel">
+      <div className="flex items-start gap-3">
+        <div className="grid h-9 w-9 shrink-0 place-items-center border border-[var(--line)] text-[var(--ink-soft)]">
+          <KeyRound className="h-4 w-4" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Credential สำหรับ Worker ของเดวิด</h2>
+          <p className="mt-1 text-sm text-[var(--ink-soft)]">
+            คีย์นี้ใช้ได้เฉพาะงาน Lead และ intake สลิป มี scope ตายตัวเป็น <code>leads:edit</code> และยกเลิกได้ทันที
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-[1fr_220px_auto] md:items-end">
+        <label className="space-y-2 text-sm">
+          <span className="font-medium">ชื่อ credential</span>
+          <Input value={name} onChange={(event) => setName(event.target.value)} maxLength={120} className="rounded-none border-[var(--line)] bg-transparent" data-testid="input-admin-api-key-name" />
+        </label>
+        <label className="space-y-2 text-sm">
+          <span className="font-medium">อายุการใช้งาน</span>
+          <select value={expiresInDays} onChange={(event) => setExpiresInDays(Number(event.target.value))} className="h-9 w-full border border-[var(--line)] bg-transparent px-3 text-sm" data-testid="select-admin-api-key-expiry">
+            <option value={30}>30 วัน</option>
+            <option value={90}>90 วัน</option>
+            <option value={365}>1 ปี</option>
+            <option value={0}>ไม่หมดอายุ</option>
+          </select>
+        </label>
+        <Button type="button" className="h-9 rounded-none bg-[var(--ink)] text-[var(--paper)]" onClick={createKeyNow} disabled={createKey.isPending} data-testid="button-create-admin-api-key">
+          {createKey.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+          สร้างคีย์
+        </Button>
+      </div>
+
+      {formError && <p className="mt-4 text-sm text-[#a24439]" role="alert">{formError}</p>}
+
+      {createdKey && (
+        <div className="mt-5 border border-[#a9791f]/50 bg-[#a9791f]/5 p-4" data-testid="admin-worker-api-key-created">
+          <p className="text-xs font-medium uppercase tracking-widest text-[var(--ink-soft)]">คีย์พร้อมใช้งาน · แสดงครั้งเดียว</p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <Input value={createdKey.token} readOnly className="min-w-0 rounded-none border-[var(--line)] bg-transparent font-mono text-xs" data-testid="admin-worker-api-key-token" />
+            <Button type="button" variant="outline" className="rounded-none" onClick={() => void copyToken()}>
+              {copyState ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+              {copyState ? "คัดลอกแล้ว" : "คัดลอก token"}
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-[var(--ink-soft)]">เก็บ token นี้ไว้ใน secret store ของ Worker เท่านั้น ระบบจะไม่แสดงค่าเต็มอีกหลังจากปิดหน้านี้</p>
+        </div>
+      )}
+
+      {keysQuery.error && <p className="mt-4 text-sm text-[#a24439]">โหลด credential ไม่สำเร็จ กรุณาตรวจสอบ migration ของฐานข้อมูล</p>}
+      {(keysQuery.data?.length ?? 0) > 0 && (
+        <div className="mt-5 border-t border-[var(--line)] pt-4">
+          <p className="text-sm font-medium">Credential ที่สร้างไว้</p>
+          <div className="mt-3 space-y-2">
+            {keysQuery.data?.map((key) => {
+              const revoked = Boolean(key.revokedAt);
+              const expired = !revoked && Boolean(key.expiresAt && new Date(key.expiresAt).getTime() <= Date.now());
+              return (
+                <div key={key.id} className="flex flex-col gap-2 border border-[var(--line)] p-3 text-xs sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <strong>{key.name}</strong>
+                    <span className="ml-2 font-mono text-[var(--ink-soft)]">{key.keyPrefix}••••</span>
+                    <p className="mt-1 text-[var(--ink-soft)]">scope: leads:edit · {revoked ? "ยกเลิกแล้ว" : expired ? "หมดอายุแล้ว" : `หมดอายุ ${apiKeyDate(key.expiresAt)}`}</p>
+                  </div>
+                  {!revoked && !expired && (
+                    <Button type="button" variant="ghost" size="sm" className="self-start rounded-none text-[#a24439] sm:self-auto" disabled={revokeKey.isPending} onClick={() => revokeKeyNow(key)} data-testid={`button-revoke-admin-api-key-${key.id}`}>
+                      ยกเลิกคีย์
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function TeamManager() {
   const queryClient = useQueryClient();
   const membersQuery = useListAdminMembers();
@@ -385,6 +529,7 @@ export function TeamManager() {
       </div>
 
       <InvitePanel />
+      <WorkerApiKeyPanel />
 
       <section className="border border-[var(--line)] bg-[var(--card-paper)] p-5 sm:p-6" aria-labelledby="team-member-form-title">
         <div className="flex items-center justify-between gap-3">

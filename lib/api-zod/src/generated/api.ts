@@ -460,6 +460,86 @@ export const DeleteAdminMemberResponse = zod.void()
 
 
 /**
+ * @summary List worker API keys without returning secret values
+ */
+
+export const listAdminApiKeysResponseNameMax = 120;
+
+export const listAdminApiKeysResponseKeyPrefixMax = 24;
+
+export const listAdminApiKeysResponseScopesMax = 1;
+
+
+
+export const ListAdminApiKeysResponseItem = zod.object({
+  "id": zod.number().min(1),
+  "name": zod.string().min(1).max(listAdminApiKeysResponseNameMax),
+  "keyPrefix": zod.string().min(1).max(listAdminApiKeysResponseKeyPrefixMax),
+  "scopes": zod.array(zod.enum(['leads:edit'])).max(listAdminApiKeysResponseScopesMax),
+  "expiresAt": zod.coerce.date().nullable(),
+  "revokedAt": zod.coerce.date().nullable(),
+  "lastUsedAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListAdminApiKeysResponse = zod.array(ListAdminApiKeysResponseItem)
+
+
+/**
+ * @summary Create a revocable leads intake worker API key
+ */
+export const createAdminApiKeyBodyNameMax = 120;
+
+export const createAdminApiKeyBodyExpiresInDaysMax = 3650;
+
+
+
+export const CreateAdminApiKeyBody = zod.object({
+  "name": zod.string().min(1).max(createAdminApiKeyBodyNameMax),
+  "expiresInDays": zod.number().min(1).max(createAdminApiKeyBodyExpiresInDaysMax).optional()
+})
+
+
+export const createAdminApiKeyResponseOneNameMax = 120;
+
+export const createAdminApiKeyResponseOneKeyPrefixMax = 24;
+
+export const createAdminApiKeyResponseOneScopesMax = 1;
+
+export const createAdminApiKeyResponseTwoTokenMin = 40;
+export const createAdminApiKeyResponseTwoTokenMax = 80;
+
+
+
+export const CreateAdminApiKeyResponse = zod.object({
+  "id": zod.number().min(1),
+  "name": zod.string().min(1).max(createAdminApiKeyResponseOneNameMax),
+  "keyPrefix": zod.string().min(1).max(createAdminApiKeyResponseOneKeyPrefixMax),
+  "scopes": zod.array(zod.enum(['leads:edit'])).max(createAdminApiKeyResponseOneScopesMax),
+  "expiresAt": zod.coerce.date().nullable(),
+  "revokedAt": zod.coerce.date().nullable(),
+  "lastUsedAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
+  "token": zod.string().min(createAdminApiKeyResponseTwoTokenMin).max(createAdminApiKeyResponseTwoTokenMax)
+}))
+
+
+/**
+ * @summary Revoke a worker API key
+ */
+
+
+
+export const RevokeAdminApiKeyParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const RevokeAdminApiKeyResponse = zod.void()
+
+
+/**
  * @summary List all basin prices
  */
 export const listAdminBasinsResponseOneSkuMax = 32;

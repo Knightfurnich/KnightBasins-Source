@@ -10,6 +10,7 @@ import {
   paymentSlips,
   adminMembers,
   adminInvites,
+  adminApiKeys,
 } from "@workspace/db/schema";
 import {
   AssignAdminPaymentSlipBody,
@@ -28,6 +29,7 @@ import {
   UpdateAdminSheetStoneBody,
   UpdateAdminLeadBody,
   UpdateAdminMemberBody,
+  CreateAdminApiKeyBody,
 } from "@workspace/api-zod";
 import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
@@ -38,7 +40,7 @@ import {
   createAdminToken,
   requireAdminPermission,
   requireAnyAdminPermission,
-  requireAdmin,
+  createAdminAuthMiddleware,
   requireAdminOwner,
   resolveAdminSession,
   ADMIN_PERMISSIONS,
@@ -46,6 +48,7 @@ import {
 } from "../middlewares/admin-auth";
 import { requestOrigin } from "../lib/public-origin";
 import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-invites";
+import { ADMIN_API_KEY_SCOPE, createAdminApiKeySecret } from "../lib/admin-api-keys";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
 import {
   createQuoteAccessSecret,
@@ -114,6 +117,20 @@ function serializeAdminMember(member: any) {
     active: Boolean(member.active),
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
+  };
+}
+
+function serializeAdminApiKey(key: any) {
+  return {
+    id: key.id,
+    name: key.name,
+    keyPrefix: key.keyPrefix,
+    scopes: Array.isArray(key.scopes) ? key.scopes : [],
+    expiresAt: key.expiresAt ?? null,
+    revokedAt: key.revokedAt ?? null,
+    lastUsedAt: key.lastUsedAt ?? null,
+    createdAt: key.createdAt,
+    updatedAt: key.updatedAt,
   };
 }
 
@@ -210,7 +227,77 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     res.status(204).end();
   });
 
-  router.use("/admin", requireAdmin);
+  router.use("/admin", createAdminAuthMiddleware(database));
+
+  router.get("/admin/api-keys", requireAdminOwner, async (_req, res, next) => {
+    try {
+      const keys = await database
+        .select()
+        .from(adminApiKeys)
+        .orderBy(desc(adminApiKeys.createdAt));
+      return res.json(keys.map(serializeAdminApiKey));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/api-keys", requireAdminOwner, async (req, res, next) => {
+    const parsed = CreateAdminApiKeyBody.safeParse(req.body);
+    if (!parsed.success || !parsed.data.name.trim()) {
+      return invalid(res, "ข้อมูล API key ไม่ถูกต้อง", parsed.success ? undefined : parsed.error.flatten());
+    }
+    if (parsed.data.expiresInDays !== undefined && !Number.isSafeInteger(parsed.data.expiresInDays)) {
+      return invalid(res, "expiresInDays must be a whole number");
+    }
+    try {
+      const secret = createAdminApiKeySecret();
+      const expiresAt = parsed.data.expiresInDays === undefined
+        ? null
+        : new Date(Date.now() + parsed.data.expiresInDays * 24 * 60 * 60 * 1000);
+      const [created] = await database
+        .insert(adminApiKeys)
+        .values({
+          name: parsed.data.name.trim(),
+          keyPrefix: secret.keyPrefix,
+          tokenHash: secret.tokenHash,
+          scopes: [ADMIN_API_KEY_SCOPE],
+          expiresAt,
+        })
+        .returning();
+      if (!created) {
+        res.status(500).json({ message: "สร้าง API key ไม่สำเร็จ" });
+        return;
+      }
+      return res.status(201).json({
+        ...serializeAdminApiKey(created),
+        token: secret.token,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.delete("/admin/api-keys/:id", requireAdminOwner, async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) {
+      invalid(res, "รหัส API key ไม่ถูกต้อง");
+      return;
+    }
+    try {
+      const [revoked] = await database
+        .update(adminApiKeys)
+        .set({ revokedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(adminApiKeys.id, id), isNull(adminApiKeys.revokedAt)))
+        .returning({ id: adminApiKeys.id });
+      if (!revoked) {
+        res.status(404).json({ message: "ไม่พบ API key ที่ยังใช้งานได้" });
+        return;
+      }
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
 
   router.get("/admin/team", requireAdminOwner, async (_req, res, next) => {
     try {

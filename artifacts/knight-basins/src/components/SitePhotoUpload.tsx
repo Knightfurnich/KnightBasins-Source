@@ -106,6 +106,7 @@ export function SitePhotoUpload({
         type="file"
         accept="image/*"
         multiple
+        capture="environment"
         className="hidden"
         style={{ display: "none" }}
         onChange={handleFiles}

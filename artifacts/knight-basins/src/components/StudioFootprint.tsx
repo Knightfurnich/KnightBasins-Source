@@ -18,6 +18,7 @@ type StudioFootprintProps = {
   unsafe?: boolean;
   zoom?: number;
   highlightRectangleId?: string | null;
+  canvasPieceId?: string;
   onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void;
   onDrop?: (event: React.DragEvent<HTMLDivElement>) => void;
   children?: ReactNode;
@@ -65,6 +66,7 @@ export function StudioFootprint({
   unsafe = false,
   zoom = 1,
   highlightRectangleId = null,
+  canvasPieceId,
   onDragOver,
   onDrop,
   children,
@@ -78,6 +80,7 @@ export function StudioFootprint({
       onDragOver={onDragOver}
       onDrop={onDrop}
       data-testid={testId}
+      data-studio-piece-id={canvasPieceId}
       aria-label={ariaLabel}
     >
       <div className="studio-canvas-stage" style={{ transform: `scale(${zoom})` }}>

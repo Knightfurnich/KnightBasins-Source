@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
 import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import {
   PRODUCTS,
@@ -574,10 +574,13 @@ function placeBasinOnCanvas(
   });
 }
 
-function StudioShortlists({ state, setState, stoneColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void }) {
+function StudioShortlists({ state, setState, stoneColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved, onTouchBasinDrop }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void; onTouchBasinDrop: (sku: string, clientX: number, clientY: number) => boolean }) {
   const [basinQuery, setBasinQuery] = useState("");
   const [basinFilter, setBasinFilter] = useState<StudioBasinFilter>("all");
   const [stonePriceFilter, setStonePriceFilter] = useState("all");
+  const touchBasinDrag = useRef<{ sku: string; pointerId: number; startX: number; startY: number; moved: boolean } | null>(null);
+  const suppressBasinClick = useRef(false);
+  const [touchDraggingSku, setTouchDraggingSku] = useState<string | null>(null);
   const selectedStoneCodes = useMemo(() => new Set(state.stoneColors), [state.stoneColors]);
   // The Studio only ever quotes cut-and-install work (studioEstimate prices
   // every layout with stoneInstalledUnitPrice), so these budget filters must
@@ -677,6 +680,48 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, selecte
     setState((current) => removeStudioBasin(current, sku));
     onCatalogChangeResolved(sku);
   };
+  const beginTouchBasinDrag = (event: ReactPointerEvent<HTMLDivElement>, sku: string, selected: boolean) => {
+    if (!selected || event.pointerType === "mouse") return;
+    touchBasinDrag.current = { sku, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, moved: false };
+    setTouchDraggingSku(sku);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Synthetic pointer events and browsers without active capture can still bubble.
+    }
+  };
+  const moveTouchBasinDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = touchBasinDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) >= 8) drag.moved = true;
+  };
+  const endTouchBasinDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = touchBasinDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    touchBasinDrag.current = null;
+    setTouchDraggingSku(null);
+    if (drag.moved) {
+      event.preventDefault();
+      suppressBasinClick.current = true;
+      onTouchBasinDrop(drag.sku, event.clientX, event.clientY);
+    }
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // The pointer may already have been released or never captured.
+    }
+  };
+  const cancelTouchBasinDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (touchBasinDrag.current?.pointerId !== event.pointerId) return;
+    touchBasinDrag.current = null;
+    setTouchDraggingSku(null);
+  };
+  const suppressClickAfterTouchDrag = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!suppressBasinClick.current) return;
+    suppressBasinClick.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+  };
   return <div className="studio-shortlists">
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน</h3></div><span>{state.stoneColors.length} สี</span></div>
@@ -714,10 +759,10 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, selecte
        <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {categoryBasins.length} รุ่น</p>
       <div className="studio-basin-list" data-testid="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
-        return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""}`} draggable={selected} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }}>
+        return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""} ${touchDraggingSku === product.sku ? "is-touch-dragging" : ""}`} draggable={selected} onPointerDown={(event) => beginTouchBasinDrag(event, product.sku, selected)} onPointerMove={moveTouchBasinDrag} onPointerUp={endTouchBasinDrag} onPointerCancel={cancelTouchBasinDrag} onClickCapture={suppressClickAfterTouchDrag} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }}>
           <button type="button" className="studio-basin-choice-main" onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small></button>
           {selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}
-           {selected && <button type="button" className="studio-basin-place-button" onClick={() => placeBasinOnCanvas(state, setState, product, resolveActiveBasinTarget(state, selectedRectangleId, selectedPlacementId))} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
+           {selected && <button type="button" className="studio-basin-place-button" onPointerDown={(event) => event.stopPropagation()} onClick={() => placeBasinOnCanvas(state, setState, product, resolveActiveBasinTarget(state, selectedRectangleId, selectedPlacementId))} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
         </div>;
       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
     </section>
@@ -864,7 +909,7 @@ function StudioPieceEditorLegacy({
          {placements.length === 2 && <button type="button" className="button button--outline" onClick={distributeBasins} disabled={placements.some((placement) => placement.widthMm === null || placement.depthMm === null)} data-testid="button-distribute-studio-basins">↔️ จัดระยะห่างอ่างเท่ากัน</button>}
        </div>}
      </div>}
-     <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+     <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} canvasPieceId={piece.id} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
        {placements.map((placement) => {
         const unknown = placement.widthMm === null || placement.depthMm === null;
          const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
@@ -1149,7 +1194,7 @@ function StudioPieceEditor({
     </div>
     <div className="studio-piece-workspace">
       <div className="studio-piece-canvas-column">
-        <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} highlightRectangleId={highlightRectangleId} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+        <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} canvasPieceId={piece.id} highlightRectangleId={highlightRectangleId} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
           {placements.map((placement) => {
             const unknown = placement.widthMm === null || placement.depthMm === null;
             const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
@@ -1621,6 +1666,28 @@ export function StudioPage({
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
+  const handleTouchBasinDrop = useCallback((sku: string, clientX: number, clientY: number) => {
+    const target = document.elementFromPoint(clientX, clientY);
+    const canvas = target?.closest<HTMLElement>(".studio-canvas[data-studio-piece-id]");
+    const pieceId = canvas?.dataset.studioPieceId;
+    const product = basinProducts.find((item) => item.sku === sku);
+    const piece = getStudioPieces(state).find((item) => item.id === pieceId);
+    if (!canvas || !piece || !product) return false;
+    const point = zoomAwareCanvasPoint(canvas.getBoundingClientRect(), clientX, clientY, canvasZoom, pieceBounds(piece));
+    const sheet = resolveBasinSheet(piece, selectedRectangleId, point);
+    if (!sheet) return false;
+    const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id);
+    const cutSize = placementCutSize(placement);
+    const xMm = point.xMm - (cutSize.widthMm ?? 0) / 2;
+    const yMm = point.yMm - (cutSize.heightMm ?? 0) / 2;
+    setSelectedPlacementId(placement.id);
+    setSelectedRectangleId(null);
+    setState((current) => ({
+      ...current,
+      basinPlacements: [...current.basinPlacements, placementAtCoordinates(placement, piece, sheet, xMm, yMm)],
+    }));
+    return true;
+  }, [basinProducts, canvasZoom, selectedRectangleId, setState, state]);
   const estimate = useMemo(() => studioEstimate(state, basinProducts), [state, basinProducts]);
   const activeStone = stoneColorByName(state.activeStone);
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
@@ -2021,7 +2088,7 @@ export function StudioPage({
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
-         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} />
+        <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
         {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
       const file = sketchFiles[index];
       const previewUrl = sketchPreviewUrls[index];
