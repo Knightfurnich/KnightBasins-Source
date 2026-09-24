@@ -15,7 +15,8 @@ import {
   Layers,
   Award,
   Clock,
-  HelpCircle
+  HelpCircle,
+  Bell
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -247,6 +248,61 @@ export default function SalesGuide() {
                 <li><strong>ทีมช่างติดตั้งผู้เชี่ยวชาญ:</strong> ทีมงานติดตั้งมีประสบการณ์เฉพาะทาง พร้อมเครื่องมือนำทางและตรวจสอบหน้างาน เพื่อให้งานเสร็จตรงตามกำหนดเวลา</li>
                 <li><strong>บริการหลังการขาย:</strong> ให้คำปรึกษาและคำแนะนำในการดูแลรักษาพื้นผิวหินสังเคราะห์ เพื่อคงความสวยงามไร้รอยต่อยาวนานตลอดอายุการใช้งาน</li>
               </ul>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Section 6: Automated Notifications (Roadmap / In Development) */}
+          <AccordionItem value="notifications" className="border border-[var(--line)] rounded-lg px-5 bg-[var(--card-paper)]">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="flex items-center gap-2.5 text-left">
+                <Bell size={18} className="text-[#003366]" /> 
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-base">6. ระบบการแจ้งเตือนสถานะคำสั่งซื้ออัตโนมัติ</span>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] py-0 px-2 font-normal">
+                    เร็วๆ นี้ · Coming Soon
+                  </Badge>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-1 text-sm text-[var(--ink-soft)] leading-relaxed">
+              <p>
+                เพื่อเพิ่มความสะดวกและโปร่งใสในการติดตามสถานะงาน ระบบกำลังพัฒนาระบบการแจ้งเตือนอัตโนมัติ (Automated Order Notifications) 
+                ที่จะช่วยรายงานความคืบหน้าให้แก่ลูกค้าและผู้ประสานงานในทุกขั้นตอนสำคัญ:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 border rounded-md bg-[var(--paper)]">
+                  <div className="flex items-center gap-2 font-medium text-xs text-[#003366] mb-1">
+                    <CheckCircle2 size={16} className="text-[#17816d]" /> ยืนยันคำสั่งซื้อและการชำระเงิน
+                  </div>
+                  <p className="text-xs">
+                    แจ้งเตือนทันทีเมื่อใบเสนอราคาได้รับการอนุมัติ และสลิปโอนเงินมัดจำผ่านการยืนยัน พร้อมระบุรหัสคำสั่งซื้อสำหรับติดตามงาน
+                  </p>
+                </div>
+                <div className="p-3.5 border rounded-md bg-[var(--paper)]">
+                  <div className="flex items-center gap-2 font-medium text-xs text-[#003366] mb-1">
+                    <Sparkles size={16} className="text-[#a9791f]" /> อัปเดตความคืบหน้างานผลิต
+                  </div>
+                  <p className="text-xs">
+                    แจ้งสถานะเมื่อเคาน์เตอร์หินสั่งตัดและอ่างเข้าสู่กระบวนการตัด ขึ้นรูป และผ่านการตรวจเช็กคุณภาพมาตรฐานโรงงาน
+                  </p>
+                </div>
+                <div className="p-3.5 border rounded-md bg-[var(--paper)]">
+                  <div className="flex items-center gap-2 font-medium text-xs text-[#003366] mb-1">
+                    <Calendar size={16} className="text-[#003366]" /> เตือนนัดหมายคิวติดตั้งล่วงหน้า
+                  </div>
+                  <p className="text-xs">
+                    แจ้งเตือนยืนยันวันนัดหมายและช่วงเวลาติดตั้งล่วงหน้า 1–2 วัน พร้อมข้อมูลการเตรียมพื้นที่หน้างาน เพื่อให้การประสานงานราบรื่น
+                  </p>
+                </div>
+                <div className="p-3.5 border rounded-md bg-[var(--paper)]">
+                  <div className="flex items-center gap-2 font-medium text-xs text-[#003366] mb-1">
+                    <Award size={16} className="text-[#003366]" /> สรุปการส่งมอบและเอกสารรับประกัน
+                  </div>
+                  <p className="text-xs">
+                    ส่งสรุปผลการส่งมอบงานหลังติดตั้งเสร็จสมบูรณ์ พร้อมคู่มือแนะนำการดูแลรักษาพื้นผิวหินสังเคราะห์และการรับประกัน
+                  </p>
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
