@@ -51,8 +51,8 @@
 
 | ใบงาน | ผู้รับผิดชอบ | หัวข้อ / ขอบเขต | ความคืบหน้า |
 |:---:|:---:|:---|:---|
-| **Task 13** | ชัย | เพิ่มระบบตรวจระยะขอบปลอดภัยหลุมเจาะอ่าง 100 มม. (`STUDIO_BASIN_SAFETY_MARGIN_MM`) | ชัยกำลังเขียนโค้ดและ Unit Tests ใน `test/studio-basin-clearance.test.ts` |
-| **Dashboard UI** | Replit | Executive & Team Hybrid Dashboard UI (`AdminDashboard.tsx`) | โค้ดเสร็จแล้ว อยู่ระหว่าง Replit จัดระเบียบ branch เพื่อ push ขึ้น GitHub |
+| **Task 13** | ชัย | ระบบตรวจระยะขอบปลอดภัยหลุมเจาะอ่าง 100 มม. (`STUDIO_BASIN_SAFETY_MARGIN_MM`) | `5f3c8e8` | ✅ เทสต์ผ่าน 13/13 ข้อ |
+| **Dashboard UI** | Replit | Executive & Team Hybrid Dashboard UI (`AdminDashboard.tsx`) | `3a113cf` / `500a21c` | ✅ Merge & Deployed บน VPS |
 
 ---
 
