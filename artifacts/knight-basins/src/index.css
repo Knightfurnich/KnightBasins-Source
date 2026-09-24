@@ -1822,8 +1822,40 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-page--simple .studio-checkbox,
 .studio-page--simple [data-testid="status-studio-vat-tax-id"] { display: none !important; }
 .studio-page--simple { --studio-simple-copy-size: max(var(--type-size-body), .8125rem); }
-.studio-page--simple :is(p, label, small, button, input, select, textarea, span, strong, li, code, .studio-panel-heading > span, .studio-estimate-lines > div, .studio-inspector-subheading, .studio-placement-tools, .studio-piece-size, .studio-edge-marker, .studio-canvas-label, .studio-price-tier, .studio-total) {
-  font-size: var(--studio-simple-copy-size) !important;
+/* สเกลตัวอักษรมาตรฐานสำหรับหน้าลูกค้าทุกหน้าตามต้นแบบ /studio โหมดง่าย (24 ก.ย. 69)
+   - ข้อความหลัก (p, label, button, input, span, strong, eyebrow, รหัสหิน ฯลฯ) = 14px
+   - ยกเว้น: CSS พิมพ์ (.formal-*), ใบสั่งผลิต (.workbench*, .workshop*, .sig-box), หัวเรื่อง (h1-h3) เด็ดขาด */
+:is(.studio-page, .stone-page, .quote-page, .sales-guide-page, .profile-page, .page-wrap) {
+  --storefront-copy-size: var(--type-size-body); /* 14px */
+}
+
+:is(.studio-page, .stone-page, .quote-page, .sales-guide-page, .profile-page, .page-wrap) :is(
+  p, label, small, button, input, select, textarea, span, strong, li, code,
+  .eyebrow, .studio-panel-heading > span, .studio-estimate-lines > div,
+  .studio-inspector-subheading, .studio-placement-tools, .studio-piece-size,
+  .studio-edge-marker, .studio-canvas-label, .studio-price-tier, .studio-total,
+  .studio-helper, .hero-copy, .filter-tabs button, .stone-price-filters button,
+  .stone-search-row > span, .sort-field-help, .area-result small, .customer-grid label,
+  .quote-date span, .install-toggle, .install-note, .stone-line small,
+  .missing-badge, .summary-warning, .success-message, .quote-terms,
+  .studio-stone-choice strong, .studio-stone-choice small, .studio-sketch-slot small
+):not(
+  .formal-*, .formal-* *,
+  .workbench*, .workbench* *,
+  .workshop-*, .workshop-* *,
+  .sig-box, .sig-box *,
+  h1, h2, h3, h4, h5, h6,
+  h1 *, h2 *, h3 *, h4 *, h5 *, h6 *
+) {
+  font-size: var(--storefront-copy-size) !important;
+}
+
+/* คำอธิบายรอง / hint / หมายเหตุย่อย ให้มีขนาด 12px */
+:is(.studio-page, .stone-page, .quote-page, .sales-guide-page, .profile-page, .page-wrap) :is(
+  .studio-sketch-hint, .catalog-freshness-notice, .source-note, .hero-kicker,
+  .sort-field-help, .studio-draft-status, .area-result small
+):not(.formal-*, .formal-* *) {
+  font-size: 12px !important;
 }
 .studio-panel {
   padding: 24px;
