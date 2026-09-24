@@ -58,7 +58,7 @@ export default function SalesGuide() {
               <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[11px]">
                 Knight Furnich Co., Ltd.
               </Badge>
-              <h1 className="text-lg md:text-xl font-bold text-[#003366] leading-snug">
+              <h1 className="text-xl md:text-2xl font-bold text-[#003366] leading-snug" style={{ fontSize: "1.65rem", lineHeight: "1.35" }}>
                 ยินดีต้อนรับสู่ระบบบริการการขายอ่างล้างหน้า ล้างมืออัตโนมัติ โดย ไนท์ เฟอร์นิช
               </h1>
             </div>
@@ -72,7 +72,7 @@ export default function SalesGuide() {
 
         {/* Section 1: 3 Ordering Channels */}
         <section className="space-y-4 pt-2">
-          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
+          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "1.25rem", lineHeight: "1.3" }}>
             <span>🛍️</span> 1. 3 ช่องทางการเลือกชมและสั่งผลิต
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -143,7 +143,7 @@ export default function SalesGuide() {
 
         {/* Section 2: Engineering Standards */}
         <section className="space-y-3 pt-2">
-          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
+          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "1.25rem", lineHeight: "1.3" }}>
             <span>📐</span> 2. มาตรฐานวิศวกรรมและการผลิตของโรงงาน
           </h2>
           <div className="p-5 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] space-y-3 text-sm text-[var(--ink-soft)] leading-relaxed">
@@ -164,7 +164,7 @@ export default function SalesGuide() {
 
         {/* Section 3: Formal Quotation & Payment */}
         <section className="space-y-3 pt-2">
-          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
+          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "1.25rem", lineHeight: "1.3" }}>
             <span>📄</span> 3. ใบเสนอราคาทางการและการยืนยันคำสั่งซื้อ
           </h2>
           <div className="p-5 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] space-y-3 text-sm text-[var(--ink-soft)] leading-relaxed">
@@ -185,7 +185,7 @@ export default function SalesGuide() {
 
         {/* Section 4: Dispatch & After-Sales Service */}
         <section className="space-y-3 pt-2">
-          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
+          <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "1.25rem", lineHeight: "1.3" }}>
             <span>🚚</span> 4. การนัดหมายติดตั้งและบริการหลังการขาย
           </h2>
           <div className="p-5 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] space-y-3 text-sm text-[var(--ink-soft)] leading-relaxed">
@@ -207,7 +207,7 @@ export default function SalesGuide() {
         {/* Section 5: Notifications (Roadmap) */}
         <section className="space-y-3 pt-2">
           <div className="flex items-center gap-2.5">
-            <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5">
+            <h2 className="text-xl md:text-2xl font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "1.25rem", lineHeight: "1.3" }}>
               <span>🔔</span> 5. ระบบการแจ้งเตือนสถานะคำสั่งซื้ออัตโนมัติ
             </h2>
             <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] py-0.5 font-normal">
