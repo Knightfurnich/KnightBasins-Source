@@ -78,7 +78,7 @@ export function VideoUploadField({ value, onChange, label }: VideoUploadFieldPro
           </Button>
           <p className="text-xs text-[var(--ink-soft)]">MP4, WEBM หรือ MOV ไม่เกิน 100 MB · เล่นตัวอย่างได้ทันที</p>
           {error && <p className="text-xs text-[#a24439]">{error}</p>}
-          {value && <p className="max-w-[28rem] break-all text-[10px] text-[var(--ink-soft)]">{value}</p>}
+          {value && <p className="max-w-[28rem] break-all text-[12px] text-[var(--ink-soft)]">{value}</p>}
         </div>
       </div>
     </div>

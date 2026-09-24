@@ -100,7 +100,7 @@ export function BasinImageManagerField({
                     <ChevronLeft className="h-3 w-3" />
                   </button>
                   {!isPrimary && (
-                    <button type="button" onClick={() => setAsPrimary(index)} className="text-[9px] text-white underline decoration-dotted" data-testid={`button-basin-image-primary-${index}`}>
+                    <button type="button" onClick={() => setAsPrimary(index)} className="text-[14px] text-white underline decoration-dotted" data-testid={`button-basin-image-primary-${index}`}>
                       ตั้งเป็นภาพหลัก
                     </button>
                   )}
@@ -111,7 +111,7 @@ export function BasinImageManagerField({
                 <button
                   type="button"
                   onClick={() => toggleQuoteImage(url)}
-                  className={`flex items-center justify-center gap-1 rounded-sm px-1 py-0.5 text-[9px] ${isQuoteImage ? "bg-emerald-600 text-white" : "text-white/80 hover:text-white"}`}
+                  className={`flex items-center justify-center gap-1 rounded-sm px-1 py-0.5 text-[14px] ${isQuoteImage ? "bg-emerald-600 text-white" : "text-white/80 hover:text-white"}`}
                   data-testid={`button-basin-image-quote-${index}`}
                 >
                   <FileText className="h-3 w-3" /> {isQuoteImage ? "ใช้ในใบเสนอราคา" : "ใช้ภาพนี้ในใบเสนอราคา"}
@@ -128,7 +128,7 @@ export function BasinImageManagerField({
             className="admin-gallery-upload-add flex h-24 w-32 shrink-0 flex-col items-center justify-center gap-1 border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] text-[var(--ink-soft)]"
           >
             {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
-            <span className="text-[10px]">{isUploading ? "กำลังอัปโหลด..." : "เพิ่มภาพ"}</span>
+            <span className="text-[14px]">{isUploading ? "กำลังอัปโหลด..." : "เพิ่มภาพ"}</span>
           </button>
         )}
       </div>

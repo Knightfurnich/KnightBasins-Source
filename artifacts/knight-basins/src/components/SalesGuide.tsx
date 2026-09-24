@@ -33,7 +33,7 @@ export default function SalesGuide() {
           <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
           <div>
             <strong className="block text-sm tracking-widest leading-none text-[#003366]">KNIGHT BASINS</strong>
-            <small className="block text-[var(--ink-soft)] font-mono text-[9px] tracking-widest mt-1">
+            <small className="block text-[var(--ink-soft)] font-mono text-[12px] tracking-widest mt-1">
               คู่มือการใช้งาน & ข้อมูลระบบบริการ · SYSTEM GUIDE
             </small>
           </div>
@@ -55,7 +55,7 @@ export default function SalesGuide() {
               🏢
             </div>
             <div>
-              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[11px]">
+              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[12px]">
                 Knight Furnich Co., Ltd.
               </Badge>
               <h1 className="font-bold text-[#003366]" style={{ fontSize: "var(--type-size-heading-xl)", lineHeight: "var(--type-line-heading-xl)" }}>
@@ -210,7 +210,7 @@ export default function SalesGuide() {
             <h2 className="font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "var(--type-size-heading-lg)", lineHeight: "var(--type-line-heading-lg)" }}>
               <span>🔔</span> 5. ระบบการแจ้งเตือนสถานะคำสั่งซื้ออัตโนมัติ
             </h2>
-            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] py-0.5 font-normal">
+            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[12px] py-0.5 font-normal">
               อยู่ระหว่างการพัฒนา · Coming Soon
             </Badge>
           </div>

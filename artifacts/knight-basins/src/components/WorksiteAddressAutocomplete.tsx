@@ -143,7 +143,7 @@ export function WorksiteAddressAutocomplete({
                       </button>
                     ))}
                   </div>
-                  <div className="border-t border-[var(--line)] px-3 py-1.5 text-right text-[10px] text-[var(--ink-soft)]">
+                  <div className="border-t border-[var(--line)] px-3 py-1.5 text-right text-[12px] text-[var(--ink-soft)]">
                     Google Maps
                   </div>
                 </>
@@ -156,14 +156,14 @@ export function WorksiteAddressAutocomplete({
           )}
         </div>
       </label>
-      <p id={`${listboxId}-help`} className="text-[11px] leading-relaxed text-[var(--ink-soft)]">
+      <p id={`${listboxId}-help`} className="text-[12px] leading-relaxed text-[var(--ink-soft)]">
         ที่อยู่ที่พิมพ์จะถูกบันทึก ส่วนตำแหน่งที่เลือกใช้ให้ทีมช่างเปิดเส้นทาง
       </p>
       {selectedPlaceId && selectedText && (
         <div className="flex items-start justify-between gap-3 border border-[var(--line)] bg-[var(--line)]/10 px-3 py-2 text-xs">
           <span className="flex min-w-0 items-start gap-1.5 text-[var(--ink)]">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand-blue)]" />
-            <span><strong>ตำแหน่งเส้นทาง:</strong> {selectedText}<span className="ml-1 text-[10px] text-[var(--ink-soft)]">Google Maps</span></span>
+            <span><strong>ตำแหน่งเส้นทาง:</strong> {selectedText}<span className="ml-1 text-[12px] text-[var(--ink-soft)]">Google Maps</span></span>
           </span>
           <button
             type="button"
