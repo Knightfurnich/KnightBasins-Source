@@ -1320,8 +1320,8 @@ function StudioPerspectivePreview({ piece, stoneTone, basinPlacements }: { piece
 function StudioCanvas({
   state,
   setState,
-  zoom,
-  setZoom,
+  pieceZoom,
+  setPieceZoom,
   selectedPlacementId,
   setSelectedPlacementId,
   selectedRectangleId,
@@ -1330,8 +1330,8 @@ function StudioCanvas({
 }: {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
-  zoom: number;
-  setZoom: Dispatch<SetStateAction<number>>;
+  pieceZoom: Record<string, number>;
+  setPieceZoom: Dispatch<SetStateAction<Record<string, number>>>;
   selectedPlacementId: string | null;
   setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
   selectedRectangleId: string | null;
@@ -1343,6 +1343,15 @@ function StudioCanvas({
     ? state.activePieceId
     : (pieces[0]?.id ?? "");
   const activePiece = pieces.find((p) => p.id === activePieceId) ?? pieces[0];
+  const activePieceZoom = activePiece ? (pieceZoom[activePiece.id] ?? 1) : 1;
+  const setActivePieceZoom = (updater: number | ((prev: number) => number)) => {
+    if (!activePiece) return;
+    setPieceZoom((prev) => {
+      const current = prev[activePiece.id] ?? 1;
+      const next = typeof updater === "function" ? updater(current) : updater;
+      return { ...prev, [activePiece.id]: next };
+    });
+  };
 
   const addPiece = () => {
     setState((current) => {
@@ -1496,10 +1505,10 @@ function StudioCanvas({
 
       <div className="studio-zoom-toolbar" aria-label="ควบคุมการซูมผัง 2D">
         <span>ขยายผัง 2D</span>
-        <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.max(.75, Math.round((current - .25) * 100) / 100))} aria-label="ซูมออก" data-testid="button-studio-zoom-out"><Minus size={15} /></button>
-        <strong data-testid="studio-zoom-value">{Math.round(zoom * 100)}%</strong>
-        <button type="button" className="icon-button" onClick={() => setZoom((current) => Math.min(2, Math.round((current + .25) * 100) / 100))} aria-label="ซูมเข้า" data-testid="button-studio-zoom-in"><Plus size={15} /></button>
-        <button type="button" className="button button--outline" onClick={() => setZoom(1)} data-testid="button-studio-zoom-reset">100%</button>
+        <button type="button" className="icon-button" onClick={() => setActivePieceZoom((current) => Math.max(.75, Math.round((current - .25) * 100) / 100))} aria-label="ซูมออก" data-testid="button-studio-zoom-out"><Minus size={15} /></button>
+        <strong data-testid="studio-zoom-value">{Math.round(activePieceZoom * 100)}%</strong>
+        <button type="button" className="icon-button" onClick={() => setActivePieceZoom((current) => Math.min(2, Math.round((current + .25) * 100) / 100))} aria-label="ซูมเข้า" data-testid="button-studio-zoom-in"><Plus size={15} /></button>
+        <button type="button" className="button button--outline" onClick={() => setActivePieceZoom(1)} data-testid="button-studio-zoom-reset">100%</button>
       </div>
     </div>
 
@@ -1511,7 +1520,7 @@ function StudioCanvas({
           piece={activePiece}
           state={state}
           setState={setState}
-          zoom={zoom}
+          zoom={activePieceZoom}
           selectedPlacementId={selectedPlacementId}
           setSelectedPlacementId={setSelectedPlacementId}
           selectedRectangleId={selectedRectangleId}
@@ -1822,7 +1831,7 @@ export function StudioPage({
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
-  const [canvasZoom, setCanvasZoom] = useState(1);
+  const [pieceZoom, setPieceZoom] = useState<Record<string, number>>({});
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
   const handleTouchBasinDrop = useCallback((sku: string, clientX: number, clientY: number) => {
@@ -1832,7 +1841,8 @@ export function StudioPage({
     const product = basinProducts.find((item) => item.sku === sku);
     const piece = getStudioPieces(state).find((item) => item.id === pieceId);
     if (!canvas || !piece || !product) return false;
-    const point = zoomAwareCanvasPoint(canvas.getBoundingClientRect(), clientX, clientY, canvasZoom, pieceBounds(piece));
+    const zoomForPiece = pieceZoom[piece.id] ?? 1;
+    const point = zoomAwareCanvasPoint(canvas.getBoundingClientRect(), clientX, clientY, zoomForPiece, pieceBounds(piece));
     const sheet = resolveBasinSheet(piece, selectedRectangleId, point);
     if (!sheet) return false;
     const placement = createBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id);
@@ -1846,7 +1856,7 @@ export function StudioPage({
       basinPlacements: [...current.basinPlacements, placementAtCoordinates(placement, piece, sheet, xMm, yMm)],
     }));
     return true;
-  }, [basinProducts, canvasZoom, selectedRectangleId, setState, state]);
+  }, [basinProducts, pieceZoom, selectedRectangleId, setState, state]);
   const estimate = useMemo(() => studioEstimate(state, basinProducts), [state, basinProducts]);
   const activeStone = stoneColorByName(state.activeStone);
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
@@ -2000,7 +2010,7 @@ export function StudioPage({
     setDraftNotice(null);
     setCatalogNotice(null);
     setDraftResult("");
-    setCanvasZoom(1);
+    setPieceZoom({});
     setSelectedPlacementId(null);
     setSelectedRectangleId(null);
     if (window.location.search) window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
@@ -2248,7 +2258,7 @@ export function StudioPage({
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       <div className="studio-design-layout">
         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
-        {mode === "studio" ? <StudioCanvas state={state} setState={setState} zoom={canvasZoom} setZoom={setCanvasZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
+        {mode === "studio" ? <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
       const file = sketchFiles[index];
       const previewUrl = sketchPreviewUrls[index];
       if (file && previewUrl) {
