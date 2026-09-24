@@ -343,7 +343,7 @@ export type AdminDashboardStats = {
     teamName: string;
     activeJobsCount: number;
     status: "busy" | "moderate" | "available";
-    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string }>;
+    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string; confidence: TechnicianTeamMatchConfidence }>;
   }>;
   asOf: string;
 };
@@ -625,6 +625,11 @@ export function computeProjectedCashInflowThb(
 
 type TechnicianTeam = { code: string; name: string; shortName: string; aliases: string[] };
 
+/** How a free-text team mention was resolved: `manual` is the explicit `technicianTeamCode` column; the rest come from `matchTeamToken`'s three layers. Lower confidence (`prefix`/`fuzzy`) should be surfaced to an admin to confirm, not trusted blindly. */
+export type TechnicianTeamMatchConfidence = "exact" | "prefix" | "fuzzy" | "manual";
+
+export type TechnicianTeamMatch = { code: string; confidence: TechnicianTeamMatchConfidence };
+
 /**
  * Seed roster: the 10 install teams in the canonical order used by the work
  * orders. This is the *fallback* -- the live roster lives in the
@@ -660,22 +665,147 @@ function textMentionsAlias(text: string, alias: string): boolean {
   return text.includes(alias) || text.includes(`ทีม${alias}`) || text.includes(`ช่าง${alias}`);
 }
 
+// --- Fuzzy/prefix team-name matcher -------------------------------------
+// Ported from the validated prototype at bin/knight_team_match_prototype.py
+// (26/26 synthetic cases; 548-message replay in
+// knight-design-kb/qa/design-team-name-matching.md found 0 missed real
+// jobs). Don't hand-tune this against a new failure without re-running that
+// replay -- the 3 gotchas called out below were each found that way.
+
+const ZERO_WIDTH_PATTERN = /[\u200B-\u200D\uFEFF]/g;
+const THAI_DIGITS = "๐๑๒๓๔๕๖๗๘๙";
+/** Consonants folded together because casual Thai spelling treats them as interchangeable (they sound, or used to sound, alike). */
+const CONFUSABLE_CONSONANTS: Record<string, string> = {
+  "ศ": "ส", "ษ": "ส",
+  "ฏ": "ต",
+  "ฑ": "ท", "ฒ": "ท", "ธ": "ท",
+  "ณ": "น",
+  "ญ": "ย",
+  "ภ": "พ",
+  "ฬ": "ล",
+};
+/** Tone marks and the การันต์/above-line vowel marks stripped by `looseTeamText`. */
+const TEAM_TEXT_MARKS = new Set([..."ั็่้๊๋์ํิีึืุู"]);
+
+/** NFC -> strip zero-width chars -> Thai digits to Arabic -> fold confusable consonants -> strip whitespace. Deterministic normalization, not a guess. */
+export function normalizeTeamText(text: string): string {
+  let result = text.normalize("NFC").replace(ZERO_WIDTH_PATTERN, "");
+  result = [...result].map((char) => {
+    const digitIndex = THAI_DIGITS.indexOf(char);
+    return digitIndex >= 0 ? String(digitIndex) : char;
+  }).join("");
+  result = [...result].map((char) => CONFUSABLE_CONSONANTS[char] ?? char).join("");
+  return result.replace(/\s+/g, "");
+}
+
+/** `normalizeTeamText()` with tone marks/การันต์ also stripped, so "เจมส" (dropped การันต์) equals "เจมส์". */
+export function looseTeamText(text: string): string {
+  return [...normalizeTeamText(text)].filter((char) => !TEAM_TEXT_MARKS.has(char)).join("");
+}
+
+/** Plain Levenshtein edit distance between two strings. */
+export function teamTextEditDistance(a: string, b: string): number {
+  let previousRow = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i += 1) {
+    const currentRow = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      currentRow.push(Math.min(previousRow[j]! + 1, currentRow[j - 1]! + 1, previousRow[j - 1]! + cost));
+    }
+    previousRow = currentRow;
+  }
+  return previousRow[b.length]!;
+}
+
 /**
- * First team (in `teams`' order) whose code or name is mentioned in the
- * text, or null if none match. A job is credited to at most one team.
- * Codes match as a whole word (case-insensitive) so "KF" never matches
- * inside a SKU like "KF001".
+ * Match a single already-extracted token (e.g. the word right after
+ * "ทีม"/"ช่าง") against the roster. Three layers, first hit wins:
+ *
+ *  1. exact  -- token equals a candidate's shortName/name/alias, compared
+ *     both normalized and loose (so "เจมส" == "เจมส์").
+ *  2. prefix -- token is a prefix of a candidate's loose form, and the
+ *     *normalized* token is >= 3 chars. The guard must measure the
+ *     normalized length, not loose: "ชัย" loses its tone mark in
+ *     looseTeamText ("ชย", 2 chars) and would wrongly fail a loose-length
+ *     guard even though it's a valid prefix of "ชัยยา".
+ *  3. fuzzy  -- candidate name is >= 4 chars and edit distance <= 1. Short
+ *     names (2-3 chars, e.g. "ยี่"/"ทู"/"เปา") never fuzzy-match -- they
+ *     must hit exact, or nothing.
+ *
+ * Returns null if nothing clears any layer.
  */
-function matchedTechnicianTeamCode(text: string, teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS): string | null {
-  if (!text.trim()) return null;
+export function matchTeamToken(token: string, teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS): TechnicianTeamMatch | null {
+  const tokenNormalized = normalizeTeamText(token);
+  const tokenLoose = looseTeamText(token);
+  if (!tokenNormalized) return null;
+
+  for (const team of teams) {
+    for (const candidate of [team.shortName, team.name, ...team.aliases]) {
+      if (tokenNormalized === normalizeTeamText(candidate) || tokenLoose === looseTeamText(candidate)) {
+        return { code: team.code, confidence: "exact" };
+      }
+    }
+  }
+  for (const team of teams) {
+    for (const candidate of [team.shortName, team.name, ...team.aliases]) {
+      if (tokenNormalized.length >= 3 && looseTeamText(candidate).startsWith(tokenLoose)) {
+        return { code: team.code, confidence: "prefix" };
+      }
+    }
+  }
+  for (const team of teams) {
+    for (const candidate of [team.shortName, team.name, ...team.aliases]) {
+      const candidateNormalized = normalizeTeamText(candidate);
+      if (candidateNormalized.length >= 4 && teamTextEditDistance(tokenNormalized, candidateNormalized) <= 1) {
+        return { code: team.code, confidence: "fuzzy" };
+      }
+    }
+  }
+  return null;
+}
+
+/** Trailing polite particles stripped from a token before matching. */
+const TEAM_TOKEN_TRAILING_PARTICLES = /(ครับผม|ครับ|ค่ะ|คะ|นะครับ|นะ|จ้า|ด้วย)$/;
+
+/** Strip trailing punctuation, *then* trailing particles, then punctuation again -- order matters: a real LINE message reads "ทีมเจมส์ครับ." and only becomes "เจมส์" if the "." is stripped before "ครับ" is matched at the end. */
+function cleanTeamToken(token: string): string {
+  const stripTrailingPunctuation = (value: string) => value.replace(/[.,;:!?"'”’)\]]+$/, "");
+  return stripTrailingPunctuation(stripTrailingPunctuation(token.trim()).replace(TEAM_TOKEN_TRAILING_PARTICLES, "")).trim();
+}
+
+/** Every token immediately following "ทีม"/"ช่าง" in `text`, cleaned, in appearance order. */
+function teamPrefixedTokens(text: string): string[] {
+  const pattern = /(?:ทีม|ช่าง)\s*([^\s/,·()\[\]ๆ]{1,12})/g;
+  return [...text.matchAll(pattern)].map((match) => cleanTeamToken(match[1] ?? ""));
+}
+
+/** Fallback for text with no "ทีม"/"ช่าง" token to key off -- a bare code ("TP"), or a team name/alias mentioned without a prefix. Whole-word code match, literal name/alias substring; no fuzzy layer here since there's no token boundary to guard a false positive. */
+function matchedTeamByLiteralMention(text: string, teams: TechnicianTeam[]): TechnicianTeamMatch | null {
   const upper = text.toUpperCase();
   for (const team of teams) {
     const codePattern = new RegExp(`\\b${team.code}\\b`);
-    if (codePattern.test(upper)) return team.code;
-    if (text.includes(team.name) || text.includes(`ทีม${team.shortName}`)) return team.code;
-    if (team.aliases.some((alias) => textMentionsAlias(text, alias))) return team.code;
+    if (codePattern.test(upper)) return { code: team.code, confidence: "exact" };
+    if (text.includes(team.name) || text.includes(`ทีม${team.shortName}`)) return { code: team.code, confidence: "exact" };
+    if (team.aliases.some((alias) => textMentionsAlias(text, alias))) return { code: team.code, confidence: "exact" };
   }
   return null;
+}
+
+/**
+ * First team (in order of appearance) whose "ทีม"/"ช่าง"-prefixed token
+ * matches the roster via `matchTeamToken` (exact/prefix/fuzzy, tolerating
+ * misspellings and dropped trailing consonants like "ทีมเจม" for
+ * "ทีมเจมส์"), falling back to a literal whole-text scan for mentions with
+ * no prefix (a bare code like "TP", or a name/alias with no "ทีม"/"ช่าง" in
+ * front). A job is credited to at most one team; null if nothing matches.
+ */
+export function matchedTechnicianTeamCode(text: string, teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS): TechnicianTeamMatch | null {
+  if (!text.trim()) return null;
+  for (const token of teamPrefixedTokens(text)) {
+    const match = matchTeamToken(token, teams);
+    if (match) return match;
+  }
+  return matchedTeamByLiteralMention(text, teams);
 }
 
 /** Radar of all `teams`' installation load over the next `windowDays`, parsed from lead.notes/lead.project. */
@@ -694,14 +824,15 @@ export function computeTechnicianCapacity(
   for (const lead of leads) {
     if (!lead.expectedInstallationDate) continue;
     if (lead.expectedInstallationDate < start || lead.expectedInstallationDate > end) continue;
-    const teamCode = matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`, teams);
-    if (!teamCode) continue;
-    jobsByTeam.get(teamCode)?.push({
+    const match = matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`, teams);
+    if (!match) continue;
+    jobsByTeam.get(match.code)?.push({
       id: lead.id,
       leadKey: lead.leadKey,
       name: lead.name ?? "",
       project: lead.project ?? null,
       date: lead.expectedInstallationDate,
+      confidence: match.confidence,
     });
   }
 
@@ -715,12 +846,13 @@ export function computeTechnicianCapacity(
 
 const TECHNICIAN_TEAM_CODES: string[] = SEED_TECHNICIAN_TEAMS.map((team) => team.code);
 
-/** A lead's team, preferring the explicit column over the free-text guess -- older leads (pre-migration 011) fall back to the notes/project regex match. */
+/** A lead's team + how confident the match is: the explicit column always wins (confidence "manual"); older leads (pre-migration 011) fall back to the notes/project regex/fuzzy guess, or null if nothing matches. */
 function resolvedTechnicianTeamCode(
   lead: Pick<DashboardLeadRow, "technicianTeamCode" | "notes" | "project">,
   teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS,
-): string | null {
-  return lead.technicianTeamCode ?? matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`, teams);
+): TechnicianTeamMatch | null {
+  if (lead.technicianTeamCode) return { code: lead.technicianTeamCode, confidence: "manual" };
+  return matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`, teams);
 }
 
 export type TechnicianCalendarStatus = "available" | "moderate" | "busy";
@@ -732,6 +864,7 @@ export type TechnicianCalendarJob = {
   project: string | null;
   address: string | null;
   quoteNumber: string | null;
+  confidence: TechnicianTeamMatchConfidence;
 };
 
 export type TechnicianCalendarTeamDay = {
@@ -796,28 +929,29 @@ export function computeTechnicianCalendar(
     const date = isoDate(year, monthNum, day);
     const leadsThatDay = leadsByDate.get(date) ?? [];
 
-    const leadsByTeam = new Map<string, DashboardLeadRow[]>(teams.map((team) => [team.code, []]));
+    const jobsByTeam = new Map<string, TechnicianCalendarJob[]>(teams.map((team) => [team.code, []]));
     for (const lead of leadsThatDay) {
-      const teamCode = resolvedTechnicianTeamCode(lead, teams);
-      if (!teamCode) continue;
-      leadsByTeam.get(teamCode)?.push(lead);
+      const match = resolvedTechnicianTeamCode(lead, teams);
+      if (!match) continue;
+      jobsByTeam.get(match.code)?.push({
+        id: lead.id,
+        leadKey: lead.leadKey,
+        name: lead.name ?? "",
+        project: lead.project ?? null,
+        address: lead.address ?? null,
+        quoteNumber: lead.quoteNumber ?? null,
+        confidence: match.confidence,
+      });
     }
 
     const dayTeams: TechnicianCalendarTeamDay[] = teams.map((team) => {
-      const teamLeads = leadsByTeam.get(team.code) ?? [];
+      const teamJobs = jobsByTeam.get(team.code) ?? [];
       return {
         teamCode: team.code,
         teamName: team.name,
-        status: technicianCalendarTeamStatus(teamLeads.length),
-        jobCount: teamLeads.length,
-        jobs: teamLeads.map((lead) => ({
-          id: lead.id,
-          leadKey: lead.leadKey,
-          name: lead.name ?? "",
-          project: lead.project ?? null,
-          address: lead.address ?? null,
-          quoteNumber: lead.quoteNumber ?? null,
-        })),
+        status: technicianCalendarTeamStatus(teamJobs.length),
+        jobCount: teamJobs.length,
+        jobs: teamJobs,
       };
     });
 

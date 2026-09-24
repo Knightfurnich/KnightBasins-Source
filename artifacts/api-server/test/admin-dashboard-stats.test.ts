@@ -65,7 +65,7 @@ type AdminDashboardStats = {
     teamName: string;
     activeJobsCount: number;
     status: "busy" | "moderate" | "available";
-    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string }>;
+    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string; confidence: "exact" | "prefix" | "fuzzy" | "manual" }>;
   }>;
   asOf: string;
 };
