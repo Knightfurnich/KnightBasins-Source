@@ -2,7 +2,7 @@ import type { CustomerDetails } from "@/data/catalog";
 import { formatThaiDate } from "@/data/date-time";
 import { quoteQrImageUrl } from "@/data/quote-utils";
 import knightFurnichLogo from "/knight-furnich-logo.png";
-import { CheckSquare, QrCode } from "lucide-react";
+import { CheckSquare, MapPin, QrCode } from "lucide-react";
 
 export type ProductionItem = {
   code: string;
@@ -32,19 +32,33 @@ function safeFormatThaiDate(date: unknown) {
   return formatThaiDate(d);
 }
 
+function worksiteGoogleMapsUrl(address: string, placeId?: string | null) {
+  const normalizedAddress = address.trim();
+  const normalizedPlaceId = placeId?.trim() ?? "";
+  if (!normalizedAddress && !normalizedPlaceId) return null;
+
+  const query = encodeURIComponent(normalizedAddress || normalizedPlaceId);
+  const placeIdQuery = normalizedPlaceId ? `&query_place_id=${encodeURIComponent(normalizedPlaceId)}` : "";
+  return `https://www.google.com/maps/search/?api=1&query=${query}${placeIdQuery}`;
+}
+
 export function WorkshopProductionSheet({
   quoteNumber,
   issueDate,
   customer,
   items,
+  worksitePlaceId = null,
   sitePhotos = [],
 }: {
   quoteNumber: string;
   issueDate: Date;
   customer: CustomerDetails;
   items: ProductionItem[];
+  worksitePlaceId?: string | null;
   sitePhotos?: string[];
 }) {
+  const worksiteMapsUrl = worksiteGoogleMapsUrl(customer.address ?? "", worksitePlaceId);
+
   return (
     <section className="workshop-production-sheet" data-testid="workshop-production-sheet">
       <header className="workshop-sheet-header">
@@ -93,6 +107,18 @@ export function WorkshopProductionSheet({
         <div className="workshop-site-wide">
           <span>ที่อยู่จัดส่ง / ติดตั้ง</span>
           <strong>{customer.address || "—"}</strong>
+          {worksiteMapsUrl && (
+            <a
+              href={worksiteMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="เปิดพิกัดหน้างาน Google Maps"
+              data-testid="link-workshop-worksite-maps"
+              className="inline-flex items-center gap-1 text-accent underline underline-offset-2"
+            >
+              <MapPin size={14} /> เปิดพิกัดหน้างาน Google Maps
+            </a>
+          )}
         </div>
         {customer.notes && (
           <div className="workshop-site-wide workshop-special-notes">

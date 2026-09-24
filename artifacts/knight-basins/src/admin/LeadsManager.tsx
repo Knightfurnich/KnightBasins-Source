@@ -11,7 +11,7 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Check, ChevronDown, ChevronRight, Clipboard, LayoutGrid, List, Loader2, RefreshCw, Search, X } from "lucide-react";
+import { BookOpen, Check, ChevronDown, ChevronRight, Clipboard, LayoutGrid, List, Loader2, MapPin, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +56,37 @@ function sketchImageUrls(lead: { sketchUrl?: string | null; studioData?: unknown
   return lead.sketchUrl ? [lead.sketchUrl] : [];
 }
 
+function worksiteGoogleMapsUrl(lead: Pick<CustomerLead, "address" | "studioData">) {
+  const address = lead.address?.trim() ?? "";
+  const studioData = lead.studioData;
+  const rawPlaceId = studioData && typeof studioData === "object" && !Array.isArray(studioData)
+    ? (studioData as Record<string, unknown>).worksitePlaceId
+    : null;
+  const placeId = typeof rawPlaceId === "string" ? rawPlaceId.trim() : "";
+  if (!address && !placeId) return null;
+
+  const query = encodeURIComponent(address || placeId);
+  const placeIdQuery = placeId ? "&query_place_id=" + encodeURIComponent(placeId) : "";
+  return "https://www.google.com/maps/search/?api=1&query=" + query + placeIdQuery;
+}
+
+function WorksiteDirectionsLink({ lead }: { lead: CustomerLead }) {
+  const href = worksiteGoogleMapsUrl(lead);
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      aria-label={"เปิดเส้นทาง Google Maps ไปยัง " + (lead.address || "หน้างาน")}
+      data-testid={"link-worksite-directions-" + lead.id}
+      className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--brand-blue)] underline underline-offset-2"
+    >
+      <MapPin className="h-3 w-3" /> 🗺️ เปิดเส้นทาง Google Maps
+    </a>
+  );
+}
 type StaffDimensions = { widthMm?: number | null; lengthMm?: number | null; depthMm?: number | null };
 
 function staffDimensionsOf(lead: { studioData?: unknown }): StaffDimensions {
@@ -241,6 +272,7 @@ function LeadsTableView({
                   <TableCell>
                     <div className="text-[var(--ink)] font-medium truncate max-w-[180px]">{lead.project || "-"}</div>
                     {lead.site && <div className="text-[11px] text-[var(--ink-soft)] truncate max-w-[180px]" title={lead.site}>{lead.site}</div>}
+                    <div className="mt-1"><WorksiteDirectionsLink lead={lead} /></div>
                   </TableCell>
                   <TableCell>
                     <div className="font-mono text-[var(--ink)]">{lead.phone || "-"}</div>
@@ -952,6 +984,7 @@ export function LeadsManager() {
                   </div>
                   <p className="text-sm text-[var(--ink-soft)] mt-1">{lead.project || "ยังไม่ระบุโครงการ"} · แหล่งที่มา {lead.source}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-1">หน้างาน: {lead.site || "ยังไม่ระบุ"}</p>
+                   <div className="mt-1"><WorksiteDirectionsLink lead={lead} /></div>
                    <p className="text-sm mt-3">{[lead.phone, lead.lineContact && `LINE: ${lead.lineContact}`, lead.email, lead.company].filter(Boolean).join(" · ") || "ยังไม่มีข้อมูลติดต่อ"}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-2">สินค้า: {lead.productSkus.join(", ") || "ยังไม่ได้เลือก"}</p>
                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
