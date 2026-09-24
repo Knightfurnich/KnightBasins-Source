@@ -11,6 +11,7 @@ import {
   adminMembers,
   adminInvites,
   adminApiKeys,
+  technicianTeams,
 } from "@workspace/db/schema";
 import {
   AssignAdminPaymentSlipBody,
@@ -625,21 +626,28 @@ export function computeProjectedCashInflowThb(
 type TechnicianTeam = { code: string; name: string; shortName: string; aliases: string[] };
 
 /**
- * The 10 install teams, in the canonical order used by the work orders.
- * `name` is the canonical output teamName; `shortName` and `aliases` only
- * widen what counts as a match inside free-text notes/project fields
- * (e.g. "TP", "ทีมเปา", "ช่างชัยยา", "แอนนี่", "ทีมออฟฟิศ").
+ * Seed roster: the 10 install teams in the canonical order used by the work
+ * orders. This is the *fallback* -- the live roster lives in the
+ * `technician_teams` table and is loaded via `loadTechnicianTeams()`, which
+ * falls back to this constant if the table is empty. It's also the default
+ * for `matchedTechnicianTeamCode`/`computeTechnicianCapacity`/
+ * `computeTechnicianCalendar` so existing callers (and unit tests) that
+ * don't pass a `teams` argument keep working unchanged. `shortName` and
+ * `aliases` only widen what counts as a match inside free-text notes/project
+ * fields (e.g. "TP", "ทีมเปา", "ช่างชัยยา", "แอนนี่", "ทีมออฟฟิศ"); `aliases`
+ * are stored *without* a "ทีม"/"ช่าง" prefix -- matchedTechnicianTeamCode
+ * composes both prefixes itself (see textMentionsAlias below).
  *
  * The team roster is owned by the owner/admin and can grow or shrink, so
- * `name`/`shortName`/`aliases` must stay aligned with knight-design-kb/TEAM.md
- * (section 4) -- that file is the source of truth for who each code is.
+ * this seed must stay aligned with knight-design-kb/TEAM.md (section 4) --
+ * that file is the source of truth for who each code is.
  */
-const TECHNICIAN_TEAMS: TechnicianTeam[] = [
+export const SEED_TECHNICIAN_TEAMS: TechnicianTeam[] = [
   { code: "TP", name: "ช่างยี่", shortName: "ยี่", aliases: ["แอนนี่"] },
   { code: "PP", name: "ช่างเนตร", shortName: "เนตร", aliases: [] },
   { code: "ST", name: "ช่างทู", shortName: "ทู", aliases: [] },
   { code: "CM", name: "ช่างเจมส์", shortName: "เจมส์", aliases: [] },
-  { code: "KF", name: "ทีมโรงงาน", shortName: "โรงงาน", aliases: ["ทีมออฟฟิศ", "ทีมออฟฟิต"] },
+  { code: "KF", name: "ทีมโรงงาน", shortName: "โรงงาน", aliases: ["ออฟฟิศ", "ออฟฟิต"] },
   { code: "PA", name: "ช่างเปา", shortName: "เปา", aliases: [] },
   { code: "PM", name: "ช่างพร้อม", shortName: "พร้อม", aliases: [] },
   { code: "TJ", name: "ช่างกอล์ฟ", shortName: "กอล์ฟ", aliases: [] },
@@ -647,40 +655,46 @@ const TECHNICIAN_TEAMS: TechnicianTeam[] = [
   { code: "CL", name: "ช่างชัยยา", shortName: "ชัยยา", aliases: [] },
 ];
 
+/** True if `text` contains `alias` on its own, or prefixed with "ทีม"/"ช่าง" -- aliases are stored without a prefix so this catches "ทีมออฟฟิศ", "ช่างออฟฟิศ", and bare "ออฟฟิศ" from one stored alias "ออฟฟิศ". */
+function textMentionsAlias(text: string, alias: string): boolean {
+  return text.includes(alias) || text.includes(`ทีม${alias}`) || text.includes(`ช่าง${alias}`);
+}
+
 /**
- * First team (in the canonical order above) whose code or name is mentioned
- * in the text, or null if none match. A job is credited to at most one team.
+ * First team (in `teams`' order) whose code or name is mentioned in the
+ * text, or null if none match. A job is credited to at most one team.
  * Codes match as a whole word (case-insensitive) so "KF" never matches
  * inside a SKU like "KF001".
  */
-function matchedTechnicianTeamCode(text: string): string | null {
+function matchedTechnicianTeamCode(text: string, teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS): string | null {
   if (!text.trim()) return null;
   const upper = text.toUpperCase();
-  for (const team of TECHNICIAN_TEAMS) {
+  for (const team of teams) {
     const codePattern = new RegExp(`\\b${team.code}\\b`);
     if (codePattern.test(upper)) return team.code;
     if (text.includes(team.name) || text.includes(`ทีม${team.shortName}`)) return team.code;
-    if (team.aliases.some((alias) => text.includes(alias))) return team.code;
+    if (team.aliases.some((alias) => textMentionsAlias(text, alias))) return team.code;
   }
   return null;
 }
 
-/** Radar of all 10 teams' installation load over the next `windowDays`, parsed from lead.notes/lead.project. */
+/** Radar of all `teams`' installation load over the next `windowDays`, parsed from lead.notes/lead.project. */
 export function computeTechnicianCapacity(
   leads: DashboardLeadRow[],
   now: Date,
   windowDays = DASHBOARD_INSTALLATION_WINDOW_DAYS,
+  teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS,
 ): AdminDashboardStats["technicianCapacity"] {
   const start = bangkokDateOnly(now);
   const end = bangkokDateOnly(new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000));
   const jobsByTeam = new Map<string, AdminDashboardStats["technicianCapacity"][number]["jobs"]>(
-    TECHNICIAN_TEAMS.map((team) => [team.code, []]),
+    teams.map((team) => [team.code, []]),
   );
 
   for (const lead of leads) {
     if (!lead.expectedInstallationDate) continue;
     if (lead.expectedInstallationDate < start || lead.expectedInstallationDate > end) continue;
-    const teamCode = matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`);
+    const teamCode = matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`, teams);
     if (!teamCode) continue;
     jobsByTeam.get(teamCode)?.push({
       id: lead.id,
@@ -691,7 +705,7 @@ export function computeTechnicianCapacity(
     });
   }
 
-  return TECHNICIAN_TEAMS.map((team) => {
+  return teams.map((team) => {
     const jobs = jobsByTeam.get(team.code) ?? [];
     const activeJobsCount = jobs.length;
     const status: "busy" | "moderate" | "available" = activeJobsCount >= 3 ? "busy" : activeJobsCount >= 1 ? "moderate" : "available";
@@ -699,11 +713,14 @@ export function computeTechnicianCapacity(
   });
 }
 
-const TECHNICIAN_TEAM_CODES: string[] = TECHNICIAN_TEAMS.map((team) => team.code);
+const TECHNICIAN_TEAM_CODES: string[] = SEED_TECHNICIAN_TEAMS.map((team) => team.code);
 
 /** A lead's team, preferring the explicit column over the free-text guess -- older leads (pre-migration 011) fall back to the notes/project regex match. */
-function resolvedTechnicianTeamCode(lead: Pick<DashboardLeadRow, "technicianTeamCode" | "notes" | "project">): string | null {
-  return lead.technicianTeamCode ?? matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`);
+function resolvedTechnicianTeamCode(
+  lead: Pick<DashboardLeadRow, "technicianTeamCode" | "notes" | "project">,
+  teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS,
+): string | null {
+  return lead.technicianTeamCode ?? matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`, teams);
 }
 
 export type TechnicianCalendarStatus = "available" | "moderate" | "busy";
@@ -756,7 +773,11 @@ function technicianCalendarDayStatus(totalJobs: number, teams: TechnicianCalenda
  * `leads` is expected to already be filtered to the month's date range --
  * this function only groups/derives status, it doesn't filter by date itself.
  */
-export function computeTechnicianCalendar(leads: DashboardLeadRow[], month: string): TechnicianCalendarResponse {
+export function computeTechnicianCalendar(
+  leads: DashboardLeadRow[],
+  month: string,
+  teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS,
+): TechnicianCalendarResponse {
   const [yearStr, monthStr] = month.split("-");
   const year = Number(yearStr);
   const monthNum = Number(monthStr);
@@ -775,14 +796,14 @@ export function computeTechnicianCalendar(leads: DashboardLeadRow[], month: stri
     const date = isoDate(year, monthNum, day);
     const leadsThatDay = leadsByDate.get(date) ?? [];
 
-    const leadsByTeam = new Map<string, DashboardLeadRow[]>(TECHNICIAN_TEAMS.map((team) => [team.code, []]));
+    const leadsByTeam = new Map<string, DashboardLeadRow[]>(teams.map((team) => [team.code, []]));
     for (const lead of leadsThatDay) {
-      const teamCode = resolvedTechnicianTeamCode(lead);
+      const teamCode = resolvedTechnicianTeamCode(lead, teams);
       if (!teamCode) continue;
       leadsByTeam.get(teamCode)?.push(lead);
     }
 
-    const teams: TechnicianCalendarTeamDay[] = TECHNICIAN_TEAMS.map((team) => {
+    const dayTeams: TechnicianCalendarTeamDay[] = teams.map((team) => {
       const teamLeads = leadsByTeam.get(team.code) ?? [];
       return {
         teamCode: team.code,
@@ -802,16 +823,16 @@ export function computeTechnicianCalendar(leads: DashboardLeadRow[], month: stri
 
     days.push({
       date,
-      dayStatus: technicianCalendarDayStatus(leadsThatDay.length, teams),
+      dayStatus: technicianCalendarDayStatus(leadsThatDay.length, dayTeams),
       totalJobs: leadsThatDay.length,
-      teams,
+      teams: dayTeams,
     });
   }
 
   return {
     month,
     days,
-    technicianTeams: TECHNICIAN_TEAMS.map((team) => ({ teamCode: team.code, teamName: team.name })),
+    technicianTeams: teams.map((team) => ({ teamCode: team.code, teamName: team.name })),
   };
 }
 
@@ -829,6 +850,7 @@ export function computeAdminDashboardStats(
   slips: DashboardSlipRow[],
   now = new Date(),
   period: DashboardPeriod = "all",
+  teams: TechnicianTeam[] = SEED_TECHNICIAN_TEAMS,
 ): AdminDashboardStats {
   const range = periodDateRange(period, now);
   const filteredLeads = leads.filter((lead) => withinPeriod(lead.createdAt, range));
@@ -867,7 +889,7 @@ export function computeAdminDashboardStats(
     recentActivities: computeRecentActivities(filteredLeads, filteredSlips),
     monthlyComparison: computeMonthlyComparison(leads, slips, now),
     projectedCashInflowThb: computeProjectedCashInflowThb(leads, slips, now),
-    technicianCapacity: computeTechnicianCapacity(leads, now),
+    technicianCapacity: computeTechnicianCapacity(leads, now, undefined, teams),
     asOf: now.toISOString(),
   };
 }
@@ -920,6 +942,38 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
   // only bounds an already-authenticated admin session, not an anonymous attacker.
   const uploadRateLimit = createRateLimiter({ name: "admin-upload", max: 150, windowMs: 10 * 60 * 1000 });
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
+
+  async function loadTechnicianTeamRows(includeInactive = false) {
+    return database
+      .select()
+      .from(technicianTeams)
+      .where(includeInactive ? undefined : eq(technicianTeams.active, true))
+      .orderBy(asc(technicianTeams.sortOrder), asc(technicianTeams.code));
+  }
+
+  /** Live roster from `technician_teams`, falling back to the seed constant if the table is empty (e.g. before migration 012 has run). */
+  async function loadTechnicianTeams(includeInactive = false): Promise<TechnicianTeam[]> {
+    const rows = await loadTechnicianTeamRows(includeInactive);
+    if (rows.length === 0) return SEED_TECHNICIAN_TEAMS;
+    return rows.map((row: any) => ({
+      code: row.code,
+      name: row.name,
+      shortName: row.shortName,
+      aliases: Array.isArray(row.aliases) ? row.aliases : [],
+    }));
+  }
+
+  function serializeTechnicianTeam(row: any) {
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      shortName: row.shortName,
+      aliases: Array.isArray(row.aliases) ? row.aliases : [],
+      sortOrder: row.sortOrder,
+      active: row.active,
+    };
+  }
 
   router.get("/admin/session", async (req, res, next) => {
     try {
@@ -1267,7 +1321,8 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         .from(paymentSlips)
         .orderBy(asc(paymentSlips.id));
 
-      res.json(computeAdminDashboardStats(leadRows, slipRows, new Date(), period));
+      const teams = await loadTechnicianTeams();
+      res.json(computeAdminDashboardStats(leadRows, slipRows, new Date(), period, teams));
     } catch (error) {
       next(error);
     }
@@ -1330,7 +1385,8 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         .where(and(gte(customerLeads.expectedInstallationDate, start), lte(customerLeads.expectedInstallationDate, end)))
         .orderBy(asc(customerLeads.id));
 
-      return res.json(computeTechnicianCalendar(leadRows, month));
+      const teams = await loadTechnicianTeams();
+      return res.json(computeTechnicianCalendar(leadRows, month, teams));
     } catch (error) {
       return next(error);
     }
@@ -1414,8 +1470,15 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
 
     const teamCode = body.technicianTeamCode;
-    if (hasTeamCode && teamCode !== null && !(typeof teamCode === "string" && TECHNICIAN_TEAM_CODES.includes(teamCode))) {
-      return invalid(res, `technicianTeamCode must be one of: ${TECHNICIAN_TEAM_CODES.join(", ")}, or null`);
+    if (hasTeamCode && teamCode !== null) {
+      if (typeof teamCode !== "string") {
+        return invalid(res, "technicianTeamCode must be a string or null");
+      }
+      // Inactive teams still validate here (old jobs must stay editable) -- only the dropdown source (loadTechnicianTeams with no arg) excludes them.
+      const knownTeams = await loadTechnicianTeams(true);
+      if (!knownTeams.some((team) => team.code === teamCode)) {
+        return invalid(res, `technicianTeamCode must be one of: ${knownTeams.map((team) => team.code).join(", ")}, or null`);
+      }
     }
 
     const installDate = body.expectedInstallationDate;
@@ -1434,6 +1497,90 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  const TECHNICIAN_TEAM_CODE_PATTERN = /^[A-Z]{2,8}$/;
+
+  /** Admin-managed roster shown in the technician dispatch calendar/dashboard. No DELETE by design -- retiring a team must not orphan its historical jobs, so "removing" a team is PATCH { active: false }. */
+  router.get("/admin/technician-teams", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    try {
+      const includeInactive = req.query["includeInactive"] === "1" || req.query["includeInactive"] === "true";
+      const rows = await loadTechnicianTeamRows(includeInactive);
+      res.json(rows.map(serializeTechnicianTeam));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/admin/technician-teams", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const code = typeof body.code === "string" ? body.code : "";
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const shortName = typeof body.shortName === "string" ? body.shortName.trim() : "";
+    const aliases = Array.isArray(body.aliases) && body.aliases.every((alias: unknown) => typeof alias === "string") ? body.aliases : [];
+    const sortOrder = typeof body.sortOrder === "number" && Number.isInteger(body.sortOrder) ? body.sortOrder : 0;
+
+    if (!TECHNICIAN_TEAM_CODE_PATTERN.test(code)) return invalid(res, "code must match ^[A-Z]{2,8}$");
+    if (!name) return invalid(res, "name is required");
+    if (!shortName) return invalid(res, "shortName is required");
+
+    try {
+      const [existing] = await database.select().from(technicianTeams).where(eq(technicianTeams.code, code));
+      if (existing) return invalid(res, "code already exists");
+      const [created] = await database
+        .insert(technicianTeams)
+        .values({ code, name, shortName, aliases, sortOrder })
+        .returning();
+      return res.status(201).json(serializeTechnicianTeam(created));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.patch("/admin/technician-teams/:id", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid technician team id");
+
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const hasName = Object.prototype.hasOwnProperty.call(body, "name");
+    const hasShortName = Object.prototype.hasOwnProperty.call(body, "shortName");
+    const hasAliases = Object.prototype.hasOwnProperty.call(body, "aliases");
+    const hasSortOrder = Object.prototype.hasOwnProperty.call(body, "sortOrder");
+    const hasActive = Object.prototype.hasOwnProperty.call(body, "active");
+    if (!hasName && !hasShortName && !hasAliases && !hasSortOrder && !hasActive) {
+      return invalid(res, "Provide at least one of name, shortName, aliases, sortOrder, active");
+    }
+
+    const changes: Record<string, unknown> = { updatedAt: new Date() };
+    if (hasName) {
+      if (typeof body.name !== "string" || !body.name.trim()) return invalid(res, "name must be a non-empty string");
+      changes["name"] = body.name.trim();
+    }
+    if (hasShortName) {
+      if (typeof body.shortName !== "string" || !body.shortName.trim()) return invalid(res, "shortName must be a non-empty string");
+      changes["shortName"] = body.shortName.trim();
+    }
+    if (hasAliases) {
+      if (!Array.isArray(body.aliases) || !body.aliases.every((alias: unknown) => typeof alias === "string")) {
+        return invalid(res, "aliases must be an array of strings");
+      }
+      changes["aliases"] = body.aliases;
+    }
+    if (hasSortOrder) {
+      if (typeof body.sortOrder !== "number" || !Number.isInteger(body.sortOrder)) return invalid(res, "sortOrder must be an integer");
+      changes["sortOrder"] = body.sortOrder;
+    }
+    if (hasActive) {
+      if (typeof body.active !== "boolean") return invalid(res, "active must be a boolean");
+      changes["active"] = body.active;
+    }
+
+    try {
+      const [updated] = await database.update(technicianTeams).set(changes).where(eq(technicianTeams.id, id)).returning();
+      return updated ? res.json(serializeTechnicianTeam(updated)) : res.status(404).json({ message: "Technician team not found" });
     } catch (error) {
       return next(error);
     }

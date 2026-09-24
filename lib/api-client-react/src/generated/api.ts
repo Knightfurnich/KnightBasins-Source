@@ -61,6 +61,7 @@ import type {
   LeadInput,
   LineAuthStatus,
   ListAdminLeadsParams,
+  ListAdminTechnicianTeamsParams,
   NotifyQuoteInput,
   PaymentSlip,
   PaymentSlipAssignInput,
@@ -77,6 +78,9 @@ import type {
   SupportChatResponse,
   SupportPaymentSlipResponse,
   TechnicianCalendarResponse,
+  TechnicianTeam,
+  TechnicianTeamCreateInput,
+  TechnicianTeamUpdateInput,
   UploadAdminBasinVideoBody,
   UploadedMedia,
   WorksiteAddressSuggestions
@@ -4670,6 +4674,257 @@ export function useGetAdminTechnicianCalendar<TData = Awaited<ReturnType<typeof 
 
 
 
+
+export const getListAdminTechnicianTeamsUrl = (params?: ListAdminTechnicianTeamsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/technician-teams?${stringifiedParams}` : `/api/admin/technician-teams`
+}
+
+/**
+ * @summary List the install teams an admin can assign to a lead
+ */
+export const listAdminTechnicianTeams = async (params?: ListAdminTechnicianTeamsParams, options?: RequestInit): Promise<TechnicianTeam[]> => {
+
+  return customFetch<TechnicianTeam[]>(getListAdminTechnicianTeamsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminTechnicianTeamsQueryKey = (params?: ListAdminTechnicianTeamsParams,) => {
+    return [
+    `/api/admin/technician-teams`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminTechnicianTeamsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError = ErrorType<void>>(params?: ListAdminTechnicianTeamsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminTechnicianTeamsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminTechnicianTeams>>> = ({ signal }) => listAdminTechnicianTeams(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminTechnicianTeamsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminTechnicianTeams>>>
+export type ListAdminTechnicianTeamsQueryError = ErrorType<void>
+
+
+export function useListAdminTechnicianTeams<TData = Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError = ErrorType<void>>(
+ params: undefined |  ListAdminTechnicianTeamsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminTechnicianTeams>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminTechnicianTeams>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminTechnicianTeams<TData = Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError = ErrorType<void>>(
+ params?: ListAdminTechnicianTeamsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminTechnicianTeams>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminTechnicianTeams>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminTechnicianTeams<TData = Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError = ErrorType<void>>(
+ params?: ListAdminTechnicianTeamsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the install teams an admin can assign to a lead
+ */
+
+export function useListAdminTechnicianTeams<TData = Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError = ErrorType<void>>(
+ params?: ListAdminTechnicianTeamsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminTechnicianTeams>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminTechnicianTeamsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminTechnicianTeamUrl = () => {
+
+
+
+
+  return `/api/admin/technician-teams`
+}
+
+/**
+ * @summary Add an install team to the roster
+ */
+export const createAdminTechnicianTeam = async (technicianTeamCreateInput: TechnicianTeamCreateInput, options?: RequestInit): Promise<TechnicianTeam> => {
+
+  return customFetch<TechnicianTeam>(getCreateAdminTechnicianTeamUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(technicianTeamCreateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminTechnicianTeamMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminTechnicianTeam>>, TError,{data: BodyType<TechnicianTeamCreateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminTechnicianTeam>>, TError,{data: BodyType<TechnicianTeamCreateInput>}, TContext> => {
+
+const mutationKey = ['createAdminTechnicianTeam'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminTechnicianTeam>>, {data: BodyType<TechnicianTeamCreateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminTechnicianTeam(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminTechnicianTeamMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminTechnicianTeam>>>
+    export type CreateAdminTechnicianTeamMutationBody = BodyType<TechnicianTeamCreateInput>
+    export type CreateAdminTechnicianTeamMutationError = ErrorType<void>
+
+    /**
+ * @summary Add an install team to the roster
+ */
+export const useCreateAdminTechnicianTeam = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminTechnicianTeam>>, TError,{data: BodyType<TechnicianTeamCreateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminTechnicianTeam>>,
+        TError,
+        {data: BodyType<TechnicianTeamCreateInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminTechnicianTeamMutationOptions(options), queryClient);
+    }
+
+export const getUpdateAdminTechnicianTeamUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/technician-teams/${id}`
+}
+
+/**
+ * @summary Rename, re-alias, reorder, or activate/deactivate an install team
+ */
+export const updateAdminTechnicianTeam = async (id: number,
+    technicianTeamUpdateInput: TechnicianTeamUpdateInput, options?: RequestInit): Promise<TechnicianTeam> => {
+
+  return customFetch<TechnicianTeam>(getUpdateAdminTechnicianTeamUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(technicianTeamUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminTechnicianTeamMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminTechnicianTeam>>, TError,{id: number;data: BodyType<TechnicianTeamUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminTechnicianTeam>>, TError,{id: number;data: BodyType<TechnicianTeamUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateAdminTechnicianTeam'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminTechnicianTeam>>, {id: number;data: BodyType<TechnicianTeamUpdateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminTechnicianTeam(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminTechnicianTeamMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminTechnicianTeam>>>
+    export type UpdateAdminTechnicianTeamMutationBody = BodyType<TechnicianTeamUpdateInput>
+    export type UpdateAdminTechnicianTeamMutationError = ErrorType<void>
+
+    /**
+ * @summary Rename, re-alias, reorder, or activate/deactivate an install team
+ */
+export const useUpdateAdminTechnicianTeam = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminTechnicianTeam>>, TError,{id: number;data: BodyType<TechnicianTeamUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminTechnicianTeam>>,
+        TError,
+        {id: number;data: BodyType<TechnicianTeamUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminTechnicianTeamMutationOptions(options), queryClient);
+    }
 
 export const getGetLineAuthStatusUrl = () => {
 

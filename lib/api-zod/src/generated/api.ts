@@ -1553,6 +1553,9 @@ export const UpsertLeadBody = zod.object({
   "sketchUrl": zod.string().max(upsertLeadBodySketchUrlMax).nullish()
 })
 
+export const upsertLeadResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
+
 export const UpsertLeadResponse = zod.object({
   "id": zod.number(),
   "leadKey": zod.string(),
@@ -1577,7 +1580,7 @@ export const UpsertLeadResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(upsertLeadResponseTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -1600,6 +1603,9 @@ export const getSavedQuoteQueryTokenMax = 512;
 export const GetSavedQuoteQueryParams = zod.object({
   "token": zod.coerce.string().min(getSavedQuoteQueryTokenMin).max(getSavedQuoteQueryTokenMax)
 })
+
+export const getSavedQuoteResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
 
 export const GetSavedQuoteResponse = zod.object({
   "id": zod.number(),
@@ -1625,7 +1631,7 @@ export const GetSavedQuoteResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(getSavedQuoteResponseTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -1663,6 +1669,9 @@ export const SubmitSketchLeadBody = zod.object({
   "metadata": zod.string().describe('JSON-encoded LeadInput metadata')
 })
 
+export const submitSketchLeadResponseLeadTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
+
 export const SubmitSketchLeadResponse = zod.object({
   "lead": zod.object({
   "id": zod.number(),
@@ -1688,7 +1697,7 @@ export const SubmitSketchLeadResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(submitSketchLeadResponseLeadTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -1746,6 +1755,9 @@ export const ListAdminLeadsQueryParams = zod.object({
   "technicianTeamCode": zod.enum(['TP', 'PP', 'ST', 'CM', 'KF', 'PA', 'PM', 'TJ', 'AM', 'CL', 'unassigned']).optional().describe('Filter to leads assigned to this install team, or \"unassigned\" for leads with no team assigned')
 })
 
+export const listAdminLeadsResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
+
 export const ListAdminLeadsResponseItem = zod.object({
   "id": zod.number(),
   "leadKey": zod.string(),
@@ -1770,7 +1782,7 @@ export const ListAdminLeadsResponseItem = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(listAdminLeadsResponseTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2069,6 +2081,9 @@ export const UpdateAdminLeadBody = zod.object({
 }).nullish()
 })
 
+export const updateAdminLeadResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
+
 export const UpdateAdminLeadResponse = zod.object({
   "id": zod.number(),
   "leadKey": zod.string(),
@@ -2093,7 +2108,7 @@ export const UpdateAdminLeadResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(updateAdminLeadResponseTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2119,6 +2134,9 @@ export const UpdateAdminLeadStatusBody = zod.object({
   "status": zod.enum(['new_lead', 'selecting', 'quote_requested', 'quote_sent', 'waiting_deposit', 'team_reported_paid', 'deposit_paid', 'ready_for_production', 'closed'])
 })
 
+export const updateAdminLeadStatusResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
+
 export const UpdateAdminLeadStatusResponse = zod.object({
   "id": zod.number(),
   "leadKey": zod.string(),
@@ -2143,7 +2161,7 @@ export const UpdateAdminLeadStatusResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(updateAdminLeadStatusResponseTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2165,13 +2183,17 @@ export const UpdateAdminLeadTechnicianParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
 
+export const updateAdminLeadTechnicianBodyTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
 export const updateAdminLeadTechnicianBodyExpectedInstallationDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 
 
 export const UpdateAdminLeadTechnicianBody = zod.object({
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish().describe('One of the 10 install team codes, or null to clear the assignment back to unassigned'),
+  "technicianTeamCode": zod.string().regex(updateAdminLeadTechnicianBodyTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null to clear the assignment back to unassigned'),
   "expectedInstallationDate": zod.string().regex(updateAdminLeadTechnicianBodyExpectedInstallationDateRegExp).nullish().describe('Installation date as YYYY-MM-DD (Asia\/Bangkok), or null to clear it')
 }).describe('At least one of technicianTeamCode or expectedInstallationDate must be present; an omitted field is left untouched')
+
+export const updateAdminLeadTechnicianResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+
 
 export const UpdateAdminLeadTechnicianResponse = zod.object({
   "id": zod.number(),
@@ -2197,7 +2219,7 @@ export const UpdateAdminLeadTechnicianResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "technicianTeamCode": zod.string().regex(updateAdminLeadTechnicianResponseTechnicianTeamCodeRegExp).nullish().describe('A code from GET \/admin\/technician-teams (active or inactive), or null if unassigned'),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2244,6 +2266,110 @@ export const GetAdminTechnicianCalendarResponse = zod.object({
   "teamCode": zod.enum(['TP', 'PP', 'ST', 'CM', 'KF', 'PA', 'PM', 'TJ', 'AM', 'CL']),
   "teamName": zod.string()
 })).describe('Dictionary of all 10 teams (code + display name)')
+})
+
+
+/**
+ * @summary List the install teams an admin can assign to a lead
+ */
+export const ListAdminTechnicianTeamsQueryParams = zod.object({
+  "includeInactive": zod.literal(1).optional().describe('Set to 1 to also return teams that have been deactivated')
+})
+
+export const listAdminTechnicianTeamsResponseCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+export const listAdminTechnicianTeamsResponseNameMax = 80;
+
+export const listAdminTechnicianTeamsResponseShortNameMax = 40;
+
+
+
+export const ListAdminTechnicianTeamsResponseItem = zod.object({
+  "id": zod.number(),
+  "code": zod.string().regex(listAdminTechnicianTeamsResponseCodeRegExp),
+  "name": zod.string().max(listAdminTechnicianTeamsResponseNameMax),
+  "shortName": zod.string().max(listAdminTechnicianTeamsResponseShortNameMax),
+  "aliases": zod.array(zod.string()).describe('Extra spellings seen in the LINE group, stored WITHOUT a leading ทีม\/ช่าง (the matcher adds those itself)'),
+  "sortOrder": zod.number(),
+  "active": zod.boolean().describe('Inactive teams stay resolvable for old jobs but are not offered in the dispatch dropdown')
+})
+export const ListAdminTechnicianTeamsResponse = zod.array(ListAdminTechnicianTeamsResponseItem)
+
+
+/**
+ * @summary Add an install team to the roster
+ */
+export const createAdminTechnicianTeamBodyCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+export const createAdminTechnicianTeamBodyNameMax = 80;
+
+export const createAdminTechnicianTeamBodyShortNameMax = 40;
+
+
+
+export const CreateAdminTechnicianTeamBody = zod.object({
+  "code": zod.string().regex(createAdminTechnicianTeamBodyCodeRegExp),
+  "name": zod.string().min(1).max(createAdminTechnicianTeamBodyNameMax),
+  "shortName": zod.string().min(1).max(createAdminTechnicianTeamBodyShortNameMax),
+  "aliases": zod.array(zod.string()).optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const createAdminTechnicianTeamResponseCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+export const createAdminTechnicianTeamResponseNameMax = 80;
+
+export const createAdminTechnicianTeamResponseShortNameMax = 40;
+
+
+
+export const CreateAdminTechnicianTeamResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string().regex(createAdminTechnicianTeamResponseCodeRegExp),
+  "name": zod.string().max(createAdminTechnicianTeamResponseNameMax),
+  "shortName": zod.string().max(createAdminTechnicianTeamResponseShortNameMax),
+  "aliases": zod.array(zod.string()).describe('Extra spellings seen in the LINE group, stored WITHOUT a leading ทีม\/ช่าง (the matcher adds those itself)'),
+  "sortOrder": zod.number(),
+  "active": zod.boolean().describe('Inactive teams stay resolvable for old jobs but are not offered in the dispatch dropdown')
+})
+
+
+/**
+ * @summary Rename, re-alias, reorder, or activate/deactivate an install team
+ */
+
+
+
+export const UpdateAdminTechnicianTeamParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const updateAdminTechnicianTeamBodyNameMax = 80;
+
+export const updateAdminTechnicianTeamBodyShortNameMax = 40;
+
+
+
+export const UpdateAdminTechnicianTeamBody = zod.object({
+  "name": zod.string().min(1).max(updateAdminTechnicianTeamBodyNameMax).optional(),
+  "shortName": zod.string().min(1).max(updateAdminTechnicianTeamBodyShortNameMax).optional(),
+  "aliases": zod.array(zod.string()).optional(),
+  "sortOrder": zod.number().optional(),
+  "active": zod.boolean().optional()
+}).describe('At least one field must be present; code cannot be changed')
+
+export const updateAdminTechnicianTeamResponseCodeRegExp = new RegExp('^[A-Z]{2,8}$');
+export const updateAdminTechnicianTeamResponseNameMax = 80;
+
+export const updateAdminTechnicianTeamResponseShortNameMax = 40;
+
+
+
+export const UpdateAdminTechnicianTeamResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string().regex(updateAdminTechnicianTeamResponseCodeRegExp),
+  "name": zod.string().max(updateAdminTechnicianTeamResponseNameMax),
+  "shortName": zod.string().max(updateAdminTechnicianTeamResponseShortNameMax),
+  "aliases": zod.array(zod.string()).describe('Extra spellings seen in the LINE group, stored WITHOUT a leading ทีม\/ช่าง (the matcher adds those itself)'),
+  "sortOrder": zod.number(),
+  "active": zod.boolean().describe('Inactive teams stay resolvable for old jobs but are not offered in the dispatch dropdown')
 })
 
 
