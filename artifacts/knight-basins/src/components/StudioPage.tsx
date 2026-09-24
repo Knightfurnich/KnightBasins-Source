@@ -310,14 +310,46 @@ function buildWizardPiece(pieceId: string, preset: StudioPreset, legs: number[],
   return preset === "l-right" ? mirrorStudioPiece(piece) : piece;
 }
 
+function applySimpleShapeEdgeDefaults(previousPiece: StudioPiece, nextPiece: StudioPiece): StudioPiece {
+  const previousEdges = studioPieceEdges(previousPiece);
+  const previousEdgesAreNormal = previousEdges.length > 0 && previousEdges.every((edge) => edge.status === "normal");
+  const previousEdgesAreAutoMapped = previousEdges.length > 0 && previousEdges.every((edge) => {
+    const expectedStatus: SideStatus = edge.exposedLengthMm <= 0
+      ? "normal"
+      : edge.side === "top" ? "upstand" : "open-edge";
+    return edge.status === expectedStatus;
+  });
+
+  if (!previousEdgesAreNormal && !previousEdgesAreAutoMapped) {
+    const sideStatuses = { ...nextPiece.sideStatuses };
+    previousPiece.rectangles.forEach((previousRectangle, index) => {
+      const nextRectangle = nextPiece.rectangles[index];
+      if (!nextRectangle) return;
+      studioSideStatuses(previousPiece, previousRectangle.id).forEach(({ side, status }) => {
+        if (status !== "normal") sideStatuses[sideStatusKey(nextRectangle.id, side)] = status;
+      });
+    });
+    return { ...nextPiece, sideStatuses };
+  }
+
+  const sideStatuses = { ...nextPiece.sideStatuses };
+  studioPieceEdges(nextPiece).forEach((edge) => {
+    if (edge.exposedLengthMm <= 0) return;
+    sideStatuses[edge.key] = edge.side === "top" ? "upstand" : "open-edge";
+  });
+  return { ...nextPiece, sideStatuses };
+}
+
 function StudioShapeWizard({
   state,
   setState,
   targetPieceId,
+  simpleMode = false,
 }: {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
   targetPieceId?: string;
+  simpleMode?: boolean;
 }) {
   const pieces = getStudioPieces(state);
   const targetPiece = pieces.find((piece) => piece.id === targetPieceId) ?? pieces[0];
@@ -342,7 +374,9 @@ function StudioShapeWizard({
     setState((current) => {
       const existingPieces = getStudioPieces(current);
       const pieceId = targetPiece.id;
-      const piece = buildWizardPiece(pieceId, nextPreset, nextLegs, nextDepth);
+      const currentPiece = existingPieces.find((item) => item.id === pieceId) ?? targetPiece;
+      let piece = buildWizardPiece(pieceId, nextPreset, nextLegs, nextDepth);
+      if (simpleMode) piece = applySimpleShapeEdgeDefaults(currentPiece, piece);
       piece.name = targetPiece.name;
       piece.preset = nextPreset;
       return {
@@ -365,8 +399,11 @@ function StudioShapeWizard({
       firstRectangle?.widthMm === STUDIO_INITIAL_BOARD_WIDTH_MM &&
       firstRectangle?.lengthMm === STUDIO_INITIAL_BOARD_LENGTH_MM;
     const nextDepth = isFreshBoard ? STUDIO_PRESET_DEFAULT_DEPTH_MM : Math.min(600, firstRectangle?.lengthMm || 600);
+    const shapeLegs = simpleMode
+      ? defaults.map((length, index) => index === 0 ? length : Math.max(1, length - nextDepth))
+      : defaults;
     setPreset(next);
-    applyGeometry(next, defaults, nextDepth, true);
+    applyGeometry(next, shapeLegs, nextDepth, true);
   };
 
   return (
@@ -378,7 +415,8 @@ function StudioShapeWizard({
             key={option}
             className={`button button--outline studio-preset-button ${preset === option ? "is-active" : ""}`}
             onClick={() => selectPreset(option)}
-            data-testid={`button-studio-preset-${option}`}
+            aria-pressed={preset === option}
+            data-testid={`${simpleMode ? "button-studio-shape" : "button-studio-preset"}-${option}`}
           >
             <span>{studioPresetLabels[option]}</span>
           </button>
@@ -994,6 +1032,7 @@ function StudioPieceEditor({
   selectedRectangleId,
   setSelectedRectangleId,
   basinProducts,
+  simpleMode = false,
   showAddPiece = false,
   onAddPiece,
   highlightRectangleId = null,
@@ -1007,6 +1046,7 @@ function StudioPieceEditor({
   selectedRectangleId: string | null;
   setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
   basinProducts: ReadonlyArray<BasinProduct>;
+  simpleMode?: boolean;
   showAddPiece?: boolean;
   onAddPiece?: () => void;
   highlightRectangleId?: string | null;
@@ -1068,6 +1108,12 @@ function StudioPieceEditor({
     pointerDrag.current = null;
   };
   const activeRectangle = piece.rectangles.find((rectangle) => rectangle.id === selectedRectangleId) ?? piece.rectangles[0];
+  const simpleShapeLegDepthMm = simpleMode &&
+    activeRectangle?.rotation === 0 &&
+    activeRectangle.id.startsWith("wizard-leg-") &&
+    activeRectangle.id !== "wizard-leg-0"
+    ? piece.rectangles.find((rectangle) => rectangle.id === "wizard-leg-0")?.lengthMm ?? 0
+    : 0;
   const attachmentParentOptions = attachmentParentsFor(piece.rectangles, activeRectangle?.id);
   const [attachmentParentId, setAttachmentParentId] = useState(() =>
     activeRectangle?.attachTo?.rectangleId ?? attachmentParentOptions[0]?.id ?? "",
@@ -1388,7 +1434,7 @@ function StudioPieceEditor({
           <div className="studio-rectangle-editor">
            <div className="studio-rectangle-inputs">
             <label>กว้าง (มม.)<input type="number" min="1" value={activeRectangle.widthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, widthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-width-${activeRectangle.id}`} /></label>
-            <label>ยาว (มม.)<input type="number" min="1" value={activeRectangle.lengthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, lengthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-length-${activeRectangle.id}`} /></label>
+              <label>{simpleShapeLegDepthMm > 0 ? "ยาวรวม (มม.)" : "ยาว (มม.)"}<input type="number" min={simpleShapeLegDepthMm > 0 ? simpleShapeLegDepthMm + 1 : 1} value={activeRectangle.lengthMm + simpleShapeLegDepthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, lengthMm: Math.max(1, numericValue(event.target.value) - simpleShapeLegDepthMm) }))} data-testid={`input-rectangle-length-${activeRectangle.id}`} /></label>
            </div>
             <div className="studio-join-controls" data-testid={`studio-join-controls-${activeRectangle.id}`}>
               <div className="studio-join-controls-heading">
@@ -1442,7 +1488,7 @@ function StudioPieceEditor({
               </>
             )}
           {([activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).length > 0) && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${activeRectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{[activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
-          <button type="button" className="button button--outline studio-rotate-button" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, rotation: rectangle.rotation === 0 ? 90 : 0 }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
+           <button type="button" className="button button--outline studio-rotate-button studio-rectangle-rotate-button" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, rotation: rectangle.rotation === 0 ? 90 : 0 }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
           <div className="studio-side-status-grid">{(() => {
             const statuses = studioSideStatuses(piece, activeRectangle.id);
             const bySide = (side: "top" | "right" | "bottom" | "left") => statuses.find((item) => item.side === side)!;
@@ -1510,6 +1556,7 @@ function StudioCanvas({
   selectedRectangleId,
   setSelectedRectangleId,
   basinProducts,
+  simpleMode = false,
 }: {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
@@ -1520,6 +1567,7 @@ function StudioCanvas({
   selectedRectangleId: string | null;
   setSelectedRectangleId: Dispatch<SetStateAction<string | null>>;
   basinProducts: ReadonlyArray<BasinProduct>;
+  simpleMode?: boolean;
 }) {
   const pieces = getStudioPieces(state);
   const activePieceId = state.activePieceId && pieces.some((p) => p.id === state.activePieceId)
@@ -1673,7 +1721,7 @@ function StudioCanvas({
     <div className="studio-active-piece-controls">
       <div className="studio-piece-shape-section">
         <p className="studio-helper">เลือกทรงของ {activePiece.name} แล้วกรอกขนาดแต่ละแผ่น</p>
-        <StudioShapeWizard state={state} setState={setState} targetPieceId={activePiece.id} />
+        <StudioShapeWizard state={state} setState={setState} targetPieceId={activePiece.id} simpleMode={simpleMode} />
         {isLActive && (
           <button
             type="button"
@@ -1709,6 +1757,7 @@ function StudioCanvas({
           selectedRectangleId={selectedRectangleId}
           setSelectedRectangleId={setSelectedRectangleId}
           basinProducts={basinProducts}
+          simpleMode={simpleMode}
           showAddPiece={false}
         />
       )}
@@ -1997,6 +2046,8 @@ export function StudioPage({
 }: StudioPageProps) {
   const linkedDraft = useMemo(readLinkedDraft, []);
   const [state, setState, studioHistory] = useUndoableStudioState(() => normalizeStudioState(linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts, stoneColors), basinProducts, stoneColors));
+  const [studioUiMode, setStudioUiMode] = useState<"simple" | "detailed">("simple");
+  const isSimpleStudioMode = mode === "studio" && studioUiMode === "simple";
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
@@ -2021,6 +2072,29 @@ export function StudioPage({
   const [pieceZoom, setPieceZoom] = useState<Record<string, number>>({});
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
+  useEffect(() => {
+    if (mode !== "studio" || (state.upstandHeightMm !== null && state.upstandHeightMm !== undefined)) return;
+    if (document.activeElement?.getAttribute("data-testid") === "input-studio-upstand-height") return;
+    setState((current) => current.upstandHeightMm === null || current.upstandHeightMm === undefined
+      ? { ...current, upstandHeightMm: 120 }
+      : current);
+  }, [mode, setState, state.upstandHeightMm]);
+  useEffect(() => {
+    if (!isSimpleStudioMode) return;
+    const currentPieces = getStudioPieces(state);
+    const activePiece = currentPieces.find((piece) => piece.id === state.activePieceId) ?? currentPieces[0];
+    if (!activePiece) return;
+    const nextPiece = applySimpleShapeEdgeDefaults(activePiece, activePiece);
+    if (JSON.stringify(nextPiece.sideStatuses) === JSON.stringify(activePiece.sideStatuses)) return;
+    setState((current) => {
+      const pieces = getStudioPieces(current);
+      const currentPiece = pieces.find((piece) => piece.id === activePiece.id);
+      if (!currentPiece) return current;
+      const mappedPiece = applySimpleShapeEdgeDefaults(currentPiece, currentPiece);
+      if (JSON.stringify(mappedPiece.sideStatuses) === JSON.stringify(currentPiece.sideStatuses)) return current;
+      return { ...current, pieces: pieces.map((piece) => piece.id === currentPiece.id ? mappedPiece : piece) };
+    });
+  }, [isSimpleStudioMode, setState, state.activePieceId, state.pieces]);
   const handleTouchBasinDrop = useCallback((sku: string, clientX: number, clientY: number) => {
     const target = document.elementFromPoint(clientX, clientY);
     const canvas = target?.closest<HTMLElement>(".studio-canvas[data-studio-piece-id]");
@@ -2436,16 +2510,62 @@ export function StudioPage({
     }
   };
   const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  return <div className="page-wrap studio-page">
+  const estimatePanel = (
+    <aside className="studio-panel studio-estimate-panel">
+      <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
+      <div className="studio-estimate-lines">
+        <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>
+        <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>
+        <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>
+        <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>
+        <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
+        {(() => {
+          const tier = stonePriceTier(stoneColorByName(state.activeStone, stoneColors).installedPriceTHB, stoneColors);
+          return tier && <p className="studio-price-tier" data-testid="text-studio-price-tier">สี {activeStone.code} อยู่ในระดับราคา <strong>{tier.label}</strong> เทียบกับหินทั้งหมด {tier.total} สีในแคตตาล็อก</p>;
+        })()}
+        <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>
+        {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
+        <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>
+      </div>
+      <StudioStoneComparison state={state} setState={setState} />
+      <div className="studio-pricing-inputs">
+        <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} onBlur={(event) => {
+          if (event.currentTarget.value.trim()) return;
+          setState((current) => current.upstandHeightMm === null || current.upstandHeightMm === undefined
+            ? { ...current, upstandHeightMm: 120 }
+            : current);
+        }} data-testid="input-studio-upstand-height" /></label>
+        <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
+        <label data-testid="studio-discount-field">ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
+      </div>
+      <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
+      {missingTaxIdForVat && <p className="studio-warning studio-warning--amber" role="status" data-testid="status-studio-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}
+      <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
+      {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
+      {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
+      {mode === "studio" && studioIssues.length > 0 && <div className="studio-issues-summary" role="status" data-testid="status-studio-issues-summary">
+        <strong>{studioIssues.length === 1 ? "มี 1 จุดที่ต้องแก้ไขก่อนส่งคำขอ" : `มี ${studioIssues.length} จุดที่ต้องแก้ไขก่อนส่งคำขอ`}</strong>
+        <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
+      </div>}
+      {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
+      <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
+      {result && <p className="studio-result" role="status">{result}</p>}
+    </aside>
+  );
+  return <div className={`page-wrap studio-page ${isSimpleStudioMode ? "studio-page--simple" : ""}`}>
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
+    {mode === "studio" && <div className="studio-mode-switch" role="group" aria-label="โหมดการออกแบบ" data-testid="studio-mode-switch">
+      <button type="button" className={studioUiMode === "simple" ? "is-active" : ""} aria-pressed={studioUiMode === "simple"} onClick={() => setStudioUiMode("simple")} data-testid="button-studio-mode-simple">โหมดง่าย</button>
+      <button type="button" className={studioUiMode === "detailed" ? "is-active" : ""} aria-pressed={studioUiMode === "detailed"} onClick={() => setStudioUiMode("detailed")} data-testid="button-studio-mode-detailed">โหมดละเอียด</button>
+    </div>}
     {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
      {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
-      <div className="studio-design-layout">
+       <div className={`studio-design-layout ${isSimpleStudioMode ? "studio-design-layout--simple" : ""}`}>
         <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
-        {mode === "studio" ? <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
+         {mode === "studio" ? <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} simpleMode={isSimpleStudioMode} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
       const file = sketchFiles[index];
       const previewUrl = sketchPreviewUrls[index];
       if (file && previewUrl) {
@@ -2456,44 +2576,11 @@ export function StudioPage({
       }
       return <div key={index} className="studio-sketch-slot studio-sketch-slot--empty" aria-hidden="true" />;
     })}</div><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" /><small className="studio-sketch-hint">JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป</small></section>}
-      </div>
+         {isSimpleStudioMode && estimatePanel}
+       </div>
     <section className="studio-layout-bottom">
       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} worksitePlaceId={worksitePlaceId} setWorksitePlaceId={setWorksitePlaceId} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
-      <aside className="studio-panel studio-estimate-panel">
-        <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
-        <div className="studio-estimate-lines">
-          <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>
-          <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>
-          <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>
-          <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>
-          <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
-          {(() => {
-            const tier = stonePriceTier(stoneColorByName(state.activeStone, stoneColors).installedPriceTHB, stoneColors);
-            return tier && <p className="studio-price-tier" data-testid="text-studio-price-tier">สี {activeStone.code} อยู่ในระดับราคา <strong>{tier.label}</strong> เทียบกับหินทั้งหมด {tier.total} สีในแคตตาล็อก</p>;
-          })()}
-          <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>
-          {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
-          <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>
-        </div>
-         <StudioStoneComparison state={state} setState={setState} />
-        <div className="studio-pricing-inputs">
-           <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-upstand-height" /></label>
-          <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
-           <label>ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
-        </div>
-        <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
-        {missingTaxIdForVat && <p className="studio-warning studio-warning--amber" role="status" data-testid="status-studio-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}
-         <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
-        {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
-        {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
-        {mode === "studio" && studioIssues.length > 0 && <div className="studio-issues-summary" role="status" data-testid="status-studio-issues-summary">
-          <strong>{studioIssues.length === 1 ? "มี 1 จุดที่ต้องแก้ไขก่อนส่งคำขอ" : `มี ${studioIssues.length} จุดที่ต้องแก้ไขก่อนส่งคำขอ`}</strong>
-          <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
-        </div>}
-         {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
-        <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
-        {result && <p className="studio-result" role="status">{result}</p>}
-      </aside>
+      {!isSimpleStudioMode && estimatePanel}
     </section>
     {mode === "studio" && <StudioPrintLayout state={state} />}
      {mode === "studio" && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting} onClick={() => void submitStudio()} data-testid="button-mobile-studio-submit">{submitting ? "กำลังส่ง..." : "ส่งขอราคา"}</button></div></div>}

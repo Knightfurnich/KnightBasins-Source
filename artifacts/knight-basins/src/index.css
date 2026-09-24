@@ -1789,8 +1789,38 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-design-layout > .studio-shortlists { min-width: 0; grid-template-columns: minmax(0, 1fr); align-content: start; margin-top: 0; position: sticky; top: 16px; }
 .studio-design-layout > .studio-shortlists > .studio-panel { min-width: 0; }
 .studio-design-layout > .studio-canvas-panel, .studio-design-layout > .studio-sketch-panel { min-width: 0; margin-top: 0; }
+.studio-design-layout--simple { grid-template-columns: minmax(210px, .68fr) minmax(0, 1.8fr) minmax(250px, .82fr); }
+.studio-design-layout--simple > .studio-estimate-panel { min-width: 0; margin-top: 0; position: sticky; top: 16px; }
+.studio-page--simple .studio-layout-bottom { grid-template-columns: minmax(0, 1fr); }
 .studio-design-layout .studio-stone-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .studio-design-layout .studio-basin-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-height: 360px; }
+.studio-mode-switch { display: flex; width: fit-content; gap: 4px; margin: 18px 0 0; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--card-paper); }
+.studio-mode-switch button { min-height: 40px; padding: 8px 16px; border: 0; border-radius: 9px; color: var(--ink-soft); background: transparent; font-size: 14px; font-weight: 700; cursor: pointer; }
+.studio-mode-switch button:hover { color: var(--brand-blue); background: var(--brand-sky); }
+.studio-mode-switch button.is-active { color: white; background: var(--brand-blue); box-shadow: 0 3px 9px rgba(18,104,179,.18); }
+.studio-page--simple .studio-piece-tabs-bar,
+.studio-page--simple .studio-piece-heading,
+.studio-page--simple .studio-mirror-button,
+.studio-page--simple .studio-zoom-toolbar,
+.studio-page--simple .studio-inspector-heading,
+.studio-page--simple .studio-join-controls,
+.studio-page--simple .studio-side-status-grid,
+.studio-page--simple .studio-rectangle-position-inputs,
+.studio-page--simple .studio-rectangle-rotate-button,
+.studio-page--simple .studio-inspector-actions,
+.studio-page--simple .studio-piece-editor--canvas-first .studio-rectangle-select,
+.studio-page--simple .studio-placement-inspector-section .studio-rectangle-inputs,
+.studio-page--simple .studio-canvas-hint,
+.studio-page--simple .studio-perspective,
+.studio-page--simple .studio-stone-comparison,
+.studio-page--simple .studio-export-actions,
+.studio-page--simple [data-testid="studio-discount-field"],
+.studio-page--simple .studio-checkbox,
+.studio-page--simple [data-testid="status-studio-vat-tax-id"] { display: none !important; }
+.studio-page--simple { --studio-simple-copy-size: max(var(--type-size-body), .8125rem); }
+.studio-page--simple :is(p, label, small, button, input, select, textarea, span, strong, li, code, .studio-panel-heading > span, .studio-estimate-lines > div, .studio-inspector-subheading, .studio-placement-tools, .studio-piece-size, .studio-edge-marker, .studio-canvas-label, .studio-price-tier, .studio-total) {
+  font-size: var(--studio-simple-copy-size) !important;
+}
 .studio-panel {
   padding: 24px;
   background: var(--card-paper);
@@ -2326,6 +2356,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .studio-shortlists, .studio-layout-bottom { grid-template-columns: 1fr; }
   .studio-design-layout { grid-template-columns: 1fr; }
   .studio-design-layout > .studio-shortlists { position: static; }
+  .studio-design-layout--simple > .studio-estimate-panel { position: static; }
   .studio-panel { padding: 17px; }
   .studio-stone-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .studio-basin-list, .studio-design-layout .studio-basin-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
