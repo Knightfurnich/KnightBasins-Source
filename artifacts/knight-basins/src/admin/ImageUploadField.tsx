@@ -78,7 +78,7 @@ export function ImageUploadField({ value, onChange, label }: ImageUploadFieldPro
           </Button>
           <p className="text-xs text-[var(--ink-soft)]">JPG, PNG, WEBP หรือ GIF ไม่เกิน 10 MB · แสดงตัวอย่างทันที</p>
           {error && <p className="text-xs text-[#a24439]">{error}</p>}
-          {value && <p className="max-w-[28rem] break-all text-[10px] text-[var(--ink-soft)]">{value}</p>}
+          {value && <p className="max-w-[28rem] break-all text-[12px] text-[var(--ink-soft)]">{value}</p>}
         </div>
       </div>
     </div>

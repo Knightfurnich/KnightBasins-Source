@@ -38,7 +38,7 @@ export function AdminVisibilityFilter({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(option.value)}
-            className={`inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-[11px] transition-colors ${
+            className={`inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-[12px] transition-colors ${
               selected
                 ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
                 : "border-[var(--line)] bg-transparent text-[var(--ink-soft)] hover:border-[var(--ink-soft)] hover:text-[var(--ink)]"
