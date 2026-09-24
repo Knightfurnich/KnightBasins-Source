@@ -4,6 +4,7 @@ import { after, before, describe, it } from "node:test";
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { createAdminApiKeySecret, hashAdminApiKey } from "../src/lib/admin-api-keys.ts";
@@ -22,9 +23,46 @@ type StoredSlip = Record<string, unknown> & {
 };
 
 const tableName = (table: object) => table[Symbol.for("drizzle:Name") as keyof object] as string;
+
+// Drizzle where() conditions are SQL fragment trees. These fake tables only need to resolve
+// "eq(someTable.id, N)" (optionally combined with and()), so flatten every nested SQL fragment
+// into one token stream and look for a column named "id" followed by its numeric parameter.
+function flattenQueryChunks(node: unknown, out: unknown[] = []): unknown[] {
+  const chunks = (node as { queryChunks?: unknown[] } | undefined)?.queryChunks;
+  if (!Array.isArray(chunks)) return out;
+  for (const chunk of chunks) {
+    if ((chunk as { queryChunks?: unknown[] } | undefined)?.queryChunks) flattenQueryChunks(chunk, out);
+    else out.push(chunk);
+  }
+  return out;
+}
+
+function isParamChunk(candidate: unknown): candidate is { value: unknown } {
+  return Boolean(candidate) && typeof candidate === "object" && "value" in (candidate as object) && !Array.isArray((candidate as { value: unknown }).value);
+}
+
+// columnName is the underlying snake_case DB column name (e.g. "normalized_value"), not the
+// camelCase Drizzle schema key, since that's what queryChunks carries for a table column.
+function valueFromCondition(condition: unknown, columnName: string): unknown {
+  const flat = flattenQueryChunks(condition);
+  for (let index = 0; index < flat.length; index += 1) {
+    if ((flat[index] as { name?: string } | undefined)?.name !== columnName) continue;
+    for (let lookahead = index + 1; lookahead < flat.length; lookahead += 1) {
+      const candidate = flat[lookahead];
+      if ((candidate as { name?: string } | undefined)?.name) break;
+      if (isParamChunk(candidate)) return candidate.value;
+    }
+  }
+  return undefined;
+}
+
+function idFromCondition(condition: unknown): number | undefined {
+  const value = valueFromCondition(condition, "id");
+  return typeof value === "number" ? value : undefined;
+}
 const image = Buffer.from("89504e470d0a1a0a00000000", "hex");
 const sourceHash = createHash("sha256").update(image).digest("hex");
-const adminRoute = new URL("../src/routes/admin-router.ts", import.meta.url).pathname;
+const adminRoute = fileURLToPath(new URL("../src/routes/admin-router.ts", import.meta.url));
 const originalEnv = {
   DATABASE_URL: process.env["DATABASE_URL"],
   SESSION_SECRET: process.env["SESSION_SECRET"],
@@ -58,25 +96,41 @@ function createFakeDatabase(options: {
   };
   const apiKeys = [state.apiKey];
 
+  function findById<T extends { id: unknown }>(rows: T[], condition: unknown): T[] {
+    const id = idFromCondition(condition);
+    if (id === undefined) return rows.slice(0, 1);
+    const match = rows.find((row) => row.id === id);
+    return match ? [match] : [];
+  }
+
   const database = {
     select: () => {
       let sourceName = "";
+      let condition: unknown;
       const builder: Record<string, (...args: any[]) => any> = {
         from(table: object) {
           sourceName = tableName(table);
           return builder;
         },
-        where() {
+        where(next?: unknown) {
+          condition = next;
           return builder;
         },
         limit: async () => {
           if (sourceName === "admin_api_keys") return apiKeys;
-          if (sourceName === "customer_leads") return state.leads.slice(0, 1);
-          if (sourceName === "lead_external_references") return state.references.slice(0, 1);
-          return state.slips.slice(0, 1);
+          if (sourceName === "customer_leads") return findById(state.leads as Array<{ id: unknown }>, condition);
+          if (sourceName === "lead_external_references") {
+            const normalizedValue = valueFromCondition(condition, "normalized_value");
+            if (typeof normalizedValue === "string") {
+              return state.references.filter((reference) => reference.normalizedValue === normalizedValue).slice(0, 1);
+            }
+            return state.references.slice(0, 1);
+          }
+          return findById(state.slips as Array<{ id: unknown }>, condition);
         },
         orderBy: async () => {
           if (sourceName === "admin_api_keys") return [state.apiKey];
+          if (sourceName === "customer_leads") return state.leads;
           if (sourceName === "payment_slips") return state.slips.filter((slip) => slip.leadId === null && slip.status !== "voided");
           return state.slips;
         },
@@ -126,12 +180,14 @@ function createFakeDatabase(options: {
     update: (table: object) => {
       const sourceName = tableName(table);
       let changes: Record<string, unknown> = {};
+      let condition: unknown;
       const builder: Record<string, (...args: any[]) => any> = {
         set(next: Record<string, unknown>) {
           changes = next;
           return builder;
         },
-        where() {
+        where(next?: unknown) {
+          condition = next;
           return builder;
         },
         returning: async () => {
@@ -140,7 +196,7 @@ function createFakeDatabase(options: {
             Object.assign(target, changes);
             return [{ id: target.id }];
           }
-          const slip = state.slips[0];
+          const slip = findById(state.slips as Array<{ id: unknown }>, condition)[0] as StoredSlip | undefined;
           if (!slip) return [];
           if (sourceName === "payment_slips" && changes.status === "voided" && slip.status !== "team_reported_paid") return [];
           if (sourceName === "payment_slips" && changes.leadId !== undefined && (slip.leadId !== null || slip.status === "voided")) return [];
@@ -151,6 +207,17 @@ function createFakeDatabase(options: {
       return builder;
     },
     delete: () => ({ where: () => ({ returning: async () => [] }) }),
+    transaction: async (callback: (transaction: unknown) => Promise<unknown>) => {
+      const slipsSnapshot = state.slips.map((slip) => ({ ...slip }));
+      const referencesSnapshot = state.references.map((reference) => ({ ...reference }));
+      try {
+        return await callback(database);
+      } catch (error) {
+        state.slips.splice(0, state.slips.length, ...slipsSnapshot);
+        state.references.splice(0, state.references.length, ...referencesSnapshot);
+        throw error;
+      }
+    },
   };
 
   return { database, token: secrets.token, state, apiKeys };
@@ -401,6 +468,132 @@ describe("admin payment slip intake and review routes", () => {
       const voidResponse = await request(`${server.url}/api/admin/slips/25/void`, fixture.token, { method: "POST" });
       assert.equal(assignResponse.status, 409);
       assert.equal(voidResponse.status, 409);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("attaches a suggestedMatch to unassigned slips based on referenceValue or senderName", async () => {
+    const fixture = createFakeDatabase({
+      leads: [
+        { id: 7, leadKey: "lead-line-26-1074", quoteNumber: "Sep 26 / US / 296579", name: "นายสมชาย ใจดี", company: null },
+        { id: 8, leadKey: "lead-two", quoteNumber: null, name: null, company: "บริษัท ดีเอส อินทีเรีย จำกัด" },
+      ],
+      slips: [
+        { id: 30, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-match-code", referenceValue: "26/1074", senderName: null },
+        { id: 31, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-match-name", referenceValue: null, senderName: "ดีเอส อินทีเรีย" },
+        { id: 32, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-no-match", referenceValue: "99/9999", senderName: "ไม่มีใครชื่อนี้" },
+      ],
+    });
+    const server = await startAdminRoute(fixture.database);
+    try {
+      const response = await request(`${server.url}/api/admin/slips/unassigned`, fixture.token);
+      const list = await response.json() as Array<Record<string, unknown>>;
+      assert.equal(response.status, 200);
+      const bySlipId = new Map(list.map((slip) => [slip.id as number, slip]));
+      assert.deepEqual(bySlipId.get(30)?.suggestedMatch, { leadId: 7, reason: "รหัสงานตรงกับ 26/1074" });
+      assert.deepEqual(bySlipId.get(31)?.suggestedMatch, { leadId: 8, reason: "ชื่อผู้โอนตรงกับ บริษัท ดีเอส อินทีเรีย จำกัด" });
+      assert.equal(bySlipId.get(32)?.suggestedMatch, null);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("assigns multiple slips to different leads in a single bulk request", async () => {
+    const fixture = createFakeDatabase({
+      leads: [{ id: 7 }, { id: 8 }],
+      slips: [
+        { id: 40, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-a", referenceValue: "26/4001" },
+        { id: 41, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-b", referenceValue: "26/4002" },
+      ],
+    });
+    const server = await startAdminRoute(fixture.database);
+    try {
+      const response = await request(`${server.url}/api/admin/slips/assign-bulk`, fixture.token, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assignments: [{ slipId: 40, leadId: 7 }, { slipId: 41, leadId: 8 }] }),
+      });
+      const body = await response.json() as { assigned: Array<Record<string, unknown>> };
+      assert.equal(response.status, 200);
+      assert.equal(body.assigned.length, 2);
+      assert.equal(fixture.state.slips.find((slip) => slip.id === 40)?.leadId, 7);
+      assert.equal(fixture.state.slips.find((slip) => slip.id === 41)?.leadId, 8);
+      assert.equal(fixture.state.references.length, 2);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("rolls back the whole bulk batch when one assignment in it conflicts", async () => {
+    const fixture = createFakeDatabase({
+      leads: [{ id: 7 }],
+      slips: [
+        { id: 50, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-ok" },
+        { id: 51, leadId: 7, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-conflict" },
+      ],
+    });
+    const server = await startAdminRoute(fixture.database);
+    try {
+      const response = await request(`${server.url}/api/admin/slips/assign-bulk`, fixture.token, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assignments: [{ slipId: 50, leadId: 7 }, { slipId: 51, leadId: 7 }] }),
+      });
+      assert.equal(response.status, 409);
+      assert.equal(fixture.state.slips.find((slip) => slip.id === 50)?.leadId, null, "the first assignment must be rolled back too");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 404 and rolls back the batch when a bulk assignment targets a missing lead", async () => {
+    const fixture = createFakeDatabase({
+      leads: [{ id: 7 }],
+      slips: [
+        { id: 60, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-good" },
+        { id: 61, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-bad-lead" },
+      ],
+    });
+    const server = await startAdminRoute(fixture.database);
+    try {
+      const response = await request(`${server.url}/api/admin/slips/assign-bulk`, fixture.token, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assignments: [{ slipId: 60, leadId: 7 }, { slipId: 61, leadId: 999 }] }),
+      });
+      assert.equal(response.status, 404);
+      assert.equal(fixture.state.slips.find((slip) => slip.id === 60)?.leadId, null, "rolled back because the batch is atomic");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("rejects a malformed bulk assignment payload without touching any slip", async () => {
+    const fixture = createFakeDatabase({
+      slips: [{ id: 70, leadId: null, status: "team_reported_paid", archiveAttachmentId: "attachment-bulk-validate" }],
+    });
+    const server = await startAdminRoute(fixture.database);
+    try {
+      const notAnArray = await request(`${server.url}/api/admin/slips/assign-bulk`, fixture.token, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assignments: "not-an-array" }),
+      });
+      const emptyArray = await request(`${server.url}/api/admin/slips/assign-bulk`, fixture.token, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assignments: [] }),
+      });
+      const badItem = await request(`${server.url}/api/admin/slips/assign-bulk`, fixture.token, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assignments: [{ slipId: "not-a-number", leadId: 7 }] }),
+      });
+      assert.equal(notAnArray.status, 400);
+      assert.equal(emptyArray.status, 400);
+      assert.equal(badItem.status, 400);
+      assert.equal(fixture.state.slips.find((slip) => slip.id === 70)?.leadId, null);
     } finally {
       await server.close();
     }

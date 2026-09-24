@@ -50,6 +50,7 @@ import { requestOrigin } from "../lib/public-origin";
 import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-invites";
 import { ADMIN_API_KEY_SCOPE, createAdminApiKeySecret } from "../lib/admin-api-keys";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+import { findAutoMatchLead } from "../lib/slip-matching";
 import {
   createQuoteAccessSecret,
   publicQuoteTokenForLead,
@@ -102,6 +103,44 @@ function parsedOptionalInteger(value: string | undefined) {
 
 function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
+}
+
+type BulkSlipAssignErrorCode = "lead-not-found" | "missing" | "conflict" | "reference-conflict";
+
+const BULK_SLIP_ASSIGN_ERROR_MESSAGES: Record<BulkSlipAssignErrorCode, string> = {
+  "lead-not-found": "Lead not found",
+  "missing": "Payment slip not found",
+  "conflict": "Payment slip is already assigned or voided",
+  "reference-conflict": "That job code is already assigned to another lead",
+};
+
+class BulkSlipAssignError extends Error {
+  code: BulkSlipAssignErrorCode;
+  slipId: number;
+  leadId: number;
+
+  constructor(code: BulkSlipAssignErrorCode, slipId: number, leadId: number) {
+    super(BULK_SLIP_ASSIGN_ERROR_MESSAGES[code]);
+    this.code = code;
+    this.slipId = slipId;
+    this.leadId = leadId;
+  }
+}
+
+function parseBulkSlipAssignments(body: unknown): Array<{ slipId: number; leadId: number }> | null {
+  if (!body || typeof body !== "object" || !Array.isArray((body as { assignments?: unknown }).assignments)) return null;
+  const assignments = (body as { assignments: unknown[] }).assignments;
+  if (assignments.length === 0) return null;
+
+  const parsed: Array<{ slipId: number; leadId: number }> = [];
+  for (const item of assignments) {
+    if (!item || typeof item !== "object") return null;
+    const slipId = Number((item as { slipId?: unknown }).slipId);
+    const leadId = Number((item as { leadId?: unknown }).leadId);
+    if (!Number.isInteger(slipId) || slipId <= 0 || !Number.isInteger(leadId) || leadId <= 0) return null;
+    parsed.push({ slipId, leadId });
+  }
+  return parsed;
 }
 
 function serializeAdminMember(member: any) {
@@ -674,8 +713,106 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         .from(paymentSlips)
         .where(and(isNull(paymentSlips.leadId), ne(paymentSlips.status, "voided")))
         .orderBy(desc(paymentSlips.createdAt));
-      res.json(slips);
+
+      const candidateLeads = await database
+        .select({ id: customerLeads.id, leadKey: customerLeads.leadKey, quoteNumber: customerLeads.quoteNumber, name: customerLeads.name, company: customerLeads.company })
+        .from(customerLeads)
+        .orderBy(asc(customerLeads.id));
+
+      const withSuggestions = slips.map((slip: { referenceValue?: string | null; senderName?: string | null }) => {
+        const match = findAutoMatchLead({ referenceValue: slip.referenceValue, senderName: slip.senderName }, candidateLeads);
+        return {
+          ...slip,
+          suggestedMatch: match ? { leadId: match.matchedLeadId, reason: match.matchedReason } : null,
+        };
+      });
+      res.json(withSuggestions);
     } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/admin/slips/assign-bulk", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const assignments = parseBulkSlipAssignments(req.body);
+    if (!assignments) {
+      invalid(res, "Invalid bulk payment slip assignment");
+      return;
+    }
+
+    try {
+      const runBulkAssign = async (transaction: AdminDatabase) => {
+        const assignedSlips: unknown[] = [];
+        for (const { slipId, leadId } of assignments) {
+          const [lead] = await transaction
+            .select({ id: customerLeads.id })
+            .from(customerLeads)
+            .where(eq(customerLeads.id, leadId))
+            .limit(1);
+          if (!lead) throw new BulkSlipAssignError("lead-not-found", slipId, leadId);
+
+          const [slip] = await transaction
+            .select()
+            .from(paymentSlips)
+            .where(eq(paymentSlips.id, slipId))
+            .limit(1);
+          if (!slip) throw new BulkSlipAssignError("missing", slipId, leadId);
+          if (slip.status === "voided" || slip.leadId !== null) throw new BulkSlipAssignError("conflict", slipId, leadId);
+
+          if (slip.referenceValue) {
+            const normalizedReference = normalizeLineJobCode(slip.referenceValue);
+            if (normalizedReference) {
+              const [existingReference] = await transaction
+                .select()
+                .from(leadExternalReferences)
+                .where(and(
+                  eq(leadExternalReferences.referenceType, LINE_JOB_REFERENCE_TYPE),
+                  eq(leadExternalReferences.normalizedValue, normalizedReference),
+                ))
+                .limit(1);
+              if (existingReference && existingReference.leadId !== lead.id) {
+                throw new BulkSlipAssignError("reference-conflict", slipId, leadId);
+              }
+              await transaction
+                .insert(leadExternalReferences)
+                .values({
+                  leadId: lead.id,
+                  referenceType: LINE_JOB_REFERENCE_TYPE,
+                  referenceValue: slip.referenceValue,
+                  normalizedValue: normalizedReference,
+                })
+                .onConflictDoNothing();
+            }
+          }
+
+          const [updated] = await transaction
+            .update(paymentSlips)
+            .set({
+              leadId: lead.id,
+              reviewedByAdmin: true,
+              updatedAt: new Date(),
+            })
+            .where(and(eq(paymentSlips.id, slipId), isNull(paymentSlips.leadId)))
+            .returning();
+          if (!updated) throw new BulkSlipAssignError("conflict", slipId, leadId);
+          assignedSlips.push(updated);
+        }
+        return assignedSlips;
+      };
+
+      const assignedSlips = database.transaction
+        ? await database.transaction(runBulkAssign)
+        : await runBulkAssign(database);
+      res.json({ assigned: assignedSlips });
+    } catch (error) {
+      if (error instanceof BulkSlipAssignError) {
+        const status = error.code === "lead-not-found" || error.code === "missing" ? 404 : 409;
+        res.status(status).json({ message: error.message, slipId: error.slipId, leadId: error.leadId });
+        return;
+      }
+      if (isUniqueViolation(error)) {
+        res.status(409).json({ message: "That job code is already assigned to another lead" });
+        return;
+      }
       next(error);
     }
   });
