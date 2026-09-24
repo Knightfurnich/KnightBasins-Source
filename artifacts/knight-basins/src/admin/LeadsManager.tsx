@@ -425,11 +425,32 @@ function LeadsTableView({
   );
 }
 
+function findAutoMatchLead(referenceValue: string | null | undefined, candidateLeads: CustomerLead[]): CustomerLead | undefined {
+  const ref = (referenceValue ?? "").trim().toUpperCase();
+  if (ref.length < 3) return undefined;
+  return candidateLeads.find((lead) => {
+    const quote = (lead.quoteNumber ?? "").trim().toUpperCase();
+    if (quote.length < 3) return false;
+    return quote === ref || quote.includes(ref) || ref.includes(quote);
+  });
+}
+
 function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   const { data: slips, isLoading } = useListAdminUnassignedSlips();
   const assignSlip = useAssignAdminPaymentSlip();
   const queryClient = useQueryClient();
   const [selectedLeads, setSelectedLeads] = useState<Record<number, string>>({});
+  const [slipSearch, setSlipSearch] = useState("");
+
+  const filteredSlips = useMemo(() => {
+    const query = slipSearch.trim().toLowerCase();
+    if (!query) return slips ?? [];
+    return (slips ?? []).filter((slip) => {
+      const sender = (slip.senderName ?? "").toLowerCase();
+      const amount = typeof slip.claimedAmountThb === "number" ? slip.claimedAmountThb.toString() : "";
+      return sender.includes(query) || amount.includes(query);
+    });
+  }, [slips, slipSearch]);
 
   if (isLoading) {
     return <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]"><Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลดสลิปรอระบุงาน...</div>;
@@ -441,11 +462,29 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-[var(--ink-soft)]">
-        <span>พบสลิปรอระบุงานทั้งหมด {slips.length} รายการ (มุมมองแกลเลอรี 6 คอลัมน์)</span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-[var(--ink-soft)]">
+        <span>
+          พบสลิปรอระบุงานทั้งหมด {slips.length} รายการ
+          {filteredSlips.length !== slips.length ? ` (กรองเหลือ ${filteredSlips.length} รายการ)` : ""} (มุมมองแกลเลอรี 6 คอลัมน์)
+        </span>
+        <div className="relative w-full sm:w-64">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
+          <Input
+            value={slipSearch}
+            onChange={(event) => setSlipSearch(event.target.value)}
+            placeholder="ค้นหาชื่อผู้โอน / ยอดเงิน"
+            className="h-7 rounded-none bg-white pl-7 text-xs"
+            data-testid="input-unassigned-slip-search"
+          />
+        </div>
       </div>
+      {filteredSlips.length === 0 ? (
+        <div className="border border-[var(--line)] bg-[var(--card-paper)] p-10 text-center text-sm text-[var(--ink-soft)]">ไม่พบสลิปที่ตรงกับคำค้นหา</div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
-        {slips.map((slip) => (
+        {filteredSlips.map((slip) => {
+          const matchedLead = findAutoMatchLead(slip.referenceValue, leads);
+          return (
           <article key={slip.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-3 flex flex-col justify-between hover:shadow-md transition-shadow text-xs" data-testid={`card-unassigned-slip-${slip.id}`}>
             <div className="space-y-2">
               <a href={slip.slipImageUrl} target="_blank" rel="noreferrer" className="block w-full h-36 border border-[var(--line)] bg-black/5 overflow-hidden" title="คลิกเพื่อดูสลิปขนาดเต็ม">
@@ -472,6 +511,33 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
               </div>
             </div>
             <div className="mt-2 pt-2 border-t border-[var(--line)] space-y-1.5">
+              {matchedLead && (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-7 w-full rounded-none text-[11px] bg-[#17816d] text-white hover:bg-[#12634f] flex items-center justify-center gap-1"
+                  disabled={assignSlip.isPending}
+                  onClick={() => {
+                    assignSlip.mutate(
+                      { id: slip.id, data: { leadId: matchedLead.id } },
+                      {
+                        onSuccess: () => {
+                          setSelectedLeads((current) => {
+                            const next = { ...current };
+                            delete next[slip.id];
+                            return next;
+                          });
+                          void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+                          void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${matchedLead.id}/payment-slips`] });
+                        },
+                      },
+                    );
+                  }}
+                  data-testid={`button-auto-match-unassigned-slip-${slip.id}`}
+                >
+                  <Check className="h-3 w-3" /> ผูกอัตโนมัติ #{matchedLead.id}{matchedLead.quoteNumber ? ` (${matchedLead.quoteNumber})` : ""}
+                </Button>
+              )}
               <select
                 value={selectedLeads[slip.id] ?? ""}
                 onChange={(event) => setSelectedLeads((current) => ({ ...current, [slip.id]: event.target.value }))}
@@ -514,8 +580,10 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
               </Button>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
+      )}
     </div>
   );
 }
