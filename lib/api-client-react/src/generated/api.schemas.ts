@@ -1015,6 +1015,17 @@ export interface PaymentSlip {
   updatedAt: string;
 }
 
+export type AdminDashboardStatsPeriod = typeof AdminDashboardStatsPeriod[keyof typeof AdminDashboardStatsPeriod];
+
+
+export const AdminDashboardStatsPeriod = {
+  all: 'all',
+  '7d': '7d',
+  '30d': '30d',
+  '3m': '3m',
+  year: 'year',
+} as const;
+
 export interface AdminDashboardKpis {
   /** Sum of verified + team_reported_paid slip amounts; excludes voided */
   totalRevenueThb: number;
@@ -1071,13 +1082,74 @@ export interface AdminDashboardActivity {
   timestamp: string;
 }
 
+export interface AdminDashboardMonthlyComparison {
+  /** e.g. "ก.ค. 69" (Thai abbreviated month + 2-digit Buddhist year) */
+  monthLabel: string;
+  revenueThb: number;
+  leadCount: number;
+}
+
+export type AdminDashboardTechnicianCapacityTeamCode = typeof AdminDashboardTechnicianCapacityTeamCode[keyof typeof AdminDashboardTechnicianCapacityTeamCode];
+
+
+export const AdminDashboardTechnicianCapacityTeamCode = {
+  TP: 'TP',
+  PP: 'PP',
+  ST: 'ST',
+  CM: 'CM',
+  KF: 'KF',
+  PA: 'PA',
+  PM: 'PM',
+  TJ: 'TJ',
+  AM: 'AM',
+  CL: 'CL',
+} as const;
+
+export type AdminDashboardTechnicianCapacityStatus = typeof AdminDashboardTechnicianCapacityStatus[keyof typeof AdminDashboardTechnicianCapacityStatus];
+
+
+export const AdminDashboardTechnicianCapacityStatus = {
+  busy: 'busy',
+  moderate: 'moderate',
+  available: 'available',
+} as const;
+
+export interface AdminDashboardTechnicianJob {
+  id: number;
+  leadKey: string;
+  name: string;
+  /** @nullable */
+  project: string | null;
+  /** ISO date (YYYY-MM-DD) */
+  date: string;
+}
+
+export interface AdminDashboardTechnicianCapacity {
+  teamCode: AdminDashboardTechnicianCapacityTeamCode;
+  teamName: string;
+  activeJobsCount: number;
+  status: AdminDashboardTechnicianCapacityStatus;
+  jobs: AdminDashboardTechnicianJob[];
+}
+
 export interface AdminDashboardStats {
+  period: AdminDashboardStatsPeriod;
   kpis: AdminDashboardKpis;
   actionItems: AdminDashboardActionItems;
   pipelineRatio: AdminDashboardPipelineRatio;
   upcomingInstallations: AdminDashboardInstallation[];
   popularItems: AdminDashboardPopularItem[];
+  /** Popular items restricted to non-basin (stone) SKUs -- those not starting with "KF" */
+  popularStones: AdminDashboardPopularItem[];
+  /** Popular items restricted to basin SKUs (starting with "KF") */
+  popularBasins: AdminDashboardPopularItem[];
   recentActivities: AdminDashboardActivity[];
+  /** Revenue and lead count for the trailing 3 calendar months (Buddhist year, Asia/Bangkok), independent of the period filter */
+  monthlyComparison: AdminDashboardMonthlyComparison[];
+  /** Forecasted cash not yet collected for leads installing within the next 14 days (quote total minus amounts already paid) */
+  projectedCashInflowThb: number;
+  /** Radar of all 10 install teams' load over the next 7 days */
+  technicianCapacity: AdminDashboardTechnicianCapacity[];
   asOf: string;
 }
 
@@ -1319,6 +1391,29 @@ export type SubmitPaymentSlipBody = {
      */
   token: string;
   kind?: SubmitPaymentSlipBodyKind;
+};
+
+export type GetAdminDashboardStatsParams = {
+/**
+ * Filters the activity-snapshot fields (kpis, actionItems, pipelineRatio, popular*, recentActivities) by lead/slip creation date. Defaults to "all". Forward-looking or fixed-window fields (upcomingInstallations, technicianCapacity, monthlyComparison, projectedCashInflowThb) always use the full dataset regardless of this filter.
+ */
+period?: GetAdminDashboardStatsPeriod;
+};
+
+export type GetAdminDashboardStatsPeriod = typeof GetAdminDashboardStatsPeriod[keyof typeof GetAdminDashboardStatsPeriod];
+
+
+export const GetAdminDashboardStatsPeriod = {
+  all: 'all',
+  '7d': '7d',
+  '30d': '30d',
+  '3m': '3m',
+  year: 'year',
+} as const;
+
+export type SendAdminDashboardBriefingToLine200 = {
+  success: boolean;
+  deliveredAt: string;
 };
 
 export type GetWorksiteAddressSuggestionsParams = {

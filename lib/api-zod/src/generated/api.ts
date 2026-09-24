@@ -1776,9 +1776,16 @@ export const ListAdminLeadsResponse = zod.array(ListAdminLeadsResponseItem)
 
 
 /**
- * @summary Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+ * @summary Summarized KPIs for the admin Executive & Team Cockpit (revenue, pipeline, action items, installations, monthly trend, technician capacity)
  */
+export const getAdminDashboardStatsQueryPeriodDefault = `all`;
+
+export const GetAdminDashboardStatsQueryParams = zod.object({
+  "period": zod.enum(['all', '7d', '30d', '3m', 'year']).default(getAdminDashboardStatsQueryPeriodDefault).describe('Filters the activity-snapshot fields (kpis, actionItems, pipelineRatio, popular\*, recentActivities) by lead\/slip creation date. Defaults to \"all\". Forward-looking or fixed-window fields (upcomingInstallations, technicianCapacity, monthlyComparison, projectedCashInflowThb) always use the full dataset regardless of this filter.')
+})
+
 export const GetAdminDashboardStatsResponse = zod.object({
+  "period": zod.enum(['all', '7d', '30d', '3m', 'year']),
   "kpis": zod.object({
   "totalRevenueThb": zod.number().describe('Sum of verified + team_reported_paid slip amounts; excludes voided'),
   "totalLeads": zod.number(),
@@ -1808,6 +1815,14 @@ export const GetAdminDashboardStatsResponse = zod.object({
   "sku": zod.string(),
   "count": zod.number()
 })),
+  "popularStones": zod.array(zod.object({
+  "sku": zod.string(),
+  "count": zod.number()
+})).describe('Popular items restricted to non-basin (stone) SKUs -- those not starting with \"KF\"'),
+  "popularBasins": zod.array(zod.object({
+  "sku": zod.string(),
+  "count": zod.number()
+})).describe('Popular items restricted to basin SKUs (starting with \"KF\")'),
   "recentActivities": zod.array(zod.object({
   "id": zod.string(),
   "type": zod.enum(['lead_created', 'payment_received']),
@@ -1815,7 +1830,35 @@ export const GetAdminDashboardStatsResponse = zod.object({
   "detail": zod.string(),
   "timestamp": zod.coerce.date()
 })),
+  "monthlyComparison": zod.array(zod.object({
+  "monthLabel": zod.string().describe('e.g. \"ก.ค. 69\" (Thai abbreviated month + 2-digit Buddhist year)'),
+  "revenueThb": zod.number(),
+  "leadCount": zod.number()
+})).describe('Revenue and lead count for the trailing 3 calendar months (Buddhist year, Asia\/Bangkok), independent of the period filter'),
+  "projectedCashInflowThb": zod.number().describe('Forecasted cash not yet collected for leads installing within the next 14 days (quote total minus amounts already paid)'),
+  "technicianCapacity": zod.array(zod.object({
+  "teamCode": zod.enum(['TP', 'PP', 'ST', 'CM', 'KF', 'PA', 'PM', 'TJ', 'AM', 'CL']),
+  "teamName": zod.string(),
+  "activeJobsCount": zod.number(),
+  "status": zod.enum(['busy', 'moderate', 'available']),
+  "jobs": zod.array(zod.object({
+  "id": zod.number(),
+  "leadKey": zod.string(),
+  "name": zod.string(),
+  "project": zod.string().nullable(),
+  "date": zod.string().describe('ISO date (YYYY-MM-DD)')
+}))
+})).describe('Radar of all 10 install teams\' load over the next 7 days'),
   "asOf": zod.coerce.date()
+})
+
+
+/**
+ * @summary Push a short dashboard summary (revenue, job count, today's install queue) to the sales LINE destination
+ */
+export const SendAdminDashboardBriefingToLineResponse = zod.object({
+  "success": zod.boolean(),
+  "deliveredAt": zod.coerce.date()
 })
 
 

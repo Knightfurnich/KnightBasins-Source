@@ -47,6 +47,7 @@ import type {
   CustomerProfile,
   CustomerProfileInput,
   CustomerQuotation,
+  GetAdminDashboardStatsParams,
   GetSavedQuoteParams,
   GetWorksiteAddressSuggestionsParams,
   HealthStatus,
@@ -61,6 +62,7 @@ import type {
   PaymentSlipAssignInput,
   PaymentSlipIntakeInput,
   QuoteNotificationResponse,
+  SendAdminDashboardBriefingToLine200,
   SheetStonePrice,
   SheetStonePriceInput,
   SketchLeadResponse,
@@ -3719,20 +3721,27 @@ export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLea
 
 
 
-export const getGetAdminDashboardStatsUrl = () => {
+export const getGetAdminDashboardStatsUrl = (params?: GetAdminDashboardStatsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/dashboard-stats`
+  return stringifiedParams.length > 0 ? `/api/admin/dashboard-stats?${stringifiedParams}` : `/api/admin/dashboard-stats`
 }
 
 /**
- * @summary Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+ * @summary Summarized KPIs for the admin Executive & Team Cockpit (revenue, pipeline, action items, installations, monthly trend, technician capacity)
  */
-export const getAdminDashboardStats = async ( options?: RequestInit): Promise<AdminDashboardStats> => {
+export const getAdminDashboardStats = async (params?: GetAdminDashboardStatsParams, options?: RequestInit): Promise<AdminDashboardStats> => {
 
-  return customFetch<AdminDashboardStats>(getGetAdminDashboardStatsUrl(),
+  return customFetch<AdminDashboardStats>(getGetAdminDashboardStatsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -3745,23 +3754,23 @@ export const getAdminDashboardStats = async ( options?: RequestInit): Promise<Ad
 
 
 
-export const getGetAdminDashboardStatsQueryKey = () => {
+export const getGetAdminDashboardStatsQueryKey = (params?: GetAdminDashboardStatsParams,) => {
     return [
-    `/api/admin/dashboard-stats`
+    `/api/admin/dashboard-stats`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetAdminDashboardStatsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetAdminDashboardStatsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(params?: GetAdminDashboardStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAdminDashboardStatsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminDashboardStatsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminDashboardStats>>> = ({ signal }) => getAdminDashboardStats({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminDashboardStats>>> = ({ signal }) => getAdminDashboardStats(params, { signal, ...requestOptions });
 
 
 
@@ -3775,7 +3784,7 @@ export type GetAdminDashboardStatsQueryError = ErrorType<unknown>
 
 
 export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>> & Pick<
+ params: undefined |  GetAdminDashboardStatsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminDashboardStats>>,
           TError,
@@ -3785,7 +3794,7 @@ export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getA
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>> & Pick<
+ params?: GetAdminDashboardStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminDashboardStats>>,
           TError,
@@ -3795,19 +3804,19 @@ export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getA
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: GetAdminDashboardStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+ * @summary Summarized KPIs for the admin Executive & Team Cockpit (revenue, pipeline, action items, installations, monthly trend, technician capacity)
  */
 
 export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: GetAdminDashboardStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetAdminDashboardStatsQueryOptions(options)
+  const queryOptions = getGetAdminDashboardStatsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3819,6 +3828,77 @@ export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getA
 
 
 
+
+export const getSendAdminDashboardBriefingToLineUrl = () => {
+
+
+
+
+  return `/api/admin/dashboard-briefing/line`
+}
+
+/**
+ * @summary Push a short dashboard summary (revenue, job count, today's install queue) to the sales LINE destination
+ */
+export const sendAdminDashboardBriefingToLine = async ( options?: RequestInit): Promise<SendAdminDashboardBriefingToLine200> => {
+
+  return customFetch<SendAdminDashboardBriefingToLine200>(getSendAdminDashboardBriefingToLineUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSendAdminDashboardBriefingToLineMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendAdminDashboardBriefingToLine>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendAdminDashboardBriefingToLine>>, TError,void, TContext> => {
+
+const mutationKey = ['sendAdminDashboardBriefingToLine'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendAdminDashboardBriefingToLine>>, void> = () => {
+
+
+          return  sendAdminDashboardBriefingToLine(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendAdminDashboardBriefingToLineMutationResult = NonNullable<Awaited<ReturnType<typeof sendAdminDashboardBriefingToLine>>>
+
+    export type SendAdminDashboardBriefingToLineMutationError = ErrorType<void>
+
+    /**
+ * @summary Push a short dashboard summary (revenue, job count, today's install queue) to the sales LINE destination
+ */
+export const useSendAdminDashboardBriefingToLine = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendAdminDashboardBriefingToLine>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendAdminDashboardBriefingToLine>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSendAdminDashboardBriefingToLineMutationOptions(options), queryClient);
+    }
 
 export const getListLeadPaymentSlipsUrl = (id: number,) => {
 
