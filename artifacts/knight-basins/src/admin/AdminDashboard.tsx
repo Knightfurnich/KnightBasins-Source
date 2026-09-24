@@ -221,7 +221,7 @@ function InstallationCard({
             {formatInstallationDate(installation.expectedInstallationDate)}
           </p>
           {reference && (
-            <span className="max-w-full truncate border border-[var(--line)] px-2 py-1 font-mono text-[12px] text-[var(--ink-soft)]" title={reference}>
+            <span className="max-w-full truncate border border-[var(--line)] px-2 py-1 font-mono text-[14px] text-[var(--ink-soft)]" title={reference}>
               {reference}
             </span>
           )}
@@ -418,7 +418,7 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
                         <p className="text-[12px] text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, team.activeJobsCount))} งานในคิว</p>
                       </div>
                     </div>
-                    <span className={"shrink-0 border px-2 py-1 text-[12px] font-semibold " + badgeClass} data-testid={"technician-status-" + team.teamCode}>
+                    <span className={"shrink-0 border px-2 py-1 text-[14px] font-semibold " + badgeClass} data-testid={"technician-status-" + team.teamCode}>
                       {statusLabel}
                     </span>
                   </div>

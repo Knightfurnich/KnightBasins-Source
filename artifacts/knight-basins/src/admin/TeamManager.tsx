@@ -644,8 +644,8 @@ export function TeamManager() {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="truncate font-medium">{member.displayName}</h3>
-                      <span className="border border-[var(--line)] px-2 py-0.5 text-[12px] text-[var(--ink-soft)]">{ROLE_LABELS[member.role]}</span>
-                      {!member.active && <span className="border border-[#a24439]/30 px-2 py-0.5 text-[12px] text-[#a24439]">ปิดใช้งาน</span>}
+                      <span className="border border-[var(--line)] px-2 py-0.5 text-[14px] text-[var(--ink-soft)]">{ROLE_LABELS[member.role]}</span>
+                      {!member.active && <span className="border border-[#a24439]/30 px-2 py-0.5 text-[14px] text-[#a24439]">ปิดใช้งาน</span>}
                     </div>
                     <p className="mt-1 truncate font-mono text-[12px] text-[var(--ink-soft)]">{member.lineUserId}</p>
                     <p className="mt-1 text-xs text-[var(--ink-soft)]">{member.role === "owner" ? "ทุกเมนู" : member.permissions.length ? member.permissions.map((value) => PERMISSIONS.find((item) => item.value === value)?.label).join(" · ") : "ยังไม่ได้เลือกเมนู"}</p>

@@ -206,7 +206,7 @@ function StatusBadge({ status, compact = false, testId }: { status: CalendarStat
   const presentation = statusPresentation[status];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border font-semibold ${compact ? "px-1.5 py-1 text-[12px]" : "px-2 py-1 text-[12px]"} ${presentation.badge}`}
+      className={`inline-flex items-center gap-1.5 border font-semibold ${compact ? "px-1.5 py-1 text-[14px]" : "px-2 py-1 text-[14px]"} ${presentation.badge}`}
       data-testid={testId}
     >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${presentation.dot}`} aria-hidden="true" />
@@ -257,9 +257,9 @@ function JobCard({
           ตัวอย่าง
         </span>
       </div>
-      {job.project && <p className="mt-1 font-mono text-[12px] text-[var(--brand-blue)]">{job.project}</p>}
+      {job.project && <p className="mt-1 font-mono text-[14px] text-[var(--brand-blue)]">{job.project}</p>}
       <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
-        <p className="flex min-w-0 items-start gap-1.5 text-[12px] leading-relaxed text-[var(--ink-soft)]">
+        <p className="flex min-w-0 items-start gap-1.5 text-[14px] leading-relaxed text-[var(--ink-soft)]">
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{job.address ?? "ยังไม่ได้ระบุที่อยู่"}</span>
         </p>
@@ -268,7 +268,7 @@ function JobCard({
             href={googleMapsUrl(job.address)}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 border border-[var(--line)] bg-[var(--card-paper)] px-2.5 text-[12px] font-semibold text-[var(--ink)] transition-colors hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 border border-[var(--line)] bg-[var(--card-paper)] px-2.5 text-[14px] font-semibold text-[var(--ink)] transition-colors hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]"
             data-testid={`link-calendar-map-${job.id}`}
           >
             <MapPinned className="h-3.5 w-3.5" aria-hidden="true" />
@@ -278,7 +278,7 @@ function JobCard({
       </div>
       {isLive && (
         <div className="mt-3 grid gap-2 border-t border-[var(--line)] pt-3 sm:grid-cols-2">
-          <label className="grid gap-1 text-[12px] font-medium text-[var(--ink-soft)]">
+          <label className="grid gap-1 text-[14px] font-medium text-[var(--ink-soft)]">
             <span>ทีมช่าง</span>
             <select
               value={teamCode}
@@ -294,7 +294,7 @@ function JobCard({
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-[12px] font-medium text-[var(--ink-soft)]">
+          <label className="grid gap-1 text-[14px] font-medium text-[var(--ink-soft)]">
             <span>เลื่อนวันติดตั้ง</span>
             <input
               type="date"
@@ -307,7 +307,7 @@ function JobCard({
             />
           </label>
           {updateError && (
-            <p className="text-[12px] text-[#a24439]" role="alert" data-testid={`calendar-update-error-${job.id}`}>
+            <p className="text-[14px] text-[#a24439]" role="alert" data-testid={`calendar-update-error-${job.id}`}>
               {updateError}
             </p>
           )}
@@ -372,7 +372,7 @@ function TeamQueue({
             ))}
           </ul>
         ) : (
-          <p className="py-1 text-[12px] text-[var(--ink-soft)]">ยังไม่มีงานในคิววันนี้</p>
+          <p className="py-1 text-[14px] text-[var(--ink-soft)]">ยังไม่มีงานในคิววันนี้</p>
         )}
       </div>
     </article>
@@ -491,17 +491,17 @@ export function TechnicianCalendarPage() {
 
       <section className="grid grid-cols-1 gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3" aria-label="สรุปคิวประจำเดือน">
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-total">
-          <p className="text-[12px] uppercase tracking-wider text-[var(--ink-soft)]">{isLive ? "งานนัดติดตั้งในเดือน" : "งานตัวอย่างในเดือน"}</p>
+          <p className="text-[14px] uppercase tracking-wider text-[var(--ink-soft)]">{isLive ? "งานนัดติดตั้งในเดือน" : "งานตัวอย่างในเดือน"}</p>
           <p className="admin-stat-value mt-1 text-[var(--ink)]">{countFormatter.format(monthStats.totalJobs)}</p>
           <p className="mt-1 text-[12px] text-[var(--ink-soft)]">รวมทุกทีมช่าง</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-available">
-          <p className="text-[12px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวว่าง</p>
+          <p className="text-[14px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวว่าง</p>
           <p className="admin-stat-value mt-1 text-[#17816d]">{countFormatter.format(monthStats.availableDays)}</p>
           <p className="mt-1 text-[12px] text-[var(--ink-soft)]">{isLive ? "ไม่มีคิวนัดติดตั้ง" : "ไม่มีงานตัวอย่าง"}</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-busy">
-          <p className="text-[12px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวเต็ม</p>
+          <p className="text-[14px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวเต็ม</p>
           <p className="admin-stat-value mt-1 text-[#a24439]">{countFormatter.format(monthStats.busyDays)}</p>
           <p className="mt-1 text-[12px] text-[var(--ink-soft)]">ตั้งแต่ 4 งานหรือมีทีมเต็ม</p>
         </div>
@@ -572,7 +572,7 @@ export function TechnicianCalendarPage() {
           {WEEKDAYS.map((weekday, index) => (
             <div
               key={weekday}
-              className={`py-2 text-center text-[12px] font-semibold uppercase tracking-wider text-[var(--ink-soft)] sm:py-3 sm:text-xs ${index >= 5 ? "text-[var(--brand-blue)]" : ""}`}
+              className={`py-2 text-center text-[14px] font-semibold uppercase tracking-wider text-[var(--ink-soft)] sm:py-3 sm:text-xs ${index >= 5 ? "text-[var(--brand-blue)]" : ""}`}
               data-testid={`calendar-weekday-${index}`}
             >
               <span className="sm:hidden">{weekday}</span>
@@ -665,7 +665,7 @@ export function TechnicianCalendarPage() {
                   <span className="shrink-0 text-[12px] text-[var(--ink-soft)]">10 ทีม</span>
                 </div>
 
-                <div className="hidden border-y border-[var(--line)] bg-[var(--paper)] px-3 py-2 text-[12px] font-semibold uppercase tracking-wider text-[var(--ink-soft)] sm:grid sm:grid-cols-[9.5rem_5.75rem_minmax(0,1fr)] sm:gap-3.5" aria-hidden="true">
+                <div className="hidden border-y border-[var(--line)] bg-[var(--paper)] px-3 py-2 text-[14px] font-semibold uppercase tracking-wider text-[var(--ink-soft)] sm:grid sm:grid-cols-[9.5rem_5.75rem_minmax(0,1fr)] sm:gap-3.5" aria-hidden="true">
                   <span>ทีมช่าง</span>
                   <span>สถานะ</span>
                   <span>งาน / ที่อยู่</span>
