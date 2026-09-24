@@ -15,6 +15,7 @@ import { InstalledStonesManager } from "./InstalledStonesManager";
 import { SheetStonesManager } from "./SheetStonesManager";
 import { LeadsManager } from "./LeadsManager";
 import { TeamManager } from "./TeamManager";
+import { AdminDashboard } from "./AdminDashboard";
 import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
@@ -120,7 +121,7 @@ export default function AdminApp() {
           <main className="admin-main flex-1 p-4 md:p-10 overflow-x-hidden">
             <Switch>
               <Route path="/admin/access-denied" component={AccessDeniedRoute} />
-              <Route path="/admin" component={DashboardHome} />
+              <Route path="/admin" component={AdminDashboardRoute} />
               <Route path="/admin/basins" component={BasinsRoute} />
               <Route path="/admin/installed-stones" component={InstalledStonesRoute} />
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
@@ -178,39 +179,24 @@ function MobileNavSelect() {
   );
 }
 
-function DashboardHome() {
-  const [_, setLocation] = useLocation();
+function AdminDashboardRoute() {
   const access = useAdminAccess();
-  const openMenu = (href: string, permission: AdminPermission) => {
-    setLocation(hasPermission(access, permission) ? href : "/admin/access-denied");
+  const [, setLocation] = useLocation();
+  const canNavigate = (href: string) => {
+    if (href === "/admin/team") return access.canManageTeam;
+    const permissionByHref: Record<string, AdminPermission> = {
+      "/admin/basins": "basins",
+      "/admin/installed-stones": "installed-stones",
+      "/admin/sheet-stones": "sheet-stones",
+      "/admin/leads": "leads",
+    };
+    const permission = permissionByHref[href];
+    return permission ? hasPermission(access, permission) : false;
   };
-  const openTeam = () => setLocation(access.canManageTeam ? "/admin/team" : "/admin/access-denied");
-  return (
-    <div className="admin-dashboard space-y-6">
-      <div>
-        <p className="eyebrow accent">OVERVIEW</p>
-        <h1 className="text-3xl font-semibold font-display tracking-tight">ระบบจัดการข้อมูล</h1>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => openMenu("/admin/basins", "basins")}>
-          <h3 className="font-semibold text-lg mb-2">อ่างล้างหน้า</h3>
-          <p className="text-sm text-[var(--ink-soft)]">จัดการสินค้า ราคา และข้อมูลอ่างล้างหน้าทั้งหมด</p>
-        </div>
-        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => openMenu("/admin/installed-stones", "installed-stones")}>
-          <h3 className="font-semibold text-lg mb-2">หินสังเคราะห์ (ติดตั้ง)</h3>
-          <p className="text-sm text-[var(--ink-soft)]">จัดการราคาหินสังเคราะห์แบบสั่งตัดและติดตั้ง</p>
-        </div>
-        <div className="admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer" onClick={() => openMenu("/admin/sheet-stones", "sheet-stones")}>
-          <h3 className="font-semibold text-lg mb-2">หินสังเคราะห์ (แผ่น)</h3>
-          <p className="text-sm text-[var(--ink-soft)]">จัดการราคาหินสังเคราะห์แบบขายเป็นแผ่น</p>
-        </div>
-          <div className={`admin-dashboard-card p-6 border border-[var(--line)] bg-[var(--card-paper)] hover:bg-[var(--line)]/20 transition-colors cursor-pointer ${!access.canManageTeam ? "opacity-60" : ""}`} onClick={openTeam}>
-            <h3 className="font-semibold text-lg mb-2">สมาชิกทีม</h3>
-            <p className="text-sm text-[var(--ink-soft)]">กำหนดบัญชี LINE บทบาท และเมนูที่แต่ละคนเข้าถึงได้</p>
-          </div>
-      </div>
-    </div>
-  );
+  const onNavigate = (href: string) => {
+    setLocation(canNavigate(href) ? href : "/admin/access-denied");
+  };
+  return <AdminDashboard canNavigate={canNavigate} onNavigate={onNavigate} />;
 }
 
 function AdminPermissionGate({ permission, resource, children }: { permission: AdminPermission; resource: string; children: ReactNode }) {
