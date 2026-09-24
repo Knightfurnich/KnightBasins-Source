@@ -733,6 +733,18 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CustomerLead"
+  /admin/dashboard-stats:
+    get:
+      operationId: getAdminDashboardStats
+      tags: [admin]
+      summary: Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+      responses:
+        "200":
+          description: Admin dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboardStats"
   /admin/leads/{id}/payment-slips:
     parameters:
       - $ref: "#/components/parameters/RecordId"
@@ -1534,6 +1546,51 @@ components:
         reviewedByAdmin: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+    AdminDashboardStats:
+      type: object
+      required: [kpis, actionItems, pipelineRatio, upcomingInstallations, asOf]
+      properties:
+        kpis: { $ref: "#/components/schemas/AdminDashboardKpis" }
+        actionItems: { $ref: "#/components/schemas/AdminDashboardActionItems" }
+        pipelineRatio: { $ref: "#/components/schemas/AdminDashboardPipelineRatio" }
+        upcomingInstallations:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminDashboardInstallation"
+        asOf: { type: string, format: date-time }
+    AdminDashboardKpis:
+      type: object
+      required: [totalRevenueThb, totalLeads, readyForProduction, closed]
+      properties:
+        totalRevenueThb: { type: integer, description: Sum of verified + team_reported_paid slip amounts; excludes voided }
+        totalLeads: { type: integer }
+        readyForProduction: { type: integer }
+        closed: { type: integer }
+    AdminDashboardActionItems:
+      type: object
+      required: [unassignedSlipsCount, awaitingContactCount]
+      properties:
+        unassignedSlipsCount: { type: integer }
+        awaitingContactCount: { type: integer }
+    AdminDashboardPipelineRatio:
+      type: object
+      required: [usCount, ofCount, otherCount]
+      properties:
+        usCount: { type: integer }
+        ofCount: { type: integer }
+        otherCount: { type: integer }
+    AdminDashboardInstallation:
+      type: object
+      required: [id, leadKey, name, quoteNumber, project, address, expectedInstallationDate, notes]
+      properties:
+        id: { type: integer }
+        leadKey: { type: string }
+        name: { type: string }
+        quoteNumber: { type: [string, "null"] }
+        project: { type: [string, "null"] }
+        address: { type: [string, "null"] }
+        expectedInstallationDate: { type: string, description: "ISO date (YYYY-MM-DD)" }
+        notes: { type: [string, "null"] }
     PaymentSlipIntakeInput:
       type: object
       required: [file, archiveAttachmentId, sourceHash]

@@ -229,6 +229,155 @@ function isDuplicateCategory(error: unknown) {
   return Boolean(error && typeof error === "object" && (error as { code?: unknown }).code === "23505");
 }
 
+export type DashboardLeadRow = {
+  id: number;
+  leadKey: string;
+  status: string;
+  quoteNumber: string | null;
+  name: string | null;
+  project: string | null;
+  address: string | null;
+  expectedInstallationDate: string | null;
+  notes: string | null;
+};
+
+export type DashboardSlipRow = {
+  leadId: number | null;
+  status: string;
+  verifiedAmountThb: number | null;
+  claimedAmountThb: number | null;
+};
+
+export type AdminDashboardStats = {
+  kpis: {
+    totalRevenueThb: number;
+    totalLeads: number;
+    readyForProduction: number;
+    closed: number;
+  };
+  actionItems: {
+    unassignedSlipsCount: number;
+    awaitingContactCount: number;
+  };
+  pipelineRatio: {
+    usCount: number;
+    ofCount: number;
+    otherCount: number;
+  };
+  upcomingInstallations: Array<{
+    id: number;
+    leadKey: string;
+    name: string;
+    quoteNumber: string | null;
+    project: string | null;
+    address: string | null;
+    expectedInstallationDate: string;
+    notes: string | null;
+  }>;
+  asOf: string;
+};
+
+const DASHBOARD_AWAITING_CONTACT_STATUSES = new Set(["new_lead", "selecting", "quote_requested"]);
+const DASHBOARD_INSTALLATION_WINDOW_DAYS = 7;
+
+/**
+ * Revenue actually received per slip.status -- verified slips are confirmed by
+ * SlipOK (verifiedAmountThb), team_reported_paid slips come from a LINE report
+ * with no SlipOK check (claimedAmountThb). Every other status, including
+ * voided, contributes nothing.
+ */
+export function computeTotalRevenueThb(slips: DashboardSlipRow[]): number {
+  return slips.reduce((total, slip) => {
+    if (slip.status === "verified") return total + (slip.verifiedAmountThb ?? 0);
+    if (slip.status === "team_reported_paid") return total + (slip.claimedAmountThb ?? 0);
+    return total;
+  }, 0);
+}
+
+/** "YYYY-MM-DD" for the given instant in Asia/Bangkok (fixed UTC+7, no DST). */
+function bangkokDateOnly(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${lookup["year"]}-${lookup["month"]}-${lookup["day"]}`;
+}
+
+export function computeUpcomingInstallations(
+  leads: DashboardLeadRow[],
+  now: Date,
+  windowDays = DASHBOARD_INSTALLATION_WINDOW_DAYS,
+): AdminDashboardStats["upcomingInstallations"] {
+  const start = bangkokDateOnly(now);
+  const end = bangkokDateOnly(new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000));
+
+  return leads
+    .filter((lead): lead is DashboardLeadRow & { expectedInstallationDate: string } =>
+      Boolean(lead.expectedInstallationDate) &&
+      lead.expectedInstallationDate! >= start &&
+      lead.expectedInstallationDate! <= end)
+    .sort((a, b) =>
+      a.expectedInstallationDate === b.expectedInstallationDate
+        ? a.id - b.id
+        : a.expectedInstallationDate < b.expectedInstallationDate ? -1 : 1)
+    .map((lead) => ({
+      id: lead.id,
+      leadKey: lead.leadKey,
+      name: lead.name ?? "",
+      quoteNumber: lead.quoteNumber ?? null,
+      project: lead.project ?? null,
+      address: lead.address ?? null,
+      expectedInstallationDate: lead.expectedInstallationDate,
+      notes: lead.notes ?? null,
+    }));
+}
+
+/** quoteNumber carries the order type as a substring, e.g. "Sep 26 / US / 296579". */
+function pipelineOrderType(quoteNumber: string | null): "us" | "of" | "other" {
+  const value = (quoteNumber ?? "").toUpperCase();
+  if (value.includes("US")) return "us";
+  if (value.includes("OF")) return "of";
+  return "other";
+}
+
+export function computeAdminDashboardStats(
+  leads: DashboardLeadRow[],
+  slips: DashboardSlipRow[],
+  now = new Date(),
+): AdminDashboardStats {
+  const pipelineRatio = { usCount: 0, ofCount: 0, otherCount: 0 };
+  let readyForProduction = 0;
+  let closed = 0;
+  let awaitingContactCount = 0;
+  for (const lead of leads) {
+    if (lead.status === "ready_for_production") readyForProduction += 1;
+    else if (lead.status === "closed") closed += 1;
+    if (DASHBOARD_AWAITING_CONTACT_STATUSES.has(lead.status)) awaitingContactCount += 1;
+    const orderType = pipelineOrderType(lead.quoteNumber);
+    if (orderType === "us") pipelineRatio.usCount += 1;
+    else if (orderType === "of") pipelineRatio.ofCount += 1;
+    else pipelineRatio.otherCount += 1;
+  }
+
+  const unassignedSlipsCount = slips.filter((slip) => slip.leadId === null && slip.status !== "voided").length;
+
+  return {
+    kpis: {
+      totalRevenueThb: computeTotalRevenueThb(slips),
+      totalLeads: leads.length,
+      readyForProduction,
+      closed,
+    },
+    actionItems: { unassignedSlipsCount, awaitingContactCount },
+    pipelineRatio,
+    upcomingInstallations: computeUpcomingInstallations(leads, now),
+    asOf: now.toISOString(),
+  };
+}
+
 export function createAdminRouter(database: AdminDatabase): IRouter {
   const router: IRouter = Router();
   const adminLoginRateLimit = createRateLimiter({ name: "admin-login", max: 5, windowMs: 60 * 1000 });
@@ -542,6 +691,39 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       })));
     } catch (error) {
       return next(error);
+    }
+  });
+
+  router.get("/admin/dashboard-stats", requireAdminPermission("leads"), async (_req, res, next) => {
+    try {
+      const leadRows: DashboardLeadRow[] = await database
+        .select({
+          id: customerLeads.id,
+          leadKey: customerLeads.leadKey,
+          status: customerLeads.status,
+          quoteNumber: customerLeads.quoteNumber,
+          name: customerLeads.name,
+          project: customerLeads.project,
+          address: customerLeads.address,
+          expectedInstallationDate: customerLeads.expectedInstallationDate,
+          notes: customerLeads.notes,
+        })
+        .from(customerLeads)
+        .orderBy(asc(customerLeads.id));
+
+      const slipRows: DashboardSlipRow[] = await database
+        .select({
+          leadId: paymentSlips.leadId,
+          status: paymentSlips.status,
+          verifiedAmountThb: paymentSlips.verifiedAmountThb,
+          claimedAmountThb: paymentSlips.claimedAmountThb,
+        })
+        .from(paymentSlips)
+        .orderBy(asc(paymentSlips.id));
+
+      res.json(computeAdminDashboardStats(leadRows, slipRows, new Date()));
+    } catch (error) {
+      next(error);
     }
   });
 
