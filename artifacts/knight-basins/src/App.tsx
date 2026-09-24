@@ -819,7 +819,7 @@ function FormalQuote({
         </div>
         <div className="formal-bank-details">
           <strong>บัญชีรับเงิน</strong>
-          <span>{COMPANY_DETAILS.bankName} · {COMPANY_DETAILS.bankBranch}</span>
+          <span>{COMPANY_DETAILS.bankName} {COMPANY_DETAILS.bankBranch}</span>
           <span>{COMPANY_DETAILS.bankAccountName}</span>
           <span>{COMPANY_DETAILS.bankAccountNumber}</span>
         </div>
