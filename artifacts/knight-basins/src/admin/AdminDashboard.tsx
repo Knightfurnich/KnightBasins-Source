@@ -565,7 +565,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             count={data.actionItems.awaitingContactCount}
             icon={Users}
             testId="awaiting-contact"
-            onClick={() => onNavigate("/admin/leads")}
+            onClick={() => onNavigate("/admin/leads?status=awaiting_contact")}
           />
         </div>
         {actionsTotal === 0 && (

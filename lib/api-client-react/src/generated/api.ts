@@ -31,6 +31,7 @@ import type {
   AdminInvite,
   AdminInviteInput,
   AdminInviteSummary,
+  AdminLeadStatusUpdateInput,
   AdminLeadUpdateInput,
   AdminMember,
   AdminMemberInput,
@@ -4405,6 +4406,78 @@ export const useUpdateAdminLead = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateAdminLeadMutationOptions(options), queryClient);
+    }
+
+export const getUpdateAdminLeadStatusUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/leads/${id}/status`
+}
+
+/**
+ * @summary One-click status-only update for a lead, without touching notes or staffDimensions
+ */
+export const updateAdminLeadStatus = async (id: number,
+    adminLeadStatusUpdateInput: AdminLeadStatusUpdateInput, options?: RequestInit): Promise<CustomerLead> => {
+
+  return customFetch<CustomerLead>(getUpdateAdminLeadStatusUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminLeadStatusUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminLeadStatusMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminLeadStatus>>, TError,{id: number;data: BodyType<AdminLeadStatusUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminLeadStatus>>, TError,{id: number;data: BodyType<AdminLeadStatusUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateAdminLeadStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminLeadStatus>>, {id: number;data: BodyType<AdminLeadStatusUpdateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminLeadStatus(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminLeadStatusMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminLeadStatus>>>
+    export type UpdateAdminLeadStatusMutationBody = BodyType<AdminLeadStatusUpdateInput>
+    export type UpdateAdminLeadStatusMutationError = ErrorType<void>
+
+    /**
+ * @summary One-click status-only update for a lead, without touching notes or staffDimensions
+ */
+export const useUpdateAdminLeadStatus = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminLeadStatus>>, TError,{id: number;data: BodyType<AdminLeadStatusUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminLeadStatus>>,
+        TError,
+        {id: number;data: BodyType<AdminLeadStatusUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminLeadStatusMutationOptions(options), queryClient);
     }
 
 export const getGetLineAuthStatusUrl = () => {

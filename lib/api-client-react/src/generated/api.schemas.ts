@@ -840,6 +840,25 @@ export interface AdminLeadUpdateInput {
   staffDimensions?: AdminLeadUpdateInputStaffDimensions;
 }
 
+export type AdminLeadStatusUpdateInputStatus = typeof AdminLeadStatusUpdateInputStatus[keyof typeof AdminLeadStatusUpdateInputStatus];
+
+
+export const AdminLeadStatusUpdateInputStatus = {
+  new_lead: 'new_lead',
+  selecting: 'selecting',
+  quote_requested: 'quote_requested',
+  quote_sent: 'quote_sent',
+  waiting_deposit: 'waiting_deposit',
+  team_reported_paid: 'team_reported_paid',
+  deposit_paid: 'deposit_paid',
+  ready_for_production: 'ready_for_production',
+  closed: 'closed',
+} as const;
+
+export interface AdminLeadStatusUpdateInput {
+  status: AdminLeadStatusUpdateInputStatus;
+}
+
 export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];
 
 

@@ -2097,6 +2097,55 @@ export const UpdateAdminLeadResponse = zod.object({
 
 
 /**
+ * @summary One-click status-only update for a lead, without touching notes or staffDimensions
+ */
+
+
+
+export const UpdateAdminLeadStatusParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const UpdateAdminLeadStatusBody = zod.object({
+  "status": zod.enum(['new_lead', 'selecting', 'quote_requested', 'quote_sent', 'waiting_deposit', 'team_reported_paid', 'deposit_paid', 'ready_for_production', 'closed'])
+})
+
+export const UpdateAdminLeadStatusResponse = zod.object({
+  "id": zod.number(),
+  "leadKey": zod.string(),
+  "status": zod.enum(['new_lead', 'selecting', 'quote_requested', 'closed']),
+  "source": zod.string(),
+  "name": zod.string().nullish(),
+  "company": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "project": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
+  "productSkus": zod.array(zod.string()),
+  "quoteNumber": zod.string().nullish(),
+  "publicQuoteToken": zod.string().nullish(),
+  "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
+  "studioData": zod.record(zod.string(), zod.unknown()).nullish(),
+  "sketchUrl": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Get current LINE customer identity status
  */
 export const GetLineAuthStatusResponse = zod.object({
