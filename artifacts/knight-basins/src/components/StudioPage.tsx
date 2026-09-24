@@ -62,6 +62,7 @@ import {
   mirrorStudioLState,
   normalizePlacements,
   mirrorStudioPiece,
+  reflowStudioRectangles,
   studioPieces as getStudioPieces,
   STUDIO_MAX_PIECES,
   STUDIO_MAX_RECTANGLES,
@@ -1023,10 +1024,16 @@ function StudioPieceEditor({
   const activeRectangle = piece.rectangles.find((rectangle) => rectangle.id === selectedRectangleId) ?? piece.rectangles[0];
   const updateRectangle = (updater: (rectangle: StudioRectangle) => StudioRectangle) => {
     if (!activeRectangle) return;
-    setPieceState(setState, piece.id, (current) => ({
-      ...current,
-      rectangles: current.rectangles.map((rectangle) => rectangle.id === activeRectangle.id ? updater(rectangle) : rectangle),
-    }));
+    setPieceState(setState, piece.id, (current) => {
+      const rectangles = current.rectangles.map((rectangle) => rectangle.id === activeRectangle.id ? updater(rectangle) : rectangle);
+      const before = current.rectangles.find((rectangle) => rectangle.id === activeRectangle.id);
+      const after = rectangles.find((rectangle) => rectangle.id === activeRectangle.id);
+      // Only size changes reflow the neighbours. Typing X / Y by hand is an
+      // explicit placement and must survive untouched.
+      const resized = Boolean(before && after) && (before!.widthMm !== after!.widthMm || before!.lengthMm !== after!.lengthMm);
+      const moved = Boolean(before && after) && (before!.xMm !== after!.xMm || before!.yMm !== after!.yMm);
+      return { ...current, rectangles: resized && !moved ? reflowStudioRectangles(current.rectangles, rectangles) : rectangles };
+    });
   };
   const moveRectangle = (rectangleId: string, xMm: number, yMm: number) => setPieceState(setState, piece.id, (current) => {
     const snapped = snapStudioRectanglePosition(current, rectangleId, xMm, yMm);

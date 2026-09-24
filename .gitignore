@@ -52,3 +52,7 @@ Thumbs.db
 /artifacts/api-server/uploads/*
 
 .agents/
+
+# Crash dumps: a stray core file was staged once and the push was rejected for 640 MB.
+core
+core.[0-9]*

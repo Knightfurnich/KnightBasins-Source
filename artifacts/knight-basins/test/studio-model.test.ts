@@ -14,6 +14,7 @@ import {
   placementCrossesPanelJoint,
   pieceOverlapWarnings,
   pieceBounds,
+  reflowStudioRectangles,
   snapStudioRectanglePosition,
   studioAreaSqM,
   studioDefaultStoneCode,
@@ -411,4 +412,66 @@ test("distributes two basins with equal left, middle, and right gaps", () => {
     { id: "basin-1", xMm: 200, yMm: 50 },
     { id: "basin-2", xMm: 900, yMm: 50 },
   ]);
+});
+// A U layout: back run (1500 × 600) with a left leg and a right leg hanging off
+// its bottom edge. The right leg is flush with the piece's right edge at x = 900.
+const uShape = () => [
+  rectangle("back", { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0 }),
+  rectangle("left-leg", { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600 }),
+  rectangle("right-leg", { widthMm: 600, lengthMm: 1200, xMm: 900, yMm: 600 }),
+];
+const withSize = (rectangles: StudioPiece["rectangles"], id: string, size: { widthMm?: number; lengthMm?: number }) =>
+  rectangles.map((item) => item.id === id ? { ...item, ...size } : item);
+
+test("resizing the U shape's right leg keeps it flush with the piece's right edge", () => {
+  const before = uShape();
+  const after = reflowStudioRectangles(before, withSize(before, "right-leg", { widthMm: 400 }));
+  const rightLeg = after.find((item) => item.id === "right-leg")!;
+  assert.equal(rightLeg.widthMm, 400);
+  assert.equal(rightLeg.xMm, 1100, "left edge must move out so the right edge stays at 1500");
+  assert.equal(rightLeg.xMm + rightLeg.widthMm, 1500);
+});
+
+test("widening the U shape's back run carries the right leg with it", () => {
+  const before = uShape();
+  const after = reflowStudioRectangles(before, withSize(before, "back", { widthMm: 1800 }));
+  const rightLeg = after.find((item) => item.id === "right-leg")!;
+  assert.equal(rightLeg.xMm, 1200);
+  assert.equal(after.find((item) => item.id === "left-leg")!.xMm, 0, "the left leg stays on the left edge");
+});
+
+test("resizing a left leg grows it outward instead of dragging it off the left edge", () => {
+  const before = uShape();
+  const after = reflowStudioRectangles(before, withSize(before, "left-leg", { widthMm: 800 }));
+  const leftLeg = after.find((item) => item.id === "left-leg")!;
+  assert.equal(leftLeg.xMm, 0);
+  assert.equal(after.find((item) => item.id === "right-leg")!.xMm, 900, "the right leg is untouched");
+});
+
+test("deepening the back run drops both legs to its new bottom edge", () => {
+  const before = uShape();
+  const after = reflowStudioRectangles(before, withSize(before, "back", { lengthMm: 500 }));
+  assert.equal(after.find((item) => item.id === "left-leg")!.yMm, 500);
+  assert.equal(after.find((item) => item.id === "right-leg")!.yMm, 500);
+});
+
+test("a leg someone parked away from the back run's bottom edge keeps its own y", () => {
+  const before = uShape().map((item) => item.id === "right-leg" ? { ...item, yMm: 401 } : item);
+  const after = reflowStudioRectangles(before, withSize(before, "back", { lengthMm: 500 }));
+  assert.equal(after.find((item) => item.id === "right-leg")!.yMm, 401);
+});
+
+test("a single panel piece is never reflowed", () => {
+  const before = [rectangle("only", { widthMm: 1500, lengthMm: 600 })];
+  const after = reflowStudioRectangles(before, withSize(before, "only", { widthMm: 900 }));
+  assert.deepEqual(after, withSize(before, "only", { widthMm: 900 }));
+});
+
+test("two panels side by side on the same row keep the positions they were given", () => {
+  const before = [
+    rectangle("run-a", { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0 }),
+    rectangle("run-b", { widthMm: 600, lengthMm: 600, xMm: 1500, yMm: 0 }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "run-a", { widthMm: 1800 }));
+  assert.equal(after.find((item) => item.id === "run-b")!.xMm, 1500);
 });

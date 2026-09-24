@@ -453,6 +453,57 @@ function mirroredPieceName(name: string) {
 }
 
 /**
+ * Keeps a U / L layout attached while one of its panels is resized.
+ *
+ * Resizing a panel through the numeric fields only changes that panel's own
+ * size, so a right leg used to tear away from the back run and overlap it once
+ * its width changed. Panels that sit flush to the piece's right edge are
+ * re-anchored to that edge here, and side legs drop to the new bottom of the
+ * back run when the back run's depth changes.
+ *
+ * Only shapes with a single back run and at least one leg are reflowed — panels
+ * someone placed by hand (a left leg at x = 0, a leg at any other y, two runs
+ * side by side) stay exactly where they were put. Manual X / Y edits never reach
+ * this path at all; the caller only calls it for size changes.
+ */
+export function reflowStudioRectangles(before: StudioRectangle[], after: StudioRectangle[]): StudioRectangle[] {
+  if (before.length !== after.length || before.length < 2) return after;
+  const widthOf = (rectangle: StudioRectangle) => studioRectangleSize(rectangle).widthMm;
+  const heightOf = (rectangle: StudioRectangle) => studioRectangleSize(rectangle).heightMm;
+  const rightEdgeOf = (rectangles: StudioRectangle[]) =>
+    rectangles.reduce((edge, rectangle) => Math.max(edge, rectangle.xMm + widthOf(rectangle)), 0);
+  const topEdge = before.reduce((min, rectangle) => Math.min(min, rectangle.yMm), Number.POSITIVE_INFINITY);
+  const backRun = before.filter((rectangle) => Math.abs(rectangle.yMm - topEdge) <= STUDIO_EPSILON_MM);
+  const legs = before.filter((rectangle) => rectangle.yMm > topEdge + STUDIO_EPSILON_MM);
+  if (backRun.length !== 1 || legs.length === 0) return after;
+
+  // A leg is right-anchored when its right edge is the piece's right edge.
+  const beforeRightEdge = rightEdgeOf(before);
+  const rightAnchored = new Set(legs
+    .filter((leg) => leg.xMm > STUDIO_EPSILON_MM && Math.abs(leg.xMm + widthOf(leg) - beforeRightEdge) <= STUDIO_EPSILON_MM)
+    .map((leg) => leg.id));
+  const beforeBackRunBottom = backRun[0].yMm + heightOf(backRun[0]);
+  const afterBackRun = after.find((rectangle) => rectangle.id === backRun[0].id);
+  const afterBackRunBottom = afterBackRun ? afterBackRun.yMm + heightOf(afterBackRun) : beforeBackRunBottom;
+  const backRunDepthChanged = Math.abs(beforeBackRunBottom - afterBackRunBottom) > STUDIO_EPSILON_MM;
+  const dropAnchored = new Set(legs
+    .filter((leg) => Math.abs(leg.yMm - beforeBackRunBottom) <= STUDIO_EPSILON_MM)
+    .map((leg) => leg.id));
+
+  if (rightAnchored.size === 0 && !backRunDepthChanged) return after;
+
+  // Right-anchored legs follow the right edge, so that edge has to be measured
+  // from the panels that are not anchored (the back run above all).
+  const rightEdge = rightEdgeOf(after.filter((rectangle) => !rightAnchored.has(rectangle.id)));
+  return after.map((rectangle) => {
+    let next = rectangle;
+    if (rightAnchored.has(rectangle.id)) next = { ...next, xMm: Math.max(0, rightEdge - widthOf(next)) };
+    if (backRunDepthChanged && dropAnchored.has(rectangle.id)) next = { ...next, yMm: afterBackRunBottom };
+    return next;
+  });
+}
+
+/**
  * Mirror the shared rectangle model horizontally. This is intentionally
  * geometry-level so the canvas, edge totals, basin safety, and exports all
  * observe the same L layout after switching sides.
