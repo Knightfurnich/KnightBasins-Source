@@ -1742,6 +1742,10 @@ export const SubmitPaymentSlipResponse = zod.object({
 /**
  * @summary List storefront leads
  */
+export const ListAdminLeadsQueryParams = zod.object({
+  "technicianTeamCode": zod.enum(['TP', 'PP', 'ST', 'CM', 'KF', 'PA', 'PM', 'TJ', 'AM', 'CL', 'unassigned']).optional().describe('Filter to leads assigned to this install team, or \"unassigned\" for leads with no team assigned')
+})
+
 export const ListAdminLeadsResponseItem = zod.object({
   "id": zod.number(),
   "leadKey": zod.string(),
@@ -2161,9 +2165,13 @@ export const UpdateAdminLeadTechnicianParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
 
+export const updateAdminLeadTechnicianBodyExpectedInstallationDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+
+
 export const UpdateAdminLeadTechnicianBody = zod.object({
-  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullable().describe('One of the 10 install team codes, or null to clear the assignment back to unassigned')
-})
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish().describe('One of the 10 install team codes, or null to clear the assignment back to unassigned'),
+  "expectedInstallationDate": zod.string().regex(updateAdminLeadTechnicianBodyExpectedInstallationDateRegExp).nullish().describe('Installation date as YYYY-MM-DD (Asia\/Bangkok), or null to clear it')
+}).describe('At least one of technicianTeamCode or expectedInstallationDate must be present; an omitted field is left untouched')
 
 export const UpdateAdminLeadTechnicianResponse = zod.object({
   "id": zod.number(),

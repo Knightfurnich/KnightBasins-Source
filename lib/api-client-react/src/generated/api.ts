@@ -60,6 +60,7 @@ import type {
   InstalledStonePriceInput,
   LeadInput,
   LineAuthStatus,
+  ListAdminLeadsParams,
   NotifyQuoteInput,
   PaymentSlip,
   PaymentSlipAssignInput,
@@ -3624,20 +3625,27 @@ export const useSubmitPaymentSlip = <TError = ErrorType<void>,
       return useMutation(getSubmitPaymentSlipMutationOptions(options), queryClient);
     }
 
-export const getListAdminLeadsUrl = () => {
+export const getListAdminLeadsUrl = (params?: ListAdminLeadsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/leads`
+  return stringifiedParams.length > 0 ? `/api/admin/leads?${stringifiedParams}` : `/api/admin/leads`
 }
 
 /**
  * @summary List storefront leads
  */
-export const listAdminLeads = async ( options?: RequestInit): Promise<CustomerLead[]> => {
+export const listAdminLeads = async (params?: ListAdminLeadsParams, options?: RequestInit): Promise<CustomerLead[]> => {
 
-  return customFetch<CustomerLead[]>(getListAdminLeadsUrl(),
+  return customFetch<CustomerLead[]>(getListAdminLeadsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -3650,23 +3658,23 @@ export const listAdminLeads = async ( options?: RequestInit): Promise<CustomerLe
 
 
 
-export const getListAdminLeadsQueryKey = () => {
+export const getListAdminLeadsQueryKey = (params?: ListAdminLeadsParams,) => {
     return [
-    `/api/admin/leads`
+    `/api/admin/leads`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListAdminLeadsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminLeads>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListAdminLeadsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminLeads>>, TError = ErrorType<unknown>>(params?: ListAdminLeadsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAdminLeadsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListAdminLeadsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminLeads>>> = ({ signal }) => listAdminLeads({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminLeads>>> = ({ signal }) => listAdminLeads(params, { signal, ...requestOptions });
 
 
 
@@ -3680,7 +3688,7 @@ export type ListAdminLeadsQueryError = ErrorType<unknown>
 
 
 export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLeads>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>> & Pick<
+ params: undefined |  ListAdminLeadsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAdminLeads>>,
           TError,
@@ -3690,7 +3698,7 @@ export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLea
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLeads>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>> & Pick<
+ params?: ListAdminLeadsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAdminLeads>>,
           TError,
@@ -3700,7 +3708,7 @@ export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLea
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLeads>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: ListAdminLeadsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -3708,11 +3716,11 @@ export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLea
  */
 
 export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLeads>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ params?: ListAdminLeadsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListAdminLeadsQueryOptions(options)
+  const queryOptions = getListAdminLeadsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

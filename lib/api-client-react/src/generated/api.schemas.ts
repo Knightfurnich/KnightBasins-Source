@@ -879,12 +879,21 @@ export const AdminLeadTechnicianUpdateInputTechnicianTeamCode = {
   CL: 'CL',
 } as const;
 
+/**
+ * At least one of technicianTeamCode or expectedInstallationDate must be present; an omitted field is left untouched
+ */
 export interface AdminLeadTechnicianUpdateInput {
   /**
      * One of the 10 install team codes, or null to clear the assignment back to unassigned
      * @nullable
      */
-  technicianTeamCode: AdminLeadTechnicianUpdateInputTechnicianTeamCode;
+  technicianTeamCode?: AdminLeadTechnicianUpdateInputTechnicianTeamCode;
+  /**
+     * Installation date as YYYY-MM-DD (Asia/Bangkok), or null to clear it
+     * @nullable
+     * @pattern ^\d{4}-\d{2}-\d{2}$
+     */
+  expectedInstallationDate?: string | null;
 }
 
 export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];
@@ -1561,6 +1570,30 @@ export type SubmitPaymentSlipBody = {
   token: string;
   kind?: SubmitPaymentSlipBodyKind;
 };
+
+export type ListAdminLeadsParams = {
+/**
+ * Filter to leads assigned to this install team, or "unassigned" for leads with no team assigned
+ */
+technicianTeamCode?: ListAdminLeadsTechnicianTeamCode;
+};
+
+export type ListAdminLeadsTechnicianTeamCode = typeof ListAdminLeadsTechnicianTeamCode[keyof typeof ListAdminLeadsTechnicianTeamCode];
+
+
+export const ListAdminLeadsTechnicianTeamCode = {
+  TP: 'TP',
+  PP: 'PP',
+  ST: 'ST',
+  CM: 'CM',
+  KF: 'KF',
+  PA: 'PA',
+  PM: 'PM',
+  TJ: 'TJ',
+  AM: 'AM',
+  CL: 'CL',
+  unassigned: 'unassigned',
+} as const;
 
 export type GetAdminDashboardStatsParams = {
 /**
