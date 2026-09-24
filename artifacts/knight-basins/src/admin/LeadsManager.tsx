@@ -25,10 +25,21 @@ const statusLabels: Record<string, string> = {
   quote_sent: "ส่งใบเสนอราคาแล้ว",
   waiting_deposit: "รอมัดจำ",
   team_reported_paid: "ชำระแล้ว (LINE)",
+  deposit_paid: "มัดจำแล้ว",
+  ready_for_production: "พร้อมผลิต",
   closed: "ปิดการขาย",
 };
 
-const statusOptions: CustomerLeadStatus[] = ["new_lead", "selecting", "quote_requested", "closed"];
+const statusOptions: string[] = [
+  "new_lead",
+  "selecting",
+  "quote_requested",
+  "waiting_deposit",
+  "team_reported_paid",
+  "deposit_paid",
+  "ready_for_production",
+  "closed",
+];
 const modeLabels: Record<string, string> = {
   "quick-purchase": "ซื้อด่วน",
   studio: "2D Studio",
@@ -179,7 +190,7 @@ function LeadsTableView({
   leads: CustomerLead[];
   expandedLeadId: number | null;
   setExpandedLeadId: (id: number | null) => void;
-  updateStatus: (id: number, status: CustomerLeadStatus, notes?: string | null) => void;
+  updateStatus: (id: number, status: string, notes?: string | null) => void;
   updateLeadPending: boolean;
   copyQuoteLink: (quoteNumber: string, publicQuoteToken: string) => Promise<void>;
   copiedQuote: string | null;
@@ -275,16 +286,44 @@ function LeadsTableView({
                     </span>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={lead.status}
-                      disabled={updateLeadPending}
-                      onChange={(e) => updateStatus(lead.id, e.target.value as CustomerLeadStatus, lead.notes)}
-                      className="h-7 w-full border border-[var(--line)] bg-white px-1 text-xs text-[var(--ink)] font-medium rounded-none"
-                    >
-                      {statusOptions.map((st) => (
-                        <option key={st} value={st}>{statusLabels[st]}</option>
-                      ))}
-                    </select>
+                    <div className="flex flex-col gap-1.5 min-w-[130px]">
+                      <select
+                        value={lead.status}
+                        disabled={updateLeadPending}
+                        onChange={(e) => updateStatus(lead.id, e.target.value, lead.notes)}
+                        className="h-7 w-full border border-[var(--line)] bg-white px-1 text-xs text-[var(--ink)] font-medium rounded-none"
+                      >
+                        {statusOptions.map((st) => (
+                          <option key={st} value={st}>{statusLabels[st] ?? st}</option>
+                        ))}
+                      </select>
+                      {((lead.status as string) === "team_reported_paid" || (lead.status as string) === "deposit_paid") && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-1.5 text-[10px] rounded-none text-[#17816d] border-[#17816d]/40 bg-[#17816d]/10 hover:bg-[#17816d]/20 font-semibold"
+                          disabled={updateLeadPending}
+                          onClick={() => updateStatus(lead.id, "ready_for_production", lead.notes)}
+                          title="กดยืนยันเพื่อเปลี่ยนเป็นพร้อมผลิต"
+                        >
+                          <Check className="w-3 h-3 mr-1" /> พร้อมผลิต
+                        </Button>
+                      )}
+                      {(lead.status as string) === "ready_for_production" && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-1.5 text-[10px] rounded-none text-[var(--brand-blue)] border-[var(--brand-blue)]/40 bg-[var(--brand-blue)]/10 hover:bg-[var(--brand-blue)]/20 font-semibold"
+                          disabled={updateLeadPending}
+                          onClick={() => updateStatus(lead.id, "closed", lead.notes)}
+                          title="กดเมื่อส่งมอบงานสำเร็จแล้ว"
+                        >
+                          <Check className="w-3 h-3 mr-1" /> ปิดการขาย
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <LeadPaymentSlipsBadge leadId={lead.id} />
@@ -538,7 +577,7 @@ export function LeadsManager() {
   const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
   const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<CustomerLeadStatus | "all">("all");
+  const [filter, setFilter] = useState<string>("all");
   const [quoteTypeFilter, setQuoteTypeFilter] = useState<"all" | "US" | "OF">("all");
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -557,9 +596,9 @@ export function LeadsManager() {
   }, [filter, fromDate, leads, search, toDate, quoteTypeFilter]);
   const hasSearchFilters = Boolean(search || fromDate || toDate || quoteTypeFilter !== "all");
 
-  const updateStatus = (id: number, status: CustomerLeadStatus, notes?: string | null) => {
+  const updateStatus = (id: number, status: string, notes?: string | null) => {
     updateLead.mutate(
-      { id, data: { status, notes: notes ?? null } },
+      { id, data: { status: status as any, notes: notes ?? null } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] }) },
     );
   };
@@ -667,13 +706,20 @@ export function LeadsManager() {
           <Button variant={filter === "all" ? "secondary" : "ghost"} onClick={() => setFilter("all")} className="rounded-none">
             ทั้งหมด ({leads?.length ?? 0})
           </Button>
-          {statusOptions.map((status) => (
-            <Button key={status} variant={filter === status ? "secondary" : "ghost"} onClick={() => setFilter(status)} className="rounded-none">
-              {statusLabels[status]} ({leads?.filter((lead) => lead.status === status).length ?? 0})
-            </Button>
-          ))}
-          <Button variant={filter === ("team_reported_paid" as any) ? "secondary" : "ghost"} onClick={() => setFilter("team_reported_paid" as any)} className="rounded-none text-[#17816d] font-medium">
+          <Button variant={filter === "team_reported_paid" ? "secondary" : "ghost"} onClick={() => setFilter("team_reported_paid")} className="rounded-none text-[#17816d] font-medium">
             ชำระแล้ว (LINE) ({leads?.filter((lead) => (lead.status as string) === "team_reported_paid").length ?? 0})
+          </Button>
+          <Button variant={filter === "ready_for_production" ? "secondary" : "ghost"} onClick={() => setFilter("ready_for_production")} className="rounded-none text-[#234c7d] font-medium">
+            พร้อมผลิต ({leads?.filter((lead) => (lead.status as string) === "ready_for_production").length ?? 0})
+          </Button>
+          <Button variant={filter === "deposit_paid" ? "secondary" : "ghost"} onClick={() => setFilter("deposit_paid")} className="rounded-none font-medium">
+            มัดจำแล้ว ({leads?.filter((lead) => (lead.status as string) === "deposit_paid").length ?? 0})
+          </Button>
+          <Button variant={filter === "closed" ? "secondary" : "ghost"} onClick={() => setFilter("closed")} className="rounded-none">
+            ปิดการขาย ({leads?.filter((lead) => (lead.status as string) === "closed").length ?? 0})
+          </Button>
+          <Button variant={filter === "quote_sent" ? "secondary" : "ghost"} onClick={() => setFilter("quote_sent")} className="rounded-none">
+            ส่งใบเสนอราคาแล้ว ({leads?.filter((lead) => (lead.status as string) === "quote_sent").length ?? 0})
           </Button>
         </div>
 
