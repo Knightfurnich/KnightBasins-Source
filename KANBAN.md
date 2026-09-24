@@ -57,7 +57,8 @@
 | **Task 22** | เดวิด | แก้ชื่อทีมช่าง 6/10 รหัสให้ตรง `TEAM.md` (CM/KF/PM/TJ/AM/CL) + alias ทีมออฟฟิศ/ออฟฟิต | `4bb5267` | ✅ 204 tests (200 pass) & Deployed |
 | **Task 23** | ชัย | ย้ายรายชื่อทีมช่างเข้า DB (`technician_teams`) + API เพิ่ม/แก้/ปิดใช้งานทีม | `027bbd2` / merge `8cc10a7` | ✅ **Merged & Deployed** · Migration 012 applied · Acceptance 11/11 |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพาน (build เขียว, ไม่มี mock data) | `54b8ccb` | ✅ เสร็จ (draft) |
-| **Task 24** | Replit | สลับไฟล์สะพาน -> hook จริง (`useListAdminTechnicianTeams`) + ลบไฟล์สะพาน | — | 🟡 มอบหมายแล้ว (`qa/job-24-replit-final.md`) |
+| **Task 24 (Replit)** | Replit | สลับไฟล์สะพาน -> hook จริง (`useListAdminTechnicianTeams`) + ลบไฟล์สะพาน | — | 🟡 มอบหมายแล้ว (`qa/job-24-replit-final.md`) |
+| **Task 31** | Replit | ระบบทีมขายวาด 2D Studio จากแบบร่างลูกค้า (ปุ่มใน Admin + Split View ดูรูปคู่ขนาน) | `feat/replit-studio-over-sketch` | 🟡 ออกใบงานแล้ว (`qa/job-31-replit-studio-over-sketch.md`) |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
 | **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
