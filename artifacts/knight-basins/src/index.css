@@ -1840,10 +1840,12 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .missing-badge, .summary-warning, .success-message, .quote-terms,
   .studio-stone-choice strong, .studio-stone-choice small, .studio-sketch-slot small
 ):not(
-  .formal-*, .formal-* *,
-  .workbench*, .workbench* *,
-  .workshop-*, .workshop-* *,
-  .sig-box, .sig-box *,
+  /* ⚠️ ห้ามเขียน .formal-* — CSS ไม่มี syntax นี้ ทำให้ทั้งกฎถูกทิ้ง (บทเรียน 24 ก.ย. 69)
+     ใช้ attribute selector: กันทั้งตัวมันเองและลูกหลานของพื้นที่ห้ามแตะ */
+  [class*="formal-"], [class*="formal-"] *,
+  [class*="workbench"], [class*="workbench"] *,
+  [class*="workshop"], [class*="workshop"] *,
+  [class*="sig-box"], [class*="sig-box"] *,
   h1, h2, h3, h4, h5, h6,
   h1 *, h2 *, h3 *, h4 *, h5 *, h6 *
 ) {
@@ -1854,7 +1856,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 :is(.studio-page, .stone-page, .quote-page, .sales-guide-page, .profile-page, .page-wrap) :is(
   .studio-sketch-hint, .catalog-freshness-notice, .source-note, .hero-kicker,
   .sort-field-help, .studio-draft-status, .area-result small
-):not(.formal-*, .formal-* *) {
+):not([class*="formal-"], [class*="formal-"] *) {
   font-size: 12px !important;
 }
 .studio-panel {
