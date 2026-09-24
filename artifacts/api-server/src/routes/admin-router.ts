@@ -625,21 +625,26 @@ export function computeProjectedCashInflowThb(
 type TechnicianTeam = { code: string; name: string; shortName: string; aliases: string[] };
 
 /**
- * The 10 install teams. `name` is the canonical output teamName; `shortName`
- * and `aliases` only widen what counts as a match inside free-text
- * notes/project fields (e.g. "TP", "ทีมเปา", "ช่างชัยยา", "แอนนี่").
+ * The 10 install teams, in the canonical order used by the work orders.
+ * `name` is the canonical output teamName; `shortName` and `aliases` only
+ * widen what counts as a match inside free-text notes/project fields
+ * (e.g. "TP", "ทีมเปา", "ช่างชัยยา", "แอนนี่", "ทีมออฟฟิศ").
+ *
+ * The team roster is owned by the owner/admin and can grow or shrink, so
+ * `name`/`shortName`/`aliases` must stay aligned with knight-design-kb/TEAM.md
+ * (section 4) -- that file is the source of truth for who each code is.
  */
 const TECHNICIAN_TEAMS: TechnicianTeam[] = [
   { code: "TP", name: "ช่างยี่", shortName: "ยี่", aliases: ["แอนนี่"] },
   { code: "PP", name: "ช่างเนตร", shortName: "เนตร", aliases: [] },
   { code: "ST", name: "ช่างทู", shortName: "ทู", aliases: [] },
-  { code: "CM", name: "ช่างมิตร", shortName: "มิตร", aliases: [] },
-  { code: "KF", name: "ช่างชัยยา", shortName: "ชัยยา", aliases: [] },
+  { code: "CM", name: "ช่างเจมส์", shortName: "เจมส์", aliases: [] },
+  { code: "KF", name: "ทีมโรงงาน", shortName: "โรงงาน", aliases: ["ทีมออฟฟิศ", "ทีมออฟฟิต"] },
   { code: "PA", name: "ช่างเปา", shortName: "เปา", aliases: [] },
-  { code: "PM", name: "ช่างเอก", shortName: "เอก", aliases: [] },
-  { code: "TJ", name: "ช่างเจมส์", shortName: "เจมส์", aliases: [] },
-  { code: "AM", name: "ช่างอ้น", shortName: "อ้น", aliases: [] },
-  { code: "CL", name: "ช่างชล", shortName: "ชล", aliases: [] },
+  { code: "PM", name: "ช่างพร้อม", shortName: "พร้อม", aliases: [] },
+  { code: "TJ", name: "ช่างกอล์ฟ", shortName: "กอล์ฟ", aliases: [] },
+  { code: "AM", name: "ช่างเจ๋ง", shortName: "เจ๋ง", aliases: [] },
+  { code: "CL", name: "ช่างชัยยา", shortName: "ชัยยา", aliases: [] },
 ];
 
 /**

@@ -47,17 +47,22 @@ export interface CalendarDay {
   }>;
 }
 
+/**
+ * Display names for the 10 install teams. Must stay aligned with
+ * knight-design-kb/TEAM.md (section 4), which the owner maintains -- the
+ * roster can grow or shrink, and the admin owns that list.
+ */
 const TECHNICIAN_TEAMS: Array<{ code: TechnicianTeamCode; name: string }> = [
   { code: "TP", name: "ช่างยี่" },
   { code: "PP", name: "ช่างเนตร" },
   { code: "ST", name: "ช่างทู" },
-  { code: "CM", name: "ช่างมิตร" },
-  { code: "KF", name: "ช่างชัยยา" },
+  { code: "CM", name: "ช่างเจมส์" },
+  { code: "KF", name: "ทีมโรงงาน" },
   { code: "PA", name: "ช่างเปา" },
-  { code: "PM", name: "ช่างเอก" },
-  { code: "TJ", name: "ช่างเจมส์" },
-  { code: "AM", name: "ช่างอ้น" },
-  { code: "CL", name: "ช่างชล" },
+  { code: "PM", name: "ช่างพร้อม" },
+  { code: "TJ", name: "ช่างกอล์ฟ" },
+  { code: "AM", name: "ช่างเจ๋ง" },
+  { code: "CL", name: "ช่างชัยยา" },
 ];
 const WEEKDAYS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 const FULL_WEEKDAYS = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];

@@ -500,11 +500,28 @@ describe("computeTechnicianCapacity", () => {
       lead({ id: 1, expectedInstallationDate: "2026-09-25", project: "ช่างชัยยา ติดตั้งวันนี้" }),
       lead({ id: 2, expectedInstallationDate: "2026-09-25", notes: "ทีมเปา รับผิดชอบ" }),
       lead({ id: 3, expectedInstallationDate: "2026-09-25", notes: "ประสานกับแอนนี่แล้ว" }),
+      lead({ id: 4, expectedInstallationDate: "2026-09-25", notes: "ทีมพร้อม รอคิวติดตั้ง" }),
+      lead({ id: 5, expectedInstallationDate: "2026-09-25", notes: "ทีมโรงงาน ส่งลูกค้า" }),
+      lead({ id: 6, expectedInstallationDate: "2026-09-25", notes: "ทีมออฟฟิศ เก็บงาน" }),
+      lead({ id: 7, expectedInstallationDate: "2026-09-25", notes: "ทีมเจมส์ วัดงาน" }),
     ];
     const result = routeModule.computeTechnicianCapacity(leads, now);
-    assert.equal(result.find((t) => t.teamCode === "KF")!.activeJobsCount, 1, "ช่างชัยยา -> KF");
+    assert.equal(result.find((t) => t.teamCode === "CL")!.activeJobsCount, 1, "ช่างชัยยา -> CL");
     assert.equal(result.find((t) => t.teamCode === "PA")!.activeJobsCount, 1, "ทีมเปา -> PA");
     assert.equal(result.find((t) => t.teamCode === "TP")!.activeJobsCount, 1, "แอนนี่ (alias) -> TP");
+    assert.equal(result.find((t) => t.teamCode === "PM")!.activeJobsCount, 1, "ทีมพร้อม -> PM");
+    assert.equal(result.find((t) => t.teamCode === "KF")!.activeJobsCount, 2, "ทีมโรงงาน + ทีมออฟฟิศ -> KF");
+    assert.equal(result.find((t) => t.teamCode === "CM")!.activeJobsCount, 1, "ทีมเจมส์ -> CM");
+  });
+
+  it("does not credit KF from a bare 'โรงงาน' mention that is not a team assignment", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-09-25", notes: "บ่ายไปรับแผ่นสีน้ำเงินโรงงานพี่อ้วนให้พี่หมู" }),
+    ];
+    const result = routeModule.computeTechnicianCapacity(leads, now);
+    assert.equal(result.find((t) => t.teamCode === "KF")!.activeJobsCount, 0, "bare 'โรงงาน' must not imply team KF");
   });
 
   it("assigns status by job count: 0 available, 1-2 moderate, 3+ busy", async () => {
