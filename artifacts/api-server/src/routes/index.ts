@@ -6,6 +6,7 @@ import supportRouter from "./support";
 import lineAuthRouter from "./line-auth";
 import leadsRouter from "./leads";
 import customerProfileRouter from "./customer-profile";
+import placesRouter from "./places";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(supportRouter);
 router.use(lineAuthRouter);
 router.use(leadsRouter);
 router.use(customerProfileRouter);
+router.use(placesRouter);
 
 export default router;
