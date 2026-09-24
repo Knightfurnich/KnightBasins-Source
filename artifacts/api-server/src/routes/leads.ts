@@ -59,6 +59,11 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
     windowMs: 15 * 60 * 1000,
     key: (req) => `${req.ip}:${String(req.body?.token ?? "")}`,
   });
+  // CONTRACT specified a `keyPrefix` option; the existing RateLimitOptions
+  // field for namespacing buckets is `name`, so this reuses that field with
+  // the same "rl:quotes:get" value rather than adding a second option that
+  // does the same thing.
+  const quotesGetRateLimit = createRateLimiter({ name: "rl:quotes:get", max: 60, windowMs: 10 * 60 * 1000 });
 
  router.post("/leads", leadRateLimit, async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
@@ -141,7 +146,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   }
 });
 
-router.get("/quotes", async (req, res, next) => {
+router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
   const token = typeof req.query.token === "string" ? req.query.token.trim() : "";
   const access = verifyPublicQuoteToken(token);
   if (!access) return res.status(404).json({ message: "Quote not found" });
