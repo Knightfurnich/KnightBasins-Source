@@ -107,6 +107,26 @@ function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
 
+/**
+ * The full real status domain a lead can hold. Wider than UpdateAdminLeadBody's
+ * generated zod enum (new_lead/selecting/quote_requested/closed only, stale
+ * relative to the actual varchar(32) column) -- this mirrors what
+ * LeadsManager.tsx's statusOptions dropdown offers, plus quote_sent, which the
+ * customer-facing quote-send flow can set even though the admin dropdown
+ * doesn't offer it directly.
+ */
+const LEAD_STATUS_VALUES = [
+  "new_lead",
+  "selecting",
+  "quote_requested",
+  "quote_sent",
+  "waiting_deposit",
+  "team_reported_paid",
+  "deposit_paid",
+  "ready_for_production",
+  "closed",
+];
+
 type BulkSlipAssignErrorCode = "lead-not-found" | "missing" | "conflict" | "reference-conflict";
 
 const BULK_SLIP_ASSIGN_ERROR_MESSAGES: Record<BulkSlipAssignErrorCode, string> = {
@@ -1184,6 +1204,30 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
           ...(studioData !== undefined ? { studioData } : {}),
           updatedAt: new Date(),
         })
+        .where(eq(customerLeads.id, id))
+        .returning();
+      return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  /**
+   * Lightweight, status-only sibling of PATCH /admin/leads/:id, for one-click
+   * quick actions (e.g. LeadsManager's row buttons) that shouldn't have to
+   * send notes/staffDimensions just to flip a status.
+   */
+  router.patch("/admin/leads/:id/status", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+    const status = typeof req.body?.status === "string" ? req.body.status : undefined;
+    if (!status || !LEAD_STATUS_VALUES.includes(status)) {
+      return invalid(res, `status must be one of: ${LEAD_STATUS_VALUES.join(", ")}`);
+    }
+    try {
+      const [updated] = await database
+        .update(customerLeads)
+        .set({ status, updatedAt: new Date() })
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });

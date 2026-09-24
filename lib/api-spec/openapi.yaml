@@ -889,6 +889,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerLead"
+  /admin/leads/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    patch:
+      operationId: updateAdminLeadStatus
+      tags: [admin]
+      summary: One-click status-only update for a lead, without touching notes or staffDimensions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLeadStatusUpdateInput"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerLead"
+        "400":
+          description: Invalid lead id or status
+        "404":
+          description: Lead not found
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -1479,6 +1503,22 @@ components:
             widthMm: { type: [number, "null"] }
             lengthMm: { type: [number, "null"] }
             depthMm: { type: [number, "null"] }
+    AdminLeadStatusUpdateInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum:
+            - new_lead
+            - selecting
+            - quote_requested
+            - quote_sent
+            - waiting_deposit
+            - team_reported_paid
+            - deposit_paid
+            - ready_for_production
+            - closed
     CustomerLead:
       type: object
       required: [id, leadKey, status, source, productSkus, createdAt, updatedAt]
