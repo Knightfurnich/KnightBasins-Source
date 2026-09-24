@@ -39,8 +39,9 @@ cleanup() {
 trap cleanup EXIT
 
 for container in $DB_CONTAINERS; do
-  if ! docker inspect "$container" >/dev/null 2>&1; then
-    echo "Skipping $container: container not found." >&2
+  status="$(docker inspect --format "{{.State.Status}}" "$container" 2>/dev/null || true)"
+  if [[ "$status" != "running" ]]; then
+    echo "Skipping $container: container is not running (status: ${status:-not found})."
     continue
   fi
 
@@ -53,7 +54,14 @@ for container in $DB_CONTAINERS; do
 
   docker exec "$container" sh -c 'pg_dumpall -U "$POSTGRES_USER"' | gzip > "$partial"
   mv "$partial" "$target"
-  echo "Created $target"
+  
+  if gunzip -t "$target" >/dev/null 2>&1; then
+    size="$(ls -lh "$target" | awk '{print $5}')"
+    echo "Created and verified $target ($size)"
+  else
+    echo "ERROR: Backup file $target is corrupt!" >&2
+    exit 1
+  fi
 done
 
 find "$BACKUP_DIR" -type f -name 'postgres-all-*.sql.gz' \
