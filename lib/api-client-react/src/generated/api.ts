@@ -27,6 +27,7 @@ import type {
 import type {
   AdminApiKey,
   AdminApiKeyInput,
+  AdminDashboardStats,
   AdminInvite,
   AdminInviteInput,
   AdminInviteSummary,
@@ -292,114 +293,6 @@ export function useGetCatalog<TData = Awaited<ReturnType<typeof getCatalog>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetCatalogQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetWorksiteAddressSuggestionsUrl = (params: GetWorksiteAddressSuggestionsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/places/autocomplete?${stringifiedParams}` : `/api/places/autocomplete`
-}
-
-/**
- * @summary Suggest Thai worksite locations from an address query
- */
-export const getWorksiteAddressSuggestions = async (params: GetWorksiteAddressSuggestionsParams, options?: RequestInit): Promise<WorksiteAddressSuggestions> => {
-
-  return customFetch<WorksiteAddressSuggestions>(getGetWorksiteAddressSuggestionsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetWorksiteAddressSuggestionsQueryKey = (params?: GetWorksiteAddressSuggestionsParams,) => {
-    return [
-    `/api/places/autocomplete`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetWorksiteAddressSuggestionsQueryOptions = <TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetWorksiteAddressSuggestionsQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>> = ({ signal }) => getWorksiteAddressSuggestions(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetWorksiteAddressSuggestionsQueryResult = NonNullable<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>>
-export type GetWorksiteAddressSuggestionsQueryError = ErrorType<void>
-
-
-export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
- params: GetWorksiteAddressSuggestionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>,
-          TError,
-          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
- params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>,
-          TError,
-          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
- params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Suggest Thai worksite locations from an address query
- */
-
-export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
- params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetWorksiteAddressSuggestionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3826,6 +3719,107 @@ export function useListAdminLeads<TData = Awaited<ReturnType<typeof listAdminLea
 
 
 
+export const getGetAdminDashboardStatsUrl = () => {
+
+
+
+
+  return `/api/admin/dashboard-stats`
+}
+
+/**
+ * @summary Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+ */
+export const getAdminDashboardStats = async ( options?: RequestInit): Promise<AdminDashboardStats> => {
+
+  return customFetch<AdminDashboardStats>(getGetAdminDashboardStatsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminDashboardStatsQueryKey = () => {
+    return [
+    `/api/admin/dashboard-stats`
+    ] as const;
+    }
+
+
+export const getGetAdminDashboardStatsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminDashboardStatsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminDashboardStats>>> = ({ signal }) => getAdminDashboardStats({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminDashboardStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminDashboardStats>>>
+export type GetAdminDashboardStatsQueryError = ErrorType<unknown>
+
+
+export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminDashboardStats>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminDashboardStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminDashboardStats>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminDashboardStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+ */
+
+export function useGetAdminDashboardStats<TData = Awaited<ReturnType<typeof getAdminDashboardStats>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminDashboardStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListLeadPaymentSlipsUrl = (id: number,) => {
 
 
@@ -4766,6 +4760,114 @@ export function useGetCustomerQuotationHistory<TData = Awaited<ReturnType<typeof
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetCustomerQuotationHistoryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetWorksiteAddressSuggestionsUrl = (params: GetWorksiteAddressSuggestionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/places/autocomplete?${stringifiedParams}` : `/api/places/autocomplete`
+}
+
+/**
+ * @summary Suggest Thai worksite locations from an address query
+ */
+export const getWorksiteAddressSuggestions = async (params: GetWorksiteAddressSuggestionsParams, options?: RequestInit): Promise<WorksiteAddressSuggestions> => {
+
+  return customFetch<WorksiteAddressSuggestions>(getGetWorksiteAddressSuggestionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorksiteAddressSuggestionsQueryKey = (params?: GetWorksiteAddressSuggestionsParams,) => {
+    return [
+    `/api/places/autocomplete`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetWorksiteAddressSuggestionsQueryOptions = <TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorksiteAddressSuggestionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>> = ({ signal }) => getWorksiteAddressSuggestions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWorksiteAddressSuggestionsQueryResult = NonNullable<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>>
+export type GetWorksiteAddressSuggestionsQueryError = ErrorType<void>
+
+
+export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
+ params: GetWorksiteAddressSuggestionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>,
+          TError,
+          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
+ params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>,
+          TError,
+          Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
+ params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Suggest Thai worksite locations from an address query
+ */
+
+export function useGetWorksiteAddressSuggestions<TData = Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError = ErrorType<void>>(
+ params: GetWorksiteAddressSuggestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorksiteAddressSuggestions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetWorksiteAddressSuggestionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

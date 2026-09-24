@@ -840,31 +840,6 @@ export interface AdminLeadUpdateInput {
   staffDimensions?: AdminLeadUpdateInputStaffDimensions;
 }
 
-export interface WorksiteAddressSuggestion {
-  /**
-     * @minLength 1
-     * @maxLength 512
-     */
-  placeId: string;
-  /**
-     * @minLength 1
-     * @maxLength 1000
-     */
-  text: string;
-  /**
-     * @minLength 1
-     * @maxLength 500
-     */
-  primaryText: string;
-  /** @maxLength 500 */
-  secondaryText: string;
-}
-
-export interface WorksiteAddressSuggestions {
-  /** @maxItems 5 */
-  suggestions: WorksiteAddressSuggestion[];
-}
-
 export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];
 
 
@@ -1040,6 +1015,49 @@ export interface PaymentSlip {
   updatedAt: string;
 }
 
+export interface AdminDashboardKpis {
+  /** Sum of verified + team_reported_paid slip amounts; excludes voided */
+  totalRevenueThb: number;
+  totalLeads: number;
+  readyForProduction: number;
+  closed: number;
+}
+
+export interface AdminDashboardActionItems {
+  unassignedSlipsCount: number;
+  awaitingContactCount: number;
+}
+
+export interface AdminDashboardPipelineRatio {
+  usCount: number;
+  ofCount: number;
+  otherCount: number;
+}
+
+export interface AdminDashboardInstallation {
+  id: number;
+  leadKey: string;
+  name: string;
+  /** @nullable */
+  quoteNumber: string | null;
+  /** @nullable */
+  project: string | null;
+  /** @nullable */
+  address: string | null;
+  /** ISO date (YYYY-MM-DD) */
+  expectedInstallationDate: string;
+  /** @nullable */
+  notes: string | null;
+}
+
+export interface AdminDashboardStats {
+  kpis: AdminDashboardKpis;
+  actionItems: AdminDashboardActionItems;
+  pipelineRatio: AdminDashboardPipelineRatio;
+  upcomingInstallations: AdminDashboardInstallation[];
+  asOf: string;
+}
+
 export type PaymentSlipIntakeInputKind = typeof PaymentSlipIntakeInputKind[keyof typeof PaymentSlipIntakeInputKind];
 
 
@@ -1202,13 +1220,30 @@ export interface CustomerQuotation {
   viewUrl: string;
 }
 
-export type GetWorksiteAddressSuggestionsParams = {
-/**
- * @minLength 3
- * @maxLength 250
- */
-input: string;
-};
+export interface WorksiteAddressSuggestion {
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  placeId: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  text: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  primaryText: string;
+  /** @maxLength 500 */
+  secondaryText: string;
+}
+
+export interface WorksiteAddressSuggestions {
+  /** @maxItems 5 */
+  suggestions: WorksiteAddressSuggestion[];
+}
 
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
@@ -1261,5 +1296,13 @@ export type SubmitPaymentSlipBody = {
      */
   token: string;
   kind?: SubmitPaymentSlipBodyKind;
+};
+
+export type GetWorksiteAddressSuggestionsParams = {
+/**
+ * @minLength 3
+ * @maxLength 250
+ */
+input: string;
 };
 

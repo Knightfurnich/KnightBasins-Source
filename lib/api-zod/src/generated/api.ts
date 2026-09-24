@@ -167,40 +167,6 @@ export const GetCatalogResponse = zod.object({
 
 
 /**
- * @summary Suggest Thai worksite locations from an address query
- */
-export const getWorksiteAddressSuggestionsQueryInputMin = 3;
-export const getWorksiteAddressSuggestionsQueryInputMax = 250;
-
-
-
-export const GetWorksiteAddressSuggestionsQueryParams = zod.object({
-  "input": zod.coerce.string().min(getWorksiteAddressSuggestionsQueryInputMin).max(getWorksiteAddressSuggestionsQueryInputMax)
-})
-
-export const getWorksiteAddressSuggestionsResponseSuggestionsItemPlaceIdMax = 512;
-
-export const getWorksiteAddressSuggestionsResponseSuggestionsItemTextMax = 1000;
-
-export const getWorksiteAddressSuggestionsResponseSuggestionsItemPrimaryTextMax = 500;
-
-export const getWorksiteAddressSuggestionsResponseSuggestionsItemSecondaryTextMax = 500;
-
-export const getWorksiteAddressSuggestionsResponseSuggestionsMax = 5;
-
-
-
-export const GetWorksiteAddressSuggestionsResponse = zod.object({
-  "suggestions": zod.array(zod.object({
-  "placeId": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemPlaceIdMax),
-  "text": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemTextMax),
-  "primaryText": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemPrimaryTextMax),
-  "secondaryText": zod.string().max(getWorksiteAddressSuggestionsResponseSuggestionsItemSecondaryTextMax)
-})).max(getWorksiteAddressSuggestionsResponseSuggestionsMax)
-})
-
-
-/**
  * @summary Check the current admin session
  */
 
@@ -1810,6 +1776,39 @@ export const ListAdminLeadsResponse = zod.array(ListAdminLeadsResponseItem)
 
 
 /**
+ * @summary Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+ */
+export const GetAdminDashboardStatsResponse = zod.object({
+  "kpis": zod.object({
+  "totalRevenueThb": zod.number().describe('Sum of verified + team_reported_paid slip amounts; excludes voided'),
+  "totalLeads": zod.number(),
+  "readyForProduction": zod.number(),
+  "closed": zod.number()
+}),
+  "actionItems": zod.object({
+  "unassignedSlipsCount": zod.number(),
+  "awaitingContactCount": zod.number()
+}),
+  "pipelineRatio": zod.object({
+  "usCount": zod.number(),
+  "ofCount": zod.number(),
+  "otherCount": zod.number()
+}),
+  "upcomingInstallations": zod.array(zod.object({
+  "id": zod.number(),
+  "leadKey": zod.string(),
+  "name": zod.string(),
+  "quoteNumber": zod.string().nullable(),
+  "project": zod.string().nullable(),
+  "address": zod.string().nullable(),
+  "expectedInstallationDate": zod.string().describe('ISO date (YYYY-MM-DD)'),
+  "notes": zod.string().nullable()
+})),
+  "asOf": zod.coerce.date()
+})
+
+
+/**
  * @summary List payment slips submitted for a lead
  */
 
@@ -2247,5 +2246,39 @@ export const GetCustomerQuotationHistoryResponseItem = zod.object({
   "viewUrl": zod.string()
 })
 export const GetCustomerQuotationHistoryResponse = zod.array(GetCustomerQuotationHistoryResponseItem)
+
+
+/**
+ * @summary Suggest Thai worksite locations from an address query
+ */
+export const getWorksiteAddressSuggestionsQueryInputMin = 3;
+export const getWorksiteAddressSuggestionsQueryInputMax = 250;
+
+
+
+export const GetWorksiteAddressSuggestionsQueryParams = zod.object({
+  "input": zod.coerce.string().min(getWorksiteAddressSuggestionsQueryInputMin).max(getWorksiteAddressSuggestionsQueryInputMax)
+})
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemPlaceIdMax = 512;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemTextMax = 1000;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemPrimaryTextMax = 500;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemSecondaryTextMax = 500;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsMax = 5;
+
+
+
+export const GetWorksiteAddressSuggestionsResponse = zod.object({
+  "suggestions": zod.array(zod.object({
+  "placeId": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemPlaceIdMax),
+  "text": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemTextMax),
+  "primaryText": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemPrimaryTextMax),
+  "secondaryText": zod.string().max(getWorksiteAddressSuggestionsResponseSuggestionsItemSecondaryTextMax)
+})).max(getWorksiteAddressSuggestionsResponseSuggestionsMax)
+})
 
 
