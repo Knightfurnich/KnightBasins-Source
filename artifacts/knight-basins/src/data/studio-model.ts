@@ -39,11 +39,14 @@ export type StudioRectangle = {
   label?: string;
 };
 
+export type StudioPreset = "i" | "l-left" | "l-right" | "u";
+
 export type StudioPiece = {
   id: string;
   name: string;
   rectangles: StudioRectangle[];
   sideStatuses: Record<string, SideStatus>;
+  preset?: StudioPreset;
 };
 
 export type BacksplashConfig = {
@@ -461,15 +464,75 @@ function mirroredPieceName(name: string) {
  * re-anchored to that edge here, and side legs drop to the new bottom of the
  * back run when the back run's depth changes.
  *
- * Only shapes with a single back run and at least one leg are reflowed — panels
- * someone placed by hand (a left leg at x = 0, a leg at any other y, two runs
- * side by side) stay exactly where they were put. Manual X / Y edits never reach
- * this path at all; the caller only calls it for size changes.
+ * For U shapes, panel 1 (back run) anchors panel 2 (left leg) to its left edge
+ * and panel 3 (right leg) to its right edge. When panel 1's width or depth changes,
+ * both legs immediately follow without gaps or overlaps.
  */
-export function reflowStudioRectangles(before: StudioRectangle[], after: StudioRectangle[]): StudioRectangle[] {
+export function reflowStudioRectangles(
+  before: StudioRectangle[],
+  after: StudioRectangle[],
+  preset?: StudioPreset,
+): StudioRectangle[] {
   if (before.length !== after.length || before.length < 2) return after;
   const widthOf = (rectangle: StudioRectangle) => studioRectangleSize(rectangle).widthMm;
   const heightOf = (rectangle: StudioRectangle) => studioRectangleSize(rectangle).heightMm;
+
+  // 1. Dedicated U-shape geometry reflow
+  const isU = preset === "u" || (
+    after.length === 3 &&
+    (after.some((r) => r.id === "wizard-leg-0") || after.some((r) => r.label?.includes("แผ่นที่ 1") || r.label?.includes("แผ่นหลัก"))) &&
+    (after.some((r) => r.id === "wizard-leg-2") || after.some((r) => r.label?.includes("แผ่นที่ 3")))
+  );
+  if (isU) {
+    const backRun = after.find((r) => r.id === "wizard-leg-0" || r.label?.includes("แผ่นที่ 1") || r.label?.includes("แผ่นหลัก") || r.yMm === 0) ?? after[0];
+    const leftLeg = after.find((r) => r.id === "wizard-leg-1" || (r.id !== backRun.id && r.xMm === 0)) ?? after[1];
+    const rightLeg = after.find((r) => r.id !== backRun.id && r.id !== leftLeg.id) ?? after[2];
+
+    const backWidth = widthOf(backRun);
+    const backDepth = heightOf(backRun);
+    const leftWidth = widthOf(leftLeg);
+    const rightWidth = widthOf(rightLeg);
+
+    return after.map((r) => {
+      if (r.id === backRun.id) return r;
+      if (r.id === leftLeg.id) {
+        return {
+          ...r,
+          xMm: backRun.xMm,
+          yMm: backRun.yMm + backDepth,
+        };
+      }
+      if (r.id === rightLeg.id) {
+        return {
+          ...r,
+          xMm: Math.max(backRun.xMm + leftWidth, backRun.xMm + backWidth - rightWidth),
+          yMm: backRun.yMm + backDepth,
+        };
+      }
+      return r;
+    });
+  }
+
+  // 2. Dedicated L-shape geometry reflow
+  const isLLeft = preset === "l-left" || (after.length === 2 && after[1].yMm > 0 && after[1].xMm === 0);
+  if (isLLeft) {
+    const backRun = after[0];
+    const leg = after[1];
+    const backDepth = heightOf(backRun);
+    return after.map((r) => (r.id === leg.id ? { ...r, xMm: backRun.xMm, yMm: backRun.yMm + backDepth } : r));
+  }
+
+  const isLRight = preset === "l-right" || (after.length === 2 && after[1].yMm > 0 && after[1].xMm > 0);
+  if (isLRight) {
+    const backRun = after[0];
+    const leg = after[1];
+    const backWidth = widthOf(backRun);
+    const backDepth = heightOf(backRun);
+    const legWidth = widthOf(leg);
+    return after.map((r) => (r.id === leg.id ? { ...r, xMm: Math.max(0, backRun.xMm + backWidth - legWidth), yMm: backRun.yMm + backDepth } : r));
+  }
+
+  // 3. General fallback for custom shapes
   const rightEdgeOf = (rectangles: StudioRectangle[]) =>
     rectangles.reduce((edge, rectangle) => Math.max(edge, rectangle.xMm + widthOf(rectangle)), 0);
   const topEdge = before.reduce((min, rectangle) => Math.min(min, rectangle.yMm), Number.POSITIVE_INFINITY);
@@ -477,7 +540,6 @@ export function reflowStudioRectangles(before: StudioRectangle[], after: StudioR
   const legs = before.filter((rectangle) => rectangle.yMm > topEdge + STUDIO_EPSILON_MM);
   if (backRun.length !== 1 || legs.length === 0) return after;
 
-  // A leg is right-anchored when its right edge is the piece's right edge.
   const beforeRightEdge = rightEdgeOf(before);
   const rightAnchored = new Set(legs
     .filter((leg) => leg.xMm > STUDIO_EPSILON_MM && Math.abs(leg.xMm + widthOf(leg) - beforeRightEdge) <= STUDIO_EPSILON_MM)
@@ -492,8 +554,6 @@ export function reflowStudioRectangles(before: StudioRectangle[], after: StudioR
 
   if (rightAnchored.size === 0 && !backRunDepthChanged) return after;
 
-  // Right-anchored legs follow the right edge, so that edge has to be measured
-  // from the panels that are not anchored (the back run above all).
   const rightEdge = rightEdgeOf(after.filter((rectangle) => !rightAnchored.has(rectangle.id)));
   return after.map((rectangle) => {
     let next = rectangle;

@@ -475,3 +475,27 @@ test("two panels side by side on the same row keep the positions they were given
   const after = reflowStudioRectangles(before, withSize(before, "run-a", { widthMm: 1800 }));
   assert.equal(after.find((item) => item.id === "run-b")!.xMm, 1500);
 });
+
+test("resizing panel 1 (back run) width in U shape reflows panel 3 to remain flush to right edge", () => {
+  const before = [
+    rectangle("wizard-leg-0", { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นที่ 1" }),
+    rectangle("wizard-leg-1", { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, label: "แผ่นที่ 2" }),
+    rectangle("wizard-leg-2", { widthMm: 400, lengthMm: 1200, xMm: 1100, yMm: 600, label: "แผ่นที่ 3" }),
+  ];
+  // Widen panel 1 to 2000
+  const after = reflowStudioRectangles(before, withSize(before, "wizard-leg-0", { widthMm: 2000 }), "u");
+  const p3 = after.find((r) => r.id === "wizard-leg-2")!;
+  assert.equal(p3.xMm, 1600, "2000 - 400 = 1600");
+  assert.equal(p3.xMm + p3.widthMm, 2000);
+});
+
+test("deepening panel 1 in U shape drops both leg 2 and leg 3 to the new depth", () => {
+  const before = [
+    rectangle("wizard-leg-0", { widthMm: 1500, lengthMm: 600, xMm: 0, yMm: 0, label: "แผ่นที่ 1" }),
+    rectangle("wizard-leg-1", { widthMm: 600, lengthMm: 1200, xMm: 0, yMm: 600, label: "แผ่นที่ 2" }),
+    rectangle("wizard-leg-2", { widthMm: 600, lengthMm: 1200, xMm: 900, yMm: 600, label: "แผ่นที่ 3" }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "wizard-leg-0", { lengthMm: 750 }), "u");
+  assert.equal(after.find((r) => r.id === "wizard-leg-1")!.yMm, 750);
+  assert.equal(after.find((r) => r.id === "wizard-leg-2")!.yMm, 750);
+});

@@ -1858,6 +1858,92 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   border: 1px solid #cfe2ec;
   background: #f3faff;
 }
+.studio-piece-tabs-bar {
+  margin: 16px 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+.studio-piece-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 0;
+}
+.studio-piece-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #f1f7fa;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.studio-piece-tab:hover {
+  background: #e4f1f8;
+  color: var(--ink);
+}
+.studio-piece-tab.is-active {
+  background: white;
+  color: var(--brand-blue);
+  font-weight: 700;
+  border-color: #2a9bd0;
+  border-top: 2px solid #2a9bd0;
+  border-bottom: 1px solid white;
+  margin-bottom: -1px;
+}
+.studio-piece-tab-badge {
+  font: 9px var(--mono);
+  padding: 1px 5px;
+  background: rgba(23,63,107,.08);
+  border-radius: 2px;
+}
+.studio-piece-tab.is-active .studio-piece-tab-badge {
+  background: rgba(42,155,208,.15);
+  color: #1a7aa8;
+}
+.studio-piece-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  margin-left: 2px;
+  cursor: pointer;
+}
+.studio-piece-tab-close:hover {
+  background: rgba(168,63,55,.12);
+  color: #a83f37;
+}
+.studio-piece-tab-add {
+  height: 33px;
+  padding: 0 12px;
+  font-size: 11px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+.studio-active-piece-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 14px;
+}
+.studio-piece-shape-section {
+  flex: 1;
+  min-width: 280px;
+}
+.studio-piece-workspace-container {
+  margin-bottom: 20px;
+}
 .studio-canvas-toolbar > div:first-child { display: grid; gap: 3px; }
 .studio-canvas-toolbar strong { color: var(--ink); font-size: 12px; }
 .studio-canvas-toolbar small { color: var(--ink-soft); font-size: 10px; }
