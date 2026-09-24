@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import {
   ArrowLeft,
+  ArrowRight,
   ShoppingBag,
   Ruler,
   PenLine,
@@ -48,16 +49,21 @@ export default function SalesGuide() {
 
       <main className="max-w-[880px] mx-auto px-6 py-10 space-y-8">
         {/* Section 1: Welcome & Overview */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30">
-              Knight Furnich Co., Ltd.
-            </Badge>
+        <section className="space-y-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#003366]/10 text-2xl">
+              🏢
+            </div>
+            <div>
+              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[11px]">
+                Knight Furnich Co., Ltd.
+              </Badge>
+              <h1 className="text-lg md:text-xl font-bold text-[#003366] leading-snug">
+                ยินดีต้อนรับสู่ระบบบริการการขายอ่างล้างหน้า ล้างมืออัตโนมัติ โดย ไนท์ เฟอร์นิช
+              </h1>
+            </div>
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold font-display tracking-tight text-[#003366] flex items-center gap-2.5">
-            <span>🏢</span> ยินดีต้อนรับสู่ระบบบริการการขายอ่างล้างหน้า ล้างมืออัตโนมัติ (Knight Basins)
-          </h1>
-          <p className="text-sm md:text-base text-[var(--ink-soft)] leading-relaxed">
+          <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
             แพลตฟอร์มศูนย์รวมบริการอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์แบบครบวงจร พัฒนาขึ้นเพื่ออำนวยความสะดวกให้แก่ลูกค้าทั่วไป 
             สถาปนิก อินทีเรียดีไซเนอร์ และผู้รับเหมา สามารถเลือกชมรุ่นอ่าง ออกแบบขนาดเคาน์เตอร์สั่งตัดตามพื้นที่จริง 
             พร้อมขอรับใบเสนอราคาได้อย่างสะดวกรวดเร็ว
@@ -70,39 +76,68 @@ export default function SalesGuide() {
             <span>🛍️</span> 1. 3 ช่องทางการเลือกชมและสั่งผลิต
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border border-[var(--line)] bg-[var(--card-paper)] shadow-sm">
-              <CardHeader className="pb-3">
-                <ShoppingBag className="text-[#003366] mb-1" size={22} />
-                <CardTitle className="text-base">ซื้อด่วนจากแคตตาล็อก</CardTitle>
-                <CardDescription className="text-xs text-[var(--ink-soft)]">Catalog Quick Order</CardDescription>
-              </CardHeader>
-              <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)]">
-                สำหรับอ่างล้างหน้าสำเร็จรูป 30 รุ่นมาตรฐาน พร้อมภาพตัวอย่างและมุมมอง 360 องศา
-              </CardContent>
-            </Card>
+            <Link href="/?mode=quick-purchase" className="group block focus:outline-none" data-testid="link-guide-channel-catalog">
+              <Card className="h-full border border-[var(--line)] bg-[var(--card-paper)] shadow-sm transition-all duration-200 hover:border-[#003366] hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <ShoppingBag className="text-[#003366] mb-1" size={22} />
+                    <span className="text-xs font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      เข้าชม <ArrowRight size={13} />
+                    </span>
+                  </div>
+                  <CardTitle className="text-base group-hover:text-[#003366] transition-colors">ซื้อด่วนจากแคตตาล็อก</CardTitle>
+                  <CardDescription className="text-xs text-[var(--ink-soft)]">Catalog Quick Order</CardDescription>
+                </CardHeader>
+                <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)] space-y-3">
+                  <p>สำหรับอ่างล้างหน้าสำเร็จรูป 30 รุ่นมาตรฐาน พร้อมภาพตัวอย่างและมุมมอง 360 องศา</p>
+                  <div className="pt-2 text-xs font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
+                    คลิกเพื่อเลือกซื้อ <ArrowRight size={13} />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="border border-[var(--line)] bg-[var(--card-paper)] shadow-sm">
-              <CardHeader className="pb-3">
-                <Ruler className="text-[#003366] mb-1" size={22} />
-                <CardTitle className="text-base">ออกแบบใน 2D Studio</CardTitle>
-                <CardDescription className="text-xs text-[var(--ink-soft)]">Custom Countertop</CardDescription>
-              </CardHeader>
-              <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)]">
-                สำหรับงานเคาน์เตอร์หินสั่งตัดเฉพาะพื้นที่ ระบุความกว้าง ความยาว รูปทรง (ทรงตรง I, ทรงฉาก L, ทรงตัว U) 
-                และเลือกตำแหน่งเจาะอ่างล้างหน้า พร้อมระบบ Live Estimate คำนวณราคาประเมินทันที
-              </CardContent>
-            </Card>
+            <Link href="/studio" className="group block focus:outline-none" data-testid="link-guide-channel-studio">
+              <Card className="h-full border border-[var(--line)] bg-[var(--card-paper)] shadow-sm transition-all duration-200 hover:border-[#003366] hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <Ruler className="text-[#003366] mb-1" size={22} />
+                    <span className="text-xs font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      เข้าใช้ <ArrowRight size={13} />
+                    </span>
+                  </div>
+                  <CardTitle className="text-base group-hover:text-[#003366] transition-colors">ออกแบบใน 2D Studio</CardTitle>
+                  <CardDescription className="text-xs text-[var(--ink-soft)]">Custom Countertop</CardDescription>
+                </CardHeader>
+                <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)] space-y-3">
+                  <p>สำหรับงานเคาน์เตอร์หินสั่งตัดเฉพาะพื้นที่ ระบุความกว้าง ความยาว รูปทรง (ทรงตรง I, ทรงฉาก L, ทรงตัว U) และเลือกตำแหน่งเจาะอ่างล้างหน้า พร้อมระบบ Live Estimate คำนวณราคาประเมินทันที</p>
+                  <div className="pt-2 text-xs font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
+                    คลิกเพื่อเริ่มออกแบบ <ArrowRight size={13} />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="border border-[var(--line)] bg-[var(--card-paper)] shadow-sm">
-              <CardHeader className="pb-3">
-                <PenLine className="text-[#003366] mb-1" size={22} />
-                <CardTitle className="text-base">ส่งภาพถ่ายหรือแบบร่าง</CardTitle>
-                <CardDescription className="text-xs text-[var(--ink-soft)]">Custom Sketch</CardDescription>
-              </CardHeader>
-              <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)]">
-                แนบไฟล์ภาพแปลนจากสถาปนิกหรือแบบวาดมือ เพื่อให้ทีมงานช่วยประเมินราคาและสเปกงานให้โดยตรง
-              </CardContent>
-            </Card>
+            <Link href="/sketch" className="group block focus:outline-none" data-testid="link-guide-channel-sketch">
+              <Card className="h-full border border-[var(--line)] bg-[var(--card-paper)] shadow-sm transition-all duration-200 hover:border-[#003366] hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <PenLine className="text-[#003366] mb-1" size={22} />
+                    <span className="text-xs font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      ส่งแบบ <ArrowRight size={13} />
+                    </span>
+                  </div>
+                  <CardTitle className="text-base group-hover:text-[#003366] transition-colors">ส่งภาพถ่ายหรือแบบร่าง</CardTitle>
+                  <CardDescription className="text-xs text-[var(--ink-soft)]">Custom Sketch</CardDescription>
+                </CardHeader>
+                <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)] space-y-3">
+                  <p>แนบไฟล์ภาพแปลนจากสถาปนิกหรือแบบวาดมือ เพื่อให้ทีมงานช่วยประเมินราคาและสเปกงานให้โดยตรง</p>
+                  <div className="pt-2 text-xs font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
+                    คลิกเพื่อส่งแบบร่าง <ArrowRight size={13} />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </section>
 

@@ -1571,7 +1571,27 @@ function Storefront() {
   const [vat, setVat] = useStored<boolean>("knight-vat", true);
   const activeBasinProducts = useMemo(() => remoteCatalog?.basins.map(basinProductFromCatalog) ?? PRODUCTS, [remoteCatalog?.basins]);
   const [catalogNotice, setCatalogNotice] = useState("");
-  const [orderMode, setOrderMode] = useState<StudioOrderMode>("quick-purchase");
+  const [orderMode, setOrderMode] = useState<StudioOrderMode>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const m = params.get("mode");
+      if (m === "quick-purchase" || m === "studio" || m === "sketch") return m;
+    }
+    return "quick-purchase";
+  });
+
+  useEffect(() => {
+    const syncModeFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const m = params.get("mode");
+      if (m === "quick-purchase" || m === "studio" || m === "sketch") {
+        setOrderMode(m);
+      }
+    };
+    syncModeFromUrl();
+    window.addEventListener("popstate", syncModeFromUrl);
+    return () => window.removeEventListener("popstate", syncModeFromUrl);
+  }, []);
   const [leadKey] = useStored("knight-lead-key", `lead-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const [, setLocation] = useLocation();
   const lastCatalogFingerprint = useRef<string | null>(null);
@@ -1734,7 +1754,7 @@ function Storefront() {
     if (mode === "studio") setLocation("/studio");
     else setLocation("/");
   };
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}</Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/sketch"><StudioPage mode="sketch" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromStoneMode} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {
