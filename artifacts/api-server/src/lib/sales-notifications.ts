@@ -39,6 +39,7 @@ type NotificationItem = {
   quantity?: number;
   unit?: string;
   unitPriceTHB?: number;
+  totalTHB?: number;
 };
 
 type NotificationSnapshot = {
@@ -110,6 +111,56 @@ function itemKind(item: NotificationItem) {
   return "service";
 }
 
+/** ส่วนท้ายของบรรทัดรายการ: " × ฿ราคาต่อหน่วย = ฿ยอดรวม" — เว้นว่างถ้าไม่มีราคา */
+function itemPriceSuffix(item: NotificationItem, quantity: number) {
+  const unitPrice = typeof item.unitPriceTHB === "number" && Number.isFinite(item.unitPriceTHB) ? item.unitPriceTHB : null;
+  const total = typeof item.totalTHB === "number" && Number.isFinite(item.totalTHB)
+    ? item.totalTHB
+    : unitPrice !== null ? quantity * unitPrice : null;
+  if (total === null || total <= 0) return "";
+  if (unitPrice !== null && unitPrice > 0) return ` × ฿${formatBaht(unitPrice)} = ฿${formatBaht(total)}`;
+  return ` = ฿${formatBaht(total)}`;
+}
+
+/**
+ * บล็อก "วิธีคำนวณ" สำหรับข้อความแจ้งเตือน — อ่านจาก estimate ที่แนบมากับ studioData
+ * ครอบทั้งเส้นทาง Studio (มีรายการ) และ sketch (ไม่มีรายการ แต่มี estimate)
+ */
+function estimateBreakdown(studio: unknown): string[] {
+  if (!studio || typeof studio !== "object") return [];
+  const s = studio as Record<string, unknown>;
+  const est = s["estimate"];
+  if (!est || typeof est !== "object") return [];
+  const e = est as Record<string, unknown>;
+  const num = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
+  const q = (value: number) => value.toLocaleString("th-TH", { maximumFractionDigits: 3 });
+  const stone = typeof s["activeStone"] === "string" ? s["activeStone"] : "";
+  const lines: string[] = [];
+  const area = num(e["counterAreaSqM"]);
+  if (area > 0) {
+    const rate = num(e["stoneUnitPriceTHB"]);
+    lines.push(`• หิน${stone ? ` ${stone}` : ""} ${q(area)} ตร.ม. × ฿${formatBaht(rate)} = ฿${formatBaht(num(e["stoneTotalTHB"]))}`);
+  }
+  const upstandLength = num(e["upstandLengthM"]);
+  if (upstandLength > 0) lines.push(`• บัว ${q(upstandLength)} ม. = ฿${formatBaht(num(e["upstandTotalTHB"]))}`);
+  const openEdgeLength = num(e["openEdgeLengthM"]);
+  if (openEdgeLength > 0) {
+    const openEdgeRate = num(e["openEdgeUnitPriceTHB"]);
+    lines.push(`• ปิดขอบเปิด ${q(openEdgeLength)} ม.${openEdgeRate > 0 ? ` × ฿${formatBaht(openEdgeRate)}` : " (ยังไม่ระบุราคา/ม.)"} = ฿${formatBaht(num(e["openEdgeTotalTHB"]))}`);
+  }
+  const basinTotal = num(e["basinSubtotalTHB"]);
+  if (basinTotal > 0) lines.push(`• อ่างล้างหน้า = ฿${formatBaht(basinTotal)}`);
+  const installation = num(e["installationChargeTHB"]);
+  if (installation > 0) lines.push(`• ค่าติดตั้ง = ฿${formatBaht(installation)}`);
+  const installationDiscount = num(e["installationDiscountTHB"]);
+  if (installationDiscount > 0) lines.push(`• ติดตั้งฟรี (3 ชุดขึ้นไป) = −฿${formatBaht(installationDiscount)}`);
+  const smallJob = num(e["smallJobFeeTHB"]);
+  if (smallJob > 0) lines.push(`• ค่าดำเนินการงานพื้นที่เล็ก = ฿${formatBaht(smallJob)}`);
+  const discount = num(e["discountTHB"]);
+  if (discount > 0) lines.push(`• ส่วนลด = −฿${formatBaht(discount)}`);
+  return lines.length ? ["วิธีคำนวณ:", ...lines] : [];
+}
+
 function formatNotificationItems(items: NotificationItem[], fallbackSkus: string[]) {
   const lines = items.flatMap((item) => {
     const code = item.code?.trim();
@@ -117,14 +168,14 @@ function formatNotificationItems(items: NotificationItem[], fallbackSkus: string
     const label = itemLabel(item);
     if (!code) return [];
     if (itemKind(item) === "basin") {
-      return [`- ${code}${label ? ` ${label}` : ""} ×${formatQuantity(quantity)} ชุด`];
+      return [`- ${code}${label ? ` ${label}` : ""} ×${formatQuantity(quantity)} ชุด${itemPriceSuffix(item, quantity)}`];
     }
     if (itemKind(item) === "stone") {
       const unit = item.unit?.trim() || "ตร.ม.";
-      return [`- หิน ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit}`];
+      return [`- หิน ${code}${label ? ` ${label}` : ""} ${formatQuantity(quantity)} ${unit}${itemPriceSuffix(item, quantity)}`];
     }
     const unit = item.unit?.trim() || "";
-    return [`- ${label || code}${unit ? ` ${formatQuantity(quantity)} ${unit}` : ""}`];
+    return [`- ${label || code}${unit ? ` ${formatQuantity(quantity)} ${unit}` : ""}${itemPriceSuffix(item, quantity)}`];
   });
   if (lines.length) return lines;
   return fallbackSkus.map((sku) => `- ${sku} ×1 ชุด`);
@@ -139,7 +190,25 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     vat?: boolean;
     items?: NotificationItem[];
     quickQuote?: { subtotal?: number; vatAmount?: number; total?: number; vat?: boolean; items?: NotificationItem[] };
-    estimate?: { subtotalTHB?: number; vatAmountTHB?: number; totalTHB?: number; stoneUnitPriceTHB?: number };
+    estimate?: {
+      subtotalTHB?: number;
+      vatAmountTHB?: number;
+      totalTHB?: number;
+      stoneUnitPriceTHB?: number;
+      counterAreaSqM?: number;
+      stoneTotalTHB?: number;
+      upstandLengthM?: number;
+      upstandTotalTHB?: number;
+      openEdgeLengthM?: number;
+      openEdgeUnitPriceTHB?: number | null;
+      openEdgeTotalTHB?: number;
+      basinSubtotalTHB?: number;
+      installationChargeTHB?: number;
+      installationDiscountTHB?: number;
+      smallJobFeeTHB?: number;
+      discountTHB?: number;
+    };
+    activeStone?: string;
   } | null;
   const notification = studio?.notification;
   const subtotal = notification?.subtotal
@@ -160,7 +229,8 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     ?? studio?.vat
     ?? studio?.quickQuote?.vat
     ?? vatAmount > 0;
-  const items = formatNotificationItems(notificationItems(studio), lead.productSkus);
+  const rawItems = notificationItems(studio);
+  const items = formatNotificationItems(rawItems, lead.productSkus);
   const has9500StoneRate = notificationItems(studio).some((item) => itemKind(item) === "stone" && item.unitPriceTHB === 9500) ||
     studio?.estimate?.stoneUnitPriceTHB === 9500;
   return [
@@ -177,9 +247,11 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     `วันที่คาดว่าจะติดตั้ง: ${formatThaiDateOnly(lead.expectedInstallationDate)}`,
     `ข้อมูลใบกำกับภาษี: ${labelValue(lead.taxName)} · Tax ID ${labelValue(lead.taxId)} · ${labelValue(lead.taxBranch)}`,
     `ที่อยู่ใบกำกับภาษี: ${labelValue(lead.taxAddress)}`,
-    "รายการ:",
-    ...items,
+    ...(items.length
+      ? [rawItems.length > 0 ? "รายการ:" : "อ่างที่ลูกค้าสนใจ (ยังไม่ได้เลือกเข้าออเดอร์):", ...items]
+      : []),
     ...(has9500StoneRate ? ["*(ยอดรวมสุทธินี้ยังไม่รวมราคาหินลายหินอ่อน — ทีมขายจะประเมินราคาเพิ่ม)*"] : []),
+    ...estimateBreakdown(studio),
     ...(vat
       ? [
           `ยอดก่อน VAT: ${typeof subtotal === "number" ? `${formatBaht(subtotal)} บาท` : "-"}`,
