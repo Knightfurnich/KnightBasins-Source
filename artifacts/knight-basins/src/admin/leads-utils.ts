@@ -53,7 +53,7 @@ export function leadMatchesDateRange(lead: CustomerLead, filters: LeadDateFilter
 
 export function filterAdminLeads(
   leads: CustomerLead[],
-  status: CustomerLead["status"] | "all",
+  status: CustomerLead["status"] | "all" | (string & {}),
   query: string,
   filters: LeadDateFilters,
 ) {

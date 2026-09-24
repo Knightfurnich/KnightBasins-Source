@@ -24,6 +24,7 @@ const statusLabels: Record<string, string> = {
   quote_requested: "ขอใบเสนอราคา",
   quote_sent: "ส่งใบเสนอราคาแล้ว",
   waiting_deposit: "รอมัดจำ",
+  team_reported_paid: "ชำระแล้ว (LINE)",
   closed: "ปิดการขาย",
 };
 
@@ -538,6 +539,7 @@ export function LeadsManager() {
   const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
   const [filter, setFilter] = useState<CustomerLeadStatus | "all">("all");
+  const [quoteTypeFilter, setQuoteTypeFilter] = useState<"all" | "US" | "OF">("all");
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -546,8 +548,14 @@ export function LeadsManager() {
   const [savedDimensions, setSavedDimensions] = useState<number | null>(null);
   const [copiedQuote, setCopiedQuote] = useState<string | null>(null);
   const [copyError, setCopyError] = useState("");
-  const visibleLeads = useMemo(() => filterAdminLeads(leads ?? [], filter, search, { fromDate, toDate }), [filter, fromDate, leads, search, toDate]);
-  const hasSearchFilters = Boolean(search || fromDate || toDate);
+  const visibleLeads = useMemo(() => {
+    let result = filterAdminLeads(leads ?? [], filter, search, { fromDate, toDate });
+    if (quoteTypeFilter !== "all") {
+      result = result.filter((lead) => (lead.quoteNumber ?? "").toUpperCase().includes(quoteTypeFilter));
+    }
+    return result;
+  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter]);
+  const hasSearchFilters = Boolean(search || fromDate || toDate || quoteTypeFilter !== "all");
 
   const updateStatus = (id: number, status: CustomerLeadStatus, notes?: string | null) => {
     updateLead.mutate(
@@ -615,8 +623,6 @@ export function LeadsManager() {
         </Button>
       </div>
 
-      <LeadPageGuide />
-
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--line)] pb-3">
         <div className="flex flex-wrap gap-2">
           <Button variant={activeView === "leads" ? "secondary" : "ghost"} onClick={() => setActiveView("leads")} className="rounded-none">
@@ -656,15 +662,33 @@ export function LeadsManager() {
         <UnassignedSlipsPanel leads={leads ?? []} />
       ) : (
         <>
-      <div className="flex flex-wrap gap-2">
-        <Button variant={filter === "all" ? "secondary" : "ghost"} onClick={() => setFilter("all")} className="rounded-none">
-          ทั้งหมด ({leads?.length ?? 0})
-        </Button>
-        {statusOptions.map((status) => (
-          <Button key={status} variant={filter === status ? "secondary" : "ghost"} onClick={() => setFilter(status)} className="rounded-none">
-            {statusLabels[status]} ({leads?.filter((lead) => lead.status === status).length ?? 0})
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant={filter === "all" ? "secondary" : "ghost"} onClick={() => setFilter("all")} className="rounded-none">
+            ทั้งหมด ({leads?.length ?? 0})
           </Button>
-        ))}
+          {statusOptions.map((status) => (
+            <Button key={status} variant={filter === status ? "secondary" : "ghost"} onClick={() => setFilter(status)} className="rounded-none">
+              {statusLabels[status]} ({leads?.filter((lead) => lead.status === status).length ?? 0})
+            </Button>
+          ))}
+          <Button variant={filter === ("team_reported_paid" as any) ? "secondary" : "ghost"} onClick={() => setFilter("team_reported_paid" as any)} className="rounded-none text-[#17816d] font-medium">
+            ชำระแล้ว (LINE) ({leads?.filter((lead) => (lead.status as string) === "team_reported_paid").length ?? 0})
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-1 border border-[var(--line)] p-1 text-xs">
+          <span className="text-[var(--ink-soft)] px-1">ประเภทบิล:</span>
+          <Button size="sm" variant={quoteTypeFilter === "all" ? "secondary" : "ghost"} onClick={() => setQuoteTypeFilter("all")} className="h-6 px-2 text-xs rounded-none">
+            ทั้งหมด
+          </Button>
+          <Button size="sm" variant={quoteTypeFilter === "US" ? "secondary" : "ghost"} onClick={() => setQuoteTypeFilter("US")} className="h-6 px-2 text-xs rounded-none">
+            งานติดตั้ง (US)
+          </Button>
+          <Button size="sm" variant={quoteTypeFilter === "OF" ? "secondary" : "ghost"} onClick={() => setQuoteTypeFilter("OF")} className="h-6 px-2 text-xs rounded-none">
+            ขายแผ่น/กาว (OF)
+          </Button>
+        </div>
       </div>
 
       <div className="border border-[var(--line)] bg-[var(--card-paper)] p-4 space-y-3">
