@@ -128,6 +128,8 @@ export type StudioNotificationItem = {
   laborUnitPriceTHB?: number | null;
   workQuantity?: number | null;
   workUnit?: string;
+  dimensions?: string;
+  cutoutDimensions?: string;
 };
 
 export type StudioNotificationSnapshot = {
@@ -515,10 +517,12 @@ function normalizeStudioState(
   basinProducts: ReadonlyArray<BasinProduct> = PRODUCTS,
   availableStoneColors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ): StudioState {
-  const activeStone = state.activeStone || state.stoneColors[0] || studioDefaultStoneCode(state.basinSkus, basinProducts, availableStoneColors);
+  const hasExplicitStoneSelection = state.stoneSelectionSource === "user";
+  const defaultStone = hasExplicitStoneSelection ? "" : studioDefaultStoneCode(state.basinSkus, basinProducts, availableStoneColors);
+  const activeStone = state.activeStone || state.stoneColors[0] || defaultStone;
   const stoneColors = state.stoneColors.length
     ? state.stoneColors
-    : [activeStone];
+    : hasExplicitStoneSelection ? [] : [activeStone];
   return {
     ...state,
     stoneColors,
@@ -1914,7 +1918,19 @@ export function StudioPage({
       state.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
       const notificationItems: StudioNotificationItem[] = Array.from(basinCounts.entries()).flatMap(([sku, quantity]) => {
         const product = basinProducts.find((item) => item.sku === sku);
-        return product ? [{ kind: "basin" as const, code: product.sku, description: product.colorName, quantity, unit: "ชุด", unitPriceTHB: product.priceTHB, totalTHB: Math.round(product.priceTHB * quantity), workQuantity: quantity, workUnit: "ชุด" }] : [];
+        return product ? [{
+          kind: "basin" as const,
+          code: product.sku,
+          description: product.colorName,
+          quantity,
+          unit: "ชุด",
+          unitPriceTHB: product.priceTHB,
+          totalTHB: Math.round(product.priceTHB * quantity),
+          workQuantity: quantity,
+          workUnit: "ชุด",
+          dimensions: product.dimensions,
+          cutoutDimensions: product.basinDimensions,
+        }] : [];
       });
       const stoneMaterialPrice = stoneColorByName(activeStone.code, stoneColors).sheetPriceTHB;
       const stoneLaborPrice = estimate.stoneUnitPriceTHB !== null && stoneMaterialPrice !== null

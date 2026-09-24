@@ -1941,6 +1941,75 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
   });
 
+  it("keeps an explicitly removed Studio stone removed after reopening the quote", async () => {
+    await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "origin before clearing Studio storage",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-stone-BW010"]\') !== null'),
+      Boolean,
+      "fresh Studio stone shortlist",
+    );
+
+    assert.equal(
+      await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-stone-BW010"]\')?.getAttribute("aria-pressed")'),
+      "true",
+    );
+    await clickTestId(browser.page, "button-studio-stone-BW010");
+    await waitFor(
+      () => browser.page.evaluate(`(() => {
+        const button = document.querySelector('[data-testid="button-studio-stone-BW010"]');
+        const record = JSON.parse(localStorage.getItem("knight-studio-draft-v1") || "null");
+        return button?.getAttribute("aria-pressed") === "false" &&
+          record?.state?.stoneColors?.length === 0 &&
+          record?.state?.activeStone === "" &&
+          record?.state?.stoneSelectionSource === "user";
+      })()`),
+      Boolean,
+      "autosaved removed Studio stone",
+    );
+
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio order mode after removing stone",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-draft-banner"]\') !== null'),
+      Boolean,
+      "Studio draft recovery banner after removing stone",
+    );
+    await clickTestId(browser.page, "button-resume-studio-draft");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-stone-BW010"]\')?.getAttribute("aria-pressed") === "false"'),
+      Boolean,
+      "removed Studio stone after draft resume",
+    );
+    const reopened = await browser.page.evaluate(`(() => ({
+      selectedStoneButtons: document.querySelectorAll('[data-testid^="button-studio-stone-"][aria-pressed="true"]').length,
+      activeStoneButtons: document.querySelectorAll('[data-testid^="button-studio-active-stone-"]').length,
+      storedStoneColors: JSON.parse(localStorage.getItem("knight-studio-draft-v1") || "null")?.state?.stoneColors ?? null,
+    }))()`);
+    assert.equal(reopened.selectedStoneButtons, 0);
+    assert.equal(reopened.activeStoneButtons, 0);
+    assert.deepEqual(reopened.storedStoneColors, []);
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+  });
+
   it("autosaves Studio drafts and resumes them from a self-contained link", async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
@@ -1992,12 +2061,14 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.match(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-draft-banner"]\')?.textContent ?? ""'), /พบแบบร่างที่ทำค้างไว้เมื่อ/);
     await clickTestId(browser.page, "button-resume-studio-draft");
     const resumed = await waitFor(
-      () => browser.page.evaluate(`(() => {
-        const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
-        return input instanceof HTMLInputElement ? input.value : "";
-      })()`),
-      (value) => value === "2250",
-      "named draft card restore",
+      () => browser.page.evaluate(`(() => ({
+        activeStone: document.querySelector('[data-testid="button-studio-active-stone-SO423"]')?.classList.contains("is-active") ?? false,
+        basinSelected: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.getAttribute("aria-pressed") === "true",
+        width: (() => { const input = document.querySelector('[data-testid^="input-rectangle-width-"]'); return input instanceof HTMLInputElement ? input.value : ""; })(),
+        banner: document.querySelector('[data-testid="studio-draft-banner"]') !== null,
+      }))()`),
+      (value) => value.width === "2100",
+      "resumed Studio draft",
     );
     assert.equal(resumed.activeStone, true);
     assert.equal(resumed.basinSelected, true);
@@ -2025,7 +2096,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     const linked = await browser.page.evaluate(`(() => ({
       activeStone: document.querySelector('[data-testid="button-studio-active-stone-SO423"]')?.classList.contains("is-active") ?? false,
-      basinSelected: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.classList.contains("is-selected") ?? false,
+      basinSelected: document.querySelector('[data-testid="button-studio-basin-KF002"]')?.getAttribute("aria-pressed") === "true",
       width: (() => { const input = document.querySelector('[data-testid^="input-rectangle-width-"]'); return input instanceof HTMLInputElement ? input.value : ""; })(),
       banner: document.querySelector('[data-testid="studio-draft-banner"]') !== null,
     }))()`);
@@ -2043,7 +2114,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "legacy linked Studio draft",
     );
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-active-stone-SO423"]\')?.classList.contains("is-active") ?? false'), true);
-    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF002"]\')?.classList.contains("is-selected") ?? false'), true);
+    assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF002"]\')?.getAttribute("aria-pressed") === "true"'), true);
     assert.equal(await browser.page.evaluate(`(() => {
       const input = document.querySelector('[data-testid^="input-rectangle-width-"]');
       return input instanceof HTMLInputElement ? input.value : "";
