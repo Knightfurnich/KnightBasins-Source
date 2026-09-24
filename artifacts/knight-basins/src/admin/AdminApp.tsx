@@ -17,6 +17,7 @@ import { LeadsManager } from "./LeadsManager";
 import { TeamManager } from "./TeamManager";
 import { AdminDashboard } from "./AdminDashboard";
 import { TechnicianCalendarPage } from "./TechnicianCalendarPage";
+import { TechnicianTeamsManager } from "./TechnicianTeamsManager";
 import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
@@ -59,6 +60,7 @@ const NAV_ITEMS = [
   { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
   { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
   { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads" },
+  { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads" },
   { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true },
 ] as const;
 
@@ -129,6 +131,7 @@ export default function AdminApp() {
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
               <Route path="/admin/calendar" component={TechnicianCalendarRoute} />
+              <Route path="/admin/technician-teams" component={TechnicianTeamsRoute} />
               <Route path="/admin/team" component={TeamRoute} />
             </Switch>
           </main>
@@ -251,6 +254,10 @@ function LeadsRoute() {
 
 function TechnicianCalendarRoute() {
   return <AdminPermissionGate permission="leads" resource="ปฏิทินคิวช่าง"><TechnicianCalendarPage /></AdminPermissionGate>;
+}
+
+function TechnicianTeamsRoute() {
+  return <AdminPermissionGate permission="leads" resource="ทีมช่างติดตั้ง"><TechnicianTeamsManager /></AdminPermissionGate>;
 }
 
 function TeamRoute() {

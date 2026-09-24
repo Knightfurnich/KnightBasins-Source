@@ -14,8 +14,10 @@ import {
   getGetAdminTechnicianCalendarQueryKey,
   useGetAdminTechnicianCalendar,
   useUpdateAdminLeadTechnician,
+  type AdminLeadTechnicianUpdateInputTechnicianTeamCode,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { useListAdminTechnicianTeams, type TechnicianTeam } from "./technician-teams-bridge";
 import {
   Sheet,
   SheetContent,
@@ -26,8 +28,7 @@ import {
 
 type CalendarStatus = "available" | "moderate" | "busy";
 
-const TEAM_CODES = ["TP", "PP", "ST", "CM", "KF", "PA", "PM", "TJ", "AM", "CL"] as const;
-type TechnicianTeamCode = (typeof TEAM_CODES)[number];
+type TechnicianTeamCode = Exclude<AdminLeadTechnicianUpdateInputTechnicianTeamCode, null>;
 
 export interface CalendarDay {
   date: string;
@@ -47,31 +48,8 @@ export interface CalendarDay {
   }>;
 }
 
-/**
- * Display names for the 10 install teams. Must stay aligned with
- * knight-design-kb/TEAM.md (section 4), which the owner maintains -- the
- * roster can grow or shrink, and the admin owns that list.
- */
-const TECHNICIAN_TEAMS: Array<{ code: TechnicianTeamCode; name: string }> = [
-  { code: "TP", name: "ช่างยี่" },
-  { code: "PP", name: "ช่างเนตร" },
-  { code: "ST", name: "ช่างทู" },
-  { code: "CM", name: "ช่างเจมส์" },
-  { code: "KF", name: "ทีมโรงงาน" },
-  { code: "PA", name: "ช่างเปา" },
-  { code: "PM", name: "ช่างพร้อม" },
-  { code: "TJ", name: "ช่างกอล์ฟ" },
-  { code: "AM", name: "ช่างเจ๋ง" },
-  { code: "CL", name: "ช่างชัยยา" },
-];
 const WEEKDAYS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 const FULL_WEEKDAYS = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];
-const JOB_TEMPLATES = ["ติดตั้งอ่างล้างหน้า", "ติดตั้งท็อปหิน", "ตรวจวัดหน้างาน"];
-const DEMO_ADDRESSES = [
-  "เขตวัฒนา, กรุงเทพมหานคร (ข้อมูลตัวอย่าง)",
-  "เขตสวนหลวง, กรุงเทพมหานคร (ข้อมูลตัวอย่าง)",
-  "อำเภอเมืองนนทบุรี, นนทบุรี (ข้อมูลตัวอย่าง)",
-];
 
 const BANGKOK_TIME_ZONE = "Asia/Bangkok";
 const bangkokDateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -141,59 +119,6 @@ function dateFromBangkokDateKey(dateKey: string) {
   return new Date(`${dateKey}T12:00:00+07:00`);
 }
 
-function createMockMonth(year: number, month: number): CalendarDay[] {
-  const daysInMonth = new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate();
-
-  return Array.from({ length: daysInMonth }, (_, index) => {
-    const dayNumber = index + 1;
-    const date = toBangkokDateKey(new Date(Date.UTC(year, month, dayNumber, 12)));
-    const totalJobs =
-      dayNumber % 13 === 0 ? 4 :
-      dayNumber % 9 === 0 ? 3 :
-      dayNumber % 5 === 0 ? 2 :
-      dayNumber % 3 === 0 ? 1 : 0;
-    const jobCounts = TEAM_CODES.map(() => 0);
-
-    if (dayNumber % 13 === 0) {
-      jobCounts[dayNumber % TEAM_CODES.length] = totalJobs;
-    } else {
-      for (let jobIndex = 0; jobIndex < totalJobs; jobIndex += 1) {
-        jobCounts[(dayNumber + jobIndex * 3) % TEAM_CODES.length] += 1;
-      }
-    }
-
-    const teams = TEAM_CODES.map((teamCode, teamIndex) => {
-      const jobCount = jobCounts[teamIndex];
-      const jobs = Array.from({ length: jobCount }, (_, jobIndex) => {
-        const dateDigits = Number(date.replaceAll("-", ""));
-        return {
-          id: dateDigits * 1000 + teamIndex * 10 + jobIndex,
-          name: JOB_TEMPLATES[(dayNumber + teamIndex + jobIndex) % JOB_TEMPLATES.length],
-          project: `DEMO-${date.replaceAll("-", "")}-${teamCode}-${jobIndex + 1}`,
-          address: DEMO_ADDRESSES[(dayNumber + teamIndex) % DEMO_ADDRESSES.length],
-        };
-      });
-
-      return {
-        teamCode,
-        teamName: `ทีมช่าง ${teamCode}`,
-        status: jobCount >= 4 ? "busy" as const : jobCount > 0 ? "moderate" as const : "available" as const,
-        jobCount,
-        jobs,
-      };
-    });
-
-    const dayStatus: CalendarStatus =
-      totalJobs >= 4 || teams.some((team) => team.status === "busy")
-        ? "busy"
-        : totalJobs > 0
-          ? "moderate"
-          : "available";
-
-    return { date, dayStatus, totalJobs, teams };
-  });
-}
-
 function shiftMonth(date: Date, amount: number) {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, 1, 12));
 }
@@ -218,6 +143,7 @@ function StatusBadge({ status, compact = false, testId }: { status: CalendarStat
 function JobCard({
   job,
   teamCode,
+  technicianTeams,
   installationDate,
   isLive,
   isUpdating,
@@ -227,6 +153,7 @@ function JobCard({
 }: {
   job: CalendarDay["teams"][number]["jobs"][number];
   teamCode: TechnicianTeamCode;
+  technicianTeams: TechnicianTeam[];
   installationDate: string;
   isLive: boolean;
   isUpdating: boolean;
@@ -253,9 +180,6 @@ function JobCard({
     <li className="border border-[var(--line)] bg-[var(--paper)] p-3" data-testid={`calendar-job-${job.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
         <p className="text-xs font-semibold leading-relaxed text-[var(--ink)]">{job.name}</p>
-        <span className="border border-[var(--line)] px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[var(--ink-soft)]">
-          ตัวอย่าง
-        </span>
       </div>
       {job.project && <p className="mt-1 font-mono text-[10px] text-[var(--brand-blue)]">{job.project}</p>}
       <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
@@ -289,8 +213,8 @@ function JobCard({
               data-testid={`select-calendar-team-${job.id}`}
             >
               <option value="">ปลดคิว / ไม่ระบุทีม</option>
-              {TECHNICIAN_TEAMS.map((team) => (
-                <option key={team.code} value={team.code}>{team.code} — {team.name}</option>
+              {technicianTeams.map((team) => (
+                <option key={team.id} value={team.code}>{team.code} — {team.name}</option>
               ))}
             </select>
           </label>
@@ -319,6 +243,7 @@ function JobCard({
 
 function TeamQueue({
   team,
+  technicianTeams,
   installationDate,
   isLive,
   isUpdating,
@@ -327,6 +252,7 @@ function TeamQueue({
   onReschedule,
 }: {
   team: CalendarDay["teams"][number];
+  technicianTeams: TechnicianTeam[];
   installationDate: string;
   isLive: boolean;
   isUpdating: boolean;
@@ -362,6 +288,7 @@ function TeamQueue({
                 key={job.id}
                 job={job}
                 teamCode={team.teamCode}
+                technicianTeams={technicianTeams}
                 installationDate={installationDate}
                 isLive={isLive}
                 isUpdating={isUpdating}
@@ -387,19 +314,26 @@ export function TechnicianCalendarPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const queryClient = useQueryClient();
   const updateTech = useUpdateAdminLeadTechnician();
+  const { data: technicianTeams } = useListAdminTechnicianTeams();
+  const activeTechnicianTeams = useMemo(
+    () => (technicianTeams ?? []).filter((team) => team.active),
+    [technicianTeams],
+  );
 
   const visibleYear = visibleMonth.getUTCFullYear();
   const visibleMonthIndex = visibleMonth.getUTCMonth();
   const currentMonthKey = `${visibleYear}-${String(visibleMonthIndex + 1).padStart(2, "0")}`;
-  const { data: calendarData, isLoading } = useGetAdminTechnicianCalendar({ month: currentMonthKey });
+  const {
+    data: calendarData,
+    isLoading,
+    isError: isCalendarError,
+  } = useGetAdminTechnicianCalendar({ month: currentMonthKey });
 
-  const isLive = Boolean(calendarData?.days && calendarData.days.length > 0);
-  const monthDays = useMemo<CalendarDay[]>(() => {
-    if (calendarData?.days && calendarData.days.length > 0) {
-      return calendarData.days as unknown as CalendarDay[];
-    }
-    return createMockMonth(visibleYear, visibleMonthIndex);
-  }, [calendarData, visibleYear, visibleMonthIndex]);
+  const isLive = Boolean(calendarData?.days);
+  const monthDays = useMemo<CalendarDay[]>(
+    () => (calendarData?.days as unknown as CalendarDay[] | undefined) ?? [],
+    [calendarData],
+  );
   const monthOffset = (new Date(Date.UTC(visibleYear, visibleMonthIndex, 1, 12)).getUTCDay() + 6) % 7;
   const calendarCells = useMemo<(CalendarDay | null)[]>(() => {
     const cells: (CalendarDay | null)[] = [
@@ -465,7 +399,7 @@ export function TechnicianCalendarPage() {
             ปฏิทินคิวช่าง
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--ink-soft)]">
-            ตารางรายเดือนสำหรับวางแผนงานติดตั้งของทีมช่างทั้ง 10 ทีม เลือกวันที่เพื่อเปิดคิวรายละเอียด
+            ตารางรายเดือนสำหรับวางแผนงานติดตั้งของทีมช่าง เลือกวันที่เพื่อเปิดคิวรายละเอียด
           </p>
         </div>
         {isLive ? (
@@ -475,30 +409,34 @@ export function TechnicianCalendarPage() {
             role="note"
           >
             <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#17816d]" aria-hidden="true" />
-            <span><strong>เชื่อมต่อระบบจริง (Live Dispatch)</strong><br />ซิงก์คิวช่าง 10 ทีมจากคำสั่งซื้อในระบบ</span>
+            <span><strong>เชื่อมต่อระบบจริง (Live Dispatch)</strong><br />ทีมพร้อมมอบหมาย {countFormatter.format(activeTechnicianTeams.length)} ทีม</span>
           </div>
         ) : (
           <div
             className="flex max-w-sm items-start gap-2 border border-[var(--saffron)]/40 bg-[var(--saffron)]/5 px-3 py-2.5 text-xs leading-relaxed text-[var(--ink)]"
-            data-testid="calendar-demo-notice"
+            data-testid="calendar-unavailable-notice"
             role="note"
           >
             <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--saffron-dark)]" aria-hidden="true" />
-            <span><strong>โหมดข้อมูลตัวอย่าง</strong><br />หน้านี้ยังไม่เชื่อมต่อ API และไม่ใช่คิวงานจริง</span>
+            <span>
+              <strong>{isLoading ? "กำลังโหลดคิวงาน" : isCalendarError ? "โหลดคิวงานไม่สำเร็จ" : "ยังไม่มีข้อมูลคิวงาน"}</strong>
+              <br />
+              {isLoading ? "กำลังดึงข้อมูลจากระบบ" : isCalendarError ? "กรุณาลองใหม่อีกครั้งภายหลัง" : "ข้อมูลจะปรากฏเมื่อระบบส่งคิวงานมา"}
+            </span>
           </div>
         )}
       </header>
 
       <section className="grid grid-cols-1 gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3" aria-label="สรุปคิวประจำเดือน">
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-total">
-          <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">{isLive ? "งานนัดติดตั้งในเดือน" : "งานตัวอย่างในเดือน"}</p>
+          <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">งานนัดติดตั้งในเดือน</p>
           <p className="admin-stat-value mt-1 text-[var(--ink)]">{countFormatter.format(monthStats.totalJobs)}</p>
           <p className="mt-1 text-[10px] text-[var(--ink-soft)]">รวมทุกทีมช่าง</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-available">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวว่าง</p>
           <p className="admin-stat-value mt-1 text-[#17816d]">{countFormatter.format(monthStats.availableDays)}</p>
-          <p className="mt-1 text-[10px] text-[var(--ink-soft)]">{isLive ? "ไม่มีคิวนัดติดตั้ง" : "ไม่มีงานตัวอย่าง"}</p>
+          <p className="mt-1 text-[10px] text-[var(--ink-soft)]">ไม่มีคิวนัดติดตั้ง</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-busy">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวเต็ม</p>
@@ -554,7 +492,7 @@ export function TechnicianCalendarPage() {
               {monthFormatter.format(visibleMonth)}
             </h2>
             <span className="hidden items-center gap-1.5 text-[10px] text-[var(--ink-soft)] sm:inline-flex">
-              <Users className="h-3.5 w-3.5" aria-hidden="true" /> 10 ทีมช่าง
+              <Users className="h-3.5 w-3.5" aria-hidden="true" /> {countFormatter.format(activeTechnicianTeams.length)} ทีมช่าง
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="คำอธิบายสถานะคิว">
@@ -582,7 +520,11 @@ export function TechnicianCalendarPage() {
         </div>
 
         <div className="grid grid-cols-7 gap-px bg-[var(--line)]" data-testid="calendar-month-grid">
-          {calendarCells.map((day, cellIndex) => {
+          {monthDays.length === 0 ? (
+            <p className="col-span-7 px-4 py-8 text-center text-sm text-[var(--ink-soft)]">
+              {isLoading ? "กำลังโหลดปฏิทิน" : isCalendarError ? "โหลดปฏิทินไม่สำเร็จ" : "ยังไม่มีข้อมูลปฏิทินสำหรับเดือนนี้"}
+            </p>
+          ) : calendarCells.map((day, cellIndex) => {
             if (!day) {
               return <div key={`empty-${cellIndex}`} className="min-h-[82px] bg-[var(--card-paper)] sm:min-h-[122px]" aria-hidden="true" />;
             }
@@ -637,21 +579,19 @@ export function TechnicianCalendarPage() {
               <div className="border-b border-[var(--line)] bg-[var(--paper)] px-5 pb-4 pt-6 pr-14 sm:px-6 sm:pr-14">
                 <SheetHeader className="space-y-1 text-left">
                   <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--brand-blue)]">
-                    {isLive ? "Daily dispatch / live" : "Daily dispatch / demo"}
+                    {isLive ? "Daily dispatch / live" : "Daily dispatch"}
                   </p>
                   <SheetTitle className="text-xl font-semibold text-[var(--ink)]" data-testid="calendar-detail-date">
                     {dateFormatter.format(dateFromBangkokDateKey(selectedDay.date))}
                   </SheetTitle>
                   <SheetDescription className="text-xs text-[var(--ink-soft)]">
-                    {isLive
-                      ? `${countFormatter.format(selectedDay.totalJobs)} งานติดตั้ง · ทีมช่าง ${countFormatter.format(selectedDay.teams.length)} ทีม`
-                      : `${countFormatter.format(selectedDay.totalJobs)} งานตัวอย่าง · ทีมช่าง ${countFormatter.format(selectedDay.teams.length)} ทีม`}
+                    {countFormatter.format(selectedDay.totalJobs)} งานติดตั้ง · ทีมช่าง {countFormatter.format(selectedDay.teams.length)} ทีม
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <StatusBadge status={selectedDay.dayStatus} testId="calendar-detail-day-status" />
                   <span className="text-[10px] text-[var(--ink-soft)]">
-                    {isLive ? "ซิงก์จากคำสั่งซื้อจริง" : "ข้อมูลชั่วคราว ไม่ใช่คิวจริง"}
+                    {isLive ? "ซิงก์จากคำสั่งซื้อจริง" : "ยังไม่มีข้อมูลจาก API"}
                   </span>
                 </div>
               </div>
@@ -662,7 +602,7 @@ export function TechnicianCalendarPage() {
                     <h3 className="text-sm font-semibold text-[var(--ink)]">คิวทีมช่างประจำวัน</h3>
                     <p className="mt-1 text-[10px] text-[var(--ink-soft)]">รายละเอียดงาน โครงการ ที่อยู่ และแผนที่</p>
                   </div>
-                  <span className="shrink-0 text-[10px] text-[var(--ink-soft)]">10 ทีม</span>
+                  <span className="shrink-0 text-[10px] text-[var(--ink-soft)]">{countFormatter.format(activeTechnicianTeams.length)} ทีมที่เปิดใช้งาน</span>
                 </div>
 
                 <div className="hidden border-y border-[var(--line)] bg-[var(--paper)] px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--ink-soft)] sm:grid sm:grid-cols-[9.5rem_5.75rem_minmax(0,1fr)] sm:gap-3.5" aria-hidden="true">
@@ -675,6 +615,7 @@ export function TechnicianCalendarPage() {
                     <TeamQueue
                       key={team.teamCode}
                       team={team}
+                      technicianTeams={activeTechnicianTeams}
                       installationDate={selectedDay.date}
                       isLive={isLive}
                       isUpdating={updateTech.isPending}
@@ -686,11 +627,6 @@ export function TechnicianCalendarPage() {
                 </div>
               </div>
 
-              {!isLive && (
-                <div className="border-t border-[var(--line)] bg-[var(--paper)] px-4 py-3 text-[10px] leading-relaxed text-[var(--ink-soft)] sm:px-6">
-                  หน้านี้ใช้ข้อมูลตัวอย่างแบบกำหนดตายตัวระหว่างรอ API หลังบ้าน กรุณาอย่านำไปใช้จัดคิวงานจริง
-                </div>
-              )}
             </div>
           )}
         </SheetContent>
