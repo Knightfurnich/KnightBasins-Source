@@ -52,3 +52,4 @@
 | **Task 20** | ชัย | ขยาย `PATCH .../technician` รองรับเลื่อนวันติดตั้ง + `GET /admin/leads?technicianTeamCode=` | PR #4 / `37f9859` | ✅ 32/32 tests & Deployed |
 | **Readme UX** | เดวิด | ปรับขนาดฟอนต์หัวเรื่องให้พอดี, เปลี่ยนหัวเรื่องเป็น "โดย ไนท์ เฟอร์นิช", การ์ด 3 ช่องทางคลิกไปหน้าจริง | `42226a2` / `1f3f077` | ✅ Live บน VPS |
 | **Type Scale** | เดวิด | รวมขนาดฟอนต์ทั้งเว็บเป็น pattern เดียว (`--type-size-hero/heading-xl/heading-lg/heading-md/stat`) ลบ clamp ซ้ำซ้อน 6 จุด | `f2a289f` / `fdf9477` | ✅ Live บน VPS |
+| **Task 21** | Replit | Studio ซ่อน X/Y เมื่อมีแผ่นเดียว + ลบเตือน 900 มม. · ปฏิทินคิวช่างย้ายทีม/ปลดคิว/เลื่อนวันติดตั้ง (Asia/Bangkok) | `a941aff` / `6529d4e` | ✅ ตรวจรับ & Live บน VPS |
