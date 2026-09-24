@@ -1,4 +1,4 @@
-import { useMemo, type HTMLAttributes, type ReactNode } from "react";
+import { useMemo, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -19,7 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { customFetch } from "@workspace/api-client-react";
-import type { AdminDashboardActivity, AdminDashboardPopularItem, AdminDashboardStats } from "@workspace/api-client-react";
+import type { AdminDashboardActivity, AdminDashboardPopularItem, AdminDashboardStats, AdminDashboardStatsPeriod } from "@workspace/api-client-react";
 import { formatThaiDateTime, THAI_TIME_ZONE } from "@/data/date-time";
 
 type AdminDashboardProps = {
@@ -28,13 +28,20 @@ type AdminDashboardProps = {
 };
 
 const dashboardQueryKey = ["/api/admin/dashboard-stats"];
+const dashboardPeriods: Array<{ value: AdminDashboardStatsPeriod; label: string }> = [
+  { value: "7d", label: "7 วัน" },
+  { value: "30d", label: "30 วัน" },
+  { value: "3m", label: "ราย 3 เดือน" },
+  { value: "year", label: "ทั้งปี" },
+  { value: "all", label: "ทั้งหมด" },
+];
 const countFormatter = new Intl.NumberFormat("th-TH");
 const bahtFormatter = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
 
-function useAdminDashboardStats() {
+function useAdminDashboardStats(period: AdminDashboardStatsPeriod) {
   return useQuery<AdminDashboardStats>({
-    queryKey: dashboardQueryKey,
-    queryFn: () => customFetch<AdminDashboardStats>("/api/admin/dashboard-stats", { responseType: "json" }),
+    queryKey: [...dashboardQueryKey, period],
+    queryFn: () => customFetch<AdminDashboardStats>("/api/admin/dashboard-stats?period=" + encodeURIComponent(period), { responseType: "json" }),
     staleTime: 30_000,
     gcTime: 0,
     retry: 1,
@@ -322,59 +329,169 @@ function PipelineRatio({ ratio }: { ratio: AdminDashboardStats["pipelineRatio"] 
   );
 }
 
-function PopularItemsPanel({ items }: { items: AdminDashboardPopularItem[] }) {
-    const topItems = [...items].sort((left, right) => right.count - left.count).slice(0, 5);
-    const maxCount = Math.max(0, ...topItems.map((item) => item.count));
+function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthlyComparison"] }) {
+    const months = items.slice(-3);
+    const maxRevenue = Math.max(1, ...months.map((month) => Math.max(0, month.revenueThb)));
 
     return (
-      <Panel className="p-4 sm:p-5" data-testid="panel-popular-items">
-        <div className="mb-4 flex items-start justify-between gap-3">
+      <Panel className="p-4 sm:p-5" data-testid="panel-monthly-comparison">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Top 5 best sellers</p>
-            <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">🏆 สินค้ายอดนิยม</h2>
-            <p className="mt-1 text-xs text-[var(--ink-soft)]">รหัส SKU และจำนวนงานที่เลือกสินค้า</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">3-month comparison</p>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สรุปเปรียบเทียบ 3 เดือน</h2>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">ยอดรับจริงและจำนวน Lead รายเดือน</p>
           </div>
+          <span className="border border-[var(--line)] px-2.5 py-1 text-xs text-[var(--ink-soft)]">3 เดือนล่าสุด</span>
         </div>
-        {topItems.length > 0 ? (
-          <ol className="divide-y divide-[var(--line)]" data-testid="list-popular-items">
-            {topItems.map((item, index) => {
-              const share = maxCount > 0 ? Math.max(0, item.count) / maxCount * 100 : 0;
+        {months.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-3" data-testid="list-monthly-comparison">
+            {months.map((month) => {
+              const revenue = Math.max(0, month.revenueThb);
+              const share = (revenue / maxRevenue) * 100;
               return (
-                <li key={item.sku} className="py-3 first:pt-1 last:pb-1" data-testid="popular-item-row">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <span className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] font-mono text-[10px] text-[var(--ink-soft)]" aria-label={"อันดับ " + (index + 1)}>
-                        {index + 1}
-                      </span>
-                      <span className="truncate font-mono text-sm font-semibold tracking-wide text-[var(--ink)]">{item.sku}</span>
-                    </div>
-                    <span className="shrink-0 text-[11px] tabular-nums text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, item.count))} งาน</span>
+                <article key={month.monthLabel} className="border border-[var(--line)] bg-[var(--card-paper)] p-3" data-testid="monthly-comparison-item">
+                  <p className="text-xs font-semibold text-[var(--ink-soft)]">{month.monthLabel}</p>
+                  <p className="mt-2 text-lg font-semibold tabular-nums text-[var(--ink)]">฿{bahtFormatter.format(revenue)}</p>
+                  <p className="mt-1 text-xs text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, month.leadCount))} Lead</p>
+                  <div className="mt-3 h-1.5 overflow-hidden bg-[var(--brand-sky)]" role="progressbar" aria-label={"ยอดรับจริงเดือน " + month.monthLabel} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share)}>
+                    <div className="h-full bg-[var(--brand-blue)]" style={{ width: share + "%" }} />
                   </div>
-                  <div
-                    className="h-1.5 overflow-hidden bg-[var(--brand-sky)]"
-                    role="progressbar"
-                    aria-label={"ความถี่ของ " + item.sku}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(share)}
-                    aria-valuetext={Math.round(share) + "% ของอันดับหนึ่ง"}
-                  >
-                    <div className="h-full bg-[var(--brand-blue)] transition-[width]" style={{ width: share + "%" }} />
-                  </div>
-                </li>
+                </article>
               );
             })}
-          </ol>
+          </div>
         ) : (
-          <p className="border border-dashed border-[var(--line)] px-3 py-8 text-center text-sm text-[var(--ink-soft)]" data-testid="empty-popular-items">
-            ยังไม่มีข้อมูลสินค้ายอดนิยม
+          <p className="border border-dashed border-[var(--line)] px-3 py-8 text-center text-sm text-[var(--ink-soft)]" data-testid="empty-monthly-comparison">
+            ยังไม่มีข้อมูลเปรียบเทียบรายเดือน
           </p>
         )}
       </Panel>
     );
     }
 
-    function RecentActivitiesPanel({ items }: { items: AdminDashboardActivity[] }) {
+    function TechnicianCapacityPanel({ teams }: { teams: AdminDashboardStats["technicianCapacity"] }) {
+    const visibleTeams = teams.slice(0, 10);
+    const maxJobs = Math.max(1, ...visibleTeams.map((team) => Math.max(0, team.activeJobsCount)));
+
+    return (
+      <Panel className="p-4 sm:p-5" data-testid="panel-technician-capacity">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Technician capacity</p>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สถานะคิวช่าง 10 ทีม</h2>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">จำนวนงานติดตั้งในคิว 7 วันข้างหน้า</p>
+          </div>
+          <span className="border border-[var(--line)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]" data-testid="technician-team-count">
+            {countFormatter.format(visibleTeams.length)} ทีม
+          </span>
+        </div>
+        {visibleTeams.length > 0 ? (
+          <ol className="max-h-[34rem] divide-y divide-[var(--line)] overflow-y-auto" data-testid="list-technician-capacity">
+            {visibleTeams.map((team) => {
+              const ratio = Math.max(0, team.activeJobsCount) / maxJobs * 100;
+              const badgeClass = team.status === "busy"
+                ? "border-[#a24439]/30 bg-[#a24439]/5 text-[#a24439]"
+                : team.status === "moderate"
+                  ? "border-[#a9791f]/30 bg-[#a9791f]/5 text-[#8a6318]"
+                  : "border-[#17816d]/30 bg-[#17816d]/5 text-[#17816d]";
+              const statusLabel = team.status === "busy" ? "🔴 คิวแน่น" : team.status === "moderate" ? "🟡 ปานกลาง" : "🟢 คิวว่าง";
+              const jobNames = team.jobs.slice(0, 2).map((job) => job.name || job.leadKey).join(" · ");
+
+              return (
+                <li key={team.teamCode} className="py-3 first:pt-1 last:pb-1" data-testid={"technician-row-" + team.teamCode}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="grid h-8 w-10 shrink-0 place-items-center border border-[var(--line)] font-mono text-xs font-semibold text-[var(--ink)]" aria-label={"ทีม " + team.teamCode}>
+                        {team.teamCode}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[var(--ink)]">{team.teamName}</p>
+                        <p className="text-[11px] text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, team.activeJobsCount))} งานในคิว</p>
+                      </div>
+                    </div>
+                    <span className={"shrink-0 border px-2 py-1 text-[11px] font-semibold " + badgeClass} data-testid={"technician-status-" + team.teamCode}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1 overflow-hidden bg-[var(--brand-sky)]" role="progressbar" aria-label={"จำนวนงานในคิวของทีม " + team.teamName} aria-valuemin={0} aria-valuemax={maxJobs} aria-valuenow={Math.max(0, team.activeJobsCount)}>
+                    <div className="h-full bg-[var(--brand-blue)]" style={{ width: ratio + "%" }} />
+                  </div>
+                  {jobNames && (
+                    <p className="mt-1 truncate text-[10px] text-[var(--ink-soft)]" title={jobNames}>
+                      {jobNames}{team.jobs.length > 2 ? " · +" + (team.jobs.length - 2) : ""}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="border border-dashed border-[var(--line)] px-3 py-8 text-center text-sm text-[var(--ink-soft)]" data-testid="empty-technician-capacity">
+            ยังไม่มีข้อมูลสถานะทีมช่าง
+          </p>
+        )}
+      </Panel>
+    );
+    }
+
+    function PopularItemsPanel({ stones, basins }: { stones: AdminDashboardPopularItem[]; basins: AdminDashboardPopularItem[] }) {
+    const [activeType, setActiveType] = useState<"stones" | "basins">("stones");
+    const items = activeType === "stones" ? stones : basins;
+    const topItems = [...items].sort((left, right) => right.count - left.count).slice(0, 5);
+    const maxCount = Math.max(0, ...topItems.map((item) => item.count));
+    const tabClass = "border px-3 py-2 text-xs font-semibold transition-colors";
+    const inactiveTabClass = "border-[var(--line)] bg-transparent text-[var(--ink-soft)] hover:bg-[var(--brand-sky)]";
+    const activeTabClass = "border-[var(--brand-blue)] bg-[var(--brand-blue)] text-white";
+
+    return (
+      <Panel className="p-4 sm:p-5" data-testid="panel-popular-items">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Top 5 best sellers</p>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สินค้ายอดนิยม</h2>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">จัดอันดับจากจำนวนงานที่เลือกสินค้า</p>
+          </div>
+        </div>
+        <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="ประเภทสินค้ายอดนิยม">
+          <button type="button" role="tab" aria-selected={activeType === "stones"} aria-controls="popular-items-panel" id="tab-popular-stones" className={tabClass + " " + (activeType === "stones" ? activeTabClass : inactiveTabClass)} onClick={() => setActiveType("stones")} data-testid="tab-popular-stones">
+            🪨 สีหินยอดนิยม
+          </button>
+          <button type="button" role="tab" aria-selected={activeType === "basins"} aria-controls="popular-items-panel" id="tab-popular-basins" className={tabClass + " " + (activeType === "basins" ? activeTabClass : inactiveTabClass)} onClick={() => setActiveType("basins")} data-testid="tab-popular-basins">
+            🛁 รุ่นอ่างขายดี
+          </button>
+        </div>
+        <div role="tabpanel" id="popular-items-panel" aria-labelledby={activeType === "stones" ? "tab-popular-stones" : "tab-popular-basins"}>
+          {topItems.length > 0 ? (
+            <ol className="divide-y divide-[var(--line)]" data-testid="list-popular-items">
+              {topItems.map((item, index) => {
+                const share = maxCount > 0 ? Math.max(0, item.count) / maxCount * 100 : 0;
+                return (
+                  <li key={item.sku} className="py-3 first:pt-1 last:pb-1" data-testid="popular-item-row">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] font-mono text-[10px] text-[var(--ink-soft)]" aria-label={"อันดับ " + (index + 1)}>{index + 1}</span>
+                        <span className="truncate font-mono text-sm font-semibold tracking-wide text-[var(--ink)]">{item.sku}</span>
+                      </div>
+                      <span className="shrink-0 text-[11px] tabular-nums text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, item.count))} งาน</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden bg-[var(--brand-sky)]" role="progressbar" aria-label={"ความถี่ของ " + item.sku} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share)}>
+                      <div className="h-full bg-[var(--brand-blue)] transition-[width]" style={{ width: share + "%" }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            <p className="border border-dashed border-[var(--line)] px-3 py-8 text-center text-sm text-[var(--ink-soft)]" data-testid="empty-popular-items">
+              ยังไม่มีข้อมูลสินค้ายอดนิยมในหมวดนี้
+            </p>
+          )}
+        </div>
+      </Panel>
+    );
+    }
+
+function RecentActivitiesPanel({ items }: { items: AdminDashboardActivity[] }) {
     const activities = [...items]
       .sort((left, right) => (safeDate(right.timestamp)?.getTime() ?? 0) - (safeDate(left.timestamp)?.getTime() ?? 0))
       .slice(0, 5);
@@ -434,7 +551,22 @@ function PopularItemsPanel({ items }: { items: AdminDashboardPopularItem[] }) {
     }
 
 export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const { data, isError, isFetching, isLoading, refetch } = useAdminDashboardStats();
+  const [period, setPeriod] = useState<AdminDashboardStatsPeriod>("30d");
+  const [isSendingBriefing, setIsSendingBriefing] = useState(false);
+  const { data, isError, isFetching, isLoading, refetch } = useAdminDashboardStats(period);
+
+  const sendDashboardBriefing = async () => {
+    if (isSendingBriefing) return;
+    setIsSendingBriefing(true);
+    try {
+      await customFetch<unknown>("/api/admin/dashboard-briefing/line", { method: "POST", responseType: "json" });
+      window.alert("ส่งสรุปเข้า LINE สำเร็จ");
+    } catch (error) {
+      window.alert(error instanceof Error ? "ส่งสรุปเข้า LINE ไม่สำเร็จ: " + error.message : "ส่งสรุปเข้า LINE ไม่สำเร็จ");
+    } finally {
+      setIsSendingBriefing(false);
+    }
+  };
   const installations = useMemo(
     () => [...(data?.upcomingInstallations ?? [])].sort(
       (left, right) => installationSortValue(left.expectedInstallationDate) - installationSortValue(right.expectedInstallationDate),
@@ -479,24 +611,52 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           <h1 className="text-2xl font-semibold font-display tracking-tight text-[var(--ink)] sm:text-3xl">ภาพรวมธุรกิจ</h1>
           <p className="mt-1 text-sm text-[var(--ink-soft)]">ยอดขาย งานที่ต้องติดตาม และคิวนัดติดตั้ง</p>
         </div>
-        <div className="flex items-center justify-between gap-3 border border-[var(--line)] bg-[var(--card-paper)] px-3 py-2 sm:justify-end">
-          <span className="min-w-0 text-xs text-[var(--ink-soft)]">
-            อัปเดต {safeDate(data.asOf) ? formatThaiDateTime(safeDate(data.asOf)!) : "ไม่ทราบเวลา"}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 rounded-none text-[var(--ink-soft)]"
-            onClick={() => void refetch()}
-            disabled={isFetching}
-            aria-label="รีเฟรชข้อมูล Dashboard"
-            title="รีเฟรชข้อมูล"
-            data-testid="button-dashboard-refresh"
-          >
-            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 border border-[var(--line)] bg-[var(--card-paper)] p-2 sm:w-auto">
+            <div className="flex flex-wrap gap-1" role="group" aria-label="ช่วงเวลาของ Dashboard" data-testid="dashboard-period-filter">
+              {dashboardPeriods.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  size="sm"
+                  variant={period === option.value ? "default" : "outline"}
+                  className="h-8 rounded-none px-2.5 text-xs"
+                  onClick={() => setPeriod(option.value)}
+                  aria-pressed={period === option.value}
+                  data-testid={"dashboard-period-" + option.value}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+            <Button
+              type="button"
+              className="h-8 rounded-none bg-[#17816d] px-3 text-white hover:bg-[#126b5a]"
+              onClick={() => void sendDashboardBriefing()}
+              disabled={isSendingBriefing}
+              data-testid="button-dashboard-line-briefing"
+            >
+              {isSendingBriefing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <span className="mr-2" aria-hidden="true">📲</span>}
+              ส่งสรุปเข้า LINE
+            </Button>
+            <div className="flex items-center justify-end gap-3 border-l border-[var(--line)] pl-2">
+              <span className="min-w-0 text-xs text-[var(--ink-soft)]">
+                อัปเดต {safeDate(data.asOf) ? formatThaiDateTime(safeDate(data.asOf)!) : "ไม่ทราบเวลา"}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 rounded-none text-[var(--ink-soft)]"
+                onClick={() => void refetch()}
+                disabled={isFetching}
+                aria-label="รีเฟรชข้อมูล Dashboard"
+                title="รีเฟรชข้อมูล"
+                data-testid="button-dashboard-refresh"
+              >
+                <RefreshCw className={"h-4 w-4 " + (isFetching ? "animate-spin" : "")} />
+              </Button>
+            </div>
+          </div>
       </header>
 
       {isError && (
@@ -608,7 +768,12 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       </div>
 
       <div className="grid items-start gap-5 xl:grid-cols-2">
-        <PopularItemsPanel items={data.popularItems} />
+        <MonthlyComparisonPanel items={data.monthlyComparison} />
+        <TechnicianCapacityPanel teams={data.technicianCapacity} />
+      </div>
+
+      <div className="grid items-start gap-5 xl:grid-cols-2">
+        <PopularItemsPanel stones={data.popularStones} basins={data.popularBasins} />
         <RecentActivitiesPanel items={data.recentActivities} />
       </div>
     </div>
