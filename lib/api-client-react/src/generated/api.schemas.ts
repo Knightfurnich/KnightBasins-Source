@@ -919,13 +919,33 @@ export const PaymentSlipStatus = {
   verified: 'verified',
   needs_review: 'needs_review',
   rejected: 'rejected',
+  team_reported_paid: 'team_reported_paid',
+  voided: 'voided',
+} as const;
+
+export type PaymentSlipSourceType = typeof PaymentSlipSourceType[keyof typeof PaymentSlipSourceType];
+
+
+export const PaymentSlipSourceType = {
+  direct_upload: 'direct_upload',
+  line_group_archive: 'line_group_archive',
 } as const;
 
 export interface PaymentSlip {
   id: number;
-  leadId: number;
+  /** @nullable */
+  leadId: number | null;
   kind: PaymentSlipKind;
   status: PaymentSlipStatus;
+  sourceType: PaymentSlipSourceType;
+  /** @nullable */
+  referenceValue?: string | null;
+  /** @nullable */
+  archiveMessageId?: string | null;
+  /** @nullable */
+  archiveAttachmentId?: string | null;
+  /** @nullable */
+  sourceHash?: string | null;
   slipImageUrl: string;
   /** @nullable */
   claimedAmountThb?: number | null;
@@ -940,6 +960,53 @@ export interface PaymentSlip {
   reviewedByAdmin: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export type PaymentSlipIntakeInputKind = typeof PaymentSlipIntakeInputKind[keyof typeof PaymentSlipIntakeInputKind];
+
+
+export const PaymentSlipIntakeInputKind = {
+  deposit: 'deposit',
+  final: 'final',
+} as const;
+
+export interface PaymentSlipIntakeInput {
+  /** Uploaded slip image supplied as multipart content */
+  file: string;
+  /**
+     * Optional LINE job code such as 26/1070 or JB26/1064
+     * @maxLength 64
+     * @nullable
+     */
+  referenceValue?: string | null;
+  /**
+     * @maxLength 128
+     * @nullable
+     */
+  archiveMessageId?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 128
+     */
+  archiveAttachmentId: string;
+  /** @pattern ^[a-fA-F0-9]{64}$ */
+  sourceHash: string;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  claimedAmountThb?: number | null;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  senderName?: string | null;
+  kind?: PaymentSlipIntakeInputKind;
+}
+
+export interface PaymentSlipAssignInput {
+  /** @minimum 1 */
+  leadId: number;
 }
 
 export interface LineAuthUser {

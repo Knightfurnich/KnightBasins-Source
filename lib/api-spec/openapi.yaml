@@ -706,6 +706,84 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PaymentSlip"
+  /admin/slips/intake:
+    post:
+      operationId: intakeAdminPaymentSlip
+      tags: [admin]
+      summary: Intake a team-reported payment slip from the LINE archive worker
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PaymentSlipIntakeInput"
+      responses:
+        "201":
+          description: Team-reported payment slip saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSlip"
+        "400":
+          description: Invalid intake payload
+        "409":
+          description: Archive attachment was already imported
+  /admin/slips/unassigned:
+    get:
+      operationId: listAdminUnassignedSlips
+      tags: [admin]
+      summary: List payment slips that have not been assigned to a lead
+      responses:
+        "200":
+          description: Unassigned payment slips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentSlip"
+  /admin/slips/{id}/assign:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    post:
+      operationId: assignAdminPaymentSlip
+      tags: [admin]
+      summary: Assign an unassigned payment slip to a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentSlipAssignInput"
+      responses:
+        "200":
+          description: Assigned payment slip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSlip"
+        "404":
+          description: Payment slip or lead not found
+        "409":
+          description: Payment slip is already assigned or voided
+  /admin/slips/{id}/void:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    post:
+      operationId: voidAdminPaymentSlip
+      tags: [admin]
+      summary: Void a team-reported payment slip
+      responses:
+        "200":
+          description: Voided payment slip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSlip"
+        "404":
+          description: Payment slip not found
+        "409":
+          description: Payment slip cannot be voided
   /admin/leads/{id}:
     parameters:
       - $ref: "#/components/parameters/RecordId"
@@ -1315,16 +1393,23 @@ components:
         message: { type: string }
     PaymentSlip:
       type: object
-      required: [id, leadId, kind, status, slipImageUrl, reviewedByAdmin, createdAt, updatedAt]
+      required: [id, leadId, kind, status, sourceType, slipImageUrl, reviewedByAdmin, createdAt, updatedAt]
       properties:
         id: { type: integer }
-        leadId: { type: integer }
+        leadId: { type: [integer, "null"] }
         kind:
           type: string
           enum: [deposit, final]
         status:
           type: string
-          enum: [pending, verified, needs_review, rejected]
+          enum: [pending, verified, needs_review, rejected, team_reported_paid, voided]
+        sourceType:
+          type: string
+          enum: [direct_upload, line_group_archive]
+        referenceValue: { type: [string, "null"] }
+        archiveMessageId: { type: [string, "null"] }
+        archiveAttachmentId: { type: [string, "null"] }
+        sourceHash: { type: [string, "null"] }
         slipImageUrl: { type: string }
         claimedAmountThb: { type: [integer, "null"] }
         verifiedAmountThb: { type: [integer, "null"] }
@@ -1334,6 +1419,30 @@ components:
         reviewedByAdmin: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+    PaymentSlipIntakeInput:
+      type: object
+      required: [file, archiveAttachmentId, sourceHash]
+      properties:
+        file: { type: string, description: Uploaded slip image supplied as multipart content }
+        referenceValue:
+          type: [string, "null"]
+          maxLength: 64
+          description: Optional LINE job code such as 26/1070 or JB26/1064
+        archiveMessageId: { type: [string, "null"], maxLength: 128 }
+        archiveAttachmentId: { type: string, minLength: 1, maxLength: 128 }
+        sourceHash:
+          type: string
+          pattern: "^[a-fA-F0-9]{64}$"
+        claimedAmountThb: { type: [integer, "null"], minimum: 0 }
+        senderName: { type: [string, "null"], maxLength: 200 }
+        kind:
+          type: string
+          enum: [deposit, final]
+    PaymentSlipAssignInput:
+      type: object
+      required: [leadId]
+      properties:
+        leadId: { type: integer, minimum: 1 }
     LineAuthUser:
       type: object
       required: [userId, displayName]

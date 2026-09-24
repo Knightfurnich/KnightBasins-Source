@@ -50,6 +50,7 @@ async function buildCustomerContextSummary(account: Account): Promise<string> {
   const leadIds = leads.map((lead) => lead.id);
   const slips = await db.select().from(paymentSlips).where(inArray(paymentSlips.leadId, leadIds));
   for (const slip of slips) {
+    if (slip.leadId === null) continue;
     const list = slipsByLead.get(slip.leadId) ?? [];
     list.push(slip);
     slipsByLead.set(slip.leadId, list);

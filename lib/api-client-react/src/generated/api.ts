@@ -53,6 +53,8 @@ import type {
   LineAuthStatus,
   NotifyQuoteInput,
   PaymentSlip,
+  PaymentSlipAssignInput,
+  PaymentSlipIntakeInput,
   QuoteNotificationResponse,
   SheetStonePrice,
   SheetStonePriceInput,
@@ -3568,6 +3570,340 @@ export function useListLeadPaymentSlips<TData = Awaited<ReturnType<typeof listLe
 
 
 
+
+export const getIntakeAdminPaymentSlipUrl = () => {
+
+
+
+
+  return `/api/admin/slips/intake`
+}
+
+/**
+ * @summary Intake a team-reported payment slip from the LINE archive worker
+ */
+export const intakeAdminPaymentSlip = async (paymentSlipIntakeInput: PaymentSlipIntakeInput, options?: RequestInit): Promise<PaymentSlip> => {
+    const formData = new FormData();
+formData.append(`file`, paymentSlipIntakeInput.file);
+if(paymentSlipIntakeInput.referenceValue !== undefined && paymentSlipIntakeInput.referenceValue !== null) {
+ formData.append(`referenceValue`, paymentSlipIntakeInput.referenceValue);
+ }
+if(paymentSlipIntakeInput.archiveMessageId !== undefined && paymentSlipIntakeInput.archiveMessageId !== null) {
+ formData.append(`archiveMessageId`, paymentSlipIntakeInput.archiveMessageId);
+ }
+formData.append(`archiveAttachmentId`, paymentSlipIntakeInput.archiveAttachmentId);
+formData.append(`sourceHash`, paymentSlipIntakeInput.sourceHash);
+if(paymentSlipIntakeInput.claimedAmountThb !== undefined && paymentSlipIntakeInput.claimedAmountThb !== null) {
+ formData.append(`claimedAmountThb`, paymentSlipIntakeInput.claimedAmountThb.toString())
+ }
+if(paymentSlipIntakeInput.senderName !== undefined && paymentSlipIntakeInput.senderName !== null) {
+ formData.append(`senderName`, paymentSlipIntakeInput.senderName);
+ }
+if(paymentSlipIntakeInput.kind !== undefined) {
+ formData.append(`kind`, paymentSlipIntakeInput.kind);
+ }
+
+  return customFetch<PaymentSlip>(getIntakeAdminPaymentSlipUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getIntakeAdminPaymentSlipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof intakeAdminPaymentSlip>>, TError,{data: BodyType<PaymentSlipIntakeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof intakeAdminPaymentSlip>>, TError,{data: BodyType<PaymentSlipIntakeInput>}, TContext> => {
+
+const mutationKey = ['intakeAdminPaymentSlip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof intakeAdminPaymentSlip>>, {data: BodyType<PaymentSlipIntakeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  intakeAdminPaymentSlip(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntakeAdminPaymentSlipMutationResult = NonNullable<Awaited<ReturnType<typeof intakeAdminPaymentSlip>>>
+    export type IntakeAdminPaymentSlipMutationBody = BodyType<PaymentSlipIntakeInput>
+    export type IntakeAdminPaymentSlipMutationError = ErrorType<void>
+
+    /**
+ * @summary Intake a team-reported payment slip from the LINE archive worker
+ */
+export const useIntakeAdminPaymentSlip = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof intakeAdminPaymentSlip>>, TError,{data: BodyType<PaymentSlipIntakeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof intakeAdminPaymentSlip>>,
+        TError,
+        {data: BodyType<PaymentSlipIntakeInput>},
+        TContext
+      > => {
+      return useMutation(getIntakeAdminPaymentSlipMutationOptions(options), queryClient);
+    }
+
+export const getListAdminUnassignedSlipsUrl = () => {
+
+
+
+
+  return `/api/admin/slips/unassigned`
+}
+
+/**
+ * @summary List payment slips that have not been assigned to a lead
+ */
+export const listAdminUnassignedSlips = async ( options?: RequestInit): Promise<PaymentSlip[]> => {
+
+  return customFetch<PaymentSlip[]>(getListAdminUnassignedSlipsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminUnassignedSlipsQueryKey = () => {
+    return [
+    `/api/admin/slips/unassigned`
+    ] as const;
+    }
+
+
+export const getListAdminUnassignedSlipsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminUnassignedSlipsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminUnassignedSlips>>> = ({ signal }) => listAdminUnassignedSlips({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminUnassignedSlipsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminUnassignedSlips>>>
+export type ListAdminUnassignedSlipsQueryError = ErrorType<unknown>
+
+
+export function useListAdminUnassignedSlips<TData = Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminUnassignedSlips>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminUnassignedSlips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminUnassignedSlips<TData = Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminUnassignedSlips>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminUnassignedSlips>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminUnassignedSlips<TData = Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List payment slips that have not been assigned to a lead
+ */
+
+export function useListAdminUnassignedSlips<TData = Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminUnassignedSlips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminUnassignedSlipsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAssignAdminPaymentSlipUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/slips/${id}/assign`
+}
+
+/**
+ * @summary Assign an unassigned payment slip to a lead
+ */
+export const assignAdminPaymentSlip = async (id: number,
+    paymentSlipAssignInput: PaymentSlipAssignInput, options?: RequestInit): Promise<PaymentSlip> => {
+
+  return customFetch<PaymentSlip>(getAssignAdminPaymentSlipUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(paymentSlipAssignInput)
+  }
+);}
+
+
+
+
+
+export const getAssignAdminPaymentSlipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignAdminPaymentSlip>>, TError,{id: number;data: BodyType<PaymentSlipAssignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof assignAdminPaymentSlip>>, TError,{id: number;data: BodyType<PaymentSlipAssignInput>}, TContext> => {
+
+const mutationKey = ['assignAdminPaymentSlip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignAdminPaymentSlip>>, {id: number;data: BodyType<PaymentSlipAssignInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  assignAdminPaymentSlip(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssignAdminPaymentSlipMutationResult = NonNullable<Awaited<ReturnType<typeof assignAdminPaymentSlip>>>
+    export type AssignAdminPaymentSlipMutationBody = BodyType<PaymentSlipAssignInput>
+    export type AssignAdminPaymentSlipMutationError = ErrorType<void>
+
+    /**
+ * @summary Assign an unassigned payment slip to a lead
+ */
+export const useAssignAdminPaymentSlip = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignAdminPaymentSlip>>, TError,{id: number;data: BodyType<PaymentSlipAssignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof assignAdminPaymentSlip>>,
+        TError,
+        {id: number;data: BodyType<PaymentSlipAssignInput>},
+        TContext
+      > => {
+      return useMutation(getAssignAdminPaymentSlipMutationOptions(options), queryClient);
+    }
+
+export const getVoidAdminPaymentSlipUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/slips/${id}/void`
+}
+
+/**
+ * @summary Void a team-reported payment slip
+ */
+export const voidAdminPaymentSlip = async (id: number, options?: RequestInit): Promise<PaymentSlip> => {
+
+  return customFetch<PaymentSlip>(getVoidAdminPaymentSlipUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getVoidAdminPaymentSlipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof voidAdminPaymentSlip>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof voidAdminPaymentSlip>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['voidAdminPaymentSlip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof voidAdminPaymentSlip>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  voidAdminPaymentSlip(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VoidAdminPaymentSlipMutationResult = NonNullable<Awaited<ReturnType<typeof voidAdminPaymentSlip>>>
+
+    export type VoidAdminPaymentSlipMutationError = ErrorType<void>
+
+    /**
+ * @summary Void a team-reported payment slip
+ */
+export const useVoidAdminPaymentSlip = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof voidAdminPaymentSlip>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof voidAdminPaymentSlip>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getVoidAdminPaymentSlipMutationOptions(options), queryClient);
+    }
 
 export const getUpdateAdminLeadUrl = (id: number,) => {
 

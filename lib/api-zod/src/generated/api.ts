@@ -1636,9 +1636,14 @@ export const SubmitPaymentSlipBody = zod.object({
 
 export const SubmitPaymentSlipResponse = zod.object({
   "id": zod.number(),
-  "leadId": zod.number(),
+  "leadId": zod.number().nullable(),
   "kind": zod.enum(['deposit', 'final']),
-  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected']),
+  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected', 'team_reported_paid', 'voided']),
+  "sourceType": zod.enum(['direct_upload', 'line_group_archive']),
+  "referenceValue": zod.string().nullish(),
+  "archiveMessageId": zod.string().nullish(),
+  "archiveAttachmentId": zod.string().nullish(),
+  "sourceHash": zod.string().nullish(),
   "slipImageUrl": zod.string(),
   "claimedAmountThb": zod.number().nullish(),
   "verifiedAmountThb": zod.number().nullish(),
@@ -1702,9 +1707,14 @@ export const ListLeadPaymentSlipsParams = zod.object({
 
 export const ListLeadPaymentSlipsResponseItem = zod.object({
   "id": zod.number(),
-  "leadId": zod.number(),
+  "leadId": zod.number().nullable(),
   "kind": zod.enum(['deposit', 'final']),
-  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected']),
+  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected', 'team_reported_paid', 'voided']),
+  "sourceType": zod.enum(['direct_upload', 'line_group_archive']),
+  "referenceValue": zod.string().nullish(),
+  "archiveMessageId": zod.string().nullish(),
+  "archiveAttachmentId": zod.string().nullish(),
+  "sourceHash": zod.string().nullish(),
   "slipImageUrl": zod.string(),
   "claimedAmountThb": zod.number().nullish(),
   "verifiedAmountThb": zod.number().nullish(),
@@ -1716,6 +1726,152 @@ export const ListLeadPaymentSlipsResponseItem = zod.object({
   "updatedAt": zod.coerce.date()
 })
 export const ListLeadPaymentSlipsResponse = zod.array(ListLeadPaymentSlipsResponseItem)
+
+
+/**
+ * @summary Intake a team-reported payment slip from the LINE archive worker
+ */
+export const intakeAdminPaymentSlipBodyReferenceValueMax = 64;
+
+export const intakeAdminPaymentSlipBodyArchiveMessageIdMax = 128;
+
+export const intakeAdminPaymentSlipBodyArchiveAttachmentIdMax = 128;
+
+export const intakeAdminPaymentSlipBodySourceHashRegExp = new RegExp('^[a-fA-F0-9]{64}$');
+export const intakeAdminPaymentSlipBodyClaimedAmountThbMin = 0;
+
+export const intakeAdminPaymentSlipBodySenderNameMax = 200;
+
+
+
+export const IntakeAdminPaymentSlipBody = zod.object({
+  "file": zod.string().describe('Uploaded slip image supplied as multipart content'),
+  "referenceValue": zod.string().max(intakeAdminPaymentSlipBodyReferenceValueMax).nullish().describe('Optional LINE job code such as 26\/1070 or JB26\/1064'),
+  "archiveMessageId": zod.string().max(intakeAdminPaymentSlipBodyArchiveMessageIdMax).nullish(),
+  "archiveAttachmentId": zod.string().min(1).max(intakeAdminPaymentSlipBodyArchiveAttachmentIdMax),
+  "sourceHash": zod.string().regex(intakeAdminPaymentSlipBodySourceHashRegExp),
+  "claimedAmountThb": zod.number().min(intakeAdminPaymentSlipBodyClaimedAmountThbMin).nullish(),
+  "senderName": zod.string().max(intakeAdminPaymentSlipBodySenderNameMax).nullish(),
+  "kind": zod.enum(['deposit', 'final']).optional()
+})
+
+export const IntakeAdminPaymentSlipResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullable(),
+  "kind": zod.enum(['deposit', 'final']),
+  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected', 'team_reported_paid', 'voided']),
+  "sourceType": zod.enum(['direct_upload', 'line_group_archive']),
+  "referenceValue": zod.string().nullish(),
+  "archiveMessageId": zod.string().nullish(),
+  "archiveAttachmentId": zod.string().nullish(),
+  "sourceHash": zod.string().nullish(),
+  "slipImageUrl": zod.string(),
+  "claimedAmountThb": zod.number().nullish(),
+  "verifiedAmountThb": zod.number().nullish(),
+  "senderName": zod.string().nullish(),
+  "transRef": zod.string().nullish(),
+  "slipokErrorCode": zod.string().nullish(),
+  "reviewedByAdmin": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List payment slips that have not been assigned to a lead
+ */
+export const ListAdminUnassignedSlipsResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullable(),
+  "kind": zod.enum(['deposit', 'final']),
+  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected', 'team_reported_paid', 'voided']),
+  "sourceType": zod.enum(['direct_upload', 'line_group_archive']),
+  "referenceValue": zod.string().nullish(),
+  "archiveMessageId": zod.string().nullish(),
+  "archiveAttachmentId": zod.string().nullish(),
+  "sourceHash": zod.string().nullish(),
+  "slipImageUrl": zod.string(),
+  "claimedAmountThb": zod.number().nullish(),
+  "verifiedAmountThb": zod.number().nullish(),
+  "senderName": zod.string().nullish(),
+  "transRef": zod.string().nullish(),
+  "slipokErrorCode": zod.string().nullish(),
+  "reviewedByAdmin": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListAdminUnassignedSlipsResponse = zod.array(ListAdminUnassignedSlipsResponseItem)
+
+
+/**
+ * @summary Assign an unassigned payment slip to a lead
+ */
+
+
+
+export const AssignAdminPaymentSlipParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+export const AssignAdminPaymentSlipBody = zod.object({
+  "leadId": zod.number().min(1)
+})
+
+export const AssignAdminPaymentSlipResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullable(),
+  "kind": zod.enum(['deposit', 'final']),
+  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected', 'team_reported_paid', 'voided']),
+  "sourceType": zod.enum(['direct_upload', 'line_group_archive']),
+  "referenceValue": zod.string().nullish(),
+  "archiveMessageId": zod.string().nullish(),
+  "archiveAttachmentId": zod.string().nullish(),
+  "sourceHash": zod.string().nullish(),
+  "slipImageUrl": zod.string(),
+  "claimedAmountThb": zod.number().nullish(),
+  "verifiedAmountThb": zod.number().nullish(),
+  "senderName": zod.string().nullish(),
+  "transRef": zod.string().nullish(),
+  "slipokErrorCode": zod.string().nullish(),
+  "reviewedByAdmin": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Void a team-reported payment slip
+ */
+
+
+
+export const VoidAdminPaymentSlipParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const VoidAdminPaymentSlipResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullable(),
+  "kind": zod.enum(['deposit', 'final']),
+  "status": zod.enum(['pending', 'verified', 'needs_review', 'rejected', 'team_reported_paid', 'voided']),
+  "sourceType": zod.enum(['direct_upload', 'line_group_archive']),
+  "referenceValue": zod.string().nullish(),
+  "archiveMessageId": zod.string().nullish(),
+  "archiveAttachmentId": zod.string().nullish(),
+  "sourceHash": zod.string().nullish(),
+  "slipImageUrl": zod.string(),
+  "claimedAmountThb": zod.number().nullish(),
+  "verifiedAmountThb": zod.number().nullish(),
+  "senderName": zod.string().nullish(),
+  "transRef": zod.string().nullish(),
+  "slipokErrorCode": zod.string().nullish(),
+  "reviewedByAdmin": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
 
 
 /**

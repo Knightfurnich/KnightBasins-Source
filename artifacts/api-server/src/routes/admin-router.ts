@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   basinCategories,
   basinPrices,
@@ -5,11 +6,13 @@ import {
   installedStonePrices,
   sheetStonePrices,
   customerLeads,
+  leadExternalReferences,
   paymentSlips,
   adminMembers,
   adminInvites,
 } from "@workspace/db/schema";
 import {
+  AssignAdminPaymentSlipBody,
   CreateAdminMemberBody,
   CreateAdminInviteBody,
   CreateAdminBasinBody,
@@ -26,7 +29,7 @@ import {
   UpdateAdminLeadBody,
   UpdateAdminMemberBody,
 } from "@workspace/api-zod";
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
@@ -51,8 +54,11 @@ import {
 import { createRateLimiter, createConcurrencyLimiter } from "../lib/rate-limit";
 import {
   cleanupUnreferencedUploadedImages,
+  readMultipartForm,
   readMultipartImage,
   readMultipartVideo,
+  removeUploadedMedia,
+  saveUploadedMedia,
   saveUploadedImage,
   saveUploadedVideo,
   UploadFileCollisionError,
@@ -63,12 +69,32 @@ export type AdminDatabase = {
   insert: (...args: any[]) => any;
   update: (...args: any[]) => any;
   delete: (...args: any[]) => any;
+  transaction?: <T>(callback: (transaction: AdminDatabase) => Promise<T>) => Promise<T>;
 };
 
 function idFrom(value: string | string[]) {
   if (Array.isArray(value)) return null;
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+const LINE_JOB_REFERENCE_TYPE = "line_job_code";
+const LINE_ARCHIVE_SOURCE_TYPE = "line_group_archive";
+const LINE_JOB_CODE_PATTERN = /^(?:JB)?\d{2}\/\d{4}$/;
+
+function normalizeLineJobCode(value: string) {
+  const normalized = value.trim().toUpperCase().replace(/\s+/g, "");
+  return LINE_JOB_CODE_PATTERN.test(normalized) ? normalized : null;
+}
+
+function isUniqueViolation(error: unknown) {
+  return Boolean(error && typeof error === "object" && (error as { code?: unknown }).code === "23505");
+}
+
+function parsedOptionalInteger(value: string | undefined) {
+  if (value == null || value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
 function invalid(res: Response, message: string, details?: unknown) {
@@ -435,6 +461,254 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       return res.json(slips);
     } catch (error) {
       return next(error);
+    }
+  });
+
+  router.post("/admin/slips/intake", requireAdminPermission("leads", "edit"), uploadRateLimit, uploadConcurrency, async (req, res, next) => {
+    let upload: Awaited<ReturnType<typeof saveUploadedMedia>> | undefined;
+    try {
+      const { media, fields } = await readMultipartForm(req, "image", { maxFiles: 1 });
+      const archiveAttachmentId = fields.archiveAttachmentId?.trim();
+      const sourceHash = fields.sourceHash?.trim().toLowerCase();
+      const archiveMessageId = fields.archiveMessageId?.trim() || null;
+      const referenceValue = fields.referenceValue?.trim() || null;
+      const normalizedReference = referenceValue ? normalizeLineJobCode(referenceValue) : null;
+      const senderName = fields.senderName?.trim() || null;
+      const kind = fields.kind?.trim() || "deposit";
+      const claimedAmountThb = parsedOptionalInteger(fields.claimedAmountThb);
+
+      if (!archiveAttachmentId || archiveAttachmentId.length > 128) {
+        invalid(res, "archiveAttachmentId is required");
+        return;
+      }
+      if (!sourceHash || !/^[a-f0-9]{64}$/.test(sourceHash)) {
+        invalid(res, "sourceHash must be a SHA-256 hex digest");
+        return;
+      }
+      const actualSourceHash = createHash("sha256").update(media[0]!.buffer).digest("hex");
+      if (actualSourceHash !== sourceHash) {
+        invalid(res, "sourceHash does not match the uploaded image");
+        return;
+      }
+      if (referenceValue && !normalizedReference) {
+        invalid(res, "referenceValue must match 26/XXXX or JB26/XXXX");
+        return;
+      }
+      if (archiveMessageId && archiveMessageId.length > 128) {
+        invalid(res, "archiveMessageId is too long");
+        return;
+      }
+      if (senderName && senderName.length > 200) {
+        invalid(res, "senderName is too long");
+        return;
+      }
+      if (kind !== "deposit" && kind !== "final") {
+        invalid(res, "kind must be deposit or final");
+        return;
+      }
+      if (claimedAmountThb === undefined) {
+        invalid(res, "claimedAmountThb must be a non-negative integer");
+        return;
+      }
+
+      const [existing] = await database
+        .select()
+        .from(paymentSlips)
+        .where(and(
+          eq(paymentSlips.sourceType, LINE_ARCHIVE_SOURCE_TYPE),
+          eq(paymentSlips.archiveAttachmentId, archiveAttachmentId),
+        ))
+        .limit(1);
+      if (existing) {
+        res.status(409).json({ message: "This archive attachment has already been imported", existing });
+        return;
+      }
+
+      upload = await saveUploadedMedia(media[0]!, "slip");
+      const insertIntake = async (transaction: AdminDatabase) => {
+        let leadId: number | null = null;
+        if (normalizedReference) {
+          const [reference] = await transaction
+            .select()
+            .from(leadExternalReferences)
+            .where(and(
+              eq(leadExternalReferences.referenceType, LINE_JOB_REFERENCE_TYPE),
+              eq(leadExternalReferences.normalizedValue, normalizedReference),
+            ))
+            .limit(1);
+          leadId = reference?.leadId ?? null;
+        }
+
+        const [created] = await transaction
+          .insert(paymentSlips)
+          .values({
+            leadId,
+            kind,
+            status: "team_reported_paid",
+            sourceType: LINE_ARCHIVE_SOURCE_TYPE,
+            referenceValue,
+            archiveMessageId,
+            archiveAttachmentId,
+            sourceHash,
+            slipImageUrl: upload!.url,
+            claimedAmountThb,
+            senderName,
+          })
+          .returning();
+        if (!created) throw new Error("Payment slip was not saved");
+        return created;
+      };
+
+      const created = database.transaction
+        ? await database.transaction(insertIntake)
+        : await insertIntake(database);
+      res.status(201).json(created);
+    } catch (error) {
+      if (upload) await removeUploadedMedia(upload.filename).catch(() => undefined);
+      if (isUniqueViolation(error)) {
+        res.status(409).json({ message: "This archive attachment has already been imported" });
+        return;
+      }
+      if (error instanceof Error && /required|invalid|choose|allowed|large|multipart/i.test(error.message)) {
+        invalid(res, error.message);
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.get("/admin/slips/unassigned", requireAdminPermission("leads"), async (_req, res, next) => {
+    try {
+      const slips = await database
+        .select()
+        .from(paymentSlips)
+        .where(and(isNull(paymentSlips.leadId), ne(paymentSlips.status, "voided")))
+        .orderBy(desc(paymentSlips.createdAt));
+      res.json(slips);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/admin/slips/:id/assign", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    const parsed = AssignAdminPaymentSlipBody.safeParse(req.body);
+    if (!id || !parsed.success) {
+      invalid(res, "Invalid payment slip assignment", parsed.success ? undefined : parsed.error.flatten());
+      return;
+    }
+
+    try {
+      const [lead] = await database
+        .select({ id: customerLeads.id })
+        .from(customerLeads)
+        .where(eq(customerLeads.id, parsed.data.leadId))
+        .limit(1);
+      if (!lead) {
+        res.status(404).json({ message: "Lead not found" });
+        return;
+      }
+
+      const assignSlip = async (transaction: AdminDatabase) => {
+        const [slip] = await transaction
+          .select()
+          .from(paymentSlips)
+          .where(eq(paymentSlips.id, id))
+          .limit(1);
+        if (!slip) return { kind: "missing" as const };
+        if (slip.status === "voided" || slip.leadId !== null) return { kind: "conflict" as const };
+
+        if (slip.referenceValue) {
+          const normalizedReference = normalizeLineJobCode(slip.referenceValue);
+          if (normalizedReference) {
+            const [existingReference] = await transaction
+              .select()
+              .from(leadExternalReferences)
+              .where(and(
+                eq(leadExternalReferences.referenceType, LINE_JOB_REFERENCE_TYPE),
+                eq(leadExternalReferences.normalizedValue, normalizedReference),
+              ))
+              .limit(1);
+            if (existingReference && existingReference.leadId !== lead.id) {
+              return { kind: "reference-conflict" as const };
+            }
+            await transaction
+              .insert(leadExternalReferences)
+              .values({
+                leadId: lead.id,
+                referenceType: LINE_JOB_REFERENCE_TYPE,
+                referenceValue: slip.referenceValue,
+                normalizedValue: normalizedReference,
+              })
+              .onConflictDoNothing();
+          }
+        }
+
+        const [updated] = await transaction
+          .update(paymentSlips)
+          .set({
+            leadId: lead.id,
+            reviewedByAdmin: true,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(paymentSlips.id, id), isNull(paymentSlips.leadId)))
+          .returning();
+        return updated ? { kind: "updated" as const, slip: updated } : { kind: "conflict" as const };
+      };
+
+      const result = database.transaction
+        ? await database.transaction(assignSlip)
+        : await assignSlip(database);
+      if (result.kind === "missing") {
+        res.status(404).json({ message: "Payment slip not found" });
+        return;
+      }
+      if (result.kind === "conflict") {
+        res.status(409).json({ message: "Payment slip is already assigned or voided" });
+        return;
+      }
+      if (result.kind === "reference-conflict") {
+        res.status(409).json({ message: "That job code is already assigned to another lead" });
+        return;
+      }
+      res.json(result.slip);
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        res.status(409).json({ message: "That job code is already assigned to another lead" });
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.post("/admin/slips/:id/void", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) {
+      invalid(res, "Invalid payment slip id");
+      return;
+    }
+    try {
+      const [updated] = await database
+        .update(paymentSlips)
+        .set({ status: "voided", reviewedByAdmin: true, updatedAt: new Date() })
+        .where(and(eq(paymentSlips.id, id), eq(paymentSlips.status, "team_reported_paid")))
+        .returning();
+      if (!updated) {
+        const [existing] = await database
+          .select({ id: paymentSlips.id })
+          .from(paymentSlips)
+          .where(eq(paymentSlips.id, id))
+          .limit(1);
+        if (!existing) {
+          res.status(404).json({ message: "Payment slip not found" });
+          return;
+        }
+        res.status(409).json({ message: "Only team-reported payment slips can be voided" });
+        return;
+      }
+      res.json(updated);
+    } catch (error) {
+      next(error);
     }
   });
 

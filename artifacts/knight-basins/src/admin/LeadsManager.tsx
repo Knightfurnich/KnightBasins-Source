@@ -1,9 +1,13 @@
 import { useMemo, useState } from "react";
 import {
   CustomerLeadStatus,
+  type CustomerLead,
+  useAssignAdminPaymentSlip,
   useListAdminLeads,
+  useListAdminUnassignedSlips,
   useListLeadPaymentSlips,
   useUpdateAdminLead,
+  useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Check, Clipboard, Loader2, RefreshCw, Search, X } from "lucide-react";
@@ -13,10 +17,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { adminQuoteUrl, filterAdminLeads } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 
-const statusLabels: Record<CustomerLeadStatus, string> = {
+const statusLabels: Record<string, string> = {
   new_lead: "New Lead",
   selecting: "เลือกสินค้า",
   quote_requested: "ขอใบเสนอราคา",
+  quote_sent: "ส่งใบเสนอราคาแล้ว",
+  waiting_deposit: "รอมัดจำ",
   closed: "ปิดการขาย",
 };
 
@@ -60,6 +66,8 @@ const paymentStatusLabels: Record<string, string> = {
   verified: "ตรวจสอบแล้ว",
   needs_review: "ไม่มี QR · ต้องตรวจด้วยตา",
   rejected: "ไม่ผ่านอัตโนมัติ",
+  team_reported_paid: "ชำระแล้วตามรายงานทีม LINE",
+  voided: "ยกเลิกแล้ว",
 };
 
 const paymentKindLabels: Record<string, string> = {
@@ -69,6 +77,8 @@ const paymentKindLabels: Record<string, string> = {
 
 function LeadPaymentSlips({ leadId }: { leadId: number }) {
   const { data: slips } = useListLeadPaymentSlips(leadId);
+  const voidSlip = useVoidAdminPaymentSlip();
+  const queryClient = useQueryClient();
   if (!slips?.length) return null;
   return (
     <div className="mt-4 max-w-2xl">
@@ -79,18 +89,128 @@ function LeadPaymentSlips({ leadId }: { leadId: number }) {
             <a href={slip.slipImageUrl} target="_blank" rel="noreferrer" className="block h-12 w-12 shrink-0 border border-[var(--line)] overflow-hidden">
               <img src={slip.slipImageUrl} alt="สลิปโอนเงิน" className="h-full w-full object-cover" />
             </a>
-            <div>
-              <span className={slip.status === "verified" ? "text-[#17816d]" : slip.status === "rejected" ? "text-[#a24439]" : slip.status === "needs_review" ? "text-[#a9791f]" : "text-[var(--ink-soft)]"}>
+             <div className="min-w-0 flex-1">
+               <span className={slip.status === "verified" || slip.status === "team_reported_paid" ? "text-[#17816d]" : slip.status === "rejected" || slip.status === "voided" ? "text-[#a24439]" : slip.status === "needs_review" ? "text-[#a9791f]" : "text-[var(--ink-soft)]"}>
                 {paymentStatusLabels[slip.status] ?? slip.status}
               </span>
               {" · "}{paymentKindLabels[slip.kind] ?? slip.kind}
-              {typeof slip.verifiedAmountThb === "number" && ` · ${slip.verifiedAmountThb.toLocaleString("th-TH")} บาท`}
+               {typeof (slip.status === "verified" ? slip.verifiedAmountThb : slip.claimedAmountThb) === "number" && ` · ${(slip.status === "verified" ? slip.verifiedAmountThb : slip.claimedAmountThb)!.toLocaleString("th-TH")} บาท`}
               {slip.senderName && ` · จาก ${slip.senderName}`}
               {slip.slipokErrorCode && ` · code ${slip.slipokErrorCode}`}
-            </div>
+               {slip.status === "team_reported_paid" && (
+                 <p className="mt-1 text-[var(--ink-soft)]">ชำระเงินแล้วตามการรายงานของทีมใน LINE</p>
+               )}
+             </div>
+             {slip.status === "team_reported_paid" && (
+               <Button
+                 type="button"
+                 size="sm"
+                 variant="outline"
+                 className="shrink-0 rounded-none text-[#a24439]"
+                 disabled={voidSlip.isPending}
+                 onClick={() => {
+                   if (!window.confirm("ยืนยันยกเลิกสลิปที่รายงานจากทีมนี้หรือไม่?")) return;
+                   voidSlip.mutate(
+                     { id: slip.id },
+                     {
+                       onSuccess: () => {
+                         void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${leadId}/payment-slips`] });
+                         void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+                       },
+                     },
+                   );
+                 }}
+                 data-testid={`button-void-payment-slip-${slip.id}`}
+               >
+                 ยกเลิกสลิป (Void)
+               </Button>
+             )}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
+  const { data: slips, isLoading } = useListAdminUnassignedSlips();
+  const assignSlip = useAssignAdminPaymentSlip();
+  const queryClient = useQueryClient();
+  const [selectedLeads, setSelectedLeads] = useState<Record<number, string>>({});
+
+  if (isLoading) {
+    return <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]"><Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลดสลิปรอระบุงาน...</div>;
+  }
+
+  if (!slips?.length) {
+    return <div className="border border-[var(--line)] bg-[var(--card-paper)] p-10 text-center text-sm text-[var(--ink-soft)]">ไม่มีสลิปรอระบุงาน</div>;
+  }
+
+  return (
+    <div className="grid gap-4">
+      {slips.map((slip) => (
+        <article key={slip.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-4" data-testid={`card-unassigned-slip-${slip.id}`}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <a href={slip.slipImageUrl} target="_blank" rel="noreferrer" className="block h-28 w-28 shrink-0 overflow-hidden border border-[var(--line)]">
+              <img src={slip.slipImageUrl} alt="สลิปรอระบุงาน" className="h-full w-full object-cover" />
+            </a>
+            <div className="min-w-0 flex-1 text-sm">
+              <p className="font-medium">{paymentStatusLabels[slip.status] ?? slip.status}</p>
+              <p className="mt-1 text-[var(--ink-soft)]">
+                ยอดที่ทีมรายงาน: {typeof slip.claimedAmountThb === "number" ? `${slip.claimedAmountThb.toLocaleString("th-TH")} บาท` : "ไม่ระบุ"}
+                {slip.senderName && ` · จาก ${slip.senderName}`}
+              </p>
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">
+                รหัสงานจาก LINE: {slip.referenceValue ?? "ไม่พบรหัสงาน"} · รับเข้า {formatLeadDate(slip.createdAt)}
+              </p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+                <label className="grid min-w-0 flex-1 gap-1 text-xs text-[var(--ink-soft)]">
+                  เลือก Lead ที่ต้องการผูก
+                  <select
+                    value={selectedLeads[slip.id] ?? ""}
+                    onChange={(event) => setSelectedLeads((current) => ({ ...current, [slip.id]: event.target.value }))}
+                    className="h-9 min-w-0 border border-[var(--line)] bg-transparent px-2 text-sm text-[var(--ink)]"
+                    data-testid={`select-unassigned-slip-lead-${slip.id}`}
+                  >
+                    <option value="">เลือก Lead</option>
+                    {leads.map((lead) => (
+                      <option key={lead.id} value={lead.id}>
+                        #{lead.id} · {lead.name || "ยังไม่ระบุชื่อ"}{lead.quoteNumber ? ` · ${lead.quoteNumber}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Button
+                  type="button"
+                  className="h-9 rounded-none"
+                  disabled={!selectedLeads[slip.id] || assignSlip.isPending}
+                  onClick={() => {
+                    const leadId = Number(selectedLeads[slip.id]);
+                    if (!Number.isInteger(leadId) || leadId <= 0) return;
+                    assignSlip.mutate(
+                      { id: slip.id, data: { leadId } },
+                      {
+                        onSuccess: () => {
+                          setSelectedLeads((current) => {
+                            const next = { ...current };
+                            delete next[slip.id];
+                            return next;
+                          });
+                          void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+                          void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${leadId}/payment-slips`] });
+                        },
+                      },
+                    );
+                  }}
+                  data-testid={`button-assign-unassigned-slip-${slip.id}`}
+                >
+                  ผูกกับ Lead
+                </Button>
+              </div>
+            </div>
+          </div>
+        </article>
+      ))}
     </div>
   );
 }
@@ -149,6 +269,7 @@ export function LeadsManager() {
   const { data: leads, isLoading, refetch } = useListAdminLeads();
   const updateLead = useUpdateAdminLead();
   const queryClient = useQueryClient();
+  const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
   const [filter, setFilter] = useState<CustomerLeadStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -229,6 +350,19 @@ export function LeadsManager() {
 
       <LeadPageGuide />
 
+      <div className="flex flex-wrap gap-2 border-b border-[var(--line)] pb-3">
+        <Button variant={activeView === "leads" ? "secondary" : "ghost"} onClick={() => setActiveView("leads")} className="rounded-none">
+          Lead ทั้งหมด
+        </Button>
+        <Button variant={activeView === "unassigned" ? "secondary" : "ghost"} onClick={() => setActiveView("unassigned")} className="rounded-none">
+          สลิปรอระบุงาน
+        </Button>
+      </div>
+
+      {activeView === "unassigned" ? (
+        <UnassignedSlipsPanel leads={leads ?? []} />
+      ) : (
+        <>
       <div className="flex flex-wrap gap-2">
         <Button variant={filter === "all" ? "secondary" : "ghost"} onClick={() => setFilter("all")} className="rounded-none">
           ทั้งหมด ({leads?.length ?? 0})
@@ -365,6 +499,8 @@ export function LeadsManager() {
             </article>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );

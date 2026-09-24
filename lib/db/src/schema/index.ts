@@ -273,6 +273,8 @@ export const customerLeads = pgTable(
     propertyType: varchar("property_type", { length: 64 }),
     condoFloor: varchar("condo_floor", { length: 32 }),
     expectedInstallationDate: varchar("expected_installation_date", { length: 10 }),
+    nextFollowUpDate: varchar("next_follow_up_date", { length: 10 }),
+    assignedTo: varchar("assigned_to", { length: 160 }),
     ...auditColumns,
   },
   (table) => [
@@ -286,13 +288,39 @@ export const customerLeads = pgTable(
   ],
 );
 
+export const leadExternalReferences = pgTable(
+  "lead_external_references",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id").notNull(),
+    referenceType: varchar("reference_type", { length: 32 }).notNull(),
+    referenceValue: varchar("reference_value", { length: 64 }).notNull(),
+    normalizedValue: varchar("normalized_value", { length: 64 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("lead_external_references_type_value_unique").on(table.referenceType, table.normalizedValue),
+    index("lead_external_references_lead_id_idx").on(table.leadId),
+    foreignKey({
+      columns: [table.leadId],
+      foreignColumns: [customerLeads.id],
+      name: "lead_external_references_lead_id_customer_leads_id_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
 export const paymentSlips = pgTable(
   "payment_slips",
   {
     id: serial("id").primaryKey(),
-    leadId: integer("lead_id").notNull(),
+    leadId: integer("lead_id"),
     kind: varchar("kind", { length: 16 }).default("deposit").notNull(),
-    status: varchar("status", { length: 16 }).default("pending").notNull(),
+    status: varchar("status", { length: 24 }).default("pending").notNull(),
+    sourceType: varchar("source_type", { length: 32 }).default("direct_upload").notNull(),
+    referenceValue: varchar("reference_value", { length: 64 }),
+    archiveMessageId: varchar("archive_message_id", { length: 128 }),
+    archiveAttachmentId: varchar("archive_attachment_id", { length: 128 }),
+    sourceHash: varchar("source_hash", { length: 64 }),
     slipImageUrl: text("slip_image_url").notNull(),
     claimedAmountThb: integer("claimed_amount_thb"),
     verifiedAmountThb: integer("verified_amount_thb"),
@@ -305,11 +333,12 @@ export const paymentSlips = pgTable(
   },
   (table) => [
     index("payment_slips_lead_id_idx").on(table.leadId),
+    uniqueIndex("payment_slips_source_attachment_unique").on(table.sourceType, table.archiveAttachmentId),
     foreignKey({
       columns: [table.leadId],
       foreignColumns: [customerLeads.id],
       name: "payment_slips_lead_id_customer_leads_id_fk",
-    }).onDelete("cascade"),
+    }).onDelete("set null"),
   ],
 );
 
@@ -326,3 +355,5 @@ export type AdminInvite = typeof adminInvites.$inferSelect;
 export type CustomerProfileUpdateConfirmation = typeof customerProfileUpdateConfirmations.$inferSelect;
 export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;
 export type CustomerLead = typeof customerLeads.$inferSelect;
+export type LeadExternalReference = typeof leadExternalReferences.$inferSelect;
+export type PaymentSlip = typeof paymentSlips.$inferSelect;
