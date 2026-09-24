@@ -52,7 +52,7 @@
 | ใบงาน | ผู้รับผิดชอบ | หัวข้อ / ขอบเขต | ความคืบหน้า |
 |:---:|:---:|:---|:---|
 | **Task 13** | ชัย | ระบบตรวจระยะขอบปลอดภัยหลุมเจาะอ่าง 100 มม. (`STUDIO_BASIN_SAFETY_MARGIN_MM`) | `5f3c8e8` | ✅ เทสต์ผ่าน 13/13 ข้อ |
-| **Task 15** | ชัย | API Cockpit Engine (ตัวกรอง 3 เดือน, เปรียบเทียบ 3 เดือน, เรดาร์ 10 ทีม, LINE briefing) | `a250b38` / `79b1ded` | ✅ Merge & Deployed บน VPS |
+| **Task 17** | ชัย | Quick Filter & Quick Status Action (`LeadsManager.tsx` + `PATCH status`) | `3df36d5` / `24e09fc` | ✅ Merge & Deployed บน VPS |
 
 ---
 
