@@ -11,12 +11,12 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │       📝 TO DO          │     🔄 IN PROGRESS      │        ✅ DONE          │
 ├─────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ • Task 24 (Replit)      │ • Task 26 โหมดง่าย       │ • Task 1-19 (ชัย):      │
-│   สลับ hook จริง +      │   Studio — ตรวจรับผ่าน   │   Core, Slips, Places,  │
-│   ลบไฟล์สะพาน           │   แล้ว รอ deploy        │   Cockpit & Calendar API│
+│ • Task 24 (Replit)      │ • แก้ browser test ที่    │ • Task 1-19 (ชัย):      │
+│   สลับ hook จริง +      │   อ้าง preset selector   │   Core, Slips, Places,  │
+│   ลบไฟล์สะพาน           │   (โหมดง่าย default)     │   Cockpit & Calendar API│
 │ • Task 25A (ชัย)        │                         │ • Replit: Dashboard,    │
 │   จับคู่ชื่อทีมช่าง       │                         │   Cockpit, Calendar UI  │
-│   fuzzy — พร้อมส่ง      │                         │ • Contact Info (Live)   │
+│   fuzzy — พร้อมส่ง      │                         │ • Task 26 โหมดง่าย LIVE │
 │ • แจ้งเตือนอัตโนมัติ     │                         │ • Task 23 (ชัย)         │
 │   (LINE/SMS/Email)      │                         │   technician_teams +    │
 │   Coming Soon           │                         │   migration 012 (Live)  │
@@ -72,4 +72,4 @@
 | **Notify calc** | เดวิด | ข้อความแจ้งทีมขายแสดง **วิธีคำนวณ** ต่อบรรทัด + ป้าย "อ่างที่ลูกค้าสนใจ (ยังไม่ได้เลือกเข้าออเดอร์)" — เจ้าของสั่ง 24 ก.ย. | `dcc743a` | ✅ **Live บน VPS** · tests 15/15 |
 | **verify_deploy** | เดวิด | ชี้เป้าสคริปต์ตรวจสุขภาพจาก knightdesign → **Knight Basins** — เลิกสัญญาณหลอก 7 ข้อ | `bin/verify_deploy.py` | ✅ **22/22 passed** |
 | **KB pricing** | เดวิด | บันทึก: ขาย 3 ประเภท + หน่วยราคา + ที่ไหนบนเว็บ · ลำดับการตอบราคา · 4 กลุ่มสี 3 เรต · ขายแผ่นไม่คูณอะไร | `pricing.md` + HANDOFF §3 | ✅ sync เข้า prompt บอทแล้ว (LINE 29,391 chars) |
-| **Task 26** | Replit | โหมดง่ายหน้า Studio (ซ่อนคอนโทรลละเอียด) — ส่งงานแล้ว | `da4e7a3` | 🟢 **ตรวจรับผ่าน** (SCOPE 2 ไฟล์ · 189/185/2 · เห็น/ซ่อนถูกทุกตัว) · รอ deploy |
+| **Task 26** | Replit | โหมดง่ายหน้า Studio (ซ่อนคอนโทรลละเอียด) — เจ้าของอนุมัติ deploy | `da4e7a3` / merge `3e4c914` | ✅ **Live บน VPS** · asset `index-CgJV3olN.js` · โหมดง่าย default · ขอบอัตโนมัติ บน=ติดบัว ที่เหลือ=ขอบเปิด |
