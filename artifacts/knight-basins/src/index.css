@@ -159,7 +159,7 @@
   --type-line-stat: 1.15;
   --type-size-label: 0.75rem;
   --type-line-label: 1.4;
-  --type-size-caption: 0.6875rem;
+  --type-size-caption: 0.75rem; /* 12px — ยกจาก 0.6875rem (11px) ตามมาตรฐานล็อก 24 ก.ย. 69 (พื้นต่ำสุด 12px) */
   --type-line-caption: 1.5;
   --type-size-button: 0.75rem;
   --type-line-button: 1.2;
@@ -1552,6 +1552,17 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .admin-manager .text-lg { font-size: var(--type-size-heading-md); line-height: var(--type-line-heading-md); }
 .admin-manager .text-sm { font-size: var(--type-size-body); line-height: var(--type-line-body); }
 .admin-manager .text-xs { font-size: var(--type-size-caption); line-height: var(--type-line-caption); }
+
+/* มาตรฐานล็อก 24 ก.ย. 69: ข้อความหลักของแอดมิน = 14px ให้ตรงกับหน้าลูกค้า
+   ใช้ @media screen เพื่อไม่แตะ CSS พิมพ์/ใบสั่งผลิต (.formal-* .workbench* .workshop* .sig-box)
+   เขียนต่อท้ายกฎฐานของแอดมิน จึงชนะด้วยลำดับ ไม่ต้องใช้ !important */
+@media screen {
+  .admin-app label, .admin-login label,
+  .admin-app button, .admin-login button,
+  .admin-app table, .admin-app table th, .admin-app table td {
+    font-size: var(--type-size-body); /* 14px */
+  }
+}
 .admin-manager .font-mono { font-family: var(--app-font-mono); }
 .admin-manager input:not([type="checkbox"]), .admin-manager textarea {
   border-radius: 9px !important;
