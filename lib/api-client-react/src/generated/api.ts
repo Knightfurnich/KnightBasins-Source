@@ -32,6 +32,7 @@ import type {
   AdminInviteInput,
   AdminInviteSummary,
   AdminLeadStatusUpdateInput,
+  AdminLeadTechnicianUpdateInput,
   AdminLeadUpdateInput,
   AdminMember,
   AdminMemberInput,
@@ -49,6 +50,7 @@ import type {
   CustomerProfileInput,
   CustomerQuotation,
   GetAdminDashboardStatsParams,
+  GetAdminTechnicianCalendarParams,
   GetSavedQuoteParams,
   GetWorksiteAddressSuggestionsParams,
   HealthStatus,
@@ -73,6 +75,7 @@ import type {
   SupportChatInput,
   SupportChatResponse,
   SupportPaymentSlipResponse,
+  TechnicianCalendarResponse,
   UploadAdminBasinVideoBody,
   UploadedMedia,
   WorksiteAddressSuggestions
@@ -4479,6 +4482,186 @@ export const useUpdateAdminLeadStatus = <TError = ErrorType<void>,
       > => {
       return useMutation(getUpdateAdminLeadStatusMutationOptions(options), queryClient);
     }
+
+export const getUpdateAdminLeadTechnicianUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/leads/${id}/technician`
+}
+
+/**
+ * @summary One-click team assignment for a lead, for the Technician Dispatch Calendar
+ */
+export const updateAdminLeadTechnician = async (id: number,
+    adminLeadTechnicianUpdateInput: AdminLeadTechnicianUpdateInput, options?: RequestInit): Promise<CustomerLead> => {
+
+  return customFetch<CustomerLead>(getUpdateAdminLeadTechnicianUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminLeadTechnicianUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminLeadTechnicianMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminLeadTechnician>>, TError,{id: number;data: BodyType<AdminLeadTechnicianUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminLeadTechnician>>, TError,{id: number;data: BodyType<AdminLeadTechnicianUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateAdminLeadTechnician'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminLeadTechnician>>, {id: number;data: BodyType<AdminLeadTechnicianUpdateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminLeadTechnician(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminLeadTechnicianMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminLeadTechnician>>>
+    export type UpdateAdminLeadTechnicianMutationBody = BodyType<AdminLeadTechnicianUpdateInput>
+    export type UpdateAdminLeadTechnicianMutationError = ErrorType<void>
+
+    /**
+ * @summary One-click team assignment for a lead, for the Technician Dispatch Calendar
+ */
+export const useUpdateAdminLeadTechnician = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminLeadTechnician>>, TError,{id: number;data: BodyType<AdminLeadTechnicianUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminLeadTechnician>>,
+        TError,
+        {id: number;data: BodyType<AdminLeadTechnicianUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminLeadTechnicianMutationOptions(options), queryClient);
+    }
+
+export const getGetAdminTechnicianCalendarUrl = (params: GetAdminTechnicianCalendarParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/technician-calendar?${stringifiedParams}` : `/api/admin/technician-calendar`
+}
+
+/**
+ * @summary Full-month, per-team dispatch calendar for the 10 install teams (Asia/Bangkok)
+ */
+export const getAdminTechnicianCalendar = async (params: GetAdminTechnicianCalendarParams, options?: RequestInit): Promise<TechnicianCalendarResponse> => {
+
+  return customFetch<TechnicianCalendarResponse>(getGetAdminTechnicianCalendarUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminTechnicianCalendarQueryKey = (params?: GetAdminTechnicianCalendarParams,) => {
+    return [
+    `/api/admin/technician-calendar`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAdminTechnicianCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError = ErrorType<void>>(params: GetAdminTechnicianCalendarParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminTechnicianCalendarQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>> = ({ signal }) => getAdminTechnicianCalendar(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminTechnicianCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>>
+export type GetAdminTechnicianCalendarQueryError = ErrorType<void>
+
+
+export function useGetAdminTechnicianCalendar<TData = Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError = ErrorType<void>>(
+ params: GetAdminTechnicianCalendarParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminTechnicianCalendar>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminTechnicianCalendar>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminTechnicianCalendar<TData = Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError = ErrorType<void>>(
+ params: GetAdminTechnicianCalendarParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminTechnicianCalendar>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminTechnicianCalendar>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminTechnicianCalendar<TData = Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError = ErrorType<void>>(
+ params: GetAdminTechnicianCalendarParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Full-month, per-team dispatch calendar for the 10 install teams (Asia/Bangkok)
+ */
+
+export function useGetAdminTechnicianCalendar<TData = Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError = ErrorType<void>>(
+ params: GetAdminTechnicianCalendarParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminTechnicianCalendar>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminTechnicianCalendarQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetLineAuthStatusUrl = () => {
 

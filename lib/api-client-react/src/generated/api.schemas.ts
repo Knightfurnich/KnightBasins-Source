@@ -859,6 +859,34 @@ export interface AdminLeadStatusUpdateInput {
   status: AdminLeadStatusUpdateInputStatus;
 }
 
+/**
+ * One of the 10 install team codes, or null to clear the assignment back to unassigned
+ * @nullable
+ */
+export type AdminLeadTechnicianUpdateInputTechnicianTeamCode = typeof AdminLeadTechnicianUpdateInputTechnicianTeamCode[keyof typeof AdminLeadTechnicianUpdateInputTechnicianTeamCode] | null;
+
+
+export const AdminLeadTechnicianUpdateInputTechnicianTeamCode = {
+  TP: 'TP',
+  PP: 'PP',
+  ST: 'ST',
+  CM: 'CM',
+  KF: 'KF',
+  PA: 'PA',
+  PM: 'PM',
+  TJ: 'TJ',
+  AM: 'AM',
+  CL: 'CL',
+} as const;
+
+export interface AdminLeadTechnicianUpdateInput {
+  /**
+     * One of the 10 install team codes, or null to clear the assignment back to unassigned
+     * @nullable
+     */
+  technicianTeamCode: AdminLeadTechnicianUpdateInputTechnicianTeamCode;
+}
+
 export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];
 
 
@@ -867,6 +895,25 @@ export const CustomerLeadStatus = {
   selecting: 'selecting',
   quote_requested: 'quote_requested',
   closed: 'closed',
+} as const;
+
+/**
+ * @nullable
+ */
+export type CustomerLeadTechnicianTeamCode = typeof CustomerLeadTechnicianTeamCode[keyof typeof CustomerLeadTechnicianTeamCode] | null;
+
+
+export const CustomerLeadTechnicianTeamCode = {
+  TP: 'TP',
+  PP: 'PP',
+  ST: 'ST',
+  CM: 'CM',
+  KF: 'KF',
+  PA: 'PA',
+  PM: 'PM',
+  TJ: 'TJ',
+  AM: 'AM',
+  CL: 'CL',
 } as const;
 
 export type CustomerLeadOrderMode = typeof CustomerLeadOrderMode[keyof typeof CustomerLeadOrderMode];
@@ -926,6 +973,8 @@ export interface CustomerLead {
   condoFloor?: string | null;
   /** @nullable */
   expectedInstallationDate?: string | null;
+  /** @nullable */
+  technicianTeamCode?: CustomerLeadTechnicianTeamCode;
   productSkus: string[];
   /** @nullable */
   quoteNumber?: string | null;
@@ -1170,6 +1219,107 @@ export interface AdminDashboardStats {
   /** Radar of all 10 install teams' load over the next 7 days */
   technicianCapacity: AdminDashboardTechnicianCapacity[];
   asOf: string;
+}
+
+export interface TechnicianCalendarJob {
+  id: number;
+  leadKey: string;
+  name: string;
+  /** @nullable */
+  project: string | null;
+  /** @nullable */
+  address: string | null;
+  /** @nullable */
+  quoteNumber: string | null;
+}
+
+export type TechnicianCalendarTeamDayTeamCode = typeof TechnicianCalendarTeamDayTeamCode[keyof typeof TechnicianCalendarTeamDayTeamCode];
+
+
+export const TechnicianCalendarTeamDayTeamCode = {
+  TP: 'TP',
+  PP: 'PP',
+  ST: 'ST',
+  CM: 'CM',
+  KF: 'KF',
+  PA: 'PA',
+  PM: 'PM',
+  TJ: 'TJ',
+  AM: 'AM',
+  CL: 'CL',
+} as const;
+
+/**
+ * Team status that day: available (0 jobs), moderate (1-2), busy (3+)
+ */
+export type TechnicianCalendarTeamDayStatus = typeof TechnicianCalendarTeamDayStatus[keyof typeof TechnicianCalendarTeamDayStatus];
+
+
+export const TechnicianCalendarTeamDayStatus = {
+  available: 'available',
+  moderate: 'moderate',
+  busy: 'busy',
+} as const;
+
+export interface TechnicianCalendarTeamDay {
+  teamCode: TechnicianCalendarTeamDayTeamCode;
+  teamName: string;
+  /** Team status that day: available (0 jobs), moderate (1-2), busy (3+) */
+  status: TechnicianCalendarTeamDayStatus;
+  jobCount: number;
+  jobs: TechnicianCalendarJob[];
+}
+
+/**
+ * Day status across all teams: available (0 total jobs), busy (>=4 total jobs, or any single team busy), otherwise moderate
+ */
+export type TechnicianCalendarDayDayStatus = typeof TechnicianCalendarDayDayStatus[keyof typeof TechnicianCalendarDayDayStatus];
+
+
+export const TechnicianCalendarDayDayStatus = {
+  available: 'available',
+  moderate: 'moderate',
+  busy: 'busy',
+} as const;
+
+export interface TechnicianCalendarDay {
+  /** ISO date (YYYY-MM-DD) */
+  date: string;
+  /** Day status across all teams: available (0 total jobs), busy (>=4 total jobs, or any single team busy), otherwise moderate */
+  dayStatus: TechnicianCalendarDayDayStatus;
+  /** Count of leads installing this day */
+  totalJobs: number;
+  /** All 10 teams, every day, even when a team has zero jobs that day */
+  teams: TechnicianCalendarTeamDay[];
+}
+
+export type TechnicianCalendarResponseTechnicianTeamsItemTeamCode = typeof TechnicianCalendarResponseTechnicianTeamsItemTeamCode[keyof typeof TechnicianCalendarResponseTechnicianTeamsItemTeamCode];
+
+
+export const TechnicianCalendarResponseTechnicianTeamsItemTeamCode = {
+  TP: 'TP',
+  PP: 'PP',
+  ST: 'ST',
+  CM: 'CM',
+  KF: 'KF',
+  PA: 'PA',
+  PM: 'PM',
+  TJ: 'TJ',
+  AM: 'AM',
+  CL: 'CL',
+} as const;
+
+export type TechnicianCalendarResponseTechnicianTeamsItem = {
+  teamCode: TechnicianCalendarResponseTechnicianTeamsItemTeamCode;
+  teamName: string;
+};
+
+export interface TechnicianCalendarResponse {
+  /** YYYY-MM, echoed back from the request */
+  month: string;
+  days: TechnicianCalendarDay[];
+  /** Dictionary of all 10 teams (code + display name) */
+  technicianTeams: TechnicianCalendarResponseTechnicianTeamsItem[];
 }
 
 export type PaymentSlipIntakeInputKind = typeof PaymentSlipIntakeInputKind[keyof typeof PaymentSlipIntakeInputKind];
@@ -1433,6 +1583,14 @@ export const GetAdminDashboardStatsPeriod = {
 export type SendAdminDashboardBriefingToLine200 = {
   success: boolean;
   deliveredAt: string;
+};
+
+export type GetAdminTechnicianCalendarParams = {
+/**
+ * Calendar month to load, as YYYY-MM (Asia/Bangkok)
+ * @pattern ^\d{4}-\d{2}$
+ */
+month: string;
 };
 
 export type GetWorksiteAddressSuggestionsParams = {

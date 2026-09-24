@@ -1577,6 +1577,7 @@ export const UpsertLeadResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -1624,6 +1625,7 @@ export const GetSavedQuoteResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -1686,6 +1688,7 @@ export const SubmitSketchLeadResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -1763,6 +1766,7 @@ export const ListAdminLeadsResponseItem = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2085,6 +2089,7 @@ export const UpdateAdminLeadResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2134,6 +2139,7 @@ export const UpdateAdminLeadStatusResponse = zod.object({
   "propertyType": zod.string().nullish(),
   "condoFloor": zod.string().nullish(),
   "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
   "productSkus": zod.array(zod.string()),
   "quoteNumber": zod.string().nullish(),
   "publicQuoteToken": zod.string().nullish(),
@@ -2142,6 +2148,94 @@ export const UpdateAdminLeadStatusResponse = zod.object({
   "sketchUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary One-click team assignment for a lead, for the Technician Dispatch Calendar
+ */
+
+
+
+export const UpdateAdminLeadTechnicianParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const UpdateAdminLeadTechnicianBody = zod.object({
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullable().describe('One of the 10 install team codes, or null to clear the assignment back to unassigned')
+})
+
+export const UpdateAdminLeadTechnicianResponse = zod.object({
+  "id": zod.number(),
+  "leadKey": zod.string(),
+  "status": zod.enum(['new_lead', 'selecting', 'quote_requested', 'closed']),
+  "source": zod.string(),
+  "name": zod.string().nullish(),
+  "company": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "lineContact": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "project": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "site": zod.string().nullish(),
+  "purchasingDepartment": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "taxName": zod.string().nullish(),
+  "taxId": zod.string().nullish(),
+  "taxBranch": zod.string().nullish(),
+  "taxAddress": zod.string().nullish(),
+  "preferredContact": zod.string().nullish(),
+  "customerRole": zod.string().nullish(),
+  "propertyType": zod.string().nullish(),
+  "condoFloor": zod.string().nullish(),
+  "expectedInstallationDate": zod.coerce.date().nullish(),
+  "technicianTeamCode": zod.union([zod.literal('TP'),zod.literal('PP'),zod.literal('ST'),zod.literal('CM'),zod.literal('KF'),zod.literal('PA'),zod.literal('PM'),zod.literal('TJ'),zod.literal('AM'),zod.literal('CL'),zod.literal(null)]).nullish(),
+  "productSkus": zod.array(zod.string()),
+  "quoteNumber": zod.string().nullish(),
+  "publicQuoteToken": zod.string().nullish(),
+  "orderMode": zod.enum(['quick-purchase', 'studio', 'sketch']).optional(),
+  "studioData": zod.record(zod.string(), zod.unknown()).nullish(),
+  "sketchUrl": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Full-month, per-team dispatch calendar for the 10 install teams (Asia/Bangkok)
+ */
+export const getAdminTechnicianCalendarQueryMonthRegExp = new RegExp('^\\d{4}-\\d{2}$');
+
+
+export const GetAdminTechnicianCalendarQueryParams = zod.object({
+  "month": zod.coerce.string().regex(getAdminTechnicianCalendarQueryMonthRegExp).describe('Calendar month to load, as YYYY-MM (Asia\/Bangkok)')
+})
+
+export const GetAdminTechnicianCalendarResponse = zod.object({
+  "month": zod.string().describe('YYYY-MM, echoed back from the request'),
+  "days": zod.array(zod.object({
+  "date": zod.string().describe('ISO date (YYYY-MM-DD)'),
+  "dayStatus": zod.enum(['available', 'moderate', 'busy']).describe('Day status across all teams: available (0 total jobs), busy (>=4 total jobs, or any single team busy), otherwise moderate'),
+  "totalJobs": zod.number().describe('Count of leads installing this day'),
+  "teams": zod.array(zod.object({
+  "teamCode": zod.enum(['TP', 'PP', 'ST', 'CM', 'KF', 'PA', 'PM', 'TJ', 'AM', 'CL']),
+  "teamName": zod.string(),
+  "status": zod.enum(['available', 'moderate', 'busy']).describe('Team status that day: available (0 jobs), moderate (1-2), busy (3+)'),
+  "jobCount": zod.number(),
+  "jobs": zod.array(zod.object({
+  "id": zod.number(),
+  "leadKey": zod.string(),
+  "name": zod.string(),
+  "project": zod.string().nullable(),
+  "address": zod.string().nullable(),
+  "quoteNumber": zod.string().nullable()
+}))
+})).describe('All 10 teams, every day, even when a team has zero jobs that day')
+})),
+  "technicianTeams": zod.array(zod.object({
+  "teamCode": zod.enum(['TP', 'PP', 'ST', 'CM', 'KF', 'PA', 'PM', 'TJ', 'AM', 'CL']),
+  "teamName": zod.string()
+})).describe('Dictionary of all 10 teams (code + display name)')
 })
 
 
