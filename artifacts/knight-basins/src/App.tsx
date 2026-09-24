@@ -175,21 +175,23 @@ function Header({ cartCount }: { cartCount: number }) {
 function Footer() {
   return (
     <footer className="site-footer">
-      <div>
-        <img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" />
-        <span className="footer-kicker">SOLID SURFACE / BASINS</span>
-        <p>พื้นผิวที่ทำให้รายละเอียดเล็ก ๆ<br />มีน้ำหนักขึ้นมา</p>
+      <div className="footer-brand-col">
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" />
+          <div>
+            <span className="footer-kicker">SOLID SURFACE / BASINS</span>
+            <p>พื้นผิวที่ทำให้รายละเอียดเล็ก ๆ มีน้ำหนักขึ้นมา</p>
+          </div>
+        </div>
       </div>
-      <div className="footer-contact" style={{ fontSize: "11px", lineHeight: "1.6", color: "var(--ink-soft, #555)", maxWidth: "480px" }}>
-        <strong style={{ color: "var(--ink, #111)", display: "block", marginBottom: "4px" }}>
-          บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)
-        </strong>
-        <div>35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ตำบลบ้านใหม่ อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000</div>
-        <div style={{ marginTop: "4px" }}>
-          <div>• 📞 สายด่วนปรึกษาทีมงาน : <strong>094-496-1949, 089-762-2209</strong></div>
-          <div>• 💬 LINE Official : <strong>@789gcnhq</strong> (KnightBot)</div>
-          <div>• 🌐 เว็บไซต์หลัก : <a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>www.knightfurnich.com</a></div>
-          <div>• ⏱️ เวลาทำการ : จันทร์ – ศุกร์ 08:30 – 16:30 น. | เสาร์ 08:30 – 11:30 น. (หยุดวันอาทิตย์)</div>
+      <div className="footer-contact">
+        <strong>บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
+        <div className="footer-address">35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+        <div className="footer-contact-grid">
+          <div>📞 094-496-1949, 089-762-2209</div>
+          <div>💬 LINE: <strong>@789gcnhq</strong> (KnightBot)</div>
+          <div>🌐 <a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer">www.knightfurnich.com</a></div>
+          <div>⏱️ จ.-ศ. 08:30–16:30 | ส. 08:30–11:30 (หยุดวันอาทิตย์)</div>
         </div>
       </div>
       <div className="footer-meta">
