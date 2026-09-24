@@ -81,21 +81,29 @@ type FakeLeadRecord = {
   updatedAt?: unknown;
 };
 
-/** Route-level fake for GET /admin/technician-calendar: select().from().where().orderBy() -> the given rows, unfiltered (date-range filtering is covered by computeTechnicianCalendar's own unit tests). */
+const tableName = (table: object) => table[Symbol.for("drizzle:Name") as keyof object] as string;
+
+/** Route-level fake for GET /admin/technician-calendar: select().from().where().orderBy() -> the given rows, unfiltered (date-range filtering is covered by computeTechnicianCalendar's own unit tests). technician_teams has no rows here -> loadTechnicianTeams() falls back to the 10-team seed. */
 function createFakeCalendarDatabase(leads: DashboardLeadRow[]) {
   return {
     select: () => ({
-      from: () => ({
-        where: () => ({ orderBy: async () => leads }),
-      }),
+      from: (table: object) => {
+        const rows = tableName(table) === "technician_teams" ? [] : leads;
+        return { where: () => ({ orderBy: async () => rows }) };
+      },
     }),
   };
 }
 
-/** Route-level fake for PATCH /admin/leads/:id/technician. */
+/** Route-level fake for PATCH /admin/leads/:id/technician. technician_teams has no rows here -> loadTechnicianTeams(true) falls back to the 10-team seed, so the 10 real codes still validate. */
 function createFakeLeadDatabase(record: FakeLeadRecord | null) {
   let current = record;
   return {
+    select: () => ({
+      from: () => ({
+        where: () => ({ orderBy: async () => [] }),
+      }),
+    }),
     update: () => {
       let changes: Record<string, unknown> = {};
       const builder = {
