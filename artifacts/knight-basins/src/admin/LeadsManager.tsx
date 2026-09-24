@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import {
   CustomerLeadStatus,
   type CustomerLead,
@@ -10,10 +10,11 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Check, Clipboard, Loader2, RefreshCw, Search, X } from "lucide-react";
+import { BookOpen, Check, ChevronDown, ChevronRight, Clipboard, LayoutGrid, List, Loader2, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { adminQuoteUrl, filterAdminLeads } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 
@@ -132,6 +133,258 @@ function LeadPaymentSlips({ leadId }: { leadId: number }) {
   );
 }
 
+function LeadPaymentSlipsBadge({ leadId }: { leadId: number }) {
+  const { data: slips } = useListLeadPaymentSlips(leadId);
+  if (!slips?.length) return <span className="text-[11px] text-[var(--ink-soft)]">-</span>;
+  const teamReported = slips.find((s) => s.status === "team_reported_paid");
+  const verified = slips.find((s) => s.status === "verified");
+  if (teamReported) {
+    return (
+      <span className="inline-flex items-center text-[11px] text-[#17816d] bg-[#17816d]/10 px-1.5 py-0.5 font-medium whitespace-nowrap" title={`ยอดรายงาน: ${teamReported.claimedAmountThb?.toLocaleString("th-TH") ?? "-"} บาท`}>
+        ● ชำระแล้ว (LINE)
+      </span>
+    );
+  }
+  if (verified) {
+    return (
+      <span className="inline-flex items-center text-[11px] text-[#17816d] bg-[#17816d]/10 px-1.5 py-0.5 font-medium whitespace-nowrap">
+        ● ชำระแล้ว (SlipOK)
+      </span>
+    );
+  }
+  const pending = slips[0];
+  return (
+    <span className="inline-flex items-center text-[11px] text-[#a9791f] bg-[#a9791f]/10 px-1.5 py-0.5 whitespace-nowrap">
+      ● {paymentStatusLabels[pending.status] ?? pending.status}
+    </span>
+  );
+}
+
+function LeadsTableView({
+  leads,
+  expandedLeadId,
+  setExpandedLeadId,
+  updateStatus,
+  updateLeadPending,
+  copyQuoteLink,
+  copiedQuote,
+  editingNotes,
+  setEditingNotes,
+  editingDimensions,
+  setEditingDimensions,
+  saveDimensions,
+  savedDimensions,
+}: {
+  leads: CustomerLead[];
+  expandedLeadId: number | null;
+  setExpandedLeadId: (id: number | null) => void;
+  updateStatus: (id: number, status: CustomerLeadStatus, notes?: string | null) => void;
+  updateLeadPending: boolean;
+  copyQuoteLink: (quoteNumber: string, publicQuoteToken: string) => Promise<void>;
+  copiedQuote: string | null;
+  editingNotes: Record<number, string>;
+  setEditingNotes: Dispatch<SetStateAction<Record<number, string>>>;
+  editingDimensions: Record<number, { widthMm: string; lengthMm: string; depthMm: string }>;
+  setEditingDimensions: Dispatch<SetStateAction<Record<number, { widthMm: string; lengthMm: string; depthMm: string }>>>;
+  saveDimensions: (lead: { id: number; status: CustomerLeadStatus; notes?: string | null }) => void;
+  savedDimensions: number | null;
+}) {
+  return (
+    <div className="border border-[var(--line)] bg-[var(--card-paper)] overflow-x-auto shadow-sm">
+      <Table className="text-xs">
+        <TableHeader className="bg-[var(--line)]/30">
+          <TableRow>
+            <TableHead className="w-12 text-center font-semibold">#ID</TableHead>
+            <TableHead className="w-24">วันที่</TableHead>
+            <TableHead className="w-44">ลูกค้า / บริษัท</TableHead>
+            <TableHead className="w-48">โครงการ / หน้างาน</TableHead>
+            <TableHead className="w-36">ช่องทางติดต่อ</TableHead>
+            <TableHead className="w-40">ใบเสนอราคา</TableHead>
+            <TableHead className="w-32">สินค้า / โหมด</TableHead>
+            <TableHead className="w-36">สถานะ Lead</TableHead>
+            <TableHead className="w-36">การชำระเงิน</TableHead>
+            <TableHead className="w-20 text-center">จัดการ</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {leads.map((lead) => {
+            const isExpanded = expandedLeadId === lead.id;
+            return (
+              <Fragment key={lead.id}>
+                <TableRow
+                  className={`hover:bg-[var(--line)]/20 transition-colors cursor-pointer ${isExpanded ? "bg-[var(--line)]/15 font-medium" : ""}`}
+                  onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                >
+                  <TableCell className="font-mono text-center text-[var(--ink-soft)] font-semibold">
+                    #{lead.id}
+                  </TableCell>
+                  <TableCell className="text-[11px] text-[var(--ink-soft)] whitespace-nowrap">
+                    {formatLeadDate(lead.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-semibold text-[var(--ink)] leading-snug">{lead.name || "ยังไม่ระบุชื่อ"}</div>
+                    {lead.company && <div className="text-[11px] text-[var(--ink-soft)] truncate max-w-[170px]">{lead.company}</div>}
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-[var(--ink)] font-medium truncate max-w-[180px]">{lead.project || "-"}</div>
+                    {lead.site && <div className="text-[11px] text-[var(--ink-soft)] truncate max-w-[180px]" title={lead.site}>{lead.site}</div>}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-mono text-[var(--ink)]">{lead.phone || "-"}</div>
+                    {lead.lineContact && <div className="text-[11px] text-[var(--ink-soft)] truncate max-w-[140px]">LINE: {lead.lineContact}</div>}
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {lead.quoteNumber ? (
+                      <div className="space-y-1">
+                        {lead.publicQuoteToken ? (
+                          <a
+                            href={adminQuoteUrl(lead.publicQuoteToken)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-mono text-[var(--brand-blue)] hover:underline block truncate max-w-[150px]"
+                            title="เปิดใบเสนอราคา"
+                          >
+                            {lead.quoteNumber}
+                          </a>
+                        ) : (
+                          <span className="font-mono text-[var(--brand-blue)]">{lead.quoteNumber}</span>
+                        )}
+                        {lead.publicQuoteToken && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-1.5 text-[10px] rounded-none text-[var(--ink-soft)]"
+                            onClick={() => void copyQuoteLink(lead.quoteNumber!, lead.publicQuoteToken!)}
+                          >
+                            {copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> ก๊อปลิงก์</>}
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[var(--ink-soft)]">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-[var(--ink)] truncate max-w-[130px] font-mono text-[11px]">
+                      {lead.productSkus.length > 0 ? lead.productSkus.join(", ") : "-"}
+                    </div>
+                    <span className="inline-block mt-0.5 text-[10px] px-1 py-0.2 border border-[var(--line)] text-[var(--ink-soft)]">
+                      {modeLabels[lead.orderMode ?? "quick-purchase"] ?? lead.orderMode}
+                    </span>
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={lead.status}
+                      disabled={updateLeadPending}
+                      onChange={(e) => updateStatus(lead.id, e.target.value as CustomerLeadStatus, lead.notes)}
+                      className="h-7 w-full border border-[var(--line)] bg-white px-1 text-xs text-[var(--ink)] font-medium rounded-none"
+                    >
+                      {statusOptions.map((st) => (
+                        <option key={st} value={st}>{statusLabels[st]}</option>
+                      ))}
+                    </select>
+                  </TableCell>
+                  <TableCell>
+                    <LeadPaymentSlipsBadge leadId={lead.id} />
+                  </TableCell>
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-[11px] rounded-none"
+                      onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                    >
+                      {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                      {isExpanded ? "ย่อ" : "ดู"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+
+                {isExpanded && (
+                  <TableRow className="bg-[var(--paper)]/60 border-b-2 border-[var(--brand-blue)]/30">
+                    <TableCell colSpan={10} className="p-4 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <div>
+                            <span className="text-[11px] uppercase tracking-wider text-[var(--ink-soft)] font-medium">บันทึกทีมงาน</span>
+                            <Textarea
+                              value={editingNotes[lead.id] ?? lead.notes ?? ""}
+                              onChange={(event) => setEditingNotes((current) => ({ ...current, [lead.id]: event.target.value }))}
+                              onBlur={(event) => {
+                                const value = event.target.value.trim() || null;
+                                if (value !== (lead.notes ?? null)) updateStatus(lead.id, lead.status, value);
+                              }}
+                              className="mt-1 min-h-[70px] bg-white border-[var(--line)] rounded-none text-xs"
+                              placeholder="เช่น นัดส่งตัวอย่างหิน หรือรอยืนยันแบบ"
+                            />
+                          </div>
+
+                          {sketchImageUrls(lead).length > 0 && (
+                            <div>
+                              <span className="text-[11px] uppercase tracking-wider text-[var(--ink-soft)] font-medium">แบบร่างมือ / รูปภาพหน้างาน</span>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {sketchImageUrls(lead).map((url, index) => (
+                                  <a key={url} href={url} target="_blank" rel="noreferrer" className="block h-16 w-16 border border-[var(--line)] bg-black/5 overflow-hidden">
+                                    <img src={url} alt={`แบบร่าง ${lead.name || ""} รูปที่ ${index + 1}`} className="h-full w-full object-cover" />
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {lead.orderMode === "sketch" && (() => {
+                            const saved = staffDimensionsOf(lead);
+                            const draft = editingDimensions[lead.id] ?? {
+                              widthMm: saved.widthMm != null ? String(saved.widthMm) : "",
+                              lengthMm: saved.lengthMm != null ? String(saved.lengthMm) : "",
+                              depthMm: saved.depthMm != null ? String(saved.depthMm) : "",
+                            };
+                            const setField = (field: "widthMm" | "lengthMm" | "depthMm", value: string) => {
+                              setEditingDimensions((current) => ({ ...current, [lead.id]: { ...draft, [field]: value } }));
+                            };
+                            return (
+                              <div className="mt-2">
+                                <span className="text-[11px] uppercase tracking-wider text-[var(--ink-soft)] font-medium">ขนาดตามภาพ (mm)</span>
+                                <div className="mt-1 flex flex-wrap items-end gap-2">
+                                  <label className="grid gap-1 text-[11px] text-[var(--ink-soft)]">
+                                    กว้าง
+                                    <Input type="number" value={draft.widthMm} onChange={(e) => setField("widthMm", e.target.value)} className="w-20 h-7 text-xs rounded-none bg-white" />
+                                  </label>
+                                  <label className="grid gap-1 text-[11px] text-[var(--ink-soft)]">
+                                    ยาว
+                                    <Input type="number" value={draft.lengthMm} onChange={(e) => setField("lengthMm", e.target.value)} className="w-20 h-7 text-xs rounded-none bg-white" />
+                                  </label>
+                                  <label className="grid gap-1 text-[11px] text-[var(--ink-soft)]">
+                                    หนา/ลึก
+                                    <Input type="number" value={draft.depthMm} onChange={(e) => setField("depthMm", e.target.value)} className="w-20 h-7 text-xs rounded-none bg-white" />
+                                  </label>
+                                  <Button type="button" size="sm" variant="outline" className="h-7 rounded-none text-xs" disabled={updateLeadPending} onClick={() => saveDimensions(lead)}>
+                                    {savedDimensions === lead.id ? <><Check className="w-3 h-3 mr-1" /> บันทึกแล้ว</> : "บันทึกขนาด"}
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        <div className="space-y-3">
+                          <LeadPaymentSlips leadId={lead.id} />
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </Fragment>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   const { data: slips, isLoading } = useListAdminUnassignedSlips();
   const assignSlip = useAssignAdminPaymentSlip();
@@ -147,70 +400,82 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   }
 
   return (
-    <div className="grid gap-4">
-      {slips.map((slip) => (
-        <article key={slip.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-4" data-testid={`card-unassigned-slip-${slip.id}`}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <a href={slip.slipImageUrl} target="_blank" rel="noreferrer" className="block h-28 w-28 shrink-0 overflow-hidden border border-[var(--line)]">
-              <img src={slip.slipImageUrl} alt="สลิปรอระบุงาน" className="h-full w-full object-cover" />
-            </a>
-            <div className="min-w-0 flex-1 text-sm">
-              <p className="font-medium">{paymentStatusLabels[slip.status] ?? slip.status}</p>
-              <p className="mt-1 text-[var(--ink-soft)]">
-                ยอดที่ทีมรายงาน: {typeof slip.claimedAmountThb === "number" ? `${slip.claimedAmountThb.toLocaleString("th-TH")} บาท` : "ไม่ระบุ"}
-                {slip.senderName && ` · จาก ${slip.senderName}`}
-              </p>
-              <p className="mt-1 text-xs text-[var(--ink-soft)]">
-                รหัสงานจาก LINE: {slip.referenceValue ?? "ไม่พบรหัสงาน"} · รับเข้า {formatLeadDate(slip.createdAt)}
-              </p>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
-                <label className="grid min-w-0 flex-1 gap-1 text-xs text-[var(--ink-soft)]">
-                  เลือก Lead ที่ต้องการผูก
-                  <select
-                    value={selectedLeads[slip.id] ?? ""}
-                    onChange={(event) => setSelectedLeads((current) => ({ ...current, [slip.id]: event.target.value }))}
-                    className="h-9 min-w-0 border border-[var(--line)] bg-transparent px-2 text-sm text-[var(--ink)]"
-                    data-testid={`select-unassigned-slip-lead-${slip.id}`}
-                  >
-                    <option value="">เลือก Lead</option>
-                    {leads.map((lead) => (
-                      <option key={lead.id} value={lead.id}>
-                        #{lead.id} · {lead.name || "ยังไม่ระบุชื่อ"}{lead.quoteNumber ? ` · ${lead.quoteNumber}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Button
-                  type="button"
-                  className="h-9 rounded-none"
-                  disabled={!selectedLeads[slip.id] || assignSlip.isPending}
-                  onClick={() => {
-                    const leadId = Number(selectedLeads[slip.id]);
-                    if (!Number.isInteger(leadId) || leadId <= 0) return;
-                    assignSlip.mutate(
-                      { id: slip.id, data: { leadId } },
-                      {
-                        onSuccess: () => {
-                          setSelectedLeads((current) => {
-                            const next = { ...current };
-                            delete next[slip.id];
-                            return next;
-                          });
-                          void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
-                          void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${leadId}/payment-slips`] });
-                        },
-                      },
-                    );
-                  }}
-                  data-testid={`button-assign-unassigned-slip-${slip.id}`}
-                >
-                  ผูกกับ Lead
-                </Button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between text-xs text-[var(--ink-soft)]">
+        <span>พบสลิปรอระบุงานทั้งหมด {slips.length} รายการ (มุมมองแกลเลอรี 6 คอลัมน์)</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
+        {slips.map((slip) => (
+          <article key={slip.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-3 flex flex-col justify-between hover:shadow-md transition-shadow text-xs" data-testid={`card-unassigned-slip-${slip.id}`}>
+            <div className="space-y-2">
+              <a href={slip.slipImageUrl} target="_blank" rel="noreferrer" className="block w-full h-36 border border-[var(--line)] bg-black/5 overflow-hidden" title="คลิกเพื่อดูสลิปขนาดเต็ม">
+                <img src={slip.slipImageUrl} alt="สลิปรอระบุงาน" className="h-full w-full object-cover hover:scale-105 transition-transform" />
+              </a>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <strong className="font-semibold text-sm text-[var(--brand-blue)]">
+                    {typeof slip.claimedAmountThb === "number" ? `${slip.claimedAmountThb.toLocaleString("th-TH")} ฿` : "ไม่ระบุยอด"}
+                  </strong>
+                  <span className="text-[10px] border border-[var(--line)] px-1 py-0.5 text-[var(--ink-soft)] bg-white/70">
+                    {paymentStatusLabels[slip.status] ?? slip.status}
+                  </span>
+                </div>
+                <p className="font-medium text-[var(--ink)] truncate" title={slip.senderName ?? ""}>
+                  จาก: {slip.senderName || "-"}
+                </p>
+                <p className="text-[var(--ink-soft)] text-[11px]">
+                  รหัส: <strong className="text-[var(--brand-blue)] font-mono">{slip.referenceValue ?? "ไม่ระบุ"}</strong>
+                </p>
+                <p className="text-[10px] text-[var(--ink-soft)]">
+                  รับเข้า: {formatLeadDate(slip.createdAt)}
+                </p>
               </div>
             </div>
-          </div>
-        </article>
-      ))}
+            <div className="mt-2 pt-2 border-t border-[var(--line)] space-y-1.5">
+              <select
+                value={selectedLeads[slip.id] ?? ""}
+                onChange={(event) => setSelectedLeads((current) => ({ ...current, [slip.id]: event.target.value }))}
+                className="h-7 w-full border border-[var(--line)] bg-white px-1 text-[11px] text-[var(--ink)]"
+                data-testid={`select-unassigned-slip-lead-${slip.id}`}
+              >
+                <option value="">เลือก Lead เพื่อผูก</option>
+                {leads.map((lead) => (
+                  <option key={lead.id} value={lead.id}>
+                    #{lead.id} · {lead.name || "ไม่ระบุ"}{lead.quoteNumber ? ` (${lead.quoteNumber})` : ""}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                size="sm"
+                className="h-7 w-full rounded-none text-[11px] bg-[var(--ink)] text-white hover:bg-[var(--brand-blue)]"
+                disabled={!selectedLeads[slip.id] || assignSlip.isPending}
+                onClick={() => {
+                  const leadId = Number(selectedLeads[slip.id]);
+                  if (!Number.isInteger(leadId) || leadId <= 0) return;
+                  assignSlip.mutate(
+                    { id: slip.id, data: { leadId } },
+                    {
+                      onSuccess: () => {
+                        setSelectedLeads((current) => {
+                          const next = { ...current };
+                          delete next[slip.id];
+                          return next;
+                        });
+                        void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+                        void queryClient.invalidateQueries({ queryKey: [`/api/admin/leads/${leadId}/payment-slips`] });
+                      },
+                    },
+                  );
+                }}
+                data-testid={`button-assign-unassigned-slip-${slip.id}`}
+              >
+                ผูกกับ Lead
+              </Button>
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -270,6 +535,8 @@ export function LeadsManager() {
   const updateLead = useUpdateAdminLead();
   const queryClient = useQueryClient();
   const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
+  const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
+  const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
   const [filter, setFilter] = useState<CustomerLeadStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -350,13 +617,39 @@ export function LeadsManager() {
 
       <LeadPageGuide />
 
-      <div className="flex flex-wrap gap-2 border-b border-[var(--line)] pb-3">
-        <Button variant={activeView === "leads" ? "secondary" : "ghost"} onClick={() => setActiveView("leads")} className="rounded-none">
-          Lead ทั้งหมด
-        </Button>
-        <Button variant={activeView === "unassigned" ? "secondary" : "ghost"} onClick={() => setActiveView("unassigned")} className="rounded-none">
-          สลิปรอระบุงาน
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--line)] pb-3">
+        <div className="flex flex-wrap gap-2">
+          <Button variant={activeView === "leads" ? "secondary" : "ghost"} onClick={() => setActiveView("leads")} className="rounded-none">
+            Lead ทั้งหมด
+          </Button>
+          <Button variant={activeView === "unassigned" ? "secondary" : "ghost"} onClick={() => setActiveView("unassigned")} className="rounded-none">
+            สลิปรอระบุงาน
+          </Button>
+        </div>
+        {activeView === "leads" && (
+          <div className="flex items-center gap-1 border border-[var(--line)] p-0.5" role="group" aria-label="รูปแบบการแสดงผล">
+            <Button
+              type="button"
+              size="sm"
+              variant={displayMode === "table" ? "secondary" : "ghost"}
+              className="h-7 rounded-none text-xs gap-1.5"
+              onClick={() => setDisplayMode("table")}
+              data-testid="button-lead-view-table"
+            >
+              <List className="w-3.5 h-3.5" /> ตาราง
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={displayMode === "cards" ? "secondary" : "ghost"}
+              className="h-7 rounded-none text-xs gap-1.5"
+              onClick={() => setDisplayMode("cards")}
+              data-testid="button-lead-view-cards"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" /> การ์ด
+            </Button>
+          </div>
+        )}
       </div>
 
       {activeView === "unassigned" ? (
@@ -409,8 +702,24 @@ export function LeadsManager() {
         <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]"><Loader2 className="w-4 h-4 animate-spin" /> กำลังโหลด lead...</div>
       ) : visibleLeads.length === 0 ? (
         <div className="border border-[var(--line)] bg-[var(--card-paper)] p-10 text-center text-sm text-[var(--ink-soft)]">ยังไม่มี lead ในสถานะนี้</div>
+      ) : displayMode === "table" ? (
+        <LeadsTableView
+          leads={visibleLeads}
+          expandedLeadId={expandedLeadId}
+          setExpandedLeadId={setExpandedLeadId}
+          updateStatus={updateStatus}
+          updateLeadPending={updateLead.isPending}
+          copyQuoteLink={copyQuoteLink}
+          copiedQuote={copiedQuote}
+          editingNotes={editingNotes}
+          setEditingNotes={setEditingNotes}
+          editingDimensions={editingDimensions}
+          setEditingDimensions={setEditingDimensions}
+          saveDimensions={saveDimensions}
+          savedDimensions={savedDimensions}
+        />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {visibleLeads.map((lead) => (
             <article key={lead.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-5">
               <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">

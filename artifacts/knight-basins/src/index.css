@@ -1463,7 +1463,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   color: white !important;
   box-shadow: 0 6px 16px rgba(18,104,179,.18);
 }
-.admin-main { padding: clamp(24px, 5vw, 56px) !important; }
+.admin-main { padding: clamp(20px, 2.6vw, 40px) !important; }
 .admin-dashboard > div:first-child h1 {
   color: var(--ink);
   font-family: var(--app-font-sans);

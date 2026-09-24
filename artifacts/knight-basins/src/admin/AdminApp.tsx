@@ -108,7 +108,7 @@ export default function AdminApp() {
             <AdminLogout />
           </div>
         </header>
-        <div className="flex flex-col md:flex-row flex-1 max-w-[1440px] w-full mx-auto">
+        <div className="flex flex-col md:flex-row flex-1 w-full mx-auto">
            <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
             <MobileNavSelect />
             <nav className="hidden md:flex md:flex-col gap-2">
