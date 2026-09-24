@@ -2198,6 +2198,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-placement--print-preview > strong { font-size: 10px; }
 .studio-placement:active { cursor: grabbing; }
 .studio-placement small { font: 8px var(--sans); opacity: .8; }
+.studio-placement--print-preview small { font-size: 11px; opacity: 1; }
 .studio-placement > small { max-width: 100%; line-height: 1.25; text-align: center; }
 .studio-placement button { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 18px; height: 18px; color: white; background: rgba(0,0,0,.2); }
 .studio-placement-inspector-section .studio-rectangle-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }

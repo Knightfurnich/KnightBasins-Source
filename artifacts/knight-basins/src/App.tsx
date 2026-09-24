@@ -1108,20 +1108,9 @@ function SavedQuotePage() {
          notificationKind: "service",
        });
      }
-     formalItems.push({
-       code: "WORKPIECES",
-       description: `${estimate.pieceCount ?? 1} ชิ้นงาน · ${estimate.rectangleCount ?? 0} แผ่น`,
-       quantity: estimate.pieceCount ?? 1,
-       unit: "ชิ้นงาน",
-       unitPrice: 0,
-       total: 0,
-          workQuantity: estimate.pieceCount ?? 1,
-          workUnit: "ชิ้นงาน",
-       notificationKind: "service",
-     });
       if (estimate.smallJobFeeTHB > 0) formalItems.push({ code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPrice: estimate.smallJobFeeTHB, total: estimate.smallJobFeeTHB, workQuantity: 1, workUnit: "งาน", notificationKind: "service" });
      if (saved.notification) {
-       formalItems = saved.notification.items.map((item) => ({
+       formalItems = saved.notification.items.filter((item) => item.code !== "WORKPIECES").map((item) => ({
          code: item.code,
          description: item.description,
          quantity: item.quantity,
