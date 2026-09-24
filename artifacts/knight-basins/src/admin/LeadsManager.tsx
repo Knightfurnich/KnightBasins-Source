@@ -433,6 +433,7 @@ type UnassignedPaymentSlip = PaymentSlip & { suggestedMatch?: { leadId: number; 
 function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   const { data: slips, isLoading } = useListAdminUnassignedSlips();
   const assignSlip = useAssignAdminPaymentSlip();
+  const voidSlip = useVoidAdminPaymentSlip();
   const queryClient = useQueryClient();
   const [selectedLeads, setSelectedLeads] = useState<Record<number, string>>({});
   const [slipSearch, setSlipSearch] = useState("");
@@ -639,6 +640,27 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
                 data-testid={`button-assign-unassigned-slip-${slip.id}`}
               >
                 ผูกกับ Lead
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 w-full rounded-none text-[11px] text-[#a24439] border-[#a24439]/40 hover:bg-[#a24439]/10"
+                disabled={voidSlip.isPending}
+                onClick={() => {
+                  if (!window.confirm("ยืนยันยกเลิกสลิปนี้หรือไม่? (สลิปนี้จะไม่ถูกนำไปผูกกับ Lead ใดๆ)")) return;
+                  voidSlip.mutate(
+                    { id: slip.id },
+                    {
+                      onSuccess: () => {
+                        void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+                      },
+                    },
+                  );
+                }}
+                data-testid={`button-void-unassigned-slip-${slip.id}`}
+              >
+                ยกเลิกสลิป (Void)
               </Button>
             </div>
           </article>
