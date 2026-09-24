@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   adminQuoteUrl,
+  exportLeadsToCsv,
   filterAdminLeads,
   leadMatchesDateRange,
   leadMatchesSearch,
 } from "../src/admin/leads-utils.ts";
+import { formatThaiDateTime } from "../src/data/date-time.ts";
 
 const leads = [
   {
@@ -73,4 +75,68 @@ test("admin quote links encode the quote number without exposing lead data", () 
     `https://example.com/quote/view?token=${encodeURIComponent(signedToken)}`,
   );
   assert.doesNotMatch(adminQuoteUrl(signedToken, "https://example.com"), /lead-one|somchai/i);
+});
+
+test("exportLeadsToCsv starts with a UTF-8 BOM followed by the Thai column headers", () => {
+  const csv = exportLeadsToCsv([]);
+  assert.equal(csv.startsWith("﻿"), true);
+  const [header] = csv.slice(1).split("\r\n");
+  assert.equal(
+    header,
+    [
+      "วันที่สร้าง", "เลขที่ใบเสนอราคา", "รหัสงาน", "ชื่อลูกค้า", "บริษัท", "เบอร์โทร", "อีเมล",
+      "ชื่อโครงการ", "ที่อยู่/สถานที่ติดตั้ง", "สถานะ", "ช่องทาง", "รหัสสินค้า", "หมายเหตุ",
+    ].join(","),
+  );
+});
+
+test("exportLeadsToCsv escapes commas, quotes, and newlines per RFC 4180", () => {
+  const weirdLead = {
+    ...leads[0],
+    company: 'Knight, "Premium" Studio',
+    notes: "โทรกลับพรุ่งนี้\nอย่าลืมส่งตัวอย่าง",
+  };
+  const csv = exportLeadsToCsv([weirdLead as never]);
+  assert.match(csv, /"Knight, ""Premium"" Studio"/);
+  assert.match(csv, /"โทรกลับพรุ่งนี้\nอย่าลืมส่งตัวอย่าง"/);
+});
+
+test("exportLeadsToCsv maps every lead column, translating status and joining SKUs", () => {
+  const lead = {
+    id: 3,
+    leadKey: "lead-three",
+    status: "ready_for_production",
+    source: "catalog",
+    productSkus: ["KF002", "KF010"],
+    quoteNumber: "Sep 26 / US / 300000",
+    name: "คุณวิชัย",
+    company: "Knight Studio",
+    phone: "0899999999",
+    email: "wichai@example.com",
+    project: "คอนโดอโศก",
+    site: "ซอยสุขุมวิท 21",
+    notes: "ลูกค้าพิเศษ",
+    createdAt: "2026-09-14T08:00:00.000Z",
+    updatedAt: "2026-09-14T09:00:00.000Z",
+  } as never;
+  const csv = exportLeadsToCsv([lead]);
+  const [, dataRow] = csv.slice(1).split("\r\n");
+  assert.equal(
+    dataRow,
+    [
+      formatThaiDateTime(new Date("2026-09-14T08:00:00.000Z")),
+      "Sep 26 / US / 300000",
+      "lead-three",
+      "คุณวิชัย",
+      "Knight Studio",
+      "0899999999",
+      "wichai@example.com",
+      "คอนโดอโศก",
+      "ซอยสุขุมวิท 21",
+      "พร้อมผลิต",
+      "catalog",
+      "KF002; KF010",
+      "ลูกค้าพิเศษ",
+    ].join(","),
+  );
 });
