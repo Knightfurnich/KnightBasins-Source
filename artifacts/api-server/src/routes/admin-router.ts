@@ -239,13 +239,18 @@ export type DashboardLeadRow = {
   address: string | null;
   expectedInstallationDate: string | null;
   notes: string | null;
+  productSkus: string[];
+  createdAt: string;
 };
 
 export type DashboardSlipRow = {
+  id: number;
   leadId: number | null;
   status: string;
   verifiedAmountThb: number | null;
   claimedAmountThb: number | null;
+  senderName: string | null;
+  createdAt: string;
 };
 
 export type AdminDashboardStats = {
@@ -273,6 +278,14 @@ export type AdminDashboardStats = {
     address: string | null;
     expectedInstallationDate: string;
     notes: string | null;
+  }>;
+  popularItems: Array<{ sku: string; count: number }>;
+  recentActivities: Array<{
+    id: string;
+    type: "lead_created" | "payment_received";
+    title: string;
+    detail: string;
+    timestamp: string;
   }>;
   asOf: string;
 };
@@ -343,6 +356,67 @@ function pipelineOrderType(quoteNumber: string | null): "us" | "of" | "other" {
   return "other";
 }
 
+/** Top 5 SKUs by how many leads ordered them, skipping blank entries; ties break alphabetically. */
+export function computePopularItems(leads: DashboardLeadRow[]): AdminDashboardStats["popularItems"] {
+  const counts = new Map<string, number>();
+  for (const lead of leads) {
+    for (const sku of lead.productSkus) {
+      const trimmed = sku?.trim();
+      if (!trimmed) continue;
+      counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .sort(([skuA, countA], [skuB, countB]) => countB - countA || skuA.localeCompare(skuB))
+    .slice(0, 5)
+    .map(([sku, count]) => ({ sku, count }));
+}
+
+/** Defensive timestamp parse: an unparseable value sorts as oldest rather than throwing or producing NaN comparisons. */
+function activityTimestampMs(value: string): number {
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+type DashboardActivity = AdminDashboardStats["recentActivities"][number];
+
+/**
+ * Newest 5 activities overall, drawn from the newest 5 leads and the newest 5
+ * non-voided slips independently (per the spec) before merging and re-sorting
+ * -- so this can never surface a 6th lead even if it would outrank a slip.
+ */
+export function computeRecentActivities(leads: DashboardLeadRow[], slips: DashboardSlipRow[]): AdminDashboardStats["recentActivities"] {
+  const recentLeads: DashboardActivity[] = [...leads]
+    .sort((a, b) => activityTimestampMs(b.createdAt) - activityTimestampMs(a.createdAt))
+    .slice(0, 5)
+    .map((lead) => ({
+      id: `lead-${lead.id}`,
+      type: "lead_created",
+      title: `Lead ใหม่: ${lead.name ?? "-"}`,
+      detail: lead.quoteNumber || lead.project || lead.leadKey,
+      timestamp: new Date(lead.createdAt).toISOString(),
+    }));
+
+  const recentSlips: DashboardActivity[] = [...slips]
+    .filter((slip) => slip.status !== "voided")
+    .sort((a, b) => activityTimestampMs(b.createdAt) - activityTimestampMs(a.createdAt))
+    .slice(0, 5)
+    .map((slip) => {
+      const amount = (slip.status === "verified" ? slip.verifiedAmountThb : slip.claimedAmountThb) ?? 0;
+      return {
+        id: `slip-${slip.id}`,
+        type: "payment_received",
+        title: `ได้รับเงินโอน ฿${amount.toLocaleString()}`,
+        detail: slip.senderName || "รายงานผ่าน LINE",
+        timestamp: new Date(slip.createdAt).toISOString(),
+      };
+    });
+
+  return [...recentLeads, ...recentSlips]
+    .sort((a, b) => activityTimestampMs(b.timestamp) - activityTimestampMs(a.timestamp))
+    .slice(0, 5);
+}
+
 export function computeAdminDashboardStats(
   leads: DashboardLeadRow[],
   slips: DashboardSlipRow[],
@@ -374,6 +448,8 @@ export function computeAdminDashboardStats(
     actionItems: { unassignedSlipsCount, awaitingContactCount },
     pipelineRatio,
     upcomingInstallations: computeUpcomingInstallations(leads, now),
+    popularItems: computePopularItems(leads),
+    recentActivities: computeRecentActivities(leads, slips),
     asOf: now.toISOString(),
   };
 }
@@ -707,16 +783,21 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
           address: customerLeads.address,
           expectedInstallationDate: customerLeads.expectedInstallationDate,
           notes: customerLeads.notes,
+          productSkus: customerLeads.productSkus,
+          createdAt: customerLeads.createdAt,
         })
         .from(customerLeads)
         .orderBy(asc(customerLeads.id));
 
       const slipRows: DashboardSlipRow[] = await database
         .select({
+          id: paymentSlips.id,
           leadId: paymentSlips.leadId,
           status: paymentSlips.status,
           verifiedAmountThb: paymentSlips.verifiedAmountThb,
           claimedAmountThb: paymentSlips.claimedAmountThb,
+          senderName: paymentSlips.senderName,
+          createdAt: paymentSlips.createdAt,
         })
         .from(paymentSlips)
         .orderBy(asc(paymentSlips.id));

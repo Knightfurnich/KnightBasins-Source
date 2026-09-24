@@ -16,13 +16,18 @@ type DashboardLeadRow = {
   address: string | null;
   expectedInstallationDate: string | null;
   notes: string | null;
+  productSkus: string[];
+  createdAt: string;
 };
 
 type DashboardSlipRow = {
+  id: number;
   leadId: number | null;
   status: string;
   verifiedAmountThb: number | null;
   claimedAmountThb: number | null;
+  senderName: string | null;
+  createdAt: string;
 };
 
 type AdminDashboardStats = {
@@ -39,6 +44,14 @@ type AdminDashboardStats = {
     expectedInstallationDate: string;
     notes: string | null;
   }>;
+  popularItems: Array<{ sku: string; count: number }>;
+  recentActivities: Array<{
+    id: string;
+    type: "lead_created" | "payment_received";
+    title: string;
+    detail: string;
+    timestamp: string;
+  }>;
   asOf: string;
 };
 
@@ -50,6 +63,11 @@ type AdminRouteModule = {
     now: Date,
     windowDays?: number,
   ) => AdminDashboardStats["upcomingInstallations"];
+  computePopularItems: (leads: DashboardLeadRow[]) => AdminDashboardStats["popularItems"];
+  computeRecentActivities: (
+    leads: DashboardLeadRow[],
+    slips: DashboardSlipRow[],
+  ) => AdminDashboardStats["recentActivities"];
   computeAdminDashboardStats: (
     leads: DashboardLeadRow[],
     slips: DashboardSlipRow[],
@@ -75,16 +93,22 @@ function lead(overrides: Partial<DashboardLeadRow> & { id: number }): DashboardL
     address: null,
     expectedInstallationDate: null,
     notes: null,
+    productSkus: [],
+    createdAt: "2026-09-01T00:00:00.000Z",
     ...overrides,
   };
 }
 
+let nextSlipId = 1;
 function slip(overrides: Partial<DashboardSlipRow>): DashboardSlipRow {
   return {
+    id: nextSlipId++,
     leadId: null,
     status: "pending",
     verifiedAmountThb: null,
     claimedAmountThb: null,
+    senderName: null,
+    createdAt: "2026-09-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -179,6 +203,134 @@ describe("computeUpcomingInstallations", () => {
   });
 });
 
+describe("computePopularItems", () => {
+  it("counts SKU frequency across leads' productSkus and returns them sorted by count descending", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leads = [
+      lead({ id: 1, productSkus: ["KF001", "KF002"] }),
+      lead({ id: 2, productSkus: ["KF001"] }),
+      lead({ id: 3, productSkus: ["KF002", "KF003"] }),
+      lead({ id: 4, productSkus: ["KF001"] }),
+    ];
+    const result = routeModule.computePopularItems(leads);
+    assert.deepEqual(result, [
+      { sku: "KF001", count: 3 },
+      { sku: "KF002", count: 2 },
+      { sku: "KF003", count: 1 },
+    ]);
+  });
+
+  it("skips null/blank SKU entries and truncates to the top 5", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leads = Array.from({ length: 7 }, (_, index) =>
+      lead({ id: index + 1, productSkus: [`SKU-${index}`, "", "   "] }));
+    // Give SKU-0 extra occurrences so it's unambiguously first.
+    leads.push(lead({ id: 100, productSkus: ["SKU-0", "SKU-0"] }));
+    const result = routeModule.computePopularItems(leads);
+    assert.equal(result.length, 5, "never more than the top 5");
+    assert.equal(result[0]?.sku, "SKU-0");
+    assert.equal(result[0]?.count, 3);
+    assert.ok(result.every((item) => item.sku.trim().length > 0), "blank/whitespace SKUs must never appear");
+  });
+
+  it("breaks ties in count alphabetically by SKU for a deterministic order", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leads = [
+      lead({ id: 1, productSkus: ["KF900"] }),
+      lead({ id: 2, productSkus: ["KF100"] }),
+      lead({ id: 3, productSkus: ["KF500"] }),
+    ];
+    const result = routeModule.computePopularItems(leads);
+    assert.deepEqual(result.map((item) => item.sku), ["KF100", "KF500", "KF900"]);
+  });
+});
+
+describe("computeRecentActivities", () => {
+  it("maps a lead into a lead_created activity using quoteNumber, falling back to project then leadKey for detail", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const withQuote = routeModule.computeRecentActivities(
+      [lead({ id: 1, name: "คุณสมชาย", quoteNumber: "Sep 26 / US / 1", project: "บ้านสุขุมวิท", createdAt: "2026-09-20T00:00:00.000Z" })],
+      [],
+    );
+    assert.deepEqual(withQuote[0], {
+      id: "lead-1",
+      type: "lead_created",
+      title: "Lead ใหม่: คุณสมชาย",
+      detail: "Sep 26 / US / 1",
+      timestamp: "2026-09-20T00:00:00.000Z",
+    });
+
+    const withProjectOnly = routeModule.computeRecentActivities(
+      [lead({ id: 2, name: "คุณมานี", quoteNumber: null, project: "คอนโดรัชดา", createdAt: "2026-09-20T00:00:00.000Z" })],
+      [],
+    );
+    assert.equal(withProjectOnly[0]?.detail, "คอนโดรัชดา");
+
+    const withLeadKeyOnly = routeModule.computeRecentActivities(
+      [lead({ id: 3, leadKey: "lead-key-3", quoteNumber: null, project: null, createdAt: "2026-09-20T00:00:00.000Z" })],
+      [],
+    );
+    assert.equal(withLeadKeyOnly[0]?.detail, "lead-key-3");
+  });
+
+  it("maps a non-voided slip into a payment_received activity, using verifiedAmountThb when verified and claimedAmountThb otherwise", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const verified = routeModule.computeRecentActivities(
+      [],
+      [slip({ id: 1, status: "verified", verifiedAmountThb: 32100, claimedAmountThb: 99999, senderName: "คุณเอ", createdAt: "2026-09-20T00:00:00.000Z" })],
+    );
+    assert.deepEqual(verified[0], {
+      id: "slip-1",
+      type: "payment_received",
+      title: `ได้รับเงินโอน ฿${(32100).toLocaleString()}`,
+      detail: "คุณเอ",
+      timestamp: "2026-09-20T00:00:00.000Z",
+    });
+
+    const teamReported = routeModule.computeRecentActivities(
+      [],
+      [slip({ id: 2, status: "team_reported_paid", claimedAmountThb: 8500, verifiedAmountThb: null, senderName: null, createdAt: "2026-09-20T00:00:00.000Z" })],
+    );
+    assert.equal(teamReported[0]?.title, `ได้รับเงินโอน ฿${(8500).toLocaleString()}`);
+    assert.equal(teamReported[0]?.detail, "รายงานผ่าน LINE", "falls back when senderName is missing");
+  });
+
+  it("excludes voided slips entirely", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const result = routeModule.computeRecentActivities(
+      [],
+      [slip({ id: 1, status: "voided", verifiedAmountThb: 50000, createdAt: "2026-09-20T00:00:00.000Z" })],
+    );
+    assert.deepEqual(result, []);
+  });
+
+  it("merges leads and slips and sorts the combined result by timestamp descending", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leads = [
+      lead({ id: 1, name: "เก่าสุด", createdAt: "2026-09-10T00:00:00.000Z" }),
+      lead({ id: 2, name: "ใหม่สุด", createdAt: "2026-09-24T00:00:00.000Z" }),
+    ];
+    const slips = [
+      slip({ id: 1, status: "verified", verifiedAmountThb: 1000, createdAt: "2026-09-20T00:00:00.000Z" }),
+    ];
+    const result = routeModule.computeRecentActivities(leads, slips);
+    assert.deepEqual(result.map((activity) => activity.id), ["lead-2", "slip-1", "lead-1"]);
+  });
+
+  it("takes the newest 5 from each source independently before merging, then the newest 5 overall", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    // 8 leads, all newer than the 1 slip -- only the newest 5 leads become candidates,
+    // and since none are older than the slip, the slip never makes the final top 5.
+    const leads = Array.from({ length: 8 }, (_, index) =>
+      lead({ id: index + 1, createdAt: `2026-09-${20 + index}T00:00:00.000Z` }));
+    const slips = [slip({ id: 1, status: "verified", verifiedAmountThb: 1000, createdAt: "2026-09-01T00:00:00.000Z" })];
+    const result = routeModule.computeRecentActivities(leads, slips);
+    assert.equal(result.length, 5);
+    assert.ok(result.every((activity) => activity.type === "lead_created"), "the older slip is crowded out entirely");
+    assert.deepEqual(result.map((activity) => activity.id), ["lead-8", "lead-7", "lead-6", "lead-5", "lead-4"]);
+  });
+});
+
 describe("computeAdminDashboardStats", () => {
   it("computes the US/OF/other pipeline ratio from quoteNumber, mutually exclusively", async () => {
     const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
@@ -232,13 +384,13 @@ describe("GET /admin/dashboard-stats", () => {
 
   it("returns the full dashboard payload for an authenticated admin", async () => {
     const leads = [
-      lead({ id: 1, status: "ready_for_production", quoteNumber: "Sep 26 / US / 1", expectedInstallationDate: "2026-09-25" }),
-      lead({ id: 2, status: "closed", quoteNumber: "Sep 26 / OF / 2" }),
-      lead({ id: 3, status: "new_lead" }),
+      lead({ id: 1, status: "ready_for_production", quoteNumber: "Sep 26 / US / 1", expectedInstallationDate: "2026-09-25", productSkus: ["KF001"], createdAt: "2026-09-24T01:00:00.000Z" }),
+      lead({ id: 2, status: "closed", quoteNumber: "Sep 26 / OF / 2", productSkus: ["KF001"], createdAt: "2026-09-23T01:00:00.000Z" }),
+      lead({ id: 3, status: "new_lead", createdAt: "2026-09-22T01:00:00.000Z" }),
     ];
     const slips = [
-      slip({ status: "verified", verifiedAmountThb: 20000, leadId: 1 }),
-      slip({ status: "pending", leadId: null }),
+      slip({ id: 1, status: "verified", verifiedAmountThb: 20000, leadId: 1, senderName: "คุณเอ", createdAt: "2026-09-24T02:00:00.000Z" }),
+      slip({ id: 2, status: "pending", leadId: null, createdAt: "2026-09-21T00:00:00.000Z" }),
     ];
     const server = await startAdminRoute(createFakeDashboardDatabase(leads, slips));
     const cookie = `knight_admin_session=${createAdminToken()}`;
@@ -255,6 +407,10 @@ describe("GET /admin/dashboard-stats", () => {
       assert.deepEqual(payload.pipelineRatio, { usCount: 1, ofCount: 1, otherCount: 1 });
       assert.equal(payload.upcomingInstallations.length, 1);
       assert.equal(payload.upcomingInstallations[0]?.leadKey, "lead-1");
+      assert.deepEqual(payload.popularItems, [{ sku: "KF001", count: 2 }]);
+      // 3 leads + 2 non-voided slips = 5 candidates total, all within the top 5 overall.
+      assert.deepEqual(payload.recentActivities.map((activity) => activity.id), ["slip-1", "lead-1", "lead-2", "lead-3", "slip-2"]);
+      assert.equal(payload.recentActivities[0]?.type, "payment_received", "newest overall: the verified slip at 02:00");
       assert.equal(typeof payload.asOf, "string");
     } finally {
       await server.close();

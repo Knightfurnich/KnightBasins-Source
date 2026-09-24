@@ -1548,7 +1548,7 @@ components:
         updatedAt: { type: string, format: date-time }
     AdminDashboardStats:
       type: object
-      required: [kpis, actionItems, pipelineRatio, upcomingInstallations, asOf]
+      required: [kpis, actionItems, pipelineRatio, upcomingInstallations, popularItems, recentActivities, asOf]
       properties:
         kpis: { $ref: "#/components/schemas/AdminDashboardKpis" }
         actionItems: { $ref: "#/components/schemas/AdminDashboardActionItems" }
@@ -1557,6 +1557,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminDashboardInstallation"
+        popularItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminDashboardPopularItem"
+        recentActivities:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminDashboardActivity"
         asOf: { type: string, format: date-time }
     AdminDashboardKpis:
       type: object
@@ -1591,6 +1599,23 @@ components:
         address: { type: [string, "null"] }
         expectedInstallationDate: { type: string, description: "ISO date (YYYY-MM-DD)" }
         notes: { type: [string, "null"] }
+    AdminDashboardPopularItem:
+      type: object
+      required: [sku, count]
+      properties:
+        sku: { type: string }
+        count: { type: integer }
+    AdminDashboardActivity:
+      type: object
+      required: [id, type, title, detail, timestamp]
+      properties:
+        id: { type: string }
+        type:
+          type: string
+          enum: [lead_created, payment_received]
+        title: { type: string }
+        detail: { type: string }
+        timestamp: { type: string, format: date-time }
     PaymentSlipIntakeInput:
       type: object
       required: [file, archiveAttachmentId, sourceHash]
