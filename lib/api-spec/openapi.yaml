@@ -913,6 +913,52 @@ paths:
           description: Invalid lead id or status
         "404":
           description: Lead not found
+  /admin/leads/{id}/technician:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    patch:
+      operationId: updateAdminLeadTechnician
+      tags: [admin]
+      summary: One-click team assignment for a lead, for the Technician Dispatch Calendar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLeadTechnicianUpdateInput"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerLead"
+        "400":
+          description: Invalid lead id or technicianTeamCode
+        "404":
+          description: Lead not found
+  /admin/technician-calendar:
+    get:
+      operationId: getAdminTechnicianCalendar
+      tags: [admin]
+      summary: Full-month, per-team dispatch calendar for the 10 install teams (Asia/Bangkok)
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: "Calendar month to load, as YYYY-MM (Asia/Bangkok)"
+          schema:
+            type: string
+            pattern: "^\\d{4}-\\d{2}$"
+      responses:
+        "200":
+          description: Technician dispatch calendar for the given month
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TechnicianCalendarResponse"
+        "400":
+          description: month is missing or does not match YYYY-MM
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -1519,6 +1565,14 @@ components:
             - deposit_paid
             - ready_for_production
             - closed
+    AdminLeadTechnicianUpdateInput:
+      type: object
+      required: [technicianTeamCode]
+      properties:
+        technicianTeamCode:
+          type: [string, "null"]
+          enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL, null]
+          description: One of the 10 install team codes, or null to clear the assignment back to unassigned
     CustomerLead:
       type: object
       required: [id, leadKey, status, source, productSkus, createdAt, updatedAt]
@@ -1548,6 +1602,9 @@ components:
         propertyType: { type: [string, "null"] }
         condoFloor: { type: [string, "null"] }
         expectedInstallationDate: { type: [string, "null"], format: date }
+        technicianTeamCode:
+          type: [string, "null"]
+          enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL, null]
         productSkus:
           type: array
           items: { type: string }
@@ -1754,6 +1811,68 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminDashboardTechnicianJob"
+    TechnicianCalendarJob:
+      type: object
+      required: [id, leadKey, name, project, address, quoteNumber]
+      properties:
+        id: { type: integer }
+        leadKey: { type: string }
+        name: { type: string }
+        project: { type: [string, "null"] }
+        address: { type: [string, "null"] }
+        quoteNumber: { type: [string, "null"] }
+    TechnicianCalendarTeamDay:
+      type: object
+      required: [teamCode, teamName, status, jobCount, jobs]
+      properties:
+        teamCode:
+          type: string
+          enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL]
+        teamName: { type: string }
+        status:
+          type: string
+          enum: [available, moderate, busy]
+          description: "Team status that day: available (0 jobs), moderate (1-2), busy (3+)"
+        jobCount: { type: integer }
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/TechnicianCalendarJob"
+    TechnicianCalendarDay:
+      type: object
+      required: [date, dayStatus, totalJobs, teams]
+      properties:
+        date: { type: string, description: "ISO date (YYYY-MM-DD)" }
+        dayStatus:
+          type: string
+          enum: [available, moderate, busy]
+          description: "Day status across all teams: available (0 total jobs), busy (>=4 total jobs, or any single team busy), otherwise moderate"
+        totalJobs: { type: integer, description: Count of leads installing this day, regardless of team assignment }
+        teams:
+          type: array
+          description: All 10 teams, every day, even when a team has zero jobs that day
+          items:
+            $ref: "#/components/schemas/TechnicianCalendarTeamDay"
+    TechnicianCalendarResponse:
+      type: object
+      required: [month, days, technicianTeams]
+      properties:
+        month: { type: string, description: "YYYY-MM, echoed back from the request" }
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/TechnicianCalendarDay"
+        technicianTeams:
+          type: array
+          description: Dictionary of all 10 teams (code + display name)
+          items:
+            type: object
+            required: [teamCode, teamName]
+            properties:
+              teamCode:
+                type: string
+                enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL]
+              teamName: { type: string }
     PaymentSlipIntakeInput:
       type: object
       required: [file, archiveAttachmentId, sourceHash]

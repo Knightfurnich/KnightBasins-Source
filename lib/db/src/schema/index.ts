@@ -294,11 +294,14 @@ export const customerLeads = pgTable(
     expectedInstallationDate: varchar("expected_installation_date", { length: 10 }),
     nextFollowUpDate: varchar("next_follow_up_date", { length: 10 }),
     assignedTo: varchar("assigned_to", { length: 160 }),
+    technicianTeamCode: varchar("technician_team_code", { length: 8 }),
     ...auditColumns,
   },
   (table) => [
     uniqueIndex("customer_leads_key_unique").on(table.leadKey),
     index("customer_leads_customer_account_id_idx").on(table.customerAccountId),
+    index("customer_leads_technician_team_code_idx").on(table.technicianTeamCode),
+    index("customer_leads_expected_installation_date_idx").on(table.expectedInstallationDate),
     foreignKey({
       columns: [table.customerAccountId],
       foreignColumns: [customerAccounts.id],

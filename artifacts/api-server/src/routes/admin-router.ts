@@ -31,7 +31,7 @@ import {
   UpdateAdminMemberBody,
   CreateAdminApiKeyBody,
 } from "@workspace/api-zod";
-import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lte, ne } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
@@ -264,7 +264,25 @@ export type DashboardLeadRow = {
   productSkus: string[];
   createdAt: string;
   studioData: unknown;
+  technicianTeamCode: string | null;
 };
+
+/** Shared column list for every query that hydrates DashboardLeadRow, so the set of columns can't drift between call sites. */
+const DASHBOARD_LEAD_COLUMNS = {
+  id: customerLeads.id,
+  leadKey: customerLeads.leadKey,
+  status: customerLeads.status,
+  quoteNumber: customerLeads.quoteNumber,
+  name: customerLeads.name,
+  project: customerLeads.project,
+  address: customerLeads.address,
+  expectedInstallationDate: customerLeads.expectedInstallationDate,
+  notes: customerLeads.notes,
+  productSkus: customerLeads.productSkus,
+  createdAt: customerLeads.createdAt,
+  studioData: customerLeads.studioData,
+  technicianTeamCode: customerLeads.technicianTeamCode,
+} as const;
 
 export type DashboardSlipRow = {
   id: number;
@@ -674,6 +692,122 @@ export function computeTechnicianCapacity(
     const status: "busy" | "moderate" | "available" = activeJobsCount >= 3 ? "busy" : activeJobsCount >= 1 ? "moderate" : "available";
     return { teamCode: team.code, teamName: team.name, activeJobsCount, status, jobs };
   });
+}
+
+const TECHNICIAN_TEAM_CODES: string[] = TECHNICIAN_TEAMS.map((team) => team.code);
+
+/** A lead's team, preferring the explicit column over the free-text guess -- older leads (pre-migration 011) fall back to the notes/project regex match. */
+function resolvedTechnicianTeamCode(lead: Pick<DashboardLeadRow, "technicianTeamCode" | "notes" | "project">): string | null {
+  return lead.technicianTeamCode ?? matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`);
+}
+
+export type TechnicianCalendarStatus = "available" | "moderate" | "busy";
+
+export type TechnicianCalendarJob = {
+  id: number;
+  leadKey: string;
+  name: string;
+  project: string | null;
+  address: string | null;
+  quoteNumber: string | null;
+};
+
+export type TechnicianCalendarTeamDay = {
+  teamCode: string;
+  teamName: string;
+  status: TechnicianCalendarStatus;
+  jobCount: number;
+  jobs: TechnicianCalendarJob[];
+};
+
+export type TechnicianCalendarDay = {
+  date: string;
+  dayStatus: TechnicianCalendarStatus;
+  totalJobs: number;
+  teams: TechnicianCalendarTeamDay[];
+};
+
+export type TechnicianCalendarResponse = {
+  month: string;
+  days: TechnicianCalendarDay[];
+  technicianTeams: Array<{ teamCode: string; teamName: string }>;
+};
+
+/** Team-level status: available (0 jobs), moderate (1-2), busy (>=3) -- same thresholds as computeTechnicianCapacity's weekly radar. */
+function technicianCalendarTeamStatus(jobCount: number): TechnicianCalendarStatus {
+  return jobCount >= 3 ? "busy" : jobCount >= 1 ? "moderate" : "available";
+}
+
+/** Day-level status combines total load and per-team saturation: available (0), busy (>=4 total, or any single team busy), otherwise moderate. */
+function technicianCalendarDayStatus(totalJobs: number, teams: TechnicianCalendarTeamDay[]): TechnicianCalendarStatus {
+  if (totalJobs === 0) return "available";
+  if (totalJobs >= 4 || teams.some((team) => team.status === "busy")) return "busy";
+  return "moderate";
+}
+
+/**
+ * Full-month dispatch calendar: every day of `month` ("YYYY-MM", already
+ * validated by the caller), each carrying all 10 teams' jobs for that day.
+ * `leads` is expected to already be filtered to the month's date range --
+ * this function only groups/derives status, it doesn't filter by date itself.
+ */
+export function computeTechnicianCalendar(leads: DashboardLeadRow[], month: string): TechnicianCalendarResponse {
+  const [yearStr, monthStr] = month.split("-");
+  const year = Number(yearStr);
+  const monthNum = Number(monthStr);
+
+  const leadsByDate = new Map<string, DashboardLeadRow[]>();
+  for (const lead of leads) {
+    if (!lead.expectedInstallationDate) continue;
+    const list = leadsByDate.get(lead.expectedInstallationDate) ?? [];
+    list.push(lead);
+    leadsByDate.set(lead.expectedInstallationDate, list);
+  }
+
+  const days: TechnicianCalendarDay[] = [];
+  const totalDays = daysInMonth(year, monthNum);
+  for (let day = 1; day <= totalDays; day += 1) {
+    const date = isoDate(year, monthNum, day);
+    const leadsThatDay = leadsByDate.get(date) ?? [];
+
+    const leadsByTeam = new Map<string, DashboardLeadRow[]>(TECHNICIAN_TEAMS.map((team) => [team.code, []]));
+    for (const lead of leadsThatDay) {
+      const teamCode = resolvedTechnicianTeamCode(lead);
+      if (!teamCode) continue;
+      leadsByTeam.get(teamCode)?.push(lead);
+    }
+
+    const teams: TechnicianCalendarTeamDay[] = TECHNICIAN_TEAMS.map((team) => {
+      const teamLeads = leadsByTeam.get(team.code) ?? [];
+      return {
+        teamCode: team.code,
+        teamName: team.name,
+        status: technicianCalendarTeamStatus(teamLeads.length),
+        jobCount: teamLeads.length,
+        jobs: teamLeads.map((lead) => ({
+          id: lead.id,
+          leadKey: lead.leadKey,
+          name: lead.name ?? "",
+          project: lead.project ?? null,
+          address: lead.address ?? null,
+          quoteNumber: lead.quoteNumber ?? null,
+        })),
+      };
+    });
+
+    days.push({
+      date,
+      dayStatus: technicianCalendarDayStatus(leadsThatDay.length, teams),
+      totalJobs: leadsThatDay.length,
+      teams,
+    });
+  }
+
+  return {
+    month,
+    days,
+    technicianTeams: TECHNICIAN_TEAMS.map((team) => ({ teamCode: team.code, teamName: team.name })),
+  };
 }
 
 /**
@@ -1096,20 +1230,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         : "all";
 
       const leadRows: DashboardLeadRow[] = await database
-        .select({
-          id: customerLeads.id,
-          leadKey: customerLeads.leadKey,
-          status: customerLeads.status,
-          quoteNumber: customerLeads.quoteNumber,
-          name: customerLeads.name,
-          project: customerLeads.project,
-          address: customerLeads.address,
-          expectedInstallationDate: customerLeads.expectedInstallationDate,
-          notes: customerLeads.notes,
-          productSkus: customerLeads.productSkus,
-          createdAt: customerLeads.createdAt,
-          studioData: customerLeads.studioData,
-        })
+        .select(DASHBOARD_LEAD_COLUMNS)
         .from(customerLeads)
         .orderBy(asc(customerLeads.id));
 
@@ -1135,20 +1256,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
   router.post("/admin/dashboard-briefing/line", requireAdminPermission("leads"), async (_req, res, next) => {
     try {
       const leadRows: DashboardLeadRow[] = await database
-        .select({
-          id: customerLeads.id,
-          leadKey: customerLeads.leadKey,
-          status: customerLeads.status,
-          quoteNumber: customerLeads.quoteNumber,
-          name: customerLeads.name,
-          project: customerLeads.project,
-          address: customerLeads.address,
-          expectedInstallationDate: customerLeads.expectedInstallationDate,
-          notes: customerLeads.notes,
-          productSkus: customerLeads.productSkus,
-          createdAt: customerLeads.createdAt,
-          studioData: customerLeads.studioData,
-        })
+        .select(DASHBOARD_LEAD_COLUMNS)
         .from(customerLeads)
         .orderBy(asc(customerLeads.id));
 
@@ -1176,6 +1284,35 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       res.json({ success: true, deliveredAt: now.toISOString() });
     } catch (error) {
       next(error);
+    }
+  });
+
+  const TECHNICIAN_CALENDAR_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+
+  router.get("/admin/technician-calendar", requireAdminPermission("leads"), async (req, res, next) => {
+    try {
+      const rawMonth = req.query["month"];
+      const month = typeof rawMonth === "string" ? rawMonth : "";
+      const [, monthPart] = month.split("-");
+      const monthNum = Number(monthPart);
+      if (!TECHNICIAN_CALENDAR_MONTH_PATTERN.test(month) || monthNum < 1 || monthNum > 12) {
+        return invalid(res, "month must match YYYY-MM");
+      }
+
+      const [yearStr] = month.split("-");
+      const year = Number(yearStr);
+      const start = isoDate(year, monthNum, 1);
+      const end = isoDate(year, monthNum, daysInMonth(year, monthNum));
+
+      const leadRows: DashboardLeadRow[] = await database
+        .select(DASHBOARD_LEAD_COLUMNS)
+        .from(customerLeads)
+        .where(and(gte(customerLeads.expectedInstallationDate, start), lte(customerLeads.expectedInstallationDate, end)))
+        .orderBy(asc(customerLeads.id));
+
+      return res.json(computeTechnicianCalendar(leadRows, month));
+    } catch (error) {
+      return next(error);
     }
   });
 
@@ -1228,6 +1365,26 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       const [updated] = await database
         .update(customerLeads)
         .set({ status, updatedAt: new Date() })
+        .where(eq(customerLeads.id, id))
+        .returning();
+      return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  /** One-click team reassignment for the technician dispatch calendar. `technicianTeamCode: null` clears the assignment back to unassigned. */
+  router.patch("/admin/leads/:id/technician", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+    const body = req.body?.technicianTeamCode;
+    if (body !== null && !(typeof body === "string" && TECHNICIAN_TEAM_CODES.includes(body))) {
+      return invalid(res, `technicianTeamCode must be one of: ${TECHNICIAN_TEAM_CODES.join(", ")}, or null`);
+    }
+    try {
+      const [updated] = await database
+        .update(customerLeads)
+        .set({ technicianTeamCode: body, updatedAt: new Date() })
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
