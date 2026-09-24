@@ -67,6 +67,8 @@ import {
   saveUploadedVideo,
   UploadFileCollisionError,
 } from "../lib/image-upload";
+import { quoteTotalTHB } from "./leads";
+import { formatThaiDateTime } from "../lib/date-time";
 
 export type AdminDatabase = {
   select: (...args: any[]) => any;
@@ -241,6 +243,7 @@ export type DashboardLeadRow = {
   notes: string | null;
   productSkus: string[];
   createdAt: string;
+  studioData: unknown;
 };
 
 export type DashboardSlipRow = {
@@ -253,7 +256,12 @@ export type DashboardSlipRow = {
   createdAt: string;
 };
 
+export type DashboardPeriod = "all" | "7d" | "30d" | "3m" | "year";
+
+const DASHBOARD_PERIODS: DashboardPeriod[] = ["all", "7d", "30d", "3m", "year"];
+
 export type AdminDashboardStats = {
+  period: DashboardPeriod;
   kpis: {
     totalRevenueThb: number;
     totalLeads: number;
@@ -280,12 +288,23 @@ export type AdminDashboardStats = {
     notes: string | null;
   }>;
   popularItems: Array<{ sku: string; count: number }>;
+  popularStones: Array<{ sku: string; count: number }>;
+  popularBasins: Array<{ sku: string; count: number }>;
   recentActivities: Array<{
     id: string;
     type: "lead_created" | "payment_received";
     title: string;
     detail: string;
     timestamp: string;
+  }>;
+  monthlyComparison: Array<{ monthLabel: string; revenueThb: number; leadCount: number }>;
+  projectedCashInflowThb: number;
+  technicianCapacity: Array<{
+    teamCode: string;
+    teamName: string;
+    activeJobsCount: number;
+    status: "busy" | "moderate" | "available";
+    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string }>;
   }>;
   asOf: string;
 };
@@ -357,12 +376,12 @@ function pipelineOrderType(quoteNumber: string | null): "us" | "of" | "other" {
 }
 
 /** Top 5 SKUs by how many leads ordered them, skipping blank entries; ties break alphabetically. */
-export function computePopularItems(leads: DashboardLeadRow[]): AdminDashboardStats["popularItems"] {
+function computePopularSkus(leads: DashboardLeadRow[], includeSku: (sku: string) => boolean): AdminDashboardStats["popularItems"] {
   const counts = new Map<string, number>();
   for (const lead of leads) {
     for (const sku of lead.productSkus) {
       const trimmed = sku?.trim();
-      if (!trimmed) continue;
+      if (!trimmed || !includeSku(trimmed)) continue;
       counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1);
     }
   }
@@ -370,6 +389,23 @@ export function computePopularItems(leads: DashboardLeadRow[]): AdminDashboardSt
     .sort(([skuA, countA], [skuB, countB]) => countB - countA || skuA.localeCompare(skuB))
     .slice(0, 5)
     .map(([sku, count]) => ({ sku, count }));
+}
+
+export function computePopularItems(leads: DashboardLeadRow[]): AdminDashboardStats["popularItems"] {
+  return computePopularSkus(leads, () => true);
+}
+
+/** Basin SKUs (KFxxx) are their own catalog family, so "popular items" splits into stones vs basins. */
+function isBasinSku(sku: string): boolean {
+  return sku.toUpperCase().startsWith("KF");
+}
+
+export function computePopularStones(leads: DashboardLeadRow[]): AdminDashboardStats["popularStones"] {
+  return computePopularSkus(leads, (sku) => !isBasinSku(sku));
+}
+
+export function computePopularBasins(leads: DashboardLeadRow[]): AdminDashboardStats["popularBasins"] {
+  return computePopularSkus(leads, isBasinSku);
 }
 
 /** Defensive timestamp parse: an unparseable value sorts as oldest rather than throwing or producing NaN comparisons. */
@@ -417,16 +453,233 @@ export function computeRecentActivities(leads: DashboardLeadRow[], slips: Dashbo
     .slice(0, 5);
 }
 
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+function isoDate(year: number, month: number, day: number): string {
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function addMonths(year: number, month: number, delta: number): { year: number; month: number } {
+  const total = year * 12 + (month - 1) + delta;
+  return { year: Math.floor(total / 12), month: (total % 12) + 1 };
+}
+
+/** {year, month} of the given instant in Asia/Bangkok (fixed UTC+7, no DST). */
+function bangkokYearMonth(date: Date): { year: number; month: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return { year: Number(lookup["year"]), month: Number(lookup["month"]) };
+}
+
+type DashboardDateRange = { start: string; end: string };
+
+/**
+ * Date range (inclusive, "YYYY-MM-DD" in Asia/Bangkok) for each period value.
+ * "all" has no range (null = no filtering). "3m" is spec'd explicitly: the
+ * 1st of the month two months back through the last day of the current
+ * month. "year" mirrors that "whole current period, not just to-date"
+ * shape for consistency: Jan 1 through Dec 31 of the current year.
+ */
+function periodDateRange(period: DashboardPeriod, now: Date): DashboardDateRange | null {
+  const today = bangkokDateOnly(now);
+  if (period === "all") return null;
+  if (period === "7d") return { start: bangkokDateOnly(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000)), end: today };
+  if (period === "30d") return { start: bangkokDateOnly(new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000)), end: today };
+  const { year, month } = bangkokYearMonth(now);
+  if (period === "3m") {
+    const start = addMonths(year, month, -2);
+    return { start: isoDate(start.year, start.month, 1), end: isoDate(year, month, daysInMonth(year, month)) };
+  }
+  return { start: isoDate(year, 1, 1), end: isoDate(year, 12, 31) };
+}
+
+function withinPeriod(createdAt: string, range: DashboardDateRange | null): boolean {
+  if (!range) return true;
+  const day = bangkokDateOnly(new Date(createdAt));
+  return day >= range.start && day <= range.end;
+}
+
+const THAI_MONTH_ABBREVIATIONS = [
+  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+];
+
+/** e.g. year=2026 month=7 -> "ก.ค. 69" (Buddhist year, last 2 digits). */
+function monthLabel(year: number, month: number): string {
+  const buddhistYear = year + 543;
+  return `${THAI_MONTH_ABBREVIATIONS[month - 1]} ${String(buddhistYear).slice(-2)}`;
+}
+
+function trailingMonths(now: Date, count: number): Array<{ year: number; month: number }> {
+  const { year, month } = bangkokYearMonth(now);
+  const months: Array<{ year: number; month: number }> = [];
+  for (let offset = count - 1; offset >= 0; offset -= 1) {
+    months.push(addMonths(year, month, -offset));
+  }
+  return months;
+}
+
+/** Revenue and lead count for the trailing 3 calendar months (oldest to newest), independent of the `period` filter. */
+export function computeMonthlyComparison(
+  leads: DashboardLeadRow[],
+  slips: DashboardSlipRow[],
+  now: Date,
+): AdminDashboardStats["monthlyComparison"] {
+  return trailingMonths(now, 3).map(({ year, month }) => {
+    const revenueThb = slips.reduce((total, slip) => {
+      const slipMonth = bangkokYearMonth(new Date(slip.createdAt));
+      if (slipMonth.year !== year || slipMonth.month !== month) return total;
+      if (slip.status === "verified") return total + (slip.verifiedAmountThb ?? 0);
+      if (slip.status === "team_reported_paid") return total + (slip.claimedAmountThb ?? 0);
+      return total;
+    }, 0);
+    const leadCount = leads.filter((lead) => {
+      const leadMonth = bangkokYearMonth(new Date(lead.createdAt));
+      return leadMonth.year === year && leadMonth.month === month;
+    }).length;
+    return { monthLabel: monthLabel(year, month), revenueThb, leadCount };
+  });
+}
+
+/**
+ * Cash not yet collected for leads installing within the next `windowDays`:
+ * quote total (from studioData, via quoteTotalTHB) minus whatever has
+ * already been verified/team-reported-paid for that lead. Leads with no
+ * resolvable quote total are skipped rather than treated as zero, since
+ * "no quote total" and "fully paid" are different things.
+ */
+export function computeProjectedCashInflowThb(
+  leads: DashboardLeadRow[],
+  slips: DashboardSlipRow[],
+  now: Date,
+  windowDays = 14,
+): number {
+  const start = bangkokDateOnly(now);
+  const end = bangkokDateOnly(new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000));
+  const paidByLead = new Map<number, number>();
+  for (const slip of slips) {
+    if (slip.leadId === null) continue;
+    const amount = slip.status === "verified" ? slip.verifiedAmountThb : slip.status === "team_reported_paid" ? slip.claimedAmountThb : null;
+    if (amount === null) continue;
+    paidByLead.set(slip.leadId, (paidByLead.get(slip.leadId) ?? 0) + amount);
+  }
+  let total = 0;
+  for (const lead of leads) {
+    if (!lead.expectedInstallationDate) continue;
+    if (lead.expectedInstallationDate < start || lead.expectedInstallationDate > end) continue;
+    const quoteTotal = quoteTotalTHB(lead.studioData);
+    if (quoteTotal === null) continue;
+    total += Math.max(0, quoteTotal - (paidByLead.get(lead.id) ?? 0));
+  }
+  return total;
+}
+
+type TechnicianTeam = { code: string; name: string; shortName: string; aliases: string[] };
+
+/**
+ * The 10 install teams. `name` is the canonical output teamName; `shortName`
+ * and `aliases` only widen what counts as a match inside free-text
+ * notes/project fields (e.g. "TP", "ทีมเปา", "ช่างชัยยา", "แอนนี่").
+ */
+const TECHNICIAN_TEAMS: TechnicianTeam[] = [
+  { code: "TP", name: "ช่างยี่", shortName: "ยี่", aliases: ["แอนนี่"] },
+  { code: "PP", name: "ช่างเนตร", shortName: "เนตร", aliases: [] },
+  { code: "ST", name: "ช่างทู", shortName: "ทู", aliases: [] },
+  { code: "CM", name: "ช่างมิตร", shortName: "มิตร", aliases: [] },
+  { code: "KF", name: "ช่างชัยยา", shortName: "ชัยยา", aliases: [] },
+  { code: "PA", name: "ช่างเปา", shortName: "เปา", aliases: [] },
+  { code: "PM", name: "ช่างเอก", shortName: "เอก", aliases: [] },
+  { code: "TJ", name: "ช่างเจมส์", shortName: "เจมส์", aliases: [] },
+  { code: "AM", name: "ช่างอ้น", shortName: "อ้น", aliases: [] },
+  { code: "CL", name: "ช่างชล", shortName: "ชล", aliases: [] },
+];
+
+/**
+ * First team (in the canonical order above) whose code or name is mentioned
+ * in the text, or null if none match. A job is credited to at most one team.
+ * Codes match as a whole word (case-insensitive) so "KF" never matches
+ * inside a SKU like "KF001".
+ */
+function matchedTechnicianTeamCode(text: string): string | null {
+  if (!text.trim()) return null;
+  const upper = text.toUpperCase();
+  for (const team of TECHNICIAN_TEAMS) {
+    const codePattern = new RegExp(`\\b${team.code}\\b`);
+    if (codePattern.test(upper)) return team.code;
+    if (text.includes(team.name) || text.includes(`ทีม${team.shortName}`)) return team.code;
+    if (team.aliases.some((alias) => text.includes(alias))) return team.code;
+  }
+  return null;
+}
+
+/** Radar of all 10 teams' installation load over the next `windowDays`, parsed from lead.notes/lead.project. */
+export function computeTechnicianCapacity(
+  leads: DashboardLeadRow[],
+  now: Date,
+  windowDays = DASHBOARD_INSTALLATION_WINDOW_DAYS,
+): AdminDashboardStats["technicianCapacity"] {
+  const start = bangkokDateOnly(now);
+  const end = bangkokDateOnly(new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000));
+  const jobsByTeam = new Map<string, AdminDashboardStats["technicianCapacity"][number]["jobs"]>(
+    TECHNICIAN_TEAMS.map((team) => [team.code, []]),
+  );
+
+  for (const lead of leads) {
+    if (!lead.expectedInstallationDate) continue;
+    if (lead.expectedInstallationDate < start || lead.expectedInstallationDate > end) continue;
+    const teamCode = matchedTechnicianTeamCode(`${lead.notes ?? ""} ${lead.project ?? ""}`);
+    if (!teamCode) continue;
+    jobsByTeam.get(teamCode)?.push({
+      id: lead.id,
+      leadKey: lead.leadKey,
+      name: lead.name ?? "",
+      project: lead.project ?? null,
+      date: lead.expectedInstallationDate,
+    });
+  }
+
+  return TECHNICIAN_TEAMS.map((team) => {
+    const jobs = jobsByTeam.get(team.code) ?? [];
+    const activeJobsCount = jobs.length;
+    const status: "busy" | "moderate" | "available" = activeJobsCount >= 3 ? "busy" : activeJobsCount >= 1 ? "moderate" : "available";
+    return { teamCode: team.code, teamName: team.name, activeJobsCount, status, jobs };
+  });
+}
+
+/**
+ * `period` filters the "activity snapshot" fields (kpis, actionItems,
+ * pipelineRatio, popular*, recentActivities) by lead/slip createdAt.
+ * upcomingInstallations, technicianCapacity, monthlyComparison, and
+ * projectedCashInflowThb are forward-looking or their own fixed windows
+ * (next 7 days, trailing 3 months, next 14 days) and always use the full,
+ * unfiltered leads/slips -- filtering a future installation queue by a past
+ * creation-date window would just hide real upcoming work.
+ */
 export function computeAdminDashboardStats(
   leads: DashboardLeadRow[],
   slips: DashboardSlipRow[],
   now = new Date(),
+  period: DashboardPeriod = "all",
 ): AdminDashboardStats {
+  const range = periodDateRange(period, now);
+  const filteredLeads = leads.filter((lead) => withinPeriod(lead.createdAt, range));
+  const filteredSlips = slips.filter((slip) => withinPeriod(slip.createdAt, range));
+
   const pipelineRatio = { usCount: 0, ofCount: 0, otherCount: 0 };
   let readyForProduction = 0;
   let closed = 0;
   let awaitingContactCount = 0;
-  for (const lead of leads) {
+  for (const lead of filteredLeads) {
     if (lead.status === "ready_for_production") readyForProduction += 1;
     else if (lead.status === "closed") closed += 1;
     if (DASHBOARD_AWAITING_CONTACT_STATUSES.has(lead.status)) awaitingContactCount += 1;
@@ -436,22 +689,67 @@ export function computeAdminDashboardStats(
     else pipelineRatio.otherCount += 1;
   }
 
-  const unassignedSlipsCount = slips.filter((slip) => slip.leadId === null && slip.status !== "voided").length;
+  const unassignedSlipsCount = filteredSlips.filter((slip) => slip.leadId === null && slip.status !== "voided").length;
 
   return {
+    period,
     kpis: {
-      totalRevenueThb: computeTotalRevenueThb(slips),
-      totalLeads: leads.length,
+      totalRevenueThb: computeTotalRevenueThb(filteredSlips),
+      totalLeads: filteredLeads.length,
       readyForProduction,
       closed,
     },
     actionItems: { unassignedSlipsCount, awaitingContactCount },
     pipelineRatio,
     upcomingInstallations: computeUpcomingInstallations(leads, now),
-    popularItems: computePopularItems(leads),
-    recentActivities: computeRecentActivities(leads, slips),
+    popularItems: computePopularItems(filteredLeads),
+    popularStones: computePopularStones(filteredLeads),
+    popularBasins: computePopularBasins(filteredLeads),
+    recentActivities: computeRecentActivities(filteredLeads, filteredSlips),
+    monthlyComparison: computeMonthlyComparison(leads, slips, now),
+    projectedCashInflowThb: computeProjectedCashInflowThb(leads, slips, now),
+    technicianCapacity: computeTechnicianCapacity(leads, now),
     asOf: now.toISOString(),
   };
+}
+
+/** Short LINE text summary: cumulative revenue, total job count, and today's install queue by team. */
+export function buildDashboardBriefingText(stats: AdminDashboardStats, now: Date): string {
+  const today = bangkokDateOnly(now);
+  const todaysJobs = stats.technicianCapacity.flatMap((team) =>
+    team.jobs
+      .filter((job) => job.date === today)
+      .map((job) => `- ${team.teamName} (${team.teamCode}): ${job.name || "-"}${job.project ? ` · ${job.project}` : ""}`));
+  return [
+    "📊 Knight Basins Dashboard Briefing",
+    `⏰ ${formatThaiDateTime(now)} น.`,
+    `ยอดรับเงินสะสม: ${stats.kpis.totalRevenueThb.toLocaleString()} บาท`,
+    `จำนวนงานทั้งหมด: ${stats.kpis.totalLeads} งาน`,
+    "คิวช่างวันนี้:",
+    ...(todaysJobs.length ? todaysJobs : ["- ไม่มีคิวติดตั้งวันนี้"]),
+  ].join("\n");
+}
+
+type LineSendResult = { ok: true } | { ok: false; message: string };
+
+/** Same LINE Messaging API push pattern as lib/sales-notifications.ts's sendLineText. */
+async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult> {
+  const accessToken = process.env["LINE_MESSAGING_ACCESS_TOKEN"] ?? process.env["LINE_CHANNEL_ACCESS_TOKEN"];
+  const destination = process.env["LINE_SALES_DESTINATION_ID"];
+  if (!accessToken || !destination) {
+    return { ok: false, message: "ยังไม่ได้ตั้งค่า LINE channel หรือปลายทางสำหรับ dashboard briefing" };
+  }
+  try {
+    const response = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ to: destination, messages: [{ type: "text", text }] }),
+    });
+    if (!response.ok) return { ok: false, message: `LINE push returned ${response.status}` };
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "ส่ง LINE briefing ไม่สำเร็จ" };
+  }
 }
 
 export function createAdminRouter(database: AdminDatabase): IRouter {
@@ -770,8 +1068,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.get("/admin/dashboard-stats", requireAdminPermission("leads"), async (_req, res, next) => {
+  router.get("/admin/dashboard-stats", requireAdminPermission("leads"), async (req, res, next) => {
     try {
+      const rawPeriod = req.query["period"];
+      const period: DashboardPeriod = typeof rawPeriod === "string" && (DASHBOARD_PERIODS as string[]).includes(rawPeriod)
+        ? rawPeriod as DashboardPeriod
+        : "all";
+
       const leadRows: DashboardLeadRow[] = await database
         .select({
           id: customerLeads.id,
@@ -785,6 +1088,7 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
           notes: customerLeads.notes,
           productSkus: customerLeads.productSkus,
           createdAt: customerLeads.createdAt,
+          studioData: customerLeads.studioData,
         })
         .from(customerLeads)
         .orderBy(asc(customerLeads.id));
@@ -802,7 +1106,54 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         .from(paymentSlips)
         .orderBy(asc(paymentSlips.id));
 
-      res.json(computeAdminDashboardStats(leadRows, slipRows, new Date()));
+      res.json(computeAdminDashboardStats(leadRows, slipRows, new Date(), period));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/admin/dashboard-briefing/line", requireAdminPermission("leads"), async (_req, res, next) => {
+    try {
+      const leadRows: DashboardLeadRow[] = await database
+        .select({
+          id: customerLeads.id,
+          leadKey: customerLeads.leadKey,
+          status: customerLeads.status,
+          quoteNumber: customerLeads.quoteNumber,
+          name: customerLeads.name,
+          project: customerLeads.project,
+          address: customerLeads.address,
+          expectedInstallationDate: customerLeads.expectedInstallationDate,
+          notes: customerLeads.notes,
+          productSkus: customerLeads.productSkus,
+          createdAt: customerLeads.createdAt,
+          studioData: customerLeads.studioData,
+        })
+        .from(customerLeads)
+        .orderBy(asc(customerLeads.id));
+
+      const slipRows: DashboardSlipRow[] = await database
+        .select({
+          id: paymentSlips.id,
+          leadId: paymentSlips.leadId,
+          status: paymentSlips.status,
+          verifiedAmountThb: paymentSlips.verifiedAmountThb,
+          claimedAmountThb: paymentSlips.claimedAmountThb,
+          senderName: paymentSlips.senderName,
+          createdAt: paymentSlips.createdAt,
+        })
+        .from(paymentSlips)
+        .orderBy(asc(paymentSlips.id));
+
+      const now = new Date();
+      const stats = computeAdminDashboardStats(leadRows, slipRows, now);
+      const text = buildDashboardBriefingText(stats, now);
+      const result = await sendDashboardBriefingToLine(text);
+      if (!result.ok) {
+        res.status(502).json({ message: result.message });
+        return;
+      }
+      res.json({ success: true, deliveredAt: now.toISOString() });
     } catch (error) {
       next(error);
     }

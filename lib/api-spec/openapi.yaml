@@ -737,7 +737,16 @@ paths:
     get:
       operationId: getAdminDashboardStats
       tags: [admin]
-      summary: Summarized KPIs for the admin dashboard (revenue, pipeline, action items, upcoming installations)
+      summary: Summarized KPIs for the admin Executive & Team Cockpit (revenue, pipeline, action items, installations, monthly trend, technician capacity)
+      parameters:
+        - name: period
+          in: query
+          required: false
+          description: Filters the activity-snapshot fields (kpis, actionItems, pipelineRatio, popular*, recentActivities) by lead/slip creation date. Defaults to "all". Forward-looking or fixed-window fields (upcomingInstallations, technicianCapacity, monthlyComparison, projectedCashInflowThb) always use the full dataset regardless of this filter.
+          schema:
+            type: string
+            enum: [all, "7d", "30d", "3m", year]
+            default: all
       responses:
         "200":
           description: Admin dashboard statistics
@@ -745,6 +754,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminDashboardStats"
+  /admin/dashboard-briefing/line:
+    post:
+      operationId: sendAdminDashboardBriefingToLine
+      tags: [admin]
+      summary: Push a short dashboard summary (revenue, job count, today's install queue) to the sales LINE destination
+      responses:
+        "200":
+          description: Briefing delivered
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, deliveredAt]
+                properties:
+                  success: { type: boolean }
+                  deliveredAt: { type: string, format: date-time }
+        "502":
+          description: LINE is not configured, or the push request failed
   /admin/leads/{id}/payment-slips:
     parameters:
       - $ref: "#/components/parameters/RecordId"
@@ -1548,8 +1575,24 @@ components:
         updatedAt: { type: string, format: date-time }
     AdminDashboardStats:
       type: object
-      required: [kpis, actionItems, pipelineRatio, upcomingInstallations, popularItems, recentActivities, asOf]
+      required:
+        - period
+        - kpis
+        - actionItems
+        - pipelineRatio
+        - upcomingInstallations
+        - popularItems
+        - popularStones
+        - popularBasins
+        - recentActivities
+        - monthlyComparison
+        - projectedCashInflowThb
+        - technicianCapacity
+        - asOf
       properties:
+        period:
+          type: string
+          enum: [all, "7d", "30d", "3m", year]
         kpis: { $ref: "#/components/schemas/AdminDashboardKpis" }
         actionItems: { $ref: "#/components/schemas/AdminDashboardActionItems" }
         pipelineRatio: { $ref: "#/components/schemas/AdminDashboardPipelineRatio" }
@@ -1561,10 +1604,33 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminDashboardPopularItem"
+        popularStones:
+          type: array
+          description: Popular items restricted to non-basin (stone) SKUs -- those not starting with "KF"
+          items:
+            $ref: "#/components/schemas/AdminDashboardPopularItem"
+        popularBasins:
+          type: array
+          description: Popular items restricted to basin SKUs (starting with "KF")
+          items:
+            $ref: "#/components/schemas/AdminDashboardPopularItem"
         recentActivities:
           type: array
           items:
             $ref: "#/components/schemas/AdminDashboardActivity"
+        monthlyComparison:
+          type: array
+          description: Revenue and lead count for the trailing 3 calendar months (Buddhist year, Asia/Bangkok), independent of the period filter
+          items:
+            $ref: "#/components/schemas/AdminDashboardMonthlyComparison"
+        projectedCashInflowThb:
+          type: integer
+          description: Forecasted cash not yet collected for leads installing within the next 14 days (quote total minus amounts already paid)
+        technicianCapacity:
+          type: array
+          description: Radar of all 10 install teams' load over the next 7 days
+          items:
+            $ref: "#/components/schemas/AdminDashboardTechnicianCapacity"
         asOf: { type: string, format: date-time }
     AdminDashboardKpis:
       type: object
@@ -1616,6 +1682,38 @@ components:
         title: { type: string }
         detail: { type: string }
         timestamp: { type: string, format: date-time }
+    AdminDashboardMonthlyComparison:
+      type: object
+      required: [monthLabel, revenueThb, leadCount]
+      properties:
+        monthLabel: { type: string, description: "e.g. \"ก.ค. 69\" (Thai abbreviated month + 2-digit Buddhist year)" }
+        revenueThb: { type: integer }
+        leadCount: { type: integer }
+    AdminDashboardTechnicianJob:
+      type: object
+      required: [id, leadKey, name, project, date]
+      properties:
+        id: { type: integer }
+        leadKey: { type: string }
+        name: { type: string }
+        project: { type: [string, "null"] }
+        date: { type: string, description: "ISO date (YYYY-MM-DD)" }
+    AdminDashboardTechnicianCapacity:
+      type: object
+      required: [teamCode, teamName, activeJobsCount, status, jobs]
+      properties:
+        teamCode:
+          type: string
+          enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL]
+        teamName: { type: string }
+        activeJobsCount: { type: integer }
+        status:
+          type: string
+          enum: [busy, moderate, available]
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminDashboardTechnicianJob"
     PaymentSlipIntakeInput:
       type: object
       required: [file, archiveAttachmentId, sourceHash]
