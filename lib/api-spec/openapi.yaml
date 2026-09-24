@@ -1628,6 +1628,10 @@ components:
             widthMm: { type: [number, "null"] }
             lengthMm: { type: [number, "null"] }
             depthMm: { type: [number, "null"] }
+        studioData:
+          type: object
+          description: "Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.)"
+          additionalProperties: true
     AdminLeadStatusUpdateInput:
       type: object
       required: [status]

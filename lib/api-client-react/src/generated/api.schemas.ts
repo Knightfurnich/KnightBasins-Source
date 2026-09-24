@@ -832,12 +832,19 @@ export type AdminLeadUpdateInputStaffDimensions = {
   depthMm?: number | null;
 } | null;
 
+/**
+ * Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.)
+ */
+export type AdminLeadUpdateInputStudioData = { [key: string]: unknown };
+
 export interface AdminLeadUpdateInput {
   status: AdminLeadUpdateInputStatus;
   /** @nullable */
   notes?: string | null;
   /** @nullable */
   staffDimensions?: AdminLeadUpdateInputStaffDimensions;
+  /** Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.) */
+  studioData?: AdminLeadUpdateInputStudioData;
 }
 
 export type AdminLeadStatusUpdateInputStatus = typeof AdminLeadStatusUpdateInputStatus[keyof typeof AdminLeadStatusUpdateInputStatus];

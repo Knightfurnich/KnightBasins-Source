@@ -1535,13 +1535,19 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     const finalStatus = bodyStatus ?? parsed.data.status;
     try {
       let studioData: Record<string, unknown> | undefined;
-      if (parsed.data.staffDimensions !== undefined) {
+      if (parsed.data.staffDimensions !== undefined || parsed.data.studioData !== undefined) {
         const [existing] = await database
           .select({ studioData: customerLeads.studioData })
           .from(customerLeads)
           .where(eq(customerLeads.id, id))
           .limit(1);
-        studioData = { ...(existing?.studioData as Record<string, unknown> ?? {}), staffDimensions: parsed.data.staffDimensions };
+        studioData = {
+          ...(existing?.studioData as Record<string, unknown> ?? {}),
+          ...(parsed.data.studioData as Record<string, unknown> ?? {}),
+        };
+        if (parsed.data.staffDimensions !== undefined) {
+          studioData = { ...studioData, staffDimensions: parsed.data.staffDimensions };
+        }
       }
       const [updated] = await database
         .update(customerLeads)

@@ -2079,7 +2079,8 @@ export const UpdateAdminLeadBody = zod.object({
   "widthMm": zod.number().nullish(),
   "lengthMm": zod.number().nullish(),
   "depthMm": zod.number().nullish()
-}).nullish()
+}).nullish(),
+  "studioData": zod.record(zod.string(), zod.unknown()).optional().describe('Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.)')
 })
 
 export const updateAdminLeadResponseTechnicianTeamCodeRegExp = new RegExp('^[A-Z]{2,8}$');
