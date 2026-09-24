@@ -4,49 +4,23 @@ import {
   ArrowRight,
   ArrowUpRight,
   Banknote,
+  CheckCircle2,
+  FileText,
   ClipboardList,
   Factory,
   FileStack,
   Loader2,
-  LockKeyhole,
   MapPin,
   PackageCheck,
   RefreshCw,
+  UserRound,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { customFetch } from "@workspace/api-client-react";
+import type { AdminDashboardActivity, AdminDashboardPopularItem, AdminDashboardStats } from "@workspace/api-client-react";
 import { formatThaiDateTime, THAI_TIME_ZONE } from "@/data/date-time";
-
-type DashboardStats = {
-  kpis: {
-    totalRevenueThb: number;
-    totalLeads: number;
-    readyForProduction: number;
-    closed: number;
-  };
-  actionItems: {
-    unassignedSlipsCount: number;
-    awaitingContactCount: number;
-  };
-  pipelineRatio: {
-    usCount: number;
-    ofCount: number;
-    otherCount: number;
-  };
-  upcomingInstallations: Array<{
-    id: number;
-    leadKey: string;
-    name: string;
-    quoteNumber: string;
-    project: string;
-    address: string;
-    expectedInstallationDate: string;
-    notes: string;
-  }>;
-  asOf: string;
-};
 
 type AdminDashboardProps = {
   canNavigate: (href: string) => boolean;
@@ -58,9 +32,9 @@ const countFormatter = new Intl.NumberFormat("th-TH");
 const bahtFormatter = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
 
 function useAdminDashboardStats() {
-  return useQuery<DashboardStats>({
+  return useQuery<AdminDashboardStats>({
     queryKey: dashboardQueryKey,
-    queryFn: () => customFetch<DashboardStats>("/api/admin/dashboard-stats", { responseType: "json" }),
+    queryFn: () => customFetch<AdminDashboardStats>("/api/admin/dashboard-stats", { responseType: "json" }),
     staleTime: 30_000,
     gcTime: 0,
     retry: 1,
@@ -72,6 +46,25 @@ function safeDate(value: string) {
   const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00+07:00` : value;
   const date = new Date(normalized);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatActivityAge(value: string) {
+  const date = safeDate(value);
+  if (!date) return "ไม่ทราบเวลา";
+  const elapsed = Math.max(0, Date.now() - date.getTime());
+  if (elapsed < 60_000) return "เมื่อสักครู่";
+  if (elapsed < 60 * 60_000) return countFormatter.format(Math.floor(elapsed / 60_000)) + " นาทีที่แล้ว";
+  if (elapsed < 24 * 60 * 60_000) return countFormatter.format(Math.floor(elapsed / (60 * 60_000))) + " ชั่วโมงที่แล้ว";
+
+  const thaiDateParts = (input: Date) => {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: THAI_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(input);
+    const part = (type: string) => Number(parts.find((item) => item.type === type)?.value);
+    return Date.UTC(part("year"), part("month") - 1, part("day"));
+  };
+  const dayDifference = Math.floor((thaiDateParts(new Date()) - thaiDateParts(date)) / (24 * 60 * 60_000));
+  if (dayDifference === 1) return "เมื่อวานนี้";
+  if (dayDifference > 1) return countFormatter.format(dayDifference) + " วันที่แล้ว";
+  return "วันนี้";
 }
 
 function installationSortValue(value: string) {
@@ -200,7 +193,7 @@ function ActionCard({
 function InstallationCard({
   installation,
 }: {
-  installation: DashboardStats["upcomingInstallations"][number];
+  installation: AdminDashboardStats["upcomingInstallations"][number];
 }) {
   const address = installation.address?.trim() ?? "";
   const mapsUrl = address
@@ -266,7 +259,7 @@ function InstallationCard({
   );
 }
 
-function PipelineRatio({ ratio }: { ratio: DashboardStats["pipelineRatio"] }) {
+function PipelineRatio({ ratio }: { ratio: AdminDashboardStats["pipelineRatio"] }) {
   const total = ratio.usCount + ratio.ofCount + ratio.otherCount;
   const entries = [
     { label: "US · สั่งผลิต", count: ratio.usCount, color: "bg-sky-700" },
@@ -329,55 +322,118 @@ function PipelineRatio({ ratio }: { ratio: DashboardStats["pipelineRatio"] }) {
   );
 }
 
-function DashboardShortcuts({
-  canNavigate,
-  onNavigate,
-}: Pick<AdminDashboardProps, "canNavigate" | "onNavigate">) {
-  const shortcuts: Array<{ href: string; label: string; description: string; icon: LucideIcon }> = [
-    { href: "/admin/leads", label: "ลูกค้า / Lead", description: "ติดตามงานและการชำระเงิน", icon: Users },
-    { href: "/admin/installed-stones", label: "หินพร้อมติดตั้ง", description: "จัดการราคาและสินค้า", icon: PackageCheck },
-    { href: "/admin/basins", label: "อ่างล้างหน้า", description: "จัดการรายการสินค้า", icon: ClipboardList },
-    { href: "/admin/sheet-stones", label: "หินขายแผ่น", description: "จัดการสินค้าและราคา", icon: FileStack },
-    { href: "/admin/team", label: "สมาชิกทีม", description: "บัญชี บทบาท และสิทธิ์", icon: Users },
-  ];
+function PopularItemsPanel({ items }: { items: AdminDashboardPopularItem[] }) {
+    const topItems = [...items].sort((left, right) => right.count - left.count).slice(0, 5);
+    const maxCount = Math.max(0, ...topItems.map((item) => item.count));
 
-  return (
-    <Panel className="p-4 sm:p-5" data-testid="panel-dashboard-shortcuts">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Quick links</p>
-          <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">ทางลัดจัดการ</h2>
+    return (
+      <Panel className="p-4 sm:p-5" data-testid="panel-popular-items">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Top 5 best sellers</p>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">🏆 สินค้ายอดนิยม</h2>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">รหัส SKU และจำนวนงานที่เลือกสินค้า</p>
+          </div>
         </div>
-        <ArrowUpRight className="h-5 w-5 text-[var(--ink-soft)]" aria-hidden="true" />
-      </div>
-      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
-        {shortcuts.map(({ href, label, description, icon: Icon }) => {
-          const allowed = canNavigate(href);
-          return (
-            <button
-              key={href}
-              type="button"
-              className="flex min-w-0 items-center gap-3 border border-[var(--line)] px-3 py-2.5 text-left transition-colors hover:bg-[var(--line)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--saffron)]"
-              onClick={() => onNavigate(href)}
-              aria-disabled={!allowed}
-              data-testid={`button-dashboard-shortcut-${href.split("/").at(-1)}`}
-            >
-              <Icon className="h-4 w-4 shrink-0 text-[var(--ink-soft)]" aria-hidden="true" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-semibold text-[var(--ink)]">{label}</span>
-                <span className="mt-0.5 block truncate text-[10px] text-[var(--ink-soft)]">{description}</span>
-              </span>
-              {!allowed && <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-[var(--ink-soft)]" aria-label="ไม่มีสิทธิ์เข้าถึง" />}
-              {allowed && <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--ink-soft)]" aria-hidden="true" />}
-            </button>
-          );
-        })}
-      </div>
-    </Panel>
-  );
-}
+        {topItems.length > 0 ? (
+          <ol className="divide-y divide-[var(--line)]" data-testid="list-popular-items">
+            {topItems.map((item, index) => {
+              const share = maxCount > 0 ? Math.max(0, item.count) / maxCount * 100 : 0;
+              return (
+                <li key={item.sku} className="py-3 first:pt-1 last:pb-1" data-testid="popular-item-row">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] font-mono text-[10px] text-[var(--ink-soft)]" aria-label={"อันดับ " + (index + 1)}>
+                        {index + 1}
+                      </span>
+                      <span className="truncate font-mono text-sm font-semibold tracking-wide text-[var(--ink)]">{item.sku}</span>
+                    </div>
+                    <span className="shrink-0 text-[11px] tabular-nums text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, item.count))} งาน</span>
+                  </div>
+                  <div
+                    className="h-1.5 overflow-hidden bg-[var(--brand-sky)]"
+                    role="progressbar"
+                    aria-label={"ความถี่ของ " + item.sku}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(share)}
+                    aria-valuetext={Math.round(share) + "% ของอันดับหนึ่ง"}
+                  >
+                    <div className="h-full bg-[var(--brand-blue)] transition-[width]" style={{ width: share + "%" }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="border border-dashed border-[var(--line)] px-3 py-8 text-center text-sm text-[var(--ink-soft)]" data-testid="empty-popular-items">
+            ยังไม่มีข้อมูลสินค้ายอดนิยม
+          </p>
+        )}
+      </Panel>
+    );
+    }
 
-export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps) {
+    function RecentActivitiesPanel({ items }: { items: AdminDashboardActivity[] }) {
+    const activities = [...items]
+      .sort((left, right) => (safeDate(right.timestamp)?.getTime() ?? 0) - (safeDate(left.timestamp)?.getTime() ?? 0))
+      .slice(0, 5);
+
+    return (
+      <Panel className="p-4 sm:p-5" data-testid="panel-recent-activities">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Recent activities</p>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">⚡️ ความเคลื่อนไหวล่าสุด</h2>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">รายการอัปเดตจากลูกค้าและการชำระเงิน</p>
+          </div>
+        </div>
+        {activities.length > 0 ? (
+          <ol className="divide-y divide-[var(--line)]" data-testid="list-recent-activities">
+            {activities.map((activity) => {
+              const isPayment = activity.type === "payment_received";
+              const relativeTime = formatActivityAge(activity.timestamp);
+              return (
+                <li key={activity.id} className="flex items-start gap-3 py-3 first:pt-1 last:pb-1" data-testid={"activity-row-" + activity.id}>
+                  <span
+                    className={"relative mt-0.5 grid h-9 w-9 shrink-0 place-items-center border " + (isPayment ? "border-[#17816d]/20 bg-[#17816d]/10 text-[#17816d]" : "border-[var(--brand-blue)]/20 bg-[var(--brand-sky)] text-[var(--brand-blue)]")}
+                    aria-hidden="true"
+                  >
+                    {isPayment ? (
+                      <>
+                        <Banknote className="h-4 w-4" />
+                        <CheckCircle2 className="absolute -bottom-1 -right-1 h-3 w-3 fill-[var(--card-paper)]" />
+                      </>
+                    ) : (
+                      <>
+                        <UserRound className="h-4 w-4" />
+                        <FileText className="absolute -bottom-1 -right-1 h-3 w-3 fill-[var(--card-paper)]" />
+                      </>
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <p className="m-0 min-w-0 text-xs font-semibold text-[var(--ink)]">{activity.title}</p>
+                      <time className="shrink-0 text-[10px] text-[var(--ink-soft)]" dateTime={activity.timestamp} title={activity.timestamp}>
+                        {relativeTime}
+                      </time>
+                    </div>
+                    <p className="mt-1 text-[11px] leading-relaxed text-[var(--ink-soft)]">{activity.detail}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="border border-dashed border-[var(--line)] px-3 py-8 text-center text-sm text-[var(--ink-soft)]" data-testid="empty-recent-activities">
+            ยังไม่มีกิจกรรมล่าสุด
+          </p>
+        )}
+      </Panel>
+    );
+    }
+
+export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const { data, isError, isFetching, isLoading, refetch } = useAdminDashboardStats();
   const installations = useMemo(
     () => [...(data?.upcomingInstallations ?? [])].sort(
@@ -548,8 +604,12 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
 
         <div className="grid gap-5">
           <PipelineRatio ratio={data.pipelineRatio} />
-          <DashboardShortcuts canNavigate={canNavigate} onNavigate={onNavigate} />
         </div>
+      </div>
+
+      <div className="grid items-start gap-5 xl:grid-cols-2">
+        <PopularItemsPanel items={data.popularItems} />
+        <RecentActivitiesPanel items={data.recentActivities} />
       </div>
     </div>
   );
