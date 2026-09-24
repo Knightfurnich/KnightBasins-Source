@@ -61,6 +61,8 @@ export type StudioPiece = {
   rectangles: StudioRectangle[];
   sideStatuses: Record<string, SideStatus>;
   preset?: StudioPreset;
+  /** Explicit X/Y edits or drags opt this piece out of legacy preset reflow heuristics. */
+  manualLayout?: boolean;
 };
 
 export type BacksplashConfig = {
@@ -469,19 +471,6 @@ function mirroredPieceName(name: string) {
   return name;
 }
 
-/**
- * Keeps a U / L layout attached while one of its panels is resized.
- *
- * Resizing a panel through the numeric fields only changes that panel's own
- * size, so a right leg used to tear away from the back run and overlap it once
- * its width changed. Panels that sit flush to the piece's right edge are
- * re-anchored to that edge here, and side legs drop to the new bottom of the
- * back run when the back run's depth changes.
- *
- * For U shapes, panel 1 (back run) anchors panel 2 (left leg) to its left edge
- * and panel 3 (right leg) to its right edge. When panel 1's width or depth changes,
- * both legs immediately follow without gaps or overlaps.
- */
 function resolveAttachedPosition(
   parent: StudioRectangle,
   child: StudioRectangle,
@@ -548,6 +537,19 @@ function resolveAttachedRectangles(rectangles: StudioRectangle[]): StudioRectang
   return rectangles.map((rectangle) => resolve(rectangle.id));
 }
 
+/**
+ * Keeps a U / L layout attached while one of its panels is resized.
+ *
+ * Resizing a panel through the numeric fields only changes that panel's own
+ * size, so a right leg used to tear away from the back run and overlap it once
+ * its width changed. Panels that sit flush to the piece's right edge are
+ * re-anchored to that edge here, and side legs drop to the new bottom of the
+ * back run when the back run's depth changes.
+ *
+ * For U shapes, panel 1 (back run) anchors panel 2 (left leg) to its left edge
+ * and panel 3 (right leg) to its right edge. When panel 1's width or depth changes,
+ * both legs immediately follow without gaps or overlaps.
+ */
 export function reflowStudioRectangles(
   before: StudioRectangle[],
   after: StudioRectangle[],

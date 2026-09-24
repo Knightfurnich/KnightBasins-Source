@@ -618,6 +618,137 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
   });
 
+  it("connects Studio attachment controls and keeps manual X/Y placement", async () => {
+    await browser.page.command("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "Studio attachment order mode",
+    );
+    await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
+    await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
+      Boolean,
+      "fresh Studio attachment order mode",
+    );
+    await clickTestId(browser.page, "button-order-mode-studio");
+    await waitFor(
+      () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
+      Boolean,
+      "Studio attachment canvas",
+    );
+
+    const initial = await browser.page.evaluate<{
+      rectangleSelectTestId: string;
+      rootId: string;
+      addTestId: string;
+    }>(`(() => {
+      const rectangleSelect = document.querySelector('[data-testid^="select-studio-rectangle-"]');
+      const addButton = document.querySelector('[data-testid^="button-add-studio-rectangle-"]');
+      return {
+        rectangleSelectTestId: rectangleSelect?.getAttribute("data-testid") ?? "",
+        rootId: rectangleSelect instanceof HTMLSelectElement ? rectangleSelect.value : "",
+        addTestId: addButton?.getAttribute("data-testid") ?? "",
+      };
+    })()`);
+    assert.ok(initial.rectangleSelectTestId);
+    assert.ok(initial.rootId);
+    assert.ok(initial.addTestId);
+    await setTextInput(browser.page, `input-rectangle-width-${initial.rootId}`, "1500");
+    await setTextInput(browser.page, `input-rectangle-length-${initial.rootId}`, "1200");
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="input-rectangle-length-${initial.rootId}"]')?.value === "1200"`),
+      Boolean,
+      "resized root rectangle",
+    );
+    await clickTestId(browser.page, initial.addTestId);
+    const childId = await waitFor(
+      () => browser.page.evaluate<string>(`(() => {
+        const select = document.querySelector('[data-testid="${initial.rectangleSelectTestId}"]');
+        return select instanceof HTMLSelectElement && select.value !== ${JSON.stringify(initial.rootId)} ? select.value : "";
+      })()`),
+      (value) => Boolean(value),
+      "new child rectangle selected",
+    );
+    const controls = await browser.page.evaluate<{
+      parentSelectTestId: string;
+      parentOptionValues: string[];
+    }>(`(() => {
+      const element = document.querySelector('[data-testid="studio-join-controls-${childId}"]');
+      const parentSelect = element?.querySelector('select[data-testid^="select-studio-attachment-parent-"]');
+      return {
+        parentSelectTestId: parentSelect?.getAttribute("data-testid") ?? "",
+        parentOptionValues: parentSelect instanceof HTMLSelectElement ? [...parentSelect.options].map((option) => option.value) : [],
+      };
+    })()`);
+    assert.ok(controls.parentSelectTestId);
+    assert.ok(controls.parentOptionValues.includes(initial.rootId));
+    assert.ok(!controls.parentOptionValues.includes(childId), "A rectangle cannot be its own parent");
+    await setSelectValue(browser.page, controls.parentSelectTestId, initial.rootId);
+    await clickTestId(browser.page, `button-studio-join-right-${childId}`);
+    const childPosition = () => browser.page.evaluate<{ x: number; y: number }>(`(() => ({
+      x: Number(document.querySelector('[data-testid="input-rectangle-x-${childId}"]')?.value),
+      y: Number(document.querySelector('[data-testid="input-rectangle-y-${childId}"]')?.value),
+    }))()`);
+    await waitFor(childPosition, (position) => position.x === 1500 && position.y === 0, "right attachment");
+
+    await clickTestId(browser.page, `button-studio-align-center-${childId}`);
+    await waitFor(childPosition, (position) => position.y === 300, "center attachment alignment");
+    await clickTestId(browser.page, `button-studio-align-end-${childId}`);
+    await waitFor(childPosition, (position) => position.y === 600, "end attachment alignment");
+
+    await setSelectValue(browser.page, initial.rectangleSelectTestId, initial.rootId);
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="studio-join-controls-${initial.rootId}"]') !== null`),
+      Boolean,
+      "root rectangle inspector",
+    );
+    await setTextInput(browser.page, `input-rectangle-width-${initial.rootId}`, "1600");
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="input-rectangle-width-${initial.rootId}"]')?.value === "1600"`),
+      Boolean,
+      "root width changed while attached",
+    );
+    const rootControls = await browser.page.evaluate<{
+      disabled: boolean;
+      options: string[];
+    }>(`(() => {
+      const controls = document.querySelector('[data-testid="studio-join-controls-${initial.rootId}"]');
+      const parentSelect = controls?.querySelector('select[data-testid^="select-studio-attachment-parent-"]');
+      return {
+        disabled: parentSelect instanceof HTMLSelectElement ? parentSelect.disabled : false,
+        options: parentSelect instanceof HTMLSelectElement ? [...parentSelect.options].map((option) => option.value) : [],
+      };
+    })()`);
+    assert.equal(rootControls.disabled, true, "The reverse attachment would create a cycle");
+    assert.ok(!rootControls.options.includes(childId));
+
+    await setSelectValue(browser.page, initial.rectangleSelectTestId, childId);
+    await waitFor(childPosition, (position) => position.x === 1600, "attached child follows root resize");
+    await setTextInput(browser.page, `input-rectangle-x-${childId}`, "2100");
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="button-studio-join-right-${childId}"]')?.getAttribute("aria-pressed") === "false"`),
+      Boolean,
+      "manual X edit detaches the child",
+    );
+    await setSelectValue(browser.page, initial.rectangleSelectTestId, initial.rootId);
+    await setTextInput(browser.page, `input-rectangle-width-${initial.rootId}`, "1700");
+    await waitFor(
+      () => browser.page.evaluate(`document.querySelector('[data-testid="input-rectangle-width-${initial.rootId}"]')?.value === "1700"`),
+      Boolean,
+      "second root resize",
+    );
+    await setSelectValue(browser.page, initial.rectangleSelectTestId, childId);
+    await waitFor(childPosition, (position) => position.x === 2100, "manual child position survives root resize");
+  });
+
   it("supports one-click Studio presets, basin alignment, zoom, and the mobile estimate bar", async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Emulation.setDeviceMetricsOverride", {

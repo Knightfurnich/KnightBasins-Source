@@ -921,6 +921,35 @@ paths:
                   $ref: "#/components/schemas/CustomerQuotation"
         "401":
           description: LINE login required
+  /places/autocomplete:
+    get:
+      operationId: getWorksiteAddressSuggestions
+      tags: [places]
+      summary: Suggest Thai worksite locations from an address query
+      parameters:
+        - name: input
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 250
+      responses:
+        "200":
+          description: Google Places suggestions for the address query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorksiteAddressSuggestions"
+        "400":
+          description: Invalid or too-short address query
+        "429":
+          description: Too many autocomplete requests
+        "502":
+          description: Address suggestion provider is unavailable
+        "503":
+          description: Address suggestions are not configured
+
 components:
   securitySchemes:
     AdminSessionCookie:
@@ -1608,4 +1637,20 @@ components:
         updatedAt: { type: string, format: date-time }
         amountTHB: { type: [integer, "null"] }
         viewUrl: { type: string }
-
+    WorksiteAddressSuggestions:
+      type: object
+      required: [suggestions]
+      properties:
+        suggestions:
+          type: array
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/WorksiteAddressSuggestion"
+    WorksiteAddressSuggestion:
+      type: object
+      required: [placeId, text, primaryText, secondaryText]
+      properties:
+        placeId: { type: string, minLength: 1, maxLength: 512 }
+        text: { type: string, minLength: 1, maxLength: 1000 }
+        primaryText: { type: string, minLength: 1, maxLength: 500 }
+        secondaryText: { type: string, maxLength: 500 }

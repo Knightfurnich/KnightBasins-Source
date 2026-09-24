@@ -840,6 +840,31 @@ export interface AdminLeadUpdateInput {
   staffDimensions?: AdminLeadUpdateInputStaffDimensions;
 }
 
+export interface WorksiteAddressSuggestion {
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  placeId: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  text: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  primaryText: string;
+  /** @maxLength 500 */
+  secondaryText: string;
+}
+
+export interface WorksiteAddressSuggestions {
+  /** @maxItems 5 */
+  suggestions: WorksiteAddressSuggestion[];
+}
+
 export type CustomerLeadStatus = typeof CustomerLeadStatus[keyof typeof CustomerLeadStatus];
 
 
@@ -1176,6 +1201,14 @@ export interface CustomerQuotation {
   amountTHB?: number | null;
   viewUrl: string;
 }
+
+export type GetWorksiteAddressSuggestionsParams = {
+/**
+ * @minLength 3
+ * @maxLength 250
+ */
+input: string;
+};
 
 export type CreateAdminSessionBody = {
   /** @minLength 8 */

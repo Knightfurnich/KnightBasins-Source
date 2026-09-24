@@ -77,6 +77,8 @@ import {
   type StudioOrderMode,
   type StudioPiece,
   type StudioRectangle,
+  type StudioAttachmentAlign,
+  type StudioAttachmentEdge,
   type StudioState,
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
@@ -86,6 +88,7 @@ import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, d
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
+import { WorksiteAddressAutocomplete } from "./WorksiteAddressAutocomplete";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineContact" | "email" | "project" | "address" | "site" | "purchasingDepartment" | "notes" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
   name: "",
@@ -113,6 +116,7 @@ export type StudioSubmission = {
   state: StudioState;
   estimate: StudioEstimate;
   contact: typeof emptyContact;
+  worksitePlaceId: string | null;
   notification: StudioNotificationSnapshot;
 };
 
@@ -386,7 +390,14 @@ function StudioShapeWizard({
 const SMALL_RECTANGLE_STANDARD_MM = 400;
 const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} มม. เล็กกว่ามาตรฐานท็อปเคาน์เตอร์ทั่วไป (400 มม.) กรุณาตรวจสอบหน่วยมิลลิเมตร (เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร)`;
 
- function StudioContactFields({ contact, setContact }: { contact: typeof emptyContact; setContact: Dispatch<SetStateAction<typeof emptyContact>> }) {
+type StudioContactFieldsProps = {
+  contact: typeof emptyContact;
+  setContact: Dispatch<SetStateAction<typeof emptyContact>>;
+  worksitePlaceId: string | null;
+  setWorksitePlaceId: Dispatch<SetStateAction<string | null>>;
+};
+
+ function StudioContactFields({ contact, setContact, worksitePlaceId, setWorksitePlaceId }: StudioContactFieldsProps) {
    const update = (key: keyof typeof emptyContact, value: string) => setContact((current) => ({ ...current, [key]: value }));
    return <div className="studio-contact-grid">
      {([
@@ -399,6 +410,20 @@ const smallRectangleWarning = (value: number) => `⚠️ ขนาด ${value} �
      ] as const).map(([key, label, required]) => {
        const emailField = key === "email";
        const phoneField = key === "phone";
+       if (key === "address") {
+         return <WorksiteAddressAutocomplete
+           key={key}
+           value={contact.address}
+           selectedPlaceId={worksitePlaceId}
+           required={required}
+           onValueChange={(value) => {
+             update("address", value);
+             setWorksitePlaceId(null);
+           }}
+           onPlaceSelect={setWorksitePlaceId}
+           onClearPlace={() => setWorksitePlaceId(null)}
+         />;
+       }
        return <label key={key}>{label}{required && <span> *</span>}<input required={required} type={phoneField ? "tel" : emailField ? "email" : undefined} inputMode={phoneField ? "numeric" : undefined} pattern={phoneField ? "[0-9]{9,10}" : undefined} minLength={phoneField ? 9 : undefined} maxLength={phoneField ? 10 : undefined} placeholder={phoneField ? "0812345678 (10 หลัก)" : emailField ? "name@example.com" : undefined} value={contact[key]} onChange={(event) => update(key, phoneField ? cleanPhoneInput(event.target.value) : event.target.value)} data-testid={`input-studio-${key}`} aria-invalid={emailField && !isValidEmailAddress(contact.email)} /></label>;
       })}
       <label>LINE สำหรับติดต่อ<input value={contact.lineContact} onChange={(event) => update("lineContact", event.target.value)} maxLength={120} placeholder="@ไอดี หรือชื่อบัญชี" data-testid="input-studio-line-contact" /></label>
@@ -442,6 +467,27 @@ type StudioBasinTarget = {
   piece: StudioPiece;
   sheet: StudioRectangle;
 };
+
+function attachmentWouldCreateCycle(rectangles: StudioRectangle[], childId: string, parentId: string) {
+  const byId = new Map(rectangles.map((rectangle) => [rectangle.id, rectangle]));
+  const visited = new Set<string>();
+  let currentId: string | undefined = parentId;
+
+  while (currentId) {
+    if (currentId === childId || visited.has(currentId)) return true;
+    visited.add(currentId);
+    currentId = byId.get(currentId)?.attachTo?.rectangleId;
+  }
+
+  return false;
+}
+
+function attachmentParentsFor(rectangles: StudioRectangle[], childId: string | undefined) {
+  if (!childId) return [];
+  return rectangles.filter((rectangle) =>
+    rectangle.id !== childId && !attachmentWouldCreateCycle(rectangles, childId, rectangle.id),
+  );
+}
 
 function resolveActiveBasinTarget(
   state: StudioState,
@@ -1021,22 +1067,111 @@ function StudioPieceEditor({
     pointerDrag.current = null;
   };
   const activeRectangle = piece.rectangles.find((rectangle) => rectangle.id === selectedRectangleId) ?? piece.rectangles[0];
+  const attachmentParentOptions = attachmentParentsFor(piece.rectangles, activeRectangle?.id);
+  const [attachmentParentId, setAttachmentParentId] = useState(() =>
+    activeRectangle?.attachTo?.rectangleId ?? attachmentParentOptions[0]?.id ?? "",
+  );
+  const [attachmentAlign, setAttachmentAlign] = useState<StudioAttachmentAlign>(() =>
+    activeRectangle?.attachTo?.align ?? "start",
+  );
+
+  useEffect(() => {
+    const currentParentId = activeRectangle?.attachTo?.rectangleId;
+    setAttachmentParentId(
+      currentParentId && attachmentParentOptions.some((rectangle) => rectangle.id === currentParentId)
+        ? currentParentId
+        : attachmentParentOptions[0]?.id ?? "",
+    );
+    setAttachmentAlign(activeRectangle?.attachTo?.align ?? "start");
+  }, [activeRectangle?.id, activeRectangle?.attachTo?.rectangleId, activeRectangle?.attachTo?.align, piece.rectangles.length]);
+
+  const selectedAttachmentParentId =
+    activeRectangle?.attachTo?.rectangleId && attachmentParentOptions.some((rectangle) => rectangle.id === activeRectangle.attachTo?.rectangleId)
+      ? activeRectangle.attachTo.rectangleId
+      : attachmentParentOptions.some((rectangle) => rectangle.id === attachmentParentId)
+        ? attachmentParentId
+        : attachmentParentOptions[0]?.id ?? "";
+  const selectedAttachmentAlign = activeRectangle?.attachTo
+    ? activeRectangle.attachTo.align ?? "start"
+    : attachmentAlign;
+
+  const applyAttachment = (
+    edge: StudioAttachmentEdge,
+    align: StudioAttachmentAlign,
+    parentId = selectedAttachmentParentId,
+  ) => {
+    if (!activeRectangle || !parentId) return;
+    setPieceState(setState, piece.id, (current) => {
+      const child = current.rectangles.find((rectangle) => rectangle.id === activeRectangle.id);
+      const parent = current.rectangles.find((rectangle) => rectangle.id === parentId);
+      if (!child || !parent || attachmentWouldCreateCycle(current.rectangles, child.id, parent.id)) return current;
+      const rectangles = current.rectangles.map((rectangle) => rectangle.id === child.id
+        ? { ...rectangle, attachTo: { rectangleId: parent.id, edge, align } }
+        : rectangle);
+      return { ...current, rectangles: reflowStudioRectangles(current.rectangles, rectangles, current.preset) };
+    });
+  };
+
+  const selectAttachmentParent = (parentId: string) => {
+    setAttachmentParentId(parentId);
+    if (activeRectangle?.attachTo) {
+      applyAttachment(activeRectangle.attachTo.edge, selectedAttachmentAlign, parentId);
+    }
+  };
+
+  const selectAttachmentAlign = (align: StudioAttachmentAlign) => {
+    setAttachmentAlign(align);
+    if (activeRectangle?.attachTo) {
+      applyAttachment(activeRectangle.attachTo.edge, align, selectedAttachmentParentId);
+    }
+  };
+
+  const updateRectangleById = (rectangleId: string, updater: (rectangle: StudioRectangle) => StudioRectangle) => {
+    setPieceState(setState, piece.id, (current) => {
+      let rectangles = current.rectangles.map((rectangle) => rectangle.id === rectangleId ? updater(rectangle) : rectangle);
+      const before = current.rectangles.find((rectangle) => rectangle.id === rectangleId);
+      const after = rectangles.find((rectangle) => rectangle.id === rectangleId);
+      // Size / rotation changes reflow attached neighbours. A manual position
+      // edit is an explicit placement, so detach this rectangle before reflow.
+      const geometryChanged = Boolean(before && after) && (
+        before!.widthMm !== after!.widthMm ||
+        before!.lengthMm !== after!.lengthMm ||
+        before!.rotation !== after!.rotation
+      );
+      const moved = Boolean(before && after) && (before!.xMm !== after!.xMm || before!.yMm !== after!.yMm);
+      if (moved) {
+        rectangles = rectangles.map((rectangle) => rectangle.id === rectangleId
+          ? { ...rectangle, attachTo: undefined }
+          : rectangle);
+      }
+      const hasAttachments = rectangles.some((rectangle) => rectangle.attachTo);
+      const manualLayout = current.manualLayout || moved;
+      const shouldReflow = hasAttachments
+        ? geometryChanged || moved
+        : geometryChanged && !manualLayout;
+      return {
+        ...current,
+        manualLayout: manualLayout || undefined,
+        rectangles: shouldReflow ? reflowStudioRectangles(current.rectangles, rectangles, current.preset) : rectangles,
+      };
+    });
+  };
   const updateRectangle = (updater: (rectangle: StudioRectangle) => StudioRectangle) => {
     if (!activeRectangle) return;
-    setPieceState(setState, piece.id, (current) => {
-      const rectangles = current.rectangles.map((rectangle) => rectangle.id === activeRectangle.id ? updater(rectangle) : rectangle);
-      const before = current.rectangles.find((rectangle) => rectangle.id === activeRectangle.id);
-      const after = rectangles.find((rectangle) => rectangle.id === activeRectangle.id);
-      // Only size changes reflow the neighbours. Typing X / Y by hand is an
-      // explicit placement and must survive untouched.
-      const resized = Boolean(before && after) && (before!.widthMm !== after!.widthMm || before!.lengthMm !== after!.lengthMm);
-      const moved = Boolean(before && after) && (before!.xMm !== after!.xMm || before!.yMm !== after!.yMm);
-      return { ...current, rectangles: resized && !moved ? reflowStudioRectangles(current.rectangles, rectangles, piece.preset) : rectangles };
-    });
+    updateRectangleById(activeRectangle.id, updater);
   };
   const moveRectangle = (rectangleId: string, xMm: number, yMm: number) => setPieceState(setState, piece.id, (current) => {
     const snapped = snapStudioRectanglePosition(current, rectangleId, xMm, yMm);
-    return { ...current, rectangles: current.rectangles.map((rectangle) => rectangle.id === rectangleId ? { ...rectangle, ...snapped } : rectangle) };
+    const rectangles = current.rectangles.map((rectangle) => rectangle.id === rectangleId
+      ? { ...rectangle, ...snapped, attachTo: undefined }
+      : rectangle);
+    return {
+      ...current,
+      manualLayout: true,
+      rectangles: rectangles.some((rectangle) => rectangle.attachTo)
+        ? reflowStudioRectangles(current.rectangles, rectangles, current.preset)
+        : rectangles,
+    };
   });
   const dropPoint = (event: DragEvent<HTMLDivElement>) =>
     zoomAwareCanvasPoint(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY, zoom, bounds);
@@ -1253,9 +1388,53 @@ function StudioPieceEditor({
            <div className="studio-rectangle-inputs">
             <label>กว้าง (มม.)<input type="number" min="1" value={activeRectangle.widthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, widthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-width-${activeRectangle.id}`} /></label>
             <label>ยาว (มม.)<input type="number" min="1" value={activeRectangle.lengthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, lengthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-length-${activeRectangle.id}`} /></label>
-             <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, xMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
-             <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, yMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
            </div>
+            <div className="studio-join-controls" data-testid={`studio-join-controls-${activeRectangle.id}`}>
+              <div className="studio-join-controls-heading">
+                <strong>ต่อขอบแผ่น</strong>
+                 <small>เลือกแผ่นหลัก ทิศทาง และแนวจัดแนว</small>
+              </div>
+               <label className="studio-rectangle-select">ต่อกับแผ่น
+                 <select
+                   value={selectedAttachmentParentId}
+                   onChange={(event) => selectAttachmentParent(event.target.value)}
+                   disabled={attachmentParentOptions.length === 0}
+                   data-testid={`select-studio-attachment-parent-${activeRectangle.id}`}
+                 >
+                   {attachmentParentOptions.length === 0
+                     ? <option value="">เพิ่มแผ่นอื่นก่อน</option>
+                     : attachmentParentOptions.map((rectangle) => {
+                       const index = piece.rectangles.findIndex((item) => item.id === rectangle.id);
+                       return <option key={rectangle.id} value={rectangle.id}>{rectangle.label ?? `แผ่น ${index + 1}`} · {rectangle.widthMm} × {rectangle.lengthMm} มม.</option>;
+                     })}
+                 </select>
+               </label>
+              <div className="studio-join-direction-grid" role="group" aria-label="เลือกทิศทางการต่อแผ่น">
+                 <button type="button" className="studio-join-control-button studio-join-direction-button" disabled={!selectedAttachmentParentId} aria-pressed={activeRectangle.attachTo?.rectangleId === selectedAttachmentParentId && activeRectangle.attachTo.edge === "left"} onClick={() => applyAttachment("left", selectedAttachmentAlign)} data-testid={`button-studio-join-left-${activeRectangle.id}`}>← ต่อซ้าย</button>
+                 <button type="button" className="studio-join-control-button studio-join-direction-button" disabled={!selectedAttachmentParentId} aria-pressed={activeRectangle.attachTo?.rectangleId === selectedAttachmentParentId && activeRectangle.attachTo.edge === "right"} onClick={() => applyAttachment("right", selectedAttachmentAlign)} data-testid={`button-studio-join-right-${activeRectangle.id}`}>ต่อขวา →</button>
+                 <button type="button" className="studio-join-control-button studio-join-direction-button" disabled={!selectedAttachmentParentId} aria-pressed={activeRectangle.attachTo?.rectangleId === selectedAttachmentParentId && activeRectangle.attachTo.edge === "top"} onClick={() => applyAttachment("top", selectedAttachmentAlign)} data-testid={`button-studio-join-top-${activeRectangle.id}`}>↑ ต่อบน</button>
+                 <button type="button" className="studio-join-control-button studio-join-direction-button" disabled={!selectedAttachmentParentId} aria-pressed={activeRectangle.attachTo?.rectangleId === selectedAttachmentParentId && activeRectangle.attachTo.edge === "bottom"} onClick={() => applyAttachment("bottom", selectedAttachmentAlign)} data-testid={`button-studio-join-bottom-${activeRectangle.id}`}>↓ ต่อล่าง</button>
+              </div>
+              <div className="studio-join-alignment">
+                <span className="studio-join-alignment-label">แนวจัดแนว</span>
+                <div className="studio-join-alignment-grid" role="group" aria-label="เลือกแนวจัดแนว">
+                  <button type="button" className="studio-join-control-button studio-join-alignment-button" aria-pressed={selectedAttachmentAlign === "start"} onClick={() => selectAttachmentAlign("start")} data-testid={`button-studio-align-start-${activeRectangle.id}`}>ชิดต้น</button>
+                  <button type="button" className="studio-join-control-button studio-join-alignment-button" aria-pressed={selectedAttachmentAlign === "center"} onClick={() => selectAttachmentAlign("center")} data-testid={`button-studio-align-center-${activeRectangle.id}`}>กึ่งกลาง</button>
+                  <button type="button" className="studio-join-control-button studio-join-alignment-button" aria-pressed={selectedAttachmentAlign === "end"} onClick={() => selectAttachmentAlign("end")} data-testid={`button-studio-align-end-${activeRectangle.id}`}>ชิดปลาย</button>
+                </div>
+              </div>
+               <p className="studio-join-controls-note" aria-live="polite">
+                 {selectedAttachmentParentId
+                   ? activeRectangle.attachTo?.rectangleId === selectedAttachmentParentId
+                     ? "ตำแหน่งจะคำนวณตามแผ่นหลัก · แก้ X/Y เพื่อวางแผ่นนี้เอง"
+                     : "เลือกทิศทางเพื่อจัดแผ่นนี้ให้ชิดแผ่นหลัก"
+                   : "เพิ่มแผ่นอื่นก่อน แล้วเลือกแผ่นหลักที่ต้องการต่อ"}
+               </p>
+            </div>
+            <div className="studio-rectangle-inputs studio-rectangle-position-inputs">
+              <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, xMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
+              <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, yMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
+            </div>
             <p className="studio-helper">X / Y คือระยะจากมุมซ้ายบนของกรอบผังถึงมุมซ้ายบนของแผ่น · หน่วยมิลลิเมตร · ขนาดแผ่นใช้หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
           {([activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).length > 0) && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${activeRectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{[activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
           {Math.min(activeRectangle.widthMm, activeRectangle.lengthMm) > 900 && <div className="studio-dimension-suggestion" aria-live="polite"><span>ความลึกเคาน์เตอร์เกิน 900 มม. (เกินแผ่นมาตรฐาน 760 มม.) ตรวจสอบการต่อแผ่น</span></div>}
@@ -1824,6 +2003,7 @@ export function StudioPage({
   const hasMountedDraftEffect = useRef(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [contact, setContact] = useState(() => ({ ...emptyContact, ...contactDefaults }));
+  const [worksitePlaceId, setWorksitePlaceId] = useState<string | null>(null);
   const [sketchFiles, setSketchFiles] = useState<File[]>([]);
   const [sketchPreviewUrls, setSketchPreviewUrls] = useState<string[]>([]);
   const sketchPreviewUrlCache = useRef<Map<File, string>>(new Map());
@@ -2191,7 +2371,7 @@ export function StudioPage({
       if (estimate.openEdgeLengthM > 0) notificationItems.push({ kind: "service", code: "OPEN_EDGE", description: `ขอบเปิดยาว ${estimate.openEdgeLengthM.toFixed(2)} ม.`, quantity: estimate.openEdgeLengthM, unit: "ม.", unitPriceTHB: estimate.openEdgeUnitPriceTHB ?? 0, totalTHB: estimate.openEdgeTotalTHB, workQuantity: estimate.openEdgeLengthM, workUnit: "ม." });
       if (estimate.installationChargeTHB > 0) notificationItems.push({ kind: "service", code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: state.basinPlacements.length, unit: "ชุด", unitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, totalTHB: estimate.installationChargeTHB, laborUnitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, workQuantity: state.basinPlacements.length, workUnit: "ชุด" });
       if (estimate.smallJobFeeTHB > 0) notificationItems.push({ kind: "service", code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPriceTHB: estimate.smallJobFeeTHB, totalTHB: estimate.smallJobFeeTHB, workQuantity: 1, workUnit: "งาน" });
-      await onSubmitStudio({ state, estimate, contact, notification: { items: notificationItems, grossSubtotal: estimate.grossSubtotalTHB, discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB, subtotal: estimate.subtotalTHB, vatAmount: estimate.vatAmountTHB, total: estimate.totalTHB, vat: state.vat } });
+      await onSubmitStudio({ state, estimate, contact, worksitePlaceId, notification: { items: notificationItems, grossSubtotal: estimate.grossSubtotalTHB, discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB, subtotal: estimate.subtotalTHB, vatAmount: estimate.vatAmountTHB, total: estimate.totalTHB, vat: state.vat } });
     } catch (error) {
       // onSubmitStudio only fails via the API client, whose error.message is a
       // technical "HTTP {status} {statusText}" string meant for logs, not
@@ -2234,7 +2414,7 @@ export function StudioPage({
     setResult("");
     const form = new FormData();
     sketchFiles.forEach((file) => form.append("file", file));
-    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, site: contact.site || address || null, purchasingDepartment: contact.purchasingDepartment || null, notes: contact.notes || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate } }));
+    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, site: contact.site || address || null, purchasingDepartment: contact.purchasingDepartment || null, notes: contact.notes || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate, worksitePlaceId } }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };
@@ -2271,7 +2451,7 @@ export function StudioPage({
     })}</div><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" /><small className="studio-sketch-hint">JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป</small></section>}
       </div>
     <section className="studio-layout-bottom">
-      <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
+      <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} worksitePlaceId={worksitePlaceId} setWorksitePlaceId={setWorksitePlaceId} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
       <aside className="studio-panel studio-estimate-panel">
         <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
         <div className="studio-estimate-lines">

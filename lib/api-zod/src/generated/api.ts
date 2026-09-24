@@ -167,6 +167,40 @@ export const GetCatalogResponse = zod.object({
 
 
 /**
+ * @summary Suggest Thai worksite locations from an address query
+ */
+export const getWorksiteAddressSuggestionsQueryInputMin = 3;
+export const getWorksiteAddressSuggestionsQueryInputMax = 250;
+
+
+
+export const GetWorksiteAddressSuggestionsQueryParams = zod.object({
+  "input": zod.coerce.string().min(getWorksiteAddressSuggestionsQueryInputMin).max(getWorksiteAddressSuggestionsQueryInputMax)
+})
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemPlaceIdMax = 512;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemTextMax = 1000;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemPrimaryTextMax = 500;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsItemSecondaryTextMax = 500;
+
+export const getWorksiteAddressSuggestionsResponseSuggestionsMax = 5;
+
+
+
+export const GetWorksiteAddressSuggestionsResponse = zod.object({
+  "suggestions": zod.array(zod.object({
+  "placeId": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemPlaceIdMax),
+  "text": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemTextMax),
+  "primaryText": zod.string().min(1).max(getWorksiteAddressSuggestionsResponseSuggestionsItemPrimaryTextMax),
+  "secondaryText": zod.string().max(getWorksiteAddressSuggestionsResponseSuggestionsItemSecondaryTextMax)
+})).max(getWorksiteAddressSuggestionsResponseSuggestionsMax)
+})
+
+
+/**
  * @summary Check the current admin session
  */
 
