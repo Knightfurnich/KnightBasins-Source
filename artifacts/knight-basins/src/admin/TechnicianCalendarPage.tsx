@@ -246,10 +246,16 @@ export function TechnicianCalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const monthDays = useMemo(
-    () => createMockMonth(visibleMonth.getFullYear(), visibleMonth.getMonth()),
-    [visibleMonth],
-  );
+  const currentMonthKey = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, "0")}`;
+  const { data: calendarData, isLoading } = useGetAdminTechnicianCalendar({ month: currentMonthKey });
+
+  const isLive = Boolean(calendarData?.days && calendarData.days.length > 0);
+  const monthDays = useMemo<CalendarDay[]>(() => {
+    if (calendarData?.days && calendarData.days.length > 0) {
+      return calendarData.days as unknown as CalendarDay[];
+    }
+    return createMockMonth(visibleMonth.getFullYear(), visibleMonth.getMonth());
+  }, [calendarData, visibleMonth]);
   const monthOffset = (new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay() + 6) % 7;
   const calendarCells = useMemo<(CalendarDay | null)[]>(() => {
     const cells: (CalendarDay | null)[] = [
@@ -296,26 +302,37 @@ export function TechnicianCalendarPage() {
             ตารางรายเดือนสำหรับวางแผนงานติดตั้งของทีมช่างทั้ง 10 ทีม เลือกวันที่เพื่อเปิดคิวรายละเอียด
           </p>
         </div>
-        <div
-          className="flex max-w-sm items-start gap-2 border border-[var(--saffron)]/40 bg-[var(--saffron)]/5 px-3 py-2.5 text-xs leading-relaxed text-[var(--ink)]"
-          data-testid="calendar-demo-notice"
-          role="note"
-        >
-          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--saffron-dark)]" aria-hidden="true" />
-          <span><strong>โหมดข้อมูลตัวอย่าง</strong><br />หน้านี้ยังไม่เชื่อมต่อ API และไม่ใช่คิวงานจริง</span>
-        </div>
+        {isLive ? (
+          <div
+            className="flex max-w-sm items-start gap-2 border border-[#17816d]/40 bg-[#17816d]/10 px-3 py-2.5 text-xs leading-relaxed text-[#17816d]"
+            data-testid="calendar-live-notice"
+            role="note"
+          >
+            <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#17816d]" aria-hidden="true" />
+            <span><strong>เชื่อมต่อระบบจริง (Live Dispatch)</strong><br />ซิงก์คิวช่าง 10 ทีมจากคำสั่งซื้อในระบบ</span>
+          </div>
+        ) : (
+          <div
+            className="flex max-w-sm items-start gap-2 border border-[var(--saffron)]/40 bg-[var(--saffron)]/5 px-3 py-2.5 text-xs leading-relaxed text-[var(--ink)]"
+            data-testid="calendar-demo-notice"
+            role="note"
+          >
+            <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--saffron-dark)]" aria-hidden="true" />
+            <span><strong>โหมดข้อมูลตัวอย่าง</strong><br />หน้านี้ยังไม่เชื่อมต่อ API และไม่ใช่คิวงานจริง</span>
+          </div>
+        )}
       </header>
 
       <section className="grid grid-cols-1 gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3" aria-label="สรุปคิวประจำเดือน">
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-total">
-          <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">งานตัวอย่างในเดือน</p>
+          <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">{isLive ? "งานนัดติดตั้งในเดือน" : "งานตัวอย่างในเดือน"}</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--ink)]">{countFormatter.format(monthStats.totalJobs)}</p>
           <p className="mt-1 text-[10px] text-[var(--ink-soft)]">รวมทุกทีมช่าง</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-available">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวว่าง</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-[#17816d]">{countFormatter.format(monthStats.availableDays)}</p>
-          <p className="mt-1 text-[10px] text-[var(--ink-soft)]">ไม่มีงานตัวอย่าง</p>
+          <p className="mt-1 text-[10px] text-[var(--ink-soft)]">{isLive ? "ไม่มีคิวนัดติดตั้ง" : "ไม่มีงานตัวอย่าง"}</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-busy">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวเต็ม</p>
