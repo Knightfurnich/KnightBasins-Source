@@ -129,7 +129,7 @@ function MetricCard({
       <div className="flex min-w-0 items-start justify-between gap-2 pl-1">
         <div className="min-w-0">
           <p className="text-xs font-medium leading-snug text-[var(--ink-soft)] sm:text-sm">{title}</p>
-          <p className="mt-2 break-words text-2xl font-semibold tracking-tight text-[var(--ink)] sm:text-3xl" data-testid={`value-${testId}`}>
+          <p className="admin-stat-value mt-2 break-words text-[var(--ink)]" data-testid={`value-${testId}`}>
             {value}
           </p>
           <p className="mt-1 text-[11px] leading-snug text-[var(--ink-soft)] sm:text-xs">{detail}</p>
@@ -189,7 +189,7 @@ function ActionCard({
         </span>
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        <span className="text-2xl font-semibold tabular-nums text-[var(--ink)]" data-testid={`count-${testId}`}>
+        <span className="admin-stat-value text-[var(--ink)]" data-testid={`count-${testId}`}>
           {countFormatter.format(count)}
         </span>
         <ArrowRight className="h-4 w-4 text-[var(--ink-soft)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
@@ -617,7 +617,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow accent">BUSINESS OVERVIEW</p>
-          <h1 className="text-2xl font-semibold font-display tracking-tight text-[var(--ink)] sm:text-3xl">ภาพรวมธุรกิจ</h1>
+          <h1 className="font-semibold font-display tracking-tight text-[var(--ink)]">ภาพรวมธุรกิจ</h1>
           <p className="mt-1 text-sm text-[var(--ink-soft)]">ยอดขาย งานที่ต้องติดตาม และคิวนัดติดตั้ง</p>
         </div>
         <div className="flex w-full flex-wrap items-center justify-end gap-2 border border-[var(--line)] bg-[var(--card-paper)] p-2 sm:w-auto">

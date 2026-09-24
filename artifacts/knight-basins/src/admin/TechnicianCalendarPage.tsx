@@ -295,7 +295,7 @@ export function TechnicianCalendarPage() {
       <header className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--brand-blue)]">Dispatch / calendar</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--ink)] sm:text-3xl">
+          <h1 className="mt-1 font-semibold tracking-tight text-[var(--ink)]">
             ปฏิทินคิวช่าง
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--ink-soft)]">
@@ -326,17 +326,17 @@ export function TechnicianCalendarPage() {
       <section className="grid grid-cols-1 gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3" aria-label="สรุปคิวประจำเดือน">
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-total">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">{isLive ? "งานนัดติดตั้งในเดือน" : "งานตัวอย่างในเดือน"}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--ink)]">{countFormatter.format(monthStats.totalJobs)}</p>
+          <p className="admin-stat-value mt-1 text-[var(--ink)]">{countFormatter.format(monthStats.totalJobs)}</p>
           <p className="mt-1 text-[10px] text-[var(--ink-soft)]">รวมทุกทีมช่าง</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-available">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวว่าง</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#17816d]">{countFormatter.format(monthStats.availableDays)}</p>
+          <p className="admin-stat-value mt-1 text-[#17816d]">{countFormatter.format(monthStats.availableDays)}</p>
           <p className="mt-1 text-[10px] text-[var(--ink-soft)]">{isLive ? "ไม่มีคิวนัดติดตั้ง" : "ไม่มีงานตัวอย่าง"}</p>
         </div>
         <div className="bg-[var(--card-paper)] p-3.5 sm:p-4" data-testid="calendar-month-busy">
           <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">วันที่คิวเต็ม</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#a24439]">{countFormatter.format(monthStats.busyDays)}</p>
+          <p className="admin-stat-value mt-1 text-[#a24439]">{countFormatter.format(monthStats.busyDays)}</p>
           <p className="mt-1 text-[10px] text-[var(--ink-soft)]">ตั้งแต่ 4 งานหรือมีทีมเต็ม</p>
         </div>
       </section>

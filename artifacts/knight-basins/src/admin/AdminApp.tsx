@@ -215,7 +215,7 @@ function AccessDeniedPage({ resource = "หน้านี้" }: { resource?: s
       <div className="w-full max-w-lg border border-[var(--line)] bg-[var(--card-paper)] p-8 text-center" data-testid="admin-access-denied">
         <LockKeyhole className="mx-auto h-8 w-8 text-[var(--saffron)]" aria-hidden="true" />
         <p className="mt-4 text-xs uppercase tracking-widest text-[var(--ink-soft)]">ACCESS RESTRICTED</p>
-        <h1 className="mt-2 text-2xl font-semibold">ไม่มีสิทธิ์เข้าถึงเมนูนี้</h1>
+        <h1 className="mt-2 font-semibold">ไม่มีสิทธิ์เข้าถึงเมนูนี้</h1>
         <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
           บัญชีของคุณยังไม่ได้รับสิทธิ์สำหรับ “{resource}”
           <br />
@@ -293,7 +293,7 @@ export function AdminLogin() {
         </div>
         <div className="bg-[var(--card-paper)] border border-[var(--line)] p-8 shadow-sm">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold font-display tracking-tight">Knight Admin</h1>
+            <h1 className="font-semibold font-display tracking-tight">Knight Admin</h1>
             <p className="text-sm text-[var(--ink-soft)] mt-2">กรุณาเข้าสู่ระบบเพื่อจัดการข้อมูล</p>
           </div>
           {lineLoginDenied && (

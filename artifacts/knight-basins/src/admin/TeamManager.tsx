@@ -225,7 +225,7 @@ function InvitePanel() {
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs text-[var(--ink-soft)]">รหัสสำรองสำหรับส่งให้ทีมงาน</p>
-              <p className="mt-1 font-mono text-2xl tracking-[0.18em]" data-testid="admin-invite-code">{createdInvite.code}</p>
+              <p className="mt-1 font-mono text-xl tracking-[0.18em]" data-testid="admin-invite-code">{createdInvite.code}</p>
             </div>
             <Button type="button" variant="outline" className="rounded-none" onClick={() => void copyValue(createdInvite.code, "code")}>
               {copyState === "code" ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
@@ -518,7 +518,7 @@ export function TeamManager() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow accent">TEAM ACCESS</p>
-          <h1 className="text-3xl font-semibold font-display tracking-tight">สมาชิกทีม</h1>
+          <h1 className="font-semibold font-display tracking-tight">สมาชิกทีม</h1>
           <p className="mt-2 max-w-2xl text-sm text-[var(--ink-soft)]">
             อนุมัติบัญชี LINE และกำหนดเมนูที่แต่ละคนใช้งานได้ สิทธิ์จะมีผลทุกครั้งที่เข้าสู่ระบบ
           </p>

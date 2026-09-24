@@ -882,7 +882,7 @@ export function LeadsManager() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <p className="eyebrow accent">LEAD PIPELINE</p>
-          <h1 className="text-3xl font-semibold font-display tracking-tight">ลูกค้าและใบเสนอราคา</h1>
+          <h1 className="font-semibold font-display tracking-tight">ลูกค้าและใบเสนอราคา</h1>
           <p className="text-sm text-[var(--ink-soft)] mt-2">ติดตามตั้งแต่เริ่มคุย เลือกสินค้า จนถึงปิดการขาย</p>
         </div>
         <Button variant="outline" onClick={() => refetch()} disabled={isLoading} className="rounded-none">
