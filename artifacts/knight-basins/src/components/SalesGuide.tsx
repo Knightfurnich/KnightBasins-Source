@@ -13,7 +13,11 @@ import {
   Calendar,
   Award,
   HelpCircle,
-  Clock
+  Clock,
+  Building2,
+  Phone,
+  MessageSquare,
+  Globe
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -202,14 +206,33 @@ export default function SalesGuide() {
 
         {/* Contact Footer */}
         <Card className="bg-[#003366] text-white border-0 shadow-md mt-6">
-          <CardHeader className="flex-row items-start gap-3.5 space-y-0">
-            <HelpCircle size={24} className="shrink-0 text-amber-300 mt-0.5" />
-            <div>
-              <CardTitle className="text-base text-white">ต้องการคำปรึกษาหรือสอบถามข้อมูลเพิ่มเติม?</CardTitle>
-              <CardDescription className="text-white/85 mt-2 space-y-1 text-xs md:text-sm leading-relaxed">
-                <p>หากท่านมีข้อสงสัยเกี่ยวกับการเลือกวัสดุหินสังเคราะห์ การวัดระยะหน้างาน หรือต้องการคำแนะนำเรื่องการออกแบบ</p>
-                <p>สามารถติดต่อทีมงาน Knight Furnich ผ่านช่องทาง LINE หรือโทรศัพท์ เพื่อรับคำปรึกษาจากผู้เชี่ยวชาญได้โดยตรง</p>
-              </CardDescription>
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-2 text-amber-300">
+              <Building2 size={22} className="shrink-0" />
+              <CardTitle className="text-base sm:text-lg text-white font-semibold">
+                บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)
+              </CardTitle>
+            </div>
+            <p className="text-white/90 text-xs sm:text-sm leading-relaxed">
+              35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ตำบลบ้านใหม่ อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs sm:text-sm text-white/95">
+              <div className="flex items-center gap-2">
+                <Phone size={15} className="text-amber-300 shrink-0" />
+                <span><strong>สายด่วนปรึกษาทีมงาน :</strong> 094-496-1949, 089-762-2209</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageSquare size={15} className="text-amber-300 shrink-0" />
+                <span><strong>LINE Official :</strong> @789gcnhq (KnightBot)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe size={15} className="text-amber-300 shrink-0" />
+                <span><strong>เว็บไซต์หลัก :</strong> <a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer" className="underline hover:text-amber-200">www.knightfurnich.com</a></span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock size={15} className="text-amber-300 shrink-0" />
+                <span><strong>เวลาทำการ :</strong> จันทร์ – ศุกร์ 08:30 – 16:30 น. | เสาร์ 08:30 – 11:30 น. (หยุดวันอาทิตย์)</span>
+              </div>
             </div>
           </CardHeader>
         </Card>
