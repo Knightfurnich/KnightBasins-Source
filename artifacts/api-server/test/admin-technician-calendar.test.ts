@@ -306,6 +306,7 @@ describe("computeTechnicianCalendar", () => {
       project: "บ้านสุขุมวิท",
       address: "123 ถ.สุขุมวิท",
       quoteNumber: "Sep 26 / US / 42",
+      confidence: "manual",
     });
   });
 });

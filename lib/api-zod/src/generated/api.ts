@@ -1866,7 +1866,8 @@ export const GetAdminDashboardStatsResponse = zod.object({
   "leadKey": zod.string(),
   "name": zod.string(),
   "project": zod.string().nullable(),
-  "date": zod.string().describe('ISO date (YYYY-MM-DD)')
+  "date": zod.string().describe('ISO date (YYYY-MM-DD)'),
+  "confidence": zod.enum(['exact', 'prefix', 'fuzzy', 'manual']).describe('How the team assignment was resolved: manual is explicit technicianTeamCode; exact\/prefix\/fuzzy come from free-text matching.')
 }))
 })).describe('Radar of all 10 install teams\' load over the next 7 days'),
   "asOf": zod.coerce.date()
@@ -2258,7 +2259,8 @@ export const GetAdminTechnicianCalendarResponse = zod.object({
   "name": zod.string(),
   "project": zod.string().nullable(),
   "address": zod.string().nullable(),
-  "quoteNumber": zod.string().nullable()
+  "quoteNumber": zod.string().nullable(),
+  "confidence": zod.enum(['exact', 'prefix', 'fuzzy', 'manual']).describe('How the team assignment was resolved: manual is explicit technicianTeamCode; exact\/prefix\/fuzzy come from free-text matching.')
 }))
 })).describe('All 10 teams, every day, even when a team has zero jobs that day')
 })),

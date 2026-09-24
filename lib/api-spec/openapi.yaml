@@ -1872,13 +1872,17 @@ components:
         leadCount: { type: integer }
     AdminDashboardTechnicianJob:
       type: object
-      required: [id, leadKey, name, project, date]
+      required: [id, leadKey, name, project, date, confidence]
       properties:
         id: { type: integer }
         leadKey: { type: string }
         name: { type: string }
         project: { type: [string, "null"] }
         date: { type: string, description: "ISO date (YYYY-MM-DD)" }
+        confidence:
+          type: string
+          enum: [exact, prefix, fuzzy, manual]
+          description: "How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching."
     AdminDashboardTechnicianCapacity:
       type: object
       required: [teamCode, teamName, activeJobsCount, status, jobs]
@@ -1897,7 +1901,7 @@ components:
             $ref: "#/components/schemas/AdminDashboardTechnicianJob"
     TechnicianCalendarJob:
       type: object
-      required: [id, leadKey, name, project, address, quoteNumber]
+      required: [id, leadKey, name, project, address, quoteNumber, confidence]
       properties:
         id: { type: integer }
         leadKey: { type: string }
@@ -1905,6 +1909,10 @@ components:
         project: { type: [string, "null"] }
         address: { type: [string, "null"] }
         quoteNumber: { type: [string, "null"] }
+        confidence:
+          type: string
+          enum: [exact, prefix, fuzzy, manual]
+          description: "How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching."
     TechnicianCalendarTeamDay:
       type: object
       required: [teamCode, teamName, status, jobCount, jobs]

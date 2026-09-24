@@ -1157,6 +1157,19 @@ export const AdminDashboardTechnicianCapacityStatus = {
   available: 'available',
 } as const;
 
+/**
+ * How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching.
+ */
+export type AdminDashboardTechnicianJobConfidence = typeof AdminDashboardTechnicianJobConfidence[keyof typeof AdminDashboardTechnicianJobConfidence];
+
+
+export const AdminDashboardTechnicianJobConfidence = {
+  exact: 'exact',
+  prefix: 'prefix',
+  fuzzy: 'fuzzy',
+  manual: 'manual',
+} as const;
+
 export interface AdminDashboardTechnicianJob {
   id: number;
   leadKey: string;
@@ -1165,6 +1178,8 @@ export interface AdminDashboardTechnicianJob {
   project: string | null;
   /** ISO date (YYYY-MM-DD) */
   date: string;
+  /** How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching. */
+  confidence: AdminDashboardTechnicianJobConfidence;
 }
 
 export interface AdminDashboardTechnicianCapacity {
@@ -1196,6 +1211,19 @@ export interface AdminDashboardStats {
   asOf: string;
 }
 
+/**
+ * How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching.
+ */
+export type TechnicianCalendarJobConfidence = typeof TechnicianCalendarJobConfidence[keyof typeof TechnicianCalendarJobConfidence];
+
+
+export const TechnicianCalendarJobConfidence = {
+  exact: 'exact',
+  prefix: 'prefix',
+  fuzzy: 'fuzzy',
+  manual: 'manual',
+} as const;
+
 export interface TechnicianCalendarJob {
   id: number;
   leadKey: string;
@@ -1206,6 +1234,8 @@ export interface TechnicianCalendarJob {
   address: string | null;
   /** @nullable */
   quoteNumber: string | null;
+  /** How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching. */
+  confidence: TechnicianCalendarJobConfidence;
 }
 
 export type TechnicianCalendarTeamDayTeamCode = typeof TechnicianCalendarTeamDayTeamCode[keyof typeof TechnicianCalendarTeamDayTeamCode];
