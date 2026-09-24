@@ -1200,9 +1200,24 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  router.get("/admin/leads", requireAdminPermission("leads"), async (_req, res, next) => {
+  router.get("/admin/leads", requireAdminPermission("leads"), async (req, res, next) => {
     try {
-      const leads = await database.select().from(customerLeads).orderBy(desc(customerLeads.updatedAt), desc(customerLeads.id));
+      const rawTeamCode = req.query["technicianTeamCode"];
+      const teamCodeFilter = typeof rawTeamCode === "string" ? rawTeamCode : undefined;
+      if (teamCodeFilter !== undefined && teamCodeFilter !== "unassigned" && !TECHNICIAN_TEAM_CODES.includes(teamCodeFilter)) {
+        return invalid(res, `technicianTeamCode must be one of: ${TECHNICIAN_TEAM_CODES.join(", ")}, or "unassigned"`);
+      }
+      const teamCodeCondition = teamCodeFilter === undefined
+        ? undefined
+        : teamCodeFilter === "unassigned"
+          ? isNull(customerLeads.technicianTeamCode)
+          : eq(customerLeads.technicianTeamCode, teamCodeFilter);
+
+      const leads = await database
+        .select()
+        .from(customerLeads)
+        .where(teamCodeCondition)
+        .orderBy(desc(customerLeads.updatedAt), desc(customerLeads.id));
       const hydrated = await Promise.all(leads.map(async (lead: any) => {
         if (!lead.quoteNumber || lead.quoteAccessSecret) return lead;
         const quoteAccessSecret = createQuoteAccessSecret();
@@ -1373,18 +1388,44 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
-  /** One-click team reassignment for the technician dispatch calendar. `technicianTeamCode: null` clears the assignment back to unassigned. */
+  const EXPECTED_INSTALLATION_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+  /**
+   * One-click reassignment for the technician dispatch calendar: team,
+   * installation date (Asia/Bangkok, "YYYY-MM-DD"), or both in one call.
+   * Either field may be omitted to leave it untouched, or sent as `null` to
+   * clear it (unassign the team / remove the installation date) -- at least
+   * one of the two must be present.
+   */
   router.patch("/admin/leads/:id/technician", requireAdminPermission("leads", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid lead id");
-    const body = req.body?.technicianTeamCode;
-    if (body !== null && !(typeof body === "string" && TECHNICIAN_TEAM_CODES.includes(body))) {
+
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const hasTeamCode = Object.prototype.hasOwnProperty.call(body, "technicianTeamCode");
+    const hasInstallDate = Object.prototype.hasOwnProperty.call(body, "expectedInstallationDate");
+    if (!hasTeamCode && !hasInstallDate) {
+      return invalid(res, "Provide at least one of technicianTeamCode or expectedInstallationDate");
+    }
+
+    const teamCode = body.technicianTeamCode;
+    if (hasTeamCode && teamCode !== null && !(typeof teamCode === "string" && TECHNICIAN_TEAM_CODES.includes(teamCode))) {
       return invalid(res, `technicianTeamCode must be one of: ${TECHNICIAN_TEAM_CODES.join(", ")}, or null`);
     }
+
+    const installDate = body.expectedInstallationDate;
+    if (hasInstallDate && installDate !== null && !(typeof installDate === "string" && EXPECTED_INSTALLATION_DATE_PATTERN.test(installDate))) {
+      return invalid(res, "expectedInstallationDate must match YYYY-MM-DD, or null");
+    }
+
+    const changes: { technicianTeamCode?: string | null; expectedInstallationDate?: string | null; updatedAt: Date } = { updatedAt: new Date() };
+    if (hasTeamCode) changes.technicianTeamCode = teamCode;
+    if (hasInstallDate) changes.expectedInstallationDate = installDate;
+
     try {
       const [updated] = await database
         .update(customerLeads)
-        .set({ technicianTeamCode: body, updatedAt: new Date() })
+        .set(changes)
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });

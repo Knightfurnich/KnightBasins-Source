@@ -724,6 +724,14 @@ paths:
       operationId: listAdminLeads
       tags: [admin]
       summary: List storefront leads
+      parameters:
+        - name: technicianTeamCode
+          in: query
+          required: false
+          description: Filter to leads assigned to this install team, or "unassigned" for leads with no team assigned
+          schema:
+            type: string
+            enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL, unassigned]
       responses:
         "200":
           description: Storefront leads
@@ -1567,12 +1575,16 @@ components:
             - closed
     AdminLeadTechnicianUpdateInput:
       type: object
-      required: [technicianTeamCode]
+      description: At least one of technicianTeamCode or expectedInstallationDate must be present; an omitted field is left untouched
       properties:
         technicianTeamCode:
           type: [string, "null"]
           enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL, null]
           description: One of the 10 install team codes, or null to clear the assignment back to unassigned
+        expectedInstallationDate:
+          type: [string, "null"]
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+          description: "Installation date as YYYY-MM-DD (Asia/Bangkok), or null to clear it"
     CustomerLead:
       type: object
       required: [id, leadKey, status, source, productSkus, createdAt, updatedAt]
