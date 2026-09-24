@@ -499,3 +499,118 @@ test("deepening panel 1 in U shape drops both leg 2 and leg 3 to the new depth",
   assert.equal(after.find((r) => r.id === "wizard-leg-1")!.yMm, 750);
   assert.equal(after.find((r) => r.id === "wizard-leg-2")!.yMm, 750);
 });
+
+test("attachTo right/start moves the child flush against the parent's right edge when the parent resizes", () => {
+  const before = [
+    rectangle("panel-a", { widthMm: 1000, lengthMm: 600, xMm: 0, yMm: 0 }),
+    rectangle("panel-b", { widthMm: 500, lengthMm: 600, xMm: 1000, yMm: 0, attachTo: { rectangleId: "panel-a", edge: "right" } }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "panel-a", { widthMm: 1400 }));
+  const panelB = after.find((r) => r.id === "panel-b")!;
+  assert.equal(panelB.xMm, 1400);
+  assert.equal(panelB.yMm, 0);
+});
+
+test("attachTo left keeps the child flush against the parent's left edge when the child itself resizes", () => {
+  const before = [
+    rectangle("panel-a", { widthMm: 1000, lengthMm: 600, xMm: 800, yMm: 0 }),
+    rectangle("panel-b", { widthMm: 400, lengthMm: 600, xMm: 400, yMm: 0, attachTo: { rectangleId: "panel-a", edge: "left" } }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "panel-b", { widthMm: 600 }));
+  const panelB = after.find((r) => r.id === "panel-b")!;
+  assert.equal(panelB.xMm, 200, "800 - 600 = 200");
+  assert.equal(panelB.xMm + panelB.widthMm, 800, "right edge stays flush with the parent's left edge");
+});
+
+test("attachTo bottom moves the child down when the parent's depth grows", () => {
+  const before = [
+    rectangle("panel-a", { widthMm: 1000, lengthMm: 600, xMm: 0, yMm: 0 }),
+    rectangle("panel-b", { widthMm: 1000, lengthMm: 500, xMm: 0, yMm: 600, attachTo: { rectangleId: "panel-a", edge: "bottom" } }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "panel-a", { lengthMm: 900 }));
+  assert.equal(after.find((r) => r.id === "panel-b")!.yMm, 900);
+});
+
+test("attachTo top places the child above the parent, a direction the old heuristic could never produce", () => {
+  const before = [
+    rectangle("panel-a", { widthMm: 1000, lengthMm: 600, xMm: 0, yMm: 500 }),
+    rectangle("panel-b", { widthMm: 1000, lengthMm: 300, xMm: 0, yMm: 200, attachTo: { rectangleId: "panel-a", edge: "top" } }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "panel-b", { lengthMm: 350 }));
+  const panelB = after.find((r) => r.id === "panel-b")!;
+  assert.equal(panelB.yMm, 150, "500 - 350 = 150");
+  assert.equal(panelB.yMm + panelB.lengthMm, 500, "bottom edge stays flush with the parent's top edge");
+});
+
+test("attachTo align start/center/end position the cross-axis correctly for a right attachment", () => {
+  const before = [
+    rectangle("parent", { widthMm: 1000, lengthMm: 1200, xMm: 0, yMm: 0 }),
+    rectangle("child-start", { widthMm: 400, lengthMm: 300, xMm: 0, yMm: 0, attachTo: { rectangleId: "parent", edge: "right", align: "start" } }),
+    rectangle("child-center", { widthMm: 400, lengthMm: 300, xMm: 0, yMm: 0, attachTo: { rectangleId: "parent", edge: "right", align: "center" } }),
+    rectangle("child-end", { widthMm: 400, lengthMm: 300, xMm: 0, yMm: 0, attachTo: { rectangleId: "parent", edge: "right", align: "end" } }),
+  ];
+  const after = reflowStudioRectangles(before, before);
+  assert.equal(after.find((r) => r.id === "child-start")!.yMm, 0);
+  assert.equal(after.find((r) => r.id === "child-center")!.yMm, 450, "(1200 - 300) / 2 = 450");
+  assert.equal(after.find((r) => r.id === "child-end")!.yMm, 900, "1200 - 300 = 900");
+});
+
+test("attachTo omitting align defaults to start", () => {
+  const before = [
+    rectangle("parent", { widthMm: 1000, lengthMm: 1200, xMm: 0, yMm: 0 }),
+    rectangle("child", { widthMm: 400, lengthMm: 300, xMm: 0, yMm: 0, attachTo: { rectangleId: "parent", edge: "right" } }),
+  ];
+  const after = reflowStudioRectangles(before, before);
+  assert.equal(after.find((r) => r.id === "child")!.yMm, 0);
+});
+
+test("attachTo chains resolve through multiple levels when the root resizes", () => {
+  const before = [
+    rectangle("root", { widthMm: 1000, lengthMm: 600, xMm: 0, yMm: 0 }),
+    rectangle("mid", { widthMm: 500, lengthMm: 600, xMm: 1000, yMm: 0, attachTo: { rectangleId: "root", edge: "right" } }),
+    rectangle("leaf", { widthMm: 300, lengthMm: 600, xMm: 1500, yMm: 0, attachTo: { rectangleId: "mid", edge: "right" } }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "root", { widthMm: 1400 }));
+  assert.equal(after.find((r) => r.id === "mid")!.xMm, 1400);
+  assert.equal(after.find((r) => r.id === "leaf")!.xMm, 1900, "1400 + 500 = 1900");
+});
+
+test("attachTo leaves rectangles without their own attachTo untouched in a mixed piece", () => {
+  const before = [
+    rectangle("root", { widthMm: 1000, lengthMm: 600, xMm: 0, yMm: 0 }),
+    rectangle("child", { widthMm: 400, lengthMm: 600, xMm: 1000, yMm: 0, attachTo: { rectangleId: "root", edge: "right" } }),
+    rectangle("free", { widthMm: 200, lengthMm: 200, xMm: 5000, yMm: 5000 }),
+  ];
+  const after = reflowStudioRectangles(before, withSize(before, "root", { widthMm: 1200 }));
+  assert.equal(after.find((r) => r.id === "child")!.xMm, 1200);
+  const free = after.find((r) => r.id === "free")!;
+  assert.equal(free.xMm, 5000);
+  assert.equal(free.yMm, 5000);
+});
+
+test("attachTo pointing at a missing rectangle id keeps the orphaned rectangle at its own position", () => {
+  const before = [
+    rectangle("root", { widthMm: 1000, lengthMm: 600, xMm: 0, yMm: 0 }),
+    rectangle("orphan", { widthMm: 300, lengthMm: 300, xMm: 777, yMm: 888, attachTo: { rectangleId: "does-not-exist", edge: "right" } }),
+  ];
+  const after = reflowStudioRectangles(before, before);
+  const orphan = after.find((r) => r.id === "orphan")!;
+  assert.equal(orphan.xMm, 777);
+  assert.equal(orphan.yMm, 888);
+});
+
+test("attachTo cycles resolve without throwing or hanging", () => {
+  const before = [
+    rectangle("a", { widthMm: 500, lengthMm: 500, xMm: 0, yMm: 0, attachTo: { rectangleId: "b", edge: "right" } }),
+    rectangle("b", { widthMm: 500, lengthMm: 500, xMm: 500, yMm: 0, attachTo: { rectangleId: "a", edge: "right" } }),
+  ];
+  assert.doesNotThrow(() => reflowStudioRectangles(before, before));
+  assert.equal(reflowStudioRectangles(before, before).length, 2);
+});
+
+test("attachTo is opt-in: a piece where no rectangle uses it still takes the legacy U/L heuristic path", () => {
+  const before = uShape();
+  const after = reflowStudioRectangles(before, withSize(before, "right-leg", { widthMm: 400 }));
+  const rightLeg = after.find((item) => item.id === "right-leg")!;
+  assert.equal(rightLeg.xMm, 1100, "unchanged legacy behaviour: right leg stays flush with the piece's right edge");
+});

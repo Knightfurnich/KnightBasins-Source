@@ -29,6 +29,14 @@ export type StudioDimensions = {
   runCMm: number;
 };
 
+export type StudioAttachmentEdge = "left" | "right" | "top" | "bottom";
+export type StudioAttachmentAlign = "start" | "center" | "end";
+export type StudioAttachment = {
+  rectangleId: string;
+  edge: StudioAttachmentEdge;
+  align?: StudioAttachmentAlign;
+};
+
 export type StudioRectangle = {
   id: string;
   widthMm: number;
@@ -37,6 +45,12 @@ export type StudioRectangle = {
   yMm: number;
   rotation: RectangleRotation;
   label?: string;
+  /**
+   * Declarative alternative to hand-placing xMm/yMm: reflowStudioRectangles derives this
+   * rectangle's position from the named parent rectangle every time either one is resized.
+   * xMm/yMm remain the source of truth for rendering/export; attachTo only drives the solver.
+   */
+  attachTo?: StudioAttachment;
 };
 
 export type StudioPreset = "i" | "l-left" | "l-right" | "u";
@@ -468,12 +482,86 @@ function mirroredPieceName(name: string) {
  * and panel 3 (right leg) to its right edge. When panel 1's width or depth changes,
  * both legs immediately follow without gaps or overlaps.
  */
+function resolveAttachedPosition(
+  parent: StudioRectangle,
+  child: StudioRectangle,
+  attachment: StudioAttachment,
+): { xMm: number; yMm: number } {
+  const parentSize = studioRectangleSize(parent);
+  const childSize = studioRectangleSize(child);
+  const align = attachment.align ?? "start";
+
+  if (attachment.edge === "right" || attachment.edge === "left") {
+    const xMm = attachment.edge === "right" ? parent.xMm + parentSize.widthMm : parent.xMm - childSize.widthMm;
+    const yMm = align === "end"
+      ? parent.yMm + parentSize.heightMm - childSize.heightMm
+      : align === "center"
+        ? parent.yMm + (parentSize.heightMm - childSize.heightMm) / 2
+        : parent.yMm;
+    return { xMm: Math.round(xMm), yMm: Math.round(yMm) };
+  }
+
+  const yMm = attachment.edge === "bottom" ? parent.yMm + parentSize.heightMm : parent.yMm - childSize.heightMm;
+  const xMm = align === "end"
+    ? parent.xMm + parentSize.widthMm - childSize.widthMm
+    : align === "center"
+      ? parent.xMm + (parentSize.widthMm - childSize.widthMm) / 2
+      : parent.xMm;
+  return { xMm: Math.round(xMm), yMm: Math.round(yMm) };
+}
+
+/**
+ * Resolves every rectangle's position from its attachTo chain (declarative, direction-agnostic).
+ * Rectangles without attachTo are roots and pass through unchanged. A parent that cannot be
+ * found, or a chain that cycles back on itself, leaves that rectangle at its own xMm/yMm instead
+ * of throwing, since a stale attachTo (e.g. pointing at a deleted rectangle) should never crash
+ * the studio.
+ */
+function resolveAttachedRectangles(rectangles: StudioRectangle[]): StudioRectangle[] {
+  const byId = new Map(rectangles.map((rectangle) => [rectangle.id, rectangle]));
+  const resolved = new Map<string, StudioRectangle>();
+  const resolving = new Set<string>();
+
+  function resolve(id: string): StudioRectangle {
+    const cached = resolved.get(id);
+    if (cached) return cached;
+    const rectangle = byId.get(id);
+    if (!rectangle) throw new Error(`reflowStudioRectangles: unknown rectangle id "${id}"`);
+
+    if (!rectangle.attachTo || resolving.has(id)) {
+      resolved.set(id, rectangle);
+      return rectangle;
+    }
+    const parent = byId.get(rectangle.attachTo.rectangleId);
+    if (!parent) {
+      resolved.set(id, rectangle);
+      return rectangle;
+    }
+    resolving.add(id);
+    const resolvedParent = resolve(parent.id);
+    resolving.delete(id);
+    const next = { ...rectangle, ...resolveAttachedPosition(resolvedParent, rectangle, rectangle.attachTo) };
+    resolved.set(id, next);
+    return next;
+  }
+
+  return rectangles.map((rectangle) => resolve(rectangle.id));
+}
+
 export function reflowStudioRectangles(
   before: StudioRectangle[],
   after: StudioRectangle[],
   preset?: StudioPreset,
 ): StudioRectangle[] {
   if (before.length !== after.length || before.length < 2) return after;
+
+  // Declarative attachments take over the whole reflow for this call; rectangles with no
+  // attachTo pass through unchanged. Pieces that never use attachTo (all existing drafts)
+  // never reach this branch, so the legacy heuristics below stay 100% unaffected.
+  if (after.some((rectangle) => rectangle.attachTo)) {
+    return resolveAttachedRectangles(after);
+  }
+
   const widthOf = (rectangle: StudioRectangle) => studioRectangleSize(rectangle).widthMm;
   const heightOf = (rectangle: StudioRectangle) => studioRectangleSize(rectangle).heightMm;
 
