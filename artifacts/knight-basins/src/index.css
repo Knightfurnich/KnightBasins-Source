@@ -2061,6 +2061,21 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-inspector-actions { display: flex; align-items: center; gap: 7px; }
 .studio-inspector-actions .button { flex: 1; margin: 0; font-size: 10px; }
 .studio-inspector-actions .icon-button { width: 33px; height: 33px; border: 1px solid var(--line); background: white; }
+.studio-join-controls { display: grid; gap: 9px; margin: 10px 0 8px; padding: 10px; border: 1px solid #d4e3eb; background: #f4f9fc; }
+.studio-join-controls-heading { display: grid; gap: 2px; color: var(--ink); font-size: 11px; }
+.studio-join-controls-heading small { color: var(--ink-soft); font: 9px var(--mono); }
+.studio-join-direction-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.studio-join-control-button { display: flex; min-width: 0; min-height: 44px; align-items: center; justify-content: center; padding: 7px 5px; border: 1px solid #bfd3df; border-radius: 5px; background: white; color: var(--ink); font: 700 11px var(--sans); line-height: 1.2; text-align: center; white-space: nowrap; }
+.studio-join-control-button:disabled { border-color: #cedce4; background: #f6f9fb; color: #5e7586; cursor: not-allowed; }
+.studio-join-control-button[aria-pressed="true"]:not(:disabled) { border-color: var(--brand-blue); background: #e5f4fb; color: var(--brand-blue); box-shadow: inset 0 0 0 1px var(--brand-blue); }
+.studio-join-control-button:not(:disabled):hover { border-color: var(--brand-blue); }
+.studio-join-control-button:focus-visible { outline: 3px solid rgba(42,155,208,.35); outline-offset: 2px; }
+.studio-join-alignment { display: grid; gap: 5px; }
+.studio-join-alignment-label { color: var(--ink-soft); font-size: 10px; }
+.studio-join-alignment-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.studio-join-alignment-button { padding-right: 3px; padding-left: 3px; font-size: 10px; }
+.studio-join-controls-note { margin: 0; color: var(--ink-soft); font-size: 9px; line-height: 1.4; }
+.studio-rectangle-position-inputs { margin-top: 8px; }
 .studio-rectangle-drag-target.is-selected { border: 2px solid #ffd166; box-shadow: 0 0 0 2px rgba(255,209,102,.35); }
 .studio-piece-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .studio-piece-heading label, .studio-rectangle-inputs label, .studio-side-status-grid label, .studio-pricing-inputs label { display: grid; min-width: 0; gap: 5px; color: var(--ink-soft); font-size: 10px; }
@@ -2298,6 +2313,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .studio-dimension-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .studio-contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .studio-rectangle-inputs, .studio-side-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .studio-join-direction-button, .studio-join-alignment-button { min-height: 48px; font-size: 12px; }
   .studio-pricing-inputs { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
   .studio-piece-heading { flex-wrap: wrap !important; }
   .studio-piece-workspace { grid-template-columns: 1fr; }

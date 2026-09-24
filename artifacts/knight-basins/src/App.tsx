@@ -1695,9 +1695,9 @@ function Storefront() {
     const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
     setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}${notificationQuery}`);
   };
-  const submitStudio = async ({ state, estimate, contact, notification }: StudioSubmission) => {
+  const submitStudio = async ({ state, estimate, contact, worksitePlaceId, notification }: StudioSubmission) => {
     setCustomer((current) => ({ ...current, ...contact }));
-    const lead = await syncLead("quote_requested", "studio", { ...contact, site: contact.site || contact.address || undefined, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification } });
+    const lead = await syncLead("quote_requested", "studio", { ...contact, site: contact.site || contact.address || undefined, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification, worksitePlaceId } });
     if (!lead.quoteNumber || !lead.publicQuoteToken) throw new Error("ระบบยังไม่ได้สร้างลิงก์ใบเสนอราคา");
     setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}`);
   };
