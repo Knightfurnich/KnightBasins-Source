@@ -1431,13 +1431,16 @@ function StudioPieceEditor({
                    : "เพิ่มแผ่นอื่นก่อน แล้วเลือกแผ่นหลักที่ต้องการต่อ"}
                </p>
             </div>
-            <div className="studio-rectangle-inputs studio-rectangle-position-inputs">
-              <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, xMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
-              <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, yMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
-            </div>
-            <p className="studio-helper">X / Y คือระยะจากมุมซ้ายบนของกรอบผังถึงมุมซ้ายบนของแผ่น · หน่วยมิลลิเมตร · ขนาดแผ่นใช้หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
+            {piece.rectangles.length > 1 && (
+              <>
+                <div className="studio-rectangle-inputs studio-rectangle-position-inputs">
+                  <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, xMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
+                  <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, yMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
+                </div>
+                <p className="studio-helper">X / Y คือระยะจากมุมซ้ายบนของกรอบผังถึงมุมซ้ายบนของแผ่น · หน่วยมิลลิเมตร · ขนาดแผ่นใช้หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
+              </>
+            )}
           {([activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).length > 0) && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${activeRectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{[activeRectangle.widthMm, activeRectangle.lengthMm].filter((value) => value < SMALL_RECTANGLE_STANDARD_MM).map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
-          {Math.min(activeRectangle.widthMm, activeRectangle.lengthMm) > 900 && <div className="studio-dimension-suggestion" aria-live="polite"><span>ความลึกเคาน์เตอร์เกิน 900 มม. (เกินแผ่นมาตรฐาน 760 มม.) ตรวจสอบการต่อแผ่น</span></div>}
           <button type="button" className="button button--outline studio-rotate-button" onClick={() => updateRectangle((rectangle) => ({ ...rectangle, rotation: rectangle.rotation === 0 ? 90 : 0 }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
           <div className="studio-side-status-grid">{(() => {
             const statuses = studioSideStatuses(piece, activeRectangle.id);

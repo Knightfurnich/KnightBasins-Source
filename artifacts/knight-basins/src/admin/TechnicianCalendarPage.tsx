@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,7 +8,13 @@ import {
   MapPinned,
   Users,
 } from "lucide-react";
-import { useGetAdminTechnicianCalendar } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  getGetAdminDashboardStatsQueryKey,
+  getGetAdminTechnicianCalendarQueryKey,
+  useGetAdminTechnicianCalendar,
+  useUpdateAdminLeadTechnician,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -20,12 +26,15 @@ import {
 
 type CalendarStatus = "available" | "moderate" | "busy";
 
+const TEAM_CODES = ["TP", "PP", "ST", "CM", "KF", "PA", "PM", "TJ", "AM", "CL"] as const;
+type TechnicianTeamCode = (typeof TEAM_CODES)[number];
+
 export interface CalendarDay {
   date: string;
   dayStatus: CalendarStatus;
   totalJobs: number;
   teams: Array<{
-    teamCode: string;
+    teamCode: TechnicianTeamCode;
     teamName: string;
     status: CalendarStatus;
     jobCount: number;
@@ -38,7 +47,18 @@ export interface CalendarDay {
   }>;
 }
 
-const TEAM_CODES = ["TP", "PP", "ST", "CM", "KF", "PA", "PM", "TJ", "AM", "CL"] as const;
+const TECHNICIAN_TEAMS: Array<{ code: TechnicianTeamCode; name: string }> = [
+  { code: "TP", name: "ช่างยี่" },
+  { code: "PP", name: "ช่างเนตร" },
+  { code: "ST", name: "ช่างทู" },
+  { code: "CM", name: "ช่างมิตร" },
+  { code: "KF", name: "ช่างชัยยา" },
+  { code: "PA", name: "ช่างเปา" },
+  { code: "PM", name: "ช่างเอก" },
+  { code: "TJ", name: "ช่างเจมส์" },
+  { code: "AM", name: "ช่างอ้น" },
+  { code: "CL", name: "ช่างชล" },
+];
 const WEEKDAYS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 const FULL_WEEKDAYS = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];
 const JOB_TEMPLATES = ["ติดตั้งอ่างล้างหน้า", "ติดตั้งท็อปหิน", "ตรวจวัดหน้างาน"];
@@ -48,11 +68,20 @@ const DEMO_ADDRESSES = [
   "อำเภอเมืองนนทบุรี, นนทบุรี (ข้อมูลตัวอย่าง)",
 ];
 
+const BANGKOK_TIME_ZONE = "Asia/Bangkok";
+const bangkokDateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: BANGKOK_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 const monthFormatter = new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
+  timeZone: BANGKOK_TIME_ZONE,
   month: "long",
   year: "numeric",
 });
 const dateFormatter = new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
+  timeZone: BANGKOK_TIME_ZONE,
   weekday: "long",
   day: "numeric",
   month: "long",
@@ -90,19 +119,29 @@ const statusPresentation: Record<
   },
 };
 
-function toLocalDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+function toBangkokDateKey(date: Date) {
+  const parts = bangkokDateKeyFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")!.value;
+  const month = parts.find((part) => part.type === "month")!.value;
+  const day = parts.find((part) => part.type === "day")!.value;
   return `${year}-${month}-${day}`;
 }
 
+function monthStartFromBangkokDateKey(dateKey: string) {
+  const [year, month] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, 1, 12));
+}
+
+function dateFromBangkokDateKey(dateKey: string) {
+  return new Date(`${dateKey}T12:00:00+07:00`);
+}
+
 function createMockMonth(year: number, month: number): CalendarDay[] {
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate();
 
   return Array.from({ length: daysInMonth }, (_, index) => {
     const dayNumber = index + 1;
-    const date = toLocalDateKey(new Date(year, month, dayNumber, 12));
+    const date = toBangkokDateKey(new Date(Date.UTC(year, month, dayNumber, 12)));
     const totalJobs =
       dayNumber % 13 === 0 ? 4 :
       dayNumber % 9 === 0 ? 3 :
@@ -151,7 +190,7 @@ function createMockMonth(year: number, month: number): CalendarDay[] {
 }
 
 function shiftMonth(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1, 12);
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, 1, 12));
 }
 
 function googleMapsUrl(address: string) {
@@ -171,7 +210,40 @@ function StatusBadge({ status, compact = false, testId }: { status: CalendarStat
   );
 }
 
-function JobCard({ job }: { job: CalendarDay["teams"][number]["jobs"][number] }) {
+function JobCard({
+  job,
+  teamCode,
+  installationDate,
+  isLive,
+  isUpdating,
+  updateError,
+  onTeamChange,
+  onReschedule,
+}: {
+  job: CalendarDay["teams"][number]["jobs"][number];
+  teamCode: TechnicianTeamCode;
+  installationDate: string;
+  isLive: boolean;
+  isUpdating: boolean;
+  updateError: string | null;
+  onTeamChange: (jobId: number, teamCode: TechnicianTeamCode | null) => void;
+  onReschedule: (jobId: number, date: string) => Promise<void>;
+}) {
+  const [dateValue, setDateValue] = useState(installationDate);
+
+  useEffect(() => {
+    setDateValue(installationDate);
+  }, [installationDate]);
+
+  const handleDateChange = (date: string) => {
+    if (!date) {
+      setDateValue(installationDate);
+      return;
+    }
+    setDateValue(date);
+    void onReschedule(job.id, date).catch(() => setDateValue(installationDate));
+  };
+
   return (
     <li className="border border-[var(--line)] bg-[var(--paper)] p-3" data-testid={`calendar-job-${job.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
@@ -199,11 +271,64 @@ function JobCard({ job }: { job: CalendarDay["teams"][number]["jobs"][number] })
           </a>
         )}
       </div>
+      {isLive && (
+        <div className="mt-3 grid gap-2 border-t border-[var(--line)] pt-3 sm:grid-cols-2">
+          <label className="grid gap-1 text-[10px] font-medium text-[var(--ink-soft)]">
+            <span>ทีมช่าง</span>
+            <select
+              value={teamCode}
+              disabled={isUpdating}
+              onChange={(event) => onTeamChange(job.id, event.target.value ? event.target.value as TechnicianTeamCode : null)}
+              className="h-9 min-w-0 border border-[var(--line)] bg-[var(--card-paper)] px-2 text-xs text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)] disabled:cursor-wait disabled:opacity-60"
+              aria-label={`ทีมช่างสำหรับ ${job.name}`}
+              data-testid={`select-calendar-team-${job.id}`}
+            >
+              <option value="">ปลดคิว / ไม่ระบุทีม</option>
+              {TECHNICIAN_TEAMS.map((team) => (
+                <option key={team.code} value={team.code}>{team.code} — {team.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-[10px] font-medium text-[var(--ink-soft)]">
+            <span>เลื่อนวันติดตั้ง</span>
+            <input
+              type="date"
+              value={dateValue}
+              disabled={isUpdating}
+              onChange={(event) => handleDateChange(event.target.value)}
+              className="h-9 min-w-0 border border-[var(--line)] bg-[var(--card-paper)] px-2 text-xs text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)] disabled:cursor-wait disabled:opacity-60"
+              aria-label={`เลื่อนวันติดตั้ง ${job.name}`}
+              data-testid={`input-calendar-installation-date-${job.id}`}
+            />
+          </label>
+          {updateError && (
+            <p className="text-[10px] text-[#a24439]" role="alert" data-testid={`calendar-update-error-${job.id}`}>
+              {updateError}
+            </p>
+          )}
+        </div>
+      )}
     </li>
   );
 }
 
-function TeamQueue({ team }: { team: CalendarDay["teams"][number] }) {
+function TeamQueue({
+  team,
+  installationDate,
+  isLive,
+  isUpdating,
+  updateError,
+  onTeamChange,
+  onReschedule,
+}: {
+  team: CalendarDay["teams"][number];
+  installationDate: string;
+  isLive: boolean;
+  isUpdating: boolean;
+  updateError: string | null;
+  onTeamChange: (jobId: number, teamCode: TechnicianTeamCode | null) => void;
+  onReschedule: (jobId: number, date: string) => Promise<void>;
+}) {
   return (
     <article
       className="grid gap-3 border-b border-[var(--line)] px-3 py-3.5 last:border-b-0 sm:grid-cols-[9.5rem_5.75rem_minmax(0,1fr)] sm:gap-3.5 sm:px-3"
@@ -227,7 +352,19 @@ function TeamQueue({ team }: { team: CalendarDay["teams"][number] }) {
       <div className="min-w-0">
         {team.jobs.length > 0 ? (
           <ul className="space-y-2">
-            {team.jobs.map((job) => <JobCard key={job.id} job={job} />)}
+            {team.jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                teamCode={team.teamCode}
+                installationDate={installationDate}
+                isLive={isLive}
+                isUpdating={isUpdating}
+                updateError={updateError}
+                onTeamChange={onTeamChange}
+                onReschedule={onReschedule}
+              />
+            ))}
           </ul>
         ) : (
           <p className="py-1 text-[11px] text-[var(--ink-soft)]">ยังไม่มีงานในคิววันนี้</p>
@@ -239,14 +376,16 @@ function TeamQueue({ team }: { team: CalendarDay["teams"][number] }) {
 
 export function TechnicianCalendarPage() {
   const today = new Date();
-  const todayKey = toLocalDateKey(today);
-  const [visibleMonth, setVisibleMonth] = useState(
-    () => new Date(today.getFullYear(), today.getMonth(), 1, 12),
-  );
+  const todayKey = toBangkokDateKey(today);
+  const [visibleMonth, setVisibleMonth] = useState(() => monthStartFromBangkokDateKey(todayKey));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const updateTech = useUpdateAdminLeadTechnician();
 
-  const currentMonthKey = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, "0")}`;
+  const visibleYear = visibleMonth.getUTCFullYear();
+  const visibleMonthIndex = visibleMonth.getUTCMonth();
+  const currentMonthKey = `${visibleYear}-${String(visibleMonthIndex + 1).padStart(2, "0")}`;
   const { data: calendarData, isLoading } = useGetAdminTechnicianCalendar({ month: currentMonthKey });
 
   const isLive = Boolean(calendarData?.days && calendarData.days.length > 0);
@@ -254,9 +393,9 @@ export function TechnicianCalendarPage() {
     if (calendarData?.days && calendarData.days.length > 0) {
       return calendarData.days as unknown as CalendarDay[];
     }
-    return createMockMonth(visibleMonth.getFullYear(), visibleMonth.getMonth());
-  }, [calendarData, visibleMonth]);
-  const monthOffset = (new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay() + 6) % 7;
+    return createMockMonth(visibleYear, visibleMonthIndex);
+  }, [calendarData, visibleYear, visibleMonthIndex]);
+  const monthOffset = (new Date(Date.UTC(visibleYear, visibleMonthIndex, 1, 12)).getUTCDay() + 6) % 7;
   const calendarCells = useMemo<(CalendarDay | null)[]>(() => {
     const cells: (CalendarDay | null)[] = [
       ...Array.from({ length: monthOffset }, () => null),
@@ -273,6 +412,28 @@ export function TechnicianCalendarPage() {
     busyDays: monthDays.filter((day) => day.dayStatus === "busy").length,
   }), [monthDays]);
 
+  const invalidateDispatchQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: getGetAdminTechnicianCalendarQueryKey() }),
+      queryClient.invalidateQueries({ queryKey: getGetAdminDashboardStatsQueryKey() }),
+    ]);
+  };
+
+  const updateTeam = (jobId: number, teamCode: TechnicianTeamCode | null) => {
+    updateTech.mutate(
+      { id: jobId, data: { technicianTeamCode: teamCode } },
+      { onSuccess: invalidateDispatchQueries },
+    );
+  };
+
+  const rescheduleJob = async (jobId: number, date: string) => {
+    await updateTech.mutateAsync({ id: jobId, data: { expectedInstallationDate: date } });
+    await invalidateDispatchQueries();
+    setVisibleMonth(monthStartFromBangkokDateKey(date));
+    setSelectedDate(date);
+    setIsDetailOpen(true);
+  };
+
   const changeMonth = (amount: number) => {
     setVisibleMonth((current) => shiftMonth(current, amount));
     setSelectedDate(null);
@@ -280,7 +441,7 @@ export function TechnicianCalendarPage() {
   };
 
   const goToToday = () => {
-    setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1, 12));
+    setVisibleMonth(monthStartFromBangkokDateKey(todayKey));
     setSelectedDate(todayKey);
     setIsDetailOpen(false);
   };
@@ -432,7 +593,7 @@ export function TechnicianCalendarPage() {
                 type="button"
                 className={`group flex min-h-[82px] flex-col items-stretch border-t-2 bg-[var(--card-paper)] p-1.5 text-left transition-colors hover:bg-[var(--paper)] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-blue)] sm:min-h-[122px] sm:p-2.5 ${presentation.accent} ${isSelected ? "ring-2 ring-inset ring-[var(--brand-blue)]" : ""}`}
                 onClick={() => openDay(day)}
-                aria-label={`${dateFormatter.format(new Date(`${day.date}T12:00:00`))}, ${countFormatter.format(day.totalJobs)} งาน, ${presentation.label}`}
+                aria-label={`${dateFormatter.format(dateFromBangkokDateKey(day.date))}, ${countFormatter.format(day.totalJobs)} งาน, ${presentation.label}`}
                 aria-pressed={isSelected}
                 data-testid={`calendar-day-${day.date}`}
               >
@@ -474,7 +635,7 @@ export function TechnicianCalendarPage() {
                     {isLive ? "Daily dispatch / live" : "Daily dispatch / demo"}
                   </p>
                   <SheetTitle className="text-xl font-semibold text-[var(--ink)]" data-testid="calendar-detail-date">
-                    {dateFormatter.format(new Date(`${selectedDay.date}T12:00:00`))}
+                    {dateFormatter.format(dateFromBangkokDateKey(selectedDay.date))}
                   </SheetTitle>
                   <SheetDescription className="text-xs text-[var(--ink-soft)]">
                     {isLive
@@ -505,7 +666,18 @@ export function TechnicianCalendarPage() {
                   <span>งาน / ที่อยู่</span>
                 </div>
                 <div className="border-y border-[var(--line)] sm:border-t-0" role="list" aria-label="รายการคิวทีมช่างประจำวัน">
-                  {selectedDay.teams.map((team) => <TeamQueue key={team.teamCode} team={team} />)}
+                  {selectedDay.teams.map((team) => (
+                    <TeamQueue
+                      key={team.teamCode}
+                      team={team}
+                      installationDate={selectedDay.date}
+                      isLive={isLive}
+                      isUpdating={updateTech.isPending}
+                      updateError={updateTech.isError ? "บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง" : null}
+                      onTeamChange={updateTeam}
+                      onReschedule={rescheduleJob}
+                    />
+                  ))}
                 </div>
               </div>
 
