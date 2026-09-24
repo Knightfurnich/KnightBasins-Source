@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import { after, before, describe, it, mock } from "node:test";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,7 @@ type DashboardLeadRow = {
   notes: string | null;
   productSkus: string[];
   createdAt: string;
+  studioData: unknown;
 };
 
 type DashboardSlipRow = {
@@ -30,7 +31,10 @@ type DashboardSlipRow = {
   createdAt: string;
 };
 
+type DashboardPeriod = "all" | "7d" | "30d" | "3m" | "year";
+
 type AdminDashboardStats = {
+  period: DashboardPeriod;
   kpis: { totalRevenueThb: number; totalLeads: number; readyForProduction: number; closed: number };
   actionItems: { unassignedSlipsCount: number; awaitingContactCount: number };
   pipelineRatio: { usCount: number; ofCount: number; otherCount: number };
@@ -45,12 +49,23 @@ type AdminDashboardStats = {
     notes: string | null;
   }>;
   popularItems: Array<{ sku: string; count: number }>;
+  popularStones: Array<{ sku: string; count: number }>;
+  popularBasins: Array<{ sku: string; count: number }>;
   recentActivities: Array<{
     id: string;
     type: "lead_created" | "payment_received";
     title: string;
     detail: string;
     timestamp: string;
+  }>;
+  monthlyComparison: Array<{ monthLabel: string; revenueThb: number; leadCount: number }>;
+  projectedCashInflowThb: number;
+  technicianCapacity: Array<{
+    teamCode: string;
+    teamName: string;
+    activeJobsCount: number;
+    status: "busy" | "moderate" | "available";
+    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string }>;
   }>;
   asOf: string;
 };
@@ -64,14 +79,34 @@ type AdminRouteModule = {
     windowDays?: number,
   ) => AdminDashboardStats["upcomingInstallations"];
   computePopularItems: (leads: DashboardLeadRow[]) => AdminDashboardStats["popularItems"];
+  computePopularStones: (leads: DashboardLeadRow[]) => AdminDashboardStats["popularStones"];
+  computePopularBasins: (leads: DashboardLeadRow[]) => AdminDashboardStats["popularBasins"];
   computeRecentActivities: (
     leads: DashboardLeadRow[],
     slips: DashboardSlipRow[],
   ) => AdminDashboardStats["recentActivities"];
+  computeMonthlyComparison: (
+    leads: DashboardLeadRow[],
+    slips: DashboardSlipRow[],
+    now: Date,
+  ) => AdminDashboardStats["monthlyComparison"];
+  computeProjectedCashInflowThb: (
+    leads: DashboardLeadRow[],
+    slips: DashboardSlipRow[],
+    now: Date,
+    windowDays?: number,
+  ) => number;
+  computeTechnicianCapacity: (
+    leads: DashboardLeadRow[],
+    now: Date,
+    windowDays?: number,
+  ) => AdminDashboardStats["technicianCapacity"];
+  buildDashboardBriefingText: (stats: AdminDashboardStats, now: Date) => string;
   computeAdminDashboardStats: (
     leads: DashboardLeadRow[],
     slips: DashboardSlipRow[],
     now?: Date,
+    period?: DashboardPeriod,
   ) => AdminDashboardStats;
 };
 
@@ -79,9 +114,13 @@ const ORIGINAL_ENV = {
   ADMIN_PASSWORD: process.env["ADMIN_PASSWORD"],
   DATABASE_URL: process.env["DATABASE_URL"],
   SESSION_SECRET: process.env["SESSION_SECRET"],
+  LINE_MESSAGING_ACCESS_TOKEN: process.env["LINE_MESSAGING_ACCESS_TOKEN"],
+  LINE_CHANNEL_ACCESS_TOKEN: process.env["LINE_CHANNEL_ACCESS_TOKEN"],
+  LINE_SALES_DESTINATION_ID: process.env["LINE_SALES_DESTINATION_ID"],
 };
 
 const adminRoute = fileURLToPath(new URL("../src/routes/admin-router.ts", import.meta.url));
+const realFetch = globalThis.fetch;
 
 function lead(overrides: Partial<DashboardLeadRow> & { id: number }): DashboardLeadRow {
   return {
@@ -95,6 +134,7 @@ function lead(overrides: Partial<DashboardLeadRow> & { id: number }): DashboardL
     notes: null,
     productSkus: [],
     createdAt: "2026-09-01T00:00:00.000Z",
+    studioData: null,
     ...overrides,
   };
 }
@@ -245,6 +285,32 @@ describe("computePopularItems", () => {
   });
 });
 
+describe("computePopularStones vs computePopularBasins", () => {
+  it("splits SKUs by the KF prefix: basins start with KF, everything else is a stone", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leads = [
+      lead({ id: 1, productSkus: ["KF001", "BW010", "MU005"] }),
+      lead({ id: 2, productSkus: ["KF001", "BW010"] }),
+      lead({ id: 3, productSkus: ["KF002"] }),
+    ];
+    assert.deepEqual(routeModule.computePopularBasins(leads), [
+      { sku: "KF001", count: 2 },
+      { sku: "KF002", count: 1 },
+    ]);
+    assert.deepEqual(routeModule.computePopularStones(leads), [
+      { sku: "BW010", count: 2 },
+      { sku: "MU005", count: 1 },
+    ]);
+  });
+
+  it("treats the KF prefix case-insensitively", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leads = [lead({ id: 1, productSkus: ["kf777"] })];
+    assert.deepEqual(routeModule.computePopularBasins(leads), [{ sku: "kf777", count: 1 }]);
+    assert.deepEqual(routeModule.computePopularStones(leads), []);
+  });
+});
+
 describe("computeRecentActivities", () => {
   it("maps a lead into a lead_created activity using quoteNumber, falling back to project then leadKey for detail", async () => {
     const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
@@ -331,6 +397,225 @@ describe("computeRecentActivities", () => {
   });
 });
 
+describe("computeMonthlyComparison", () => {
+  it("labels the trailing 3 calendar months oldest-to-newest with the Thai abbreviation and 2-digit Buddhist year", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z"); // Bangkok: September 2026
+    const result = routeModule.computeMonthlyComparison([], [], now);
+    assert.deepEqual(result.map((row) => row.monthLabel), ["ก.ค. 69", "ส.ค. 69", "ก.ย. 69"]);
+  });
+
+  it("rolls the Buddhist year over correctly when the trailing window crosses a calendar year boundary", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-01-15T03:00:00.000Z"); // Bangkok: January 2026
+    const result = routeModule.computeMonthlyComparison([], [], now);
+    assert.deepEqual(result.map((row) => row.monthLabel), ["พ.ย. 68", "ธ.ค. 68", "ม.ค. 69"]);
+  });
+
+  it("attributes slip revenue and lead count to the month each createdAt falls in (Asia/Bangkok), summing verified + team_reported_paid only", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, createdAt: "2026-08-15T00:00:00.000Z" }),
+      lead({ id: 2, createdAt: "2026-09-01T00:00:00.000Z" }),
+      lead({ id: 3, createdAt: "2026-09-10T00:00:00.000Z" }),
+    ];
+    const slips = [
+      slip({ id: 1, status: "verified", verifiedAmountThb: 100000, createdAt: "2026-08-20T00:00:00.000Z" }),
+      slip({ id: 2, status: "team_reported_paid", claimedAmountThb: 50000, createdAt: "2026-08-25T00:00:00.000Z" }),
+      slip({ id: 3, status: "voided", verifiedAmountThb: 999999, createdAt: "2026-08-25T00:00:00.000Z" }),
+      slip({ id: 4, status: "pending", claimedAmountThb: 999999, createdAt: "2026-08-25T00:00:00.000Z" }),
+    ];
+    const result = routeModule.computeMonthlyComparison(leads, slips, now);
+    const august = result.find((row) => row.monthLabel === "ส.ค. 69");
+    const september = result.find((row) => row.monthLabel === "ก.ย. 69");
+    assert.deepEqual(august, { monthLabel: "ส.ค. 69", revenueThb: 150000, leadCount: 1 });
+    assert.deepEqual(september, { monthLabel: "ก.ย. 69", revenueThb: 0, leadCount: 2 });
+  });
+});
+
+describe("computeProjectedCashInflowThb", () => {
+  it("sums quote total minus already-paid amounts for leads installing within the next 14 days", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z"); // Bangkok today: 2026-09-24, window end: 2026-10-08
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-10-01", studioData: { total: 50000 } }),
+    ];
+    const slips = [
+      slip({ id: 1, leadId: 1, status: "verified", verifiedAmountThb: 20000 }),
+    ];
+    assert.equal(routeModule.computeProjectedCashInflowThb(leads, slips, now), 30000);
+  });
+
+  it("clamps to 0 instead of going negative when a lead has been overpaid", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [lead({ id: 1, expectedInstallationDate: "2026-10-01", studioData: { total: 10000 } })];
+    const slips = [slip({ id: 1, leadId: 1, status: "verified", verifiedAmountThb: 15000 })];
+    assert.equal(routeModule.computeProjectedCashInflowThb(leads, slips, now), 0);
+  });
+
+  it("excludes leads with no expectedInstallationDate, an installation outside the 14-day window, or no resolvable quote total", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: null, studioData: { total: 50000 } }),
+      lead({ id: 2, expectedInstallationDate: "2026-11-01", studioData: { total: 50000 } }), // outside 14 days
+      lead({ id: 3, expectedInstallationDate: "2026-10-01", studioData: null }), // no quote total
+    ];
+    assert.equal(routeModule.computeProjectedCashInflowThb(leads, [], now), 0);
+  });
+
+  it("sums across multiple qualifying leads", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-09-30", studioData: { total: 30000 } }),
+      lead({ id: 2, expectedInstallationDate: "2026-10-05", studioData: { estimate: { totalTHB: 20000 } } }),
+    ];
+    assert.equal(routeModule.computeProjectedCashInflowThb(leads, [], now), 50000);
+  });
+});
+
+describe("computeTechnicianCapacity", () => {
+  it("matches a team by its code as a whole word, and never matches a code substring inside a SKU", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-09-25", notes: "ทีม TP ไปติดตั้ง" }),
+      lead({ id: 2, expectedInstallationDate: "2026-09-25", notes: "สั่ง SKU KF001 ไว้แล้ว" }), // must NOT match team KF
+    ];
+    const result = routeModule.computeTechnicianCapacity(leads, now);
+    const tp = result.find((team) => team.teamCode === "TP")!;
+    const kf = result.find((team) => team.teamCode === "KF")!;
+    assert.equal(tp.activeJobsCount, 1);
+    assert.equal(tp.jobs[0]?.id, 1);
+    assert.equal(kf.activeJobsCount, 0, "\"KF001\" in notes must not be mistaken for team KF");
+  });
+
+  it("matches a team by its Thai name and by the 'ทีม<shortname>' pattern from the work order's own examples", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-09-25", project: "ช่างชัยยา ติดตั้งวันนี้" }),
+      lead({ id: 2, expectedInstallationDate: "2026-09-25", notes: "ทีมเปา รับผิดชอบ" }),
+      lead({ id: 3, expectedInstallationDate: "2026-09-25", notes: "ประสานกับแอนนี่แล้ว" }),
+    ];
+    const result = routeModule.computeTechnicianCapacity(leads, now);
+    assert.equal(result.find((t) => t.teamCode === "KF")!.activeJobsCount, 1, "ช่างชัยยา -> KF");
+    assert.equal(result.find((t) => t.teamCode === "PA")!.activeJobsCount, 1, "ทีมเปา -> PA");
+    assert.equal(result.find((t) => t.teamCode === "TP")!.activeJobsCount, 1, "แอนนี่ (alias) -> TP");
+  });
+
+  it("assigns status by job count: 0 available, 1-2 moderate, 3+ busy", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-09-25", notes: "TP" }),
+      lead({ id: 2, expectedInstallationDate: "2026-09-26", notes: "TP" }),
+      lead({ id: 3, expectedInstallationDate: "2026-09-25", notes: "PP" }),
+    ];
+    const result = routeModule.computeTechnicianCapacity(leads, now);
+    assert.equal(result.find((t) => t.teamCode === "TP")!.status, "moderate", "2 jobs");
+    assert.equal(result.find((t) => t.teamCode === "PP")!.status, "moderate", "1 job");
+    assert.equal(result.find((t) => t.teamCode === "ST")!.status, "available", "0 jobs");
+
+    const busyLeads = [
+      lead({ id: 4, expectedInstallationDate: "2026-09-25", notes: "TP" }),
+      lead({ id: 5, expectedInstallationDate: "2026-09-25", notes: "TP" }),
+      lead({ id: 6, expectedInstallationDate: "2026-09-25", notes: "TP" }),
+    ];
+    const busyResult = routeModule.computeTechnicianCapacity(busyLeads, now);
+    assert.equal(busyResult.find((t) => t.teamCode === "TP")!.status, "busy", "3 jobs");
+  });
+
+  it("only counts installations within the next 7 days, and always returns all 10 teams", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [
+      lead({ id: 1, expectedInstallationDate: "2026-10-05", notes: "TP" }), // outside 7 days
+      lead({ id: 2, expectedInstallationDate: "2026-09-25", notes: "ไม่มีทีมระบุ" }), // no team match
+    ];
+    const result = routeModule.computeTechnicianCapacity(leads, now);
+    assert.equal(result.length, 10);
+    assert.deepEqual(result.map((t) => t.teamCode).sort(), ["AM", "CL", "CM", "KF", "PA", "PM", "PP", "ST", "TJ", "TP"]);
+    assert.ok(result.every((team) => team.activeJobsCount === 0), "neither lead should be assigned to any team");
+  });
+});
+
+describe("buildDashboardBriefingText", () => {
+  it("includes cumulative revenue, total job count, and today's install queue grouped by team", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const leads = [lead({ id: 1, expectedInstallationDate: "2026-09-24", name: "คุณสมชาย", project: "บ้านสุขุมวิท", notes: "TP" })];
+    const stats = routeModule.computeAdminDashboardStats(leads, [slip({ id: 1, status: "verified", verifiedAmountThb: 12345, leadId: 1 })], now);
+    const text = routeModule.buildDashboardBriefingText(stats, now);
+    assert.match(text, /12,345/);
+    assert.match(text, /จำนวนงานทั้งหมด: 1 งาน/);
+    assert.match(text, /ช่างยี่/);
+    assert.match(text, /คุณสมชาย/);
+  });
+
+  it("shows a fallback line when no team has an installation scheduled today", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const now = new Date("2026-09-24T03:00:00.000Z");
+    const stats = routeModule.computeAdminDashboardStats([], [], now);
+    const text = routeModule.buildDashboardBriefingText(stats, now);
+    assert.match(text, /ไม่มีคิวติดตั้งวันนี้/);
+  });
+});
+
+describe("computeAdminDashboardStats period filter", () => {
+  const now = new Date("2026-09-24T03:00:00.000Z"); // Bangkok: 2026-09-24
+  const leadOutsideEverything = lead({ id: 1, createdAt: "2025-06-01T00:00:00.000Z" }); // 2025 - outside year/3m/7d
+  const leadEarlyThisYear = lead({ id: 2, createdAt: "2026-01-05T00:00:00.000Z" }); // within year only
+  const leadWithinThreeMonths = lead({ id: 3, createdAt: "2026-08-15T00:00:00.000Z" }); // within year + 3m, outside 7d
+  const leadWithinSevenDays = lead({ id: 4, createdAt: "2026-09-20T00:00:00.000Z" }); // within all windows
+  const leads = [leadOutsideEverything, leadEarlyThisYear, leadWithinThreeMonths, leadWithinSevenDays];
+
+  it("period 'all' (the default) includes every lead", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const stats = routeModule.computeAdminDashboardStats(leads, [], now);
+    assert.equal(stats.period, "all");
+    assert.equal(stats.kpis.totalLeads, 4);
+  });
+
+  it("period 'year' includes only leads created this calendar year (Jan 1 - Dec 31, Asia/Bangkok)", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const stats = routeModule.computeAdminDashboardStats(leads, [], now, "year");
+    assert.equal(stats.period, "year");
+    assert.equal(stats.kpis.totalLeads, 3);
+  });
+
+  it("period '3m' includes only leads from the 1st of the month 2 months back through the end of this month", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const stats = routeModule.computeAdminDashboardStats(leads, [], now, "3m");
+    assert.equal(stats.period, "3m");
+    assert.equal(stats.kpis.totalLeads, 2);
+  });
+
+  it("period '7d' includes only leads created in the trailing 7 days", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const stats = routeModule.computeAdminDashboardStats(leads, [], now, "7d");
+    assert.equal(stats.period, "7d");
+    assert.equal(stats.kpis.totalLeads, 1);
+  });
+
+  it("does not filter upcomingInstallations, technicianCapacity, monthlyComparison, or projectedCashInflowThb by period", async () => {
+    const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
+    const leadsWithInstallation = [
+      ...leads,
+      lead({ id: 5, createdAt: "2025-01-01T00:00:00.000Z", expectedInstallationDate: "2026-09-25", notes: "TP" }),
+    ];
+    const allPeriod = routeModule.computeAdminDashboardStats(leadsWithInstallation, [], now, "all");
+    const sevenDayPeriod = routeModule.computeAdminDashboardStats(leadsWithInstallation, [], now, "7d");
+    assert.deepEqual(allPeriod.upcomingInstallations, sevenDayPeriod.upcomingInstallations);
+    assert.deepEqual(allPeriod.technicianCapacity, sevenDayPeriod.technicianCapacity);
+    assert.deepEqual(allPeriod.monthlyComparison, sevenDayPeriod.monthlyComparison);
+    assert.equal(allPeriod.projectedCashInflowThb, sevenDayPeriod.projectedCashInflowThb);
+  });
+});
+
 describe("computeAdminDashboardStats", () => {
   it("computes the US/OF/other pipeline ratio from quoteNumber, mutually exclusively", async () => {
     const routeModule = await importTypeScriptModule<AdminRouteModule>(adminRoute);
@@ -398,6 +683,7 @@ describe("GET /admin/dashboard-stats", () => {
       const response = await fetch(`${server.url}/api/admin/dashboard-stats`, { headers: { cookie } });
       assert.equal(response.status, 200);
       const payload = await response.json() as AdminDashboardStats;
+      assert.equal(payload.period, "all");
       assert.equal(payload.kpis.totalRevenueThb, 20000);
       assert.equal(payload.kpis.totalLeads, 3);
       assert.equal(payload.kpis.readyForProduction, 1);
@@ -408,12 +694,124 @@ describe("GET /admin/dashboard-stats", () => {
       assert.equal(payload.upcomingInstallations.length, 1);
       assert.equal(payload.upcomingInstallations[0]?.leadKey, "lead-1");
       assert.deepEqual(payload.popularItems, [{ sku: "KF001", count: 2 }]);
+      assert.deepEqual(payload.popularBasins, [{ sku: "KF001", count: 2 }]);
+      assert.deepEqual(payload.popularStones, []);
+      assert.equal(payload.monthlyComparison.length, 3);
+      assert.equal(typeof payload.projectedCashInflowThb, "number");
+      assert.equal(payload.technicianCapacity.length, 10);
       // 3 leads + 2 non-voided slips = 5 candidates total, all within the top 5 overall.
       assert.deepEqual(payload.recentActivities.map((activity) => activity.id), ["slip-1", "lead-1", "lead-2", "lead-3", "slip-2"]);
       assert.equal(payload.recentActivities[0]?.type, "payment_received", "newest overall: the verified slip at 02:00");
       assert.equal(typeof payload.asOf, "string");
     } finally {
       await server.close();
+    }
+  });
+
+  it("filters the snapshot fields when a valid ?period= is given, and falls back to 'all' for an unrecognized value", async () => {
+    const leads = [
+      lead({ id: 1, createdAt: "2025-01-01T00:00:00.000Z" }),
+      lead({ id: 2, createdAt: "2026-09-20T00:00:00.000Z" }),
+    ];
+    const server = await startAdminRoute(createFakeDashboardDatabase(leads, []));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const filtered = await fetch(`${server.url}/api/admin/dashboard-stats?period=7d`, { headers: { cookie } });
+      const filteredPayload = await filtered.json() as AdminDashboardStats;
+      assert.equal(filteredPayload.period, "7d");
+
+      const garbage = await fetch(`${server.url}/api/admin/dashboard-stats?period=not-a-real-period`, { headers: { cookie } });
+      const garbagePayload = await garbage.json() as AdminDashboardStats;
+      assert.equal(garbagePayload.period, "all");
+      assert.equal(garbagePayload.kpis.totalLeads, 2);
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+describe("POST /admin/dashboard-briefing/line", () => {
+  it("requires an authenticated admin session", async () => {
+    const server = await startAdminRoute(createFakeDashboardDatabase([], []));
+    try {
+      const response = await fetch(`${server.url}/api/admin/dashboard-briefing/line`, { method: "POST" });
+      assert.equal(response.status, 401);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("pushes the briefing to the LINE Messaging API and returns success + deliveredAt when configured", async () => {
+    process.env["LINE_MESSAGING_ACCESS_TOKEN"] = "test-line-token";
+    process.env["LINE_SALES_DESTINATION_ID"] = "test-destination";
+    let capturedUrl = "";
+    let capturedAuth = "";
+    let capturedBody: Record<string, unknown> = {};
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (!url.includes("api.line.me")) return realFetch(input as never, init);
+      capturedUrl = url;
+      capturedAuth = (init?.headers as Record<string, string>)["Authorization"];
+      capturedBody = JSON.parse(String(init?.body));
+      return new Response("{}", { status: 200 });
+    });
+    const leads = [lead({ id: 1, status: "ready_for_production" })];
+    const server = await startAdminRoute(createFakeDashboardDatabase(leads, []));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/dashboard-briefing/line`, { method: "POST", headers: { cookie } });
+      assert.equal(response.status, 200);
+      const payload = await response.json() as { success: boolean; deliveredAt: string };
+      assert.equal(payload.success, true);
+      assert.equal(typeof payload.deliveredAt, "string");
+      assert.equal(capturedUrl, "https://api.line.me/v2/bot/message/push");
+      assert.equal(capturedAuth, "Bearer test-line-token");
+      assert.equal(capturedBody["to"], "test-destination");
+      const messages = capturedBody["messages"] as Array<{ type: string; text: string }>;
+      assert.equal(messages[0]?.type, "text");
+      assert.match(messages[0]?.text ?? "", /Knight Basins Dashboard Briefing/);
+    } finally {
+      await server.close();
+      mock.restoreAll();
+    }
+  });
+
+  it("returns 502 without calling fetch when LINE is not configured", async () => {
+    delete process.env["LINE_MESSAGING_ACCESS_TOKEN"];
+    delete process.env["LINE_CHANNEL_ACCESS_TOKEN"];
+    delete process.env["LINE_SALES_DESTINATION_ID"];
+    let called = false;
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      if (String(input).includes("api.line.me")) called = true;
+      return realFetch(input as never, init);
+    });
+    const server = await startAdminRoute(createFakeDashboardDatabase([], []));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/dashboard-briefing/line`, { method: "POST", headers: { cookie } });
+      assert.equal(response.status, 502);
+      assert.equal(called, false);
+    } finally {
+      await server.close();
+      mock.restoreAll();
+    }
+  });
+
+  it("returns 502 when the LINE push request itself fails", async () => {
+    process.env["LINE_MESSAGING_ACCESS_TOKEN"] = "test-line-token";
+    process.env["LINE_SALES_DESTINATION_ID"] = "test-destination";
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      if (!String(input).includes("api.line.me")) return realFetch(input as never, init);
+      return new Response("{}", { status: 500 });
+    });
+    const server = await startAdminRoute(createFakeDashboardDatabase([], []));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/dashboard-briefing/line`, { method: "POST", headers: { cookie } });
+      assert.equal(response.status, 502);
+    } finally {
+      await server.close();
+      mock.restoreAll();
     }
   });
 });
