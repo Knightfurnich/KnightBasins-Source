@@ -11,17 +11,13 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │       📝 TO DO          │     🔄 IN PROGRESS      │        ✅ DONE          │
 ├─────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ • Task 24 (Replit)      │ • แก้ browser test ที่    │ • Task 1-19 (ชัย):      │
-│   สลับ hook จริง +      │   อ้าง preset selector   │   Core, Slips, Places,  │
-│   ลบไฟล์สะพาน           │   (โหมดง่าย default)     │   Cockpit & Calendar API│
-│ • Task 25A (ชัย)        │                         │ • Replit: Dashboard,    │
-│   จับคู่ชื่อทีมช่าง       │                         │   Cockpit, Calendar UI  │
-│   fuzzy — พร้อมส่ง      │                         │ • Task 26 โหมดง่าย LIVE │
-│ • แจ้งเตือนอัตโนมัติ     │                         │ • Task 23 (ชัย)         │
-│   (LINE/SMS/Email)      │                         │   technician_teams +    │
-│   Coming Soon           │                         │   migration 012 (Live)  │
-│                         │                         │ • รับภาพสเก็ตช์ (/sketch)│
-│                         │                         │   ทดสอบปลายทางผ่านแล้ว   │
+│ • Task 24 (Replit)      │ • Task 28 (Replit):     │ • Task 1-19, 23 (ชัย)   │
+│   สลับ hook จริง         │   Type Scale หน้าลูกค้า  │ • Task 26 โหมดง่าย LIVE │
+│ • Task 25A (ชัย):       │   (index.css + 7 หน้า)  │ • Task 27 แก้ 2 บั๊ก    │
+│   fuzzy match รอเทสต์    │ • Task 29 (ชัย):        │   (ใบเสนอราคา+ผังพิมพ์) │
+│   (โค้ดตรรกะเสร็จแล้ว)   │   Type Scale หน้าแอดมิน │ • Notify calc แจ้งกลุ่ม │
+│ • แจ้งเตือนอัตโนมัติ     │   (9 ไฟล์ Tailwind)     │ • verify_deploy 22/22   │
+│   Coming Soon           │                         │ • KB pricing 3 เล่ม     │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -73,3 +69,5 @@
 | **verify_deploy** | เดวิด | ชี้เป้าสคริปต์ตรวจสุขภาพจาก knightdesign → **Knight Basins** — เลิกสัญญาณหลอก 7 ข้อ | `bin/verify_deploy.py` | ✅ **22/22 passed** |
 | **KB pricing** | เดวิด | บันทึก: ขาย 3 ประเภท + หน่วยราคา + ที่ไหนบนเว็บ · ลำดับการตอบราคา · 4 กลุ่มสี 3 เรต · ขายแผ่นไม่คูณอะไร | `pricing.md` + HANDOFF §3 | ✅ sync เข้า prompt บอทแล้ว (LINE 29,391 chars) |
 | **Task 26** | Replit | โหมดง่ายหน้า Studio (ซ่อนคอนโทรลละเอียด) — เจ้าของอนุมัติ deploy | `da4e7a3` / merge `3e4c914` | ✅ **Live บน VPS** · asset `index-CgJV3olN.js` · โหมดง่าย default · ขอบอัตโนมัติ บน=ติดบัว ที่เหลือ=ขอบเปิด |
+| **Task 28** | Replit | สเกลตัวอักษรมาตรฐาน หน้าลูกค้าทุกหน้าตามต้นแบบ /studio (index.css + 6 หน้า) | `feat/replit-type-scale-standard` | 🟡 ส่งมอบงานแล้ว (`qa/job-28-replit-type-scale-all-pages.md`) |
+| **Task 29** | ชัย | สเกลตัวอักษรมาตรฐาน หน้าแอดมิน 9 ไฟล์ (แทน Tailwind <12px -> 14px/12px) | `feat/chai-admin-type-scale` | 🔄 เดวิดสั่งชัยเริ่มทำตรงผ่าน KANBAN |
