@@ -1856,7 +1856,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .stone-search-row > span, .sort-field-help, .area-result small, .customer-grid label,
   .quote-date span, .install-toggle, .install-note, .stone-line small,
   .missing-badge, .summary-warning, .success-message, .quote-terms,
-  .studio-stone-choice strong, .studio-stone-choice small, .studio-sketch-slot small
+  .studio-stone-choice strong, .studio-stone-choice small, .studio-sketch-slot small, [data-type="caption"]
 ):not(
   /* ⚠️ ห้ามเขียน .formal-* — CSS ไม่มี syntax นี้ ทำให้ทั้งกฎถูกทิ้ง (บทเรียน 24 ก.ย. 69)
      ใช้ attribute selector: กันทั้งตัวมันเองและลูกหลานของพื้นที่ห้ามแตะ */
@@ -3202,3 +3202,63 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   }
 }
 
+/* Screen-only storefront and quote typography scale */
+@media screen {
+  .main-nav a,
+  .text-link,
+  .block-header .text-link,
+  .profile-quote-actions .text-link,
+  .quote-link span,
+  .mobile-cart span,
+  .quote-drop-zone strong,
+  .drop-zone-link,
+  .knight-support-trigger,
+  .knight-support-head strong,
+  .knight-support-message,
+  .knight-support-actions button,
+  .knight-support-pending-slip,
+  .knight-support-form input,
+  .quote-share strong,
+  .quote-share p,
+  .quote-share-actions .button,
+  .quote-format-panel strong,
+  .quote-format-switch button span {
+    font-size: 14px;
+  }
+
+  .hero-index { font-size: 12px; }
+
+  .formal-quote-sheet .formal-quote-title h1 {
+    font-size: clamp(30px, calc(23.2px + 1.6vw), 44px);
+  }
+  .formal-quote-sheet .formal-company h2 {
+    font-size: clamp(18px, calc(16px + 0.35vw), 21px);
+  }
+  .formal-quote-sheet .formal-notes-col h3 { font-size: 16px; }
+
+  .formal-quote-sheet .formal-company p,
+  .formal-quote-sheet .formal-quote-meta .eyebrow,
+  .formal-quote-sheet .formal-quote-title .eyebrow,
+  .formal-quote-sheet .formal-customer-grid span,
+  .formal-quote-sheet .formal-format-chip,
+  .formal-quote-sheet .formal-totals > div > span,
+  .formal-quote-sheet .formal-quote-table,
+  .formal-quote-sheet .formal-quote-table th,
+  .formal-quote-sheet .formal-quote-table td {
+    font-size: 14px;
+  }
+
+  .formal-quote-sheet .formal-item-copy > span,
+  .formal-quote-sheet .formal-code,
+  .formal-quote-sheet .formal-quote-signature b {
+    font-size: 14px;
+  }
+
+  .formal-quote-sheet .formal-document-label small,
+  .formal-quote-sheet .formal-quote-meta span,
+  .formal-quote-sheet .formal-item-copy small,
+  .formal-quote-sheet .formal-totals .formal-grand-total > small,
+  .formal-quote-sheet .formal-quote-signature small {
+    font-size: 12px;
+  }
+}

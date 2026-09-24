@@ -138,12 +138,12 @@ export function WorksiteAddressAutocomplete({
                       >
                         <span className="block text-sm font-medium text-[var(--ink)]">{suggestion.primaryText}</span>
                         {suggestion.secondaryText && (
-                          <span className="mt-0.5 block text-xs text-[var(--ink-soft)]">{suggestion.secondaryText}</span>
+                          <span className="mt-0.5 block text-sm text-[var(--ink-soft)]">{suggestion.secondaryText}</span>
                         )}
                       </button>
                     ))}
                   </div>
-                  <div className="border-t border-[var(--line)] px-3 py-1.5 text-right text-[12px] text-[var(--ink-soft)]">
+                  <div data-type="caption" className="border-t border-[var(--line)] px-3 py-1.5 text-right text-[12px] text-[var(--ink-soft)]">
                     Google Maps
                   </div>
                 </>
@@ -156,14 +156,14 @@ export function WorksiteAddressAutocomplete({
           )}
         </div>
       </label>
-      <p id={`${listboxId}-help`} className="text-[12px] leading-relaxed text-[var(--ink-soft)]">
+      <p id={`${listboxId}-help`} data-type="caption" className="text-[12px] leading-relaxed text-[var(--ink-soft)]">
         ที่อยู่ที่พิมพ์จะถูกบันทึก ส่วนตำแหน่งที่เลือกใช้ให้ทีมช่างเปิดเส้นทาง
       </p>
       {selectedPlaceId && selectedText && (
-        <div className="flex items-start justify-between gap-3 border border-[var(--line)] bg-[var(--line)]/10 px-3 py-2 text-xs">
+        <div className="flex items-start justify-between gap-3 border border-[var(--line)] bg-[var(--line)]/10 px-3 py-2 text-sm">
           <span className="flex min-w-0 items-start gap-1.5 text-[var(--ink)]">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand-blue)]" />
-            <span><strong>ตำแหน่งเส้นทาง:</strong> {selectedText}<span className="ml-1 text-[12px] text-[var(--ink-soft)]">Google Maps</span></span>
+            <span><strong>ตำแหน่งเส้นทาง:</strong> {selectedText}<span data-type="caption" className="ml-1 text-[12px] text-[var(--ink-soft)]">Google Maps</span></span>
           </span>
           <button
             type="button"
