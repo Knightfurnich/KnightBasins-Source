@@ -5,6 +5,7 @@ import { useGetWorksiteAddressSuggestions } from "@workspace/api-client-react";
 type WorksiteAddressAutocompleteProps = {
   value: string;
   selectedPlaceId: string | null;
+  inputTestId?: string;
   required?: boolean;
   onValueChange: (value: string) => void;
   onPlaceSelect: (placeId: string) => void;
@@ -14,6 +15,7 @@ type WorksiteAddressAutocompleteProps = {
 export function WorksiteAddressAutocomplete({
   value,
   selectedPlaceId,
+  inputTestId = "input-studio-address",
   required = false,
   onValueChange,
   onPlaceSelect,
@@ -106,7 +108,7 @@ export function WorksiteAddressAutocomplete({
             aria-controls={listboxId}
             aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
             aria-describedby={`${listboxId}-help`}
-            data-testid="input-studio-address"
+            data-testid={inputTestId}
           />
           {showPanel && (
             <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden border border-[var(--line)] bg-[var(--card-paper)] shadow-xl">
