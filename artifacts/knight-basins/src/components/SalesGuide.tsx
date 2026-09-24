@@ -55,7 +55,7 @@ export default function SalesGuide() {
             </Badge>
           </div>
           <h1 className="text-2xl md:text-3xl font-semibold font-display tracking-tight text-[#003366] flex items-center gap-2.5">
-            <span>🏢</span> ยินดีต้อนรับสู่ระบบบริการ Knight Basins
+            <span>🏢</span> ยินดีต้อนรับสู่ระบบบริการการขายอ่างล้างหน้า ล้างมืออัตโนมัติ (Knight Basins)
           </h1>
           <p className="text-sm md:text-base text-[var(--ink-soft)] leading-relaxed">
             แพลตฟอร์มศูนย์รวมบริการอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์แบบครบวงจร พัฒนาขึ้นเพื่ออำนวยความสะดวกให้แก่ลูกค้าทั่วไป 
