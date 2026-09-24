@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { adminQuoteUrl, filterAdminLeads } from "./leads-utils";
+import { adminQuoteUrl, filterAdminLeads, findAutoMatchLead } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 
 const statusLabels: Record<string, string> = {
@@ -425,16 +425,6 @@ function LeadsTableView({
   );
 }
 
-function findAutoMatchLead(referenceValue: string | null | undefined, candidateLeads: CustomerLead[]): CustomerLead | undefined {
-  const ref = (referenceValue ?? "").trim().toUpperCase();
-  if (ref.length < 3) return undefined;
-  return candidateLeads.find((lead) => {
-    const quote = (lead.quoteNumber ?? "").trim().toUpperCase();
-    if (quote.length < 3) return false;
-    return quote === ref || quote.includes(ref) || ref.includes(quote);
-  });
-}
-
 function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
   const { data: slips, isLoading } = useListAdminUnassignedSlips();
   const assignSlip = useAssignAdminPaymentSlip();
@@ -483,7 +473,7 @@ function UnassignedSlipsPanel({ leads }: { leads: CustomerLead[] }) {
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
         {filteredSlips.map((slip) => {
-          const matchedLead = findAutoMatchLead(slip.referenceValue, leads);
+          const matchedLead = findAutoMatchLead({ referenceValue: slip.referenceValue, senderName: slip.senderName }, leads);
           return (
           <article key={slip.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-3 flex flex-col justify-between hover:shadow-md transition-shadow text-xs" data-testid={`card-unassigned-slip-${slip.id}`}>
             <div className="space-y-2">

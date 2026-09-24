@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   adminQuoteUrl,
   filterAdminLeads,
+  findAutoMatchLead,
   leadMatchesDateRange,
   leadMatchesSearch,
 } from "../src/admin/leads-utils.ts";
@@ -73,4 +74,71 @@ test("admin quote links encode the quote number without exposing lead data", () 
     `https://example.com/quote/view?token=${encodeURIComponent(signedToken)}`,
   );
   assert.doesNotMatch(adminQuoteUrl(signedToken, "https://example.com"), /lead-one|somchai/i);
+});
+
+const matchLeads = [
+  {
+    id: 1,
+    leadKey: "lead-line-26-1074",
+    quoteNumber: "Sep 26 / US / 296579",
+    name: "นายสมชาย ใจดี",
+    company: "บริษัท ไนท์ เฟอร์นิช จำกัด",
+  },
+  {
+    id: 2,
+    leadKey: "lead-two",
+    quoteNumber: null,
+    name: "คุณมานี รักสงบ",
+    company: null,
+  },
+  {
+    id: 3,
+    leadKey: "lead-three",
+    quoteNumber: "Oct 26 / OF / 100234",
+    name: null,
+    company: "หจก. หินสังเคราะห์ ไทย",
+  },
+] as never[];
+
+test("findAutoMatchLead matches referenceValue against quoteNumber", () => {
+  const matched = findAutoMatchLead({ referenceValue: "296579" }, matchLeads);
+  assert.equal(matched?.id, 1);
+});
+
+test("findAutoMatchLead matches referenceValue against leadKey (job code style reference)", () => {
+  const matched = findAutoMatchLead({ referenceValue: "26/1074" }, matchLeads);
+  assert.equal(matched?.id, 1);
+});
+
+test("findAutoMatchLead matches a second lead by its own quoteNumber", () => {
+  const matched = findAutoMatchLead({ referenceValue: "Oct 26 / OF / 100234" }, matchLeads);
+  assert.equal(matched?.id, 3);
+});
+
+test("findAutoMatchLead matches senderName against lead.name, ignoring Thai name prefixes", () => {
+  const matched = findAutoMatchLead({ senderName: "นายสมชาย ใจดี" }, matchLeads);
+  assert.equal(matched?.id, 1);
+
+  const matchedDifferentPrefix = findAutoMatchLead({ senderName: "สมชาย ใจดี" }, matchLeads);
+  assert.equal(matchedDifferentPrefix?.id, 1);
+});
+
+test("findAutoMatchLead matches senderName against lead.company, ignoring Thai company prefixes", () => {
+  const matched = findAutoMatchLead({ senderName: "บจก. ไนท์ เฟอร์นิช" }, matchLeads);
+  assert.equal(matched?.id, 1);
+
+  const matchedOtherCompany = findAutoMatchLead({ senderName: "หินสังเคราะห์ ไทย" }, matchLeads);
+  assert.equal(matchedOtherCompany?.id, 3);
+});
+
+test("findAutoMatchLead prefers a referenceValue/quoteNumber match over a senderName match", () => {
+  const matched = findAutoMatchLead({ referenceValue: "100234", senderName: "คุณมานี รักสงบ" }, matchLeads);
+  assert.equal(matched?.id, 3);
+});
+
+test("findAutoMatchLead returns undefined when nothing matches or inputs are empty", () => {
+  assert.equal(findAutoMatchLead({}, matchLeads), undefined);
+  assert.equal(findAutoMatchLead({ referenceValue: "99/9999" }, matchLeads), undefined);
+  assert.equal(findAutoMatchLead({ senderName: "ไม่มีใครชื่อนี้" }, matchLeads), undefined);
+  assert.equal(findAutoMatchLead({ referenceValue: "26" }, matchLeads), undefined);
 });
