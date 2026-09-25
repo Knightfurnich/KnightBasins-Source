@@ -1,0 +1,75 @@
+diff --git a/artifacts/knightdesign-web/src/lib/sink-geometry.regression.ts b/artifacts/knightdesign-web/src/lib/sink-geometry.regression.ts
+index 0d94d83..65bb914 100644
+--- a/artifacts/knightdesign-web/src/lib/sink-geometry.regression.ts
++++ b/artifacts/knightdesign-web/src/lib/sink-geometry.regression.ts
+@@ -11,6 +11,24 @@ assert.deepEqual(parseBowlDimensions("Ø350x150"), {
+   widthMeters: 0.35,
+   depthMeters: 0.35,
+ });
++// The catalogue once stored the round models as "D350x150" (ASCII D instead of
++// Ø), so the value fell through to the rectangle branch and drew a
++// 0.35 x 0.15 m box instead of a Ø0.35 m circle. D/d/⌀ must stay circles.
++assert.deepEqual(parseBowlDimensions("D350x150"), {
++  shape: "circle",
++  widthMeters: 0.35,
++  depthMeters: 0.35,
++});
++assert.deepEqual(parseBowlDimensions("d350x150"), {
++  shape: "circle",
++  widthMeters: 0.35,
++  depthMeters: 0.35,
++});
++assert.deepEqual(parseBowlDimensions("⌀350x150"), {
++  shape: "circle",
++  widthMeters: 0.35,
++  depthMeters: 0.35,
++});
+ assert.equal(parseBowlDimensions(null), null);
+ assert.equal(parseBowlDimensions(""), null);
+ 
+diff --git a/artifacts/knightdesign-web/src/lib/sink-geometry.ts b/artifacts/knightdesign-web/src/lib/sink-geometry.ts
+index cf2380a..410c0f6 100644
+--- a/artifacts/knightdesign-web/src/lib/sink-geometry.ts
++++ b/artifacts/knightdesign-web/src/lib/sink-geometry.ts
+@@ -7,7 +7,10 @@ export type SinkDimensions = {
+ export function parseBowlDimensions(value: string | null): SinkDimensions | null {
+   if (!value?.trim()) return null;
+   const normalized = value.replace(/\s+/g, "");
+-  if (normalized.startsWith("Ø") || normalized.startsWith("ø")) {
++  // Diameter prefixes: Ø / ø (proper), D / d (ASCII slip seen in the catalogue,
++  // where "D350x150" was meant to be Ø350x150) and ⌀ (U+2300). Case-insensitive
++  // so a lowercase "d" cannot silently fall through to the rectangle branch.
++  if (/^[ØøDd⌀]/.test(normalized)) {
+     const diameter = Number(normalized.slice(1).match(/\d+(?:\.\d+)?/)?.[0]);
+     return Number.isFinite(diameter) && diameter > 0
+       ? {
+diff --git a/artifacts/knightdesign-web/src/pages/design.tsx b/artifacts/knightdesign-web/src/pages/design.tsx
+index c1c4e8a..590187d 100644
+--- a/artifacts/knightdesign-web/src/pages/design.tsx
++++ b/artifacts/knightdesign-web/src/pages/design.tsx
+@@ -319,11 +319,22 @@ export default function Design() {
+   const visibleColours = useMemo(() => {
+     const nameQuery = colourSearch.trim().toLowerCase();
+     const codeQuery = normalizeCode(colourSearch);
+-     return catalogueColours.filter((colour) => (
++     return catalogueColours
++       .filter((colour) => (
+        !nameQuery
+-       || normalizeCode(colour.code) === codeQuery
++       // KNIGHT: substring match on the normalised code, not equality — the field
++       // label promises "search by code or name", but exact matching made partial
++       // code searches ("SG", "420") return nothing while the code displays as
++       // "SG 420". normalizeCode strips spaces + uppercases, so "sg 420" works too.
++       || normalizeCode(colour.code).includes(codeQuery)
+        || colour.name.toLowerCase().includes(nameQuery)
+-     ));
++       ))
++       // Colour identity rule: KZ802 and KZ802N are DIFFERENT colours, so an exact
++       // code match must rank above a substring one (they are never merged - this
++       // only orders the list). Stable sort keeps the catalogue order otherwise.
++       .sort((a, b) =>
++         Number(normalizeCode(b.code) === codeQuery) - Number(normalizeCode(a.code) === codeQuery)
++       );
+    }, [catalogueColours, colourSearch]);
+   const visibleColourGroups = useMemo(() => (catalogue?.fabricationTiers ?? [])
+     .map((tier) => ({
