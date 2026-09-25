@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { readdir, stat } from "node:fs/promises";
+import { join } from "node:path";
 import {
   basinCategories,
   basinPrices,
@@ -129,6 +132,13 @@ const LEAD_STATUS_LABELS_TH: Record<string, string> = {
 
 const LEADS_EXPORT_COLUMNS = ["รหัสงาน", "ชื่อลูกค้า", "โครงการ", "ที่อยู่", "ทีมช่าง", "วันที่นัด", "สถานะ", "ยอดเงิน", "วันที่สร้าง"];
 const BASINS_EXPORT_COLUMNS = ["SKU", "ชื่อสี", "รหัสสี", "ราคา", "ขนาด", "ขนาดหลุม", "ลิงก์ภาพหลัก", "ลิงก์ภาพ Top View"];
+
+/**
+ * Where the off-container pg_dump job writes its .sql.gz files. The compose file
+ * mounts ./backups here read-only, and only the api service gets that mount --
+ * nginx has no view of this directory, so dumps are never publicly reachable.
+ */
+const BACKUP_DIR = process.env["KNIGHT_BASINS_BACKUP_DIR"] ?? "/app/backups";
 
 const CSV_SPECIAL_CHARS_PATTERN = /[",\r\n]/;
 
@@ -2635,6 +2645,45 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
       res.setHeader("Content-Disposition", `attachment; filename="knight-basins-basins-${Date.now()}.csv"`);
       return res.send(csv);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Full-database download for Admin/Owner.
+   *
+   * The dumps are produced off-container by backups/knight_db_backup.sh (pg_dump
+   * on the db container) and land in ./backups, which is mounted read-only here
+   * at /app/backups and is deliberately NOT mounted into the nginx web container.
+   * That means the only way to reach a dump is through this authenticated route,
+   * which requires an admin session with the leads or basins permission.
+   */
+  router.get("/admin/backup/database-dump", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
+    try {
+      const files = await readdir(BACKUP_DIR).catch(() => [] as string[]);
+      const dumps = files.filter((name) => /^knight_basins_\d{8}T\d{6}Z\.sql\.gz$/.test(name)).sort().reverse();
+      const latest = dumps[0];
+      if (!latest) {
+        return res.status(404).json({ message: "ยังไม่มีไฟล์สำรองฐานข้อมูลในระบบ" });
+      }
+
+      // ?list=1 exposes metadata (name/size/count) instead of the binary, so the
+      // admin page can show what the newest backup actually is before downloading.
+      const withList = req.query.list === "1" || req.query.list === "true";
+      if (withList) {
+        const stats = await Promise.all(dumps.slice(0, 14).map(async (name) => {
+          const info = await stat(join(BACKUP_DIR, name));
+          return { name, bytes: info.size, createdAt: info.mtime.toISOString() };
+        }));
+        return res.json({ latest, count: dumps.length, dumps: stats });
+      }
+
+      const filePath = join(BACKUP_DIR, latest);
+      const info = await stat(filePath);
+      res.setHeader("Content-Type", "application/gzip");
+      res.setHeader("Content-Disposition", `attachment; filename="${latest}"`);
+      res.setHeader("Content-Length", String(info.size));
+      res.setHeader("Cache-Control", "no-store");
+      return createReadStream(filePath).pipe(res);
     } catch (error) { return next(error); }
   });
 
