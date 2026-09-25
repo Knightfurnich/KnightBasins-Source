@@ -42,6 +42,7 @@ import {
   snapStudioRectanglePosition,
   studioEdgeTotals,
   studioEstimate,
+  applyStudioSizePreset,
   studioDefaultStoneCode,
   studioBasinCatalogEntries,
   resolveStudioCatalogChange,
@@ -70,6 +71,7 @@ import {
   studioPieces as getStudioPieces,
   STUDIO_MAX_PIECES,
   STUDIO_MAX_RECTANGLES,
+  STUDIO_COUNTER_PRESETS,
   type BasinPlacement,
   type BasinAnchor,
   type SideStatus,
@@ -1656,6 +1658,7 @@ function StudioCanvas({
     ? state.activePieceId
     : (pieces[0]?.id ?? "");
   const activePiece = pieces.find((p) => p.id === activePieceId) ?? pieces[0];
+  const currentWidthMm = state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm;
   const activePieceZoom = activePiece ? (pieceZoom[activePiece.id] ?? 1) : 1;
   const setActivePieceZoom = (updater: number | ((prev: number) => number)) => {
     if (!activePiece) return;
@@ -1804,6 +1807,24 @@ function StudioCanvas({
       <div className="studio-piece-shape-section">
         <p className="studio-helper">เลือกทรงของ {activePiece.name} แล้วกรอกขนาดแต่ละแผ่น</p>
         <StudioShapeWizard state={state} setState={setState} targetPieceId={activePiece.id} simpleMode={simpleMode} />
+        <div className="studio-size-presets" role="group" aria-label="ขนาดเคาน์เตอร์มาตรฐาน">
+          <span className="studio-size-presets-label">ขนาดเคาน์เตอร์หลัก</span>
+          {STUDIO_COUNTER_PRESETS.map((preset) => {
+            const isActive = currentWidthMm === preset.widthMm;
+            return (
+              <button
+                type="button"
+                key={preset.id}
+                className={`button button--outline studio-size-button ${isActive ? "is-active" : ""}`}
+                onClick={() => setState((current) => applyStudioSizePreset(current, preset.widthMm, preset.depthMm))}
+                aria-pressed={isActive}
+                data-testid={`button-studio-size-preset-${preset.id}`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
         {isLActive && (
           <button
             type="button"

@@ -2126,6 +2126,10 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-preset-button small { color: var(--ink-soft); font-size: 12px; }
 .studio-preset-button.is-active { border-color: #2a9bd0; background: rgba(42,155,208,.08); }
 .studio-preset-button.is-active span { color: #2a9bd0; font-weight: 600; }
+.studio-size-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card-paper); }
+.studio-size-presets-label { grid-column: 1 / -1; color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.studio-size-button { min-height: 42px; margin: 0 !important; padding: 8px 10px; justify-content: center; font-size: 13px; font-weight: 700; }
+.studio-size-button.is-active { border-color: var(--brand-blue); color: var(--brand-blue); background: var(--brand-sky); box-shadow: 0 0 0 2px rgba(18,104,179,.12); }
 .studio-mirror-button { justify-self: start; margin: 0 !important; padding: 8px 11px; font-size: 12px; }
 .studio-shape-wizard { display: grid; gap: 12px; margin-top: 12px; }
 .studio-shape-wizard-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
@@ -2499,6 +2503,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .studio-inspector { order: 2; }
   .studio-canvas { min-height: 280px; }
   .studio-preset-actions { grid-template-columns: 1fr; }
+  .studio-size-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .studio-zoom-toolbar { justify-content: start; flex-wrap: wrap; }
   .studio-canvas-quickbar { position: sticky; top: 0; z-index: 5; display: flex; flex-direction: column; gap: 6px; margin: 0 -17px 12px; padding: 9px 17px; background: #fbfdfe; border-bottom: 1px solid var(--line); box-shadow: 0 4px 10px rgba(23,63,107,.06); }
   .studio-canvas-quickbar-group { display: flex; align-items: center; gap: 6px; overflow-x: auto; }
