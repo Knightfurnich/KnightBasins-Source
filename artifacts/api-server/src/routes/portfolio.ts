@@ -51,11 +51,53 @@ async function loadCatalog(): Promise<PortfolioCatalog> {
   const raw = await readFile(PORTFOLIO_CATALOG_PATH, "utf8");
   const parsed = JSON.parse(raw) as Partial<PortfolioCatalog>;
   const items = Array.isArray(parsed.items) ? parsed.items : [];
+  // The import contains a handful of duplicate ids (two files ingested under
+  // the same id, e.g. counter_001). Ids drive the allowlist, the visibility
+  // map and the React keys, so a repeated id renders the same photo twice and
+  // inflates the public count. Keep the first occurrence of each id.
+  const seen = new Set<string>();
+  const uniqueItems = items.filter((item) => {
+    if (!item || typeof item.id !== "string" || seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
   return {
     updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : new Date().toISOString(),
-    total: items.length,
-    items,
+    total: uniqueItems.length,
+    items: uniqueItems,
   };
+}
+
+/**
+ * Public-safe allowlist produced by the visual curation pass over every
+ * imported photo. Most of the raw import is factory/work-in-progress footage
+ * (basin shells on moulds, bare frames, cement bags, protective film, workers)
+ * and must never reach the public storefront. When this file is absent the
+ * gallery falls back to showing everything, so a missing file degrades to the
+ * previous behaviour rather than an empty page.
+ */
+const PORTFOLIO_ALLOWLIST_PATH = join(UPLOAD_DIR, "portfolio", "public.json");
+
+async function loadAllowlist(): Promise<Set<string> | null> {
+  const candidatePaths = [
+    PORTFOLIO_ALLOWLIST_PATH,
+    join(UPLOAD_DIR, "portfolio_public.json"),
+  ];
+  for (const p of candidatePaths) {
+    try {
+      const raw = await readFile(p, "utf8");
+      const parsed = JSON.parse(raw) as { approved?: Array<{ id?: unknown }> };
+      if (Array.isArray(parsed.approved)) {
+        const ids = parsed.approved
+          .map((entry) => entry?.id)
+          .filter((id): id is string => typeof id === "string" && id.length > 0);
+        if (ids.length > 0) return new Set(ids);
+      }
+    } catch {
+      // try the next candidate path
+    }
+  }
+  return null;
 }
 
 /** id -> visible. An item with no entry here is visible by default -- this
@@ -96,6 +138,7 @@ router.get("/portfolio", async (req, res, next) => {
   try {
     const catalog = await loadCatalog();
     const visibilityMap = await loadVisibilityMap();
+    const allowlist = await loadAllowlist();
     const includeHidden = req.query["includeHidden"] === "true" || req.query["includeHidden"] === "1";
     const categoryFilter = typeof req.query["category"] === "string" ? req.query["category"].trim() : "";
     const searchQuery = typeof req.query["q"] === "string" ? req.query["q"].trim().toLowerCase() : "";
@@ -104,9 +147,16 @@ router.get("/portfolio", async (req, res, next) => {
     const offsetRaw = Number(req.query["offset"]);
     const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? Math.floor(offsetRaw) : 0;
 
-    // Hidden photos never leave this route unless the caller explicitly asks
-    // for them (the admin curation page does, via ?includeHidden=true).
-    const visibleItems = includeHidden ? catalog.items : catalog.items.filter((item) => isVisible(visibilityMap, item.id));
+    // Two independent gates decide what a public visitor may see:
+    //   1. the curation allowlist -- the raw import is mostly factory and
+    //      work-in-progress footage, and only the visually reviewed subset is
+    //      safe for customers;
+    //   2. the per-photo visibility map an admin toggles in /admin/portfolio.
+    // The admin gallery passes ?includeHidden=true and bypasses both.
+    const allowlisted = !allowlist || includeHidden
+      ? catalog.items
+      : catalog.items.filter((item) => allowlist.has(item.id));
+    const visibleItems = includeHidden ? allowlisted : allowlisted.filter((item) => isVisible(visibilityMap, item.id));
 
     const byCategory = categoryFilter
       ? visibleItems.filter((item) => item.category === categoryFilter)

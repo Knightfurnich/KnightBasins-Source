@@ -3,6 +3,8 @@ import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, X } from "lucide-react";
 import { knightFurnichLogo } from "@/data/assets";
+import { RouteStructuredData } from "@/components/RouteStructuredData";
+import { buildPortfolioStructuredData } from "@/data/structured-data";
 
 export type PortfolioPhoto = {
   id: string;
@@ -84,8 +86,14 @@ export function PortfolioPage() {
     setZoomId(photos[next].id);
   };
 
+  const structuredData = useMemo(
+    () => buildPortfolioStructuredData(categories, categories.reduce((sum, c) => sum + c.count, 0)),
+    [categories],
+  );
+
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+      <RouteStructuredData id="portfolio" data={structuredData} />
       <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />

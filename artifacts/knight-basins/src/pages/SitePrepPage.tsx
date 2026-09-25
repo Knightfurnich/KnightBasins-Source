@@ -6,6 +6,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { knightFurnichLogo } from "@/data/assets";
+import { RouteStructuredData } from "@/components/RouteStructuredData";
+import { buildSitePrepStructuredData } from "@/data/structured-data";
 
 export type SitePrepPortfolioItem = {
   id: string;
@@ -55,6 +57,7 @@ export function SitePrepPage() {
 
   const photosQuery = useQuery({ queryKey: ["/api/portfolio", "site_prep"], queryFn: fetchSitePrepPhotos });
   const photos = photosQuery.data ?? [];
+  const sitePrepStructuredData = useMemo(() => buildSitePrepStructuredData(), []);
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
   const lineShareUrl = useMemo(
@@ -70,6 +73,7 @@ export function SitePrepPage() {
 
   return (
     <div className="site-prep-page min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+      <RouteStructuredData id="site-prep" data={sitePrepStructuredData} />
       <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
         <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
         <Link

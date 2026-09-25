@@ -103,4 +103,29 @@ Allow: /
 User-agent: Diffbot
 Allow: /
 
+# Additional AI / LLM agents (assistants, datasets, enterprise copilots)
+User-agent: Google-CloudVertexBot
+Allow: /
+
+User-agent: PetalBot
+Allow: /
+
+User-agent: Timpibot
+Allow: /
+
+User-agent: ImagesiftBot
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+User-agent: Webzio-Extended
+Allow: /
+
+# ---------------------------------------------------------------------------
+# Machine-readable knowledge base for LLMs (llms.txt standard):
+#   https://knightbasins.srv1964473.hstgr.cloud/llms.txt      (summary)
+#   https://knightbasins.srv1964473.hstgr.cloud/llms-full.txt (full spec & pricing)
+# ---------------------------------------------------------------------------
+
 Sitemap: https://knightbasins.srv1964473.hstgr.cloud/sitemap.xml
