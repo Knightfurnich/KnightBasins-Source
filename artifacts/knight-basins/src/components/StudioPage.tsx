@@ -419,6 +419,72 @@ function applySimpleShapeEdgeDefaults(previousPiece: StudioPiece, nextPiece: Stu
   return { ...nextPiece, sideStatuses };
 }
 
+function studioPresetFromQuery(value: string | null): StudioPreset | null {
+  switch (value?.trim().toLowerCase()) {
+    case "i": return "i";
+    case "l":
+    case "l-left": return "l-left";
+    case "l-right": return "l-right";
+    case "u": return "u";
+    default: return null;
+  }
+}
+
+function studioPresetForShare(state: StudioState, piece = getStudioPieces(state)[0]): StudioPreset {
+  if (piece?.preset) return piece.preset;
+  if (piece?.rectangles.length === 3) return "u";
+  if (piece?.rectangles.length === 2) {
+    const secondRectangle = piece.rectangles.find((rectangle) => rectangle.id === "wizard-leg-1") ?? piece.rectangles[1];
+    return (secondRectangle?.xMm ?? 0) > 0 ? "l-right" : "l-left";
+  }
+  return state.shape === "U" ? "u" : state.shape === "L" ? "l-left" : "i";
+}
+
+function applyStudioShareParameters(
+  state: StudioState,
+  requestedPreset: StudioPreset | null,
+  requestedWidthMm: number | null,
+): StudioState {
+  if (!requestedPreset && requestedWidthMm === null) return state;
+  const firstPiece = getStudioPieces(state)[0];
+  const firstRectangle = firstPiece?.rectangles[0];
+  if (!firstPiece || !firstRectangle) return state;
+
+  const widthMm = requestedWidthMm ?? firstRectangle.widthMm;
+  const isFreshBoard = firstPiece.rectangles.length === 1 &&
+    firstRectangle.widthMm === STUDIO_INITIAL_BOARD_WIDTH_MM &&
+    firstRectangle.lengthMm === STUDIO_INITIAL_BOARD_LENGTH_MM;
+  const depthMm = Math.max(
+    1,
+    requestedPreset && isFreshBoard ? STUDIO_PRESET_DEFAULT_DEPTH_MM : firstRectangle.lengthMm,
+  );
+  if (!requestedPreset) {
+    const resizedState = applyStudioSizePreset(state, widthMm, depthMm);
+    return {
+      ...resizedState,
+      dimensions: { ...resizedState.dimensions, runAMm: widthMm, depthMm },
+    };
+  }
+
+  const defaultLegs = presetLegDefaults(requestedPreset);
+  const legs = defaultLegs.map((length, index) => index === 0 ? widthMm : Math.max(1, length - depthMm));
+  const nextPiece = applySimpleShapeEdgeDefaults(
+    firstPiece,
+    {
+      ...buildWizardPiece(firstPiece.id, requestedPreset, legs, depthMm),
+      name: firstPiece.name,
+      preset: requestedPreset,
+    },
+  );
+  return {
+    ...state,
+    shape: requestedPreset === "i" ? "I" : requestedPreset === "u" ? "U" : "L",
+    dimensions: { ...state.dimensions, runAMm: widthMm, depthMm },
+    pieces: getStudioPieces(state).map((piece) => piece.id === firstPiece.id ? nextPiece : piece),
+    activePieceId: firstPiece.id,
+  };
+}
+
 function StudioShapeWizard({
   state,
   setState,
@@ -2220,7 +2286,8 @@ export function StudioPage({
   stoneColors = STONE_COLORS,
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
-  const leadIdParam = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("leadId");
+  const studioSearchParams = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
+  const leadIdParam = studioSearchParams.get("leadId");
   const isLeadLinkedMode = leadIdParam !== null;
   const linkedLeadId = leadIdParam?.trim() || null;
   const queryClient = useQueryClient();
@@ -2235,14 +2302,19 @@ export function StudioPage({
       : readLinkedDraft(),
     [isLeadLinkedMode],
   );
-  const requestedBasinSku = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("basin")?.trim() ?? "";
+  const requestedBasinSku = studioSearchParams.get("basin")?.trim() ?? "";
   const requestedBasinProduct = requestedBasinSku
     ? basinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
     : undefined;
-  const requestedStoneCode = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("stone")?.trim() ?? "";
+  const requestedStoneCode = studioSearchParams.get("stone")?.trim() ?? "";
   const requestedStoneColor = requestedStoneCode
     ? stoneColors.find((stone) => stone.code.toLowerCase() === requestedStoneCode.toLowerCase())
     : undefined;
+  const requestedStudioPreset = studioPresetFromQuery(studioSearchParams.get("shape"));
+  const requestedStudioWidthValue = Number(studioSearchParams.get("width"));
+  const requestedStudioWidthMm = Number.isSafeInteger(requestedStudioWidthValue) && requestedStudioWidthValue > 0
+    ? requestedStudioWidthValue
+    : null;
   const [state, setState, studioHistory] = useUndoableStudioState(() => {
     const initialStudioState = linkedDraft.state ?? createInitialStudioState(
       mode,
@@ -2263,10 +2335,15 @@ export function StudioPage({
     const withRequestedBasin = mode === "studio" && requestedBasinProduct
       ? addQueryBasinToStudioState(withRequestedStone, requestedBasinProduct)
       : withRequestedStone;
-    return normalizeStudioState(withRequestedBasin, basinProducts, stoneColors);
+    const withRequestedStudioParameters = mode === "studio"
+      ? applyStudioShareParameters(withRequestedBasin, requestedStudioPreset, requestedStudioWidthMm)
+      : withRequestedBasin;
+    return normalizeStudioState(withRequestedStudioParameters, basinProducts, stoneColors);
   });
   const [studioUiMode, setStudioUiMode] = useState<"simple" | "detailed">("simple");
   const isSimpleStudioMode = mode === "studio" && studioUiMode === "simple";
+  const [studioShareFeedback, setStudioShareFeedback] = useState<"copied" | "failed" | null>(null);
+  const studioShareFeedbackTimeoutRef = useRef<number | null>(null);
   const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !isLeadLinkedMode && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
@@ -2297,6 +2374,11 @@ export function StudioPage({
     appliedQueryBasinSkuRef.current = product.sku;
     setState((current) => addQueryBasinToStudioState(current, product));
   }, [mode, requestedBasinSku, basinProducts, setState]);
+  useEffect(() => () => {
+    if (studioShareFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(studioShareFeedbackTimeoutRef.current);
+    }
+  }, []);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
@@ -2648,6 +2730,31 @@ export function StudioPage({
     setEditingNamedDraftId((current) => current === draft.id ? null : current);
     setDraftResult(`ลบแบบร่าง “${draft.name}” แล้ว`);
   };
+  const copyStudioShareLinkToClipboard = async () => {
+    const url = new URL(window.location.pathname, window.location.origin);
+    const basinSku = state.basinPlacements[0]?.sku ?? state.basinSkus[0];
+    const firstPiece = getStudioPieces(state)[0];
+    const firstRectangle = firstPiece?.rectangles[0];
+    if (basinSku) url.searchParams.set("basin", basinSku);
+    if (state.activeStone) url.searchParams.set("stone", state.activeStone);
+    if (firstRectangle) url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+    url.searchParams.set("shape", studioPresetForShare(state, firstPiece));
+
+    let feedback: "copied" | "failed" = "copied";
+    try {
+      await navigator.clipboard.writeText(url.toString());
+    } catch {
+      feedback = "failed";
+    }
+    setStudioShareFeedback(feedback);
+    if (studioShareFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(studioShareFeedbackTimeoutRef.current);
+    }
+    studioShareFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setStudioShareFeedback(null);
+      studioShareFeedbackTimeoutRef.current = null;
+    }, 2000);
+  };
   const exportFiles = async (format: "dxf" | "pdf" | "png") => {
     if (!exportReady) {
       setResult("ขนาดหรือจำนวนแผ่นไม่ถูกต้อง จึงยังดาวน์โหลดแบบไม่ได้");
@@ -2893,6 +3000,19 @@ export function StudioPage({
       <div className="studio-canvas-column">
         <div className="studio-share-actions">
           <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
+          <button
+            type="button"
+            className="button button--accent studio-share-button"
+            onClick={() => void copyStudioShareLinkToClipboard()}
+            aria-live="polite"
+            data-testid="button-share-studio-link"
+          >
+            {studioShareFeedback === "copied"
+              ? "✓ คัดลอกลิงก์แล้ว"
+              : studioShareFeedback === "failed"
+                ? "คัดลอกลิงก์ไม่สำเร็จ"
+                : "🔗 คัดลอกลิงก์ผังนี้"}
+          </button>
         </div>
         <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} />
       </div>
