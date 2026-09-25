@@ -147,6 +147,36 @@ function googleMapsUrl(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
+/** Job stage read straight off the stored project string (e.g. "งาน วัดงาน JB26/0507"). */
+type JobStage = "survey" | "install" | "service" | "deliver" | "other";
+
+const JOB_STAGE_PRESENTATION: Record<JobStage, { label: string; badge: string; dot: string }> = {
+  survey: { label: "วัดงาน", badge: "border-[#1f6fb2]/40 bg-[#1f6fb2]/10 text-[#1f6fb2]", dot: "bg-[#1f6fb2]" },
+  install: { label: "ติดตั้ง", badge: "border-[#17816d]/40 bg-[#17816d]/10 text-[#17816d]", dot: "bg-[#17816d]" },
+  service: { label: "เก็บงาน", badge: "border-[#b78320]/40 bg-[#b78320]/10 text-[#8a6318]", dot: "bg-[#b78320]" },
+  deliver: { label: "ส่งลูกค้า", badge: "border-[#7a5bb5]/40 bg-[#7a5bb5]/10 text-[#7a5bb5]", dot: "bg-[#7a5bb5]" },
+  other: { label: "งานทั่วไป", badge: "border-[var(--line)] bg-[var(--paper)] text-[var(--ink-soft)]", dot: "bg-[var(--ink-soft)]" },
+};
+
+function detectJobStage(text: string | null | undefined): JobStage {
+  if (!text) return "other";
+  if (text.includes("วัดงาน")) return "survey";
+  if (text.includes("เก็บงาน")) return "service";
+  if (text.includes("ติดตั้ง")) return "install";
+  if (text.includes("ส่งลูกค้า") || text.includes("ส่งมอบ")) return "deliver";
+  return "other";
+}
+
+function StageBadge({ stage, className = "" }: { stage: JobStage; className?: string }) {
+  const p = JOB_STAGE_PRESENTATION[stage];
+  return (
+    <span className={`inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold ${p.badge} ${className}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${p.dot}`} aria-hidden="true" />
+      {p.label}
+    </span>
+  );
+}
+
 function StatusBadge({ status, compact = false, testId }: { status: CalendarStatus; compact?: boolean; testId?: string }) {
   const presentation = statusPresentation[status];
   return (
@@ -200,6 +230,7 @@ function JobCard({
     <li className="border border-[var(--line)] bg-[var(--paper)] p-3" data-testid={`calendar-job-${job.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
         <p className="text-xs font-semibold leading-relaxed text-[var(--ink)]">{job.name}</p>
+        <StageBadge stage={detectJobStage(job.project)} />
       </div>
       {job.project && <p className="mt-1 font-mono text-[14px] text-[var(--brand-blue)]">{job.project}</p>}
       <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
@@ -376,6 +407,10 @@ export function TechnicianCalendarPage() {
   }), [monthDays]);
 
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
+  const [stageFilter, setStageFilter] = useState<JobStage | "all">("all");
+
+  const jobMatchesStage = (project: string | null | undefined) =>
+    stageFilter === "all" || detectJobStage(project) === stageFilter;
 
   const teamWorkloads = useMemo(() => {
     const map = new Map<string, { totalJobs: number; daysCount: number; todayJobs: number; stageCounts: Record<string, number> }>();
@@ -710,7 +745,33 @@ export function TechnicianCalendarPage() {
                   <span>{presentation.label} · {presentation.description}</span>
                 </span>
               ))}
-              <span className="text-[12px] text-[var(--ink-soft)] sm:ml-auto sm:text-xs">คลิกวันที่เพื่อจัดการคิวงาน</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 border-t border-[var(--line)] pt-3">
+              <span className="text-[12px] font-semibold text-[var(--ink-soft)]">กรองประเภทงาน:</span>
+              {([
+                ["all", "ทั้งหมด"],
+                ["survey", "วัดงาน"],
+                ["install", "ติดตั้ง"],
+                ["service", "เก็บงาน"],
+                ["deliver", "ส่งลูกค้า"],
+              ] as Array<[JobStage | "all", string]>).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setStageFilter(value)}
+                  aria-pressed={stageFilter === value}
+                  data-testid={`button-calendar-stage-filter-${value}`}
+                  className={`inline-flex items-center gap-1 border px-2 py-1 text-[12px] font-semibold transition-colors ${
+                    stageFilter === value
+                      ? "border-[var(--brand-blue)] bg-[var(--brand-blue)] text-white"
+                      : "border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                  }`}
+                >
+                  {value !== "all" && <span className={`h-1.5 w-1.5 rounded-full ${JOB_STAGE_PRESENTATION[value].dot}`} aria-hidden="true" />}
+                  {label}
+                </button>
+              ))}
+              <span className="ml-auto text-[12px] text-[var(--ink-soft)]">คลิกวันที่เพื่อจัดการคิวงาน</span>
             </div>
           </div>
 
@@ -742,10 +803,11 @@ export function TechnicianCalendarPage() {
 
                   const teamJobs = day.teams
                     .filter((t) => !selectedTeamCode || t.teamCode === selectedTeamCode)
-                    .flatMap((t) => t.jobs.map((j) => ({ ...j, teamCode: t.teamCode, teamName: t.teamName })));
+                    .flatMap((t) => t.jobs.map((j) => ({ ...j, teamCode: t.teamCode, teamName: t.teamName })))
+                    .filter((j) => jobMatchesStage(j.project));
 
-                  const hasFilterJob = selectedTeamCode ? teamJobs.length > 0 : true;
-                  const isDimmed = selectedTeamCode && !hasFilterJob;
+                  const hasFilterJob = (selectedTeamCode ? teamJobs.length > 0 : true) && (stageFilter === "all" ? true : teamJobs.length > 0);
+                  const isDimmed = (selectedTeamCode || stageFilter !== "all") && !hasFilterJob;
 
                   return (
                     <button
@@ -804,7 +866,8 @@ export function TechnicianCalendarPage() {
                 const dayNumber = Number(day.date.slice(-2));
                 const teamJobs = day.teams
                   .filter((t) => !selectedTeamCode || t.teamCode === selectedTeamCode)
-                  .flatMap((t) => t.jobs.map((j) => ({ ...j, teamCode: t.teamCode, teamName: t.teamName })));
+                  .flatMap((t) => t.jobs.map((j) => ({ ...j, teamCode: t.teamCode, teamName: t.teamName })))
+                  .filter((j) => jobMatchesStage(j.project));
 
                 return (
                   <div
@@ -853,6 +916,23 @@ export function TechnicianCalendarPage() {
                           <p className="font-semibold text-xs text-[var(--ink)] line-clamp-2 leading-snug">
                             {j.name}
                           </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <StageBadge stage={detectJobStage(j.project)} />
+                            {j.address && (
+                              <a
+                                href={googleMapsUrl(j.address)}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 border border-[var(--line)] bg-[var(--card-paper)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--brand-blue)] hover:border-[var(--brand-blue)]"
+                                data-testid={`link-calendar-week-map-${j.id}`}
+                                title={`นำทางไป ${j.address}`}
+                              >
+                                <MapPinned className="h-3 w-3" aria-hidden="true" />
+                                นำทาง
+                              </a>
+                            )}
+                          </div>
                           {j.project && (
                             <p className="text-[11px] text-[var(--ink-soft)] truncate">
                               {j.project}
