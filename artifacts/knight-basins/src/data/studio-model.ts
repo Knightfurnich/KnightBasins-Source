@@ -1234,9 +1234,9 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
     ? resolveMatchingStoneForBasin(state.basinPlacements[0].sku, products) ?? state.activeStone
     : state.activeStone;
   const price = stoneInstalledUnitPrice(resolvedActiveStone);
-  const sheetCutPriceWarning = price === 9500;
-  const stoneTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(counterArea * price) + roundBaht((upstandArea + backsplashArea) * price);
-  const upstandTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(upstandArea * price);
+  const sheetCutPriceWarning = false;
+  const stoneTotal = price === null ? 0 : roundBaht(counterArea * price) + roundBaht((upstandArea + backsplashArea) * price);
+  const upstandTotal = price === null ? 0 : roundBaht(upstandArea * price);
   // Only basins actually placed on the layout are priced or submitted — a
   // shortlisted-but-unplaced basin is a comparison, not a commitment, so a
   // stone-only (or stone + install-only) order must total stone/install cost
@@ -1287,7 +1287,6 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
     ? rectangles.some((rectangle) => Math.min(rectangle.widthMm, rectangle.lengthMm) > 760 || Math.max(rectangle.widthMm, rectangle.lengthMm) > 3680)
     : standardSheetWarning(state.shape, state.dimensions);
   const warnings = [
-    ...(sheetCutPriceWarning ? ["สีลายหินอ่อนคิดตามแผ่นตัด ทีมขายจะคิดให้"] : []),
     ...(upstandHeightMissing ? ["ยังไม่ได้ระบุความสูงบัว จึงยังไม่คิดเงินบัว"] : []),
     ...(openEdgePriceMissing ? ["ยังไม่ได้ระบุราคาขอบเปิดต่อเมตร"] : []),
      ...(openEdgePriceInvalid ? ["ราคาขอบเปิดต้องไม่ติดลบและมีทศนิยมไม่เกิน 2 ตำแหน่ง"] : []),
