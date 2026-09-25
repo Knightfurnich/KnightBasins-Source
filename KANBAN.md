@@ -78,9 +78,9 @@
 | **Task 48** | Replit | ตัวเลือกเดือน/ปี (Month & Year Selector) ในหน้าปฏิทินคิวช่าง (/admin/calendar) | `feat/replit-calendar-month-picker` | ✅ **Live บน VPS** · PR #25 merge + deploy · ดรอปดาวน์เดือน/ปี พ.ศ. ใช้งานได้จริง |
 | **Task 49** | ชัย | เพิ่มปุ่มปักหมุด 'กำหนดเป็นภาพ Top View' ในหน้าแก้ไขอ่าง (/admin/basins) | `feat/chai-basin-topview-ui` | ✅ **Live บน VPS** · PR #24 merge + deploy · ปุ่ม 🔝 Top View บนทุกรูป |
 | **Thai Holidays** | เดวิด | แสดงวันหยุดนักขัตฤกษ์ไทย (ป้ายแดง 🚩 + ข้อความเตือนคอนโด) บนปฏิทินคิวช่าง | `883d833` | ✅ **Live บน VPS** · ครอบคลุม 2568-2570 · วันที่ 13, 23 ต.ค. ขึ้นป้ายพร้อมข้อความเตือน |
-| **Task 50** | Replit | ปุ่มคัดลอกลิงก์แชร์ผังเคาน์เตอร์ 2D Studio (1-Click Share Link) | `feat/replit-studio-share-link` | 🔄 มอบหมายแล้ว (`qa/job-50-replit-studio-share-link.md`) |
+| **Task 50** | Replit | ปุ่มคัดลอกลิงก์แชร์ผังเคาน์เตอร์ 2D Studio (1-Click Share Link) | `feat/replit-studio-share-link` | ✅ **Live บน VPS** · PR #28 merge + deploy · ปุ่ม 🔗 คัดลอกลิงก์ผังนี้ ใช้งานได้จริง |
 | **Task 51** | ชัย | เชื่อมต่อภาพถ่ายหน้างานจริง (Site Photos) แสดงในการ์ด Lead (/admin/leads) | `feat/chai-leads-site-photos` | ✅ **Live บน VPS** · PR #26 merge + deploy · รูปหน้างานแสดงในการ์ด Lead พร้อม Lightbox |
-| **Task 52** | ชัย | ระบบ API สำรองและส่งออกข้อมูลสำหรับแอดมิน (/api/admin/backup/*) | `feat/chai-backup-api` | 🔄 มอบหมายแล้ว (`qa/job-52-chai-backup-api.md`) |
+| **Task 52** | ชัย | ระบบ API สำรองและส่งออกข้อมูลสำหรับแอดมิน (/api/admin/backup/*) | `feat/chai-backup-api` | ✅ **Live บน VPS** · PR #27 merge + deploy · GET /api/admin/backup/* ตอบ 200 OK |
 | **Task 53** | Replit | หน้าศูนย์สำรองข้อมูลสำหรับแอดมิน (/admin/backup) | `feat/replit-backup-vault` | 🔄 มอบหมายแล้ว (`qa/job-53-replit-backup-page.md`) |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
