@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  Check,
   ChevronRight,
   Flame,
   LayoutGrid,
@@ -851,7 +852,7 @@ export function TechnicianCalendarPage() {
                 <div
                   key={team.code}
                   onClick={() => setSelectedTeamCode(isSelected ? null : team.code)}
-                  className={`p-3 border transition-all cursor-pointer select-none ${
+                  className={`p-3 border transition-all cursor-pointer select-none relative ${
                     isSelected
                       ? "border-[var(--brand-blue)] bg-[var(--brand-blue)]/5 shadow-sm ring-1 ring-[var(--brand-blue)]"
                       : "border-[var(--line)] bg-[var(--paper)]/50 hover:bg-[var(--line)]/25 hover:border-[var(--ink-soft)]/40"
@@ -864,6 +865,15 @@ export function TechnicianCalendarPage() {
                   aria-pressed={isSelected}
                   data-testid={`card-team-radar-${team.code}`}
                 >
+                  {/* Selected checkmark badge, exactly like basin selection */}
+                  {isSelected && (
+                    <span
+                      className="absolute -top-2 -right-2 grid h-5 w-5 place-items-center rounded-full bg-[var(--brand-blue)] text-white shadow-sm ring-2 ring-[var(--card-paper)] z-10"
+                      aria-hidden="true"
+                    >
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </span>
+                  )}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="grid h-7 w-7 shrink-0 place-items-center rounded bg-[var(--ink)] text-xs font-bold text-[var(--paper)] font-mono">
