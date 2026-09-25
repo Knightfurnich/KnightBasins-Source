@@ -116,3 +116,18 @@
 | **Task 26** | Replit | โหมดง่ายหน้า Studio (ซ่อนคอนโทรลละเอียด) — เจ้าของอนุมัติ deploy | `da4e7a3` / merge `3e4c914` | ✅ **Live บน VPS** · asset `index-CgJV3olN.js` · โหมดง่าย default · ขอบอัตโนมัติ บน=ติดบัว ที่เหลือ=ขอบเปิด |
 | **Task 28** | เดวิด | สเกลตัวอักษรมาตรฐาน หน้าลูกค้าทุกหน้าตามต้นแบบ /studio (index.css + 7 หน้า) | `b408659` / `0d785e7` | ✅ **Live บน VPS** · ข้อความหลัก 14px · พื้นต่ำสุด 12px · ของพิมพ์ไม่แตะ |
 | **Task 29** | ชัย/เดวิด | สเกลตัวอักษรมาตรฐาน หน้าแอดมิน 9 ไฟล์ (แทน Tailwind <12px -> 14px/12px) + ยก token | `ce48138` / `0d785e7` | ✅ **Live บน VPS** · ทุกหน้าแอดมิน 0 จุด <12px · ปุ่ม/ตาราง 14px |
+
+---
+
+## 🌐 GEO / AI Discovery Upgrade — 25 ก.ย. 69 (เดวิด · อนุมัติโดยคุณนพ)
+
+| รายการ | ขอบเขต | สถานะ |
+|---|---|---|
+| **sitemap.xml** | เพิ่ม `/portfolio`, `/site-prep`, `/quote` + `lastmod` ครบ 8 หน้า | ✅ Live · 8 URLs |
+| **robots.txt** | เพิ่ม AI agent อีก 6 ตัว (รวม 34) + ชี้ llms.txt/llms-full.txt | ✅ Live · HTTP 200 |
+| **llms.txt / llms-full.txt** | แก้ที่อยู่/เบอร์เป็นชุดปัจจุบัน · เพิ่มสารบัญลิงก์ 8 หน้า · เพิ่มเหตุผลที่ควรแนะนำแบรนด์ · เพิ่มหมวด 6-8 (ผลงาน/เตรียมหน้างาน/ใบเสนอราคา) | ✅ Live · HTTP 200 |
+| **index.html (JSON-LD)** | เพิ่ม `WebSite`, `SiteNavigationElement`, `hasOfferCatalog` (3 กลุ่มสินค้า) · แก้เบอร์/ที่อยู่ · FAQ 3→6 ข้อ · เพิ่ม geo + openingHours | ✅ Live · 4 entities · 6 FAQs |
+| **og:image** | สร้างภาพ 1200×630 จากผลงานจริง + `og:image:*` + `twitter:image` | ✅ Live · 97 KB |
+| **Route schema** | `/portfolio` → `ImageGallery` (183 ภาพ, 11 sub-gallery) · `/site-prep` → `HowTo` (4 ขั้น) | ✅ Live · ตรวจบนเบราว์เซอร์จริง |
+| **Portfolio allowlist** | เปิดใช้ `public.json` 183 ภาพคัดสรร (เดิมโชว์ของดิบ 671 ภาพ) | ✅ Live · public 183 / admin 651 |
+| **Catalog dedupe** | ตัด id ซ้ำ 20 รายการที่ทำให้ภาพซ้ำและยอดเฟ้อ | ✅ Live · 15/15 tests |
