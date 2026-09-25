@@ -65,6 +65,8 @@ export type StudioPiece = {
   preset?: StudioPreset;
   /** Explicit X/Y edits or drags opt this piece out of legacy preset reflow heuristics. */
   manualLayout?: boolean;
+  /** Set once the customer has edited an edge finish by hand; guards against auto-reset defaults overwriting their choice. */
+  hasCustomEdges?: boolean;
 };
 
 export type BacksplashConfig = {
@@ -430,10 +432,20 @@ export function studioSideStatusLabel(status: SideStatus) {
   }[status];
 }
 
-/** Directly sets one rectangle edge's finish status (immutable update). */
+/**
+ * Directly sets one rectangle edge's finish status (immutable update).
+ * A joint between two rectangles (exposedLengthMm === 0) can never carry a finish
+ * status — it isn't exposed to the room, so charging or marking it would be wrong —
+ * so the piece is returned unchanged when the target edge is a joint.
+ * Marks the piece hasCustomEdges so later shape changes preserve this choice
+ * instead of resetting it back to the auto-mapped default.
+ */
 export function setStudioEdgeStatus(piece: StudioPiece, rectangleId: string, side: StudioSide, status: SideStatus): StudioPiece {
+  const edge = studioPieceEdges(piece).find((candidate) => candidate.rectangleId === rectangleId && candidate.side === side);
+  if (edge && edge.exposedLengthMm <= STUDIO_EPSILON_MM) return piece;
   return {
     ...piece,
+    hasCustomEdges: true,
     sideStatuses: { ...piece.sideStatuses, [sideStatusKey(rectangleId, side)]: status },
   };
 }
@@ -441,6 +453,32 @@ export function setStudioEdgeStatus(piece: StudioPiece, rectangleId: string, sid
 /** Resets one rectangle edge back to "normal" (no upstand/open-edge/wall-flush). */
 export function clearStudioEdgeStatus(piece: StudioPiece, rectangleId: string, side: StudioSide): StudioPiece {
   return setStudioEdgeStatus(piece, rectangleId, side, "normal");
+}
+
+/** True once the customer has edited at least one edge finish by hand. */
+export function isStudioPieceCustomized(piece: StudioPiece): boolean {
+  return piece.hasCustomEdges === true;
+}
+
+/**
+ * Carries a customer's hand-edited edge finishes across a shape/dimension change
+ * instead of letting the auto-mapped defaults silently overwrite them.
+ * Edge statuses are matched by rectangle id (stable across resizes for a given
+ * preset — e.g. "legacy-a"/"legacy-b"/"legacy-c") and side, so a status only
+ * carries over onto a rectangle that still exists in the new shape.
+ * When the previous piece was never customized, the new piece's own auto-mapped
+ * defaults are left untouched.
+ */
+export function preserveCustomEdgesOnShapeChange(previousPiece: StudioPiece, nextPiece: StudioPiece): StudioPiece {
+  if (!isStudioPieceCustomized(previousPiece)) return nextPiece;
+  const nextRectangleIds = new Set(nextPiece.rectangles.map((rectangle) => rectangle.id));
+  const sideStatuses = { ...nextPiece.sideStatuses };
+  for (const [key, status] of Object.entries(previousPiece.sideStatuses)) {
+    const separator = key.lastIndexOf(":");
+    const rectangleId = separator < 0 ? key : key.slice(0, separator);
+    if (nextRectangleIds.has(rectangleId)) sideStatuses[key] = status;
+  }
+  return { ...nextPiece, hasCustomEdges: true, sideStatuses };
 }
 
 const STUDIO_EDGE_STATUS_CYCLE: readonly SideStatus[] = ["normal", "upstand", "wall-flush", "wall-flush+upstand", "open-edge"];
