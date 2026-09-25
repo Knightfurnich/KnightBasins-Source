@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Camera, ChevronLeft, ChevronRight, Images, Sparkles, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link } from "wouter";
 
 export interface ShowcasePhoto {
@@ -77,6 +77,46 @@ export function InstallationShowcase() {
 
   const [zoomPhoto, setZoomPhoto] = useState<ShowcasePhoto | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Continuous auto-scroll marquee: glides the duplicated track and loops
+  // seamlessly. Pauses while the pointer/touch is over the track or the
+  // lightbox is open, and respects prefers-reduced-motion.
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || photos.length === 0 || zoomPhoto) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let paused = false;
+    const SPEED_PX_PER_FRAME = 0.55;
+
+    const onEnter = () => { paused = true; };
+    const onLeave = () => { paused = false; };
+    container.addEventListener("pointerenter", onEnter);
+    container.addEventListener("pointerleave", onLeave);
+    container.addEventListener("touchstart", onEnter, { passive: true });
+    container.addEventListener("touchend", onLeave);
+
+    const tick = () => {
+      if (!paused) {
+        const half = container.scrollWidth / 2;
+        container.scrollLeft += SPEED_PX_PER_FRAME;
+        if (half > 0 && container.scrollLeft >= half) {
+          container.scrollLeft -= half;
+        }
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      container.removeEventListener("pointerenter", onEnter);
+      container.removeEventListener("pointerleave", onLeave);
+      container.removeEventListener("touchstart", onEnter);
+      container.removeEventListener("touchend", onLeave);
+    };
+  }, [photos.length, zoomPhoto]);
 
   if (isLoading || photos.length === 0) return null;
 

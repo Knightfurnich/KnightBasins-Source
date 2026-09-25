@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, X } from "lucide-react";
 import { knightFurnichLogo } from "@/data/assets";
 
@@ -25,7 +25,7 @@ type PortfolioResponse = {
   items: PortfolioPhoto[];
 };
 
-const PAGE_SIZE = 60;
+export const PAGE_SIZE = 60;
 export const ALL_CATEGORIES = "all";
 
 /** Public gallery API URL for a given tab + page. */
@@ -37,7 +37,7 @@ export function portfolioQueryUrl(category: string, offset: number, limit = PAGE
   return `/api/portfolio?${params.toString()}`;
 }
 
-async function fetchPortfolio(category: string, offset: number): Promise<PortfolioResponse> {
+async function fetchPortfolioPage(category: string, offset: number): Promise<PortfolioResponse> {
   const response = await fetch(portfolioQueryUrl(category, offset));
   if (!response.ok) throw new Error("โหลดคลังภาพผลงานไม่สำเร็จ");
   return await response.json() as PortfolioResponse;
@@ -50,42 +50,38 @@ async function fetchPortfolio(category: string, offset: number): Promise<Portfol
  */
 export function PortfolioPage() {
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
-  const [offset, setOffset] = useState(0);
-  const [accumulated, setAccumulated] = useState<PortfolioPhoto[]>([]);
-  const [zoomItem, setZoomItem] = useState<PortfolioPhoto | null>(null);
+  const [zoomId, setZoomId] = useState<string | null>(null);
 
-  const query = useQuery({
-    queryKey: ["/api/portfolio", activeCategory, offset],
-    queryFn: () => fetchPortfolio(activeCategory, offset),
+  const query = useInfiniteQuery({
+    queryKey: ["/api/portfolio", activeCategory],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => fetchPortfolioPage(activeCategory, pageParam as number),
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, page) => sum + page.items.length, 0);
+      return loaded < lastPage.count ? loaded : undefined;
+    },
   });
 
-  const page = query.data;
-  const categories = page?.categories ?? [];
-  const totalForTab = activeCategory === ALL_CATEGORIES
-    ? (page?.total ?? 0)
-    : (categories.find((c) => c.slug === activeCategory)?.count ?? 0);
+  const pages = query.data?.pages ?? [];
+  const firstPage = pages[0];
+  const categories = firstPage?.categories ?? [];
+  const photos = useMemo(() => pages.flatMap((page) => page.items), [pages]);
+  const totalForTab = firstPage
+    ? (activeCategory === ALL_CATEGORIES
+        ? firstPage.total
+        : categories.find((c) => c.slug === activeCategory)?.count ?? 0)
+    : 0;
 
-  useEffect(() => {
-    if (!page?.items) return;
-    setAccumulated((current) => (offset === 0 ? page.items : [...current, ...page.items]));
-  }, [page, offset]);
-
-  useEffect(() => {
-    setOffset(0);
-    setAccumulated([]);
-  }, [activeCategory]);
-
-  const photos = accumulated;
-  const hasMore = offset + PAGE_SIZE < totalForTab;
   const zoomIndex = useMemo(
-    () => (zoomItem ? photos.findIndex((p) => p.id === zoomItem.id) : -1),
-    [zoomItem, photos],
+    () => (zoomId ? photos.findIndex((p) => p.id === zoomId) : -1),
+    [zoomId, photos],
   );
+  const zoomItem = zoomIndex >= 0 ? photos[zoomIndex] : null;
 
   const step = (delta: number) => {
     if (zoomIndex < 0 || photos.length === 0) return;
     const next = (zoomIndex + delta + photos.length) % photos.length;
-    setZoomItem(photos[next]);
+    setZoomId(photos[next].id);
   };
 
   return (
@@ -119,9 +115,10 @@ export function PortfolioPage() {
             รวมภาพถ่ายผลงานจริงจากบ้าน คอนโด และโครงการที่ติดตั้งเสร็จสมบูรณ์โดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด
             เลือกดูตามประเภทงานได้เลย — งานอ่างล้างหน้าและเคาน์เตอร์ห้องน้ำ ครัว เคาน์เตอร์ธุรกิจ งานดีไซน์ และอื่น ๆ
           </p>
-          {page && (
+          {firstPage && (
             <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#003366] bg-[#003366]/5 border border-[#003366]/20 rounded-full px-3 py-1.5">
-              <Images size={14} aria-hidden="true" /> {page.total} ภาพในคลัง · อัปเดตล่าสุด {new Date(page.updatedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
+              <Images size={14} aria-hidden="true" /> {firstPage.total} ภาพในคลัง · อัปเดตล่าสุด{" "}
+              {new Date(firstPage.updatedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
             </span>
           )}
         </section>
@@ -137,7 +134,7 @@ export function PortfolioPage() {
                 : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[#003366]"
             }`}
           >
-            ทั้งหมด {page ? `(${page.total})` : ""}
+            ทั้งหมด {firstPage ? `(${firstPage.total})` : ""}
           </button>
           {categories.map((c) => (
             <button
@@ -157,57 +154,65 @@ export function PortfolioPage() {
         </div>
 
         {/* Grid */}
-        {query.isLoading && photos.length === 0 && (
+        {query.isPending && (
           <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)] py-12 justify-center">
             <Loader2 className="animate-spin" size={16} /> กำลังโหลดคลังภาพผลงาน...
           </div>
         )}
 
-        {!query.isLoading && photos.length === 0 && (
+        {query.isError && (
+          <p className="text-sm text-[#a24439] py-12 text-center">โหลดคลังภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>
+        )}
+
+        {!query.isPending && !query.isError && photos.length === 0 && (
           <p className="text-sm text-[var(--ink-soft)] py-12 text-center">ยังไม่มีภาพในหมวดนี้</p>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="portfolio-grid">
-          {photos.map((photo) => (
-            <button
-              key={photo.id}
-              type="button"
-              onClick={() => setZoomItem(photo)}
-              className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-[var(--line)] bg-slate-100 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
-              aria-label={`ดูภาพขยาย: ${photo.categoryName}`}
-              data-testid={`portfolio-photo-${photo.id}`}
-            >
-              <img
-                src={photo.url}
-                alt={photo.title}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-2.5 py-2 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
-                {photo.icon} {photo.categoryName}
-              </span>
-            </button>
-          ))}
-        </div>
+        {photos.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="portfolio-grid">
+            {photos.map((photo) => (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => setZoomId(photo.id)}
+                className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-[var(--line)] bg-slate-100 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+                aria-label={`ดูภาพขยาย: ${photo.categoryName}`}
+                data-testid={`portfolio-photo-${photo.id}`}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-2.5 py-2 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  {photo.icon} {photo.categoryName}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Load more */}
-        <div className="flex flex-col items-center gap-2 pt-2">
-          <p className="text-xs text-[var(--ink-soft)]">
-            แสดง {photos.length} จาก {totalForTab} ภาพ
-          </p>
-          {hasMore && (
-            <button
-              type="button"
-              onClick={() => setOffset((o) => o + PAGE_SIZE)}
-              disabled={query.isFetching}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#002244] disabled:opacity-60"
-              data-testid="button-portfolio-load-more"
-            >
-              {query.isFetching ? <Loader2 className="animate-spin" size={15} /> : null}
-              โหลดภาพเพิ่มเติม
-            </button>
-          )}
-        </div>
+        {photos.length > 0 && (
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <p className="text-xs text-[var(--ink-soft)]">
+              แสดง {photos.length} จาก {totalForTab} ภาพ
+            </p>
+            {query.hasNextPage && (
+              <button
+                type="button"
+                onClick={() => void query.fetchNextPage()}
+                disabled={query.isFetchingNextPage}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#002244] disabled:opacity-60"
+                data-testid="button-portfolio-load-more"
+              >
+                {query.isFetchingNextPage ? <Loader2 className="animate-spin" size={15} /> : null}
+                โหลดภาพเพิ่มเติม
+              </button>
+            )}
+          </div>
+        )}
 
         <p className="text-center text-xs text-[var(--ink-soft)] border-t border-[var(--line)] pt-5">
           ภาพทั้งหมดเป็นผลงานติดตั้งจริงของ บริษัท ไนท์ เฟอร์นิช จำกัด · สอบถามงานสั่งผลิต โทร 094-496-1949, 089-762-2209
@@ -221,13 +226,13 @@ export function PortfolioPage() {
           role="dialog"
           aria-modal="true"
           aria-label="ภาพผลงานขนาดใหญ่"
-          onClick={() => setZoomItem(null)}
+          onClick={() => setZoomId(null)}
           data-testid="portfolio-lightbox"
         >
           <button
             type="button"
             className="absolute top-4 right-4 z-10 rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 transition"
-            onClick={() => setZoomItem(null)}
+            onClick={() => setZoomId(null)}
             aria-label="ปิดภาพ"
           >
             <X size={24} />
