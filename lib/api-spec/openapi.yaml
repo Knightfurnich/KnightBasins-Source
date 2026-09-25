@@ -1221,6 +1221,30 @@ paths:
           description: Authentication required
         "403":
           description: Missing the leads or basins permission
+  /admin/stock:
+    get:
+      operationId: getAdminStock
+      tags: [admin]
+      summary: Live stock levels for Staron and Zen Stone, read from their Google Sheets via a service account
+      parameters:
+        - name: refresh
+          in: query
+          required: false
+          description: Set to true to bypass the 5-minute in-memory cache and fetch fresh data immediately
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Current stock levels for both sheets, plus when this response was generated/cached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStockResponse"
+        "401":
+          description: Authentication required
+        "403":
+          description: Missing the leads or basins permission
+        "503":
+          description: Google service account credentials are not configured
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -2398,3 +2422,36 @@ components:
         basinsCount: { type: integer }
         paymentSlipsCount: { type: integer }
         generatedAt: { type: string, format: date-time }
+    AdminStockItem:
+      type: object
+      required: [no, name, qty, scrap, lots, note]
+      properties:
+        no: { type: integer, description: Row order/number as it appears on the sheet }
+        name: { type: string, description: Color code and name, e.g. "AA 625 (Aspen Alder)" }
+        qty: { type: integer, description: Full slabs remaining in stock }
+        scrap: { type: string, description: Free-text remaining scrap/offcut note }
+        lots:
+          type: array
+          items: { type: string }
+          description: Lot numbers for this color, if any
+        note: { type: string }
+    AdminStockSheet:
+      type: object
+      required: [title, total, inStockCount, items]
+      properties:
+        title: { type: string }
+        total: { type: integer, description: Total number of rows/colors on the sheet }
+        inStockCount: { type: integer, description: Number of colors with qty > 0 }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminStockItem"
+    AdminStockResponse:
+      type: object
+      required: [updatedAt, staron, zen]
+      properties:
+        updatedAt: { type: string, format: date-time, description: When this data was fetched (or last cached) }
+        staron:
+          $ref: "#/components/schemas/AdminStockSheet"
+        zen:
+          $ref: "#/components/schemas/AdminStockSheet"

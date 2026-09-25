@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
-import { createReadStream } from "node:fs";
+import { createHash, sign as cryptoSign } from "node:crypto";
+import { createReadStream, readFileSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -152,6 +152,145 @@ function csvEscape(value: unknown): string {
 function toCsv(columns: string[], rows: unknown[][]): string {
   const lines = [columns, ...rows].map((row) => row.map(csvEscape).join(","));
   return `﻿${lines.join("\r\n")}`;
+}
+
+// ---- Stock sheet sync (GET /admin/stock) --------------------------------
+//
+// Reads live stock levels for Staron and Zen Stone directly from their
+// Google Sheets via a Google service account (JWT Bearer Token flow --
+// signed here with node:crypto so no new dependency is needed), rather than
+// the public-CSV-export workaround the existing n8n stock-sync workflow
+// uses for a different purpose (matching SKUs for WooCommerce).
+
+type GoogleServiceAccountCredentials = { client_email: string; private_key: string };
+
+const STOCK_GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const STOCK_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+const STOCK_CACHE_TTL_MS = 5 * 60 * 1000;
+
+const STARON_SPREADSHEET_ID = "12g_xKizhTAFz0wheAVV3LtLvzBuoCItR";
+const STARON_SHEET_NAME = "สต๊อคหินStaron";
+const STARON_TITLE = "สต๊อคแผ่นหินสังเคราะห์ Staron";
+
+const ZEN_SPREADSHEET_ID = "1Reo4DQlsXddm19ksEw3xhrfvhY06QjvP";
+const ZEN_SHEET_NAME = "หน้าโชว์สต๊อคหิน Zen Stone";
+const ZEN_TITLE = "สต๊อคแผ่นหินสังเคราะห์ Zen Stone";
+
+let stockCache: { data: AdminStockResponse; fetchedAt: number } | null = null;
+
+type AdminStockItem = { no: number; name: string; qty: number; scrap: string; lots: string[]; note: string };
+type AdminStockSheet = { title: string; total: number; inStockCount: number; items: AdminStockItem[] };
+type AdminStockResponse = { updatedAt: string; staron: AdminStockSheet; zen: AdminStockSheet };
+
+/** Looks for the credentials as inline JSON first (GOOGLE_SERVICE_ACCOUNT_JSON),
+ * then as a file path (GOOGLE_APPLICATION_CREDENTIALS, or the two conventional
+ * locations the work order names for the server and a dev machine). */
+function loadGoogleServiceAccountCredentials(): GoogleServiceAccountCredentials | null {
+  const parseIfValid = (raw: string): GoogleServiceAccountCredentials | null => {
+    try {
+      const parsed = JSON.parse(raw) as Partial<GoogleServiceAccountCredentials>;
+      return typeof parsed.client_email === "string" && typeof parsed.private_key === "string"
+        ? { client_email: parsed.client_email, private_key: parsed.private_key }
+        : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const inline = process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
+  if (inline) {
+    const credentials = parseIfValid(inline);
+    if (credentials) return credentials;
+  }
+
+  const candidatePaths = [
+    process.env["GOOGLE_APPLICATION_CREDENTIALS"],
+    "/docker/knightbasins/google-credentials.json",
+    "/opt/data/.google-credentials.json",
+  ].filter((path): path is string => Boolean(path));
+
+  for (const path of candidatePaths) {
+    try {
+      const credentials = parseIfValid(readFileSync(path, "utf8"));
+      if (credentials) return credentials;
+    } catch {
+      // try the next candidate path
+    }
+  }
+  return null;
+}
+
+function base64UrlEncode(input: string): string {
+  return Buffer.from(input, "utf8").toString("base64url");
+}
+
+/** Signs a Google service-account JWT and exchanges it for an access token
+ * (the standard JWT Bearer Token flow for server-to-server auth). */
+async function fetchGoogleAccessToken(credentials: GoogleServiceAccountCredentials): Promise<string> {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const header = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claims = base64UrlEncode(JSON.stringify({
+    iss: credentials.client_email,
+    scope: STOCK_SHEETS_SCOPE,
+    aud: STOCK_GOOGLE_TOKEN_URL,
+    iat: nowSeconds,
+    exp: nowSeconds + 3600,
+  }));
+  const unsigned = `${header}.${claims}`;
+  const signature = cryptoSign("RSA-SHA256", Buffer.from(unsigned), credentials.private_key).toString("base64url");
+  const assertion = `${unsigned}.${signature}`;
+
+  const response = await fetch(STOCK_GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }),
+  });
+  if (!response.ok) throw new Error(`Google token exchange failed with ${response.status}`);
+  const payload = await response.json() as { access_token?: unknown };
+  if (typeof payload.access_token !== "string") throw new Error("Google token exchange returned no access_token");
+  return payload.access_token;
+}
+
+async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, accessToken: string): Promise<unknown[][]> {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!response.ok) throw new Error(`Google Sheets API failed for "${sheetName}" with ${response.status}`);
+  const payload = await response.json() as { values?: unknown[][] };
+  return Array.isArray(payload.values) ? payload.values : [];
+}
+
+/** Row layout inferred from the work order's own example item -- 6 columns in
+ * the exact order of the JSON fields (no, name, qty, scrap, lots, note) --
+ * with row 1 treated as a header row. Multiple lot numbers in one cell are
+ * split on commas/newlines. Blank rows (no name) are skipped. */
+function buildStockSheet(title: string, rows: unknown[][]): AdminStockSheet {
+  const items: AdminStockItem[] = [];
+  for (const row of rows.slice(1)) {
+    const cell = (index: number) => {
+      const value = row[index];
+      return typeof value === "string" ? value.trim() : value != null ? String(value).trim() : "";
+    };
+    const name = cell(1);
+    if (!name) continue;
+    const lotsText = cell(4);
+    items.push({
+      no: Number(cell(0)) || items.length + 1,
+      name,
+      qty: Number(cell(2)) || 0,
+      scrap: cell(3),
+      lots: lotsText.split(/[,\n]/).map((lot) => lot.trim()).filter((lot) => lot.length > 0),
+      note: cell(5),
+    });
+  }
+  return {
+    title,
+    total: items.length,
+    inStockCount: items.filter((item) => item.qty > 0).length,
+    items,
+  };
 }
 
 /**
@@ -2733,6 +2872,34 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       res.setHeader("Content-Length", String(info.size));
       res.setHeader("Cache-Control", "no-store");
       return createReadStream(filePath).pipe(res);
+    } catch (error) { return next(error); }
+  });
+
+  router.get("/admin/stock", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
+    try {
+      const forceRefresh = req.query["refresh"] === "true" || req.query["refresh"] === "1";
+      if (!forceRefresh && stockCache && Date.now() - stockCache.fetchedAt < STOCK_CACHE_TTL_MS) {
+        return res.json(stockCache.data);
+      }
+
+      const credentials = loadGoogleServiceAccountCredentials();
+      if (!credentials) {
+        return res.status(503).json({ message: "ยังไม่ได้ตั้งค่า Google service account สำหรับดึงสต๊อค" });
+      }
+
+      const accessToken = await fetchGoogleAccessToken(credentials);
+      const [staronRows, zenRows] = await Promise.all([
+        fetchGoogleSheetRows(STARON_SPREADSHEET_ID, STARON_SHEET_NAME, accessToken),
+        fetchGoogleSheetRows(ZEN_SPREADSHEET_ID, ZEN_SHEET_NAME, accessToken),
+      ]);
+
+      const data: AdminStockResponse = {
+        updatedAt: new Date().toISOString(),
+        staron: buildStockSheet(STARON_TITLE, staronRows),
+        zen: buildStockSheet(ZEN_TITLE, zenRows),
+      };
+      stockCache = { data, fetchedAt: Date.now() };
+      return res.json(data);
     } catch (error) { return next(error); }
   });
 
