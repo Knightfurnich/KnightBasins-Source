@@ -161,10 +161,41 @@ function formatDate(date = new Date()) {
 function Header({ cartCount }: { cartCount: number }) {
   const [location] = useLocation();
   return <header className="site-header">
+    <style>{`
+      @media (max-width: 720px) {
+        .site-header {
+          min-height: auto;
+          flex-wrap: wrap;
+          padding-top: 8px;
+          padding-bottom: 0;
+        }
+        .site-header > .brand { order: 0; }
+        .site-header > .header-actions { order: 1; margin-left: auto; }
+        .site-header > .main-nav {
+          order: 2;
+          flex: 0 0 100%;
+          justify-content: space-between;
+          gap: 6px;
+          height: 44px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .site-header > .main-nav::-webkit-scrollbar { display: none; }
+        .site-header > .main-nav a {
+          flex: 0 0 auto;
+          height: 100%;
+          font-size: 11px;
+          white-space: nowrap;
+        }
+      }
+    `}</style>
     <Link href="/" className="brand" data-testid="link-brand"><img className="brand-logo brand-logo--png" src={knightFurnichLogo} alt="Knight Furnich" /><span className="brand-copy"><strong>KNIGHT FURNICH</strong><small>SOLID SURFACE / BASINS</small></span></Link>
     <nav className="main-nav" aria-label="หลัก">
       <Link href="/" className={location === "/" ? "is-active" : ""} data-testid="link-catalog">แคตตาล็อก</Link>
       <Link href="/stone" className={location === "/stone" ? "is-active" : ""} data-testid="link-stone">หินสังเคราะห์</Link>
+      <Link href="/sketch" className={location === "/sketch" ? "is-active" : ""} data-testid="link-sketch">ส่งแบบร่าง</Link>
+      <Link href="/portfolio" className={location === "/portfolio" ? "is-active" : ""} data-testid="link-portfolio">📸 ผลงานจริง</Link>
+      <Link href="/site-prep" className={location === "/site-prep" ? "is-active" : ""} data-testid="link-site-prep">📐 เตรียมหน้างาน</Link>
       <Link href="/quote" className={`quote-link ${location === "/quote" ? "is-active" : ""}`} data-testid="link-quote">ใบเสนอราคา <span>{cartCount}</span></Link>
     </nav>
     <div className="header-actions">
