@@ -56,6 +56,20 @@ export interface CalendarDay {
 
 const WEEKDAYS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 const FULL_WEEKDAYS = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];
+const THAI_MONTH_NAMES = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
 
 const BANGKOK_TIME_ZONE = "Asia/Bangkok";
 const bangkokDateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -605,13 +619,56 @@ export function TechnicianCalendarPage() {
                   วันนี้
                 </Button>
               </div>
-              <h2
-                className="order-first w-full text-center text-lg font-semibold text-[var(--ink)] sm:order-none sm:w-auto sm:text-xl"
-                aria-live="polite"
-                data-testid="calendar-month-title"
-              >
-                {viewMode === "month" ? monthFormatter.format(visibleMonth) : weekRangeTitle}
-              </h2>
+              <div className="order-first flex w-full flex-col items-center justify-center gap-1 sm:order-none sm:w-auto">
+                <div className="flex items-center gap-1.5">
+                  <select
+                    value={visibleMonthIndex}
+                    onChange={(e) => {
+                      const newMonth = Number(e.target.value);
+                      const newDate = new Date(Date.UTC(visibleYear, newMonth, 1, 12));
+                      setVisibleMonth(newDate);
+                      if (viewMode === "week") {
+                        setActiveWeekDate(toBangkokDateKey(newDate));
+                      }
+                    }}
+                    className="h-9 border border-[var(--line)] bg-[var(--paper)] px-2.5 text-sm font-bold text-[var(--ink)] rounded-none cursor-pointer hover:border-[var(--brand-blue)] transition-colors focus:ring-1 focus:ring-[var(--brand-blue)]"
+                    aria-label="เลือกเดือน"
+                    data-testid="select-calendar-month"
+                  >
+                    {THAI_MONTH_NAMES.map((name, idx) => (
+                      <option key={name} value={idx}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={visibleYear}
+                    onChange={(e) => {
+                      const newYear = Number(e.target.value);
+                      const newDate = new Date(Date.UTC(newYear, visibleMonthIndex, 1, 12));
+                      setVisibleMonth(newDate);
+                      if (viewMode === "week") {
+                        setActiveWeekDate(toBangkokDateKey(newDate));
+                      }
+                    }}
+                    className="h-9 border border-[var(--line)] bg-[var(--paper)] px-2.5 text-sm font-bold text-[var(--ink)] rounded-none cursor-pointer hover:border-[var(--brand-blue)] transition-colors focus:ring-1 focus:ring-[var(--brand-blue)]"
+                    aria-label="เลือกปี พ.ศ."
+                    data-testid="select-calendar-year"
+                  >
+                    {[2025, 2026, 2027, 2028].map((y) => (
+                      <option key={y} value={y}>
+                        พ.ศ. {y + 543}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {viewMode === "week" && (
+                  <span className="text-[11px] font-semibold text-[var(--brand-blue)] tabular-nums">
+                    สัปดาห์ {weekRangeTitle}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {selectedTeamCode ? (
                   <div className="inline-flex items-center gap-1.5 bg-[var(--brand-blue)]/10 text-[var(--brand-blue)] px-2.5 py-1 text-xs font-semibold">
