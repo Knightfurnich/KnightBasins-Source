@@ -1688,6 +1688,71 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   border-bottom: 1px solid var(--line);
 }
 .studio-hero > div:first-child { min-width: 0; }
+.studio-sketch-bridge-banner,
+.sketch-studio-bridge-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid #cfe0ec;
+  border-left: 4px solid var(--brand-blue);
+  border-radius: 14px;
+  background: linear-gradient(110deg, #f1f8fc, #fff);
+  box-shadow: 0 8px 22px rgba(23, 65, 96, .055);
+}
+.studio-sketch-bridge-banner p,
+.sketch-studio-bridge-banner p {
+  flex: 1 1 380px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+.sketch-studio-bridge-banner {
+  border-color: #e8dfc9;
+  border-left-color: #b28b3d;
+  background: linear-gradient(110deg, #fffaf0, #fff);
+}
+.studio-sketch-bridge-cta,
+.sketch-studio-bridge-cta {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--brand-blue);
+  border-radius: 10px;
+  color: #fff;
+  background: var(--brand-blue);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  transition: filter .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.studio-sketch-bridge-cta:hover,
+.sketch-studio-bridge-cta:hover {
+  color: #fff;
+  filter: brightness(.93);
+  box-shadow: 0 5px 14px rgba(22, 87, 133, .18);
+  transform: translateY(-1px);
+}
+.studio-sketch-bridge-cta:focus-visible,
+.sketch-studio-bridge-cta:focus-visible {
+  outline: 3px solid rgba(31, 115, 176, .32);
+  outline-offset: 3px;
+}
+.sketch-studio-bridge-cta {
+  border-color: #896925;
+  background: #896925;
+}
 .studio-progress { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 18px 0 0; padding: 0; list-style: none; }
 .studio-progress-step { display: flex; align-items: center; gap: 7px; color: var(--ink-soft); font-size: 12px; }
 .studio-progress-step-icon { display: grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 50%; font: 12px var(--mono); background: #fbfdfe; }
@@ -2400,6 +2465,9 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .order-mode-tabs button { padding: 12px 14px; }
   .studio-hero { min-height: 280px; padding-top: 52px; flex-direction: column; align-items: stretch; gap: 16px; }
   .studio-hero-mark { align-self: end; margin-top: -4px; font-size: var(--type-size-heading-xl); }
+.studio-sketch-bridge-banner, .sketch-studio-bridge-banner { align-items: stretch; flex-direction: column; padding: 15px; }
+  .studio-sketch-bridge-banner p, .sketch-studio-bridge-banner p { flex-basis: auto; }
+  .studio-sketch-bridge-cta, .sketch-studio-bridge-cta { width: 100%; }
   .studio-draft-banner, .studio-draft-toolbar { align-items: stretch; flex-direction: column; }
   .studio-draft-banner-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .studio-draft-banner-actions .button { justify-content: center; }
