@@ -60,6 +60,7 @@
 | **TTS Phase 1** | ชัย | น้องไนท์ พูดออกเสียงได้ via Google Cloud TTS (PR #12) | `877af6e` | ✅ **Live บน VPS** · ปุ่มฟังเสียง + เสียง Kore + POST /api/support/speech |
 | **TTS Phase 2** | ชัย | ระบบเลือกโทนเสียงน้องไนท์ในหน้าแอดมิน (ล็อกหญิง 5 โทนอารมณ์, migration 013, API, UI) | `feat/chai-support-voice-settings` | 🟡 ออกใบงานแล้ว (`qa/job-39-chai-support-voice-settings.md`) |
 | **Task 38** | Replit | Top View อ่างเสมือนจริง + ท็อปเปลี่ยนสีตามหิน + ปุ่ม 2 ทางบนการ์ดอ่าง (PR #13) | `8a52a0d` | ✅ **Live บน VPS** · ปุ่ม 2 ทางบนการ์ดอ่าง, ผังแสดงเนื้อหิน, Top view อ่างมีสะดือ |
+| **Task 40** | Replit | สะพานเชื่อม 2 ทาง Studio ↔ ส่งแบบร่างมือ พร้อมปรับ UX หน้าสเก็ตช์ | `feat/replit-studio-sketch-bridge` | 🟡 ออกใบงานแล้ว (`qa/job-40-replit-studio-sketch-bridge.md`) |
 | **Task 31** | Replit | ระบบทีมขายวาด 2D Studio จากแบบร่างลูกค้า (ปุ่มใน Admin + Split View ดูรูปคู่ขนาน) (PR #9) | `ac8a8e6` | ✅ **Live บน VPS** · เปิดวาดจาก Lead, ดูรูปคู่ขนาน, บันทึกผังเข้า Lead |
 | **Task 33** | ชัย | ยกระดับความปลอดภัย API Server ตามรายงาน Security Audit (PR #7) | `f4de3d9` | ✅ **Live บน VPS** · Sweep Map >1k, Secure cookie, Rate limit GET /quotes · 254 tests ผ่าน |
 | **Task 34** | ชัย | สร้าง quoteNumber/quoteAccessSecret อัตโนมัติเมื่อทีมขายบันทึก studioData (PR #8) | `e7967e7` | ✅ **Live บน VPS** · สร้างเลขที่ใบเสนอราคา+โทเค็นอัตโนมัติ · 256 tests ผ่าน |
