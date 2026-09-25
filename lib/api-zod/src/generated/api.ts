@@ -61,6 +61,8 @@ export const getCatalogResponseBasinsItemOneQuoteImageUrlMax = 2000;
 
 export const getCatalogResponseBasinsItemOneVideoUrlMax = 2000;
 
+export const getCatalogResponseBasinsItemOneTopViewImageUrlMax = 2000;
+
 export const getCatalogResponseCategoriesItemOneNameMax = 120;
 
 export const getCatalogResponseInstalledStonesItemOneCodeMax = 64;
@@ -106,6 +108,7 @@ export const GetCatalogResponse = zod.object({
   "galleryImageUrls": zod.array(zod.string().max(getCatalogResponseBasinsItemOneGalleryImageUrlsItemMax)).max(getCatalogResponseBasinsItemOneGalleryImageUrlsMax),
   "quoteImageUrl": zod.string().max(getCatalogResponseBasinsItemOneQuoteImageUrlMax).nullish(),
   "videoUrl": zod.string().max(getCatalogResponseBasinsItemOneVideoUrlMax).nullable(),
+  "topViewImageUrl": zod.string().max(getCatalogResponseBasinsItemOneTopViewImageUrlMax).nullish().describe('Optional top-down product photo, shown alongside the angled imageUrl'),
   "active": zod.boolean(),
   "sortOrder": zod.number()
 }).and(zod.object({
@@ -571,6 +574,8 @@ export const listAdminBasinsResponseOneQuoteImageUrlMax = 2000;
 
 export const listAdminBasinsResponseOneVideoUrlMax = 2000;
 
+export const listAdminBasinsResponseOneTopViewImageUrlMax = 2000;
+
 
 
 export const ListAdminBasinsResponseItem = zod.object({
@@ -588,6 +593,7 @@ export const ListAdminBasinsResponseItem = zod.object({
   "galleryImageUrls": zod.array(zod.string().max(listAdminBasinsResponseOneGalleryImageUrlsItemMax)).max(listAdminBasinsResponseOneGalleryImageUrlsMax),
   "quoteImageUrl": zod.string().max(listAdminBasinsResponseOneQuoteImageUrlMax).nullish(),
   "videoUrl": zod.string().max(listAdminBasinsResponseOneVideoUrlMax).nullable(),
+  "topViewImageUrl": zod.string().max(listAdminBasinsResponseOneTopViewImageUrlMax).nullish().describe('Optional top-down product photo, shown alongside the angled imageUrl'),
   "active": zod.boolean(),
   "sortOrder": zod.number()
 }).and(zod.object({
@@ -636,6 +642,8 @@ export const createAdminBasinBodyQuoteImageUrlMax = 2000;
 
 export const createAdminBasinBodyVideoUrlMax = 2000;
 
+export const createAdminBasinBodyTopViewImageUrlMax = 2000;
+
 
 
 export const CreateAdminBasinBody = zod.object({
@@ -653,6 +661,7 @@ export const CreateAdminBasinBody = zod.object({
   "galleryImageUrls": zod.array(zod.string().max(createAdminBasinBodyGalleryImageUrlsItemMax)).max(createAdminBasinBodyGalleryImageUrlsMax).optional(),
   "quoteImageUrl": zod.string().max(createAdminBasinBodyQuoteImageUrlMax).nullish(),
   "videoUrl": zod.string().max(createAdminBasinBodyVideoUrlMax).nullish(),
+  "topViewImageUrl": zod.string().max(createAdminBasinBodyTopViewImageUrlMax).nullish().describe('Optional top-down product photo, shown alongside the angled imageUrl'),
   "active": zod.boolean(),
   "sortOrder": zod.number()
 })
@@ -686,6 +695,8 @@ export const createAdminBasinResponseOneQuoteImageUrlMax = 2000;
 
 export const createAdminBasinResponseOneVideoUrlMax = 2000;
 
+export const createAdminBasinResponseOneTopViewImageUrlMax = 2000;
+
 
 
 export const CreateAdminBasinResponse = zod.object({
@@ -703,6 +714,7 @@ export const CreateAdminBasinResponse = zod.object({
   "galleryImageUrls": zod.array(zod.string().max(createAdminBasinResponseOneGalleryImageUrlsItemMax)).max(createAdminBasinResponseOneGalleryImageUrlsMax),
   "quoteImageUrl": zod.string().max(createAdminBasinResponseOneQuoteImageUrlMax).nullish(),
   "videoUrl": zod.string().max(createAdminBasinResponseOneVideoUrlMax).nullable(),
+  "topViewImageUrl": zod.string().max(createAdminBasinResponseOneTopViewImageUrlMax).nullish().describe('Optional top-down product photo, shown alongside the angled imageUrl'),
   "active": zod.boolean(),
   "sortOrder": zod.number()
 }).and(zod.object({
@@ -869,6 +881,8 @@ export const updateAdminBasinBodyQuoteImageUrlMax = 2000;
 
 export const updateAdminBasinBodyVideoUrlMax = 2000;
 
+export const updateAdminBasinBodyTopViewImageUrlMax = 2000;
+
 
 
 export const UpdateAdminBasinBody = zod.object({
@@ -886,6 +900,7 @@ export const UpdateAdminBasinBody = zod.object({
   "galleryImageUrls": zod.array(zod.string().max(updateAdminBasinBodyGalleryImageUrlsItemMax)).max(updateAdminBasinBodyGalleryImageUrlsMax).optional(),
   "quoteImageUrl": zod.string().max(updateAdminBasinBodyQuoteImageUrlMax).nullish(),
   "videoUrl": zod.string().max(updateAdminBasinBodyVideoUrlMax).nullish(),
+  "topViewImageUrl": zod.string().max(updateAdminBasinBodyTopViewImageUrlMax).nullish().describe('Optional top-down product photo, shown alongside the angled imageUrl'),
   "active": zod.boolean(),
   "sortOrder": zod.number()
 })
@@ -919,6 +934,8 @@ export const updateAdminBasinResponseOneQuoteImageUrlMax = 2000;
 
 export const updateAdminBasinResponseOneVideoUrlMax = 2000;
 
+export const updateAdminBasinResponseOneTopViewImageUrlMax = 2000;
+
 
 
 export const UpdateAdminBasinResponse = zod.object({
@@ -936,6 +953,7 @@ export const UpdateAdminBasinResponse = zod.object({
   "galleryImageUrls": zod.array(zod.string().max(updateAdminBasinResponseOneGalleryImageUrlsItemMax)).max(updateAdminBasinResponseOneGalleryImageUrlsMax),
   "quoteImageUrl": zod.string().max(updateAdminBasinResponseOneQuoteImageUrlMax).nullish(),
   "videoUrl": zod.string().max(updateAdminBasinResponseOneVideoUrlMax).nullable(),
+  "topViewImageUrl": zod.string().max(updateAdminBasinResponseOneTopViewImageUrlMax).nullish().describe('Optional top-down product photo, shown alongside the angled imageUrl'),
   "active": zod.boolean(),
   "sortOrder": zod.number()
 }).and(zod.object({

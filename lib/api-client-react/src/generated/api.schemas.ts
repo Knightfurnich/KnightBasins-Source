@@ -441,6 +441,12 @@ export interface BasinPriceInput {
      * @nullable
      */
   videoUrl?: string | null;
+  /**
+     * Optional top-down product photo, shown alongside the angled imageUrl
+     * @maxLength 2000
+     * @nullable
+     */
+  topViewImageUrl?: string | null;
   active: boolean;
   sortOrder: number;
 }
