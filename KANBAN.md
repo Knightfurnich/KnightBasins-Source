@@ -60,13 +60,13 @@
 | **TTS Phase 1** | ชัย | น้องไนท์ พูดออกเสียงได้ via Google Cloud TTS (PR #12) | `877af6e` | ✅ **Live บน VPS** · ปุ่มฟังเสียง + เสียง Kore + POST /api/support/speech |
 | **TTS Phase 2** | ชัย | ระบบเลือกโทนเสียงน้องไนท์ในหน้าแอดมิน (ล็อกหญิง 5 โทนอารมณ์, migration 013, API, UI) (PR #14) | `4b4daf0` | ✅ **Live บน VPS** · หน้าเลือก 5 โทนเสียงหญิง + API Preview/Save + fallback Kore |
 | **Task 38** | Replit | Top View อ่างเสมือนจริง + ท็อปเปลี่ยนสีตามหิน + ปุ่ม 2 ทางบนการ์ดอ่าง (PR #13) | `8a52a0d` | ✅ **Live บน VPS** · ปุ่ม 2 ทางบนการ์ดอ่าง, ผังแสดงเนื้อหิน, Top view อ่างมีสะดือ |
-| **Task 40** | Replit | สะพานเชื่อม 2 ทาง Studio ↔ ส่งแบบร่างมือ พร้อมปรับ UX หน้าสเก็ตช์ | `feat/replit-studio-sketch-bridge` | 🟡 ออกใบงานแล้ว (`qa/job-40-replit-studio-sketch-bridge.md`) |
+| **Task 40** | Replit | สะพานเชื่อม 2 ทาง Studio ↔ ส่งแบบร่างมือ พร้อมปรับ UX หน้าสเก็ตช์ (PR #16) | `abb02b6` | ✅ **Live บน VPS** · แบนเนอร์ 2 ทาง, หน้าสเก็ตช์ซ่อนปุ่มวางผัง/แก้ helper |
 | **Task 31** | Replit | ระบบทีมขายวาด 2D Studio จากแบบร่างลูกค้า (ปุ่มใน Admin + Split View ดูรูปคู่ขนาน) (PR #9) | `ac8a8e6` | ✅ **Live บน VPS** · เปิดวาดจาก Lead, ดูรูปคู่ขนาน, บันทึกผังเข้า Lead |
 | **Task 33** | ชัย | ยกระดับความปลอดภัย API Server ตามรายงาน Security Audit (PR #7) | `f4de3d9` | ✅ **Live บน VPS** · Sweep Map >1k, Secure cookie, Rate limit GET /quotes · 254 tests ผ่าน |
 | **Task 34** | ชัย | สร้าง quoteNumber/quoteAccessSecret อัตโนมัติเมื่อทีมขายบันทึก studioData (PR #8) | `e7967e7` | ✅ **Live บน VPS** · สร้างเลขที่ใบเสนอราคา+โทเค็นอัตโนมัติ · 256 tests ผ่าน |
 | **Task 35** | ชัย | Auto-match สีหินตามรุ่นอ่าง + คิดราคาพร้อมติดตั้งอัตโนมัติ (PR #10) | `8f2b7da` | ✅ **Live บน VPS** · KF001->VS311, KF009->NB091 8,500 บ./ตร.ม. · 192 tests ผ่าน |
 | **Task 37** | ชัย | ปรับขนาดเริ่มต้นบอร์ด Studio เป็นขนาดจริง 1800x600 และเพิ่มตัวช่วยวางอ่าง (PR #15) | `a3dd79c` | ✅ **Live บน VPS** · ขนาดเริ่ม 1800x600, createStudioBasinPlacement วางกึ่งกลางร่นขอบ >=100mm |
-| **Task 41** | ชัย | ปลดล็อกคำนวณราคาหินลายหินอ่อน 9,500 บ./ตร.ม. ใน 2D Studio ตามพื้นที่จริง | `feat/chai-marble-stone-pricing` | 🔄 มอบหมายแล้ว (`qa/job-41-chai-marble-stone-pricing.md`) |
+| **Task 41** | ชัย | ปลดล็อกคำนวณราคาหินลายหินอ่อน 9,500 บ./ตร.ม. ใน 2D Studio ตามพื้นที่จริง (PR #17) | `733cbd6` | ✅ **Live บน VPS** · หินลาย 9,500 คิดตามพื้นที่จริง (1.08 ตร.ม. = 10,260 บ.) |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
 | **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
