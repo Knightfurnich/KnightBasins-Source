@@ -73,7 +73,7 @@
 | **Task 43** | Replit | ปุ่มบันทึก/แชร์ผังเคาน์เตอร์เป็นรูปภาพ PNG เด่นชัดทั้ง 2 โหมด (PR #19) | `876f633` | ✅ **Live บน VPS** · ปุ่ม 📷 บันทึกภาพผัง (PNG) เด่นชัดในทั้งโหมดง่ายและโหมดปกติ |
 | **Data Backfill** | เดวิด | เติมข้อมูลจริงจากประวัติแชท LINE: ที่อยู่หน้างาน/เบอร์โทร 9 งาน + สร้าง Lead จากหลักฐาน PDF + ผูกสลิปครบ 100% | `bin/data_backfill_pipeline.py` + `pass2` | ✅ **เสร็จ** · สลิปผูกครบ 53/53 (เหลือ 0) · 13 Lead มีที่อยู่ · 20 งานมีคิวช่าง |
 | **Task 44** | ชัย | ระบบฐานข้อมูลและ API ภาพหน้างานช่าง (Migration 014 + GET/POST/PATCH) | `feat/chai-site-photos-api` | ✅ **Live บน VPS** · PR #20 merge + migration 014 applied · GET /api/admin/site-photos ตอบ 200 OK |
-| **Task 46** | ชัย | หน้าแกลเลอรีภาพหน้างานช่างในหน้าแอดมิน (/admin/site-photos) | `feat/chai-site-photos-ui` | 🔄 มอบหมายแล้ว (`qa/job-46-chai-site-photos-ui.md`) |
+| **Task 46** | ชัย | หน้าแกลเลอรีภาพหน้างานช่างในหน้าแอดมิน (/admin/site-photos) | `feat/chai-site-photos-ui` | ✅ **Live บน VPS** · PR #22 merge + deploy · 51 รูปจริง + Lightbox แก้ไขได้ |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | 🔄 มอบหมายแล้ว (`qa/job-45-replit-counter-size-presets-ui.md`) |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
