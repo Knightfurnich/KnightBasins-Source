@@ -86,6 +86,8 @@
 | **Disaster Recovery** | เดวิด | ชุดกู้ชีพฉุกเฉินระดับ SLA ≤ 4 ชม. (.tar.gz 46 MB) กู้คืนระบบ 100% ใน 15 นาที | `feat/david-backup-dump` | ✅ **Live บน VPS** · รวม DB + uploads + คู่มือ 3 ขั้นตอน |
 | **Task 54** | ชัย | ระบบ API ตัวกรองภาพหน้างานขั้นสูง (unassigned + month + sender) | `feat/chai-site-photos-filters` | ✅ **Merged & Live (PR #30)** · ผ่าน 11/11 tests · API /admin/site-photos รองรับครบ 3 filter |
 | **Task 55** | Replit | เพิ่มแถบตัวกรอง 'ยังไม่ระบุรหัสงาน' และตัวเลือกเดือน ในหน้าคลังภาพ (/admin/site-photos) | `feat/replit-site-photos-filters` | ✅ **Merged & Live (PR #31)** · ผ่าน 6/6 tests · ปุ่ม unassigned + ดรอปดาวน์เดือนใช้งานได้จริงบนจอ |
+| **Task 56** | ชัย | ระบบ API สต็อกหินสังเคราะห์ Read-Only ดึงสดจาก Google Drive Service Account (`GET /api/admin/stock`) | `feat/chai-stock-api` | 🔄 มอบหมายแล้ว (`qa/job-56-chai-stock-api.md`) |
+| **Task 57** | Replit | สร้างหน้าจอสต็อกหินสังเคราะห์ Real-Time ในระบบแอดมิน (`/admin/stock`) | `feat/replit-stock-inventory-ui` | 🔄 มอบหมายแล้ว (`qa/job-57-replit-stock-ui.md`) |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
