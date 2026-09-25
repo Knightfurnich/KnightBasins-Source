@@ -77,6 +77,9 @@ import type {
   SupportChatInput,
   SupportChatResponse,
   SupportPaymentSlipResponse,
+  SupportVoiceSetting,
+  SupportVoiceSettingsResponse,
+  SupportVoiceUpdateInput,
   TechnicianCalendarResponse,
   TechnicianTeam,
   TechnicianTeamCreateInput,
@@ -4924,6 +4927,178 @@ export const useUpdateAdminTechnicianTeam = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateAdminTechnicianTeamMutationOptions(options), queryClient);
+    }
+
+export const getGetAdminSupportVoiceUrl = () => {
+
+
+
+
+  return `/api/admin/support-voice`
+}
+
+/**
+ * @summary Get the voice น้องไนท์ currently speaks with, plus the curated list of selectable voices
+ */
+export const getAdminSupportVoice = async ( options?: RequestInit): Promise<SupportVoiceSettingsResponse> => {
+
+  return customFetch<SupportVoiceSettingsResponse>(getGetAdminSupportVoiceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminSupportVoiceQueryKey = () => {
+    return [
+    `/api/admin/support-voice`
+    ] as const;
+    }
+
+
+export const getGetAdminSupportVoiceQueryOptions = <TData = Awaited<ReturnType<typeof getAdminSupportVoice>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSupportVoice>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminSupportVoiceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminSupportVoice>>> = ({ signal }) => getAdminSupportVoice({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminSupportVoice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminSupportVoiceQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminSupportVoice>>>
+export type GetAdminSupportVoiceQueryError = ErrorType<void>
+
+
+export function useGetAdminSupportVoice<TData = Awaited<ReturnType<typeof getAdminSupportVoice>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSupportVoice>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminSupportVoice>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminSupportVoice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminSupportVoice<TData = Awaited<ReturnType<typeof getAdminSupportVoice>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSupportVoice>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminSupportVoice>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminSupportVoice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminSupportVoice<TData = Awaited<ReturnType<typeof getAdminSupportVoice>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSupportVoice>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the voice น้องไนท์ currently speaks with, plus the curated list of selectable voices
+ */
+
+export function useGetAdminSupportVoice<TData = Awaited<ReturnType<typeof getAdminSupportVoice>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminSupportVoice>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminSupportVoiceQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateAdminSupportVoiceUrl = () => {
+
+
+
+
+  return `/api/admin/support-voice`
+}
+
+/**
+ * @summary Change the voice น้องไนท์ speaks with
+ */
+export const updateAdminSupportVoice = async (supportVoiceUpdateInput: SupportVoiceUpdateInput, options?: RequestInit): Promise<SupportVoiceSetting> => {
+
+  return customFetch<SupportVoiceSetting>(getUpdateAdminSupportVoiceUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(supportVoiceUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminSupportVoiceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminSupportVoice>>, TError,{data: BodyType<SupportVoiceUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminSupportVoice>>, TError,{data: BodyType<SupportVoiceUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateAdminSupportVoice'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminSupportVoice>>, {data: BodyType<SupportVoiceUpdateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAdminSupportVoice(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminSupportVoiceMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminSupportVoice>>>
+    export type UpdateAdminSupportVoiceMutationBody = BodyType<SupportVoiceUpdateInput>
+    export type UpdateAdminSupportVoiceMutationError = ErrorType<void>
+
+    /**
+ * @summary Change the voice น้องไนท์ speaks with
+ */
+export const useUpdateAdminSupportVoice = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminSupportVoice>>, TError,{data: BodyType<SupportVoiceUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminSupportVoice>>,
+        TError,
+        {data: BodyType<SupportVoiceUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminSupportVoiceMutationOptions(options), queryClient);
     }
 
 export const getGetLineAuthStatusUrl = () => {

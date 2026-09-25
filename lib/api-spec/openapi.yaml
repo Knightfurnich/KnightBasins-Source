@@ -1038,6 +1038,41 @@ paths:
           description: Missing the leads edit permission
         "404":
           description: Team not found
+  /admin/support-voice:
+    get:
+      operationId: getAdminSupportVoice
+      tags: [admin]
+      summary: Get the voice น้องไนท์ currently speaks with, plus the curated list of selectable voices
+      responses:
+        "200":
+          description: Current voice setting and the curated options list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportVoiceSettingsResponse"
+        "403":
+          description: Missing the leads edit permission
+    patch:
+      operationId: updateAdminSupportVoice
+      tags: [admin]
+      summary: Change the voice น้องไนท์ speaks with
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportVoiceUpdateInput"
+      responses:
+        "200":
+          description: The newly saved voice setting
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportVoiceSetting"
+        "400":
+          description: voiceName is missing or is not one of the curated options
+        "403":
+          description: Missing the leads edit permission
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -2127,3 +2162,37 @@ components:
           items: { type: string }
         sortOrder: { type: integer }
         active: { type: boolean }
+    SupportVoiceSetting:
+      type: object
+      required: [voiceName, languageCode, speakingRate, updatedAt]
+      properties:
+        voiceName: { type: string, description: "A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore" }
+        languageCode: { type: string }
+        speakingRate: { type: number }
+        updatedAt: { type: string, format: date-time }
+    SupportVoiceOption:
+      type: object
+      required: [voiceName, label]
+      properties:
+        voiceName: { type: string }
+        label:
+          type: string
+          description: Thai description of the voice's tone, shown to the admin next to the preview button
+    SupportVoiceSettingsResponse:
+      type: object
+      required: [current, options]
+      properties:
+        current:
+          $ref: "#/components/schemas/SupportVoiceSetting"
+        options:
+          type: array
+          description: The 5 curated female th-TH voices an admin may choose from
+          items:
+            $ref: "#/components/schemas/SupportVoiceOption"
+    SupportVoiceUpdateInput:
+      type: object
+      required: [voiceName]
+      properties:
+        voiceName:
+          type: string
+          description: Must match one of the voiceName values from GET /admin/support-voice's options list

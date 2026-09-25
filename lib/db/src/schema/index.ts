@@ -5,6 +5,7 @@ import {
   index,
   jsonb,
   pgTable,
+  real,
   serial,
   text,
   timestamp,
@@ -381,6 +382,19 @@ export const technicianTeams = pgTable(
   ],
 );
 
+// Single-row settings table: the admin picks one of a curated list of Google
+// Cloud TTS th-TH voices for น้องไนท์ (see google-tts.ts). A missing/empty
+// table is expected before this feature is first used, so callers must
+// always fall back to the hardcoded default voice rather than assume a row
+// exists.
+export const supportVoiceSettings = pgTable("support_voice_settings", {
+  id: serial("id").primaryKey(),
+  voiceName: varchar("voice_name", { length: 64 }).notNull(),
+  languageCode: varchar("language_code", { length: 16 }).notNull().default("th-TH"),
+  speakingRate: real("speaking_rate").notNull().default(1.0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type BasinPrice = typeof basinPrices.$inferSelect;
 export type BasinCategory = typeof basinCategories.$inferSelect;
 export type InstalledStoneCategory = typeof installedStoneCategories.$inferSelect;
@@ -398,3 +412,4 @@ export type CustomerLead = typeof customerLeads.$inferSelect;
 export type LeadExternalReference = typeof leadExternalReferences.$inferSelect;
 export type PaymentSlip = typeof paymentSlips.$inferSelect;
 export type TechnicianTeamRow = typeof technicianTeams.$inferSelect;
+export type SupportVoiceSettingsRow = typeof supportVoiceSettings.$inferSelect;
