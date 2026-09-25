@@ -176,6 +176,46 @@ export function BackupVaultPage() {
         </div>
       </header>
 
+      {/* SLA <= 4 Hours Disaster Recovery Hero Card */}
+      <section
+        className="rounded-none border-2 border-[#a24439] bg-[#a24439]/5 p-6 shadow-sm"
+        aria-label="ชุดกู้ชีพฉุกเฉินระดับ SLA"
+        data-testid="backup-card-disaster-recovery"
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="bg-[#a24439] px-2 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
+                Disaster Recovery · SLA ≤ 4 Hours
+              </span>
+              <span className="text-xs font-semibold text-[#a24439]">
+                กู้ชีพฉุกเฉินฟื้นคืนระบบ 100% ภายใน 15 นาที
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-[var(--ink)]">
+              ชุดสำรองกู้ชีพฉุกเฉินทั้งระบบ (Full Disaster Recovery Bundle)
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-[var(--ink-soft)]">
+              ก้อนเดียวจบ: รวมฐานข้อมูล 18 ตาราง + ไฟล์รูปภาพหน้างานจริง + ภาพ Top View 30 รุ่น + สคริปต์คำสั่งเดียวกู้ชีพทั้งระบบ (<code className="bg-black/5 px-1 py-0.5">disaster_recovery_restore.sh</code>) สามารถชุบชีวิตระบบบนเครื่องเซิร์ฟเวอร์ใหม่ได้ทันทีแม้ศูนย์ข้อมูลหรือดิสก์เดิมพังถาวร
+            </p>
+          </div>
+          <div className="shrink-0 flex flex-col gap-1 items-start lg:items-end">
+            <a
+              href="/api/admin/backup/disaster-recovery-bundle"
+              download
+              className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#a24439] bg-[#a24439] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#88362d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a24439]"
+              data-testid="link-backup-disaster-recovery-download"
+            >
+              <ArrowDownToLine className="h-5 w-5" aria-hidden="true" />
+              ดาวน์โหลดชุดกู้ชีพฉุกเฉิน (.tar.gz ~46 MB)
+            </a>
+            <span className="text-[11px] text-[var(--ink-soft)]">
+              สร้างอัตโนมัติพร้อมฐานข้อมูลล่าสุด · ปลอดภัยระดับสูงสุด
+            </span>
+          </div>
+        </div>
+      </section>
+
       <section aria-label="หมวดหมู่การสำรองข้อมูล" className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <article className="flex h-full flex-col border border-[var(--line)] bg-[var(--card-paper)] p-5 shadow-sm" data-testid="backup-card-leads">
           <div className="flex items-start gap-3">

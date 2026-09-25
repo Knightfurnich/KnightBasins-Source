@@ -2687,5 +2687,29 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
+  /**
+   * Full Disaster Recovery Bundle download for Admin/Owner.
+   * Packages the database dump + all image uploads + restore instructions
+   * into a single tar.gz file (~46 MB) that can resurrect the entire system.
+   */
+  router.get("/admin/backup/disaster-recovery-bundle", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
+    try {
+      const files = await readdir(BACKUP_DIR).catch(() => [] as string[]);
+      const bundles = files.filter((name) => /^knight_basins_disaster_recovery_\d{8}T\d{6}Z\.tar\.gz$/.test(name)).sort().reverse();
+      const latest = bundles[0];
+      if (!latest) {
+        return res.status(404).json({ message: "ยังไม่มีชุดสำรองกู้ชีพฉุกเฉินในระบบ" });
+      }
+
+      const filePath = join(BACKUP_DIR, latest);
+      const info = await stat(filePath);
+      res.setHeader("Content-Type", "application/gzip");
+      res.setHeader("Content-Disposition", `attachment; filename="${latest}"`);
+      res.setHeader("Content-Length", String(info.size));
+      res.setHeader("Cache-Control", "no-store");
+      return createReadStream(filePath).pipe(res);
+    } catch (error) { return next(error); }
+  });
+
   return router;
 }
