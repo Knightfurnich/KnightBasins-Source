@@ -1507,6 +1507,10 @@ components:
           items: { type: string, maxLength: 2000 }
         quoteImageUrl: { type: [string, "null"], maxLength: 2000 }
         videoUrl: { type: [string, "null"], maxLength: 2000 }
+        topViewImageUrl:
+          type: [string, "null"]
+          maxLength: 2000
+          description: Optional top-down product photo, shown alongside the angled imageUrl
         active: { type: boolean }
         sortOrder: { type: integer }
     BasinPrice:

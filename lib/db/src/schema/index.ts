@@ -49,6 +49,7 @@ export const basinPrices = pgTable(
     galleryImageUrls: text("gallery_image_urls").array().default(sql`ARRAY[]::text[]`).notNull(),
     quoteImageUrl: text("quote_image_url"),
     videoUrl: text("video_url"),
+    topViewImageUrl: text("top_view_image_url"),
     active: boolean("active").default(true).notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),
     ...auditColumns,
