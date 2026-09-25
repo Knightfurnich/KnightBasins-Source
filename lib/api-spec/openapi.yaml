@@ -967,6 +967,77 @@ paths:
                 $ref: "#/components/schemas/TechnicianCalendarResponse"
         "400":
           description: month is missing or does not match YYYY-MM
+  /admin/technician-teams:
+    get:
+      operationId: listAdminTechnicianTeams
+      tags: [admin]
+      summary: List the install teams an admin can assign to a lead
+      parameters:
+        - name: includeInactive
+          in: query
+          required: false
+          description: Set to 1 to also return teams that have been deactivated
+          schema:
+            type: integer
+            enum: [1]
+      responses:
+        "200":
+          description: Install teams, ordered by sortOrder then code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TechnicianTeam"
+        "403":
+          description: Missing the leads edit permission
+    post:
+      operationId: createAdminTechnicianTeam
+      tags: [admin]
+      summary: Add an install team to the roster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TechnicianTeamCreateInput"
+      responses:
+        "201":
+          description: Created team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TechnicianTeam"
+        "400":
+          description: code is not ^[A-Z]{2,8}$, code already exists, or name/shortName is empty
+        "403":
+          description: Missing the leads edit permission
+  /admin/technician-teams/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    patch:
+      operationId: updateAdminTechnicianTeam
+      tags: [admin]
+      summary: Rename, re-alias, reorder, or activate/deactivate an install team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TechnicianTeamUpdateInput"
+      responses:
+        "200":
+          description: Updated team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TechnicianTeam"
+        "400":
+          description: No supported field was provided, or a field is invalid
+        "403":
+          description: Missing the leads edit permission
+        "404":
+          description: Team not found
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -1557,6 +1628,10 @@ components:
             widthMm: { type: [number, "null"] }
             lengthMm: { type: [number, "null"] }
             depthMm: { type: [number, "null"] }
+        studioData:
+          type: object
+          description: "Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.)"
+          additionalProperties: true
     AdminLeadStatusUpdateInput:
       type: object
       required: [status]
@@ -1579,8 +1654,8 @@ components:
       properties:
         technicianTeamCode:
           type: [string, "null"]
-          enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL, null]
-          description: One of the 10 install team codes, or null to clear the assignment back to unassigned
+          pattern: "^[A-Z]{2,8}$"
+          description: A code from GET /admin/technician-teams (active or inactive), or null to clear the assignment back to unassigned
         expectedInstallationDate:
           type: [string, "null"]
           pattern: "^\\d{4}-\\d{2}-\\d{2}$"
@@ -1616,7 +1691,8 @@ components:
         expectedInstallationDate: { type: [string, "null"], format: date }
         technicianTeamCode:
           type: [string, "null"]
-          enum: [TP, PP, ST, CM, KF, PA, PM, TJ, AM, CL, null]
+          pattern: "^[A-Z]{2,8}$"
+          description: A code from GET /admin/technician-teams (active or inactive), or null if unassigned
         productSkus:
           type: array
           items: { type: string }
@@ -1800,13 +1876,17 @@ components:
         leadCount: { type: integer }
     AdminDashboardTechnicianJob:
       type: object
-      required: [id, leadKey, name, project, date]
+      required: [id, leadKey, name, project, date, confidence]
       properties:
         id: { type: integer }
         leadKey: { type: string }
         name: { type: string }
         project: { type: [string, "null"] }
         date: { type: string, description: "ISO date (YYYY-MM-DD)" }
+        confidence:
+          type: string
+          enum: [exact, prefix, fuzzy, manual]
+          description: "How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching."
     AdminDashboardTechnicianCapacity:
       type: object
       required: [teamCode, teamName, activeJobsCount, status, jobs]
@@ -1825,7 +1905,7 @@ components:
             $ref: "#/components/schemas/AdminDashboardTechnicianJob"
     TechnicianCalendarJob:
       type: object
-      required: [id, leadKey, name, project, address, quoteNumber]
+      required: [id, leadKey, name, project, address, quoteNumber, confidence]
       properties:
         id: { type: integer }
         leadKey: { type: string }
@@ -1833,6 +1913,10 @@ components:
         project: { type: [string, "null"] }
         address: { type: [string, "null"] }
         quoteNumber: { type: [string, "null"] }
+        confidence:
+          type: string
+          enum: [exact, prefix, fuzzy, manual]
+          description: "How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching."
     TechnicianCalendarTeamDay:
       type: object
       required: [teamCode, teamName, status, jobCount, jobs]
@@ -2005,3 +2089,41 @@ components:
         text: { type: string, minLength: 1, maxLength: 1000 }
         primaryText: { type: string, minLength: 1, maxLength: 500 }
         secondaryText: { type: string, maxLength: 500 }
+    TechnicianTeam:
+      type: object
+      required: [id, code, name, shortName, aliases, sortOrder, active]
+      properties:
+        id: { type: integer }
+        code: { type: string, pattern: "^[A-Z]{2,8}$" }
+        name: { type: string, maxLength: 80 }
+        shortName: { type: string, maxLength: 40 }
+        aliases:
+          type: array
+          items: { type: string }
+          description: Extra spellings seen in the LINE group, stored WITHOUT a leading ทีม/ช่าง (the matcher adds those itself)
+        sortOrder: { type: integer }
+        active:
+          type: boolean
+          description: Inactive teams stay resolvable for old jobs but are not offered in the dispatch dropdown
+    TechnicianTeamCreateInput:
+      type: object
+      required: [code, name, shortName]
+      properties:
+        code: { type: string, pattern: "^[A-Z]{2,8}$" }
+        name: { type: string, minLength: 1, maxLength: 80 }
+        shortName: { type: string, minLength: 1, maxLength: 40 }
+        aliases:
+          type: array
+          items: { type: string }
+        sortOrder: { type: integer }
+    TechnicianTeamUpdateInput:
+      type: object
+      description: At least one field must be present; code cannot be changed
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        shortName: { type: string, minLength: 1, maxLength: 40 }
+        aliases:
+          type: array
+          items: { type: string }
+        sortOrder: { type: integer }
+        active: { type: boolean }

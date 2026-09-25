@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Check, Edit3, Loader2, Plus, Power, Save, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import {
   useCreateAdminTechnicianTeam,
   useListAdminTechnicianTeams,
   useUpdateAdminTechnicianTeam,
   type TechnicianTeam,
-} from "./technician-teams-bridge";
+} from "@workspace/api-client-react";
+import { Button } from "@/components/ui/button";
 
 type TeamDraft = {
   code: string;
@@ -114,19 +114,17 @@ export function TechnicianTeamsManager() {
       return;
     }
 
-    const data = {
-      code: draft.code.trim(),
+    const fields = {
       name: draft.name.trim(),
       shortName: draft.shortName.trim(),
       aliases: aliasesFromDraft(draft.aliases),
       sortOrder: Number(draft.sortOrder),
-      active: draft.active,
     };
 
     setFormError("");
     setNotice("");
     if (editingId === null) {
-      createTeam.mutate({ data }, {
+      createTeam.mutate({ data: { code: draft.code.trim(), ...fields } }, {
         onError: (error) => setFormError(errorMessage(error)),
         onSuccess: () => {
           invalidateTeams();
@@ -137,7 +135,7 @@ export function TechnicianTeamsManager() {
       return;
     }
 
-    updateTeam.mutate({ id: editingId, data }, {
+    updateTeam.mutate({ id: editingId, data: { ...fields, active: draft.active } }, {
       onError: (error) => setFormError(errorMessage(error)),
       onSuccess: () => {
         invalidateTeams();
@@ -226,7 +224,8 @@ export function TechnicianTeamsManager() {
               <input
                 value={draft.code}
                 onChange={(event) => updateDraft("code", event.target.value)}
-                className="h-11 w-full rounded-none border border-[var(--line)] bg-transparent px-3 outline-none transition-colors focus:border-[var(--ink)]"
+                readOnly={isEditing}
+                className="h-11 w-full rounded-none border border-[var(--line)] bg-transparent px-3 outline-none transition-colors focus:border-[var(--ink)] read-only:cursor-not-allowed read-only:opacity-70"
                 data-testid="input-technician-team-code"
                 autoComplete="off"
                 required
@@ -280,19 +279,21 @@ export function TechnicianTeamsManager() {
             </label>
           </div>
 
-          <label className="flex items-center gap-3 border-t border-[var(--line)] pt-5">
-            <input
-              type="checkbox"
-              checked={draft.active}
-              onChange={(event) => updateDraft("active", event.target.checked)}
-              className="h-4 w-4 rounded-none accent-[var(--ink)]"
-              data-testid="checkbox-technician-team-active"
-            />
-            <span>
-              <strong className="block">เปิดใช้งานทีม</strong>
-              <span className="text-[var(--ink-soft)]">ทีมที่ปิดใช้งานจะไม่พร้อมสำหรับการมอบหมายงานใหม่</span>
-            </span>
-          </label>
+          {isEditing && (
+            <label className="flex items-center gap-3 border-t border-[var(--line)] pt-5">
+              <input
+                type="checkbox"
+                checked={draft.active}
+                onChange={(event) => updateDraft("active", event.target.checked)}
+                className="h-4 w-4 rounded-none accent-[var(--ink)]"
+                data-testid="checkbox-technician-team-active"
+              />
+              <span>
+                <strong className="block">เปิดใช้งานทีม</strong>
+                <span className="text-[var(--ink-soft)]">ทีมที่ปิดใช้งานจะไม่พร้อมสำหรับการมอบหมายงานใหม่</span>
+              </span>
+            </label>
+          )}
 
           {formError && (
             <div className="border border-[#a24439]/40 bg-[#a24439]/5 p-4 text-[#a24439] rounded-none" role="alert" data-testid="status-technician-team-error">

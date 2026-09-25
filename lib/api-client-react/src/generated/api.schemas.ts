@@ -832,12 +832,19 @@ export type AdminLeadUpdateInputStaffDimensions = {
   depthMm?: number | null;
 } | null;
 
+/**
+ * Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.)
+ */
+export type AdminLeadUpdateInputStudioData = { [key: string]: unknown };
+
 export interface AdminLeadUpdateInput {
   status: AdminLeadUpdateInputStatus;
   /** @nullable */
   notes?: string | null;
   /** @nullable */
   staffDimensions?: AdminLeadUpdateInputStaffDimensions;
+  /** Full studio design state (pieces, dimensions, shape, sink placement, estimate, etc.) */
+  studioData?: AdminLeadUpdateInputStudioData;
 }
 
 export type AdminLeadStatusUpdateInputStatus = typeof AdminLeadStatusUpdateInputStatus[keyof typeof AdminLeadStatusUpdateInputStatus];
@@ -860,34 +867,15 @@ export interface AdminLeadStatusUpdateInput {
 }
 
 /**
- * One of the 10 install team codes, or null to clear the assignment back to unassigned
- * @nullable
- */
-export type AdminLeadTechnicianUpdateInputTechnicianTeamCode = typeof AdminLeadTechnicianUpdateInputTechnicianTeamCode[keyof typeof AdminLeadTechnicianUpdateInputTechnicianTeamCode] | null;
-
-
-export const AdminLeadTechnicianUpdateInputTechnicianTeamCode = {
-  TP: 'TP',
-  PP: 'PP',
-  ST: 'ST',
-  CM: 'CM',
-  KF: 'KF',
-  PA: 'PA',
-  PM: 'PM',
-  TJ: 'TJ',
-  AM: 'AM',
-  CL: 'CL',
-} as const;
-
-/**
  * At least one of technicianTeamCode or expectedInstallationDate must be present; an omitted field is left untouched
  */
 export interface AdminLeadTechnicianUpdateInput {
   /**
-     * One of the 10 install team codes, or null to clear the assignment back to unassigned
+     * A code from GET /admin/technician-teams (active or inactive), or null to clear the assignment back to unassigned
      * @nullable
+     * @pattern ^[A-Z]{2,8}$
      */
-  technicianTeamCode?: AdminLeadTechnicianUpdateInputTechnicianTeamCode;
+  technicianTeamCode?: string | null;
   /**
      * Installation date as YYYY-MM-DD (Asia/Bangkok), or null to clear it
      * @nullable
@@ -904,25 +892,6 @@ export const CustomerLeadStatus = {
   selecting: 'selecting',
   quote_requested: 'quote_requested',
   closed: 'closed',
-} as const;
-
-/**
- * @nullable
- */
-export type CustomerLeadTechnicianTeamCode = typeof CustomerLeadTechnicianTeamCode[keyof typeof CustomerLeadTechnicianTeamCode] | null;
-
-
-export const CustomerLeadTechnicianTeamCode = {
-  TP: 'TP',
-  PP: 'PP',
-  ST: 'ST',
-  CM: 'CM',
-  KF: 'KF',
-  PA: 'PA',
-  PM: 'PM',
-  TJ: 'TJ',
-  AM: 'AM',
-  CL: 'CL',
 } as const;
 
 export type CustomerLeadOrderMode = typeof CustomerLeadOrderMode[keyof typeof CustomerLeadOrderMode];
@@ -982,8 +951,12 @@ export interface CustomerLead {
   condoFloor?: string | null;
   /** @nullable */
   expectedInstallationDate?: string | null;
-  /** @nullable */
-  technicianTeamCode?: CustomerLeadTechnicianTeamCode;
+  /**
+     * A code from GET /admin/technician-teams (active or inactive), or null if unassigned
+     * @nullable
+     * @pattern ^[A-Z]{2,8}$
+     */
+  technicianTeamCode?: string | null;
   productSkus: string[];
   /** @nullable */
   quoteNumber?: string | null;
@@ -1191,6 +1164,19 @@ export const AdminDashboardTechnicianCapacityStatus = {
   available: 'available',
 } as const;
 
+/**
+ * How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching.
+ */
+export type AdminDashboardTechnicianJobConfidence = typeof AdminDashboardTechnicianJobConfidence[keyof typeof AdminDashboardTechnicianJobConfidence];
+
+
+export const AdminDashboardTechnicianJobConfidence = {
+  exact: 'exact',
+  prefix: 'prefix',
+  fuzzy: 'fuzzy',
+  manual: 'manual',
+} as const;
+
 export interface AdminDashboardTechnicianJob {
   id: number;
   leadKey: string;
@@ -1199,6 +1185,8 @@ export interface AdminDashboardTechnicianJob {
   project: string | null;
   /** ISO date (YYYY-MM-DD) */
   date: string;
+  /** How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching. */
+  confidence: AdminDashboardTechnicianJobConfidence;
 }
 
 export interface AdminDashboardTechnicianCapacity {
@@ -1230,6 +1218,19 @@ export interface AdminDashboardStats {
   asOf: string;
 }
 
+/**
+ * How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching.
+ */
+export type TechnicianCalendarJobConfidence = typeof TechnicianCalendarJobConfidence[keyof typeof TechnicianCalendarJobConfidence];
+
+
+export const TechnicianCalendarJobConfidence = {
+  exact: 'exact',
+  prefix: 'prefix',
+  fuzzy: 'fuzzy',
+  manual: 'manual',
+} as const;
+
 export interface TechnicianCalendarJob {
   id: number;
   leadKey: string;
@@ -1240,6 +1241,8 @@ export interface TechnicianCalendarJob {
   address: string | null;
   /** @nullable */
   quoteNumber: string | null;
+  /** How the team assignment was resolved: manual is explicit technicianTeamCode; exact/prefix/fuzzy come from free-text matching. */
+  confidence: TechnicianCalendarJobConfidence;
 }
 
 export type TechnicianCalendarTeamDayTeamCode = typeof TechnicianCalendarTeamDayTeamCode[keyof typeof TechnicianCalendarTeamDayTeamCode];
@@ -1518,6 +1521,57 @@ export interface WorksiteAddressSuggestions {
   suggestions: WorksiteAddressSuggestion[];
 }
 
+export interface TechnicianTeam {
+  id: number;
+  /** @pattern ^[A-Z]{2,8}$ */
+  code: string;
+  /** @maxLength 80 */
+  name: string;
+  /** @maxLength 40 */
+  shortName: string;
+  /** Extra spellings seen in the LINE group, stored WITHOUT a leading ทีม/ช่าง (the matcher adds those itself) */
+  aliases: string[];
+  sortOrder: number;
+  /** Inactive teams stay resolvable for old jobs but are not offered in the dispatch dropdown */
+  active: boolean;
+}
+
+export interface TechnicianTeamCreateInput {
+  /** @pattern ^[A-Z]{2,8}$ */
+  code: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  shortName: string;
+  aliases?: string[];
+  sortOrder?: number;
+}
+
+/**
+ * At least one field must be present; code cannot be changed
+ */
+export interface TechnicianTeamUpdateInput {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  name?: string;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  shortName?: string;
+  aliases?: string[];
+  sortOrder?: number;
+  active?: boolean;
+}
+
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
   password: string;
@@ -1625,6 +1679,20 @@ export type GetAdminTechnicianCalendarParams = {
  */
 month: string;
 };
+
+export type ListAdminTechnicianTeamsParams = {
+/**
+ * Set to 1 to also return teams that have been deactivated
+ */
+includeInactive?: ListAdminTechnicianTeamsIncludeInactive;
+};
+
+export type ListAdminTechnicianTeamsIncludeInactive = typeof ListAdminTechnicianTeamsIncludeInactive[keyof typeof ListAdminTechnicianTeamsIncludeInactive];
+
+
+export const ListAdminTechnicianTeamsIncludeInactive = {
+  NUMBER_1: 1,
+} as const;
 
 export type GetWorksiteAddressSuggestionsParams = {
 /**

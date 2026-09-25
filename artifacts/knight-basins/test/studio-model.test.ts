@@ -31,6 +31,7 @@ import {
   studioSubmissionValidationMessage,
   touchingRectangleKeys,
   unknownBasinPlacements,
+  resolveMatchingStoneForBasin,
   resolveStudioCatalogChange,
   replaceStudioBasin,
   removeStudioBasin,
@@ -613,4 +614,36 @@ test("attachTo is opt-in: a piece where no rectangle uses it still takes the leg
   const after = reflowStudioRectangles(before, withSize(before, "right-leg", { widthMm: 400 }));
   const rightLeg = after.find((item) => item.id === "right-leg")!;
   assert.equal(rightLeg.xMm, 1100, "unchanged legacy behaviour: right leg stays flush with the piece's right edge");
+});
+
+test("resolveMatchingStoneForBasin matches a basin's own colorCode against the stone catalog", () => {
+  assert.equal(resolveMatchingStoneForBasin("KF001"), "VS311");
+  assert.equal(resolveMatchingStoneForBasin("KF009"), "NB091");
+  assert.equal(resolveMatchingStoneForBasin("no-such-sku"), null);
+});
+
+test("studioEstimate auto-matches the placed basin's stone color when none is chosen yet", () => {
+  const state = baseState({
+    activeStone: "",
+    stoneColors: [],
+    basinSkus: ["KF009"],
+    basinPlacements: [{ id: "basin-1", sku: "KF009", pieceId: "piece-1", xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }],
+  });
+  const estimate = studioEstimate(state, PRODUCTS);
+  assert.equal(estimate.stoneUnitPriceTHB, 8500, "NB091 (auto-matched from KF009) installs at 8,500 THB/sqm");
+  assert.equal(
+    estimate.stoneTotalTHB,
+    studioEstimate({ ...state, activeStone: "NB091" }, PRODUCTS).stoneTotalTHB,
+    "auto-matching must price identically to the user picking NB091 themselves",
+  );
+});
+
+test("studioEstimate never overrides a stone color the user already picked", () => {
+  const state = baseState({
+    activeStone: "BW010",
+    basinSkus: ["KF009"],
+    basinPlacements: [{ id: "basin-1", sku: "KF009", pieceId: "piece-1", xMm: 50, yMm: 50, widthMm: 500, depthMm: 500 }],
+  });
+  const estimate = studioEstimate(state, PRODUCTS);
+  assert.notEqual(estimate.stoneUnitPriceTHB, 8500, "a user-picked stone (BW010) must win over the basin's own color (NB091)");
 });

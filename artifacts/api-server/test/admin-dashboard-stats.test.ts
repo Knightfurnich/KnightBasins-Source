@@ -65,7 +65,7 @@ type AdminDashboardStats = {
     teamName: string;
     activeJobsCount: number;
     status: "busy" | "moderate" | "available";
-    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string }>;
+    jobs: Array<{ id: number; leadKey: string; name: string; project: string | null; date: string; confidence: "exact" | "prefix" | "fuzzy" | "manual" }>;
   }>;
   asOf: string;
 };
@@ -158,7 +158,10 @@ function createFakeDashboardDatabase(leads: DashboardLeadRow[], slips: Dashboard
   return {
     select: () => ({
       from: (table: object) => {
-        const rows = tableName(table) === "customer_leads" ? leads : slips;
+        const name = tableName(table);
+        // technician_teams has no rows here -> loadTechnicianTeams() falls back to the 10-team seed, same as production with an empty table.
+        if (name === "technician_teams") return { where: () => ({ orderBy: async () => [] }) };
+        const rows = name === "customer_leads" ? leads : slips;
         return { orderBy: async () => rows };
       },
     }),

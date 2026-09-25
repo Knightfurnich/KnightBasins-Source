@@ -26,21 +26,21 @@ import { knightFurnichLogo } from "@/data/assets";
 
 export default function SalesGuide() {
   return (
-    <div className="sales-guide min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+    <div className="sales-guide sales-guide-page min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       {/* Header */}
       <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
           <div>
             <strong className="block text-sm tracking-widest leading-none text-[#003366]">KNIGHT BASINS</strong>
-            <small className="block text-[var(--ink-soft)] font-mono text-[9px] tracking-widest mt-1">
+            <small className="block text-[var(--ink-soft)] font-mono text-[12px] tracking-widest mt-1">
               คู่มือการใช้งาน & ข้อมูลระบบบริการ · SYSTEM GUIDE
             </small>
           </div>
         </div>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--ink-soft)] hover:text-[#003366]"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink-soft)] hover:text-[#003366]"
           data-testid="link-guide-back-to-store"
         >
           <ArrowLeft size={15} /> กลับสู่หน้าร้าน
@@ -55,10 +55,10 @@ export default function SalesGuide() {
               🏢
             </div>
             <div>
-              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[11px]">
+              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[12px]">
                 Knight Furnich Co., Ltd.
               </Badge>
-              <h1 className="font-bold text-[#003366]" style={{ fontSize: "var(--type-size-heading-xl)", lineHeight: "var(--type-line-heading-xl)" }}>
+              <h1 className="font-bold text-[#003366]" style={{ fontSize: "clamp(30px, calc(23.2px + 1.6vw), 44px)", lineHeight: 1.08 }}>
                 ยินดีต้อนรับสู่ระบบบริการการขายอ่างล้างหน้า ล้างมืออัตโนมัติ โดย ไนท์ เฟอร์นิช
               </h1>
             </div>
@@ -81,16 +81,16 @@ export default function SalesGuide() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <ShoppingBag className="text-[#003366] mb-1" size={22} />
-                    <span className="text-xs font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <span className="text-sm font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                       เข้าชม <ArrowRight size={13} />
                     </span>
                   </div>
                   <CardTitle className="text-base group-hover:text-[#003366] transition-colors">ซื้อด่วนจากแคตตาล็อก</CardTitle>
-                  <CardDescription className="text-xs text-[var(--ink-soft)]">Catalog Quick Order</CardDescription>
+                  <CardDescription className="text-xs text-[var(--ink-soft)]" data-type="caption">Catalog Quick Order</CardDescription>
                 </CardHeader>
-                <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)] space-y-3">
+                <CardContent className="text-sm leading-relaxed text-[var(--ink-soft)] space-y-3">
                   <p>สำหรับอ่างล้างหน้าสำเร็จรูป 30 รุ่นมาตรฐาน พร้อมภาพตัวอย่างและมุมมอง 360 องศา</p>
-                  <div className="pt-2 text-xs font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  <div className="pt-2 text-sm font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
                     คลิกเพื่อเลือกซื้อ <ArrowRight size={13} />
                   </div>
                 </CardContent>
@@ -102,16 +102,16 @@ export default function SalesGuide() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <Ruler className="text-[#003366] mb-1" size={22} />
-                    <span className="text-xs font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <span className="text-sm font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                       เข้าใช้ <ArrowRight size={13} />
                     </span>
                   </div>
                   <CardTitle className="text-base group-hover:text-[#003366] transition-colors">ออกแบบใน 2D Studio</CardTitle>
-                  <CardDescription className="text-xs text-[var(--ink-soft)]">Custom Countertop</CardDescription>
+                  <CardDescription className="text-xs text-[var(--ink-soft)]" data-type="caption">Custom Countertop</CardDescription>
                 </CardHeader>
-                <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)] space-y-3">
+                <CardContent className="text-sm leading-relaxed text-[var(--ink-soft)] space-y-3">
                   <p>สำหรับงานเคาน์เตอร์หินสั่งตัดเฉพาะพื้นที่ ระบุความกว้าง ความยาว รูปทรง (ทรงตรง I, ทรงฉาก L, ทรงตัว U) และเลือกตำแหน่งเจาะอ่างล้างหน้า พร้อมระบบ Live Estimate คำนวณราคาประเมินทันที</p>
-                  <div className="pt-2 text-xs font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  <div className="pt-2 text-sm font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
                     คลิกเพื่อเริ่มออกแบบ <ArrowRight size={13} />
                   </div>
                 </CardContent>
@@ -123,16 +123,16 @@ export default function SalesGuide() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <PenLine className="text-[#003366] mb-1" size={22} />
-                    <span className="text-xs font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <span className="text-sm font-medium text-[#003366] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                       ส่งแบบ <ArrowRight size={13} />
                     </span>
                   </div>
                   <CardTitle className="text-base group-hover:text-[#003366] transition-colors">ส่งภาพถ่ายหรือแบบร่าง</CardTitle>
-                  <CardDescription className="text-xs text-[var(--ink-soft)]">Custom Sketch</CardDescription>
+                  <CardDescription className="text-xs text-[var(--ink-soft)]" data-type="caption">Custom Sketch</CardDescription>
                 </CardHeader>
-                <CardContent className="text-xs leading-relaxed text-[var(--ink-soft)] space-y-3">
+                <CardContent className="text-sm leading-relaxed text-[var(--ink-soft)] space-y-3">
                   <p>แนบไฟล์ภาพแปลนจากสถาปนิกหรือแบบวาดมือ เพื่อให้ทีมงานช่วยประเมินราคาและสเปกงานให้โดยตรง</p>
-                  <div className="pt-2 text-xs font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  <div className="pt-2 text-sm font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
                     คลิกเพื่อส่งแบบร่าง <ArrowRight size={13} />
                   </div>
                 </CardContent>
@@ -210,7 +210,7 @@ export default function SalesGuide() {
             <h2 className="font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "var(--type-size-heading-lg)", lineHeight: "var(--type-line-heading-lg)" }}>
               <span>🔔</span> 5. ระบบการแจ้งเตือนสถานะคำสั่งซื้ออัตโนมัติ
             </h2>
-            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[11px] py-0.5 font-normal">
+            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[12px] py-0.5 font-normal">
               อยู่ระหว่างการพัฒนา · Coming Soon
             </Badge>
           </div>
@@ -220,20 +220,20 @@ export default function SalesGuide() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div className="p-3 border rounded bg-[var(--paper)]">
-                <strong className="text-xs text-[#003366] block mb-1">✓ แจ้งเตือนยืนยันคำสั่งซื้อ</strong>
-                <p className="text-xs">ส่งข้อความยืนยันเมื่อใบเสนอราคาและการชำระเงินมัดจำได้รับการตรวจสอบเรียบร้อย</p>
+                <strong className="text-sm text-[#003366] block mb-1">✓ แจ้งเตือนยืนยันคำสั่งซื้อ</strong>
+                <p className="text-sm">ส่งข้อความยืนยันเมื่อใบเสนอราคาและการชำระเงินมัดจำได้รับการตรวจสอบเรียบร้อย</p>
               </div>
               <div className="p-3 border rounded bg-[var(--paper)]">
-                <strong className="text-xs text-[#003366] block mb-1">✓ อัปเดตสถานะงานผลิต</strong>
-                <p className="text-xs">แจ้งความคืบหน้าเมื่อเคาน์เตอร์และอ่างเข้าสู่กระบวนการผลิตและการตรวจเช็กคุณภาพ</p>
+                <strong className="text-sm text-[#003366] block mb-1">✓ อัปเดตสถานะงานผลิต</strong>
+                <p className="text-sm">แจ้งความคืบหน้าเมื่อเคาน์เตอร์และอ่างเข้าสู่กระบวนการผลิตและการตรวจเช็กคุณภาพ</p>
               </div>
               <div className="p-3 border rounded bg-[var(--paper)]">
-                <strong className="text-xs text-[#003366] block mb-1">✓ เตือนนัดหมายคิวติดตั้ง</strong>
-                <p className="text-xs">แจ้งเตือนยืนยันวันนัดหมายและช่วงเวลาเข้าหน้างานล่วงหน้า 1–2 วัน</p>
+                <strong className="text-sm text-[#003366] block mb-1">✓ เตือนนัดหมายคิวติดตั้ง</strong>
+                <p className="text-sm">แจ้งเตือนยืนยันวันนัดหมายและช่วงเวลาเข้าหน้างานล่วงหน้า 1–2 วัน</p>
               </div>
               <div className="p-3 border rounded bg-[var(--paper)]">
-                <strong className="text-xs text-[#003366] block mb-1">✓ สรุปการส่งมอบและเอกสารรับประกัน</strong>
-                <p className="text-xs">ส่งสรุปการตรวจรับงานพร้อมคำแนะนำการดูแลรักษาหลังติดตั้งเสร็จสมบูรณ์</p>
+                <strong className="text-sm text-[#003366] block mb-1">✓ สรุปการส่งมอบและเอกสารรับประกัน</strong>
+                <p className="text-sm">ส่งสรุปการตรวจรับงานพร้อมคำแนะนำการดูแลรักษาหลังติดตั้งเสร็จสมบูรณ์</p>
               </div>
             </div>
           </div>
@@ -244,14 +244,14 @@ export default function SalesGuide() {
           <CardHeader className="space-y-3">
             <div className="flex items-center gap-2 text-amber-300">
               <Building2 size={22} className="shrink-0" />
-              <CardTitle className="text-base sm:text-lg text-white font-semibold">
+              <CardTitle className="text-base text-white font-semibold">
                 บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)
               </CardTitle>
             </div>
-            <p className="text-white/90 text-xs sm:text-sm leading-relaxed">
+            <p className="text-white/90 text-sm leading-relaxed">
               35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ตำบลบ้านใหม่ อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs sm:text-sm text-white/95">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-sm text-white/95">
               <div className="flex items-center gap-2">
                 <Phone size={15} className="text-amber-300 shrink-0" />
                 <span><strong>สายด่วนปรึกษาทีมงาน :</strong> 094-496-1949, 089-762-2209</span>

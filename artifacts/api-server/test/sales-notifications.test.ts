@@ -162,6 +162,115 @@ describe("sales notifications", () => {
     assert.match(requestBody, /ค่าดำเนินการงานพื้นที่เล็ก/);
   });
 
+  it("shows the calculation breakdown for a sketch lead that has only an estimate", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const sketchLead = {
+      ...lead,
+      orderMode: "sketch",
+      productSkus: ["KF009"],
+      studioData: {
+        mode: "sketch",
+        activeStone: "NB091",
+        estimate: {
+          counterAreaSqM: 25,
+          stoneUnitPriceTHB: 8500,
+          stoneTotalTHB: 212500,
+          upstandLengthM: 0,
+          openEdgeLengthM: 0,
+          basinSubtotalTHB: 0,
+          installationChargeTHB: 0,
+          smallJobFeeTHB: 0,
+          discountTHB: 0,
+          grossSubtotalTHB: 212500,
+          subtotalTHB: 212500,
+          vatAmountTHB: 0,
+          totalTHB: 212500,
+        },
+      },
+    };
+    await (await module()).notifyQuote(sketchLead, "https://example.com", "");
+    assert.match(requestBody, /วิธีคำนวณ/);
+    assert.match(requestBody, /หิน NB091 25 ตร\.ม\. × ฿8,500 = ฿212,500/);
+  });
+
+  it("adds the calculation for upstand, open edge and small-job fee when they are charged", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const leadWithCharges = {
+      ...lead,
+      studioData: {
+        activeStone: "SG420",
+        estimate: {
+          counterAreaSqM: 1.4508,
+          stoneUnitPriceTHB: 8500,
+          stoneTotalTHB: 12332,
+          upstandLengthM: 2.96,
+          upstandTotalTHB: 3019,
+          openEdgeLengthM: 3.54,
+          openEdgeUnitPriceTHB: 150,
+          openEdgeTotalTHB: 531,
+          basinSubtotalTHB: 17000,
+          installationChargeTHB: 5000,
+          installationDiscountTHB: 0,
+          smallJobFeeTHB: 5000,
+          discountTHB: 0,
+          grossSubtotalTHB: 42882,
+          subtotalTHB: 42882,
+          vatAmountTHB: 3002,
+          totalTHB: 45884,
+        },
+      },
+    };
+    await (await module()).notifyQuote(leadWithCharges, "https://example.com", "/quote/view?quote=x");
+    assert.match(requestBody, /วิธีคำนวณ/);
+    assert.match(requestBody, /หิน SG420 1\.451 ตร\.ม\. × ฿8,500 = ฿12,332/);
+    assert.match(requestBody, /บัว 2\.96 ม\. = ฿3,019/);
+    assert.match(requestBody, /ปิดขอบเปิด 3\.54 ม\. × ฿150 = ฿531/);
+    assert.match(requestBody, /อ่างล้างหน้า = ฿17,000/);
+    assert.match(requestBody, /ค่าติดตั้ง = ฿5,000/);
+    assert.match(requestBody, /ค่าดำเนินการงานพื้นที่เล็ก = ฿5,000/);
+  });
+
+  it("keeps a priced basin line as unit price × quantity = total", async () => {
+    process.env["NOTIFY_CHANNEL"] = "telegram";
+    process.env["TELEGRAM_BOT_TOKEN"] = "test-token";
+    process.env["TELEGRAM_SALES_CHAT_ID"] = "test-chat";
+    let requestBody = "";
+    globalThis.fetch = async (_input, init) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const pricedLead = {
+      ...lead,
+      studioData: {
+        notification: {
+          items: [
+            { kind: "basin" as const, code: "KF002", description: "Soft · อ่างวางเคาน์เตอร์", quantity: 3, unit: "ชุด", unitPriceTHB: 19000, totalTHB: 57000 },
+          ],
+          subtotal: 57000,
+          vatAmount: 0,
+          total: 57000,
+          vat: false,
+        },
+      },
+    };
+    await (await module()).notifyQuote(pricedLead, "https://example.com", "/quote/view?quote=x");
+    assert.match(requestBody, /KF002 Soft ×3 ชุด × ฿19,000 = ฿57,000/);
+  });
+
   it("adds the 9,500 stone-rate warning below the stone line", async () => {
     process.env["NOTIFY_CHANNEL"] = "telegram";
     process.env["TELEGRAM_BOT_TOKEN"] = "test-token";

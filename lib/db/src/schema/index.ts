@@ -364,6 +364,23 @@ export const paymentSlips = pgTable(
   ],
 );
 
+export const technicianTeams = pgTable(
+  "technician_teams",
+  {
+    id: serial("id").primaryKey(),
+    code: varchar("code", { length: 8 }).notNull().unique(),
+    name: varchar("name", { length: 80 }).notNull(),
+    shortName: varchar("short_name", { length: 40 }).notNull(),
+    aliases: jsonb("aliases").$type<string[]>().notNull().default([]),
+    sortOrder: integer("sort_order").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    ...auditColumns,
+  },
+  (table) => [
+    index("technician_teams_active_sort_idx").on(table.active, table.sortOrder, table.code),
+  ],
+);
+
 export type BasinPrice = typeof basinPrices.$inferSelect;
 export type BasinCategory = typeof basinCategories.$inferSelect;
 export type InstalledStoneCategory = typeof installedStoneCategories.$inferSelect;
@@ -380,3 +397,4 @@ export type SupportProfileUpdate = typeof supportProfileUpdates.$inferSelect;
 export type CustomerLead = typeof customerLeads.$inferSelect;
 export type LeadExternalReference = typeof leadExternalReferences.$inferSelect;
 export type PaymentSlip = typeof paymentSlips.$inferSelect;
+export type TechnicianTeamRow = typeof technicianTeams.$inferSelect;

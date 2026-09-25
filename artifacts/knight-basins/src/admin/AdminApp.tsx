@@ -103,7 +103,7 @@ export default function AdminApp() {
             <img className="admin-logo" src={knightFurnichLogo} alt="Knight Furnich" />
             <div>
               <strong className="block text-sm tracking-widest leading-none">KNIGHT ADMIN</strong>
-              <small className="block text-[var(--ink-soft)] font-mono text-[8px] tracking-widest mt-1">MANAGEMENT</small>
+              <small className="block text-[var(--ink-soft)] font-mono text-[12px] tracking-widest mt-1">MANAGEMENT</small>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -131,7 +131,7 @@ export default function AdminApp() {
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
               <Route path="/admin/calendar" component={TechnicianCalendarRoute} />
-              <Route path="/admin/technician-teams" component={TechnicianTeamsRoute} />
+              <Route path="/admin/technician-teams" component={TechnicianTeamsManagerRoute} />
               <Route path="/admin/team" component={TeamRoute} />
             </Switch>
           </main>
@@ -256,7 +256,7 @@ function TechnicianCalendarRoute() {
   return <AdminPermissionGate permission="leads" resource="ปฏิทินคิวช่าง"><TechnicianCalendarPage /></AdminPermissionGate>;
 }
 
-function TechnicianTeamsRoute() {
+function TechnicianTeamsManagerRoute() {
   return <AdminPermissionGate permission="leads" resource="ทีมช่างติดตั้ง"><TechnicianTeamsManager /></AdminPermissionGate>;
 }
 
@@ -349,7 +349,7 @@ export function AdminLogin() {
               </Button>
             </form>
           </Form>
-          <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-widest text-[var(--ink-soft)]">
+          <div className="my-5 flex items-center gap-3 text-[12px] uppercase tracking-widest text-[var(--ink-soft)]">
             <span className="h-px flex-1 bg-[var(--line)]" /> หรือ <span className="h-px flex-1 bg-[var(--line)]" />
           </div>
           <a

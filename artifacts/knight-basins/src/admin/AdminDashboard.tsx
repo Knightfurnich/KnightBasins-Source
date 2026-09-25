@@ -132,7 +132,7 @@ function MetricCard({
           <p className="admin-stat-value mt-2 break-words text-[var(--ink)]" data-testid={`value-${testId}`}>
             {value}
           </p>
-          <p className="mt-1 text-[11px] leading-snug text-[var(--ink-soft)] sm:text-xs">{detail}</p>
+          <p className="mt-1 text-[12px] leading-snug text-[var(--ink-soft)] sm:text-xs">{detail}</p>
         </div>
         <span className="shrink-0 border border-[var(--line)] p-2 text-[var(--ink-soft)]" aria-hidden="true">
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -221,7 +221,7 @@ function InstallationCard({
             {formatInstallationDate(installation.expectedInstallationDate)}
           </p>
           {reference && (
-            <span className="max-w-full truncate border border-[var(--line)] px-2 py-1 font-mono text-[10px] text-[var(--ink-soft)]" title={reference}>
+            <span className="max-w-full truncate border border-[var(--line)] px-2 py-1 font-mono text-[14px] text-[var(--ink-soft)]" title={reference}>
               {reference}
             </span>
           )}
@@ -317,7 +317,7 @@ function PipelineRatio({ ratio }: { ratio: AdminDashboardStats["pipelineRatio"] 
               </li>
             ))}
           </ul>
-          <p className="mt-4 border-t border-[var(--line)] pt-3 text-[11px] text-[var(--ink-soft)]">
+          <p className="mt-4 border-t border-[var(--line)] pt-3 text-[12px] text-[var(--ink-soft)]">
             รวม {countFormatter.format(total)} งาน
           </p>
         </>
@@ -415,10 +415,10 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
                       </span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-[var(--ink)]">{team.teamName}</p>
-                        <p className="text-[11px] text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, team.activeJobsCount))} งานในคิว</p>
+                        <p className="text-[12px] text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, team.activeJobsCount))} งานในคิว</p>
                       </div>
                     </div>
-                    <span className={"shrink-0 border px-2 py-1 text-[11px] font-semibold " + badgeClass} data-testid={"technician-status-" + team.teamCode}>
+                    <span className={"shrink-0 border px-2 py-1 text-[14px] font-semibold " + badgeClass} data-testid={"technician-status-" + team.teamCode}>
                       {statusLabel}
                     </span>
                   </div>
@@ -426,7 +426,7 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
                     <div className="h-full bg-[var(--brand-blue)]" style={{ width: ratio + "%" }} />
                   </div>
                   {jobNames && (
-                    <p className="mt-1 truncate text-[10px] text-[var(--ink-soft)]" title={jobNames}>
+                    <p className="mt-1 truncate text-[12px] text-[var(--ink-soft)]" title={jobNames}>
                       {jobNames}{team.jobs.length > 2 ? " · +" + (team.jobs.length - 2) : ""}
                     </p>
                   )}
@@ -478,10 +478,10 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
                   <li key={item.sku} className="py-3 first:pt-1 last:pb-1" data-testid="popular-item-row">
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <span className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] font-mono text-[10px] text-[var(--ink-soft)]" aria-label={"อันดับ " + (index + 1)}>{index + 1}</span>
+                        <span className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] font-mono text-[12px] text-[var(--ink-soft)]" aria-label={"อันดับ " + (index + 1)}>{index + 1}</span>
                         <span className="truncate font-mono text-sm font-semibold tracking-wide text-[var(--ink)]">{item.sku}</span>
                       </div>
-                      <span className="shrink-0 text-[11px] tabular-nums text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, item.count))} งาน</span>
+                      <span className="shrink-0 text-[12px] tabular-nums text-[var(--ink-soft)]">{countFormatter.format(Math.max(0, item.count))} งาน</span>
                     </div>
                     <div className="h-1.5 overflow-hidden bg-[var(--brand-sky)]" role="progressbar" aria-label={"ความถี่ของ " + item.sku} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share)}>
                       <div className="h-full bg-[var(--brand-blue)] transition-[width]" style={{ width: share + "%" }} />
@@ -540,11 +540,11 @@ function RecentActivitiesPanel({ items }: { items: AdminDashboardActivity[] }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                       <p className="m-0 min-w-0 text-xs font-semibold text-[var(--ink)]">{activity.title}</p>
-                      <time className="shrink-0 text-[10px] text-[var(--ink-soft)]" dateTime={activity.timestamp} title={activity.timestamp}>
+                      <time className="shrink-0 text-[12px] text-[var(--ink-soft)]" dateTime={activity.timestamp} title={activity.timestamp}>
                         {relativeTime}
                       </time>
                     </div>
-                    <p className="mt-1 text-[11px] leading-relaxed text-[var(--ink-soft)]">{activity.detail}</p>
+                    <p className="mt-1 text-[12px] leading-relaxed text-[var(--ink-soft)]">{activity.detail}</p>
                   </div>
                 </li>
               );

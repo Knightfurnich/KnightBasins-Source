@@ -11,12 +11,11 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │       📝 TO DO          │     🔄 IN PROGRESS      │        ✅ DONE          │
 ├─────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ • ระบบแจ้งเตือนอัตโนมัติ  │ • ปรับแต่งคิวงานจริง     │ • Task 1-19 (ชัย):      │
-│   (LINE/SMS/Email)      │   เข้าปฏิทิน 10 ทีม     │   Core, Slips, Places,  │
-│   Coming Soon           │                         │   Cockpit & Calendar API│
-│                         │                         │ • Replit: Dashboard,    │
-│                         │                         │   Cockpit, Calendar UI  │
-│                         │                         │ • Contact Info (Live)   │
+│ • Task 24 (Replit)      │ • แจ้งเตือนอัตโนมัติ     │ • Task 31 (Replit)      │
+│   สลับ hook จริง         │   (LINE/SMS/Email)      │   Studio over sketch    │
+│ • Nesting / Sheet Calc  │   Coming Soon           │ • Task 34 (ชัย)         │
+│   หินลายหินอ่อน/สายแร่  │                         │   Auto Quote Gen LIVE   │
+│   9,500 บ./ตร.ม.        │                         │ • Task 33 (ชัย) Hardening│
 └─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -55,6 +54,24 @@
 | **Task 21** | Replit | Studio ซ่อน X/Y เมื่อมีแผ่นเดียว + ลบเตือน 900 มม. · ปฏิทินคิวช่างย้ายทีม/ปลดคิว/เลื่อนวันติดตั้ง (Asia/Bangkok) | `a941aff` / `6529d4e` | ✅ ตรวจรับ & Live บน VPS |
 | **Quote copy** | เดวิด | ใบเสนอราคา: `ธนาคารกรุงศรีอยุธยา` → `ธ.กรุงศรีอยุธยา` และตัดจุดคั่นหน้า "สาขา" | `d2e3e6f` / `7b57533` | ✅ Live บน VPS |
 | **Task 22** | เดวิด | แก้ชื่อทีมช่าง 6/10 รหัสให้ตรง `TEAM.md` (CM/KF/PM/TJ/AM/CL) + alias ทีมออฟฟิศ/ออฟฟิต | `4bb5267` | ✅ 204 tests (200 pass) & Deployed |
-| **Task 23** | ชัย | ย้ายรายชื่อทีมช่างเข้า DB (`technician_teams`) + API เพิ่ม/แก้/ปิดใช้งานทีม | `027bbd2` / `feat/chai-technician-teams-table` | ✅ โค้ดเสร็จ · typecheck 0 · tests 218/214/4 · **รอเปิด PR** |
+| **Task 23** | ชัย | ย้ายรายชื่อทีมช่างเข้า DB (`technician_teams`) + API เพิ่ม/แก้/ปิดใช้งานทีม | `027bbd2` / merge `8cc10a7` | ✅ **Merged & Deployed** · Migration 012 applied · Acceptance 11/11 |
+| **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพาน (build เขียว, ไม่มี mock data) | `54b8ccb` | ✅ เสร็จ (draft) |
+| **Task 24 (Replit)** | Replit | สลับไฟล์สะพาน -> hook จริง (`useListAdminTechnicianTeams`) + ลบไฟล์สะพาน | — | 🟡 มอบหมายแล้ว (`qa/job-24-replit-final.md`) |
+| **Task 31** | Replit | ระบบทีมขายวาด 2D Studio จากแบบร่างลูกค้า (ปุ่มใน Admin + Split View ดูรูปคู่ขนาน) (PR #9) | `ac8a8e6` | ✅ **Live บน VPS** · เปิดวาดจาก Lead, ดูรูปคู่ขนาน, บันทึกผังเข้า Lead |
+| **Task 33** | ชัย | ยกระดับความปลอดภัย API Server ตามรายงาน Security Audit (PR #7) | `f4de3d9` | ✅ **Live บน VPS** · Sweep Map >1k, Secure cookie, Rate limit GET /quotes · 254 tests ผ่าน |
+| **Task 34** | ชัย | สร้าง quoteNumber/quoteAccessSecret อัตโนมัติเมื่อทีมขายบันทึก studioData (PR #8) | `e7967e7` | ✅ **Live บน VPS** · สร้างเลขที่ใบเสนอราคา+โทเค็นอัตโนมัติ · 256 tests ผ่าน |
+| **Task 35** | ชัย | Auto-match สีหินตามรุ่นอ่าง + คิดราคาพร้อมติดตั้งอัตโนมัติ (PR #10) | `8f2b7da` | ✅ **Live บน VPS** · KF001->VS311, KF009->NB091 8,500 บ./ตร.ม. · 192 tests ผ่าน |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
+| **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
+| **Task 30** | ชัย/เดวิด | ขยาย PATCH /admin/leads/:id ให้บันทึก/merge studioData ครบชุดโดยไม่ลบ sketchUrls | `3e255b6` | ✅ **Live บน VPS** · เทสต์ผ่าน ยืนยัน sketchUrls คงอยู่ครบ 100% |
+| **Footer** | เดวิด | ยุบขนาด Footer ลดความสูงจาก 346px -> 175px (ลดพื้นที่ 50%) padding 72->20px | `f11b485` | ✅ **Live บน VPS** · จัดวางแบรนด์+ข้อมูลติดต่อ 2 คอลัมน์ |
+| **Task 26** | Replit | **โหมดง่ายหน้า Studio** — เจ้าของสั่ง 24 ก.ย. ("ทำแบบยุ่งยาก/เบื่อ/อ่านไม่ออก") ซ่อนคอนโทรลละเอียด เหลือ สี·รูปทรง+ขนาด·อ่าง·บัว → ผัง+ราคา | — | 🟡 มอบหมายแล้ว (`qa/job-26-replit-studio-simple-mode.md`) |
+| **Sketch E2E** | เดวิด | ทดสอบ "รับภาพสเก็ตช์" ปลายทางบน production (ค้างตั้งแต่ 14 ก.ย.) | — | ✅ ผ่าน: HTTP 201 · lead เข้า DB · รูป 200 · ลบของทดสอบแล้ว |
+| **Task 27** | เดวิด | แก้ 2 บั๊กจากที่เจ้าของทดสอบ: (1) ตัดบรรทัด `WORKPIECES` ฿0 ออกจากใบเสนอราคา (2) ผังพิมพ์บอกแนวอ่าง+ขนาดหลุม — **เจ้าของอนุมัติ · เดวิดทำเอง** | `14cf0e8` / merge `9c8f6f3` | ✅ **Live บน VPS** · ผังพิมพ์ขึ้น `KF009 · 350×500 มม. · แนวนอน` |
+| **Notify calc** | เดวิด | ข้อความแจ้งทีมขายแสดง **วิธีคำนวณ** ต่อบรรทัด + ป้าย "อ่างที่ลูกค้าสนใจ (ยังไม่ได้เลือกเข้าออเดอร์)" — เจ้าของสั่ง 24 ก.ย. | `dcc743a` | ✅ **Live บน VPS** · tests 15/15 |
+| **verify_deploy** | เดวิด | ชี้เป้าสคริปต์ตรวจสุขภาพจาก knightdesign → **Knight Basins** — เลิกสัญญาณหลอก 7 ข้อ | `bin/verify_deploy.py` | ✅ **22/22 passed** |
+| **KB pricing** | เดวิด | บันทึก: ขาย 3 ประเภท + หน่วยราคา + ที่ไหนบนเว็บ · ลำดับการตอบราคา · 4 กลุ่มสี 3 เรต · ขายแผ่นไม่คูณอะไร | `pricing.md` + HANDOFF §3 | ✅ sync เข้า prompt บอทแล้ว (LINE 29,391 chars) |
+| **Task 26** | Replit | โหมดง่ายหน้า Studio (ซ่อนคอนโทรลละเอียด) — เจ้าของอนุมัติ deploy | `da4e7a3` / merge `3e4c914` | ✅ **Live บน VPS** · asset `index-CgJV3olN.js` · โหมดง่าย default · ขอบอัตโนมัติ บน=ติดบัว ที่เหลือ=ขอบเปิด |
+| **Task 28** | เดวิด | สเกลตัวอักษรมาตรฐาน หน้าลูกค้าทุกหน้าตามต้นแบบ /studio (index.css + 7 หน้า) | `b408659` / `0d785e7` | ✅ **Live บน VPS** · ข้อความหลัก 14px · พื้นต่ำสุด 12px · ของพิมพ์ไม่แตะ |
+| **Task 29** | ชัย/เดวิด | สเกลตัวอักษรมาตรฐาน หน้าแอดมิน 9 ไฟล์ (แทน Tailwind <12px -> 14px/12px) + ยก token | `ce48138` / `0d785e7` | ✅ **Live บน VPS** · ทุกหน้าแอดมิน 0 จุด <12px · ปุ่ม/ตาราง 14px |

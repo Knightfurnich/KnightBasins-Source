@@ -1,5 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import type { RequestHandler } from "express";
+import type { Request, RequestHandler } from "express";
 import { adminApiKeys } from "@workspace/db/schema";
 
 const ADMIN_API_KEY_SCOPE = "leads:edit";
@@ -115,11 +115,11 @@ export function adminMemberIdFromToken(token: string | undefined) {
   return tokenPayload(token)?.memberId ?? null;
 }
 
-export function adminCookieOptions() {
+export function adminCookieOptions(req?: Request) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env["NODE_ENV"] === "production",
+    secure: Boolean(req?.secure || process.env["NODE_ENV"] === "production" || process.env["COOKIE_SECURE"] === "true"),
     maxAge: SESSION_AGE_MS,
     path: "/",
   };
