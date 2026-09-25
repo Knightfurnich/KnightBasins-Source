@@ -208,6 +208,21 @@ const STUDIO_EPSILON_MM = 0.01;
  */
 export const STUDIO_BASIN_SAFETY_MARGIN_MM = 100;
 
+export interface StudioCounterPreset {
+  id: string;
+  label: string;
+  widthMm: number;
+  depthMm: number;
+}
+
+/** Quick-pick counter run lengths offered next to the freeform width input. */
+export const STUDIO_COUNTER_PRESETS: ReadonlyArray<StudioCounterPreset> = [
+  { id: "1200", label: "1.20 ม.", widthMm: 1200, depthMm: 600 },
+  { id: "1500", label: "1.50 ม.", widthMm: 1500, depthMm: 600 },
+  { id: "1800", label: "1.80 ม.", widthMm: 1800, depthMm: 600 },
+  { id: "2000", label: "2.00 ม.", widthMm: 2000, depthMm: 600 },
+];
+
 export function studioDefaultStoneCode(
   basinSkus: ReadonlyArray<string>,
   basinProducts: ReadonlyArray<BasinProduct>,
@@ -1483,6 +1498,51 @@ export function createStudioBasinPlacement(
     rotation: 0,
     orientation: "horizontal",
   };
+}
+
+/**
+ * Resizes the main sheet (the first rectangle of the first piece) to a new
+ * width/depth -- e.g. from STUDIO_COUNTER_PRESETS or a freeform width input
+ * -- and re-centers every basin placed on that sheet along X so it never
+ * sits closer than STUDIO_BASIN_SAFETY_MARGIN_MM to either edge of the
+ * resized sheet. Legacy states (no `pieces`) only get their `dimensions`
+ * updated, matching how the rest of this file treats that representation.
+ * Basins on any OTHER sheet, or in any other piece, are left untouched.
+ */
+export function applyStudioSizePreset(
+  state: StudioState,
+  widthMm: number,
+  depthMm: number = 600,
+): StudioState {
+  const dimensions = { ...state.dimensions, runAMm: widthMm, depthMm };
+  const mainPiece = state.pieces?.[0];
+  const mainSheet = mainPiece?.rectangles[0];
+  if (!mainPiece || !mainSheet) return { ...state, dimensions };
+
+  const resizedSheet: StudioRectangle = { ...mainSheet, widthMm, lengthMm: depthMm };
+  const pieces = state.pieces!.map((piece, pieceIndex) =>
+    pieceIndex !== 0
+      ? piece
+      : { ...piece, rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0 ? resizedSheet : rectangle) },
+  );
+
+  const margin = STUDIO_BASIN_SAFETY_MARGIN_MM;
+  const clampToMargin = (valueMm: number, sheetWidthMm: number, cutWidthMm: number) => {
+    const maxMm = Math.max(margin, sheetWidthMm - cutWidthMm - margin);
+    return Math.round(Math.min(Math.max(valueMm, margin), maxMm));
+  };
+
+  const basinPlacements = state.basinPlacements.map((placement) => {
+    if ((placement.pieceId ?? mainPiece.id) !== mainPiece.id) return placement;
+    const hostSheet = mainPiece.rectangles.find((rectangle) => rectangle.id === placement.sheetId)
+      ?? placementHostRectangle(mainPiece, placement);
+    if (hostSheet.id !== mainSheet.id) return placement;
+    const cutWidthMm = placementCutSize(placement).widthMm;
+    if (cutWidthMm === null) return placement;
+    return { ...placement, xMm: clampToMargin((widthMm - cutWidthMm) / 2, widthMm, cutWidthMm) };
+  });
+
+  return { ...state, dimensions, pieces, basinPlacements };
 }
 
 /** Actual cut footprint after applying the basin's own rotation. */

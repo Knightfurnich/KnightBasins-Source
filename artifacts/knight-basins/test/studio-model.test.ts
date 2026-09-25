@@ -5,6 +5,7 @@ import {
   basinDimensionsForProduct,
   basinPlacementOrientation,
   basinPlacementOverlapWarnings,
+  applyStudioSizePreset,
   centerBasinPlacementPosition,
   compareStudioCatalog,
   createBasinPlacement,
@@ -28,6 +29,7 @@ import {
   studioPieces,
   studioStateDimensionsValid,
   STUDIO_BASIN_SAFETY_MARGIN_MM,
+  STUDIO_COUNTER_PRESETS,
   STUDIO_INITIAL_BOARD_LENGTH_MM,
   STUDIO_INITIAL_BOARD_WIDTH_MM,
   standardSheetWarning,
@@ -403,6 +405,75 @@ test("createStudioBasinPlacement stays fully inside the sheet even when 100mm ca
   const cutSize = placementCutSize(placement);
   assert.ok(placement.yMm >= 0);
   assert.ok(placement.yMm + (cutSize.heightMm ?? 0) <= tightSheet.lengthMm, "the cutout stays inside the sheet's own bounds even on the real, tighter 1800x600 counter");
+});
+
+test("STUDIO_COUNTER_PRESETS lists exactly the 4 quick-pick counter widths", () => {
+  assert.deepEqual(STUDIO_COUNTER_PRESETS, [
+    { id: "1200", label: "1.20 ม.", widthMm: 1200, depthMm: 600 },
+    { id: "1500", label: "1.50 ม.", widthMm: 1500, depthMm: 600 },
+    { id: "1800", label: "1.80 ม.", widthMm: 1800, depthMm: 600 },
+    { id: "2000", label: "2.00 ม.", widthMm: 2000, depthMm: 600 },
+  ]);
+});
+
+test("applyStudioSizePreset resizes the main sheet to 1200x600 and re-centers the basin with >= 100mm clearance", () => {
+  const preset = STUDIO_COUNTER_PRESETS.find((candidate) => candidate.id === "1200");
+  assert.ok(preset);
+  const resized = applyStudioSizePreset(baseState(), preset.widthMm, preset.depthMm);
+
+  assert.equal(resized.dimensions.runAMm, 1200);
+  assert.equal(resized.dimensions.depthMm, 600);
+  assert.deepEqual(resized.pieces?.[0]?.rectangles[0], {
+    id: "r1",
+    widthMm: 1200,
+    lengthMm: 600,
+    xMm: 0,
+    yMm: 0,
+    rotation: 0,
+  });
+
+  const basin = resized.basinPlacements.find((placement) => placement.id === "basin-1");
+  assert.ok(basin);
+  const cutWidthMm = placementCutSize(basin).widthMm ?? 0;
+  assert.equal(basin.xMm, Math.round((1200 - cutWidthMm) / 2), "re-centered on the new 1200mm width");
+  assert.equal(basin.yMm, 50, "only X is repositioned, Y is left as-is");
+  assert.ok(basin.xMm >= STUDIO_BASIN_SAFETY_MARGIN_MM, "left clearance");
+  assert.ok(1200 - (basin.xMm + cutWidthMm) >= STUDIO_BASIN_SAFETY_MARGIN_MM, "right clearance");
+});
+
+test("applyStudioSizePreset keeps every preset's re-centered basin >= 100mm from both edges", () => {
+  for (const preset of STUDIO_COUNTER_PRESETS) {
+    const resized = applyStudioSizePreset(baseState(), preset.widthMm, preset.depthMm);
+    const basin = resized.basinPlacements.find((placement) => placement.id === "basin-1");
+    assert.ok(basin, preset.id);
+    const cutWidthMm = placementCutSize(basin).widthMm ?? 0;
+    assert.ok(basin.xMm >= STUDIO_BASIN_SAFETY_MARGIN_MM, `${preset.id}: left clearance`);
+    assert.ok(preset.widthMm - (basin.xMm + cutWidthMm) >= STUDIO_BASIN_SAFETY_MARGIN_MM, `${preset.id}: right clearance`);
+  }
+});
+
+test("applyStudioSizePreset clamps into the margin instead of an inverted range when the new width is too tight for both sides", () => {
+  const resized = applyStudioSizePreset(baseState(), 650, 600);
+  const basin = resized.basinPlacements.find((placement) => placement.id === "basin-1");
+  assert.ok(basin);
+  const cutWidthMm = placementCutSize(basin).widthMm ?? 0;
+  assert.ok(basin.xMm >= 0);
+  assert.ok(basin.xMm + cutWidthMm <= 650, "the cutout still stays fully inside the resized sheet even though 100mm can't fit on both sides");
+});
+
+test("applyStudioSizePreset only re-centers basins on the main piece's first sheet, and only updates dimensions on a legacy (pieces-less) state", () => {
+  const otherPieceBasin = { id: "basin-2", sku: "KF001", pieceId: "piece-2", xMm: 10, yMm: 10, widthMm: 500, depthMm: 500 };
+  const unknownSizeBasin = { id: "basin-3", sku: "KF029", pieceId: "piece-1", xMm: 900, yMm: 10, widthMm: null, depthMm: null };
+  const state = baseState({ basinPlacements: [...baseState().basinPlacements, otherPieceBasin, unknownSizeBasin] });
+  const resized = applyStudioSizePreset(state, 1200, 600);
+  assert.deepEqual(resized.basinPlacements.find((placement) => placement.id === "basin-2"), otherPieceBasin, "a basin on a different piece is left untouched");
+  assert.deepEqual(resized.basinPlacements.find((placement) => placement.id === "basin-3"), unknownSizeBasin, "a basin with unresolved dimensions is left untouched");
+
+  const legacyState = baseState({ pieces: undefined });
+  const resizedLegacy = applyStudioSizePreset(legacyState, 1200, 600);
+  assert.equal(resizedLegacy.dimensions.runAMm, 1200);
+  assert.equal(resizedLegacy.pieces, undefined);
+  assert.deepEqual(resizedLegacy.basinPlacements, legacyState.basinPlacements, "no pieces means nothing to re-center against");
 });
 
 test("basin orientation swaps the real cutout footprint and defaults legacy placements to horizontal", () => {
