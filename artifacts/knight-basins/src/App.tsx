@@ -178,45 +178,64 @@ function Header({ cartCount }: { cartCount: number }) {
 function Footer() {
   return (
     <footer className="site-footer">
-      <div className="footer-brand-col">
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div className="footer-inner">
+        <div className="footer-brand-col">
           <img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" />
-          <div>
+          <div className="footer-brand-text">
             <span className="footer-kicker">SOLID SURFACE / BASINS</span>
             <p>พื้นผิวที่ทำให้รายละเอียดเล็ก ๆ มีน้ำหนักขึ้นมา</p>
           </div>
         </div>
-      </div>
-      <div className="footer-contact">
-        <strong>บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
-        <div className="footer-address">35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
-        <a
-          className="footer-maps-link"
-          href="https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5"
-          target="_blank"
-          rel="noreferrer"
-          data-testid="link-footer-maps"
-        >
-          🗺️ นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่
-        </a>
-        <div className="footer-contact-grid">
-          <div>📞 094-496-1949, 089-762-2209</div>
-          <div>💬 LINE: <strong>@789gcnhq</strong> (KnightBot)</div>
-          <div>🌐 <a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer">www.knightfurnich.com</a></div>
-          <div>⏱️ จ.-ศ. 08:30–16:30 | ส. 08:30–11:30 (หยุดวันอาทิตย์)</div>
+
+        <div className="footer-contact">
+          <strong>บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
+          <div className="footer-address">35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+          <a
+            className="footer-maps-link"
+            href="https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5"
+            target="_blank"
+            rel="noreferrer"
+            data-testid="link-footer-maps"
+          >
+            <span aria-hidden="true">🗺️</span> นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่
+          </a>
+          <div className="footer-contact-grid">
+            <div className="footer-contact-item">
+              <span className="footer-contact-key">โทร</span>
+              <span>094-496-1949, 089-762-2209</span>
+            </div>
+            <div className="footer-contact-item">
+              <span className="footer-contact-key">LINE</span>
+              <span><strong>@789gcnhq</strong> (KnightBot)</span>
+            </div>
+            <div className="footer-contact-item">
+              <span className="footer-contact-key">เว็บไซต์</span>
+              <span><a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer">www.knightfurnich.com</a></span>
+            </div>
+            <div className="footer-contact-item">
+              <span className="footer-contact-key">เวลาทำการ</span>
+              <span>จ.-ศ. 08:30–16:30 · ส. 08:30–11:30 (หยุดวันอาทิตย์)</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-line-qr" data-testid="footer-line-qr">
+          <img src={lineQrCode} alt="QR Code แอด LINE @789gcnhq" loading="lazy" />
+          <div className="footer-line-qr-text">
+            <strong>สแกนแอด LINE</strong>
+            <span>คุยกับน้องไนท์ได้ทันที</span>
+            <span className="footer-line-qr-id">@789gcnhq</span>
+          </div>
         </div>
       </div>
-      <div className="footer-line-qr" data-testid="footer-line-qr">
-        <img src={lineQrCode} alt="QR Code แอด LINE @789gcnhq" loading="lazy" />
-        <div>
-          <strong>สแกนแอด LINE</strong>
-          <span>คุยกับน้องไนท์ได้ทันที</span>
-          <span className="footer-line-qr-id">@789gcnhq</span>
+
+      <div className="footer-meta-bar">
+        <div className="footer-meta">
+          <span>TH / 2026 COLLECTION</span>
+          <span>ราคาสินค้ายังไม่รวม VAT</span>
+          <Link href="/portfolio" className="footer-owner-link">คลังผลงานติดตั้งจริง</Link>
+          <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
         </div>
-      </div>
-      <div className="footer-meta">
-        <span>TH / 2026 COLLECTION</span>
-        <span>ราคาสินค้ายังไม่รวม VAT</span>
         <Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link>
       </div>
     </footer>
@@ -1550,6 +1569,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
 import AdminApp from "./admin/AdminApp";
 import SalesGuide from "./components/SalesGuide";
 import { SitePrepPage } from "./pages/SitePrepPage";
+import { PortfolioPage } from "./pages/PortfolioPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { useGetCatalog, useGetCustomerProfile, useGetLineAuthStatus, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
@@ -1796,6 +1816,7 @@ function App() {
         <Route path="/admin/*" component={AdminApp} />
         <Route path="/readme" component={SalesGuide} />
         <Route path="/site-prep" component={SitePrepPage} />
+        <Route path="/portfolio" component={PortfolioPage} />
         <Route path="/" component={RootEntry} />
         <Route component={Storefront} />
       </Switch>

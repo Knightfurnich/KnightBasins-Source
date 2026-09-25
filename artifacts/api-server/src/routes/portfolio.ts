@@ -67,7 +67,9 @@ router.get("/portfolio", async (req, res, next) => {
     const catalog = await loadCatalog();
     const categoryFilter = typeof req.query["category"] === "string" ? req.query["category"].trim() : "";
     const limitRaw = Number(req.query["limit"]);
-    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 200) : 60;
+    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 600) : 60;
+    const offsetRaw = Number(req.query["offset"]);
+    const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? Math.floor(offsetRaw) : 0;
 
     const filtered = categoryFilter
       ? catalog.items.filter((item) => item.category === categoryFilter)
@@ -101,7 +103,7 @@ router.get("/portfolio", async (req, res, next) => {
       total: catalog.total,
       categories,
       count: ordered.length,
-      items: ordered.slice(0, limit).map((item) => ({
+      items: ordered.slice(offset, offset + limit).map((item) => ({
         id: item.id,
         category: item.category,
         categoryName: item.categoryName,

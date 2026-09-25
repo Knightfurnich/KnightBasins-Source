@@ -1,0 +1,266 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, X } from "lucide-react";
+import { knightFurnichLogo } from "@/data/assets";
+
+export type PortfolioPhoto = {
+  id: string;
+  category: string;
+  categoryName: string;
+  icon: string;
+  url: string;
+  width: number;
+  height: number;
+  title: string;
+};
+
+export type PortfolioCategory = { slug: string; name: string; icon: string; count: number };
+
+type PortfolioResponse = {
+  updatedAt: string;
+  total: number;
+  categories: PortfolioCategory[];
+  count: number;
+  items: PortfolioPhoto[];
+};
+
+const PAGE_SIZE = 60;
+export const ALL_CATEGORIES = "all";
+
+/** Public gallery API URL for a given tab + page. */
+export function portfolioQueryUrl(category: string, offset: number, limit = PAGE_SIZE): string {
+  const params = new URLSearchParams();
+  if (category !== ALL_CATEGORIES) params.set("category", category);
+  params.set("limit", String(limit));
+  if (offset > 0) params.set("offset", String(offset));
+  return `/api/portfolio?${params.toString()}`;
+}
+
+async function fetchPortfolio(category: string, offset: number): Promise<PortfolioResponse> {
+  const response = await fetch(portfolioQueryUrl(category, offset));
+  if (!response.ok) throw new Error("โหลดคลังภาพผลงานไม่สำเร็จ");
+  return await response.json() as PortfolioResponse;
+}
+
+/**
+ * Public portfolio gallery: every real installation photo, browsable by work
+ * category. Bathroom work leads (basins are the hero product); the API never
+ * exposes customer names or job codes.
+ */
+export function PortfolioPage() {
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
+  const [offset, setOffset] = useState(0);
+  const [accumulated, setAccumulated] = useState<PortfolioPhoto[]>([]);
+  const [zoomItem, setZoomItem] = useState<PortfolioPhoto | null>(null);
+
+  const query = useQuery({
+    queryKey: ["/api/portfolio", activeCategory, offset],
+    queryFn: () => fetchPortfolio(activeCategory, offset),
+  });
+
+  const page = query.data;
+  const categories = page?.categories ?? [];
+  const totalForTab = activeCategory === ALL_CATEGORIES
+    ? (page?.total ?? 0)
+    : (categories.find((c) => c.slug === activeCategory)?.count ?? 0);
+
+  useEffect(() => {
+    if (!page?.items) return;
+    setAccumulated((current) => (offset === 0 ? page.items : [...current, ...page.items]));
+  }, [page, offset]);
+
+  useEffect(() => {
+    setOffset(0);
+    setAccumulated([]);
+  }, [activeCategory]);
+
+  const photos = accumulated;
+  const hasMore = offset + PAGE_SIZE < totalForTab;
+  const zoomIndex = useMemo(
+    () => (zoomItem ? photos.findIndex((p) => p.id === zoomItem.id) : -1),
+    [zoomItem, photos],
+  );
+
+  const step = (delta: number) => {
+    if (zoomIndex < 0 || photos.length === 0) return;
+    const next = (zoomIndex + delta + photos.length) % photos.length;
+    setZoomItem(photos[next]);
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+      <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
+          <div>
+            <strong className="block text-sm tracking-widest leading-none text-[#003366]">KNIGHT BASINS</strong>
+            <small className="block text-[var(--ink-soft)] font-mono text-[12px] tracking-widest mt-1">
+              คลังผลงานติดตั้งจริง · PORTFOLIO
+            </small>
+          </div>
+        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink-soft)] hover:text-[#003366]"
+          data-testid="link-portfolio-back-to-store"
+        >
+          <ArrowLeft size={15} /> กลับสู่หน้าร้าน
+        </Link>
+      </header>
+
+      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-10 space-y-7">
+        <section className="space-y-3">
+          <p className="text-xs font-bold tracking-widest text-[#003366]">REAL INSTALLATIONS · 100% SEAMLESS</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-[#003366]" data-testid="portfolio-heading">
+            คลังผลงานติดตั้งจริงทั้งหมด
+          </h1>
+          <p className="max-w-3xl text-sm leading-relaxed text-[var(--ink-soft)]">
+            รวมภาพถ่ายผลงานจริงจากบ้าน คอนโด และโครงการที่ติดตั้งเสร็จสมบูรณ์โดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด
+            เลือกดูตามประเภทงานได้เลย — งานอ่างล้างหน้าและเคาน์เตอร์ห้องน้ำ ครัว เคาน์เตอร์ธุรกิจ งานดีไซน์ และอื่น ๆ
+          </p>
+          {page && (
+            <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#003366] bg-[#003366]/5 border border-[#003366]/20 rounded-full px-3 py-1.5">
+              <Images size={14} aria-hidden="true" /> {page.total} ภาพในคลัง · อัปเดตล่าสุด {new Date(page.updatedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
+            </span>
+          )}
+        </section>
+
+        {/* Category tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-1" data-testid="portfolio-category-tabs">
+          <button
+            type="button"
+            onClick={() => setActiveCategory(ALL_CATEGORIES)}
+            className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+              activeCategory === ALL_CATEGORIES
+                ? "border-[#003366] bg-[#003366] text-white"
+                : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[#003366]"
+            }`}
+          >
+            ทั้งหมด {page ? `(${page.total})` : ""}
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              onClick={() => setActiveCategory(c.slug)}
+              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+                activeCategory === c.slug
+                  ? "border-[#003366] bg-[#003366] text-white"
+                  : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[#003366]"
+              }`}
+              data-testid={`portfolio-tab-${c.slug}`}
+            >
+              {c.icon} {c.name} <span className="opacity-70">({c.count})</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Grid */}
+        {query.isLoading && photos.length === 0 && (
+          <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)] py-12 justify-center">
+            <Loader2 className="animate-spin" size={16} /> กำลังโหลดคลังภาพผลงาน...
+          </div>
+        )}
+
+        {!query.isLoading && photos.length === 0 && (
+          <p className="text-sm text-[var(--ink-soft)] py-12 text-center">ยังไม่มีภาพในหมวดนี้</p>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="portfolio-grid">
+          {photos.map((photo) => (
+            <button
+              key={photo.id}
+              type="button"
+              onClick={() => setZoomItem(photo)}
+              className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-[var(--line)] bg-slate-100 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+              aria-label={`ดูภาพขยาย: ${photo.categoryName}`}
+              data-testid={`portfolio-photo-${photo.id}`}
+            >
+              <img
+                src={photo.url}
+                alt={photo.title}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-2.5 py-2 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                {photo.icon} {photo.categoryName}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Load more */}
+        <div className="flex flex-col items-center gap-2 pt-2">
+          <p className="text-xs text-[var(--ink-soft)]">
+            แสดง {photos.length} จาก {totalForTab} ภาพ
+          </p>
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setOffset((o) => o + PAGE_SIZE)}
+              disabled={query.isFetching}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#002244] disabled:opacity-60"
+              data-testid="button-portfolio-load-more"
+            >
+              {query.isFetching ? <Loader2 className="animate-spin" size={15} /> : null}
+              โหลดภาพเพิ่มเติม
+            </button>
+          )}
+        </div>
+
+        <p className="text-center text-xs text-[var(--ink-soft)] border-t border-[var(--line)] pt-5">
+          ภาพทั้งหมดเป็นผลงานติดตั้งจริงของ บริษัท ไนท์ เฟอร์นิช จำกัด · สอบถามงานสั่งผลิต โทร 094-496-1949, 089-762-2209
+        </p>
+      </main>
+
+      {/* Lightbox */}
+      {zoomItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/88 backdrop-blur-md p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="ภาพผลงานขนาดใหญ่"
+          onClick={() => setZoomItem(null)}
+          data-testid="portfolio-lightbox"
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 z-10 rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 transition"
+            onClick={() => setZoomItem(null)}
+            aria-label="ปิดภาพ"
+          >
+            <X size={24} />
+          </button>
+          <button
+            type="button"
+            className="absolute left-2 sm:left-6 z-10 rounded-full bg-black/60 p-3 text-white hover:bg-black/90 transition"
+            onClick={(e) => { e.stopPropagation(); step(-1); }}
+            aria-label="ภาพก่อนหน้า"
+          >
+            <ChevronLeft size={26} />
+          </button>
+          <button
+            type="button"
+            className="absolute right-2 sm:right-6 z-10 rounded-full bg-black/60 p-3 text-white hover:bg-black/90 transition"
+            onClick={(e) => { e.stopPropagation(); step(1); }}
+            aria-label="ภาพถัดไป"
+          >
+            <ChevronRight size={26} />
+          </button>
+          <div className="relative max-h-[90vh] max-w-5xl overflow-hidden rounded-xl bg-black shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <img src={zoomItem.url} alt={zoomItem.title} className="max-h-[78vh] w-auto object-contain mx-auto" />
+            <div className="bg-black/90 p-4 text-center">
+              <p className="text-sm sm:text-base font-semibold text-white">{zoomItem.icon} {zoomItem.categoryName}</p>
+              <p className="text-xs text-amber-300 mt-1">
+                ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด (ภาพที่ {zoomIndex + 1} จาก {photos.length})
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default PortfolioPage;

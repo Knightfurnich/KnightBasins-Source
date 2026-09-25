@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Camera, ChevronLeft, ChevronRight, Sparkles, X } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, Images, Sparkles, X } from "lucide-react";
 import { useRef, useState } from "react";
+import { Link } from "wouter";
 
 export interface ShowcasePhoto {
   id: string | number;
@@ -247,6 +248,16 @@ export function InstallationShowcase() {
       <p className="installation-showcase-foot text-center text-xs text-[var(--ink-soft)] mt-4">
         ✨ เลื่อนภาพเพื่อชมตัวอย่างงานจริง · คลิกที่ภาพเพื่อดูรายละเอียดขนาดใหญ่
       </p>
+
+      <div className="flex justify-center mt-5">
+        <Link
+          href="/portfolio"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#002244] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+          data-testid="link-showcase-all-portfolio"
+        >
+          <Images size={16} aria-hidden="true" /> ดูคลังผลงานทั้งหมด
+        </Link>
+      </div>
     </section>
   );
 }
