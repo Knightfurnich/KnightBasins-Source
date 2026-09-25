@@ -207,6 +207,8 @@ function loadGoogleServiceAccountCredentials(): GoogleServiceAccountCredentials 
 
   const candidatePaths = [
     process.env["GOOGLE_APPLICATION_CREDENTIALS"],
+    "/app/google-credentials.json",
+    "./google-credentials.json",
     "/docker/knightbasins/google-credentials.json",
     "/opt/data/.google-credentials.json",
   ].filter((path): path is string => Boolean(path));
@@ -308,7 +310,19 @@ async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, ac
 /** Row layout supports both 6-column test fixtures and 10-column real Google Sheets
  * (with up to 5 Lot No. columns and Thai headers). Multiple lot numbers are
  * normalized into lots array. Blank rows (no name) are skipped. */
-function buildStockSheet(title: string, rows: unknown[][]): AdminStockSheet {
+function buildStockSheet(defaultTitle: string, rows: unknown[][]): AdminStockSheet {
+  let title = defaultTitle;
+  for (let i = 0; i < Math.min(rows.length, 6); i++) {
+    const r = rows[i] || [];
+    for (const c of r) {
+      const s = String(c || "").trim();
+      if (s.startsWith("สต๊อคแผ่นหิน")) {
+        title = s;
+        break;
+      }
+    }
+  }
+
   const items: AdminStockItem[] = [];
   let startIdx = 1;
   for (let i = 0; i < Math.min(rows.length, 10); i++) {
