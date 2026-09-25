@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, Search, X } from "lucide-react";
 import { knightFurnichLogo } from "@/data/assets";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { buildPortfolioStructuredData } from "@/data/structured-data";
@@ -15,6 +15,7 @@ export type PortfolioPhoto = {
   width: number;
   height: number;
   title: string;
+  captionTh?: string;
 };
 
 export type PortfolioCategory = { slug: string; name: string; icon: string; count: number };
@@ -29,6 +30,21 @@ type PortfolioResponse = {
 
 export const PAGE_SIZE = 60;
 export const ALL_CATEGORIES = "all";
+
+export function filterPortfolioPhotos(photos: readonly PortfolioPhoto[], search: string): PortfolioPhoto[] {
+  const query = search.trim().toLocaleLowerCase("th");
+  if (!query) return [...photos];
+
+  return photos.filter((photo) => {
+    const caption = photo.captionTh?.trim() || photo.title;
+    const searchableText = `${caption} ${photo.category} ${photo.categoryName}`.toLocaleLowerCase("th");
+    return searchableText.includes(query);
+  });
+}
+
+export function portfolioInquiryUrl(): string {
+  return "https://line.me/R/ti/p/@789gcnhq";
+}
 
 /** Public gallery API URL for a given tab + page. */
 export function portfolioQueryUrl(category: string, offset: number, limit = PAGE_SIZE): string {
@@ -53,6 +69,7 @@ async function fetchPortfolioPage(category: string, offset: number): Promise<Por
 export function PortfolioPage() {
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
   const [zoomId, setZoomId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const query = useInfiniteQuery({
     queryKey: ["/api/portfolio", activeCategory],
@@ -68,6 +85,11 @@ export function PortfolioPage() {
   const firstPage = pages[0];
   const categories = firstPage?.categories ?? [];
   const photos = useMemo(() => pages.flatMap((page) => page.items), [pages]);
+  const filteredPhotos = useMemo(
+    () => filterPortfolioPhotos(photos, searchQuery),
+    [photos, searchQuery],
+  );
+  const hasSearchQuery = Boolean(searchQuery.trim());
   const totalForTab = firstPage
     ? (activeCategory === ALL_CATEGORIES
         ? firstPage.total
@@ -75,15 +97,15 @@ export function PortfolioPage() {
     : 0;
 
   const zoomIndex = useMemo(
-    () => (zoomId ? photos.findIndex((p) => p.id === zoomId) : -1),
-    [zoomId, photos],
+    () => (zoomId ? filteredPhotos.findIndex((p) => p.id === zoomId) : -1),
+    [zoomId, filteredPhotos],
   );
   const zoomItem = zoomIndex >= 0 ? photos[zoomIndex] : null;
 
   const step = (delta: number) => {
-    if (zoomIndex < 0 || photos.length === 0) return;
-    const next = (zoomIndex + delta + photos.length) % photos.length;
-    setZoomId(photos[next].id);
+    if (zoomIndex < 0 || filteredPhotos.length === 0) return;
+    const next = (zoomIndex + delta + filteredPhotos.length) % filteredPhotos.length;
+    setZoomId(filteredPhotos[next].id);
   };
 
   const structuredData = useMemo(
@@ -131,6 +153,29 @@ export function PortfolioPage() {
           )}
         </section>
 
+        <div className="portfolio-search-bar" role="search">
+          <Search className="portfolio-search-icon" size={18} aria-hidden="true" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="ค้นหาผลงาน เช่น อ่างคู่, ครัว, ผนัง, เคาน์เตอร์..."
+            aria-label="ค้นหาผลงาน"
+            data-testid="input-portfolio-search"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="portfolio-search-clear"
+              onClick={() => setSearchQuery("")}
+              aria-label="ล้างคำค้นหา"
+              data-testid="button-clear-portfolio-search"
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
         {/* Category tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1" data-testid="portfolio-category-tabs">
           <button
@@ -176,9 +221,15 @@ export function PortfolioPage() {
           <p className="text-sm text-[var(--ink-soft)] py-12 text-center">ยังไม่มีภาพในหมวดนี้</p>
         )}
 
-        {photos.length > 0 && (
+        {!query.isPending && !query.isError && photos.length > 0 && filteredPhotos.length === 0 && (
+          <p className="text-sm text-[var(--ink-soft)] py-12 text-center" role="status" data-testid="portfolio-search-empty">
+            ไม่พบผลงานที่ตรงกับคำค้นหา
+          </p>
+        )}
+
+        {filteredPhotos.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="portfolio-grid">
-            {photos.map((photo) => (
+            {filteredPhotos.map((photo) => (
               <button
                 key={photo.id}
                 type="button"
@@ -205,7 +256,9 @@ export function PortfolioPage() {
         {photos.length > 0 && (
           <div className="flex flex-col items-center gap-2 pt-2">
             <p className="text-xs text-[var(--ink-soft)]">
-              แสดง {photos.length} จาก {totalForTab} ภาพ
+              {hasSearchQuery
+                ? `พบ ${filteredPhotos.length} จาก ${photos.length} ภาพที่โหลด`
+                : `แสดง ${photos.length} จาก ${totalForTab} ภาพ`}
             </p>
             {query.hasNextPage && (
               <button
@@ -261,13 +314,39 @@ export function PortfolioPage() {
           >
             <ChevronRight size={26} />
           </button>
-          <div className="relative max-h-[90vh] max-w-5xl overflow-hidden rounded-xl bg-black shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <img src={zoomItem.url} alt={zoomItem.title} className="max-h-[78vh] w-auto object-contain mx-auto" />
-            <div className="bg-black/90 p-4 text-center">
-              <p className="text-sm sm:text-base font-semibold text-white">{zoomItem.icon} {zoomItem.categoryName}</p>
-              <p className="text-xs text-amber-300 mt-1">
-                ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด (ภาพที่ {zoomIndex + 1} จาก {photos.length})
+          <div
+            className="portfolio-lightbox-card relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl bg-black shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img src={zoomItem.url} alt={zoomItem.captionTh?.trim() || zoomItem.title} className="portfolio-lightbox-image" />
+            <div className="portfolio-lightbox-caption bg-black/90 p-4 text-center">
+              <p className="text-sm sm:text-base font-semibold text-white" data-testid="portfolio-lightbox-category">
+                {zoomItem.icon} {zoomItem.categoryName}
               </p>
+              <p className="mt-1 text-sm text-white" data-testid="portfolio-lightbox-caption-text">
+                {zoomItem.captionTh?.trim() || zoomItem.title}
+              </p>
+              <p className="text-xs text-amber-300 mt-1">
+                ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด (ภาพที่ {zoomIndex + 1} จาก {filteredPhotos.length})
+              </p>
+            </div>
+            <div className="portfolio-lightbox-actionbar" data-testid="portfolio-lightbox-actions">
+              <a
+                className="portfolio-line-action"
+                href={portfolioInquiryUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-portfolio-line-inquiry"
+              >
+                💬 สอบถามสเปกงานชิ้นนี้ทาง LINE
+              </a>
+              <Link
+                href="/studio"
+                className="portfolio-studio-action"
+                data-testid="link-portfolio-studio"
+              >
+                🎨 ลองวางผังใน 2D Studio
+              </Link>
             </div>
           </div>
         </div>
