@@ -301,13 +301,29 @@ test("discount validation rejects negative and over-total values before submissi
   assert.equal(maximum.discountInvalid, false);
 });
 
-test("9,500 stone rates hand off to sales instead of entering automatic totals", () => {
-  const estimate = studioEstimate(baseState({ activeStone: "MU010" }), PRODUCTS);
-  assert.equal(estimate.sheetCutPriceWarning, false);
-  const sheetCutEstimate = studioEstimate(baseState({ activeStone: "BR816O" }), PRODUCTS);
-  assert.equal(sheetCutEstimate.stoneUnitPriceTHB, 9500);
-  assert.equal(sheetCutEstimate.stoneTotalTHB, 0);
-  assert.match(sheetCutEstimate.warnings.join(" "), /แผ่นตัด/);
+test("9,500 stone rates compute real totals from the actual area, the same as every other rate", () => {
+  const notMarble = studioEstimate(baseState({ activeStone: "MU010" }), PRODUCTS);
+  assert.equal(notMarble.sheetCutPriceWarning, false);
+
+  const marbleEstimate = studioEstimate(baseState({ activeStone: "BR816O" }), PRODUCTS);
+  assert.equal(marbleEstimate.stoneUnitPriceTHB, 9500);
+  assert.equal(marbleEstimate.stoneAreaSqM, 1.08);
+  assert.equal(marbleEstimate.stoneTotalTHB, 10260, "1.08 sqm x 9,500 THB/sqm");
+  assert.ok(marbleEstimate.stoneTotalTHB > 0);
+  assert.equal(marbleEstimate.sheetCutPriceWarning, false);
+  assert.doesNotMatch(marbleEstimate.warnings.join(" "), /แผ่นตัด/);
+
+  // upstandTotalTHB must also compute for a 9,500-rate stone, not just stoneTotalTHB.
+  const withUpstand = studioEstimate(baseState({
+    activeStone: "VS311",
+    pieces: [piece([rectangle("r1", { widthMm: 1800 })], { "r1:top": "upstand" })],
+    upstandHeightMm: 100,
+  }), PRODUCTS);
+  assert.equal(withUpstand.stoneUnitPriceTHB, 9500);
+  assert.equal(withUpstand.upstandAreaSqM, 0.18);
+  assert.equal(withUpstand.upstandTotalTHB, 1710, "0.18 sqm x 9,500 THB/sqm");
+  assert.equal(withUpstand.stoneTotalTHB, 11970, "(1.08 + 0.18) sqm x 9,500 THB/sqm");
+  assert.doesNotMatch(withUpstand.warnings.join(" "), /แผ่นตัด/);
 });
 
 test("a shortlisted-but-unplaced basin never blocks submission or gets priced in", () => {
