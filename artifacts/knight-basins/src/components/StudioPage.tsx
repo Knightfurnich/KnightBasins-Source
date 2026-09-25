@@ -1000,7 +1000,7 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
   </section>;
   const basinSelector = <section className={`studio-panel studio-selector-panel ${mode === "studio" ? "studio-basin-popover-panel" : ""}`}>
     <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง</h3></div><span>{state.basinSkus.length} รุ่น</span></div>
-    <p className="studio-helper">{mode === "sketch" ? "เลือกรุ่นอ่างที่สนใจใส่ในแบบร่าง (ไม่บังคับ) เพื่อให้ทีมงานช่วยวางผังให้ตรงรุ่น" : 'กดเลือกเพื่อเพิ่ม / นำออกจากรายการ · กด "วางบนผัง" หรือลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้'}</p>
+    <p className="studio-helper">{mode === "sketch" ? "เลือกรุ่นอ่างที่สนใจเพิ่มเติมได้ตามต้องการ" : 'กดเลือกเพื่อเพิ่ม / นำออกจากรายการ · กด "วางบนผัง" หรือลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้'}</p>
     {hiddenBasins.length > 0 && <div className="studio-basin-stale" role="status" data-testid="studio-hidden-basins">
       <strong>มีอ่างในแบบร่างที่ปิดการขายแล้ว</strong>
       <p>ตำแหน่งและขนาดบนผังเดิมยังคงอยู่ เลือกรุ่นใหม่เพื่อแทนที่ หรือเอารุ่นนี้ออกจากแบบ</p>
@@ -2467,6 +2467,7 @@ export function StudioPage({
   const [savedLeadStateFingerprint, setSavedLeadStateFingerprint] = useState<string | null>(null);
   const [sketchFiles, setSketchFiles] = useState<File[]>([]);
   const [sketchPreviewUrls, setSketchPreviewUrls] = useState<string[]>([]);
+  const [sketchDropActive, setSketchDropActive] = useState(false);
   const sketchPreviewUrlCache = useRef<Map<File, string>>(new Map());
   const sketchInputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
@@ -3089,51 +3090,134 @@ export function StudioPage({
         <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
       </div>}
       {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
-      <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
+      <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "🚀 ส่งภาพแบบร่างให้ทีมขายประเมินราคา"} <ArrowRight size={16} /></button>
       {result && <p className="studio-result" role="status">{result}</p>}
       {hasUnsavedLinkedLeadChanges && <p className="studio-lead-unsaved" role="status">มีการแก้ไขผังที่ยังไม่ได้บันทึก</p>}
       {isLeadLinkedMode && linkedLeadLayoutIsSaved && linkedLead?.publicQuoteToken && <p className="studio-lead-quote-link" data-testid="link-existing-lead-quote"><a href={adminQuoteUrl(linkedLead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา{linkedLead.quoteNumber ? ` ${linkedLead.quoteNumber}` : ""}</a></p>}
       {isLeadLinkedMode && linkedLeadLayoutIsSaved && linkedLead && !linkedLead.publicQuoteToken && <p className="studio-lead-no-quote">Lead นี้ยังไม่มีใบเสนอราคาให้เปิด</p>}
     </aside>
   );
-  const studioDesignLayout = <div className={`studio-design-layout ${isSimpleStudioMode ? "studio-design-layout--simple" : ""} ${mode === "studio" ? "studio-design-layout--canvas-first" : ""}`}>
-    <StudioShortlists mode={mode} state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
-    {mode === "studio" ? (
-      <div className="studio-canvas-column">
-        <div className="studio-share-actions">
-          <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
-          <button
-            type="button"
-            className="button button--accent studio-share-button"
-            onClick={() => void copyStudioShareLinkToClipboard()}
-            aria-live="polite"
-            data-testid="button-share-studio-link"
-          >
-            {studioShareFeedback === "copied"
-              ? "✓ คัดลอกลิงก์แล้ว"
-              : studioShareFeedback === "failed"
-                ? "คัดลอกลิงก์ไม่สำเร็จ"
-                : "🔗 คัดลอกลิงก์ผังนี้"}
+  const studioSketchUploadPanel = (
+    <section className="studio-panel studio-sketch-panel">
+      <div
+        className={`studio-sketch-dropzone ${sketchDropActive ? "is-dragging" : ""}`}
+        aria-label="พื้นที่วางภาพแบบร่าง"
+        data-testid="dropzone-studio-sketch"
+        onDragEnter={(event) => {
+          if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+          event.preventDefault();
+          setSketchDropActive(true);
+        }}
+        onDragOver={(event) => {
+          if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+          setSketchDropActive(true);
+        }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setSketchDropActive(false);
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          setSketchDropActive(false);
+          addSketchFiles(Array.from(event.dataTransfer.files));
+        }}
+      >
+        <div className="studio-sketch-dropzone-intro">
+          <span className="studio-sketch-dropzone-icon"><Upload size={22} /></span>
+          <div className="studio-sketch-dropzone-copy">
+            <strong>ลากภาพแบบร่างหรือรูปถ่ายหน้างานมาวางที่นี่</strong>
+            <span>หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP และ GIF</span>
+          </div>
+          <button type="button" className="button button--outline studio-sketch-select-button" onClick={() => sketchInputRef.current?.click()}>
+            <Upload size={16} /> เลือกภาพ
           </button>
-          <Link href="/studio-guide" className="button button--outline" data-testid="link-studio-open-guide">📖 วิธีใช้งาน 3 ขั้นตอน</Link>
         </div>
-        <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} />
+        <div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">
+          {Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
+            const file = sketchFiles[index];
+            const previewUrl = sketchPreviewUrls[index];
+            if (file && previewUrl) {
+              return (
+                <div key={index} className="studio-sketch-slot studio-sketch-slot--filled" data-testid={`slot-studio-sketch-${index}`}>
+                  <img className="studio-sketch-slot-preview" src={previewUrl} alt={`ตัวอย่างไฟล์ ${file.name}`} data-testid={`img-studio-sketch-preview-${index}`} />
+                  <button type="button" className="studio-sketch-slot-remove" onClick={() => removeSketchFile(index)} aria-label={`ลบไฟล์ ${file.name}`} data-testid={`button-remove-studio-sketch-${index}`}><X size={14} /></button>
+                </div>
+              );
+            }
+            if (index === sketchFiles.length) {
+              return (
+                <button key={index} type="button" className="studio-sketch-slot studio-sketch-slot--add" onClick={() => sketchInputRef.current?.click()} data-testid={`button-add-studio-sketch-${index}`}>
+                  <span className="studio-sketch-add-plus" aria-hidden="true">+</span>
+                  <small>เพิ่มรูป</small>
+                </button>
+              );
+            }
+            return <div key={index} className="studio-sketch-slot studio-sketch-slot--empty" aria-hidden="true" />;
+          })}
+        </div>
       </div>
-    ) : (
-      <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
-      const file = sketchFiles[index];
-      const previewUrl = sketchPreviewUrls[index];
-      if (file && previewUrl) {
-        return <div key={index} className="studio-sketch-slot studio-sketch-slot--filled" data-testid={`slot-studio-sketch-${index}`}><img className="studio-sketch-slot-preview" src={previewUrl} alt={`ตัวอย่างไฟล์ ${file.name}`} data-testid={`img-studio-sketch-preview-${index}`} /><button type="button" className="studio-sketch-slot-remove" onClick={() => removeSketchFile(index)} aria-label={`ลบไฟล์ ${file.name}`} data-testid={`button-remove-studio-sketch-${index}`}><X size={14} /></button></div>;
-      }
-      if (index === sketchFiles.length) {
-        return <button key={index} type="button" className="studio-sketch-slot studio-sketch-slot--add" onClick={() => sketchInputRef.current?.click()} data-testid={`button-add-studio-sketch-${index}`}><Upload size={20} /><small>{index === 0 ? "เลือกไฟล์" : "เพิ่มรูป"}</small></button>;
-      }
-      return <div key={index} className="studio-sketch-slot studio-sketch-slot--empty" aria-hidden="true" />;
-     })}</div><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" /><small className="studio-sketch-hint">JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป</small></section>
-    )}
-    {mode === "studio" && estimatePanel}
-  </div>;
+      <input ref={sketchInputRef} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" />
+      <small className="studio-sketch-hint">ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป · สามารถเพิ่มหรือลบรูปได้ก่อนส่ง</small>
+    </section>
+  );
+  const studioShortlistsProps = {
+    mode,
+    state,
+    setState,
+    stoneColors,
+    basinProducts,
+    selectedRectangleId,
+    selectedPlacementId,
+    onCatalogChangeResolved: acknowledgeCatalogChange,
+    onTouchBasinDrop: handleTouchBasinDrop,
+  };
+  const studioDesignLayout = mode === "sketch" ? (
+    <div className="studio-design-layout studio-design-layout--sketch" data-testid="studio-sketch-flow">
+      <section className="studio-sketch-step studio-sketch-step--upload" data-testid="step-studio-sketch-upload">
+        <div className="studio-sketch-step-heading">
+          <span className="studio-sketch-step-number" aria-label="STEP 1">01</span>
+          <div><p className="eyebrow">UPLOAD YOUR REFERENCE</p><h2>แนบภาพแบบร่าง / รูปถ่ายหน้างาน</h2></div>
+        </div>
+        {studioSketchUploadPanel}
+      </section>
+      <section className="studio-sketch-step studio-sketch-step--shortlists" data-testid="step-studio-sketch-shortlists">
+        <div className="studio-sketch-step-heading">
+          <span className="studio-sketch-step-number" aria-label="STEP 2">02</span>
+          <div><p className="eyebrow">OPTIONAL SPECIFICATIONS</p><h2>สเปกที่สนใจ</h2></div>
+        </div>
+        <p className="studio-helper studio-sketch-optional-copy">เลือกสเปกที่สนใจเบื้องต้น (ไม่บังคับ) เพื่อให้ทีมงานช่วยวางผังให้ตรงรุ่น หรือปล่อยว่างเพื่อให้ทีมงานช่วยแนะนำ</p>
+        <StudioShortlists {...studioShortlistsProps} />
+      </section>
+    </div>
+  ) : (
+    <div className={`studio-design-layout ${isSimpleStudioMode ? "studio-design-layout--simple" : ""} ${mode === "studio" ? "studio-design-layout--canvas-first" : ""}`}>
+      <StudioShortlists {...studioShortlistsProps} />
+      {mode === "studio" ? (
+        <div className="studio-canvas-column">
+          <div className="studio-share-actions">
+            <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
+            <button
+              type="button"
+              className="button button--accent studio-share-button"
+              onClick={() => void copyStudioShareLinkToClipboard()}
+              aria-live="polite"
+              data-testid="button-share-studio-link"
+            >
+              {studioShareFeedback === "copied"
+                ? "✓ คัดลอกลิงก์แล้ว"
+                : studioShareFeedback === "failed"
+                  ? "คัดลอกลิงก์ไม่สำเร็จ"
+                  : "🔗 คัดลอกลิงก์ผังนี้"}
+            </button>
+            <Link href="/studio-guide" className="button button--outline" data-testid="link-studio-open-guide">📖 วิธีใช้งาน 3 ขั้นตอน</Link>
+          </div>
+          <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} />
+        </div>
+      ) : studioSketchUploadPanel}
+      {mode === "studio" && estimatePanel}
+    </div>
+  );
   const linkedSketchViewer = isLeadLinkedMode && linkedLead ? <section className="studio-lead-sketch-viewer" aria-label="ภาพแบบร่างต้นฉบับ" data-testid="studio-lead-sketch-viewer">
     <div className="studio-lead-sketch-heading">
       <div><span>ภาพต้นฉบับ</span><strong>แบบร่างจากลูกค้า</strong></div>
@@ -3158,7 +3242,7 @@ export function StudioPage({
   if (bridgeStoneCode) sketchBridgeParams.set("stone", bridgeStoneCode);
   const sketchBridgeQuery = sketchBridgeParams.toString();
   const sketchBridgeHref = `/sketch${sketchBridgeQuery ? `?${sketchBridgeQuery}` : ""}`;
-  return <div className={`page-wrap studio-page ${isSimpleStudioMode ? "studio-page--simple" : ""}`}>
+  return <div className={`page-wrap studio-page ${mode === "sketch" ? "studio-page--sketch" : ""} ${isSimpleStudioMode ? "studio-page--simple" : ""}`}>
     {isLeadLinkedMode && <section className="studio-linked-lead-banner" data-testid="studio-linked-lead-banner">
       <div>
         <span className="studio-linked-lead-kicker">กำลังแก้ไข Lead</span>
@@ -3188,7 +3272,11 @@ export function StudioPage({
       {isLeadLinkedMode && linkedLead
         ? <div className="studio-lead-workspace">{linkedSketchViewer}{studioDesignLayout}</div>
         : studioDesignLayout}
-    <section className={`studio-layout-bottom ${mode === "studio" ? "studio-layout-bottom--contact" : ""}`}>
+    <section className={`studio-layout-bottom ${mode === "studio" ? "studio-layout-bottom--contact" : mode === "sketch" ? "studio-layout-bottom--sketch" : ""}`} data-testid={mode === "sketch" ? "step-studio-sketch-details" : undefined}>
+        {mode === "sketch" && <div className="studio-sketch-step-heading studio-sketch-step-heading--wide">
+          <span className="studio-sketch-step-number" aria-label="STEP 3">03</span>
+          <div><p className="eyebrow">CONTACT &amp; LIVE ESTIMATE</p><h2>ข้อมูลติดต่อและสรุปส่งแบบร่าง</h2></div>
+        </div>}
        <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>{isLeadLinkedMode ? "ข้อมูลลูกค้าใน Lead" : "ข้อมูลติดต่อและหน้างาน"}</h3></div></div>
          {isLeadLinkedMode && linkedLead ? <div className="studio-lead-contact-summary" data-testid="studio-lead-contact-summary">
            <div><strong>ผู้ติดต่อ</strong><span>{linkedLead.name || "ยังไม่ระบุ"}</span></div>
