@@ -26,6 +26,10 @@ services:
     volumes:
       - ./api-dist:/app/dist:ro
       - ./uploads:/app/uploads
+      # Read-only logical backups (pg_dump) written by backups/knight_db_backup.sh.
+      # Only the api service gets this mount; nginx has no view of the directory,
+      # so a dump is reachable solely through the authenticated admin route.
+      - ./backups:/app/backups:ro
     networks:
       - hermes
     depends_on:
