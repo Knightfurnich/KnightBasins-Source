@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, it } from "node:test";
+import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -155,7 +156,7 @@ async function captureScreenshot(filename: string) {
 }
 
 before(async () => {
-  if (!adminPassword) return;
+  if (!adminPassword || !existsSync(chromiumPath)) return;
   const port = await freePort();
   browserProfile = await mkdtemp(path.join(os.tmpdir(), "knight-stock-chrome-"));
   browser = spawn(
@@ -257,7 +258,7 @@ after(async () => {
 
 it(
   "loads the contract-shaped stock response and captures Staron and filtered Zen Stone views",
-  { skip: !adminPassword && "ADMIN_PASSWORD is required for the admin browser test" },
+  { skip: (!adminPassword || !existsSync(chromiumPath)) && "ADMIN_PASSWORD and Chromium are required for the admin browser test" },
   async () => {
     assert.ok(page, "Chromium page is not ready");
     assert.ifError(mockError);
