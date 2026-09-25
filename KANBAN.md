@@ -75,7 +75,7 @@
 | **Task 44** | ชัย | ระบบฐานข้อมูลและ API ภาพหน้างานช่าง (Migration 014 + GET/POST/PATCH) | `feat/chai-site-photos-api` | ✅ **Live บน VPS** · PR #20 merge + migration 014 applied · GET /api/admin/site-photos ตอบ 200 OK |
 | **Task 46** | ชัย | หน้าแกลเลอรีภาพหน้างานช่างในหน้าแอดมิน (/admin/site-photos) | `feat/chai-site-photos-ui` | ✅ **Live บน VPS** · PR #22 merge + deploy · 51 รูปจริง + Lightbox แก้ไขได้ |
 | **Task 47** | ชัย | ระบบปักหมุดภาพ Top View สำหรับอ่างในฐานข้อมูลและ API (Migration 015) | `feat/chai-basin-topview-backend` | ✅ **Live บน VPS** · PR #23 merge + migration 015 applied · topViewImageUrl ครบ 30 รุ่น |
-| **Task 48** | Replit | ตัวเลือกเดือน/ปี (Month & Year Selector) ในหน้าปฏิทินคิวช่าง (/admin/calendar) | `feat/replit-calendar-month-picker` | 🔄 มอบหมายแล้ว (`qa/job-48-replit-calendar-month-picker.md`) |
+| **Task 48** | Replit | ตัวเลือกเดือน/ปี (Month & Year Selector) ในหน้าปฏิทินคิวช่าง (/admin/calendar) | `feat/replit-calendar-month-picker` | ✅ **Live บน VPS** · PR #25 merge + deploy · ดรอปดาวน์เดือน/ปี พ.ศ. ใช้งานได้จริง |
 | **Task 49** | ชัย | เพิ่มปุ่มปักหมุด 'กำหนดเป็นภาพ Top View' ในหน้าแก้ไขอ่าง (/admin/basins) | `feat/chai-basin-topview-ui` | ✅ **Live บน VPS** · PR #24 merge + deploy · ปุ่ม 🔝 Top View บนทุกรูป |
 | **Thai Holidays** | เดวิด | แสดงวันหยุดนักขัตฤกษ์ไทย (ป้ายแดง 🚩 + ข้อความเตือนคอนโด) บนปฏิทินคิวช่าง | `883d833` | ✅ **Live บน VPS** · ครอบคลุม 2568-2570 · วันที่ 13, 23 ต.ค. ขึ้นป้ายพร้อมข้อความเตือน |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
