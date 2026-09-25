@@ -13,6 +13,7 @@ import {
   adminApiKeys,
   technicianTeams,
   supportVoiceSettings,
+  sitePhotos,
 } from "@workspace/db/schema";
 import {
   AssignAdminPaymentSlipBody,
@@ -33,6 +34,8 @@ import {
   UpdateAdminMemberBody,
   CreateAdminApiKeyBody,
   UpdateAdminSupportVoiceBody,
+  CreateAdminSitePhotoBody,
+  UpdateAdminSitePhotoBody,
 } from "@workspace/api-zod";
 import { and, asc, desc, eq, gte, isNull, lte, ne } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
@@ -110,6 +113,8 @@ function parsedOptionalInteger(value: string | undefined) {
 function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
+
+const SITE_PHOTO_STAGES = ["survey", "installation", "service", "completed"] as const;
 
 /**
  * The full real status domain a lead can hold. Wider than UpdateAdminLeadBody's
@@ -1808,6 +1813,98 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       res.setHeader("Content-Type", result.contentType);
       res.setHeader("Cache-Control", "no-store");
       return res.send(result.audio);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/site-photos", requireAdminPermission("leads"), async (req, res, next) => {
+    try {
+      const rawJobCode = req.query["jobCode"];
+      const jobCode = typeof rawJobCode === "string" && rawJobCode.trim() !== "" ? rawJobCode.trim() : undefined;
+
+      const rawLeadId = req.query["leadId"];
+      let leadIdFilter: number | undefined;
+      if (rawLeadId !== undefined) {
+        const parsed = idFrom(rawLeadId as string | string[]);
+        if (parsed === null) return invalid(res, "leadId must be a positive integer");
+        leadIdFilter = parsed;
+      }
+
+      const rawStage = req.query["stage"];
+      const stage = typeof rawStage === "string" ? rawStage : undefined;
+      if (stage !== undefined && !(SITE_PHOTO_STAGES as readonly string[]).includes(stage)) {
+        return invalid(res, `stage must be one of: ${SITE_PHOTO_STAGES.join(", ")}`);
+      }
+
+      const rawLimit = req.query["limit"];
+      let limit = 50;
+      if (typeof rawLimit === "string" && rawLimit.trim() !== "") {
+        const parsedLimit = Number(rawLimit);
+        if (!Number.isInteger(parsedLimit) || parsedLimit < 1) return invalid(res, "limit must be a positive integer");
+        limit = Math.min(parsedLimit, 200);
+      }
+
+      const conditions = [
+        jobCode !== undefined ? eq(sitePhotos.jobCode, jobCode) : undefined,
+        leadIdFilter !== undefined ? eq(sitePhotos.leadId, leadIdFilter) : undefined,
+        stage !== undefined ? eq(sitePhotos.stage, stage) : undefined,
+      ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
+
+      const rows = await database
+        .select()
+        .from(sitePhotos)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(sitePhotos.capturedAt), desc(sitePhotos.id))
+        .limit(limit);
+
+      return res.json(rows);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/site-photos", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const parsed = CreateAdminSitePhotoBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "Invalid site photo data", parsed.error.flatten());
+
+    try {
+      const [created] = await database
+        .insert(sitePhotos)
+        .values({
+          leadId: parsed.data.leadId ?? null,
+          jobCode: parsed.data.jobCode ?? null,
+          imageUrl: parsed.data.imageUrl,
+          description: parsed.data.description ?? null,
+          stage: parsed.data.stage ?? "installation",
+          senderName: parsed.data.senderName ?? null,
+          capturedAt: parsed.data.capturedAt ?? null,
+        })
+        .returning();
+      return res.status(201).json(created);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.patch("/admin/site-photos/:id", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid site photo id");
+
+    const parsed = UpdateAdminSitePhotoBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "Invalid site photo data", parsed.error.flatten());
+    if (Object.keys(parsed.data).length === 0) return invalid(res, "At least one field must be present");
+
+    try {
+      const changes: Record<string, unknown> = { ...parsed.data };
+
+      const [updated] = await database
+        .update(sitePhotos)
+        .set(changes)
+        .where(eq(sitePhotos.id, id))
+        .returning();
+      if (!updated) return res.status(404).json({ message: "Site photo not found" });
+      return res.json(updated);
     } catch (error) {
       return next(error);
     }

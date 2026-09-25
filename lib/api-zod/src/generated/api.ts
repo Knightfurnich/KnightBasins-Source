@@ -2409,6 +2409,101 @@ export const UpdateAdminSupportVoiceResponse = zod.object({
 
 
 /**
+ * @summary Search and list site photos (survey/installation/service/completed)
+ */
+
+export const listAdminSitePhotosQueryLimitMax = 200;
+
+
+
+export const ListAdminSitePhotosQueryParams = zod.object({
+  "jobCode": zod.coerce.string().optional(),
+  "leadId": zod.coerce.number().min(1).optional(),
+  "stage": zod.enum(['survey', 'installation', 'service', 'completed']).optional(),
+  "limit": zod.coerce.number().min(1).max(listAdminSitePhotosQueryLimitMax).optional().describe('Defaults to 50, capped at 200')
+})
+
+export const ListAdminSitePhotosResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "jobCode": zod.string().nullish(),
+  "imageUrl": zod.string(),
+  "description": zod.string().nullish(),
+  "stage": zod.enum(['survey', 'installation', 'service', 'completed']),
+  "senderName": zod.string().nullish(),
+  "capturedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminSitePhotosResponse = zod.array(ListAdminSitePhotosResponseItem)
+
+
+/**
+ * @summary Record a newly received site photo
+ */
+
+export const createAdminSitePhotoBodyJobCodeMax = 32;
+
+
+export const createAdminSitePhotoBodySenderNameMax = 64;
+
+
+
+export const CreateAdminSitePhotoBody = zod.object({
+  "leadId": zod.number().min(1).optional(),
+  "jobCode": zod.string().max(createAdminSitePhotoBodyJobCodeMax).optional(),
+  "imageUrl": zod.string().min(1),
+  "description": zod.string().optional(),
+  "stage": zod.enum(['survey', 'installation', 'service', 'completed']).optional().describe('Defaults to installation when omitted'),
+  "senderName": zod.string().max(createAdminSitePhotoBodySenderNameMax).optional(),
+  "capturedAt": zod.coerce.date().optional()
+})
+
+export const CreateAdminSitePhotoResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "jobCode": zod.string().nullish(),
+  "imageUrl": zod.string(),
+  "description": zod.string().nullish(),
+  "stage": zod.enum(['survey', 'installation', 'service', 'completed']),
+  "senderName": zod.string().nullish(),
+  "capturedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Edit a site photo's description/stage, or bind it to a lead
+ */
+
+
+
+export const UpdateAdminSitePhotoParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+export const UpdateAdminSitePhotoBody = zod.object({
+  "description": zod.string().nullish(),
+  "stage": zod.enum(['survey', 'installation', 'service', 'completed']).optional(),
+  "leadId": zod.number().min(1).nullish().describe('Bind this photo to a lead, or null to unlink it')
+}).describe('At least one field must be present')
+
+export const UpdateAdminSitePhotoResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "jobCode": zod.string().nullish(),
+  "imageUrl": zod.string(),
+  "description": zod.string().nullish(),
+  "stage": zod.enum(['survey', 'installation', 'service', 'completed']),
+  "senderName": zod.string().nullish(),
+  "capturedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Get current LINE customer identity status
  */
 export const GetLineAuthStatusResponse = zod.object({

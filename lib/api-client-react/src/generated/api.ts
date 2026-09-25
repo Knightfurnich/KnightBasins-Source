@@ -61,6 +61,7 @@ import type {
   LeadInput,
   LineAuthStatus,
   ListAdminLeadsParams,
+  ListAdminSitePhotosParams,
   ListAdminTechnicianTeamsParams,
   NotifyQuoteInput,
   PaymentSlip,
@@ -70,6 +71,9 @@ import type {
   SendAdminDashboardBriefingToLine200,
   SheetStonePrice,
   SheetStonePriceInput,
+  SitePhoto,
+  SitePhotoCreateInput,
+  SitePhotoUpdateInput,
   SketchLeadResponse,
   SubmitPaymentSlipBody,
   SubmitSketchLeadBody,
@@ -5099,6 +5103,257 @@ export const useUpdateAdminSupportVoice = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateAdminSupportVoiceMutationOptions(options), queryClient);
+    }
+
+export const getListAdminSitePhotosUrl = (params?: ListAdminSitePhotosParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/site-photos?${stringifiedParams}` : `/api/admin/site-photos`
+}
+
+/**
+ * @summary Search and list site photos (survey/installation/service/completed)
+ */
+export const listAdminSitePhotos = async (params?: ListAdminSitePhotosParams, options?: RequestInit): Promise<SitePhoto[]> => {
+
+  return customFetch<SitePhoto[]>(getListAdminSitePhotosUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminSitePhotosQueryKey = (params?: ListAdminSitePhotosParams,) => {
+    return [
+    `/api/admin/site-photos`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAdminSitePhotosQueryOptions = <TData = Awaited<ReturnType<typeof listAdminSitePhotos>>, TError = ErrorType<void>>(params?: ListAdminSitePhotosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminSitePhotos>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminSitePhotosQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminSitePhotos>>> = ({ signal }) => listAdminSitePhotos(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminSitePhotos>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdminSitePhotosQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminSitePhotos>>>
+export type ListAdminSitePhotosQueryError = ErrorType<void>
+
+
+export function useListAdminSitePhotos<TData = Awaited<ReturnType<typeof listAdminSitePhotos>>, TError = ErrorType<void>>(
+ params: undefined |  ListAdminSitePhotosParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminSitePhotos>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminSitePhotos>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminSitePhotos>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminSitePhotos<TData = Awaited<ReturnType<typeof listAdminSitePhotos>>, TError = ErrorType<void>>(
+ params?: ListAdminSitePhotosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminSitePhotos>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdminSitePhotos>>,
+          TError,
+          Awaited<ReturnType<typeof listAdminSitePhotos>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdminSitePhotos<TData = Awaited<ReturnType<typeof listAdminSitePhotos>>, TError = ErrorType<void>>(
+ params?: ListAdminSitePhotosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminSitePhotos>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Search and list site photos (survey/installation/service/completed)
+ */
+
+export function useListAdminSitePhotos<TData = Awaited<ReturnType<typeof listAdminSitePhotos>>, TError = ErrorType<void>>(
+ params?: ListAdminSitePhotosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminSitePhotos>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdminSitePhotosQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminSitePhotoUrl = () => {
+
+
+
+
+  return `/api/admin/site-photos`
+}
+
+/**
+ * @summary Record a newly received site photo
+ */
+export const createAdminSitePhoto = async (sitePhotoCreateInput: SitePhotoCreateInput, options?: RequestInit): Promise<SitePhoto> => {
+
+  return customFetch<SitePhoto>(getCreateAdminSitePhotoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(sitePhotoCreateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminSitePhotoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminSitePhoto>>, TError,{data: BodyType<SitePhotoCreateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminSitePhoto>>, TError,{data: BodyType<SitePhotoCreateInput>}, TContext> => {
+
+const mutationKey = ['createAdminSitePhoto'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminSitePhoto>>, {data: BodyType<SitePhotoCreateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminSitePhoto(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminSitePhotoMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminSitePhoto>>>
+    export type CreateAdminSitePhotoMutationBody = BodyType<SitePhotoCreateInput>
+    export type CreateAdminSitePhotoMutationError = ErrorType<void>
+
+    /**
+ * @summary Record a newly received site photo
+ */
+export const useCreateAdminSitePhoto = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminSitePhoto>>, TError,{data: BodyType<SitePhotoCreateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminSitePhoto>>,
+        TError,
+        {data: BodyType<SitePhotoCreateInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminSitePhotoMutationOptions(options), queryClient);
+    }
+
+export const getUpdateAdminSitePhotoUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/site-photos/${id}`
+}
+
+/**
+ * @summary Edit a site photo's description/stage, or bind it to a lead
+ */
+export const updateAdminSitePhoto = async (id: number,
+    sitePhotoUpdateInput: SitePhotoUpdateInput, options?: RequestInit): Promise<SitePhoto> => {
+
+  return customFetch<SitePhoto>(getUpdateAdminSitePhotoUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(sitePhotoUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminSitePhotoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminSitePhoto>>, TError,{id: number;data: BodyType<SitePhotoUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminSitePhoto>>, TError,{id: number;data: BodyType<SitePhotoUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateAdminSitePhoto'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminSitePhoto>>, {id: number;data: BodyType<SitePhotoUpdateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminSitePhoto(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminSitePhotoMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminSitePhoto>>>
+    export type UpdateAdminSitePhotoMutationBody = BodyType<SitePhotoUpdateInput>
+    export type UpdateAdminSitePhotoMutationError = ErrorType<void>
+
+    /**
+ * @summary Edit a site photo's description/stage, or bind it to a lead
+ */
+export const useUpdateAdminSitePhoto = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminSitePhoto>>, TError,{id: number;data: BodyType<SitePhotoUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminSitePhoto>>,
+        TError,
+        {id: number;data: BodyType<SitePhotoUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminSitePhotoMutationOptions(options), queryClient);
     }
 
 export const getGetLineAuthStatusUrl = () => {
