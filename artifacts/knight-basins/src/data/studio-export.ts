@@ -4,6 +4,7 @@ import {
   counterRegions,
   calculateBasinCoordinates,
   placementCutSize,
+  studioEdgeFinishSummary,
   studioPieceEdges,
   studioPieceJoints,
   studioPieces,
@@ -22,6 +23,7 @@ export const STUDIO_EXPORT_LAYERS = [
   "UPSTAND",
   "OPEN_EDGE",
   "WALL_FLUSH",
+  "WALL_FLUSH_UPSTAND",
   "BASIN_HOLES",
   "BASIN_LABELS",
   "DIMENSIONS",
@@ -127,6 +129,7 @@ function edgeLayer(edge: StudioEdge) {
   if (edge.status === "upstand") return "UPSTAND";
   if (edge.status === "open-edge") return "OPEN_EDGE";
   if (edge.status === "wall-flush") return "WALL_FLUSH";
+  if (edge.status === "wall-flush+upstand") return "WALL_FLUSH_UPSTAND";
   return null;
 }
 
@@ -289,6 +292,7 @@ export function createStudioPngSvg(
     upstand: "#b26b00",
     "open-edge": "#bd3f38",
     "wall-flush": "#526b7a",
+    "wall-flush+upstand": "#7c3aed",
   };
   const pieceMarkup = model.pieces.map((piece, pieceIndex) => {
     const originY = padding + headerHeight + piece.offsetY;
@@ -312,9 +316,14 @@ export function createStudioPngSvg(
         <text x="${basin.xMm + basinWidth / 2}" y="${basin.yMm + basinHeight / 2}" text-anchor="middle" dominant-baseline="middle" fill="#17324a" font-size="20" font-weight="700">${escapeSvg(label)}</text>
       `;
     }).join("");
+    const edgeSummary = studioEdgeFinishSummary(piece.piece);
+    const edgeSummaryMarkup = edgeSummary
+      ? `<text x="0" y="-4" fill="#526b7a" font-size="18">${escapeSvg(edgeSummary)}</text>`
+      : "";
     return `
       <g transform="translate(${padding} ${originY})">
         <text x="0" y="-28" fill="#17324a" font-size="28" font-weight="700">${escapeSvg(piece.piece.name || `ชิ้นงาน ${pieceIndex + 1}`)}</text>
+        ${edgeSummaryMarkup}
         ${rectangles}${joints}${edges}${basins}
       </g>
     `;
