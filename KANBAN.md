@@ -71,7 +71,7 @@
 | **Task 41** | ชัย | ปลดล็อกคำนวณราคาหินลายหินอ่อน 9,500 บ./ตร.ม. ใน 2D Studio ตามพื้นที่จริง (PR #17) | `733cbd6` | ✅ **Live บน VPS** · หินลาย 9,500 คิดตามพื้นที่จริง (1.08 ตร.ม. = 10,260 บ.) |
 | **Task 42** | ชัย | Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาด + ฟังก์ชันจัดอ่างอัตโนมัติ | `feat/chai-counter-size-presets` | 🔄 มอบหมายแล้ว (`qa/job-42-chai-counter-size-presets.md`) |
 | **Task 43** | Replit | ปุ่มบันทึก/แชร์ผังเคาน์เตอร์เป็นรูปภาพ PNG เด่นชัดทั้ง 2 โหมด | `feat/replit-studio-png-share` | 🔄 มอบหมายแล้ว (`qa/job-43-replit-studio-png-share.md`) |
-| **Data Backfill** | เดวิด | สกัดข้อมูลจากประวัติแชท LINE (93 PDF + 566 ข้อความ + 58 สลิป) เติม Lead/ที่อยู่/คิวงาน | `bin/line_dispatch_sync.py` | 🟡 รอเริ่มหลังชัย/Replit รับงาน |
+| **Data Backfill** | เดวิด | เติมข้อมูลจริงจากประวัติแชท LINE: ที่อยู่หน้างาน/เบอร์โทร 9 งาน + สร้าง Lead จากหลักฐาน PDF + ผูกสลิปครบ 100% | `bin/data_backfill_pipeline.py` + `pass2` | ✅ **เสร็จ** · สลิปผูกครบ 53/53 (เหลือ 0) · 13 Lead มีที่อยู่ · 20 งานมีคิวช่าง |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
 | **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
