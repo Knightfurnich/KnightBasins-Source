@@ -47,6 +47,8 @@
 | **Maps UI** | Replit | เชื่อมโยง Places Autocomplete ใน `/quote` + ปุ่ม `🗺️ เปิดแผนที่ Google Maps` | `37fe2cd` / `8a33647` | ✅ Merge & Deployed |
 | **Cockpit UI**| Replit | Executive & Team Cockpit UI (3 เดือน, เรดาร์ 10 ทีม, ส่งสรุป LINE) | `08bd790` / `3487119` | ✅ Merge & Deployed |
 | **Calendar UI**| Replit/เดวิด | ปฏิทินคิวช่าง WOW Cockpit: เรดาร์ 10 ทีมช่างด้านข้าง + สลับมุมมองรายเดือน/รายสัปดาห์ (PR #18) | `4c4384d` | ✅ **Live บน VPS** · แถบเรดาร์ 10 ทีม, มุมมองสัปดาห์, ป้ายช่างบนช่องวัน |
+| **Calendar v2**| เดวิด | ติ๊กถูกเลือกทีม + Dropdown เลือกเดือน/ปี พ.ศ. + ป้ายประเภทงาน (วัดงาน/ติดตั้ง/เก็บงาน/ส่งลูกค้า) + ตัวกรองประเภทงาน + ปุ่มนำทาง Google Maps | `89810a5` | ✅ **Live บน VPS** · ติ๊กถูก, dropdown เดือน/ปี, ป้าย+กรองประเภทงาน, นำทาง Maps |
+| **LINE Morning**| เดวิด | สรุปคิวช่างประจำวันส่งเข้ากลุ่ม LINE ทีมงานอัตโนมัติ 07:30 น. (cron `fe03ab2ac30e`) | `bin/line_dispatch_brief.py` | ✅ **Live** · ทดสอบส่งจริง HTTP 200 · 4 งาน/3 ทีม |
 | **Contact Info**| เดวิด | เพิ่มข้อมูลติดต่อและที่ตั้งสำนักงานใหญ่/โรงงานที่ `/readme` และ Storefront Footer | `8827761` | ✅ Live บน VPS |
 | **Task 20** | ชัย | ขยาย `PATCH .../technician` รองรับเลื่อนวันติดตั้ง + `GET /admin/leads?technicianTeamCode=` | PR #4 / `37f9859` | ✅ 32/32 tests & Deployed |
 | **Readme UX** | เดวิด | ปรับขนาดฟอนต์หัวเรื่องให้พอดี, เปลี่ยนหัวเรื่องเป็น "โดย ไนท์ เฟอร์นิช", การ์ด 3 ช่องทางคลิกไปหน้าจริง | `42226a2` / `1f3f077` | ✅ Live บน VPS |
