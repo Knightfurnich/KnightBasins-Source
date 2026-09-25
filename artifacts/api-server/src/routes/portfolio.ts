@@ -98,6 +98,7 @@ router.get("/portfolio", async (req, res, next) => {
     const visibilityMap = await loadVisibilityMap();
     const includeHidden = req.query["includeHidden"] === "true" || req.query["includeHidden"] === "1";
     const categoryFilter = typeof req.query["category"] === "string" ? req.query["category"].trim() : "";
+    const searchQuery = typeof req.query["q"] === "string" ? req.query["q"].trim().toLowerCase() : "";
     const limitRaw = Number(req.query["limit"]);
     const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 600) : 60;
     const offsetRaw = Number(req.query["offset"]);
@@ -107,9 +108,20 @@ router.get("/portfolio", async (req, res, next) => {
     // for them (the admin curation page does, via ?includeHidden=true).
     const visibleItems = includeHidden ? catalog.items : catalog.items.filter((item) => isVisible(visibilityMap, item.id));
 
-    const filtered = categoryFilter
+    const byCategory = categoryFilter
       ? visibleItems.filter((item) => item.category === categoryFilter)
       : visibleItems;
+
+    // ?q= matches captionTh (this catalog's equivalent field is `title`),
+    // category, and id -- case-insensitive substring, same as the admin
+    // gallery's own client-side search (filterPortfolioItems).
+    const filtered = searchQuery
+      ? byCategory.filter((item) =>
+          item.title.toLowerCase().includes(searchQuery)
+          || item.category.toLowerCase().includes(searchQuery)
+          || item.id.toLowerCase().includes(searchQuery),
+        )
+      : byCategory;
 
     const ordered = [...filtered].sort((a, b) => {
       const ai = CATEGORY_ORDER.indexOf(a.category);

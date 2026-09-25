@@ -8,7 +8,7 @@ import {
   type AdminStockResponse,
   type AdminStockSheet,
 } from "@workspace/api-client-react";
-import { AlertTriangle, Check, Database, PackageCheck, PackageX, RefreshCw, Search } from "lucide-react";
+import { AlertTriangle, Check, Database, Download, PackageCheck, PackageX, RefreshCw, Search } from "lucide-react";
 
 export type StockItem = AdminStockItem;
 export type StockGroup = AdminStockSheet;
@@ -44,6 +44,40 @@ export function formatStockUpdatedAt(value: string | null | undefined): string {
 }
 
 export const formatUpdatedAt = formatStockUpdatedAt;
+
+const STOCK_CSV_COLUMNS = ["ยี่ห้อ", "รหัสสี", "ชื่อสี", "ขนาดแผ่น", "ความหนา", "จำนวนคงเหลือ", "หมายเหตุ", "วันที่อัปเดต"];
+
+function csvEscape(value: unknown): string {
+  const text = String(value ?? "");
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/** Splits a stock row's "code (name)" convention (e.g. "AA 625 (Aspen
+ * Alder)") into a code and a color name; falls back to the whole string
+ * for both when a row doesn't follow that convention. */
+function splitStockCodeAndName(name: string): { code: string; colorName: string } {
+  const match = name.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (match) return { code: (match[1] ?? "").trim(), colorName: (match[2] ?? "").trim() };
+  return { code: name, colorName: name };
+}
+
+/**
+ * Converts the full stock snapshot (both brands) into RFC 4180 CSV text
+ * with a leading UTF-8 BOM, matching GET /admin/stock/export's own output
+ * column-for-column -- ขนาดแผ่น/ความหนา (sheet size/thickness) are left
+ * blank since the underlying stock sheet data doesn't carry them.
+ */
+export function buildStockCsv(stock: StockResponse): string {
+  const rows: string[][] = [];
+  for (const [brand, sheet] of [["Staron", stock.staron], ["Zen Stone", stock.zen]] as const) {
+    for (const item of sheet.items) {
+      const { code, colorName } = splitStockCodeAndName(item.name);
+      rows.push([brand, code, colorName, "", "", String(item.qty), item.note, stock.updatedAt]);
+    }
+  }
+  const lines = [STOCK_CSV_COLUMNS, ...rows].map((row) => row.map(csvEscape).join(","));
+  return `﻿${lines.join("\r\n")}`;
+}
 
 export function filterStockItems(
   items: StockItem[],
@@ -286,27 +320,37 @@ export function StockInventoryView({
               data-testid="input-stock-search"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-1" role="group" aria-label="กรองตามจำนวนคงเหลือ">
-            {([
-              ["all", "ทั้งหมด"],
-              ["positive", "qty > 0"],
-              ["zero", "qty = 0"],
-            ] as const).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFilter(value)}
-                aria-pressed={filter === value}
-                className={`min-h-9 border px-3 text-xs transition-colors ${
-                  filter === value
-                    ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
-                    : "border-transparent text-[var(--ink-soft)] hover:border-[var(--line)] hover:text-[var(--ink)]"
-                }`}
-                data-testid={`button-stock-filter-${value}`}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-1" role="group" aria-label="กรองตามจำนวนคงเหลือ">
+              {([
+                ["all", "ทั้งหมด"],
+                ["positive", "qty > 0"],
+                ["zero", "qty = 0"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilter(value)}
+                  aria-pressed={filter === value}
+                  className={`min-h-9 border px-3 text-xs transition-colors ${
+                    filter === value
+                      ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
+                      : "border-transparent text-[var(--ink-soft)] hover:border-[var(--line)] hover:text-[var(--ink)]"
+                  }`}
+                  data-testid={`button-stock-filter-${value}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <a
+              href="/api/admin/stock/export"
+              className="inline-flex min-h-9 items-center gap-1.5 border border-[var(--ink)] px-3 text-xs text-[var(--ink)] transition-colors hover:bg-[var(--ink)] hover:text-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--saffron)]"
+              data-testid="button-stock-export-csv"
+            >
+              <Download className="h-3.5 w-3.5" aria-hidden="true" />
+              ส่งออกสต็อกเป็น CSV
+            </a>
           </div>
         </div>
 
