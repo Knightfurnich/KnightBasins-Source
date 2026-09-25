@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, Search, X } from "lucide-react";
@@ -46,19 +46,40 @@ export function portfolioInquiryUrl(): string {
   return "https://line.me/R/ti/p/@789gcnhq";
 }
 
-/** Public gallery API URL for a given tab + page. */
-export function portfolioQueryUrl(category: string, offset: number, limit = PAGE_SIZE): string {
+/**
+ * Public gallery API URL for a given tab + page + search term.
+ *
+ * The search term is sent to the server rather than filtered in the browser:
+ * the gallery pages 60 at a time, so a client-side filter can only ever match
+ * photos already loaded (the first 60 are all bathroom work), and a customer
+ * typing "ครัว" would wrongly see "no results" while the kitchen photos sit
+ * unloaded. The API matches `title`, `category` and `id`, and every Thai
+ * category name is present in `title`, so Thai keywords resolve server-side.
+ */
+export function portfolioQueryUrl(category: string, offset: number, search = "", limit = PAGE_SIZE): string {
   const params = new URLSearchParams();
   if (category !== ALL_CATEGORIES) params.set("category", category);
+  const query = search.trim();
+  if (query) params.set("q", query);
   params.set("limit", String(limit));
   if (offset > 0) params.set("offset", String(offset));
   return `/api/portfolio?${params.toString()}`;
 }
 
-async function fetchPortfolioPage(category: string, offset: number): Promise<PortfolioResponse> {
-  const response = await fetch(portfolioQueryUrl(category, offset));
+async function fetchPortfolioPage(category: string, offset: number, search: string): Promise<PortfolioResponse> {
+  const response = await fetch(portfolioQueryUrl(category, offset, search));
   if (!response.ok) throw new Error("โหลดคลังภาพผลงานไม่สำเร็จ");
   return await response.json() as PortfolioResponse;
+}
+
+/** Waits for typing to settle before a server round-trip is issued. */
+function useDebouncedValue<T>(value: T, delayMs = 350): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
 }
 
 /**
@@ -70,11 +91,12 @@ export function PortfolioPage() {
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
   const [zoomId, setZoomId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebouncedValue(searchQuery);
 
   const query = useInfiniteQuery({
-    queryKey: ["/api/portfolio", activeCategory],
+    queryKey: ["/api/portfolio", activeCategory, debouncedSearch.trim()],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => fetchPortfolioPage(activeCategory, pageParam as number),
+    queryFn: ({ pageParam }) => fetchPortfolioPage(activeCategory, pageParam as number, debouncedSearch),
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((sum, page) => sum + page.items.length, 0);
       return loaded < lastPage.count ? loaded : undefined;
@@ -84,12 +106,11 @@ export function PortfolioPage() {
   const pages = query.data?.pages ?? [];
   const firstPage = pages[0];
   const categories = firstPage?.categories ?? [];
+  // The server already applied the search term, so the loaded pages *are* the
+  // result set -- no second client-side pass.
   const photos = useMemo(() => pages.flatMap((page) => page.items), [pages]);
-  const filteredPhotos = useMemo(
-    () => filterPortfolioPhotos(photos, searchQuery),
-    [photos, searchQuery],
-  );
-  const hasSearchQuery = Boolean(searchQuery.trim());
+  const hasSearchQuery = Boolean(debouncedSearch.trim());
+  const searchIsSettling = searchQuery.trim() !== debouncedSearch.trim();
   const totalForTab = firstPage
     ? (activeCategory === ALL_CATEGORIES
         ? firstPage.total
@@ -97,15 +118,15 @@ export function PortfolioPage() {
     : 0;
 
   const zoomIndex = useMemo(
-    () => (zoomId ? filteredPhotos.findIndex((p) => p.id === zoomId) : -1),
-    [zoomId, filteredPhotos],
+    () => (zoomId ? photos.findIndex((p) => p.id === zoomId) : -1),
+    [zoomId, photos],
   );
   const zoomItem = zoomIndex >= 0 ? photos[zoomIndex] : null;
 
   const step = (delta: number) => {
-    if (zoomIndex < 0 || filteredPhotos.length === 0) return;
-    const next = (zoomIndex + delta + filteredPhotos.length) % filteredPhotos.length;
-    setZoomId(filteredPhotos[next].id);
+    if (zoomIndex < 0 || photos.length === 0) return;
+    const next = (zoomIndex + delta + photos.length) % photos.length;
+    setZoomId(photos[next].id);
   };
 
   const structuredData = useMemo(
@@ -221,15 +242,15 @@ export function PortfolioPage() {
           <p className="text-sm text-[var(--ink-soft)] py-12 text-center">ยังไม่มีภาพในหมวดนี้</p>
         )}
 
-        {!query.isPending && !query.isError && photos.length > 0 && filteredPhotos.length === 0 && (
+        {!query.isPending && !query.isError && photos.length > 0 && photos.length === 0 && (
           <p className="text-sm text-[var(--ink-soft)] py-12 text-center" role="status" data-testid="portfolio-search-empty">
             ไม่พบผลงานที่ตรงกับคำค้นหา
           </p>
         )}
 
-        {filteredPhotos.length > 0 && (
+        {photos.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="portfolio-grid">
-            {filteredPhotos.map((photo) => (
+            {photos.map((photo) => (
               <button
                 key={photo.id}
                 type="button"
@@ -257,7 +278,7 @@ export function PortfolioPage() {
           <div className="flex flex-col items-center gap-2 pt-2">
             <p className="text-xs text-[var(--ink-soft)]">
               {hasSearchQuery
-                ? `พบ ${filteredPhotos.length} จาก ${photos.length} ภาพที่โหลด`
+                ? `พบ ${photos.length} จาก ${photos.length} ภาพที่โหลด`
                 : `แสดง ${photos.length} จาก ${totalForTab} ภาพ`}
             </p>
             {query.hasNextPage && (
@@ -327,7 +348,7 @@ export function PortfolioPage() {
                 {zoomItem.captionTh?.trim() || zoomItem.title}
               </p>
               <p className="text-xs text-amber-300 mt-1">
-                ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด (ภาพที่ {zoomIndex + 1} จาก {filteredPhotos.length})
+                ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด (ภาพที่ {zoomIndex + 1} จาก {photos.length})
               </p>
             </div>
             <div className="portfolio-lightbox-actionbar" data-testid="portfolio-lightbox-actions">

@@ -13,7 +13,7 @@ const pageAst = ts.createSourceFile(
   true,
   ts.ScriptKind.TSX,
 );
-const helperNames = ["filterPortfolioPhotos", "portfolioInquiryUrl"] as const;
+const helperNames = ["filterPortfolioPhotos", "portfolioInquiryUrl", "portfolioQueryUrl"] as const;
 
 type TestPhoto = {
   id: string;
@@ -43,17 +43,22 @@ function loadPortfolioHelpers() {
     .map((helper) => pageSource.slice(helper.getStart(pageAst), helper.end).replace(/^export\s+/, ""))
     .join("\n");
   const exportList = helperNames.join(", ");
+  // The helpers close over these module-level constants; the AST slice above
+  // only carries function declarations, so re-declare the constants here with
+  // the same values the module uses.
+  const moduleConstants = `const ALL_CATEGORIES = "all";\nconst PAGE_SIZE = 60;\n`;
   const compiled = ts.transpileModule(
-    `${helperSource}\nreturn { ${exportList} };`,
+    `${moduleConstants}${helperSource}\nreturn { ${exportList} };`,
     { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } },
   ).outputText;
   return new Function(compiled)() as {
     filterPortfolioPhotos: (photos: readonly TestPhoto[], search: string) => TestPhoto[];
     portfolioInquiryUrl: () => string;
+    portfolioQueryUrl: (category: string, offset: number, search?: string, limit?: number) => string;
   };
 }
 
-const { filterPortfolioPhotos, portfolioInquiryUrl } = loadPortfolioHelpers();
+const { filterPortfolioPhotos, portfolioInquiryUrl, portfolioQueryUrl } = loadPortfolioHelpers();
 
 function photo(overrides: Partial<TestPhoto> = {}): TestPhoto {
   return {
@@ -104,6 +109,34 @@ describe("portfolio inquiry and instant search", () => {
 
   it("builds the requested LINE inquiry URL", () => {
     assert.equal(portfolioInquiryUrl(), "https://line.me/R/ti/p/@789gcnhq");
+  });
+
+  // The gallery pages 60 photos at a time, so a search that only filtered the
+  // loaded page would report "no results" for a keyword whose photos simply
+  // were not fetched yet. These assertions pin the term to the API call.
+  it("sends the search term to the API instead of filtering loaded pages", () => {
+    const url = new URL(portfolioQueryUrl("all", 0, "ครัว"), "https://example.test");
+    assert.equal(url.searchParams.get("q"), "ครัว");
+  });
+
+  it("omits q entirely for a blank or whitespace-only search", () => {
+    assert.equal(new URL(portfolioQueryUrl("all", 0, ""), "https://example.test").searchParams.has("q"), false);
+    assert.equal(new URL(portfolioQueryUrl("all", 0, "   "), "https://example.test").searchParams.has("q"), false);
+    assert.equal(new URL(portfolioQueryUrl("all", 0), "https://example.test").searchParams.has("q"), false);
+  });
+
+  it("combines a category tab, a search term, and paging in one request", () => {
+    const url = new URL(portfolioQueryUrl("kitchen", 60, "ครัว", 60), "https://example.test");
+    assert.equal(url.searchParams.get("category"), "kitchen");
+    assert.equal(url.searchParams.get("q"), "ครัว");
+    assert.equal(url.searchParams.get("offset"), "60");
+    assert.equal(url.searchParams.get("limit"), "60");
+  });
+
+  it("keeps the search term out of the activeCategory query key", () => {
+    // The hook keys on the debounced term, so a settled keystroke must change
+    // the key and force a fresh fetch rather than reusing cached pages.
+    assert.match(pageSource, /queryKey:\s*\["\/api\/portfolio",\s*activeCategory,\s*debouncedSearch\.trim\(\)\]/);
   });
 
   it("renders the search field, clear action, and lightbox CTAs", () => {
