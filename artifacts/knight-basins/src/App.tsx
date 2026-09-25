@@ -270,7 +270,7 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
     aria-checked={Boolean(inQuote)}
     tabIndex={0}
     onClick={toggle}
-    onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); } }}
+    onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggle(); } }}
     onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "basin"); event.dataTransfer.setData("application/x-knight-basin", sku); }}
     data-testid={`card-product-${sku}`}
   >
@@ -279,6 +279,25 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
      <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3></div></div>
      <div className="product-specs"><span>{product.dimensions}</span><span>{product.basinDimensions ? `หลุมอ่าง ${product.basinDimensions}` : "งานทรงสูง"}</span></div>
      <strong className="product-price">{formatTHB(product.priceTHB)}</strong>
+      <div className="product-card-actions" role="group" aria-label={`ตัวเลือกการสั่งซื้อ ${product.sku}`}>
+        <button
+          type="button"
+          className="product-card-action product-card-action--quote"
+          onClick={(event) => { event.stopPropagation(); onToggle(sku); }}
+          aria-pressed={Boolean(inQuote)}
+          data-testid={`button-quote-basin-${sku}`}
+        >
+          🛒 ซื้อเฉพาะอ่าง
+        </button>
+        <Link
+          href={`/studio?basin=${encodeURIComponent(sku)}`}
+          className="product-card-action product-card-action--studio"
+          onClick={(event) => event.stopPropagation()}
+          data-testid={`link-basin-studio-${sku}`}
+        >
+          ✨ สั่งผลิตพร้อมท็อปเคาน์เตอร์
+        </Link>
+      </div>
   </article>;
 }
 
