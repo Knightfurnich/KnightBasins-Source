@@ -92,7 +92,9 @@
 | **Task 58** | Replit | หน้าคู่มือเตรียมหน้างานก่อนติดตั้ง (`/site-prep`) ใช้ภาพจริง 59 ภาพ | `feat/replit-site-prep-guide` | 🔄 มอบหมายแล้ว (`qa/job-58-replit-site-prep-guide.md`) |
 | **Task 59** | ชัย | คลังภาพผลงานทีมขายในแอดมิน (`/admin/portfolio`) + ปุ่มคัดลอกส่งลูกค้า | `feat/chai-admin-portfolio-gallery` | ✅ **Merged & Live (PR #33)** · ผ่าน 10/10 tests · page + เมนูใช้งานได้จริงบนจอ |
 | **readme v2** | เดวิด | ปรับหน้า `/readme` เป็นคู่มือมาตรฐานระบบบริการและสเปกวัสดุ 6 หมวด | `main` (bc5d3ad) | ✅ **Live บน VPS** · เพิ่มจุดเด่นวัสดุ 4 ด้าน · Safety Margin 100 มม. · Maps โรงงาน |
-| **Featured Photos** | เดวิด | คัดเลือกภาพผลงานจริงชุดเด่นสำหรับหน้า showcase จากคลัง 360 ภาพ | — | 🔄 กำลังคัดเลือก (subagent) |
+| **Featured Showcase** | เดวิด | แถบเลื่อนภาพผลงานจริง 10 ภาพวนลูปต่อเนื่อง + Lightbox บนหน้าแรก | `main` (4a7a72c) | ✅ **Live บน VPS** · ดึงภาพชุด Masterpiece 10 ภาพวนลูปอัตโนมัติ · ปุ่มเลื่อนซ้าย/ขวา |
+| **Task 57 (Stock UI)** | Replit | หน้าจอสต็อกหินสังเคราะห์ Real-Time ในระบบแอดมิน (`/admin/stock`) | `feat/replit-stock-inventory-ui` | ✅ **Merged & Live (PR #34)** · Staron 63 / Zen 47 สต็อกสดเรียลไทม์ |
+| **Task 58 (Site Prep)** | ชัย | หน้าคู่มือเตรียมหน้างานก่อนติดตั้ง (`/site-prep`) ใช้ภาพจริง 59 ภาพ | `feat/chai-site-prep-guide` | 🔄 มอบหมายให้ชัยแล้ว (`qa/job-58-chai-site-prep-guide.md`) |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
