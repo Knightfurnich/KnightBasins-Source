@@ -140,8 +140,40 @@ function dateFromBangkokDateKey(dateKey: string) {
   return new Date(`${dateKey}T12:00:00+07:00`);
 }
 
-function shiftMonth(date: Date, amount: number) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, 1, 12));
+function selectMonth(currentDate: Date, monthIndex: number) {
+  if (!Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11) throw new RangeError("monthIndex must be between 0 and 11");
+  const year = currentDate.getUTCFullYear();
+  const day = Math.min(currentDate.getUTCDate(), new Date(Date.UTC(year, monthIndex + 1, 0, 12)).getUTCDate());
+  return new Date(Date.UTC(year, monthIndex, day, 12));
+}
+
+function selectYear(currentDate: Date, buddhistYear: number) {
+  if (!Number.isInteger(buddhistYear) || buddhistYear <= 543) throw new RangeError("buddhistYear must be an integer after the Buddhist Era offset");
+  const year = buddhistYear - 543;
+  const month = currentDate.getUTCMonth();
+  const day = Math.min(currentDate.getUTCDate(), new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate());
+  return new Date(Date.UTC(year, month, day, 12));
+}
+
+function shiftMonth(currentDate: Date, amount: number) {
+  if (!Number.isInteger(amount)) throw new RangeError("month shift must be an integer");
+  const target = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() + amount, 1, 12));
+  const day = Math.min(currentDate.getUTCDate(), new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0, 12)).getUTCDate());
+  return new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), day, 12));
+}
+
+function addCalendarDays(currentDate: Date, amount: number) {
+  if (!Number.isInteger(amount)) throw new RangeError("day shift must be an integer");
+  return new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() + amount, 12));
+}
+
+function startOfWeekMonday(currentDate: Date) {
+  const daysSinceMonday = (currentDate.getUTCDay() + 6) % 7;
+  return addCalendarDays(currentDate, -daysSinceMonday);
+}
+
+function monthKeyFromDate(date: Date) {
+  return String(date.getUTCFullYear()) + "-" + String(date.getUTCMonth() + 1).padStart(2, "0");
 }
 
 function googleMapsUrl(address: string) {
@@ -445,34 +477,36 @@ export function TechnicianCalendarPage() {
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [activeWeekDate, setActiveWeekDate] = useState<string>(todayKey);
 
+  const pickerAnchorDate = selectedDate
+    ? dateFromBangkokDateKey(selectedDate)
+    : viewMode === "week" ? dateFromBangkokDateKey(activeWeekDate) : visibleMonth;
+  const weekStartDate = startOfWeekMonday(dateFromBangkokDateKey(activeWeekDate));
+  const weekEndDate = addCalendarDays(weekStartDate, 6);
+  const weekStartMonthKey = monthKeyFromDate(weekStartDate);
+  const weekEndMonthKey = monthKeyFromDate(weekEndDate);
+  const needsWeekStartMonth = weekStartMonthKey !== currentMonthKey;
+  const needsWeekEndMonth = weekEndMonthKey !== currentMonthKey;
+  const weekStartCalendar = useGetAdminTechnicianCalendar({ month: weekStartMonthKey }, { query: { enabled: viewMode === "week" && needsWeekStartMonth } });
+  const weekEndCalendar = useGetAdminTechnicianCalendar({ month: weekEndMonthKey }, { query: { enabled: viewMode === "week" && needsWeekEndMonth } });
   const weekDays = useMemo(() => {
-    const current = dateFromBangkokDateKey(activeWeekDate);
-    const dayOfWeek = (current.getUTCDay() + 6) % 7; // 0 = Mon, 6 = Sun
-    const mondayTime = current.getTime() - dayOfWeek * 86400000;
-
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(mondayTime + i * 86400000);
-      const key = toBangkokDateKey(d);
-      const found = monthDays.find((day) => day.date === key);
-      if (found) return found;
-      return {
-        date: key,
-        dayStatus: "available" as CalendarStatus,
-        totalJobs: 0,
-        teams: [],
-      };
+    const daysByDate = new Map<string, CalendarDay>();
+    const weekStartDays = (weekStartCalendar.data?.days as unknown as CalendarDay[] | undefined) ?? [];
+    const weekEndDays = (weekEndCalendar.data?.days as unknown as CalendarDay[] | undefined) ?? [];
+    for (const day of [...weekStartDays, ...weekEndDays, ...monthDays]) daysByDate.set(day.date, day);
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = toBangkokDateKey(addCalendarDays(weekStartDate, index));
+      return { date, day: daysByDate.get(date) ?? null };
     });
-  }, [activeWeekDate, monthDays]);
-
+  }, [monthDays, weekEndCalendar.data, weekStartCalendar.data, weekStartDate.getTime()]);
+  const isWeekDataLoading = isLoading || (needsWeekStartMonth && weekStartCalendar.isLoading) || (needsWeekEndMonth && weekEndCalendar.isLoading);
+  const isWeekDataError = isCalendarError || (needsWeekStartMonth && weekStartCalendar.isError) || (needsWeekEndMonth && weekEndCalendar.isError);
   const changeWeek = (direction: -1 | 1) => {
-    const current = dateFromBangkokDateKey(activeWeekDate);
-    const nextDate = new Date(current.getTime() + direction * 7 * 86400000);
+    const nextDate = addCalendarDays(dateFromBangkokDateKey(activeWeekDate), direction * 7);
     const nextKey = toBangkokDateKey(nextDate);
     setActiveWeekDate(nextKey);
-    const nextMonth = monthStartFromBangkokDateKey(nextKey);
-    if (nextMonth.getTime() !== visibleMonth.getTime()) {
-      setVisibleMonth(nextMonth);
-    }
+    setVisibleMonth(monthStartFromBangkokDateKey(nextKey));
+    setSelectedDate(null);
+    setIsDetailOpen(false);
   };
 
   const weekRangeTitle = useMemo(() => {
@@ -503,13 +537,25 @@ export function TechnicianCalendarPage() {
     await updateTech.mutateAsync({ id: jobId, data: { expectedInstallationDate: date } });
     await invalidateDispatchQueries();
     setVisibleMonth(monthStartFromBangkokDateKey(date));
+    setActiveWeekDate(date);
     setSelectedDate(date);
     setIsDetailOpen(true);
   };
 
   const changeMonth = (amount: number) => {
-    setVisibleMonth((current) => shiftMonth(current, amount));
+    const nextDate = shiftMonth(pickerAnchorDate, amount);
+    const nextKey = toBangkokDateKey(nextDate);
+    setVisibleMonth(monthStartFromBangkokDateKey(nextKey));
+    setActiveWeekDate(nextKey);
     setSelectedDate(null);
+    setIsDetailOpen(false);
+  };
+
+  const updateCalendarDate = (nextDate: Date) => {
+    const nextKey = toBangkokDateKey(nextDate);
+    setVisibleMonth(monthStartFromBangkokDateKey(nextKey));
+    setActiveWeekDate(nextKey);
+    setSelectedDate((selected) => selected ? nextKey : null);
     setIsDetailOpen(false);
   };
 
@@ -520,6 +566,8 @@ export function TechnicianCalendarPage() {
   };
 
   const openDay = (day: CalendarDay) => {
+    setVisibleMonth(monthStartFromBangkokDateKey(day.date));
+    setActiveWeekDate(day.date);
     setSelectedDate(day.date);
     setIsDetailOpen(true);
   };
@@ -616,7 +664,7 @@ export function TechnicianCalendarPage() {
         <section className="border border-[var(--line)] bg-[var(--card-paper)] shadow-sm" aria-label="ปฏิทินรายเดือน">
           <div className="space-y-4 border-b border-[var(--line)] p-3.5 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5">
+              <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
@@ -641,6 +689,34 @@ export function TechnicianCalendarPage() {
                   <span className="hidden sm:inline">ถัดไป</span>
                   <ArrowRight className="h-4 w-4 sm:ml-1.5" aria-hidden="true" />
                 </Button>
+                <div className="flex flex-wrap items-center gap-1.5" data-testid="calendar-date-picker">
+                  <label className="sr-only" htmlFor="technician-calendar-month">เลือกเดือน</label>
+                  <select
+                    id="technician-calendar-month"
+                    value={String(visibleMonthIndex)}
+                    onChange={(event) => updateCalendarDate(selectMonth(pickerAnchorDate, Number(event.currentTarget.value)))}
+                    className="h-9 max-w-[9rem] border border-[var(--line)] bg-[var(--paper)] px-2.5 text-sm font-bold text-[var(--ink)] rounded-none cursor-pointer hover:border-[var(--brand-blue)] transition-colors focus:ring-1 focus:ring-[var(--brand-blue)]"
+                    aria-label="เลือกเดือน"
+                    data-testid="select-calendar-month"
+                  >
+                    {THAI_MONTH_NAMES.map((name, index) => (
+                      <option key={name} value={index}>{name}</option>
+                    ))}
+                  </select>
+                  <label className="sr-only" htmlFor="technician-calendar-year">เลือกปี พ.ศ.</label>
+                  <select
+                    id="technician-calendar-year"
+                    value={String(visibleYear + 543)}
+                    onChange={(event) => updateCalendarDate(selectYear(pickerAnchorDate, Number(event.currentTarget.value)))}
+                    className="h-9 w-[6rem] border border-[var(--line)] bg-[var(--paper)] px-2.5 text-sm font-bold text-[var(--ink)] rounded-none cursor-pointer hover:border-[var(--brand-blue)] transition-colors focus:ring-1 focus:ring-[var(--brand-blue)]"
+                    aria-label="เลือกปี พ.ศ."
+                    data-testid="select-calendar-year"
+                  >
+                    {[2568, 2569, 2570].map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
                 <Button
                   type="button"
                   variant="ghost"
@@ -656,49 +732,7 @@ export function TechnicianCalendarPage() {
                 </Button>
               </div>
               <div className="order-first flex w-full flex-col items-center justify-center gap-1 sm:order-none sm:w-auto">
-                <div className="flex items-center gap-1.5">
-                  <select
-                    value={visibleMonthIndex}
-                    onChange={(e) => {
-                      const newMonth = Number(e.target.value);
-                      const newDate = new Date(Date.UTC(visibleYear, newMonth, 1, 12));
-                      setVisibleMonth(newDate);
-                      if (viewMode === "week") {
-                        setActiveWeekDate(toBangkokDateKey(newDate));
-                      }
-                    }}
-                    className="h-9 border border-[var(--line)] bg-[var(--paper)] px-2.5 text-sm font-bold text-[var(--ink)] rounded-none cursor-pointer hover:border-[var(--brand-blue)] transition-colors focus:ring-1 focus:ring-[var(--brand-blue)]"
-                    aria-label="เลือกเดือน"
-                    data-testid="select-calendar-month"
-                  >
-                    {THAI_MONTH_NAMES.map((name, idx) => (
-                      <option key={name} value={idx}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={visibleYear}
-                    onChange={(e) => {
-                      const newYear = Number(e.target.value);
-                      const newDate = new Date(Date.UTC(newYear, visibleMonthIndex, 1, 12));
-                      setVisibleMonth(newDate);
-                      if (viewMode === "week") {
-                        setActiveWeekDate(toBangkokDateKey(newDate));
-                      }
-                    }}
-                    className="h-9 border border-[var(--line)] bg-[var(--paper)] px-2.5 text-sm font-bold text-[var(--ink)] rounded-none cursor-pointer hover:border-[var(--brand-blue)] transition-colors focus:ring-1 focus:ring-[var(--brand-blue)]"
-                    aria-label="เลือกปี พ.ศ."
-                    data-testid="select-calendar-year"
-                  >
-                    {[2025, 2026, 2027, 2028].map((y) => (
-                      <option key={y} value={y}>
-                        พ.ศ. {y + 543}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <h2 className="text-lg font-semibold text-[var(--ink)]" aria-live="polite" data-testid="calendar-month-title">{monthFormatter.format(visibleMonth)}</h2>
                 {viewMode === "week" && (
                   <span className="text-[11px] font-semibold text-[var(--brand-blue)] tabular-nums">
                     สัปดาห์ {weekRangeTitle}
@@ -727,10 +761,7 @@ export function TechnicianCalendarPage() {
                     type="button"
                     size="sm"
                     variant={viewMode === "week" ? "secondary" : "ghost"}
-                    onClick={() => {
-                      setViewMode("week");
-                      setActiveWeekDate(todayKey);
-                    }}
+                    onClick={() => setViewMode("week")}
                     className="h-8 rounded-none px-2.5 text-xs font-semibold"
                     data-testid="button-calendar-view-week"
                   >
@@ -875,10 +906,24 @@ export function TechnicianCalendarPage() {
             </>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-7 gap-px bg-[var(--line)]" data-testid="calendar-week-grid">
-              {weekDays.map((day, idx) => {
-                const isToday = day.date === todayKey;
-                const isSelected = day.date === selectedDate;
-                const dayNumber = Number(day.date.slice(-2));
+              {weekDays.map(({ date, day }, idx) => {
+                const isToday = date === todayKey;
+                const isSelected = date === selectedDate;
+                const dayNumber = Number(date.slice(-2));
+                if (!day) {
+                  const holiday = getThaiHoliday(date);
+                  const unavailableMessage = isWeekDataError ? "โหลดข้อมูลไม่สำเร็จ" : isWeekDataLoading ? "กำลังโหลดคิวงาน" : "ไม่มีข้อมูลคิวงาน";
+                  return (
+                    <div key={date} className="flex flex-col min-h-[380px] bg-[var(--card-paper)]">
+                      <div className="p-2.5 border-b border-[var(--line)] bg-[var(--paper)]/80 text-[var(--ink)]">
+                        <p className="text-[11px] font-semibold uppercase">{FULL_WEEKDAYS[idx]}</p>
+                        <p className="text-sm font-bold tabular-nums">{dayNumber} {monthFormatter.format(dateFromBangkokDateKey(date)).split(" ")[0]}</p>
+                        {holiday && <span className="text-[10px] font-bold text-[#c23b22]">🚩 {holiday}</span>}
+                      </div>
+                      <p className="p-3 text-xs text-[var(--ink-soft)]" role={isWeekDataError ? "alert" : "status"}>{unavailableMessage}</p>
+                    </div>
+                  );
+                }
                 const teamJobs = day.teams
                   .filter((t) => !selectedTeamCode || t.teamCode === selectedTeamCode)
                   .flatMap((t) => t.jobs.map((j) => ({ ...j, teamCode: t.teamCode, teamName: t.teamName })))
@@ -888,7 +933,7 @@ export function TechnicianCalendarPage() {
 
                 return (
                   <div
-                    key={day.date}
+                    key={date}
                     className={`flex flex-col min-h-[380px] bg-[var(--card-paper)] transition-all ${
                       isToday ? "ring-2 ring-inset ring-[var(--brand-blue)]" : ""
                     } ${isSelected ? "bg-[var(--brand-blue)]/5" : ""}`}
