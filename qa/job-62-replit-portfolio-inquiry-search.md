@@ -44,7 +44,7 @@ EVIDENCE (ต้องแนบผลรันจริงทุกข้อ —
   1) GitHub branch และ commit จาก GitHub Connection
   2) pnpm run typecheck -> 0 errors ทั้ง 9 workspace
   3) cd artifacts/knight-basins && npm test
-     baseline อ้างอิง: tests 261 / pass 255 / fail 2 / cancelled 3 / skipped 1 (non-browser tests ผ่าน 100%)
+     baseline อ้างอิง: tests 310 / pass 304 / fail 2 / cancelled 3 / skipped 1 (non-browser tests ผ่าน 100%)
   4) เทสต์ใหม่ใน portfolio-inquiry-search.test.ts ผ่าน 100%
 
 OUTPUT:
