@@ -151,12 +151,14 @@ describe("GET /admin/stock", () => {
   });
 
   it("returns 503 when no Google service account credentials are configured", async () => {
+    process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = "true";
     const server = await startAdminRoute({});
     const cookie = `knight_admin_session=${createAdminToken()}`;
     try {
       const response = await fetch(`${server.url}/api/admin/stock`, { headers: { cookie } });
       assert.equal(response.status, 503);
     } finally {
+      delete process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"];
       await server.close();
     }
   });

@@ -186,6 +186,8 @@ type AdminStockResponse = { updatedAt: string; staron: AdminStockSheet; zen: Adm
  * then as a file path (GOOGLE_APPLICATION_CREDENTIALS, or the two conventional
  * locations the work order names for the server and a dev machine). */
 function loadGoogleServiceAccountCredentials(): GoogleServiceAccountCredentials | null {
+  if (process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] === "true") return null;
+
   const parseIfValid = (raw: string): GoogleServiceAccountCredentials | null => {
     try {
       const parsed = JSON.parse(raw) as Partial<GoogleServiceAccountCredentials>;
@@ -254,35 +256,98 @@ async function fetchGoogleAccessToken(credentials: GoogleServiceAccountCredentia
   return payload.access_token;
 }
 
-async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, accessToken: string): Promise<unknown[][]> {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}`;
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
-  if (!response.ok) throw new Error(`Google Sheets API failed for "${sheetName}" with ${response.status}`);
-  const payload = await response.json() as { values?: unknown[][] };
-  return Array.isArray(payload.values) ? payload.values : [];
+function parseCsvRows(text: string): string[][] {
+  return text.split(/\r?\n/).map((line) => {
+    const row: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        inQuotes = !inQuotes;
+      } else if (c === "," && !inQuotes) {
+        row.push(cur);
+        cur = "";
+      } else {
+        cur += c;
+      }
+    }
+    row.push(cur);
+    return row.map((cell) => cell.trim().replace(/^"|"$/g, ""));
+  }).filter((row) => row.some((cell) => cell.length > 0));
 }
 
-/** Row layout inferred from the work order's own example item -- 6 columns in
- * the exact order of the JSON fields (no, name, qty, scrap, lots, note) --
- * with row 1 treated as a header row. Multiple lot numbers in one cell are
- * split on commas/newlines. Blank rows (no name) are skipped. */
+async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, accessToken: string): Promise<unknown[][]> {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}`;
+  try {
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (response.ok) {
+      const payload = await response.json() as { values?: unknown[][] };
+      if (Array.isArray(payload.values)) return payload.values;
+    }
+  } catch {
+    // fall through to CSV export fallback
+  }
+
+  // Fallback for Office (.xlsx) documents stored in Google Drive:
+  // Google Sheets API returns 400 "The document must not be an Office file."
+  // For Office files, use Google Sheets CSV export:
+  const gidParam = spreadsheetId === STARON_SPREADSHEET_ID ? "&gid=1852331911" : "";
+  const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv${gidParam}`;
+  const csvRes = await fetch(exportUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (csvRes.ok) {
+    const csvText = await csvRes.text();
+    return parseCsvRows(csvText);
+  }
+
+  throw new Error(`Google Sheets API failed for "${sheetName}"`);
+}
+
+/** Row layout supports both 6-column test fixtures and 10-column real Google Sheets
+ * (with up to 5 Lot No. columns and Thai headers). Multiple lot numbers are
+ * normalized into lots array. Blank rows (no name) are skipped. */
 function buildStockSheet(title: string, rows: unknown[][]): AdminStockSheet {
   const items: AdminStockItem[] = [];
-  for (const row of rows.slice(1)) {
+  let startIdx = 1;
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const r = rows[i] || [];
+    if (r.some((c) => String(c).includes("รายการแผ่นหิน") || String(c) === "name")) {
+      startIdx = i + 1;
+      break;
+    }
+  }
+
+  for (const row of rows.slice(startIdx)) {
     const cell = (index: number) => {
       const value = row[index];
       return typeof value === "string" ? value.trim() : value != null ? String(value).trim() : "";
     };
     const name = cell(1);
-    if (!name) continue;
-    const lotsText = cell(4);
+    if (!name || name === "รายการแผ่นหินสังเคราะห์") continue;
+
+    const lots: string[] = [];
+    let note = "";
+    if (row.length >= 10) {
+      for (let c = 4; c <= 8; c++) {
+        const val = cell(c);
+        if (val) lots.push(val);
+      }
+      note = cell(9);
+    } else {
+      const lotsText = cell(4);
+      lots.push(...lotsText.split(/[,\n]/).map((lot) => lot.trim()).filter((lot) => lot.length > 0));
+      note = cell(5);
+    }
+
     items.push({
       no: Number(cell(0)) || items.length + 1,
       name,
       qty: Number(cell(2)) || 0,
       scrap: cell(3),
-      lots: lotsText.split(/[,\n]/).map((lot) => lot.trim()).filter((lot) => lot.length > 0),
-      note: cell(5),
+      lots,
+      note,
     });
   }
   return {
