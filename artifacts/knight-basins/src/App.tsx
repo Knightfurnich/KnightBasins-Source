@@ -1549,6 +1549,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
 
 import AdminApp from "./admin/AdminApp";
 import SalesGuide from "./components/SalesGuide";
+import { SitePrepPage } from "./pages/SitePrepPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { useGetCatalog, useGetCustomerProfile, useGetLineAuthStatus, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
@@ -1794,6 +1795,7 @@ function App() {
         <Route path="/admin" component={AdminApp} />
         <Route path="/admin/*" component={AdminApp} />
         <Route path="/readme" component={SalesGuide} />
+        <Route path="/site-prep" component={SitePrepPage} />
         <Route path="/" component={RootEntry} />
         <Route component={Storefront} />
       </Switch>
