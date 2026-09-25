@@ -40,7 +40,7 @@ import {
   CreateAdminSitePhotoBody,
   UpdateAdminSitePhotoBody,
 } from "@workspace/api-zod";
-import { and, asc, desc, eq, gte, isNull, lte, ne } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, isNull, lt, lte, ne, or } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
@@ -118,6 +118,7 @@ function invalid(res: Response, message: string, details?: unknown) {
 }
 
 const SITE_PHOTO_STAGES = ["survey", "installation", "service", "completed"] as const;
+const SITE_PHOTO_MONTH_PATTERN = /^\d{4}-\d{2}$/;
 
 const LEAD_STATUS_LABELS_TH: Record<string, string> = {
   new_lead: "ลูกค้าใหม่",
@@ -1874,6 +1875,27 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         return invalid(res, `stage must be one of: ${SITE_PHOTO_STAGES.join(", ")}`);
       }
 
+      const rawUnassigned = req.query["unassigned"];
+      const unassigned = rawUnassigned === "true" || rawUnassigned === "1";
+
+      const rawMonth = req.query["month"];
+      let monthRange: { start: Date; end: Date } | undefined;
+      if (typeof rawMonth === "string" && rawMonth !== "") {
+        const [yearText, monthText] = rawMonth.split("-");
+        const monthNum = Number(monthText);
+        if (!SITE_PHOTO_MONTH_PATTERN.test(rawMonth) || monthNum < 1 || monthNum > 12) {
+          return invalid(res, "month must match YYYY-MM");
+        }
+        const year = Number(yearText);
+        monthRange = {
+          start: new Date(Date.UTC(year, monthNum - 1, 1)),
+          end: new Date(Date.UTC(year, monthNum, 1)),
+        };
+      }
+
+      const rawSenderName = req.query["senderName"];
+      const senderName = typeof rawSenderName === "string" && rawSenderName.trim() !== "" ? rawSenderName.trim() : undefined;
+
       const rawLimit = req.query["limit"];
       let limit = 50;
       if (typeof rawLimit === "string" && rawLimit.trim() !== "") {
@@ -1886,6 +1908,9 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         jobCode !== undefined ? eq(sitePhotos.jobCode, jobCode) : undefined,
         leadIdFilter !== undefined ? eq(sitePhotos.leadId, leadIdFilter) : undefined,
         stage !== undefined ? eq(sitePhotos.stage, stage) : undefined,
+        unassigned ? or(isNull(sitePhotos.jobCode), eq(sitePhotos.jobCode, "")) : undefined,
+        monthRange !== undefined ? and(gte(sitePhotos.capturedAt, monthRange.start), lt(sitePhotos.capturedAt, monthRange.end)) : undefined,
+        senderName !== undefined ? ilike(sitePhotos.senderName, `%${senderName}%`) : undefined,
       ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
 
       const rows = await database

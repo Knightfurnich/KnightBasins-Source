@@ -1821,6 +1821,19 @@ jobCode?: string;
 leadId?: number;
 stage?: ListAdminSitePhotosStage;
 /**
+ * Set to true to return only photos with no jobCode (not yet identified/matched to a job)
+ */
+unassigned?: boolean;
+/**
+ * Return only photos captured in this month (matched against capturedAt)
+ * @pattern ^\d{4}-\d{2}$
+ */
+month?: string;
+/**
+ * Case-insensitive substring search on senderName (sender or install team name)
+ */
+senderName?: string;
+/**
  * Defaults to 50, capped at 200
  * @minimum 1
  * @maximum 200
