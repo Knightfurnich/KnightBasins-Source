@@ -72,6 +72,8 @@
 | **Task 42** | ชัย | Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาด + ฟังก์ชันจัดอ่างอัตโนมัติ (PR #18) | `b6cb061` | ✅ **Live บน VPS** · STUDIO_COUNTER_PRESETS 4 ขนาด + applyStudioSizePreset จัดกึ่งกลางขอบ >=100mm |
 | **Task 43** | Replit | ปุ่มบันทึก/แชร์ผังเคาน์เตอร์เป็นรูปภาพ PNG เด่นชัดทั้ง 2 โหมด (PR #19) | `876f633` | ✅ **Live บน VPS** · ปุ่ม 📷 บันทึกภาพผัง (PNG) เด่นชัดในทั้งโหมดง่ายและโหมดปกติ |
 | **Data Backfill** | เดวิด | เติมข้อมูลจริงจากประวัติแชท LINE: ที่อยู่หน้างาน/เบอร์โทร 9 งาน + สร้าง Lead จากหลักฐาน PDF + ผูกสลิปครบ 100% | `bin/data_backfill_pipeline.py` + `pass2` | ✅ **เสร็จ** · สลิปผูกครบ 53/53 (เหลือ 0) · 13 Lead มีที่อยู่ · 20 งานมีคิวช่าง |
+| **Task 44** | ชัย | ระบบฐานข้อมูลและ API ภาพหน้างานช่าง (Migration 014 + GET/POST/PATCH) | `feat/chai-site-photos-api` | 🔄 มอบหมายแล้ว (`qa/job-44-chai-site-photos-api.md`) |
+| **Task 45** | Replit | หน้าแกลเลอรีภาพหน้างานช่างในหน้าแอดมิน (/admin/site-photos) | `feat/replit-site-photos-ui` | ⏸ รอ API Task 44 merge |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
 | **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
