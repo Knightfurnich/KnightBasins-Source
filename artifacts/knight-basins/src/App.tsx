@@ -367,6 +367,14 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
         >
           ✨ สั่งผลิตพร้อมท็อปเคาน์เตอร์
         </Link>
+        <Link
+          href="/portfolio?category=bathroom"
+          className="product-card-action product-card-action--portfolio"
+          onClick={(event) => event.stopPropagation()}
+          data-testid={`link-portfolio-basin-${sku}`}
+        >
+          📸 ดูภาพงานจริง
+        </Link>
       </div>
   </article>;
 }
