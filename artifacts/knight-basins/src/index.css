@@ -4242,6 +4242,208 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   position: static;
 }
 
+.studio-page--sketch .studio-design-layout--sketch {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  margin-top: 20px;
+  align-items: stretch;
+}
+
+.studio-page--sketch .studio-sketch-step {
+  min-width: 0;
+}
+
+.studio-page--sketch .studio-sketch-step-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.studio-page--sketch .studio-sketch-step-number {
+  display: grid;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid rgba(0, 51, 102, .1);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #e6f3fa, #d6eaf5);
+  color: #003366;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.studio-page--sketch .studio-sketch-step-heading .eyebrow {
+  margin: 0 0 3px;
+}
+
+.studio-page--sketch .studio-sketch-step-heading h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.25;
+}
+
+.studio-page--sketch .studio-sketch-panel {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+}
+
+.studio-page--sketch .studio-sketch-dropzone {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px dashed #91bfd3;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #f8fcfe 0%, #eef7fb 100%);
+  transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+
+.studio-page--sketch .studio-sketch-dropzone.is-dragging {
+  border-color: var(--brand-blue);
+  background: #e9f6fc;
+  box-shadow: 0 0 0 4px rgba(0, 102, 153, .1);
+}
+
+.studio-page--sketch .studio-sketch-dropzone-intro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.studio-page--sketch .studio-sketch-dropzone-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 13px;
+  background: #dceff7;
+  color: #07517d;
+}
+
+.studio-page--sketch .studio-sketch-dropzone-copy {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 5px;
+  min-width: 0;
+}
+
+.studio-page--sketch .studio-sketch-dropzone-copy strong {
+  color: #17364a;
+  font-size: 15px;
+}
+
+.studio-page--sketch .studio-sketch-dropzone-copy span {
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.studio-page--sketch .studio-sketch-select-button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.studio-page--sketch .studio-sketch-slots {
+  width: 100%;
+  max-width: 1320px;
+  margin-inline: auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.studio-page--sketch .studio-sketch-slot {
+  border-radius: 12px;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.studio-page--sketch .studio-sketch-slot--add:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-blue);
+  background: #e8f5fa;
+}
+
+.studio-page--sketch .studio-sketch-add-plus {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: #dceff7;
+  color: #07517d;
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.studio-page--sketch .studio-sketch-hint {
+  display: block;
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.studio-page--sketch .studio-sketch-optional-copy {
+  margin: -2px 0 12px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.studio-page--sketch .studio-shortlists {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 0;
+}
+
+.studio-page--sketch .studio-shortlists > .studio-panel {
+  min-width: 0;
+  height: 100%;
+}
+
+.studio-page--sketch .studio-basin-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.studio-page--sketch .studio-stone-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.studio-page--sketch .studio-layout-bottom--sketch {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+.studio-page--sketch .studio-layout-bottom--sketch > .studio-sketch-step-heading {
+  grid-column: 1 / -1;
+  margin-bottom: -2px;
+}
+
+.studio-page--sketch .studio-layout-bottom--sketch > .studio-contact-panel,
+.studio-page--sketch .studio-layout-bottom--sketch > .studio-estimate-panel {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.studio-page--sketch .studio-layout-bottom--sketch > .studio-estimate-panel {
+  position: static;
+  align-self: start;
+}
+
 .studio-selector-toolbar {
   position: relative;
   padding: 0;
@@ -4826,5 +5028,50 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .portfolio-line-action,
   .portfolio-studio-action {
     width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .studio-page--sketch .studio-shortlists,
+  .studio-page--sketch .studio-layout-bottom--sketch {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-page--sketch .studio-layout-bottom--sketch > .studio-sketch-step-heading {
+    grid-column: 1;
+  }
+
+  .studio-page--sketch .studio-sketch-dropzone {
+    padding: 14px;
+  }
+
+  .studio-page--sketch .studio-sketch-dropzone-intro {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .studio-page--sketch .studio-sketch-select-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .studio-page--sketch .studio-sketch-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .studio-page--sketch .studio-layout-bottom--sketch .studio-contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-page--sketch .studio-layout-bottom--sketch .studio-contact-wide {
+    grid-column: 1;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1000px) {
+  .studio-page--sketch .studio-sketch-slots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
