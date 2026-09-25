@@ -1,5 +1,6 @@
 import {
   INSTALLATION_PRICE,
+  PRODUCTS,
   STONE_COLORS,
   STONE_INSTALLED_MIN_BANGKOK_SQM,
   STONE_INSTALLED_MIN_PROVINCE_SQM,
@@ -1197,6 +1198,21 @@ function legacyStudioStatePieces(state: StudioState) {
   return studioPieces(state);
 }
 
+/**
+ * Looks up the basin's own colorCode (from its PRODUCTS entry) in
+ * STONE_COLORS and returns the matching stone code, or null if the SKU is
+ * unknown or its color isn't in the stone catalog.
+ */
+export function resolveMatchingStoneForBasin(
+  sku: string,
+  products: ReadonlyArray<BasinProduct> = PRODUCTS,
+): string | null {
+  const product = products.find((candidate) => candidate.sku === sku);
+  if (!product) return null;
+  const match = STONE_COLORS.find((color) => color.code === product.colorCode);
+  return match ? match.code : null;
+}
+
 export function studioEstimate(state: StudioState, products: ReadonlyArray<BasinProduct>): StudioEstimate {
   const pieces = legacyStudioStatePieces(state);
   const rectangles = pieces.flatMap((piece) => piece.rectangles);
@@ -1210,7 +1226,14 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
     : 0;
   const backsplashArea = isNewLayout ? 0 : backsplashAreaSqM(state.shape, state.dimensions, state.backsplash);
   const stoneArea = counterArea + upstandArea + backsplashArea;
-  const price = stoneInstalledUnitPrice(state.activeStone);
+  // A basin placed before any stone color is chosen shouldn't price as "no
+  // stone" -- fall back to the color that ships with the first placed basin,
+  // same as the storefront's product photos. This never overrides a color
+  // the user picked themselves (state.activeStone is only empty pre-choice).
+  const resolvedActiveStone = !state.activeStone && state.basinPlacements.length > 0
+    ? resolveMatchingStoneForBasin(state.basinPlacements[0].sku, products) ?? state.activeStone
+    : state.activeStone;
+  const price = stoneInstalledUnitPrice(resolvedActiveStone);
   const sheetCutPriceWarning = price === 9500;
   const stoneTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(counterArea * price) + roundBaht((upstandArea + backsplashArea) * price);
   const upstandTotal = price === null || sheetCutPriceWarning ? 0 : roundBaht(upstandArea * price);
