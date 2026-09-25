@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { Link } from "wouter";
 import {
   CustomerLeadStatus,
   type CustomerLead,
@@ -1068,6 +1069,17 @@ export function LeadsManager() {
                           <img src={url} alt={`แบบร่าง ${lead.name || ""} รูปที่ ${index + 1}`} className="h-full w-full object-cover" />
                         </a>
                       ))}
+                    </div>
+                  )}
+                  {(lead.orderMode === "sketch" || sketchImageUrls(lead).length > 0) && (
+                    <div className="mt-3">
+                      <Link
+                        href={`/studio?leadId=${lead.id}`}
+                        className="button button--accent"
+                        data-testid={`link-open-studio-for-lead-${lead.id}`}
+                      >
+                        🎨 เปิดวาดใน 2D Studio
+                      </Link>
                     </div>
                   )}
                 </div>

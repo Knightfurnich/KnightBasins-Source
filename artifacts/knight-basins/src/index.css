@@ -3262,3 +3262,331 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
     font-size: 12px;
   }
 }
+
+.studio-linked-lead-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--card-paper);
+}
+
+.studio-linked-lead-banner > div {
+  display: grid;
+  gap: 4px;
+}
+
+.studio-linked-lead-kicker,
+.studio-linked-lead-status,
+.studio-linked-lead-detail {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.studio-linked-lead-banner strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.studio-linked-lead-status {
+  flex: none;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+}
+
+.studio-lead-workspace {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 2fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.studio-lead-workspace > .studio-design-layout {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.studio-lead-sketch-viewer {
+  position: sticky;
+  top: 16px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--card-paper);
+}
+
+.studio-lead-sketch-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.studio-lead-sketch-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.studio-lead-sketch-heading span,
+.studio-lead-sketch-count,
+.studio-lead-sketch-original-link,
+.studio-lead-sketch-empty,
+.studio-lead-contact-loading,
+.studio-lead-no-quote {
+  font-size: 12px;
+}
+
+.studio-lead-sketch-heading strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.studio-lead-sketch-count {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.studio-lead-sketch-preview-button {
+  display: grid;
+  width: 100%;
+  min-height: 180px;
+  max-height: 420px;
+  place-items: center;
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #f3f1ec;
+  cursor: zoom-in;
+}
+
+.studio-lead-sketch-preview-button img {
+  display: block;
+  max-width: 100%;
+  max-height: 390px;
+  object-fit: contain;
+}
+
+.studio-lead-sketch-original-link {
+  display: inline-flex;
+  margin-top: 10px;
+  color: var(--brand-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.studio-lead-sketch-thumbnails {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.studio-lead-sketch-thumbnails button {
+  display: grid;
+  min-width: 0;
+  height: 58px;
+  place-items: center;
+  overflow: hidden;
+  padding: 3px;
+  border: 1px solid var(--line);
+  background: #f3f1ec;
+  cursor: zoom-in;
+}
+
+.studio-lead-sketch-thumbnails img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.studio-lead-sketch-empty,
+.studio-lead-contact-loading {
+  color: var(--ink-soft);
+}
+
+.studio-lead-contact-summary {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.studio-lead-contact-summary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.studio-lead-contact-summary strong,
+.studio-lead-contact-summary span {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.studio-lead-contact-summary strong {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.studio-lead-unsaved,
+.studio-lead-no-quote {
+  margin-top: 10px;
+  color: var(--ink-soft);
+}
+
+.studio-lead-quote-link {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.studio-lead-quote-link a {
+  color: var(--brand-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.studio-lead-sketch-lightbox {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(15 18 22 / 82%);
+}
+
+.studio-lead-sketch-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(1080px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--card-paper);
+}
+
+.studio-lead-sketch-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 14px;
+}
+
+.studio-lead-sketch-dialog > header > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.studio-lead-sketch-dialog > header a,
+.studio-lead-sketch-zoom-toggle {
+  color: var(--brand-blue);
+  font-size: 12px;
+}
+
+.studio-lead-sketch-dialog > header a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.studio-lead-sketch-dialog > header button,
+.studio-lead-sketch-zoom-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+}
+
+.studio-lead-sketch-zoom-toggle {
+  align-self: flex-end;
+  margin-top: 10px;
+}
+
+.studio-lead-sketch-image-stage {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  place-items: center;
+  overflow: auto;
+  margin-top: 10px;
+  background: #f3f1ec;
+}
+
+.studio-lead-sketch-image-stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 68vh;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+.studio-lead-sketch-image-stage.is-zoomed {
+  place-items: start;
+}
+
+.studio-lead-sketch-image-stage.is-zoomed img {
+  max-width: none;
+  max-height: none;
+  cursor: zoom-out;
+}
+
+@media screen and (max-width: 1100px) {
+  .studio-lead-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-lead-sketch-viewer {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .studio-linked-lead-banner {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .studio-lead-workspace .studio-design-layout,
+  .studio-lead-workspace .studio-design-layout--simple {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-lead-sketch-preview-button {
+    min-height: 150px;
+    max-height: 320px;
+  }
+
+  .studio-lead-sketch-preview-button img {
+    max-height: 290px;
+  }
+
+  .studio-lead-sketch-lightbox {
+    padding: 8px;
+  }
+
+  .studio-lead-sketch-dialog {
+    max-height: calc(100vh - 16px);
+    padding: 10px;
+  }
+
+  .studio-lead-sketch-dialog > header,
+  .studio-lead-sketch-dialog > header > div {
+    gap: 8px;
+  }
+
+  .studio-lead-sketch-dialog > header a {
+    max-width: 112px;
+  }
+
+  .studio-lead-sketch-image-stage img {
+    max-height: 62vh;
+  }
+}

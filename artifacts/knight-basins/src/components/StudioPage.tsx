@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useListAdminLeads } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowRight, Check, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
+import { adminQuoteUrl } from "@/admin/leads-utils";
 import {
   PRODUCTS,
   STONE_COLORS,
@@ -240,6 +243,30 @@ function readLinkedDraft() {
     state: linked?.state ?? shortDraft?.state ?? null,
     catalogContext: linked?.catalogContext ?? shortDraft?.catalogContext,
   };
+}
+
+function studioDataRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function linkedLeadStudioState(value: unknown): StudioState | null {
+  const studioData = studioDataRecord(value);
+  const nestedState = studioDataRecord(studioData.state);
+  const candidate = Object.keys(nestedState).length ? nestedState : studioData;
+  const dimensions = studioDataRecord(candidate.dimensions);
+  if (!Object.keys(dimensions).length || !Array.isArray(candidate.pieces)) return null;
+  return candidate as unknown as StudioState;
+}
+
+function linkedLeadSketchUrls(lead: { sketchUrl?: string | null; studioData?: unknown } | null | undefined): string[] {
+  if (!lead) return [];
+  const studioData = studioDataRecord(lead.studioData);
+  const urls = Array.isArray(studioData.sketchUrls)
+    ? studioData.sketchUrls.filter((url): url is string => typeof url === "string" && url.trim().length > 0)
+    : [];
+  return urls.length ? urls : lead.sketchUrl ? [lead.sketchUrl] : [];
 }
 
 function formatDraftTimestamp(value: string) {
@@ -2044,11 +2071,25 @@ export function StudioPage({
   stoneColors = STONE_COLORS,
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
-  const linkedDraft = useMemo(readLinkedDraft, []);
+  const leadIdParam = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("leadId");
+  const isLeadLinkedMode = leadIdParam !== null;
+  const linkedLeadId = leadIdParam?.trim() || null;
+  const queryClient = useQueryClient();
+  const leadsQuery = useListAdminLeads(undefined, { query: { enabled: linkedLeadId !== null } });
+  const linkedLead = linkedLeadId
+    ? leadsQuery.data?.find((lead) => String(lead.id) === linkedLeadId) ?? null
+    : null;
+  const linkedSketchUrls = useMemo(() => linkedLeadSketchUrls(linkedLead), [linkedLead]);
+  const linkedDraft = useMemo(
+    () => isLeadLinkedMode
+      ? { token: "", state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined }
+      : readLinkedDraft(),
+    [isLeadLinkedMode],
+  );
   const [state, setState, studioHistory] = useUndoableStudioState(() => normalizeStudioState(linkedDraft.state ?? createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts, stoneColors), basinProducts, stoneColors));
   const [studioUiMode, setStudioUiMode] = useState<"simple" | "detailed">("simple");
   const isSimpleStudioMode = mode === "studio" && studioUiMode === "simple";
-  const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !linkedDraft.state ? readStoredStudioDraft() : null);
+  const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !isLeadLinkedMode && !linkedDraft.state ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
   const [catalogNotice, setCatalogNotice] = useState<StudioCatalogNotice | null>(() => linkedDraft.catalogContext ? studioCatalogNotice(linkedDraft.catalogContext, basinProducts) : null);
@@ -2059,9 +2100,13 @@ export function StudioPage({
   const [draftName, setDraftName] = useState("");
   const skipNextDraftSave = useRef(false);
   const hasMountedDraftEffect = useRef(false);
+  const linkedLeadHydratedRef = useRef<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [contact, setContact] = useState(() => ({ ...emptyContact, ...contactDefaults }));
   const [worksitePlaceId, setWorksitePlaceId] = useState<string | null>(null);
+  const [expandedSketchUrl, setExpandedSketchUrl] = useState<string | null>(null);
+  const [sketchImageZoomed, setSketchImageZoomed] = useState(false);
+  const [savedLeadStateFingerprint, setSavedLeadStateFingerprint] = useState<string | null>(null);
   const [sketchFiles, setSketchFiles] = useState<File[]>([]);
   const [sketchPreviewUrls, setSketchPreviewUrls] = useState<string[]>([]);
   const sketchPreviewUrlCache = useRef<Map<File, string>>(new Map());
@@ -2072,6 +2117,49 @@ export function StudioPage({
   const [pieceZoom, setPieceZoom] = useState<Record<string, number>>({});
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [selectedRectangleId, setSelectedRectangleId] = useState<string | null>(null);
+  useEffect(() => {
+    linkedLeadHydratedRef.current = null;
+    setSavedLeadStateFingerprint(null);
+    setExpandedSketchUrl(null);
+    setSketchImageZoomed(false);
+  }, [linkedLeadId]);
+  useEffect(() => {
+    if (!isLeadLinkedMode || !linkedLeadId || !linkedLead) return;
+    if (linkedLeadHydratedRef.current === linkedLeadId) return;
+    const savedStudioData = studioDataRecord(linkedLead.studioData);
+    const restoredState = linkedLeadStudioState(linkedLead.studioData);
+    const savedBasinSkus = Array.isArray(savedStudioData.basinSkus)
+      ? savedStudioData.basinSkus.filter((sku): sku is string => typeof sku === "string")
+      : linkedLead.productSkus;
+    const savedStoneColors = Array.isArray(savedStudioData.stoneColors)
+      ? savedStudioData.stoneColors.filter((color): color is string => typeof color === "string")
+      : initialStoneColors;
+    const nextState = restoredState ?? createInitialStudioState("studio", savedBasinSkus, savedStoneColors, basinProducts, stoneColors);
+    linkedLeadHydratedRef.current = linkedLeadId;
+    setState(normalizeStudioState(nextState, basinProducts, stoneColors));
+    setContact({
+      ...emptyContact,
+      name: linkedLead.name ?? "",
+      company: linkedLead.company ?? "",
+      phone: linkedLead.phone ?? "",
+      email: linkedLead.email ?? "",
+      project: linkedLead.project ?? "",
+      address: linkedLead.address ?? "",
+      site: linkedLead.site ?? "",
+      purchasingDepartment: linkedLead.purchasingDepartment ?? "",
+      notes: linkedLead.notes ?? "",
+      lineContact: linkedLead.lineContact ?? "",
+    });
+    setWorksitePlaceId(typeof savedStudioData.worksitePlaceId === "string" ? savedStudioData.worksitePlaceId : null);
+    setDraftNotice(null);
+    setCatalogNotice(null);
+    setDraftResult("");
+    setLastSavedAt(null);
+    setResult("");
+    setPieceZoom({});
+    setSelectedPlacementId(null);
+    setSelectedRectangleId(null);
+  }, [basinProducts, initialStoneColors, isLeadLinkedMode, linkedLead, linkedLeadId, setState, stoneColors]);
   useEffect(() => {
     if (mode !== "studio" || (state.upstandHeightMm !== null && state.upstandHeightMm !== undefined)) return;
     if (document.activeElement?.getAttribute("data-testid") === "input-studio-upstand-height") return;
@@ -2186,6 +2274,17 @@ export function StudioPage({
     sketchPreviewUrlCache.current.forEach((url) => URL.revokeObjectURL(url));
     sketchPreviewUrlCache.current.clear();
   }, []);
+  useEffect(() => {
+    if (!expandedSketchUrl) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setExpandedSketchUrl(null);
+        setSketchImageZoomed(false);
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [expandedSketchUrl]);
   const addSketchFiles = (files: File[]) => {
     if (!files.length) return;
     setSketchFiles((current) => [...current, ...files].slice(0, MAX_SKETCH_FILES));
@@ -2194,7 +2293,7 @@ export function StudioPage({
     setSketchFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
   };
   useEffect(() => {
-    if (!contactDefaults) return;
+    if (!contactDefaults || isLeadLinkedMode) return;
     setContact((current) => ({
       ...current,
       name: contactDefaults.name || current.name,
@@ -2217,17 +2316,17 @@ export function StudioPage({
       condoFloor: contactDefaults.condoFloor || current.condoFloor,
       expectedInstallationDate: contactDefaults.expectedInstallationDate || current.expectedInstallationDate,
     }));
-  }, [contactDefaults?.name, contactDefaults?.company, contactDefaults?.phone, contactDefaults?.email, contactDefaults?.project, contactDefaults?.address, contactDefaults?.site, contactDefaults?.purchasingDepartment, contactDefaults?.notes, contactDefaults?.lineContact, contactDefaults?.taxName, contactDefaults?.taxId, contactDefaults?.taxBranch, contactDefaults?.taxAddress, contactDefaults?.preferredContact, contactDefaults?.customerRole, contactDefaults?.propertyType, contactDefaults?.condoFloor, contactDefaults?.expectedInstallationDate]);
+  }, [contactDefaults?.name, contactDefaults?.company, contactDefaults?.phone, contactDefaults?.email, contactDefaults?.project, contactDefaults?.address, contactDefaults?.site, contactDefaults?.purchasingDepartment, contactDefaults?.notes, contactDefaults?.lineContact, contactDefaults?.taxName, contactDefaults?.taxId, contactDefaults?.taxBranch, contactDefaults?.taxAddress, contactDefaults?.preferredContact, contactDefaults?.customerRole, contactDefaults?.propertyType, contactDefaults?.condoFloor, contactDefaults?.expectedInstallationDate, isLeadLinkedMode]);
   useEffect(() => {
-    onContactChange?.(contact);
-  }, [contact, onContactChange]);
+    if (!isLeadLinkedMode) onContactChange?.(contact);
+  }, [contact, isLeadLinkedMode, onContactChange]);
   useEffect(() => {
     if (!estimate.crossJointPlacements.length && result === "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว") {
       setResult("");
     }
   }, [estimate.crossJointPlacements.length, result]);
   useEffect(() => {
-    if (mode !== "studio") return;
+    if (mode !== "studio" || isLeadLinkedMode) return;
     if (!hasMountedDraftEffect.current) {
       hasMountedDraftEffect.current = true;
       return;
@@ -2245,7 +2344,7 @@ export function StudioPage({
       setIsSavingDraft(false);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [mode, state, basinProducts, catalogNotice]);
+  }, [mode, isLeadLinkedMode, state, basinProducts, catalogNotice]);
   const acknowledgeCatalogChange = (sku: string) => {
     setCatalogNotice((current) => {
       if (!current) return current;
@@ -2464,6 +2563,48 @@ export function StudioPage({
       setSubmitting(false);
     }
   };
+  const saveStudioToLinkedLead = async () => {
+    if (!linkedLeadId || !linkedLead) {
+      setResult("ไม่พบ Lead ที่ต้องการบันทึก กรุณากลับไปเลือก Lead อีกครั้ง");
+      return;
+    }
+    const validationMessage = studioSubmissionValidationMessage(state, estimate);
+    if (validationMessage) {
+      setResult(validationMessage);
+      return;
+    }
+    setSubmitting(true);
+    setResult("");
+    setSavedLeadStateFingerprint(null);
+    try {
+      const studioData = {
+        ...studioDataRecord(linkedLead.studioData),
+        ...state,
+        state,
+        estimate,
+        worksitePlaceId,
+      };
+      const response = await fetch(`/api/admin/leads/${encodeURIComponent(linkedLeadId)}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: linkedLead.status,
+          notes: linkedLead.notes ?? null,
+          studioData,
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setSavedLeadStateFingerprint(JSON.stringify(state));
+      setResult(`บันทึกผังและประมาณการเข้า Lead #${linkedLeadId} แล้ว`);
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+    } catch (error) {
+      console.error("Studio lead save failed:", error);
+      setResult("บันทึกผังและประมาณการไม่สำเร็จ กรุณาลองอีกครั้ง");
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const submitSketch = async () => {
     const name = contact.name.trim();
     const company = contact.company.trim();
@@ -2509,6 +2650,11 @@ export function StudioPage({
       setSubmitting(false);
     }
   };
+  const currentLeadStateFingerprint = JSON.stringify(state);
+  const linkedLeadLayoutIsSaved = savedLeadStateFingerprint === currentLeadStateFingerprint;
+  const hasUnsavedLinkedLeadChanges = isLeadLinkedMode && savedLeadStateFingerprint !== null && !linkedLeadLayoutIsSaved;
+  const linkedLeadUnavailable = isLeadLinkedMode && (!linkedLeadId || !linkedLead || leadsQuery.isLoading);
+  const primarySubmit = isLeadLinkedMode ? saveStudioToLinkedLead : mode === "studio" ? submitStudio : submitSketch;
   const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const estimatePanel = (
     <aside className="studio-panel studio-estimate-panel">
@@ -2548,24 +2694,16 @@ export function StudioPage({
         <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
       </div>}
       {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
-      <button type="button" className="button button--dark full-width" disabled={submitting} onClick={mode === "studio" ? submitStudio : submitSketch} data-testid={mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? "กำลังส่ง..." : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
+      <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "ส่งแบบร่างให้ทีมขาย"} <ArrowRight size={16} /></button>
       {result && <p className="studio-result" role="status">{result}</p>}
+      {hasUnsavedLinkedLeadChanges && <p className="studio-lead-unsaved" role="status">มีการแก้ไขผังที่ยังไม่ได้บันทึก</p>}
+      {isLeadLinkedMode && linkedLeadLayoutIsSaved && linkedLead?.publicQuoteToken && <p className="studio-lead-quote-link" data-testid="link-existing-lead-quote"><a href={adminQuoteUrl(linkedLead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา{linkedLead.quoteNumber ? ` ${linkedLead.quoteNumber}` : ""}</a></p>}
+      {isLeadLinkedMode && linkedLeadLayoutIsSaved && linkedLead && !linkedLead.publicQuoteToken && <p className="studio-lead-no-quote">Lead นี้ยังไม่มีใบเสนอราคาให้เปิด</p>}
     </aside>
   );
-  return <div className={`page-wrap studio-page ${isSimpleStudioMode ? "studio-page--simple" : ""}`}>
-    <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
-    {mode === "studio" && <div className="studio-mode-switch" role="group" aria-label="โหมดการออกแบบ" data-testid="studio-mode-switch">
-      <button type="button" className={studioUiMode === "simple" ? "is-active" : ""} aria-pressed={studioUiMode === "simple"} onClick={() => setStudioUiMode("simple")} data-testid="button-studio-mode-simple">โหมดง่าย</button>
-      <button type="button" className={studioUiMode === "detailed" ? "is-active" : ""} aria-pressed={studioUiMode === "detailed"} onClick={() => setStudioUiMode("detailed")} data-testid="button-studio-mode-detailed">โหมดละเอียด</button>
-    </div>}
-    {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
-    {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
-     {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
-     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
-    {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
-       <div className={`studio-design-layout ${isSimpleStudioMode ? "studio-design-layout--simple" : ""}`}>
-        <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
-         {mode === "studio" ? <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} simpleMode={isSimpleStudioMode} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
+  const studioDesignLayout = <div className={`studio-design-layout ${isSimpleStudioMode ? "studio-design-layout--simple" : ""}`}>
+    <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
+    {mode === "studio" ? <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} simpleMode={isSimpleStudioMode} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
       const file = sketchFiles[index];
       const previewUrl = sketchPreviewUrls[index];
       if (file && previewUrl) {
@@ -2576,14 +2714,71 @@ export function StudioPage({
       }
       return <div key={index} className="studio-sketch-slot studio-sketch-slot--empty" aria-hidden="true" />;
     })}</div><input ref={sketchInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" /><small className="studio-sketch-hint">JPG, PNG, WEBP หรือ GIF · ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป</small></section>}
-         {isSimpleStudioMode && estimatePanel}
-       </div>
+    {isSimpleStudioMode && estimatePanel}
+  </div>;
+  const linkedSketchViewer = isLeadLinkedMode && linkedLead ? <section className="studio-lead-sketch-viewer" aria-label="ภาพแบบร่างต้นฉบับ" data-testid="studio-lead-sketch-viewer">
+    <div className="studio-lead-sketch-heading">
+      <div><span>ภาพต้นฉบับ</span><strong>แบบร่างจากลูกค้า</strong></div>
+      <span className="studio-lead-sketch-count">{linkedSketchUrls.length} ภาพ</span>
+    </div>
+    {linkedSketchUrls.length > 0 ? <>
+      <button type="button" className="studio-lead-sketch-preview-button" onClick={() => { setExpandedSketchUrl(linkedSketchUrls[0]); setSketchImageZoomed(false); }} aria-label="ขยายภาพแบบร่างต้นฉบับ">
+        <img src={linkedSketchUrls[0]} alt={`แบบร่างต้นฉบับของ ${linkedLead.name || "ลูกค้า"}`} />
+      </button>
+      <a className="studio-lead-sketch-original-link" href={linkedSketchUrls[0]} target="_blank" rel="noreferrer">เปิดภาพต้นฉบับในแท็บใหม่</a>
+      {linkedSketchUrls.length > 1 && <div className="studio-lead-sketch-thumbnails">
+        {linkedSketchUrls.map((url, index) => <button key={`${url}-${index}`} type="button" onClick={() => { setExpandedSketchUrl(url); setSketchImageZoomed(false); }} aria-label={`ขยายแบบร่างรูปที่ ${index + 1}`} data-testid={`button-zoom-lead-sketch-${index}`}>
+          <img src={url} alt="" />
+        </button>)}
+      </div>}
+    </> : <p className="studio-lead-sketch-empty">Lead นี้ไม่มีภาพแบบร่างแนบไว้</p>}
+  </section> : null;
+  return <div className={`page-wrap studio-page ${isSimpleStudioMode ? "studio-page--simple" : ""}`}>
+    {isLeadLinkedMode && <section className="studio-linked-lead-banner" data-testid="studio-linked-lead-banner">
+      <div>
+        <span className="studio-linked-lead-kicker">กำลังแก้ไข Lead</span>
+        <strong>{linkedLead ? `#${linkedLead.id} · ${linkedLead.project || linkedLead.name || "ไม่ระบุโครงการ"}` : `#${linkedLeadId ?? "?"}`}</strong>
+        <span className="studio-linked-lead-detail">{linkedLead ? "การบันทึกจะอัปเดตผัง 2D ใน Lead นี้ โดยคงสถานะเดิมไว้" : leadsQuery.isLoading ? "กำลังโหลดข้อมูล Lead…" : "ไม่พบ Lead นี้ หรือไม่มีสิทธิ์เข้าถึง"}</span>
+      </div>
+      {linkedLead && <span className="studio-linked-lead-status">{linkedLead.status}</span>}
+    </section>}
+    <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
+    {mode === "studio" && <div className="studio-mode-switch" role="group" aria-label="โหมดการออกแบบ" data-testid="studio-mode-switch">
+      <button type="button" className={studioUiMode === "simple" ? "is-active" : ""} aria-pressed={studioUiMode === "simple"} onClick={() => setStudioUiMode("simple")} data-testid="button-studio-mode-simple">โหมดง่าย</button>
+      <button type="button" className={studioUiMode === "detailed" ? "is-active" : ""} aria-pressed={studioUiMode === "detailed"} onClick={() => setStudioUiMode("detailed")} data-testid="button-studio-mode-detailed">โหมดละเอียด</button>
+    </div>}
+    {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
+    {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
+     {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
+     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
+    {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
+      {isLeadLinkedMode && linkedLead
+        ? <div className="studio-lead-workspace">{linkedSketchViewer}{studioDesignLayout}</div>
+        : studioDesignLayout}
     <section className="studio-layout-bottom">
-      <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>ข้อมูลติดต่อและหน้างาน</h3></div></div><StudioContactFields contact={contact} setContact={setContact} worksitePlaceId={worksitePlaceId} setWorksitePlaceId={setWorksitePlaceId} /><label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label></div>
+       <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>{isLeadLinkedMode ? "ข้อมูลลูกค้าใน Lead" : "ข้อมูลติดต่อและหน้างาน"}</h3></div></div>
+         {isLeadLinkedMode && linkedLead ? <div className="studio-lead-contact-summary" data-testid="studio-lead-contact-summary">
+           <div><strong>ผู้ติดต่อ</strong><span>{linkedLead.name || "ยังไม่ระบุ"}</span></div>
+           <div><strong>โทรศัพท์</strong><span>{linkedLead.phone || "ยังไม่ระบุ"}</span></div>
+           <div><strong>อีเมล</strong><span>{linkedLead.email || "ยังไม่ระบุ"}</span></div>
+           <div><strong>โครงการ</strong><span>{linkedLead.project || "ยังไม่ระบุ"}</span></div>
+           <div><strong>ที่อยู่</strong><span>{linkedLead.address || linkedLead.site || "ยังไม่ระบุ"}</span></div>
+         </div> : isLeadLinkedMode ? <p className="studio-lead-contact-loading">{leadsQuery.isLoading ? "กำลังโหลดข้อมูลลูกค้า…" : "ไม่พบข้อมูล Lead"}</p> : <StudioContactFields contact={contact} setContact={setContact} worksitePlaceId={worksitePlaceId} setWorksitePlaceId={setWorksitePlaceId} />}
+         <label className="studio-select-label">พื้นที่ติดตั้ง<select value={state.location} onChange={(event) => setState((current) => ({ ...current, location: event.target.value as StudioLocation }))}><option value="bangkok-metro">กรุงเทพฯ / ปริมณฑล</option><option value="province">ต่างจังหวัด</option></select></label>
+       </div>
       {!isSimpleStudioMode && estimatePanel}
     </section>
     {mode === "studio" && <StudioPrintLayout state={state} />}
-     {mode === "studio" && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting} onClick={() => void submitStudio()} data-testid="button-mobile-studio-submit">{submitting ? "กำลังส่ง..." : "ส่งขอราคา"}</button></div></div>}
+      {mode === "studio" && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-mobile-studio-save-lead" : "button-mobile-studio-submit"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึก Lead" : "ส่งขอราคา"}</button></div></div>}
+      {expandedSketchUrl && <div className="studio-lead-sketch-lightbox" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) { setExpandedSketchUrl(null); setSketchImageZoomed(false); } }}>
+        <section className="studio-lead-sketch-dialog" role="dialog" aria-modal="true" aria-label="ดูภาพแบบร่างต้นฉบับ" onClick={(event) => event.stopPropagation()}>
+          <header><strong>แบบร่างต้นฉบับ</strong><div><a href={expandedSketchUrl} target="_blank" rel="noreferrer">เปิดไฟล์ต้นฉบับ</a><button type="button" onClick={() => { setExpandedSketchUrl(null); setSketchImageZoomed(false); }} aria-label="ปิดภาพแบบร่าง"><X size={18} /></button></div></header>
+          <button type="button" className="studio-lead-sketch-zoom-toggle" onClick={() => setSketchImageZoomed((current) => !current)}>{sketchImageZoomed ? "ย่อภาพ" : "ขยายภาพ"}</button>
+          <div className={`studio-lead-sketch-image-stage ${sketchImageZoomed ? "is-zoomed" : ""}`}>
+            <img src={expandedSketchUrl} alt={`แบบร่างต้นฉบับของ ${linkedLead?.name || "ลูกค้า"}`} onClick={() => setSketchImageZoomed((current) => !current)} />
+          </div>
+        </section>
+      </div>}
      {mode === "studio" && draftDrawerOpen && <StudioDraftDrawer drafts={namedDrafts} onClose={() => setDraftDrawerOpen(false)} onOpen={openNamedDraft} onCopy={(draft) => void copyNamedDraftLink(draft)} onDelete={deleteNamedDraft} />}
      {mode === "studio" && saveDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setSaveDraftDialogOpen(false)} /><form className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-save-draft-title" onSubmit={saveNamedDraft} data-testid="studio-save-draft-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">SAVE WORKSPACE</p><h2 id="studio-save-draft-title">บันทึกแบบร่าง</h2></div><button type="button" className="icon-button" onClick={() => setSaveDraftDialogOpen(false)} aria-label="ปิดหน้าต่างบันทึกแบบร่าง"><X size={18} /></button></div><label>ชื่อแบบร่าง<input autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)} data-testid="input-studio-draft-name" /></label><p>เก็บผัง 2D สีหิน ขนาด อ่าง และค่ารายด้านไว้กลับมาทำต่อได้</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setSaveDraftDialogOpen(false)} data-testid="button-cancel-save-studio-draft">ยกเลิก</button><button type="submit" className="button button--accent" data-testid="button-confirm-save-studio-draft">บันทึกแบบร่าง</button></div></form></div>}
   </div>;
