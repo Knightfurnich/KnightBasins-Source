@@ -1909,9 +1909,9 @@ function StudioStoneComparison({ state, setState }: { state: StudioState; setSta
 
 function BasinTopView({ product, testId }: { product?: BasinProduct; testId?: string }) {
   const shapeClass = isRoundBasinProduct(product) ? "is-round" : "is-rectangular";
-  const realTopViewUrl = product?.galleryImageUrls && product.galleryImageUrls.length > 0
+  const realTopViewUrl = product?.topViewImageUrl || (product?.galleryImageUrls && product.galleryImageUrls.length > 0
     ? product.galleryImageUrls[product.galleryImageUrls.length - 1]
-    : undefined;
+    : undefined);
 
   if (realTopViewUrl) {
     return (
