@@ -12,7 +12,8 @@
    ใช้ Drag dataTransfer type: `application/x-studio-edge-status` (payload คือค่า SideStatus เช่น "upstand", "wall-flush", "wall-flush+upstand", "open-edge", "normal")
 3. **ป้ายขอบบนกระดาน (Interactive Edge Badges):**
    ใน `StudioFootprint.tsx` เปลี่ยนป้ายขอบจากข้อความธรรมดา (`<span>`) ให้เป็นปุ่มคลิกได้ มีปุ่มกากบาทเล็ก ๆ `✕` ให้คลิกเดียวล้างสถานะขอบกลับเป็น "normal" ได้ทันที
-   *ข้อสำคัญ:* วาดขอบและรับ drop เฉพาะด้านที่เปิดสู่อากาศ (`edge.exposedLengthMm > 0`) เท่านั้น ด้านที่เป็นรอยต่อระหว่างแผ่น (Joints) ห้ามเปิดให้ตั้งค่า
+   *ข้อสำคัญ:* วาดขอบและรับ drop เฉพาะด้านที่เปิดสู่อากาศ (`edge.exposedLengthMm > 0`) เท่านั้น ด้านที่เป็นรอยต่อระหว่างแผ่น (Joints) ห้ามเปิดให้ตั้งค่า โดยสามารถเรียกใช้ `touchingRectangleKeys(piece, rectangleId, side)` ในการตรวจสอบขอบที่ต่อชนกัน
+   *หมายเหตุพิกัด:* ทิศทาง `top / right / bottom / left` ในระบบถูกคำนวณเป็น Screen-space (พิกัดตามสายตาบนหน้าจอ) เรียบร้อยแล้ว ไม่ต้องเขียนโค้ดหมุนแกนพิกัดตาม rotation ซ้ำซ้อน
 4. **แก้ปัญหาขอบถูกรีเซ็ตอัตโนมัติ:**
    ใน `StudioPage.tsx` ฟังก์ชัน `applySimpleShapeEdgeDefaults` และ `useEffect` (บรรทัด ~2438): เมื่อผู้ใช้มีการแก้ไขขอบเองแล้ว ห้ามเขียนทับขอบของผู้ใช้กลับเป็นค่าเริ่มต้น
 
