@@ -1691,6 +1691,36 @@ export interface AdminBackupSummary {
   generatedAt: string;
 }
 
+export interface AdminStockItem {
+  /** Row order/number as it appears on the sheet */
+  no: number;
+  /** Color code and name */
+  name: string;
+  /** Full slabs remaining in stock */
+  qty: number;
+  /** Free-text remaining scrap/offcut note */
+  scrap: string;
+  /** Lot numbers for this color, if any */
+  lots: string[];
+  note: string;
+}
+
+export interface AdminStockSheet {
+  title: string;
+  /** Total number of rows/colors on the sheet */
+  total: number;
+  /** Number of colors with qty > 0 */
+  inStockCount: number;
+  items: AdminStockItem[];
+}
+
+export interface AdminStockResponse {
+  /** When this data was fetched (or last cached) */
+  updatedAt: string;
+  staron: AdminStockSheet;
+  zen: AdminStockSheet;
+}
+
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
   password: string;
@@ -1850,6 +1880,13 @@ export const ListAdminSitePhotosStage = {
   service: 'service',
   completed: 'completed',
 } as const;
+
+export type GetAdminStockParams = {
+/**
+ * Set to true to bypass the 5-minute in-memory cache and fetch fresh data immediately
+ */
+refresh?: boolean;
+};
 
 export type GetWorksiteAddressSuggestionsParams = {
 /**

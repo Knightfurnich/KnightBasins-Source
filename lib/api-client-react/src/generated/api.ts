@@ -39,6 +39,7 @@ import type {
   AdminMemberInput,
   AdminMemberUpdateInput,
   AdminSession,
+  AdminStockResponse,
   BasinCategory,
   BasinCategoryInput,
   BasinPrice,
@@ -51,6 +52,7 @@ import type {
   CustomerProfileInput,
   CustomerQuotation,
   GetAdminDashboardStatsParams,
+  GetAdminStockParams,
   GetAdminTechnicianCalendarParams,
   GetSavedQuoteParams,
   GetWorksiteAddressSuggestionsParams,
@@ -5648,6 +5650,114 @@ export function useExportAdminBackupBasins<TData = Awaited<ReturnType<typeof exp
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getExportAdminBackupBasinsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminStockUrl = (params?: GetAdminStockParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/stock?${stringifiedParams}` : `/api/admin/stock`
+}
+
+/**
+ * @summary Live stock levels for Staron and Zen Stone, read from their Google Sheets via a service account
+ */
+export const getAdminStock = async (params?: GetAdminStockParams, options?: RequestInit): Promise<AdminStockResponse> => {
+
+  return customFetch<AdminStockResponse>(getGetAdminStockUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminStockQueryKey = (params?: GetAdminStockParams,) => {
+    return [
+    `/api/admin/stock`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAdminStockQueryOptions = <TData = Awaited<ReturnType<typeof getAdminStock>>, TError = ErrorType<void>>(params?: GetAdminStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminStock>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminStockQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminStock>>> = ({ signal }) => getAdminStock(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminStock>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminStockQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminStock>>>
+export type GetAdminStockQueryError = ErrorType<void>
+
+
+export function useGetAdminStock<TData = Awaited<ReturnType<typeof getAdminStock>>, TError = ErrorType<void>>(
+ params: undefined |  GetAdminStockParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminStock>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminStock>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminStock<TData = Awaited<ReturnType<typeof getAdminStock>>, TError = ErrorType<void>>(
+ params?: GetAdminStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminStock>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminStock>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminStock<TData = Awaited<ReturnType<typeof getAdminStock>>, TError = ErrorType<void>>(
+ params?: GetAdminStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminStock>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Live stock levels for Staron and Zen Stone, read from their Google Sheets via a service account
+ */
+
+export function useGetAdminStock<TData = Awaited<ReturnType<typeof getAdminStock>>, TError = ErrorType<void>>(
+ params?: GetAdminStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminStock>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminStockQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

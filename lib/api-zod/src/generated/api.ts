@@ -2550,6 +2550,44 @@ export const ExportAdminBackupBasinsResponse = zod.unknown()
 
 
 /**
+ * @summary Live stock levels for Staron and Zen Stone, read from their Google Sheets via a service account
+ */
+export const GetAdminStockQueryParams = zod.object({
+  "refresh": zod.coerce.boolean().optional().describe('Set to true to bypass the 5-minute in-memory cache and fetch fresh data immediately')
+})
+
+export const GetAdminStockResponse = zod.object({
+  "updatedAt": zod.coerce.date().describe('When this data was fetched (or last cached)'),
+  "staron": zod.object({
+  "title": zod.string(),
+  "total": zod.number().describe('Total number of rows\/colors on the sheet'),
+  "inStockCount": zod.number().describe('Number of colors with qty > 0'),
+  "items": zod.array(zod.object({
+  "no": zod.number().describe('Row order\/number as it appears on the sheet'),
+  "name": zod.string().describe('Color code and name'),
+  "qty": zod.number().describe('Full slabs remaining in stock'),
+  "scrap": zod.string().describe('Free-text remaining scrap\/offcut note'),
+  "lots": zod.array(zod.string()).describe('Lot numbers for this color, if any'),
+  "note": zod.string()
+}))
+}),
+  "zen": zod.object({
+  "title": zod.string(),
+  "total": zod.number().describe('Total number of rows\/colors on the sheet'),
+  "inStockCount": zod.number().describe('Number of colors with qty > 0'),
+  "items": zod.array(zod.object({
+  "no": zod.number().describe('Row order\/number as it appears on the sheet'),
+  "name": zod.string().describe('Color code and name'),
+  "qty": zod.number().describe('Full slabs remaining in stock'),
+  "scrap": zod.string().describe('Free-text remaining scrap\/offcut note'),
+  "lots": zod.array(zod.string()).describe('Lot numbers for this color, if any'),
+  "note": zod.string()
+}))
+})
+})
+
+
+/**
  * @summary Get current LINE customer identity status
  */
 export const GetLineAuthStatusResponse = zod.object({
