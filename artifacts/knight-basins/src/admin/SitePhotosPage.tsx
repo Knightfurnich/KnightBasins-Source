@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { formatThaiDateTime } from "@/data/date-time";
+import { formatThaiDateTime, THAI_TIME_ZONE } from "@/data/date-time";
 
 export type SitePhotoStageFilter = SitePhotoStage | "all";
 
@@ -52,6 +52,53 @@ export function sitePhotosQueryParams(filters: { jobCode: string; stage: SitePho
   return params;
 }
 
+export type SitePhotoExtraFilters = { onlyUnassigned: boolean; month: string };
+export const ALL_SITE_PHOTOS_MONTHS = "all";
+
+export function sitePhotoCapturedMonthKey(capturedAt: string | null): string | null {
+  if (!capturedAt) return null;
+  const date = new Date(capturedAt);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    timeZone: THAI_TIME_ZONE,
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  return year && month ? year + "-" + month : null;
+}
+
+function sitePhotoMonthLabel(monthKey: string): string {
+  const [year, month] = monthKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, 15, 12));
+  return new Intl.DateTimeFormat("th-TH", {
+    month: "short",
+    year: "2-digit",
+    timeZone: THAI_TIME_ZONE,
+  }).format(date);
+}
+
+export function sitePhotoMonthOptions(photos: readonly SitePhoto[], selectedMonth = ALL_SITE_PHOTOS_MONTHS) {
+  const monthKeys = new Set<string>();
+  for (const photo of photos) {
+    const monthKey = sitePhotoCapturedMonthKey(photo.capturedAt);
+    if (monthKey) monthKeys.add(monthKey);
+  }
+  if (selectedMonth !== ALL_SITE_PHOTOS_MONTHS) monthKeys.add(selectedMonth);
+  return Array.from(monthKeys)
+    .sort((left, right) => right.localeCompare(left))
+    .map((value) => ({ value, label: sitePhotoMonthLabel(value) }));
+}
+
+export function filterSitePhotosExtra(photos: readonly SitePhoto[], filters: SitePhotoExtraFilters): SitePhoto[] {
+  return photos.filter((photo) => {
+    const isUnassigned = !photo.jobCode || photo.jobCode.trim() === "";
+    if (filters.onlyUnassigned && !isUnassigned) return false;
+    if (filters.month !== ALL_SITE_PHOTOS_MONTHS && sitePhotoCapturedMonthKey(photo.capturedAt) !== filters.month) return false;
+    return true;
+  });
+}
 const SITE_PHOTOS_BASE_QUERY_KEY = getListAdminSitePhotosQueryKey();
 
 function StageBadge({ stage }: { stage: SitePhotoStage }) {
@@ -161,6 +208,8 @@ function SitePhotoLightbox({ photo, onClose }: { photo: SitePhoto; onClose: () =
 export function SitePhotosPage() {
   const [jobCodeInput, setJobCodeInput] = useState("");
   const [stageFilter, setStageFilter] = useState<SitePhotoStageFilter>("all");
+  const [onlyUnassigned, setOnlyUnassigned] = useState(false);
+  const [monthFilter, setMonthFilter] = useState<string>(ALL_SITE_PHOTOS_MONTHS);
   const [selectedPhoto, setSelectedPhoto] = useState<SitePhoto | null>(null);
   const queryClient = useQueryClient();
 
@@ -170,10 +219,17 @@ export function SitePhotosPage() {
   );
   const photosQuery = useListAdminSitePhotos(params);
   const photos = photosQuery.data ?? [];
+  const monthOptions = useMemo(() => sitePhotoMonthOptions(photos, monthFilter), [photos, monthFilter]);
+  const visiblePhotos = useMemo(
+    () => filterSitePhotosExtra(photos, { onlyUnassigned, month: monthFilter }),
+    [photos, onlyUnassigned, monthFilter],
+  );
 
   const clearFilters = () => {
     setJobCodeInput("");
     setStageFilter("all");
+    setOnlyUnassigned(false);
+    setMonthFilter(ALL_SITE_PHOTOS_MONTHS);
   };
 
   const refresh = () => {
@@ -196,6 +252,7 @@ export function SitePhotosPage() {
           onChange={(event) => setJobCodeInput(event.target.value)}
           placeholder="ค้นหารหัสงาน เช่น JB01/2569"
           className="max-w-xs rounded-none"
+          disabled={onlyUnassigned}
           data-testid="input-site-photos-job-code"
         />
         <div className="flex flex-wrap gap-2" role="group" aria-label="กรองตามขั้นตอนงาน">
@@ -211,7 +268,36 @@ export function SitePhotosPage() {
               {option.label}
             </Button>
           ))}
+          <Button
+            type="button"
+            variant={onlyUnassigned ? "default" : "outline"}
+            className="rounded-none"
+            aria-pressed={onlyUnassigned}
+            data-testid="button-filter-unassigned-site-photos"
+            onClick={() => {
+              const nextOnlyUnassigned = !onlyUnassigned;
+              setOnlyUnassigned(nextOnlyUnassigned);
+              if (nextOnlyUnassigned) setJobCodeInput("");
+            }}
+          >
+            ⚠️ ยังไม่ระบุรหัสงาน
+          </Button>
         </div>
+        <label htmlFor="select-site-photo-month" className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
+          <span>เดือนที่ถ่าย</span>
+          <select
+            id="select-site-photo-month"
+            value={monthFilter}
+            onChange={(event) => setMonthFilter(event.target.value)}
+            className="rounded-none border border-[var(--line)] bg-[var(--card-paper)] px-3 py-2 text-sm text-[var(--ink)]"
+            data-testid="select-site-photo-month"
+          >
+            <option value={ALL_SITE_PHOTOS_MONTHS}>ทุกเดือน</option>
+            {monthOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
         <div className="ml-auto flex gap-2">
           <Button type="button" variant="outline" className="rounded-none" onClick={clearFilters} data-testid="button-clear-filters">
             <X className="mr-2 h-4 w-4" />
@@ -242,7 +328,7 @@ export function SitePhotosPage() {
           <h3>โหลดภาพหน้างานไม่สำเร็จ</h3>
           <p className="mt-2 text-[#a24439]">ระบบไม่สามารถดึงข้อมูลภาพหน้างานได้ในขณะนี้</p>
         </div>
-      ) : photos.length === 0 ? (
+      ) : visiblePhotos.length === 0 ? (
         <div
           className="flex flex-col items-center gap-3 border border-[var(--line)] bg-[var(--card-paper)] p-12 text-center text-[var(--ink-soft)] rounded-none"
           data-testid="status-site-photos-empty"
@@ -252,7 +338,7 @@ export function SitePhotosPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="grid-site-photos">
-          {photos.map((photo) => (
+          {visiblePhotos.map((photo) => (
             <button
               key={photo.id}
               type="button"
