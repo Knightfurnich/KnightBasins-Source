@@ -4,7 +4,10 @@ import {
   ArrowDownToLine,
   ArrowUpRight,
   Bath,
+  BookOpen,
+  Check,
   CheckCircle2,
+  Copy,
   Database,
   ImagePlus,
   Loader2,
@@ -30,6 +33,14 @@ export function BackupVaultPage() {
   const [sitePhotoStatus, setSitePhotoStatus] = useState<SitePhotoStatus>("checking");
   const [sitePhotoCount, setSitePhotoCount] = useState(0);
   const [backupInfo, setBackupInfo] = useState<BackupInfo | null>(null);
+  const [showRestoreGuide, setShowRestoreGuide] = useState(false);
+  const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    void navigator.clipboard.writeText(text);
+    setCopiedCmd(id);
+    setTimeout(() => setCopiedCmd(null), 2500);
+  };
 
   useEffect(() => {
     let active = true;
@@ -199,7 +210,7 @@ export function BackupVaultPage() {
               ก้อนเดียวจบ: รวมฐานข้อมูล 18 ตาราง + ไฟล์รูปภาพหน้างานจริง + ภาพ Top View 30 รุ่น + สคริปต์คำสั่งเดียวกู้ชีพทั้งระบบ (<code className="bg-black/5 px-1 py-0.5">disaster_recovery_restore.sh</code>) สามารถชุบชีวิตระบบบนเครื่องเซิร์ฟเวอร์ใหม่ได้ทันทีแม้ศูนย์ข้อมูลหรือดิสก์เดิมพังถาวร
             </p>
           </div>
-          <div className="shrink-0 flex flex-col gap-1 items-start lg:items-end">
+          <div className="shrink-0 flex flex-col gap-2 items-start lg:items-end">
             <a
               href="/api/admin/backup/disaster-recovery-bundle"
               download
@@ -209,11 +220,102 @@ export function BackupVaultPage() {
               <ArrowDownToLine className="h-5 w-5" aria-hidden="true" />
               ดาวน์โหลดชุดกู้ชีพฉุกเฉิน (.tar.gz ~46 MB)
             </a>
-            <span className="text-[11px] text-[var(--ink-soft)]">
-              สร้างอัตโนมัติพร้อมฐานข้อมูลล่าสุด · ปลอดภัยระดับสูงสุด
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] text-[var(--ink-soft)]">
+                สร้างอัตโนมัติพร้อมฐานข้อมูลล่าสุด · ปลอดภัยระดับสูงสุด
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowRestoreGuide((prev) => !prev)}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#a24439] hover:underline"
+                data-testid="button-toggle-restore-guide"
+              >
+                <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                {showRestoreGuide ? "ซ่อนขั้นตอนกู้ระบบ ▲" : "📖 ดูขั้นตอนกู้ระบบฉุกเฉิน ▼"}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Collapsible Step-by-Step Recovery Runbook */}
+        {showRestoreGuide && (
+          <div className="mt-6 border-t border-[#a24439]/20 pt-5 text-sm text-[var(--ink)] space-y-4" data-testid="disaster-recovery-guide-content">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-black/5 pb-2">
+              <h3 className="font-bold text-base flex items-center gap-2 text-[#a24439]">
+                <span>🛠️</span> 3 ขั้นตอนชุบชีวิตระบบบน VPS เครื่องใหม่ (จบใน 15 นาที)
+              </h3>
+              <a
+                href="https://github.com/Knightfurnich/KnightBasins-Source/blob/main/docs/DISASTER_RECOVERY.md"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ink-soft)] hover:text-[#a24439] underline"
+              >
+                เปิดคู่มือฉบับเต็มบน GitHub <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded border border-[var(--line)] bg-white p-3.5 space-y-2">
+                <div className="font-bold text-xs uppercase tracking-wider text-[#a24439]">ขั้นตอนที่ 1 (~3 นาที)</div>
+                <div className="font-semibold text-xs">ติดตั้ง Docker บนเครื่องใหม่</div>
+                <div className="relative">
+                  <pre className="overflow-x-auto rounded bg-zinc-900 p-2 text-[11px] text-zinc-100 font-mono">
+                    curl -fsSL https://get.docker.com | sh
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard("curl -fsSL https://get.docker.com | sh", "cmd1")}
+                    className="absolute right-1 top-1 p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded"
+                    title="คัดลอกคำสั่ง"
+                  >
+                    {copiedCmd === "cmd1" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded border border-[var(--line)] bg-white p-3.5 space-y-2">
+                <div className="font-bold text-xs uppercase tracking-wider text-[#a24439]">ขั้นตอนที่ 2 (~2 นาที)</div>
+                <div className="font-semibold text-xs">ดึงโค้ด + นำไฟล์กู้ชีพขึ้นเครื่อง</div>
+                <div className="relative">
+                  <pre className="overflow-x-auto rounded bg-zinc-900 p-2 text-[11px] text-zinc-100 font-mono">
+git clone https://github.com/Knightfurnich/KnightBasins-Source.git /docker/knightbasins
+cd /docker/knightbasins
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard("git clone https://github.com/Knightfurnich/KnightBasins-Source.git /docker/knightbasins && cd /docker/knightbasins", "cmd2")}
+                    className="absolute right-1 top-1 p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded"
+                    title="คัดลอกคำสั่ง"
+                  >
+                    {copiedCmd === "cmd2" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded border border-[var(--line)] bg-white p-3.5 space-y-2">
+                <div className="font-bold text-xs uppercase tracking-wider text-[#a24439]">ขั้นตอนที่ 3 (~2 นาที)</div>
+                <div className="font-semibold text-xs">สั่งคำสั่งเดียวกู้คืนทั้งระบบ</div>
+                <div className="relative">
+                  <pre className="overflow-x-auto rounded bg-zinc-900 p-2 text-[11px] text-zinc-100 font-mono">
+bash backups/disaster_recovery_restore.sh knight_basins_disaster_recovery_*.tar.gz
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard("bash backups/disaster_recovery_restore.sh knight_basins_disaster_recovery_*.tar.gz", "cmd3")}
+                    className="absolute right-1 top-1 p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded"
+                    title="คัดลอกคำสั่ง"
+                  >
+                    {copiedCmd === "cmd3" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/60 p-2.5 rounded border border-[var(--line)] text-xs text-[var(--ink-soft)] flex items-center justify-between">
+              <span>🌐 <strong>ขั้นตอนสุดท้าย:</strong> เปลี่ยน A Record ของโดเมนใน Cloudflare/Hostinger ให้ชี้มาที่ IP ของ VPS เครื่องใหม่ ระบบกลับมาออนไลน์ 100% ทันที</span>
+            </div>
+          </div>
+        )}
       </section>
 
       <section aria-label="หมวดหมู่การสำรองข้อมูล" className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
