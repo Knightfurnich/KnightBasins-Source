@@ -395,6 +395,29 @@ export const supportVoiceSettings = pgTable("support_voice_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Photos taken at a job site (survey/installation/service/completed) and
+// optionally linked back to a lead once staff identify which job they
+// belong to -- leadId and jobCode both stay nullable since a photo is often
+// received (e.g. via LINE) before it has been matched to a lead.
+export const sitePhotos = pgTable(
+  "site_photos",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id"),
+    jobCode: varchar("job_code", { length: 32 }),
+    imageUrl: text("image_url").notNull(),
+    description: text("description"),
+    stage: varchar("stage", { length: 32 }).notNull().default("installation"),
+    senderName: varchar("sender_name", { length: 64 }),
+    capturedAt: timestamp("captured_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("site_photos_job_code_idx").on(table.jobCode),
+    index("site_photos_lead_id_idx").on(table.leadId),
+  ],
+);
+
 export type BasinPrice = typeof basinPrices.$inferSelect;
 export type BasinCategory = typeof basinCategories.$inferSelect;
 export type InstalledStoneCategory = typeof installedStoneCategories.$inferSelect;
@@ -413,3 +436,4 @@ export type LeadExternalReference = typeof leadExternalReferences.$inferSelect;
 export type PaymentSlip = typeof paymentSlips.$inferSelect;
 export type TechnicianTeamRow = typeof technicianTeams.$inferSelect;
 export type SupportVoiceSettingsRow = typeof supportVoiceSettings.$inferSelect;
+export type SitePhoto = typeof sitePhotos.$inferSelect;

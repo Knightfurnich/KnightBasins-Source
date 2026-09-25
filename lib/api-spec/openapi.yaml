@@ -1073,6 +1073,91 @@ paths:
           description: voiceName is missing or is not one of the curated options
         "403":
           description: Missing the leads edit permission
+  /admin/site-photos:
+    get:
+      operationId: listAdminSitePhotos
+      tags: [admin]
+      summary: Search and list site photos (survey/installation/service/completed)
+      parameters:
+        - name: jobCode
+          in: query
+          required: false
+          schema: { type: string }
+        - name: leadId
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1 }
+        - name: stage
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [survey, installation, service, completed]
+        - name: limit
+          in: query
+          required: false
+          description: Defaults to 50, capped at 200
+          schema: { type: integer, minimum: 1, maximum: 200 }
+      responses:
+        "200":
+          description: Site photos matching the given filters, most recently captured first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SitePhoto"
+        "400":
+          description: leadId, stage, or limit is invalid
+        "403":
+          description: Missing the leads permission
+    post:
+      operationId: createAdminSitePhoto
+      tags: [admin]
+      summary: Record a newly received site photo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SitePhotoCreateInput"
+      responses:
+        "201":
+          description: Created site photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SitePhoto"
+        "400":
+          description: imageUrl is missing, or another field is invalid
+        "403":
+          description: Missing the leads edit permission
+  /admin/site-photos/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RecordId"
+    patch:
+      operationId: updateAdminSitePhoto
+      tags: [admin]
+      summary: Edit a site photo's description/stage, or bind it to a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SitePhotoUpdateInput"
+      responses:
+        "200":
+          description: Updated site photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SitePhoto"
+        "400":
+          description: No supported field was provided, or a field is invalid
+        "403":
+          description: Missing the leads edit permission
+        "404":
+          description: Site photo not found
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -2196,3 +2281,44 @@ components:
         voiceName:
           type: string
           description: Must match one of the voiceName values from GET /admin/support-voice's options list
+    SitePhoto:
+      type: object
+      required: [id, imageUrl, stage, createdAt]
+      properties:
+        id: { type: integer }
+        leadId: { type: [integer, "null"] }
+        jobCode: { type: [string, "null"] }
+        imageUrl: { type: string }
+        description: { type: [string, "null"] }
+        stage:
+          type: string
+          enum: [survey, installation, service, completed]
+        senderName: { type: [string, "null"] }
+        capturedAt: { type: [string, "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    SitePhotoCreateInput:
+      type: object
+      required: [imageUrl]
+      properties:
+        leadId: { type: integer, minimum: 1 }
+        jobCode: { type: string, maxLength: 32 }
+        imageUrl: { type: string, minLength: 1 }
+        description: { type: string }
+        stage:
+          type: string
+          enum: [survey, installation, service, completed]
+          description: Defaults to installation when omitted
+        senderName: { type: string, maxLength: 64 }
+        capturedAt: { type: string, format: date-time }
+    SitePhotoUpdateInput:
+      type: object
+      description: At least one field must be present
+      properties:
+        description: { type: [string, "null"] }
+        stage:
+          type: string
+          enum: [survey, installation, service, completed]
+        leadId:
+          type: [integer, "null"]
+          minimum: 1
+          description: Bind this photo to a lead, or null to unlink it

@@ -1597,6 +1597,86 @@ export interface SupportVoiceUpdateInput {
   voiceName: string;
 }
 
+export type SitePhotoStage = typeof SitePhotoStage[keyof typeof SitePhotoStage];
+
+
+export const SitePhotoStage = {
+  survey: 'survey',
+  installation: 'installation',
+  service: 'service',
+  completed: 'completed',
+} as const;
+
+export interface SitePhoto {
+  id: number;
+  /** @nullable */
+  leadId?: number | null;
+  /** @nullable */
+  jobCode?: string | null;
+  imageUrl: string;
+  /** @nullable */
+  description?: string | null;
+  stage: SitePhotoStage;
+  /** @nullable */
+  senderName?: string | null;
+  /** @nullable */
+  capturedAt?: string | null;
+  createdAt: string;
+}
+
+/**
+ * Defaults to installation when omitted
+ */
+export type SitePhotoCreateInputStage = typeof SitePhotoCreateInputStage[keyof typeof SitePhotoCreateInputStage];
+
+
+export const SitePhotoCreateInputStage = {
+  survey: 'survey',
+  installation: 'installation',
+  service: 'service',
+  completed: 'completed',
+} as const;
+
+export interface SitePhotoCreateInput {
+  /** @minimum 1 */
+  leadId?: number;
+  /** @maxLength 32 */
+  jobCode?: string;
+  /** @minLength 1 */
+  imageUrl: string;
+  description?: string;
+  /** Defaults to installation when omitted */
+  stage?: SitePhotoCreateInputStage;
+  /** @maxLength 64 */
+  senderName?: string;
+  capturedAt?: string;
+}
+
+export type SitePhotoUpdateInputStage = typeof SitePhotoUpdateInputStage[keyof typeof SitePhotoUpdateInputStage];
+
+
+export const SitePhotoUpdateInputStage = {
+  survey: 'survey',
+  installation: 'installation',
+  service: 'service',
+  completed: 'completed',
+} as const;
+
+/**
+ * At least one field must be present
+ */
+export interface SitePhotoUpdateInput {
+  /** @nullable */
+  description?: string | null;
+  stage?: SitePhotoUpdateInputStage;
+  /**
+     * Bind this photo to a lead, or null to unlink it
+     * @minimum 1
+     * @nullable
+     */
+  leadId?: number | null;
+}
+
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
   password: string;
@@ -1717,6 +1797,31 @@ export type ListAdminTechnicianTeamsIncludeInactive = typeof ListAdminTechnician
 
 export const ListAdminTechnicianTeamsIncludeInactive = {
   NUMBER_1: 1,
+} as const;
+
+export type ListAdminSitePhotosParams = {
+jobCode?: string;
+/**
+ * @minimum 1
+ */
+leadId?: number;
+stage?: ListAdminSitePhotosStage;
+/**
+ * Defaults to 50, capped at 200
+ * @minimum 1
+ * @maximum 200
+ */
+limit?: number;
+};
+
+export type ListAdminSitePhotosStage = typeof ListAdminSitePhotosStage[keyof typeof ListAdminSitePhotosStage];
+
+
+export const ListAdminSitePhotosStage = {
+  survey: 'survey',
+  installation: 'installation',
+  service: 'service',
+  completed: 'completed',
 } as const;
 
 export type GetWorksiteAddressSuggestionsParams = {
