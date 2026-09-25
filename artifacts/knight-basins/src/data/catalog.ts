@@ -12,6 +12,7 @@ export type BasinProduct = {
   imageUrl?: string;
   galleryImageUrls?: string[];
   quoteImageUrl?: string;
+  topViewImageUrl?: string;
   videoUrl?: string;
 };
 
@@ -450,6 +451,7 @@ export function basinProductFromCatalog(item: {
   imageUrl?: string | null;
   galleryImageUrls?: string[] | null;
   quoteImageUrl?: string | null;
+  topViewImageUrl?: string | null;
   videoUrl?: string | null;
 }): BasinProduct {
   const galleryImageUrls = (item.galleryImageUrls ?? [])
@@ -468,6 +470,7 @@ export function basinProductFromCatalog(item: {
     imageUrl,
     galleryImageUrls: galleryImageUrls.length ? galleryImageUrls : undefined,
     quoteImageUrl: item.quoteImageUrl?.trim() || imageUrl,
+    topViewImageUrl: item.topViewImageUrl?.trim() || undefined,
     videoUrl: item.videoUrl ?? undefined,
   };
 }
