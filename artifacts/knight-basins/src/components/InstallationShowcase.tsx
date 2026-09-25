@@ -104,9 +104,15 @@ export function InstallationShowcase() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="installation-showcase-badge inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-[#003366]/5 text-[#003366] border border-[#003366]/20">
-            <Camera size={13} aria-hidden="true" /> {photos.length} ผลงานเด่น
-          </span>
+          <button
+            type="button"
+            onClick={() => setZoomPhoto(photos[0])}
+            className="installation-showcase-badge inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#003366] text-white hover:bg-[#002244] active:scale-95 transition shadow-sm cursor-pointer"
+            title="คลิกเพื่อเปิดดูภาพผลงานเด่นแบบเต็มจอ"
+            data-testid="button-showcase-open-all"
+          >
+            <Camera size={13} aria-hidden="true" /> {photos.length} ผลงานเด่น (คลิกดูภาพขยาย)
+          </button>
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -170,10 +176,10 @@ export function InstallationShowcase() {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal with Next/Prev Controls */}
       {zoomPhoto && (
         <div
-          className="installation-showcase-lightbox fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="installation-showcase-lightbox fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
           role="dialog"
           aria-modal="true"
           aria-label="ภาพผลงานติดตั้งขนาดใหญ่"
@@ -182,25 +188,56 @@ export function InstallationShowcase() {
         >
           <button
             type="button"
-            className="installation-showcase-lightbox-close absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30 transition"
+            className="installation-showcase-lightbox-close absolute top-4 right-4 z-10 rounded-full bg-white/20 p-2.5 text-white hover:bg-white/40 transition shadow"
             onClick={() => setZoomPhoto(null)}
             aria-label="ปิดภาพ"
           >
-            <X size={22} />
+            <X size={24} />
           </button>
+
+          {/* Previous Button */}
+          <button
+            type="button"
+            className="absolute left-3 sm:left-6 z-10 p-3 rounded-full bg-black/60 text-white hover:bg-black/90 active:scale-95 transition shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              const currIdx = photos.findIndex((p) => p.id === zoomPhoto.id);
+              const prevIdx = (currIdx - 1 + photos.length) % photos.length;
+              setZoomPhoto(photos[prevIdx] || null);
+            }}
+            aria-label="ภาพก่อนหน้า"
+          >
+            <ChevronLeft size={28} />
+          </button>
+
+          {/* Next Button */}
+          <button
+            type="button"
+            className="absolute right-3 sm:right-6 z-10 p-3 rounded-full bg-black/60 text-white hover:bg-black/90 active:scale-95 transition shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              const currIdx = photos.findIndex((p) => p.id === zoomPhoto.id);
+              const nextIdx = (currIdx + 1) % photos.length;
+              setZoomPhoto(photos[nextIdx] || null);
+            }}
+            aria-label="ภาพถัดไป"
+          >
+            <ChevronRight size={28} />
+          </button>
+
           <div
-            className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-xl bg-black"
+            className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-xl bg-black shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={zoomPhoto.imageUrl}
               alt={zoomPhoto.caption ?? "ผลงานติดตั้งจริง"}
-              className="max-h-[80vh] w-auto object-contain mx-auto"
+              className="max-h-[78vh] w-auto object-contain mx-auto"
             />
             {zoomPhoto.caption && (
               <div className="bg-black/90 p-4 text-center">
-                <p className="text-sm font-semibold text-white">{zoomPhoto.caption}</p>
-                <p className="text-xs text-white/70 mt-1">ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด</p>
+                <p className="text-sm sm:text-base font-semibold text-white">{zoomPhoto.caption}</p>
+                <p className="text-xs text-amber-300 mt-1">ผลงานติดตั้งจริงโดยทีมช่าง บริษัท ไนท์ เฟอร์นิช จำกัด (ภาพที่ {(photos.findIndex((p) => p.id === zoomPhoto.id) + 1)} จาก {photos.length})</p>
               </div>
             )}
           </div>
