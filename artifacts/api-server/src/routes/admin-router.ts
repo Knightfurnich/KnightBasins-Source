@@ -68,7 +68,7 @@ import {
   saveUploadedVideo,
   UploadFileCollisionError,
 } from "../lib/image-upload";
-import { quoteTotalTHB } from "./leads";
+import { createQuoteNumber, quoteTotalTHB } from "./leads";
 import { formatThaiDateTime } from "../lib/date-time";
 
 export type AdminDatabase = {
@@ -1535,9 +1535,15 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     const finalStatus = bodyStatus ?? parsed.data.status;
     try {
       let studioData: Record<string, unknown> | undefined;
+      let newQuoteNumber: string | undefined;
+      let newQuoteAccessSecret: string | undefined;
       if (parsed.data.staffDimensions !== undefined || parsed.data.studioData !== undefined) {
         const [existing] = await database
-          .select({ studioData: customerLeads.studioData })
+          .select({
+            studioData: customerLeads.studioData,
+            quoteNumber: customerLeads.quoteNumber,
+            quoteAccessSecret: customerLeads.quoteAccessSecret,
+          })
           .from(customerLeads)
           .where(eq(customerLeads.id, id))
           .limit(1);
@@ -1548,6 +1554,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         if (parsed.data.staffDimensions !== undefined) {
           studioData = { ...studioData, staffDimensions: parsed.data.staffDimensions };
         }
+        // A lead without a quote number yet (e.g. a hand-sketch lead) gets one
+        // the first time staff attach studioData to it, so the public quote
+        // link becomes usable without a separate "create quote" step.
+        if (!existing?.quoteNumber && parsed.data.studioData !== undefined) {
+          newQuoteNumber = createQuoteNumber();
+          newQuoteAccessSecret = createQuoteAccessSecret();
+        }
       }
       const [updated] = await database
         .update(customerLeads)
@@ -1555,11 +1568,13 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
           status: finalStatus,
           notes: parsed.data.notes,
           ...(studioData !== undefined ? { studioData } : {}),
+          ...(newQuoteNumber ? { quoteNumber: newQuoteNumber, quoteAccessSecret: newQuoteAccessSecret } : {}),
           updatedAt: new Date(),
         })
         .where(eq(customerLeads.id, id))
         .returning();
-      return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+      if (!updated) return res.status(404).json({ message: "Lead not found" });
+      return res.json({ ...updated, publicQuoteToken: publicQuoteTokenForLead(updated) });
     } catch (error) {
       return next(error);
     }

@@ -20,6 +20,8 @@ type FakeLeadRecord = {
   status: string;
   notes: string | null;
   studioData: Record<string, unknown> | null;
+  quoteNumber?: string | null;
+  quoteAccessSecret?: string | null;
   updatedAt?: unknown;
 };
 
@@ -29,7 +31,11 @@ function createFakeLeadDatabase(initialRecord: FakeLeadRecord) {
     select: () => ({
       from: () => ({
         where: () => ({
-          limit: async () => [{ studioData: record.studioData }],
+          limit: async () => [{
+            studioData: record.studioData,
+            quoteNumber: record.quoteNumber ?? null,
+            quoteAccessSecret: record.quoteAccessSecret ?? null,
+          }],
         }),
       }),
     }),
@@ -142,6 +148,96 @@ describe("PATCH /api/admin/leads/:id with studioData (Task 30)", () => {
         "https://example.com/sketch2.jpg",
       ]);
       assert.equal((updated.studioData as any).source, "hand_sketch");
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+describe("PATCH /api/admin/leads/:id quote generation (Task 34)", () => {
+  const adminSecret = "test-session-secret-for-quote-generation-task-34";
+  let previousSecret: string | undefined;
+
+  before(() => {
+    previousSecret = process.env["SESSION_SECRET"];
+    process.env["SESSION_SECRET"] = adminSecret;
+  });
+
+  after(() => {
+    if (previousSecret === undefined) {
+      delete process.env["SESSION_SECRET"];
+    } else {
+      process.env["SESSION_SECRET"] = previousSecret;
+    }
+  });
+
+  it("generates a quoteNumber and quoteAccessSecret when a lead without one receives studioData", async () => {
+    const fakeDb = createFakeLeadDatabase({
+      id: 101,
+      status: "new_lead",
+      notes: null,
+      studioData: { sketchUrls: ["https://example.com/sketch1.jpg"] },
+      quoteNumber: null,
+      quoteAccessSecret: null,
+    });
+
+    const server = await startAdminRoute(fakeDb);
+    try {
+      const cookie = `knight_admin_session=${createAdminToken()}`;
+      const res = await fetch(`${server.url}/api/admin/leads/101`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({
+          status: "selecting",
+          studioData: { shape: "I", totalTHB: 19000 },
+        }),
+      });
+
+      assert.equal(res.status, 200);
+      const updated = (await res.json()) as FakeLeadRecord & { publicQuoteToken: string | null };
+
+      assert.match(
+        String(updated.quoteNumber),
+        /^[A-Za-z]{3} \d{2} \/ US \/ \d{6}$/,
+        `expected a "Mmm YY / US / NNNNNN" quoteNumber, got ${updated.quoteNumber}`,
+      );
+      assert.equal(typeof updated.quoteAccessSecret, "string");
+      assert.ok((updated.quoteAccessSecret as string).length > 0);
+      assert.ok(updated.publicQuoteToken, "expected a publicQuoteToken once quoteNumber+secret exist");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("never regenerates quoteNumber/quoteAccessSecret when the lead already has one", async () => {
+    const existingQuoteNumber = "Sep 25 / US / 000123";
+    const existingSecret = "existing-secret-must-not-change";
+    const fakeDb = createFakeLeadDatabase({
+      id: 102,
+      status: "quote_sent",
+      notes: null,
+      studioData: { shape: "I" },
+      quoteNumber: existingQuoteNumber,
+      quoteAccessSecret: existingSecret,
+    });
+
+    const server = await startAdminRoute(fakeDb);
+    try {
+      const cookie = `knight_admin_session=${createAdminToken()}`;
+      const res = await fetch(`${server.url}/api/admin/leads/102`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({
+          status: "quote_sent",
+          studioData: { totalTHB: 25000 },
+        }),
+      });
+
+      assert.equal(res.status, 200);
+      const updated = (await res.json()) as FakeLeadRecord & { publicQuoteToken: string | null };
+
+      assert.equal(updated.quoteNumber, existingQuoteNumber);
+      assert.equal(updated.quoteAccessSecret, existingSecret);
     } finally {
       await server.close();
     }
