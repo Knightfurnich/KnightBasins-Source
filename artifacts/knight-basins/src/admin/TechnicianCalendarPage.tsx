@@ -6,6 +6,7 @@ import {
   ChevronRight,
   MapPin,
   MapPinned,
+  RefreshCw,
   Users,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -407,29 +408,43 @@ export function TechnicianCalendarPage() {
             ตารางรายเดือนสำหรับวางแผนงานติดตั้งของทีมช่าง เลือกวันที่เพื่อเปิดคิวรายละเอียด
           </p>
         </div>
-        {isLive ? (
-          <div
-            className="flex max-w-sm items-start gap-2 border border-[#17816d]/40 bg-[#17816d]/10 px-3 py-2.5 text-xs leading-relaxed text-[#17816d]"
-            data-testid="calendar-live-notice"
-            role="note"
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void invalidateDispatchQueries()}
+            disabled={isLoading}
+            className="h-9 rounded-none px-3"
+            data-testid="button-calendar-refresh"
           >
-            <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#17816d]" aria-hidden="true" />
-            <span><strong>เชื่อมต่อระบบจริง (Live Dispatch)</strong><br />ทีมพร้อมมอบหมาย {countFormatter.format(activeTechnicianTeams.length)} ทีม</span>
-          </div>
-        ) : (
-          <div
-            className="flex max-w-sm items-start gap-2 border border-[var(--saffron)]/40 bg-[var(--saffron)]/5 px-3 py-2.5 text-xs leading-relaxed text-[var(--ink)]"
-            data-testid="calendar-unavailable-notice"
-            role="note"
-          >
-            <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--saffron-dark)]" aria-hidden="true" />
-            <span>
-              <strong>{isLoading ? "กำลังโหลดคิวงาน" : isCalendarError ? "โหลดคิวงานไม่สำเร็จ" : "ยังไม่มีข้อมูลคิวงาน"}</strong>
-              <br />
-              {isLoading ? "กำลังดึงข้อมูลจากระบบ" : isCalendarError ? "กรุณาลองใหม่อีกครั้งภายหลัง" : "ข้อมูลจะปรากฏเมื่อระบบส่งคิวงานมา"}
-            </span>
-          </div>
-        )}
+            <RefreshCw className={`mr-1.5 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} aria-hidden="true" />
+            รีเฟรช
+          </Button>
+          {isLive ? (
+            <div
+              className="flex max-w-sm items-start gap-2 border border-[#17816d]/40 bg-[#17816d]/10 px-3 py-2 text-xs leading-relaxed text-[#17816d]"
+              data-testid="calendar-live-notice"
+              role="note"
+            >
+              <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#17816d]" aria-hidden="true" />
+              <span><strong>เชื่อมต่อระบบจริง (Live Dispatch)</strong><br />ทีมพร้อมมอบหมาย {countFormatter.format(activeTechnicianTeams.length)} ทีม</span>
+            </div>
+          ) : (
+            <div
+              className="flex max-w-sm items-start gap-2 border border-[var(--saffron)]/40 bg-[var(--saffron)]/5 px-3 py-2 text-xs leading-relaxed text-[var(--ink)]"
+              data-testid="calendar-unavailable-notice"
+              role="note"
+            >
+              <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--saffron-dark)]" aria-hidden="true" />
+              <span>
+                <strong>{isLoading ? "กำลังโหลดคิวงาน" : isCalendarError ? "โหลดคิวงานไม่สำเร็จ" : "ยังไม่มีข้อมูลคิวงาน"}</strong>
+                <br />
+                {isLoading ? "กำลังดึงข้อมูลจากระบบ" : isCalendarError ? "กรุณาลองใหม่อีกครั้งภายหลัง" : "ข้อมูลจะปรากฏเมื่อระบบส่งคิวงานมา"}
+              </span>
+            </div>
+          )}
+        </div>
       </header>
 
       {isTeamsLoading && (
