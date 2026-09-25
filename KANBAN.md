@@ -83,6 +83,9 @@
 | **Task 52** | ชัย | ระบบ API สำรองและส่งออกข้อมูลสำหรับแอดมิน (/api/admin/backup/*) | `feat/chai-backup-api` | ✅ **Live บน VPS** · PR #27 merge + deploy · GET /api/admin/backup/* ตอบ 200 OK |
 | **Task 53** | Replit | หน้าศูนย์สำรองข้อมูลสำหรับแอดมิน (/admin/backup) | `feat/replit-backup-vault` | ✅ **Live บน VPS** · PR #29 merge + deploy · หน้าสำรองข้อมูล 4 หมวดใช้งานได้จริง |
 | **DB Dump** | เดวิด | ปุ่มดาวน์โหลดฐานข้อมูลเต็ม (.sql.gz) + cron สำรองทุกคืน เก็บย้อนหลัง 14 ชุด | `feat/david-backup-dump` | ✅ **Live บน VPS** · Owner โหลดได้จริง 36 KB · GET /admin/backup/database-dump → 200 |
+| **Disaster Recovery** | เดวิด | ชุดกู้ชีพฉุกเฉินระดับ SLA ≤ 4 ชม. (.tar.gz 46 MB) กู้คืนระบบ 100% ใน 15 นาที | `feat/david-backup-dump` | ✅ **Live บน VPS** · รวม DB + uploads + คู่มือ 3 ขั้นตอน |
+| **Task 54** | ชัย | ระบบ API ตัวกรองภาพหน้างานขั้นสูง (unassigned + month + sender) | `feat/chai-site-photos-filters` | 🔄 มอบหมายแล้ว (`qa/job-54-chai-site-photos-filters.md`) |
+| **Task 55** | Replit | เพิ่มแถบตัวกรอง 'ยังไม่ระบุรหัสงาน' และตัวเลือกเดือน ในหน้าคลังภาพ (/admin/site-photos) | `feat/replit-site-photos-filters` | 🔄 มอบหมายแล้ว (`qa/job-55-replit-site-photos-ui-filters.md`) |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
