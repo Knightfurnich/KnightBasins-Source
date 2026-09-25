@@ -1158,6 +1158,54 @@ paths:
           description: Missing the leads edit permission
         "404":
           description: Site photo not found
+  /admin/backup/summary:
+    get:
+      operationId: getAdminBackupSummary
+      tags: [admin]
+      summary: Overview counts for a manual data backup/export (leads, site photos, basins, payment slips)
+      responses:
+        "200":
+          description: Current record counts and the time this summary was generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminBackupSummary"
+        "401":
+          description: Authentication required
+        "403":
+          description: Missing the leads or basins permission
+  /admin/backup/leads-export:
+    get:
+      operationId: exportAdminBackupLeads
+      tags: [admin]
+      summary: Export every lead as a CSV file (UTF-8 with BOM, for Excel)
+      responses:
+        "200":
+          description: CSV file of all leads
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          description: Authentication required
+        "403":
+          description: Missing the leads or basins permission
+  /admin/backup/basins-export:
+    get:
+      operationId: exportAdminBackupBasins
+      tags: [admin]
+      summary: Export every basin price row as a CSV file (UTF-8 with BOM, for Excel)
+      responses:
+        "200":
+          description: CSV file of all basins
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          description: Authentication required
+        "403":
+          description: Missing the leads or basins permission
   /auth/line/status:
     get:
       operationId: getLineAuthStatus
@@ -2326,3 +2374,12 @@ components:
           type: [integer, "null"]
           minimum: 1
           description: Bind this photo to a lead, or null to unlink it
+    AdminBackupSummary:
+      type: object
+      required: [leadsCount, sitePhotosCount, basinsCount, paymentSlipsCount, generatedAt]
+      properties:
+        leadsCount: { type: integer }
+        sitePhotosCount: { type: integer }
+        basinsCount: { type: integer }
+        paymentSlipsCount: { type: integer }
+        generatedAt: { type: string, format: date-time }

@@ -116,6 +116,33 @@ function invalid(res: Response, message: string, details?: unknown) {
 
 const SITE_PHOTO_STAGES = ["survey", "installation", "service", "completed"] as const;
 
+const LEAD_STATUS_LABELS_TH: Record<string, string> = {
+  new_lead: "ลูกค้าใหม่",
+  selecting: "กำลังเลือกสินค้า",
+  quote_requested: "ขอใบเสนอราคา",
+  waiting_deposit: "รอมัดจำ",
+  team_reported_paid: "ทีมรายงานชำระแล้ว",
+  deposit_paid: "มัดจำแล้ว",
+  ready_for_production: "พร้อมผลิต",
+  closed: "ปิดงาน",
+};
+
+const LEADS_EXPORT_COLUMNS = ["รหัสงาน", "ชื่อลูกค้า", "โครงการ", "ที่อยู่", "ทีมช่าง", "วันที่นัด", "สถานะ", "ยอดเงิน", "วันที่สร้าง"];
+const BASINS_EXPORT_COLUMNS = ["SKU", "ชื่อสี", "รหัสสี", "ราคา", "ขนาด", "ขนาดหลุม", "ลิงก์ภาพหลัก", "ลิงก์ภาพ Top View"];
+
+const CSV_SPECIAL_CHARS_PATTERN = /[",\r\n]/;
+
+function csvEscape(value: unknown): string {
+  const text = String(value ?? "");
+  return CSV_SPECIAL_CHARS_PATTERN.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/** RFC 4180 CSV with a leading UTF-8 BOM so Excel opens Thai text correctly. */
+function toCsv(columns: string[], rows: unknown[][]): string {
+  const lines = [columns, ...rows].map((row) => row.map(csvEscape).join(","));
+  return `﻿${lines.join("\r\n")}`;
+}
+
 /**
  * The full real status domain a lead can hold. Wider than UpdateAdminLeadBody's
  * generated zod enum (new_lead/selecting/quote_requested/closed only, stale
@@ -2546,6 +2573,68 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     try {
       const deleted = await database.delete(sheetStonePrices).where(eq(sheetStonePrices.id, id)).returning({ id: sheetStonePrices.id });
       return deleted.length ? res.status(204).end() : res.status(404).json({ message: "Sheet stone not found" });
+    } catch (error) { return next(error); }
+  });
+
+  router.get("/admin/backup/summary", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const [leads, photos, basins, slips] = await Promise.all([
+        database.select().from(customerLeads),
+        database.select().from(sitePhotos),
+        database.select().from(basinPrices),
+        database.select().from(paymentSlips),
+      ]);
+      res.json({
+        leadsCount: leads.length,
+        sitePhotosCount: photos.length,
+        basinsCount: basins.length,
+        paymentSlipsCount: slips.length,
+        generatedAt: new Date().toISOString(),
+      });
+    } catch (error) { return next(error); }
+  });
+
+  router.get("/admin/backup/leads-export", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const leads = await database.select().from(customerLeads).orderBy(asc(customerLeads.id));
+      const rows = leads.map((lead: any) => [
+        lead.leadKey,
+        lead.name ?? "",
+        lead.project ?? "",
+        lead.address ?? "",
+        lead.technicianTeamCode ?? "",
+        lead.expectedInstallationDate ?? "",
+        LEAD_STATUS_LABELS_TH[lead.status] ?? lead.status,
+        quoteTotalTHB(lead.studioData) ?? "",
+        lead.createdAt instanceof Date ? lead.createdAt.toISOString() : lead.createdAt,
+      ]);
+      const csv = toCsv(LEADS_EXPORT_COLUMNS, rows);
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="knight-basins-leads-${Date.now()}.csv"`);
+      return res.send(csv);
+    } catch (error) { return next(error); }
+  });
+
+  router.get("/admin/backup/basins-export", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const basins = await database.select().from(basinPrices).orderBy(asc(basinPrices.sortOrder), asc(basinPrices.id));
+      const rows = basins.map((basin: any) => {
+        const media = withBasinMedia(basin);
+        return [
+          basin.sku,
+          basin.colorName,
+          basin.colorCode,
+          basin.priceTHB,
+          basin.dimensions,
+          basin.bowlMm ?? basin.basinDimensions ?? "",
+          media.imageUrl,
+          basin.topViewImageUrl ?? "",
+        ];
+      });
+      const csv = toCsv(BASINS_EXPORT_COLUMNS, rows);
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="knight-basins-basins-${Date.now()}.csv"`);
+      return res.send(csv);
     } catch (error) { return next(error); }
   });
 
