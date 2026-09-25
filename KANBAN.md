@@ -76,7 +76,8 @@
 | **Task 46** | ชัย | หน้าแกลเลอรีภาพหน้างานช่างในหน้าแอดมิน (/admin/site-photos) | `feat/chai-site-photos-ui` | ✅ **Live บน VPS** · PR #22 merge + deploy · 51 รูปจริง + Lightbox แก้ไขได้ |
 | **Task 47** | ชัย | ระบบปักหมุดภาพ Top View สำหรับอ่างในฐานข้อมูลและ API (Migration 015) | `feat/chai-basin-topview-backend` | ✅ **Live บน VPS** · PR #23 merge + migration 015 applied · topViewImageUrl ครบ 30 รุ่น |
 | **Task 48** | Replit | ตัวเลือกเดือน/ปี (Month & Year Selector) ในหน้าปฏิทินคิวช่าง (/admin/calendar) | `feat/replit-calendar-month-picker` | 🔄 มอบหมายแล้ว (`qa/job-48-replit-calendar-month-picker.md`) |
-| **Task 49** | ชัย | เพิ่มปุ่มปักหมุด 'กำหนดเป็นภาพ Top View' ในหน้าแก้ไขอ่าง (/admin/basins) | `feat/chai-basin-topview-ui` | 🔄 มอบหมายแล้ว (`qa/job-49-chai-basin-topview-ui.md`) |
+| **Task 49** | ชัย | เพิ่มปุ่มปักหมุด 'กำหนดเป็นภาพ Top View' ในหน้าแก้ไขอ่าง (/admin/basins) | `feat/chai-basin-topview-ui` | ✅ **Live บน VPS** · PR #24 merge + deploy · ปุ่ม 🔝 Top View บนทุกรูป |
+| **Thai Holidays** | เดวิด | แสดงวันหยุดนักขัตฤกษ์ไทย (ป้ายแดง 🚩 + ข้อความเตือนคอนโด) บนปฏิทินคิวช่าง | `883d833` | ✅ **Live บน VPS** · ครอบคลุม 2568-2570 · วันที่ 13, 23 ต.ค. ขึ้นป้ายพร้อมข้อความเตือน |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
