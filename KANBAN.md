@@ -81,7 +81,7 @@
 | **Task 50** | Replit | ปุ่มคัดลอกลิงก์แชร์ผังเคาน์เตอร์ 2D Studio (1-Click Share Link) | `feat/replit-studio-share-link` | ✅ **Live บน VPS** · PR #28 merge + deploy · ปุ่ม 🔗 คัดลอกลิงก์ผังนี้ ใช้งานได้จริง |
 | **Task 51** | ชัย | เชื่อมต่อภาพถ่ายหน้างานจริง (Site Photos) แสดงในการ์ด Lead (/admin/leads) | `feat/chai-leads-site-photos` | ✅ **Live บน VPS** · PR #26 merge + deploy · รูปหน้างานแสดงในการ์ด Lead พร้อม Lightbox |
 | **Task 52** | ชัย | ระบบ API สำรองและส่งออกข้อมูลสำหรับแอดมิน (/api/admin/backup/*) | `feat/chai-backup-api` | ✅ **Live บน VPS** · PR #27 merge + deploy · GET /api/admin/backup/* ตอบ 200 OK |
-| **Task 53** | Replit | หน้าศูนย์สำรองข้อมูลสำหรับแอดมิน (/admin/backup) | `feat/replit-backup-vault` | 🔄 มอบหมายแล้ว (`qa/job-53-replit-backup-page.md`) |
+| **Task 53** | Replit | หน้าศูนย์สำรองข้อมูลสำหรับแอดมิน (/admin/backup) | `feat/replit-backup-vault` | ✅ **Live บน VPS** · PR #29 merge + deploy · หน้าสำรองข้อมูล 4 หมวดใช้งานได้จริง |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
