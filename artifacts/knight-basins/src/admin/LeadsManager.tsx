@@ -959,8 +959,17 @@ export function LeadsManager() {
           <h1 className="font-semibold font-display tracking-tight">ลูกค้าและใบเสนอราคา</h1>
           <p className="text-sm text-[var(--ink-soft)] mt-2">ติดตามตั้งแต่เริ่มคุย เลือกสินค้า จนถึงปิดการขาย</p>
         </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isLoading} className="rounded-none">
-          <RefreshCw className="w-4 h-4 mr-2" /> รีเฟรช
+        <Button
+          variant="outline"
+          onClick={() => {
+            void queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+            void queryClient.invalidateQueries({ queryKey: ["/api/admin/slips/unassigned"] });
+            void refetch();
+          }}
+          disabled={isLoading}
+          className="rounded-none"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} /> รีเฟรช
         </Button>
       </div>
 
