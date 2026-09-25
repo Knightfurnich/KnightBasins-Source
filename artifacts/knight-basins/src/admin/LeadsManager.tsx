@@ -4,8 +4,10 @@ import {
   CustomerLeadStatus,
   type CustomerLead,
   type PaymentSlip,
+  type SitePhoto,
   useAssignAdminPaymentSlip,
   useListAdminLeads,
+  useListAdminSitePhotos,
   useListAdminUnassignedSlips,
   useListLeadPaymentSlips,
   useUpdateAdminLead,
@@ -17,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, leadStatusLabels as statusLabels } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 
@@ -164,6 +167,72 @@ function LeadPaymentSlips({ leadId }: { leadId: number }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+const sitePhotoStageLabels: Record<string, string> = {
+  survey: "📐 วัดหน้างาน",
+  installation: "🛠️ ติดตั้ง",
+  service: "🔧 เก็บงาน",
+  completed: "✅ เสร็จสมบูรณ์",
+};
+
+/**
+ * Matches site photos to a lead via GET /admin/site-photos?leadId=... --
+ * i.e. photo.leadId === lead.id, computed server-side. There is no jobCode
+ * field on CustomerLead (leadKey/quoteNumber use unrelated formats, and the
+ * lead's matched LINE job code lives in lead_external_references with no
+ * endpoint exposing it here), so a jobCode-based fallback match isn't
+ * implemented: it would either be a no-op or risk showing a photo on the
+ * wrong lead, which is worse than just relying on the leadId link staff set
+ * from the site-photos gallery's lightbox editor.
+ */
+export function LeadSitePhotos({ leadId }: { leadId: number }) {
+  const { data: photos } = useListAdminSitePhotos({ leadId });
+  const [selectedPhoto, setSelectedPhoto] = useState<SitePhoto | null>(null);
+
+  return (
+    <div className="mt-4 max-w-2xl">
+      <label className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
+        📸 ภาพถ่ายหน้างานจริง{photos && photos.length > 0 ? ` (${photos.length} ภาพ)` : ""}
+      </label>
+      {!photos?.length ? (
+        <p className="mt-1 text-[14px] text-[var(--ink-soft)]" data-testid={`text-no-site-photos-${leadId}`}>ยังไม่มีภาพหน้างาน</p>
+      ) : (
+        <div className="mt-1 flex flex-wrap gap-2" data-testid={`gallery-lead-site-photos-${leadId}`}>
+          {photos.map((photo) => (
+            <button
+              key={photo.id}
+              type="button"
+              onClick={() => setSelectedPhoto(photo)}
+              className="relative block h-16 w-16 shrink-0 overflow-hidden border border-[var(--line)]"
+              data-testid={`button-lead-site-photo-${photo.id}`}
+            >
+              <img src={photo.imageUrl} alt={photo.description || "ภาพหน้างาน"} className="h-full w-full object-cover" />
+              <span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1 text-[10px] leading-tight text-white" data-testid={`badge-lead-site-photo-stage-${photo.id}`}>
+                {sitePhotoStageLabels[photo.stage] ?? photo.stage}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={selectedPhoto !== null} onOpenChange={(open) => { if (!open) setSelectedPhoto(null); }}>
+        <DialogContent className="max-w-2xl gap-0 rounded-none p-0" data-testid="dialog-lead-site-photo-lightbox">
+          {selectedPhoto && (
+            <div>
+              <DialogTitle className="sr-only">{selectedPhoto.description || "ภาพหน้างาน"}</DialogTitle>
+              <img src={selectedPhoto.imageUrl} alt={selectedPhoto.description || "ภาพหน้างาน"} className="max-h-[70vh] w-full bg-black object-contain" />
+              <div className="flex flex-wrap items-center gap-2 p-4 text-sm">
+                <span>{sitePhotoStageLabels[selectedPhoto.stage] ?? selectedPhoto.stage}</span>
+                {selectedPhoto.senderName && <span className="text-[var(--ink-soft)]">จาก {selectedPhoto.senderName}</span>}
+              </div>
+              {selectedPhoto.description && <p className="px-4 pb-4 text-sm text-[var(--ink-soft)]">{selectedPhoto.description}</p>}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -532,6 +601,7 @@ function LeadsTableView({
 
                         <div className="space-y-3">
                           <LeadPaymentSlips leadId={lead.id} />
+                          <LeadSitePhotos leadId={lead.id} />
                         </div>
                       </div>
                     </TableCell>
@@ -1284,6 +1354,7 @@ export function LeadsManager() {
                 );
               })()}
               <LeadPaymentSlips leadId={lead.id} />
+              <LeadSitePhotos leadId={lead.id} />
             </article>
           ))}
         </div>
