@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { BasinsManager } from "./BasinsManager";
 import { InstalledStonesManager } from "./InstalledStonesManager";
 import { SheetStonesManager } from "./SheetStonesManager";
+import StockInventoryPage from "./StockInventoryPage";
 import { LeadsManager } from "./LeadsManager";
 import { TeamManager } from "./TeamManager";
 import { AdminDashboard } from "./AdminDashboard";
@@ -62,6 +63,7 @@ const NAV_ITEMS = [
   { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false, permission: "basins" },
   { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones" },
   { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
+  { href: "/admin/stock", label: "สต็อกหิน", exact: false, permission: "basins" },
   { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
   { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads" },
   { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads" },
@@ -145,6 +147,7 @@ export default function AdminApp() {
               <Route path="/admin/basins" component={BasinsRoute} />
               <Route path="/admin/installed-stones" component={InstalledStonesRoute} />
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
+              <Route path="/admin/stock" component={StockInventoryRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
               <Route path="/admin/calendar" component={TechnicianCalendarRoute} />
               <Route path="/admin/technician-teams" component={TechnicianTeamsManagerRoute} />
@@ -268,6 +271,10 @@ function InstalledStonesRoute() {
 
 function SheetStonesRoute() {
   return <AdminPermissionGate permission="sheet-stones" resource="หิน (ขายแผ่น)"><SheetStonesManager /></AdminPermissionGate>;
+}
+
+function StockInventoryRoute() {
+  return <AdminPermissionGate permission="basins" resource="สต็อกหิน"><StockInventoryPage /></AdminPermissionGate>;
 }
 
 function LeadsRoute() {
