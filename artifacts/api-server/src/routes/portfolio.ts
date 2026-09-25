@@ -117,4 +117,53 @@ router.get("/portfolio", async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/portfolio/featured
+ * Curated top 10 finished showcase photos for the storefront infinite loop marquee.
+ */
+router.get("/portfolio/featured", async (_req, res, next) => {
+  try {
+    const candidatePaths = [
+      join(UPLOAD_DIR, "portfolio", "featured.json"),
+      join(UPLOAD_DIR, "portfolio_featured.json"),
+      "/opt/data/knight-design-kb/portfolio_featured.json",
+    ];
+
+    let featured: { updatedAt?: string; items?: unknown[] } | null = null;
+    for (const p of candidatePaths) {
+      try {
+        const raw = await readFile(p, "utf8");
+        const parsed = JSON.parse(raw) as { updatedAt?: string; items?: unknown[] };
+        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+          featured = parsed;
+          break;
+        }
+      } catch {
+        // try next path
+      }
+    }
+
+    if (!featured) {
+      const catalog = await loadCatalog();
+      featured = {
+        updatedAt: catalog.updatedAt,
+        items: catalog.items.slice(0, 10).map((it, idx) => ({
+          id: it.id,
+          category: it.category,
+          filename: it.filename,
+          url: it.url,
+          rank: idx + 1,
+          captionTh: it.title,
+          reason: "Featured catalog showcase item",
+        })),
+      };
+    }
+
+    res.setHeader("Cache-Control", "public, max-age=600");
+    return res.json(featured);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 export default router;
