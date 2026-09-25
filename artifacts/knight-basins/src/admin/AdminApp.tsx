@@ -21,6 +21,7 @@ import { TechnicianTeamsManager } from "./TechnicianTeamsManager";
 import { BackupVaultPage } from "./BackupVaultPage";
 import { AdminVoiceSettings } from "./AdminVoiceSettings";
 import { SitePhotosPage } from "./SitePhotosPage";
+import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
 import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
@@ -66,6 +67,7 @@ const NAV_ITEMS = [
   { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads" },
   { href: "/admin/voice-settings", label: "เสียงผู้ช่วยขาย (น้องไนท์)", exact: false, permission: "leads" },
   { href: "/admin/site-photos", label: "ภาพหน้างาน", exact: false, permission: "leads" },
+  { href: "/admin/portfolio", label: "คลังภาพผลงานขาย", exact: false, permission: "leads" },
   { href: "/admin/backup", label: "สำรองข้อมูล", exact: false, permission: null, adminOnly: true },
   { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true },
 ] as const;
@@ -148,6 +150,7 @@ export default function AdminApp() {
               <Route path="/admin/technician-teams" component={TechnicianTeamsManagerRoute} />
               <Route path="/admin/voice-settings" component={AdminVoiceSettingsRoute} />
               <Route path="/admin/site-photos" component={AdminSitePhotosRoute} />
+              <Route path="/admin/portfolio" component={AdminPortfolioRoute} />
               <Route path="/admin/backup" component={AdminBackupRoute} />
               <Route path="/admin/team" component={TeamRoute} />
             </Switch>
@@ -287,6 +290,14 @@ function AdminSitePhotosRoute() {
   return (
     <AdminPermissionGate permission="leads" resource="ภาพหน้างานช่าง">
       <SitePhotosPage />
+    </AdminPermissionGate>
+  );
+}
+
+function AdminPortfolioRoute() {
+  return (
+    <AdminPermissionGate permission="leads" resource="คลังภาพผลงานขาย">
+      <PortfolioGalleryPage />
     </AdminPermissionGate>
   );
 }
