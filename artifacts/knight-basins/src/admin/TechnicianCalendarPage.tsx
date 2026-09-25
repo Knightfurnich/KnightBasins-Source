@@ -25,6 +25,7 @@ import {
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { getThaiHoliday } from "@/data/thaiHolidays";
+import { useWeatherForecast } from "@/data/weatherForecast";
 import {
   Sheet,
   SheetContent,
@@ -476,6 +477,7 @@ export function TechnicianCalendarPage() {
 
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [activeWeekDate, setActiveWeekDate] = useState<string>(todayKey);
+  const { data: weatherMap } = useWeatherForecast();
 
   const pickerAnchorDate = selectedDate
     ? dateFromBangkokDateKey(selectedDate)
@@ -864,11 +866,18 @@ export function TechnicianCalendarPage() {
                             </span>
                           )}
                         </div>
-                        {day.totalJobs > 0 && (
-                          <span className={`px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold rounded ${day.dayStatus === "busy" ? "bg-[#a24439]/10 text-[#a24439]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
-                            {day.totalJobs} งาน
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {weatherMap?.[day.date] && (
+                            <span className="text-[11px] tabular-nums" title={`${weatherMap[day.date].description} (สูงสุด ${weatherMap[day.date].tempMax}°C · โอกาสฝน ${weatherMap[day.date].rainProb}%)`}>
+                              {weatherMap[day.date].icon} <span className="hidden xl:inline text-[10px] text-[var(--ink-soft)] font-normal">{weatherMap[day.date].tempMax}°</span>
+                            </span>
+                          )}
+                          {day.totalJobs > 0 && (
+                            <span className={`px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold rounded ${day.dayStatus === "busy" ? "bg-[#a24439]/10 text-[#a24439]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
+                              {day.totalJobs} งาน
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {holiday && (
                         <div className="sm:hidden text-[9px] font-bold text-[#c23b22] truncate mt-0.5">
@@ -952,13 +961,20 @@ export function TechnicianCalendarPage() {
                           </span>
                         )}
                       </div>
-                      {teamJobs.length > 0 ? (
-                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${isToday ? "bg-white text-[var(--brand-blue)]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
-                          {teamJobs.length} งาน
-                        </span>
-                      ) : (
-                        <span className={`text-xs ${isToday ? "text-white/80" : "text-[var(--ink-soft)]"}`}>ว่าง</span>
-                      )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {weatherMap?.[day.date] && (
+                          <span className="text-xs" title={`${weatherMap[day.date].description} (สูงสุด ${weatherMap[day.date].tempMax}°C · โอกาสฝน ${weatherMap[day.date].rainProb}%)`}>
+                            {weatherMap[day.date].icon} <span className="text-[11px] opacity-80">{weatherMap[day.date].tempMax}°</span>
+                          </span>
+                        )}
+                        {teamJobs.length > 0 ? (
+                          <span className={`px-2 py-0.5 text-xs font-bold rounded ${isToday ? "bg-white text-[var(--brand-blue)]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
+                            {teamJobs.length} งาน
+                          </span>
+                        ) : (
+                          <span className={`text-xs ${isToday ? "text-white/80" : "text-[var(--ink-soft)]"}`}>ว่าง</span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="p-2 space-y-2 flex-1 overflow-y-auto">
@@ -1177,6 +1193,22 @@ export function TechnicianCalendarPage() {
                       <p className="font-bold">{getThaiHoliday(selectedDay.date)} (วันหยุดนักขัตฤกษ์)</p>
                       <p className="text-[11px] font-normal text-[#c23b22]/90 mt-0.5">ระวัง: นิติบุคคลคอนโดหรือโครงการส่วนใหญ่มักไม่อนุญาตให้ช่างเจาะ ส่งเสียงดัง หรือเข้าติดตั้ง</p>
                     </div>
+                  </div>
+                )}
+                {weatherMap?.[selectedDay.date] && (
+                  <div className="mt-2.5 flex items-center justify-between border border-[var(--line)] bg-[var(--paper)] p-2.5 text-xs text-[var(--ink)]" data-testid="calendar-detail-weather-card">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{weatherMap[selectedDay.date].icon}</span>
+                      <div>
+                        <p className="font-bold">พยากรณ์อากาศหน้างาน: {weatherMap[selectedDay.date].description} (สูงสุด {weatherMap[selectedDay.date].tempMax}°C)</p>
+                        <p className="text-[11px] text-[var(--ink-soft)]">โอกาสเกิดฝน {weatherMap[selectedDay.date].rainProb}%</p>
+                      </div>
+                    </div>
+                    {weatherMap[selectedDay.date].isRainy && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-[#a24439]/10 text-[#a24439] border border-[#a24439]/30 shrink-0">
+                        ⚠️ ระวังหินเปียกฝน
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
