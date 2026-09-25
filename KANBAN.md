@@ -95,8 +95,8 @@
 | **Featured Showcase** | เดวิด | แถบเลื่อนภาพผลงานจริง 10 ภาพวนลูปต่อเนื่อง + Lightbox บนหน้าแรก | `main` (4a7a72c) | ✅ **Live บน VPS** · ดึงภาพชุด Masterpiece 10 ภาพวนลูปอัตโนมัติ · ปุ่มเลื่อนซ้าย/ขวา |
 | **Task 57 (Stock UI)** | Replit | หน้าจอสต็อกหินสังเคราะห์ Real-Time ในระบบแอดมิน (`/admin/stock`) | `feat/replit-stock-inventory-ui` | ✅ **Merged & Live (PR #34)** · Staron 63 / Zen 47 สต็อกสดเรียลไทม์ |
 | **Task 58 (Site Prep)** | ชัย | หน้าคู่มือเตรียมหน้างานก่อนติดตั้ง (`/site-prep`) ใช้ภาพจริง 59 ภาพ | `feat/chai-site-prep-guide` | ✅ **Merged & Live (PR #35)** · ผ่าน 8/8 tests · /site-prep ใช้งานได้จริงบนจอ |
-| **Task 60 (Navbar)** | Replit | เพิ่มเมนู 'ผลงานจริง' และ 'คู่มือเตรียมหน้างาน' บนแถบนำทางหลัก (Navbar) | `feat/replit-storefront-navigation` | 🔄 มอบหมายแล้ว (`qa/job-60-replit-storefront-navigation.md`) |
-| **Task 61 (Curation)** | ชัย | ระบบคัดกรองและสลับซ่อน/แสดงภาพผลงานในคลังแอดมิน (`/admin/portfolio`) | `feat/chai-portfolio-curation` | 🔄 มอบหมายแล้ว (`qa/job-61-chai-portfolio-curation.md`) |
+| **Task 60 (Navbar)** | Replit | เพิ่มเมนู 'ผลงานจริง', 'เตรียมหน้างาน', 'ส่งแบบร่าง' บน Navbar (PR #37) | `feat/replit-storefront-navigation` | ✅ **Merged & Live (PR #37)** · เมนูเดสก์ท็อป + แถบเลื่อนมือถือ 100% |
+| **Task 61 (Curation)** | ชัย | ระบบคัดกรองและสลับซ่อน/แสดงภาพผลงานในคลังแอดมิน (`/admin/portfolio`) (PR #36) | `feat/chai-portfolio-curation` | ✅ **Merged & Live (PR #36)** · ผ่าน 8/8 tests · สลับเปิด/ปิดภาพสด |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
