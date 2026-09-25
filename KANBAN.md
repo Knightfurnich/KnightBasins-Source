@@ -99,7 +99,7 @@
 | **Task 61 (Curation)** | ชัย | ระบบคัดกรองและสลับซ่อน/แสดงภาพผลงานในคลังแอดมิน (`/admin/portfolio`) (PR #36) | `feat/chai-portfolio-curation` | ✅ **Merged & Live (PR #36)** · ผ่าน 8/8 tests · สลับเปิด/ปิดภาพสด |
 | **Task 62 (Portfolio UI)** | Replit | เพิ่มระบบค้นหาภาพและปุ่มสอบถามทาง LINE จากคลังผลงาน (`/portfolio`) | `feat/replit-portfolio-inquiry-search` | 🔄 มอบหมายแล้ว (`qa/job-62-replit-portfolio-inquiry-search.md`) |
 | **Task 63 (Stock Export & Search)** | ชัย | ระบบดาวน์โหลดสต็อกหินสังเคราะห์ (CSV Export) และ API ค้นหาภาพผลงาน (`?q=`) | `feat/chai-stock-export-portfolio-search` | ✅ **Merged & Live (PR #38)** · ผ่าน 11/11 tests · CSV UTF-8 BOM + ?q= search |
-| **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ | `87a6bc5` | ✅ **Live บน VPS** · ภาพ Top View จริงแสดงผลบน Studio Canvas แล้ว |
+| **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ (อัปเกรด V2 ไร้ขอบ 30/30 รุ่น) | `87a6bc5` + VPS V2 | ✅ **Live บน VPS** · ภาพ Top View ตัดขอบเนียน 100% ครบทั้ง 30 รุ่นใน Production |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
