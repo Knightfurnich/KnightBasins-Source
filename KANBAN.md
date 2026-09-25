@@ -58,7 +58,7 @@
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพาน (build เขียว, ไม่มี mock data) | `54b8ccb` | ✅ เสร็จ (draft) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> hook จริง (`useListAdminTechnicianTeams`) + ลบไฟล์สะพาน (PR #11) | `3c9a5a3` | ✅ **Live บน VPS** · หน้าจัดการ 10 ทีมช่างจริง + เชื่อมต่อปฏิทินสำเร็จ |
 | **TTS Phase 1** | ชัย | น้องไนท์ พูดออกเสียงได้ via Google Cloud TTS (PR #12) | `877af6e` | ✅ **Live บน VPS** · ปุ่มฟังเสียง + เสียง Kore + POST /api/support/speech |
-| **TTS Phase 2** | ชัย | ระบบเลือกเสียงน้องไนท์ในหน้าแอดมิน (migration 013, API GET/PATCH, Admin UI 8 เสียง) | `feat/chai-support-voice-settings` | 🟡 ออกใบงานแล้ว (`qa/job-39-chai-support-voice-settings.md`) |
+| **TTS Phase 2** | ชัย | ระบบเลือกโทนเสียงน้องไนท์ในหน้าแอดมิน (ล็อกหญิง 5 โทนอารมณ์, migration 013, API, UI) | `feat/chai-support-voice-settings` | 🟡 ออกใบงานแล้ว (`qa/job-39-chai-support-voice-settings.md`) |
 | **Task 38** | Replit | Top View อ่างเสมือนจริง + ท็อปเปลี่ยนสีตามหิน + ปุ่ม 2 ทางบนการ์ดอ่าง | `feat/replit-realistic-basins-and-counter` | 🟡 ออกใบงานแล้ว (`qa/job-38-replit-realistic-basins-and-custom-top.md`) |
 | **Task 31** | Replit | ระบบทีมขายวาด 2D Studio จากแบบร่างลูกค้า (ปุ่มใน Admin + Split View ดูรูปคู่ขนาน) (PR #9) | `ac8a8e6` | ✅ **Live บน VPS** · เปิดวาดจาก Lead, ดูรูปคู่ขนาน, บันทึกผังเข้า Lead |
 | **Task 33** | ชัย | ยกระดับความปลอดภัย API Server ตามรายงาน Security Audit (PR #7) | `f4de3d9` | ✅ **Live บน VPS** · Sweep Map >1k, Secure cookie, Rate limit GET /quotes · 254 tests ผ่าน |
