@@ -24,6 +24,7 @@ import {
   type TechnicianTeam,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { getThaiHoliday } from "@/data/thaiHolidays";
 import {
   Sheet,
   SheetContent,
@@ -809,26 +810,40 @@ export function TechnicianCalendarPage() {
                   const hasFilterJob = (selectedTeamCode ? teamJobs.length > 0 : true) && (stageFilter === "all" ? true : teamJobs.length > 0);
                   const isDimmed = (selectedTeamCode || stageFilter !== "all") && !hasFilterJob;
 
+                  const holiday = getThaiHoliday(day.date);
+
                   return (
                     <button
                       key={day.date}
                       type="button"
                       className={`group flex min-h-[96px] flex-col items-stretch border-t-2 bg-[var(--card-paper)] p-1.5 text-left transition-all hover:bg-[var(--paper)] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--brand-blue)] sm:min-h-[136px] sm:p-2 ${presentation.accent} ${isSelected ? "ring-2 ring-inset ring-[var(--brand-blue)]" : ""} ${isDimmed ? "opacity-35 grayscale" : ""}`}
                       onClick={() => openDay(day)}
-                      aria-label={`${dateFormatter.format(dateFromBangkokDateKey(day.date))}, ${countFormatter.format(day.totalJobs)} งาน, ${presentation.label}`}
+                      aria-label={`${dateFormatter.format(dateFromBangkokDateKey(day.date))}, ${countFormatter.format(day.totalJobs)} งาน, ${presentation.label}${holiday ? `, ${holiday}` : ""}`}
                       aria-pressed={isSelected}
                       data-testid={`calendar-day-${day.date}`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className={`grid h-6 w-6 place-items-center text-xs font-semibold tabular-nums sm:h-7 sm:w-7 sm:text-sm ${isToday ? "bg-[var(--brand-blue)] text-white shadow-sm" : "text-[var(--ink)]"}`}>
-                          {dayNumber}
-                        </span>
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className={`grid h-6 w-6 place-items-center text-xs font-semibold tabular-nums sm:h-7 sm:w-7 sm:text-sm shrink-0 ${isToday ? "bg-[var(--brand-blue)] text-white shadow-sm" : holiday ? "bg-[#c23b22]/15 text-[#c23b22] font-bold rounded-sm" : "text-[var(--ink)]"}`}>
+                            {dayNumber}
+                          </span>
+                          {holiday && (
+                            <span className="hidden sm:inline-block max-w-[85px] truncate text-[10px] font-bold text-[#c23b22] leading-tight" title={holiday}>
+                              🚩 {holiday}
+                            </span>
+                          )}
+                        </div>
                         {day.totalJobs > 0 && (
                           <span className={`px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold rounded ${day.dayStatus === "busy" ? "bg-[#a24439]/10 text-[#a24439]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
                             {day.totalJobs} งาน
                           </span>
                         )}
                       </div>
+                      {holiday && (
+                        <div className="sm:hidden text-[9px] font-bold text-[#c23b22] truncate mt-0.5">
+                          🚩 {holiday}
+                        </div>
+                      )}
 
                       <div className="mt-1.5 space-y-1 overflow-hidden">
                         {teamJobs.slice(0, 2).map((j) => (
@@ -869,6 +884,8 @@ export function TechnicianCalendarPage() {
                   .flatMap((t) => t.jobs.map((j) => ({ ...j, teamCode: t.teamCode, teamName: t.teamName })))
                   .filter((j) => jobMatchesStage(j.project));
 
+                const holiday = getThaiHoliday(day.date);
+
                 return (
                   <div
                     key={day.date}
@@ -877,13 +894,18 @@ export function TechnicianCalendarPage() {
                     } ${isSelected ? "bg-[var(--brand-blue)]/5" : ""}`}
                   >
                     <div className={`p-2.5 border-b border-[var(--line)] flex items-center justify-between ${
-                      isToday ? "bg-[var(--brand-blue)] text-white" : "bg-[var(--paper)]/80 text-[var(--ink)]"
+                      isToday ? "bg-[var(--brand-blue)] text-white" : holiday ? "bg-[#c23b22]/10 text-[var(--ink)]" : "bg-[var(--paper)]/80 text-[var(--ink)]"
                     }`}>
                       <div>
                         <p className="text-[11px] font-semibold uppercase">{FULL_WEEKDAYS[idx]}</p>
-                        <p className="text-sm font-bold tabular-nums">
+                        <p className={`text-sm font-bold tabular-nums ${holiday && !isToday ? "text-[#c23b22]" : ""}`}>
                           {dayNumber} {monthFormatter.format(dateFromBangkokDateKey(day.date)).split(" ")[0]}
                         </p>
+                        {holiday && (
+                          <span className={`text-[10px] font-bold truncate block ${isToday ? "text-white" : "text-[#c23b22]"}`} title={holiday}>
+                            🚩 {holiday}
+                          </span>
+                        )}
                       </div>
                       {teamJobs.length > 0 ? (
                         <span className={`px-2 py-0.5 text-xs font-bold rounded ${isToday ? "bg-white text-[var(--brand-blue)]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
@@ -1103,6 +1125,15 @@ export function TechnicianCalendarPage() {
                     ซิงก์จากคำสั่งซื้อจริง
                   </span>
                 </div>
+                {getThaiHoliday(selectedDay.date) && (
+                  <div className="mt-3 flex items-start gap-2 rounded-none border border-[#c23b22]/30 bg-[#c23b22]/10 p-2.5 text-xs text-[#c23b22] font-semibold" data-testid="calendar-detail-holiday-banner">
+                    <span className="text-base leading-none">🚩</span>
+                    <div>
+                      <p className="font-bold">{getThaiHoliday(selectedDay.date)} (วันหยุดนักขัตฤกษ์)</p>
+                      <p className="text-[11px] font-normal text-[#c23b22]/90 mt-0.5">ระวัง: นิติบุคคลคอนโดหรือโครงการส่วนใหญ่มักไม่อนุญาตให้ช่างเจาะ ส่งเสียงดัง หรือเข้าติดตั้ง</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6" data-testid="calendar-detail-team-list">
