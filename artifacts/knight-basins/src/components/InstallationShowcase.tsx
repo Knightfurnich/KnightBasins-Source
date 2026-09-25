@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Camera, ChevronLeft, ChevronRight, Images, Sparkles, X } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 
 export interface ShowcasePhoto {
@@ -77,46 +77,50 @@ export function InstallationShowcase() {
 
   const [zoomPhoto, setZoomPhoto] = useState<ShowcasePhoto | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollFrame = useRef<number>(0);
 
-  // Continuous auto-scroll marquee: glides the duplicated track and loops
-  // seamlessly. Pauses while the pointer/touch is over the track or the
-  // lightbox is open, and respects prefers-reduced-motion.
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || photos.length === 0 || zoomPhoto) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  /**
+   * Continuous auto-scroll marquee. A callback ref (rather than a
+   * useEffect) is required here: the track only mounts after the query
+   * resolves, so an effect keyed on photos.length can miss the moment the
+   * node actually attaches. The track renders the photo list twice, so
+   * wrapping scrollLeft back by half its scrollWidth loops seamlessly.
+   * Pauses while the pointer/touch rests on the track, and honours
+   * prefers-reduced-motion.
+   */
+  const attachMarquee = useCallback((node: HTMLDivElement | null) => {
+    scrollContainerRef.current = node;
+    if (autoScrollFrame.current) {
+      window.cancelAnimationFrame(autoScrollFrame.current);
+      autoScrollFrame.current = 0;
+    }
+    if (!node) return;
+    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let frame = 0;
     let paused = false;
-    const SPEED_PX_PER_FRAME = 0.55;
-
     const onEnter = () => { paused = true; };
     const onLeave = () => { paused = false; };
-    container.addEventListener("pointerenter", onEnter);
-    container.addEventListener("pointerleave", onLeave);
-    container.addEventListener("touchstart", onEnter, { passive: true });
-    container.addEventListener("touchend", onLeave);
+    node.addEventListener("pointerenter", onEnter);
+    node.addEventListener("pointerleave", onLeave);
+    node.addEventListener("touchstart", onEnter, { passive: true });
+    node.addEventListener("touchend", onLeave);
 
     const tick = () => {
       if (!paused) {
-        const half = container.scrollWidth / 2;
-        container.scrollLeft += SPEED_PX_PER_FRAME;
-        if (half > 0 && container.scrollLeft >= half) {
-          container.scrollLeft -= half;
+        const half = node.scrollWidth / 2;
+        if (half > 0) {
+          node.scrollLeft += 0.6;
+          if (node.scrollLeft >= half) node.scrollLeft -= half;
         }
       }
-      frame = window.requestAnimationFrame(tick);
+      autoScrollFrame.current = window.requestAnimationFrame(tick);
     };
-    frame = window.requestAnimationFrame(tick);
+    autoScrollFrame.current = window.requestAnimationFrame(tick);
+  }, []);
 
-    return () => {
-      window.cancelAnimationFrame(frame);
-      container.removeEventListener("pointerenter", onEnter);
-      container.removeEventListener("pointerleave", onLeave);
-      container.removeEventListener("touchstart", onEnter);
-      container.removeEventListener("touchend", onLeave);
-    };
-  }, [photos.length, zoomPhoto]);
+  useEffect(() => () => {
+    if (autoScrollFrame.current) window.cancelAnimationFrame(autoScrollFrame.current);
+  }, []);
 
   if (isLoading || photos.length === 0) return null;
 
@@ -178,9 +182,9 @@ export function InstallationShowcase() {
       {/* Infinite Scrolling Track */}
       <div className="relative mt-6 overflow-hidden group">
         <div
-          ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto scrollbar-none py-2 px-1 scroll-smooth snap-x snap-mandatory"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          ref={attachMarquee}
+          className="flex gap-4 overflow-x-auto scrollbar-none py-2 px-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollBehavior: "auto" }}
         >
           {loopedPhotos.map((photo, index) => (
             <button
