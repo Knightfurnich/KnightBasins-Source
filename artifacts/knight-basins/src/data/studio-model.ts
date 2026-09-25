@@ -509,6 +509,52 @@ export function touchingRectangleKeys(piece: StudioPiece, rectangleId: string, s
     .map((candidate) => candidate.key);
 }
 
+const STUDIO_SIDE_ORDER: readonly StudioSide[] = ["top", "right", "bottom", "left"];
+
+function studioSideLabel(side: StudioSide) {
+  return side === "top" ? "บน" : side === "right" ? "ขวา" : side === "bottom" ? "ล่าง" : "ซ้าย";
+}
+
+export type StudioEdgeFinishEntry = {
+  side: StudioSide;
+  sideLabel: string;
+  status: SideStatus;
+  statusLabel: string;
+  lengthMm: number;
+};
+
+/**
+ * Per-side edge finish list for the factory work order: which side needs an
+ * upstand, wall-flush, open edge, or is a plain "normal" edge, and how long.
+ * A joint between two rectangles (exposedLengthMm === 0) is never a real edge
+ * the workshop needs to finish, so it never appears here. Sorted top / right /
+ * bottom / left so the printed sheet reads in a predictable order.
+ */
+export function studioEdgeFinishBreakdown(piece: StudioPiece): StudioEdgeFinishEntry[] {
+  return studioPieceEdges(piece)
+    .filter((edge) => edge.exposedLengthMm > STUDIO_EPSILON_MM)
+    .map((edge) => ({
+      side: edge.side,
+      sideLabel: studioSideLabel(edge.side),
+      status: edge.status,
+      statusLabel: studioSideStatusLabel(edge.status),
+      lengthMm: edge.exposedLengthMm,
+    }))
+    .sort((first, second) => STUDIO_SIDE_ORDER.indexOf(first.side) - STUDIO_SIDE_ORDER.indexOf(second.side));
+}
+
+/**
+ * One Thai-language line summarizing studioEdgeFinishBreakdown for the factory
+ * work order's description field, e.g. "ขอบ: บน ติดบัว 1.50 ม. · ซ้าย ชิดผนัง 0.60 ม."
+ * Pure function -- no DOM/React access, safe to call from print/export code too.
+ */
+export function studioEdgeFinishSummary(piece: StudioPiece): string {
+  const breakdown = studioEdgeFinishBreakdown(piece);
+  if (breakdown.length === 0) return "";
+  const parts = breakdown.map((entry) => `${entry.sideLabel} ${entry.statusLabel} ${(entry.lengthMm / 1000).toFixed(2)} ม.`);
+  return `ขอบ: ${parts.join(" · ")}`;
+}
+
 export function snapStudioRectanglePosition(piece: StudioPiece, rectangleId: string, xMm: number, yMm: number) {
   const moving = piece.rectangles.find((rectangle) => rectangle.id === rectangleId);
   if (!moving) return { xMm, yMm };
