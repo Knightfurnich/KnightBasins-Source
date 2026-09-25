@@ -7,6 +7,7 @@ import {
   studioSideStatuses,
   studioSideStatusLabel,
   type StudioPiece,
+  type SideStatus,
 } from "@/data/studio-model";
 
 type StudioFootprintProps = {
@@ -21,6 +22,8 @@ type StudioFootprintProps = {
   canvasPieceId?: string;
   onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void;
   onDrop?: (event: React.DragEvent<HTMLDivElement>) => void;
+  edgeStatus?: SideStatus;
+  onEdgeStatusChange?: (rectangleId: string, side: "top" | "right" | "bottom" | "left", status: SideStatus) => void;
   children?: ReactNode;
 };
 
@@ -69,6 +72,8 @@ export function StudioFootprint({
   canvasPieceId,
   onDragOver,
   onDrop,
+  edgeStatus = "upstand",
+  onEdgeStatusChange,
   children,
 }: StudioFootprintProps) {
   const bounds = pieceBounds(piece);
@@ -92,16 +97,60 @@ export function StudioFootprint({
             aria-label={`${rectangle.widthMm} × ${rectangle.lengthMm} mm`}
           >
             <span className="studio-piece-size">{rectangle.widthMm} × {rectangle.lengthMm}</span>
-            {studioSideStatuses(piece, rectangle.id).filter(({ status }) => status !== "normal").map(({ side, status }) => (
-              <span
-                key={`${rectangle.id}-${side}-status`}
-                className={`studio-edge-marker studio-edge-marker--${side} studio-edge-marker--${status}`}
-                title={`${side === "top" ? "บน" : side === "right" ? "ขวา" : side === "bottom" ? "ล่าง" : "ซ้าย"}: ${studioSideStatusLabel(status)}`}
-                aria-label={`${side === "top" ? "ด้านบน" : side === "right" ? "ด้านขวา" : side === "bottom" ? "ด้านล่าง" : "ด้านซ้าย"} ${studioSideStatusLabel(status)}`}
-              >
-                {studioSideStatusLabel(status)}
-              </span>
-            ))}
+            {studioSideStatuses(piece, rectangle.id).map(({ side, status }) => {
+              const sideLabel = side === "top" ? "ด้านบน" : side === "right" ? "ด้านขวา" : side === "bottom" ? "ด้านล่าง" : "ด้านซ้าย";
+              const statusLabel = studioSideStatusLabel(status);
+              if (!onEdgeStatusChange) {
+                return status === "normal" ? null : (
+                  <span
+                    key={`${rectangle.id}-${side}-status`}
+                    className={`studio-edge-marker studio-edge-marker--${side} studio-edge-marker--${status}`}
+                    title={`${sideLabel}: ${statusLabel}`}
+                    aria-label={`${sideLabel} ${statusLabel}`}
+                  >
+                    {statusLabel}
+                  </span>
+                );
+              }
+              return (
+                <div key={`${rectangle.id}-${side}-status`} className={`studio-edge-marker studio-edge-marker--${side} studio-edge-marker--${status}`}>
+                  <button
+                    type="button"
+                    className="studio-edge-marker-action"
+                    title={`${sideLabel}: ${status === "normal" ? "คลิกเพื่อกำหนดสถานะขอบ" : statusLabel}`}
+                    aria-label={`${sideLabel} ${status === "normal" ? "ปกติ · คลิกเพื่อกำหนดสถานะขอบ" : statusLabel}`}
+                    data-testid={`studio-edge-marker-${rectangle.id}-${side}`}
+                    onClick={() => onEdgeStatusChange(rectangle.id, side, edgeStatus)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      event.dataTransfer.dropEffect = "copy";
+                    }}
+                    onDrop={(event) => {
+                      const droppedStatus = event.dataTransfer.getData("application/x-studio-edge-status");
+                      if (!["upstand", "wall-flush", "wall-flush+upstand", "open-edge", "normal"].includes(droppedStatus)) return;
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onEdgeStatusChange(rectangle.id, side, droppedStatus as SideStatus);
+                    }}
+                  >
+                    {status === "normal" ? <span aria-hidden="true">＋</span> : statusLabel}
+                  </button>
+                  {status !== "normal" && (
+                    <button
+                      type="button"
+                      className="studio-edge-marker-clear"
+                      aria-label={`ล้างสถานะขอบ${sideLabel.replace("ด้าน", "")}`}
+                      title="ล้างสถานะขอบ"
+                      data-testid={`button-clear-studio-edge-${rectangle.id}-${side}`}
+                      onClick={() => onEdgeStatusChange(rectangle.id, side, "normal")}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ))}
         {joints.map((joint) => {
