@@ -12,6 +12,7 @@ import {
   adminInvites,
   adminApiKeys,
   technicianTeams,
+  supportVoiceSettings,
 } from "@workspace/db/schema";
 import {
   AssignAdminPaymentSlipBody,
@@ -31,6 +32,7 @@ import {
   UpdateAdminLeadBody,
   UpdateAdminMemberBody,
   CreateAdminApiKeyBody,
+  UpdateAdminSupportVoiceBody,
 } from "@workspace/api-zod";
 import { and, asc, desc, eq, gte, isNull, lte, ne } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
@@ -70,6 +72,7 @@ import {
 } from "../lib/image-upload";
 import { createQuoteNumber, quoteTotalTHB } from "./leads";
 import { formatThaiDateTime } from "../lib/date-time";
+import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
 
 export type AdminDatabase = {
   select: (...args: any[]) => any;
@@ -1736,6 +1739,75 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     try {
       const [updated] = await database.update(technicianTeams).set(changes).where(eq(technicianTeams.id, id)).returning();
       return updated ? res.json(serializeTechnicianTeam(updated)) : res.status(404).json({ message: "Technician team not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  function serializeSupportVoiceSetting(row: { voiceName: string; languageCode: string; speakingRate: number; updatedAt: Date } | null) {
+    const resolved = resolveVoiceConfig(row);
+    return {
+      voiceName: resolved.voiceName,
+      languageCode: resolved.languageCode,
+      speakingRate: resolved.speakingRate,
+      updatedAt: (row?.updatedAt ?? new Date()).toISOString(),
+    };
+  }
+
+  router.get("/admin/support-voice", requireAdminPermission("leads", "edit"), async (_req, res, next) => {
+    try {
+      const [row] = await database.select().from(supportVoiceSettings).orderBy(desc(supportVoiceSettings.id)).limit(1);
+      res.json({
+        current: serializeSupportVoiceSetting(row ?? null),
+        options: SUPPORT_VOICE_OPTIONS,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch("/admin/support-voice", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const parsed = UpdateAdminSupportVoiceBody.safeParse(req.body);
+    if (!parsed.success) return invalid(res, "voiceName is required", parsed.error.flatten());
+    const option = SUPPORT_VOICE_OPTIONS.find((candidate) => candidate.voiceName === parsed.data.voiceName);
+    if (!option) return invalid(res, "voiceName must be one of the curated options");
+
+    try {
+      const [existing] = await database.select().from(supportVoiceSettings).orderBy(desc(supportVoiceSettings.id)).limit(1);
+      if (existing) {
+        const [updated] = await database
+          .update(supportVoiceSettings)
+          .set({ voiceName: option.voiceName, updatedAt: new Date() })
+          .where(eq(supportVoiceSettings.id, existing.id))
+          .returning();
+        return res.json(serializeSupportVoiceSetting(updated));
+      }
+      const [created] = await database
+        .insert(supportVoiceSettings)
+        .values({ voiceName: option.voiceName })
+        .returning();
+      return res.json(serializeSupportVoiceSetting(created));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  // Same greeting customers actually hear from น้องไนท์ (KnightSupport.tsx),
+  // reused here so "ฟังตัวอย่าง" previews a real, representative line rather
+  // than a synthetic test sentence.
+  const SUPPORT_VOICE_PREVIEW_TEXT = "สวัสดีค่ะ ดิฉันช่วยค้นหา SKU ราคา ขนาด วิดีโอ 3D 360° และอธิบายวิธีใช้งานหน้า Knight Basins ได้ค่ะ";
+
+  router.post("/admin/support-voice/preview", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const voiceName = typeof req.body?.voiceName === "string" ? req.body.voiceName : "";
+    const option = SUPPORT_VOICE_OPTIONS.find((candidate) => candidate.voiceName === voiceName);
+    if (!option) return invalid(res, "voiceName must be one of the curated options");
+
+    try {
+      const result = await synthesizeSpeech(SUPPORT_VOICE_PREVIEW_TEXT, option.voiceName);
+      if (!result.ok) return res.status(422).json({ message: result.message });
+      res.setHeader("Content-Type", result.contentType);
+      res.setHeader("Cache-Control", "no-store");
+      return res.send(result.audio);
     } catch (error) {
       return next(error);
     }

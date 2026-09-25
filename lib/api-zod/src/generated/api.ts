@@ -2377,6 +2377,38 @@ export const UpdateAdminTechnicianTeamResponse = zod.object({
 
 
 /**
+ * @summary Get the voice น้องไนท์ currently speaks with, plus the curated list of selectable voices
+ */
+export const GetAdminSupportVoiceResponse = zod.object({
+  "current": zod.object({
+  "voiceName": zod.string().describe('A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore'),
+  "languageCode": zod.string(),
+  "speakingRate": zod.number(),
+  "updatedAt": zod.coerce.date()
+}),
+  "options": zod.array(zod.object({
+  "voiceName": zod.string(),
+  "label": zod.string().describe('Thai description of the voice\'s tone, shown to the admin next to the preview button')
+})).describe('The 5 curated female th-TH voices an admin may choose from')
+})
+
+
+/**
+ * @summary Change the voice น้องไนท์ speaks with
+ */
+export const UpdateAdminSupportVoiceBody = zod.object({
+  "voiceName": zod.string().describe('Must match one of the voiceName values from GET \/admin\/support-voice\'s options list')
+})
+
+export const UpdateAdminSupportVoiceResponse = zod.object({
+  "voiceName": zod.string().describe('A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore'),
+  "languageCode": zod.string(),
+  "speakingRate": zod.number(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Get current LINE customer identity status
  */
 export const GetLineAuthStatusResponse = zod.object({

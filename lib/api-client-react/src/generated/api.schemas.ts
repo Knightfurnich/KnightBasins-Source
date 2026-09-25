@@ -1572,6 +1572,31 @@ export interface TechnicianTeamUpdateInput {
   active?: boolean;
 }
 
+export interface SupportVoiceSetting {
+  /** A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore */
+  voiceName: string;
+  languageCode: string;
+  speakingRate: number;
+  updatedAt: string;
+}
+
+export interface SupportVoiceOption {
+  voiceName: string;
+  /** Thai description of the voice's tone, shown to the admin next to the preview button */
+  label: string;
+}
+
+export interface SupportVoiceSettingsResponse {
+  current: SupportVoiceSetting;
+  /** The 5 curated female th-TH voices an admin may choose from */
+  options: SupportVoiceOption[];
+}
+
+export interface SupportVoiceUpdateInput {
+  /** Must match one of the voiceName values from GET /admin/support-voice's options list */
+  voiceName: string;
+}
+
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
   password: string;
