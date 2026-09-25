@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clipboard, Images, MessageCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ export type PortfolioItem = {
   width: number;
   height: number;
   title: string;
+  /** @nullable absent on older cached responses -- treat as visible (true) */
+  visible?: boolean;
 };
 export type PortfolioResponse = {
   updatedAt: string;
@@ -55,16 +57,69 @@ export function filterPortfolioItems(items: PortfolioItem[], query: string): Por
   );
 }
 
+export function isPortfolioItemVisible(item: PortfolioItem): boolean {
+  return item.visible !== false;
+}
+
+export type PortfolioVisibilityFilter = "all" | "visible" | "hidden";
+
+/** Powers the "ทั้งหมด / เผยแพร่แล้ว / ซ่อนอยู่" filter row. */
+export function filterPortfolioItemsByVisibility(items: PortfolioItem[], filter: PortfolioVisibilityFilter): PortfolioItem[] {
+  if (filter === "all") return items;
+  return items.filter((item) => (filter === "visible" ? isPortfolioItemVisible(item) : !isPortfolioItemVisible(item)));
+}
+
+/** Plain toggle: what a photo's next visible value should be after one click. */
+export function toggleVisibility(currentlyVisible: boolean): boolean {
+  return !currentlyVisible;
+}
+
 async function fetchPortfolio(category: string): Promise<PortfolioResponse> {
-  const url = category === "all" ? "/api/portfolio?limit=200" : `/api/portfolio?category=${encodeURIComponent(category)}&limit=200`;
+  const url = category === "all"
+    ? "/api/portfolio?limit=200&includeHidden=true"
+    : `/api/portfolio?category=${encodeURIComponent(category)}&limit=200&includeHidden=true`;
   const response = await fetch(url);
   if (!response.ok) throw new Error("โหลดคลังภาพผลงานไม่สำเร็จ");
   return response.json() as Promise<PortfolioResponse>;
 }
 
+async function patchPortfolioVisibility(id: string, visible: boolean): Promise<{ id: string; visible: boolean }> {
+  const response = await fetch(`/api/admin/portfolio/${encodeURIComponent(id)}/visibility`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ visible }),
+  });
+  if (!response.ok) throw new Error("อัปเดตสถานะการเผยแพร่ไม่สำเร็จ");
+  return response.json() as Promise<{ id: string; visible: boolean }>;
+}
+
+const VISIBILITY_FILTER_OPTIONS: ReadonlyArray<{ value: PortfolioVisibilityFilter; label: string }> = [
+  { value: "all", label: "ทั้งหมด" },
+  { value: "visible", label: "🟢 เผยแพร่แล้ว" },
+  { value: "hidden", label: "⚪️ ซ่อนอยู่" },
+];
+
+function VisibilityToggleButton({ item, onToggle, size = "default" }: { item: PortfolioItem; onToggle: (item: PortfolioItem) => void; size?: "default" | "sm" }) {
+  const visible = isPortfolioItemVisible(item);
+  const padding = size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs";
+  return (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggle(item);
+      }}
+      className={`rounded-sm font-medium ${padding} ${visible ? "bg-emerald-600 text-white" : "bg-gray-400 text-white"}`}
+      data-testid={`button-toggle-visibility-${item.id}`}
+    >
+      {visible ? "🟢 เผยแพร่บนเว็บ" : "⚪️ ซ่อนเฉพาะภายใน"}
+    </button>
+  );
+}
+
 type CopiedFeedback = "link" | "message" | null;
 
-function PortfolioLightbox({ item, onClose }: { item: PortfolioItem; onClose: () => void }) {
+function PortfolioLightbox({ item, onClose, onToggleVisibility }: { item: PortfolioItem; onClose: () => void; onToggleVisibility: (item: PortfolioItem) => void }) {
   const [copied, setCopied] = useState<CopiedFeedback>(null);
 
   useEffect(() => {
@@ -92,6 +147,7 @@ function PortfolioLightbox({ item, onClose }: { item: PortfolioItem; onClose: ()
       <div className="space-y-3 p-5">
         <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--ink-soft)]">
           <span>{item.icon} {item.categoryName}</span>
+          <VisibilityToggleButton item={item} onToggle={onToggleVisibility} />
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" className="rounded-none" onClick={() => void copyLink()} data-testid="button-portfolio-copy-link">
@@ -117,16 +173,33 @@ function PortfolioLightbox({ item, onClose }: { item: PortfolioItem; onClose: ()
 export function PortfolioGalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [visibilityFilter, setVisibilityFilter] = useState<PortfolioVisibilityFilter>("all");
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+  const queryClient = useQueryClient();
 
+  const queryKey = ["/api/portfolio", selectedCategory];
   const portfolioQuery = useQuery({
-    queryKey: ["/api/portfolio", selectedCategory],
+    queryKey,
     queryFn: () => fetchPortfolio(selectedCategory),
   });
 
+  const toggleMutation = useMutation({ mutationFn: (item: PortfolioItem) => patchPortfolioVisibility(item.id, toggleVisibility(isPortfolioItemVisible(item))) });
+
   const categories = portfolioQuery.data?.categories ?? [];
   const allItems = portfolioQuery.data?.items ?? [];
-  const visibleItems = useMemo(() => filterPortfolioItems(allItems, searchQuery), [allItems, searchQuery]);
+  const searchedItems = useMemo(() => filterPortfolioItems(allItems, searchQuery), [allItems, searchQuery]);
+  const visibleItems = useMemo(() => filterPortfolioItemsByVisibility(searchedItems, visibilityFilter), [searchedItems, visibilityFilter]);
+
+  const handleToggleVisibility = (item: PortfolioItem) => {
+    const nextVisible = toggleVisibility(isPortfolioItemVisible(item));
+    queryClient.setQueryData<PortfolioResponse>(queryKey, (old) =>
+      old
+        ? { ...old, items: old.items.map((candidate) => (candidate.id === item.id ? { ...candidate, visible: nextVisible } : candidate)) }
+        : old,
+    );
+    setSelectedItem((current) => (current && current.id === item.id ? { ...current, visible: nextVisible } : current));
+    toggleMutation.mutate(item);
+  };
 
   return (
     <div className="space-y-8" data-testid="admin-portfolio-gallery">
@@ -137,6 +210,21 @@ export function PortfolioGalleryPage() {
           ค้นหาและคัดลอกภาพผลงานจริงจากโรงงาน ส่งให้ลูกค้าได้ทันทีโดยไม่ต้องดาวน์โหลด
         </p>
       </header>
+
+      <div className="flex flex-wrap gap-2" role="group" aria-label="กรองตามสถานะการเผยแพร่">
+        {VISIBILITY_FILTER_OPTIONS.map((option) => (
+          <Button
+            key={option.value}
+            type="button"
+            variant={visibilityFilter === option.value ? "default" : "outline"}
+            className="rounded-none"
+            onClick={() => setVisibilityFilter(option.value)}
+            data-testid={`button-visibility-filter-${option.value}`}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-xs flex-1">
@@ -193,27 +281,31 @@ export function PortfolioGalleryPage() {
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="grid-portfolio-items">
           {visibleItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setSelectedItem(item)}
-              className="group aspect-square overflow-hidden border border-[var(--line)] bg-black/5"
-              data-testid={`card-portfolio-item-${item.id}`}
-            >
-              <img
-                src={item.url}
-                alt={item.title}
-                className="h-full w-full object-cover transition group-hover:scale-105"
-                loading="lazy"
-              />
-            </button>
+            <div key={item.id} className="group relative aspect-square overflow-hidden border border-[var(--line)] bg-black/5" data-testid={`card-portfolio-item-${item.id}`}>
+              <button
+                type="button"
+                onClick={() => setSelectedItem(item)}
+                className="block h-full w-full"
+                data-testid={`button-open-portfolio-item-${item.id}`}
+              >
+                <img
+                  src={item.url}
+                  alt={item.title}
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                  loading="lazy"
+                />
+              </button>
+              <div className="absolute bottom-1 right-1">
+                <VisibilityToggleButton item={item} onToggle={handleToggleVisibility} size="sm" />
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       <Dialog open={selectedItem !== null} onOpenChange={(open) => { if (!open) setSelectedItem(null); }}>
         <DialogContent className="max-w-3xl gap-0 rounded-none p-0" data-testid="dialog-portfolio-lightbox">
-          {selectedItem && <PortfolioLightbox item={selectedItem} onClose={() => setSelectedItem(null)} />}
+          {selectedItem && <PortfolioLightbox item={selectedItem} onClose={() => setSelectedItem(null)} onToggleVisibility={handleToggleVisibility} />}
         </DialogContent>
       </Dialog>
     </div>

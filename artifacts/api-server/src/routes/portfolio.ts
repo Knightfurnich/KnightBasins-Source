@@ -1,11 +1,13 @@
 import { Router, type IRouter } from "express";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { UPLOAD_DIR } from "../lib/image-upload";
+import { createAdminAuthMiddleware, requireAnyAdminPermission } from "../middlewares/admin-auth";
 
 const router: IRouter = Router();
 
 const PORTFOLIO_CATALOG_PATH = join(UPLOAD_DIR, "portfolio", "catalog.json");
+const PORTFOLIO_VISIBILITY_PATH = join(UPLOAD_DIR, "portfolio", "visibility.json");
 
 type PortfolioItem = {
   id: string;
@@ -56,6 +58,34 @@ async function loadCatalog(): Promise<PortfolioCatalog> {
   };
 }
 
+/** id -> visible. An item with no entry here is visible by default -- this
+ * file only ever needs to record the photos an admin has explicitly hidden
+ * (or re-shown after hiding), not every item in the catalog. */
+type PortfolioVisibilityMap = Record<string, boolean>;
+
+async function loadVisibilityMap(): Promise<PortfolioVisibilityMap> {
+  try {
+    const raw = await readFile(PORTFOLIO_VISIBILITY_PATH, "utf8");
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const map: PortfolioVisibilityMap = {};
+    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value === "boolean") map[id] = value;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+async function saveVisibilityMap(map: PortfolioVisibilityMap): Promise<void> {
+  await writeFile(PORTFOLIO_VISIBILITY_PATH, JSON.stringify(map), "utf8");
+}
+
+function isVisible(visibilityMap: PortfolioVisibilityMap, itemId: string): boolean {
+  return visibilityMap[itemId] !== false;
+}
+
 /**
  * GET /api/portfolio
  * Public read-only gallery of real completed installation photos.
@@ -65,15 +95,21 @@ async function loadCatalog(): Promise<PortfolioCatalog> {
 router.get("/portfolio", async (req, res, next) => {
   try {
     const catalog = await loadCatalog();
+    const visibilityMap = await loadVisibilityMap();
+    const includeHidden = req.query["includeHidden"] === "true" || req.query["includeHidden"] === "1";
     const categoryFilter = typeof req.query["category"] === "string" ? req.query["category"].trim() : "";
     const limitRaw = Number(req.query["limit"]);
     const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 600) : 60;
     const offsetRaw = Number(req.query["offset"]);
     const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? Math.floor(offsetRaw) : 0;
 
+    // Hidden photos never leave this route unless the caller explicitly asks
+    // for them (the admin curation page does, via ?includeHidden=true).
+    const visibleItems = includeHidden ? catalog.items : catalog.items.filter((item) => isVisible(visibilityMap, item.id));
+
     const filtered = categoryFilter
-      ? catalog.items.filter((item) => item.category === categoryFilter)
-      : catalog.items;
+      ? visibleItems.filter((item) => item.category === categoryFilter)
+      : visibleItems;
 
     const ordered = [...filtered].sort((a, b) => {
       const ai = CATEGORY_ORDER.indexOf(a.category);
@@ -82,13 +118,13 @@ router.get("/portfolio", async (req, res, next) => {
     });
 
     const counts = new Map<string, number>();
-    for (const item of catalog.items) {
+    for (const item of visibleItems) {
       counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
     }
     const categories = CATEGORY_ORDER
       .filter((slug) => counts.has(slug))
       .map((slug) => {
-        const sample = catalog.items.find((item) => item.category === slug);
+        const sample = visibleItems.find((item) => item.category === slug);
         return {
           slug,
           name: sample?.categoryName ?? slug,
@@ -97,10 +133,10 @@ router.get("/portfolio", async (req, res, next) => {
         };
       });
 
-    res.setHeader("Cache-Control", "public, max-age=600");
+    res.setHeader("Cache-Control", includeHidden ? "no-store" : "public, max-age=600");
     res.json({
       updatedAt: catalog.updatedAt,
-      total: catalog.total,
+      total: visibleItems.length,
       categories,
       count: ordered.length,
       items: ordered.slice(offset, offset + limit).map((item) => ({
@@ -112,10 +148,40 @@ router.get("/portfolio", async (req, res, next) => {
         width: item.width,
         height: item.height,
         title: item.title,
+        visible: isVisible(visibilityMap, item.id),
       })),
     });
   } catch (error) {
     next(error);
+  }
+});
+
+/**
+ * PATCH /api/admin/portfolio/:id/visibility
+ * Show/hide one photo on the public portfolio (GET /portfolio) without
+ * deleting it from the catalog. Admin/owner only.
+ */
+router.patch("/admin/portfolio/:id/visibility", createAdminAuthMiddleware(), requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
+  try {
+    const rawId = req.params["id"];
+    const id = typeof rawId === "string" ? rawId : "";
+    const visible = (req.body as { visible?: unknown } | undefined)?.visible;
+    if (typeof visible !== "boolean") {
+      return res.status(400).json({ message: "visible must be a boolean" });
+    }
+
+    const catalog = await loadCatalog();
+    if (!catalog.items.some((item) => item.id === id)) {
+      return res.status(404).json({ message: "Portfolio item not found" });
+    }
+
+    const visibilityMap = await loadVisibilityMap();
+    visibilityMap[id] = visible;
+    await saveVisibilityMap(visibilityMap);
+
+    return res.json({ id, visible });
+  } catch (error) {
+    return next(error);
   }
 });
 
