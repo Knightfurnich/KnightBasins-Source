@@ -55,7 +55,7 @@ export function sitePhotosQueryParams(filters: { jobCode: string; stage: SitePho
 export type SitePhotoExtraFilters = { onlyUnassigned: boolean; month: string };
 export const ALL_SITE_PHOTOS_MONTHS = "all";
 
-export function sitePhotoCapturedMonthKey(capturedAt: string | null): string | null {
+export function sitePhotoCapturedMonthKey(capturedAt: string | null | undefined): string | null {
   if (!capturedAt) return null;
   const date = new Date(capturedAt);
   if (Number.isNaN(date.getTime())) return null;
