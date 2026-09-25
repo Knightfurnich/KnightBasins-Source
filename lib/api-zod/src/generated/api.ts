@@ -2430,6 +2430,7 @@ export const UpdateAdminSupportVoiceResponse = zod.object({
  * @summary Search and list site photos (survey/installation/service/completed)
  */
 
+export const listAdminSitePhotosQueryMonthRegExp = new RegExp('^\\d{4}-\\d{2}$');
 export const listAdminSitePhotosQueryLimitMax = 200;
 
 
@@ -2438,6 +2439,9 @@ export const ListAdminSitePhotosQueryParams = zod.object({
   "jobCode": zod.coerce.string().optional(),
   "leadId": zod.coerce.number().min(1).optional(),
   "stage": zod.enum(['survey', 'installation', 'service', 'completed']).optional(),
+  "unassigned": zod.coerce.boolean().optional().describe('Set to true to return only photos with no jobCode (not yet identified\/matched to a job)'),
+  "month": zod.coerce.string().regex(listAdminSitePhotosQueryMonthRegExp).optional().describe('Return only photos captured in this month (matched against capturedAt)'),
+  "senderName": zod.coerce.string().optional().describe('Case-insensitive substring search on senderName (sender or install team name)'),
   "limit": zod.coerce.number().min(1).max(listAdminSitePhotosQueryLimitMax).optional().describe('Defaults to 50, capped at 200')
 })
 
