@@ -11,12 +11,11 @@
 ┌─────────────────────────┬─────────────────────────┬─────────────────────────┐
 │       📝 TO DO          │     🔄 IN PROGRESS      │        ✅ DONE          │
 ├─────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ • Task 24 (Replit)      │ • Task 31 (Replit):     │ • Task 33 (ชัย)         │
-│   สลับ hook จริง         │   Studio over sketch    │   API Hardening LIVE    │
-│ • แจ้งเตือนอัตโนมัติ     │   (ปุ่มวาด+ดูรูปคู่ขนาน)│ • Task 30 (ชัย/เดวิด)   │
-│   (LINE/SMS/Email)      │                         │ • Task 25B (ชัย/เดวิด)  │
-│   Coming Soon           │                         │ • Footer Compact LIVE   │
-│                         │                         │ • Task 28, 29 Type Scale│
+│ • Task 24 (Replit)      │ • Task 31 (Replit):     │ • Task 34 (ชัย)         │
+│   สลับ hook จริง         │   Studio over sketch    │   Auto Quote Gen LIVE   │
+│ • แจ้งเตือนอัตโนมัติ     │   (ปุ่มวาด+ดูรูปคู่ขนาน)│ • Task 33 (ชัย)         │
+│   (LINE/SMS/Email)      │                         │   API Hardening LIVE    │
+│   Coming Soon           │                         │ • Task 30 (ชัย/เดวิด)   │
 └─────────────────────────┴─────────────────────────┴─────────────────────────┘
 ```
 
@@ -60,7 +59,7 @@
 | **Task 24 (Replit)** | Replit | สลับไฟล์สะพาน -> hook จริง (`useListAdminTechnicianTeams`) + ลบไฟล์สะพาน | — | 🟡 มอบหมายแล้ว (`qa/job-24-replit-final.md`) |
 | **Task 31** | Replit | ระบบทีมขายวาด 2D Studio จากแบบร่างลูกค้า (ปุ่มใน Admin + Split View ดูรูปคู่ขนาน) | `feat/replit-studio-over-sketch` | 🟡 ออกใบงานแล้ว (`qa/job-31-replit-studio-over-sketch.md`) |
 | **Task 33** | ชัย | ยกระดับความปลอดภัย API Server ตามรายงาน Security Audit (PR #7) | `f4de3d9` | ✅ **Live บน VPS** · Sweep Map >1k, Secure cookie, Rate limit GET /quotes · 254 tests ผ่าน |
-| **Task 34** | ชัย | สร้าง quoteNumber และ quoteAccessSecret อัตโนมัติเมื่อทีมขายบันทึก studioData | `feat/chai-lead-quote-generation` | 🟡 ออกใบงานแล้ว (`qa/job-34-chai-lead-quote-generation.md`) |
+| **Task 34** | ชัย | สร้าง quoteNumber/quoteAccessSecret อัตโนมัติเมื่อทีมขายบันทึก studioData (PR #8) | `e7967e7` | ✅ **Live บน VPS** · สร้างเลขที่ใบเสนอราคา+โทเค็นอัตโนมัติ · 256 tests ผ่าน |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
 | **Task 24** | Replit | สลับไฟล์สะพาน -> generated hooks จริง + ลบไฟล์สะพาน + ทดสอบด้วยข้อมูลจริง | — | ⏸ รอ 23 merge + codegen |
 | **Task 25A/B** | ชัย/เดวิด | ตัวจับคู่ชื่อทีมช่างทนการสะกดผิด/ตัดคำ (fuzzy match) + confidence (manual/exact/prefix/fuzzy) | `fff0e71` / `91070c2` | ✅ **Live บน VPS** · เทสต์ 29/29 ผ่าน 100% · OpenAPI schema ครบ |
