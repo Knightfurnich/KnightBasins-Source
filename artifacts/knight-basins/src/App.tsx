@@ -627,7 +627,7 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
               </button>
             ))}
           </div>
-          <div className="stone-price-legend"><span>ราคาขายแผ่น</span><span>ราคารวมติดตั้ง</span></div>
+          <div className="stone-price-legend"><span>{isWhole ? "ราคาขายแผ่น (บาท / แผ่น)" : "ราคารวมติดตั้ง (บาท / ตร.ม.)"}</span></div>
           <div className="stone-colors">
             {visibleColors.length
               ? visibleColors.map((color) => {
@@ -643,9 +643,9 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
                     <span className="stone-card-image-wrap" style={{ background: color.tone }}>
                       {color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
                     </span>
-                    <strong>{color.name}</strong>
+                    <strong title={color.name}>{color.name}</strong>
                     <small>{color.code}</small>
-                    <small className="stone-card-prices">แผ่น {formatStonePrice(color.sheetPriceTHB)} · ติดตั้ง {formatStonePrice(color.installedPriceTHB)}</small>
+                    <small className="stone-card-prices">{isWhole ? `แผ่น ${formatStonePrice(color.sheetPriceTHB)}` : `ติดตั้ง ${formatStonePrice(color.installedPriceTHB)}`}</small>
                     {selected && <Check size={14} />}
                   </button>
                 );
