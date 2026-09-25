@@ -1,21 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, ImagePlus, Loader2, Star, X } from "lucide-react";
 import { uploadImageFile } from "./imageUploadClient";
-import { nextQuoteImageUrl } from "./basinImageRoles";
+import { nextQuoteImageUrl, nextTopViewImageUrl } from "./basinImageRoles";
 
 type BasinImageManagerFieldProps = {
   images?: string[] | null;
   quoteImageUrl?: string | null;
+  topViewImageUrl?: string | null;
   onImagesChange: (images: string[]) => void;
   onQuoteImageChange: (url: string | null) => void;
+  onTopViewImageChange?: (url: string | null) => void;
   max?: number;
 };
 
 export function BasinImageManagerField({
   images: imagesProp,
   quoteImageUrl,
+  topViewImageUrl,
   onImagesChange,
   onQuoteImageChange,
+  onTopViewImageChange,
   max = 5,
 }: BasinImageManagerFieldProps) {
   const images = imagesProp ?? [];
@@ -46,6 +50,7 @@ export function BasinImageManagerField({
     const next = images.filter((_, i) => i !== index);
     onImagesChange(next);
     if (removedUrl && removedUrl === quoteImageUrl) onQuoteImageChange(null);
+    if (removedUrl && removedUrl === topViewImageUrl) onTopViewImageChange?.(null);
   };
 
   const moveTo = (index: number, direction: -1 | 1) => {
@@ -68,6 +73,10 @@ export function BasinImageManagerField({
     onQuoteImageChange(nextQuoteImageUrl(quoteImageUrl, images[0], url));
   };
 
+  const toggleTopViewImage = (url: string) => {
+    onTopViewImageChange?.(nextTopViewImageUrl(topViewImageUrl, url));
+  };
+
   const canAddMore = images.length < max;
 
   return (
@@ -78,6 +87,7 @@ export function BasinImageManagerField({
         {images.map((url, index) => {
           const isPrimary = index === 0;
           const isQuoteImage = quoteImageUrl ? quoteImageUrl === url : isPrimary;
+          const isTopViewImage = topViewImageUrl === url;
           return (
             <div key={`${url}-${index}`} className="admin-gallery-upload-tile relative h-24 w-32 shrink-0 overflow-hidden border border-[var(--line)] bg-[var(--paper)]">
               <img src={url} alt={`รูปสินค้า ${index + 1}`} className="h-full w-full object-cover" />
@@ -92,6 +102,11 @@ export function BasinImageManagerField({
               {isPrimary && (
                 <span className="absolute left-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-amber-500 text-white" title="ภาพหลัก">
                   <Star className="h-3 w-3" fill="currentColor" />
+                </span>
+              )}
+              {isTopViewImage && (
+                <span className="absolute right-1 top-8 rounded-sm bg-blue-600 px-1 py-0.5 text-[11px] font-medium text-white" title="ภาพ Top View">
+                  ✓ Top View
                 </span>
               )}
               <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 bg-black/50 p-1">
@@ -116,6 +131,16 @@ export function BasinImageManagerField({
                 >
                   <FileText className="h-3 w-3" /> {isQuoteImage ? "ใช้ในใบเสนอราคา" : "ใช้ภาพนี้ในใบเสนอราคา"}
                 </button>
+                {onTopViewImageChange && (
+                  <button
+                    type="button"
+                    onClick={() => toggleTopViewImage(url)}
+                    className={`flex items-center justify-center gap-1 rounded-sm px-1 py-0.5 text-[14px] ${isTopViewImage ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"}`}
+                    data-testid={`button-basin-image-topview-${index}`}
+                  >
+                    {isTopViewImage ? "✓ Top View" : "🔝 Top View"}
+                  </button>
+                )}
               </div>
             </div>
           );
