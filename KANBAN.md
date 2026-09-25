@@ -69,7 +69,7 @@
 | **Task 35** | ชัย | Auto-match สีหินตามรุ่นอ่าง + คิดราคาพร้อมติดตั้งอัตโนมัติ (PR #10) | `8f2b7da` | ✅ **Live บน VPS** · KF001->VS311, KF009->NB091 8,500 บ./ตร.ม. · 192 tests ผ่าน |
 | **Task 37** | ชัย | ปรับขนาดเริ่มต้นบอร์ด Studio เป็นขนาดจริง 1800x600 และเพิ่มตัวช่วยวางอ่าง (PR #15) | `a3dd79c` | ✅ **Live บน VPS** · ขนาดเริ่ม 1800x600, createStudioBasinPlacement วางกึ่งกลางร่นขอบ >=100mm |
 | **Task 41** | ชัย | ปลดล็อกคำนวณราคาหินลายหินอ่อน 9,500 บ./ตร.ม. ใน 2D Studio ตามพื้นที่จริง (PR #17) | `733cbd6` | ✅ **Live บน VPS** · หินลาย 9,500 คิดตามพื้นที่จริง (1.08 ตร.ม. = 10,260 บ.) |
-| **Task 42** | ชัย | Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาด + ฟังก์ชันจัดอ่างอัตโนมัติ | `feat/chai-counter-size-presets` | 🔄 มอบหมายแล้ว (`qa/job-42-chai-counter-size-presets.md`) |
+| **Task 42** | ชัย | Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาด + ฟังก์ชันจัดอ่างอัตโนมัติ (PR #18) | `b6cb061` | ✅ **Live บน VPS** · STUDIO_COUNTER_PRESETS 4 ขนาด + applyStudioSizePreset จัดกึ่งกลางขอบ >=100mm |
 | **Task 43** | Replit | ปุ่มบันทึก/แชร์ผังเคาน์เตอร์เป็นรูปภาพ PNG เด่นชัดทั้ง 2 โหมด | `feat/replit-studio-png-share` | 🔄 มอบหมายแล้ว (`qa/job-43-replit-studio-png-share.md`) |
 | **Data Backfill** | เดวิด | เติมข้อมูลจริงจากประวัติแชท LINE: ที่อยู่หน้างาน/เบอร์โทร 9 งาน + สร้าง Lead จากหลักฐาน PDF + ผูกสลิปครบ 100% | `bin/data_backfill_pipeline.py` + `pass2` | ✅ **เสร็จ** · สลิปผูกครบ 53/53 (เหลือ 0) · 13 Lead มีที่อยู่ · 20 งานมีคิวช่าง |
 | **Task 24-PREP** | Replit | เตรียมหน้าจอทีมช่าง + ปฏิทิน ผ่านไฟล์สะพานชั่วคราว (build เขียว, ไม่มี mock data) | — | 🟡 มอบหมายแล้ว (`qa/job-24prep-replit-technician-teams.md`) |
