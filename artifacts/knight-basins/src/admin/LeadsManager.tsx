@@ -12,7 +12,7 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, RefreshCw, Search, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -195,6 +195,8 @@ function LeadPaymentSlipsBadge({ leadId }: { leadId: number }) {
   );
 }
 
+export type LeadSortField = "id" | "createdAt" | "name" | "project" | "contact" | "quoteNumber" | "mode" | "status";
+
 function LeadsTableView({
   leads,
   expandedLeadId,
@@ -211,6 +213,9 @@ function LeadsTableView({
   setEditingDimensions,
   saveDimensions,
   savedDimensions,
+  sortField,
+  sortDirection,
+  onSort,
 }: {
   leads: CustomerLead[];
   expandedLeadId: number | null;
@@ -227,20 +232,47 @@ function LeadsTableView({
   setEditingDimensions: Dispatch<SetStateAction<Record<number, { widthMm: string; lengthMm: string; depthMm: string }>>>;
   saveDimensions: (lead: { id: number; status: CustomerLeadStatus; notes?: string | null }) => void;
   savedDimensions: number | null;
+  sortField: LeadSortField;
+  sortDirection: "asc" | "desc";
+  onSort: (field: LeadSortField) => void;
 }) {
+  const renderSortHeader = (field: LeadSortField, label: string, className?: string) => {
+    const isActive = sortField === field;
+    return (
+      <TableHead
+        className={`cursor-pointer select-none hover:bg-[var(--line)]/50 transition-colors group ${className ?? ""}`}
+        onClick={() => onSort(field)}
+        title={`คลิกเพื่อเรียงลำดับ ${label} (${isActive ? (sortDirection === "asc" ? "ก-ฮ / น้อย-มาก" : "ฮ-ก / มาก-น้อย") : "เรียงลำดับ"})`}
+      >
+        <div className="flex items-center gap-1">
+          <span>{label}</span>
+          {isActive ? (
+            sortDirection === "asc" ? (
+              <ArrowUp className="w-3.5 h-3.5 text-[var(--brand-blue)] shrink-0" />
+            ) : (
+              <ArrowDown className="w-3.5 h-3.5 text-[var(--brand-blue)] shrink-0" />
+            )
+          ) : (
+            <ArrowUpDown className="w-3 h-3 text-[var(--ink-soft)]/40 opacity-0 group-hover:opacity-100 shrink-0 transition-opacity" />
+          )}
+        </div>
+      </TableHead>
+    );
+  };
+
   return (
     <div className="border border-[var(--line)] bg-[var(--card-paper)] overflow-x-auto shadow-sm">
       <Table className="text-xs">
         <TableHeader className="bg-[var(--line)]/30">
           <TableRow>
-            <TableHead className="w-12 text-center font-semibold">#ID</TableHead>
-            <TableHead className="w-24">วันที่</TableHead>
-            <TableHead className="w-44">ลูกค้า / บริษัท</TableHead>
-            <TableHead className="w-48">โครงการ / หน้างาน</TableHead>
-            <TableHead className="w-36">ช่องทางติดต่อ</TableHead>
-            <TableHead className="w-40">ใบเสนอราคา</TableHead>
-            <TableHead className="w-32">สินค้า / โหมด</TableHead>
-            <TableHead className="w-36">สถานะ Lead</TableHead>
+            {renderSortHeader("id", "#ID", "w-16 text-center font-semibold")}
+            {renderSortHeader("createdAt", "วันที่", "w-28")}
+            {renderSortHeader("name", "ลูกค้า / บริษัท", "w-44")}
+            {renderSortHeader("project", "โครงการ / หน้างาน", "w-48")}
+            {renderSortHeader("contact", "ช่องทางติดต่อ", "w-36")}
+            {renderSortHeader("quoteNumber", "ใบเสนอราคา", "w-40")}
+            {renderSortHeader("mode", "สินค้า / โหมด", "w-32")}
+            {renderSortHeader("status", "สถานะ Lead", "w-36")}
             <TableHead className="w-36">การชำระเงิน</TableHead>
             <TableHead className="w-20 text-center">จัดการ</TableHead>
           </TableRow>
@@ -786,6 +818,18 @@ export function LeadsManager() {
   const [copiedQuote, setCopiedQuote] = useState<string | null>(null);
   const [copyError, setCopyError] = useState("");
   const [quickStatusPending, setQuickStatusPending] = useState(false);
+  const [sortField, setSortField] = useState<LeadSortField>("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (field: LeadSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection(field === "createdAt" || field === "id" ? "desc" : "asc");
+    }
+  };
+
   const visibleLeads = useMemo(() => {
     let result = filterAdminLeads(leads ?? [], filter, search, { fromDate, toDate });
     if (quoteTypeFilter !== "all") {
@@ -794,8 +838,37 @@ export function LeadsManager() {
     if (awaitingContactOnly) {
       result = result.filter((lead) => AWAITING_CONTACT_STATUSES.includes(lead.status as string));
     }
-    return result;
-  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly]);
+    return [...result].sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "id":
+          cmp = a.id - b.id;
+          break;
+        case "createdAt":
+          cmp = new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+          break;
+        case "name":
+          cmp = (a.name || a.company || "").localeCompare(b.name || b.company || "", "th");
+          break;
+        case "project":
+          cmp = (a.project || a.site || "").localeCompare(b.project || b.site || "", "th");
+          break;
+        case "contact":
+          cmp = (a.phone || a.lineContact || "").localeCompare(b.phone || b.lineContact || "");
+          break;
+        case "quoteNumber":
+          cmp = (a.quoteNumber || "").localeCompare(b.quoteNumber || "");
+          break;
+        case "mode":
+          cmp = (a.orderMode || "").localeCompare(b.orderMode || "");
+          break;
+        case "status":
+          cmp = (statusLabels[a.status] || a.status).localeCompare(statusLabels[b.status] || b.status, "th");
+          break;
+      }
+      return sortDirection === "desc" ? -cmp : cmp;
+    });
+  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly, sortField, sortDirection]);
   const hasSearchFilters = Boolean(search || fromDate || toDate || quoteTypeFilter !== "all");
 
   const clearAwaitingContactOnly = () => {
@@ -1038,6 +1111,9 @@ export function LeadsManager() {
           setEditingDimensions={setEditingDimensions}
           saveDimensions={saveDimensions}
           savedDimensions={savedDimensions}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
         />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
