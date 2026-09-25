@@ -8,12 +8,14 @@ import {
   centerBasinPlacementPosition,
   compareStudioCatalog,
   createBasinPlacement,
+  createStudioBasinPlacement,
   createStudioCatalogContext,
   distributeBasinPlacementPositions,
   disconnectedRectangleIds,
   placementCrossesPanelJoint,
   pieceOverlapWarnings,
   pieceBounds,
+  placementCutSize,
   reflowStudioRectangles,
   snapStudioRectanglePosition,
   studioAreaSqM,
@@ -25,6 +27,7 @@ import {
   studioRectangleSize,
   studioPieces,
   studioStateDimensionsValid,
+  STUDIO_BASIN_SAFETY_MARGIN_MM,
   STUDIO_INITIAL_BOARD_LENGTH_MM,
   STUDIO_INITIAL_BOARD_WIDTH_MM,
   standardSheetWarning,
@@ -84,7 +87,10 @@ test("rectangle layouts calculate additive area and preserve stepped/notched geo
   assert.deepEqual(studioRectangleSize(rectangle("rotated", { rotation: 90, widthMm: 400, lengthMm: 900 })), { widthMm: 900, heightMm: 400 });
 });
 
-test("a fresh 5000 × 5000 board estimates 25 square metres and warns about sheet size", () => {
+test("a fresh 1800 × 600 board (the real counter size) estimates 1.08 square metres and does not warn about sheet size", () => {
+  assert.equal(STUDIO_INITIAL_BOARD_WIDTH_MM, 1800);
+  assert.equal(STUDIO_INITIAL_BOARD_LENGTH_MM, 600);
+
   const freshBoard: StudioState = {
     ...baseState(),
     dimensions: {
@@ -105,14 +111,14 @@ test("a fresh 5000 × 5000 board estimates 25 square metres and warns about shee
   };
   const estimate = studioEstimate(freshBoard, PRODUCTS);
 
-  assert.equal(estimate.counterAreaSqM, 25);
-  assert.equal(estimate.standardSheetWarning, true);
-  assert.equal(standardSheetWarning("I", freshBoard.dimensions), true);
+  assert.equal(estimate.counterAreaSqM, 1.08);
+  assert.equal(estimate.standardSheetWarning, false, "1800×600 is within the standard slab size (run <= 3600, depth <= 760), unlike the old 5000×5000 placeholder");
+  assert.equal(standardSheetWarning("I", freshBoard.dimensions), false);
   const legacyFallback = studioPieces({ ...freshBoard, pieces: undefined });
   assert.deepEqual(legacyFallback[0]?.rectangles[0], {
     id: "legacy-a",
-    widthMm: 5000,
-    lengthMm: 5000,
+    widthMm: 1800,
+    lengthMm: 600,
     xMm: 0,
     yMm: 0,
     rotation: 0,
@@ -325,6 +331,62 @@ test("catalog products without basin dimensions remain unknown", () => {
   assert.deepEqual(basinDimensionsForProduct(product), { widthMm: null, depthMm: null });
   assert.deepEqual({ widthMm: placement.widthMm, depthMm: placement.depthMm, xMm: placement.xMm, yMm: placement.yMm }, { widthMm: null, depthMm: null, xMm: 0, yMm: 0 });
   assert.deepEqual(unknownBasinPlacements({ basinPlacements: [placement] }), [placement.id]);
+});
+
+test("createStudioBasinPlacement centers a basin exactly on X and keeps >= 100mm clearance on every edge", () => {
+  const sheet = { id: "sheet-1", widthMm: 1800, lengthMm: 900 };
+  const product = PRODUCTS.find((item) => item.sku === "KF001");
+  assert.ok(product);
+  const catalogSize = basinDimensionsForProduct(product);
+  assert.ok(catalogSize.widthMm !== null && catalogSize.depthMm !== null);
+
+  const centered = createStudioBasinPlacement("KF001", sheet, "piece-1", "center");
+  assert.equal(centered.sku, "KF001");
+  assert.equal(centered.pieceId, "piece-1");
+  assert.equal(centered.sheetId, "sheet-1");
+  assert.equal(centered.widthMm, catalogSize.widthMm);
+  assert.equal(centered.depthMm, catalogSize.depthMm);
+
+  const cut = placementCutSize(centered);
+  const leftClearance = centered.xMm;
+  const rightClearance = sheet.widthMm - (centered.xMm + (cut.widthMm ?? 0));
+  assert.equal(leftClearance, rightClearance, "equal clearance on the left and right edges means the basin is exactly centered on X");
+  assert.equal(centered.xMm, Math.round((sheet.widthMm - (cut.widthMm ?? 0)) / 2));
+
+  for (const align of ["center", "left", "right"] as const) {
+    const placement = createStudioBasinPlacement("KF001", sheet, "piece-1", align);
+    const size = placementCutSize(placement);
+    const widthMm = size.widthMm ?? 0;
+    const heightMm = size.heightMm ?? 0;
+    assert.ok(placement.xMm >= STUDIO_BASIN_SAFETY_MARGIN_MM, `${align}: left clearance`);
+    assert.ok(sheet.widthMm - (placement.xMm + widthMm) >= STUDIO_BASIN_SAFETY_MARGIN_MM, `${align}: right clearance`);
+    assert.ok(placement.yMm >= STUDIO_BASIN_SAFETY_MARGIN_MM, `${align}: top clearance`);
+    assert.ok(sheet.lengthMm - (placement.yMm + heightMm) >= STUDIO_BASIN_SAFETY_MARGIN_MM, `${align}: bottom clearance`);
+  }
+});
+
+test("createStudioBasinPlacement flush-aligns left/right with exactly the safety margin, and defaults to \"center\"", () => {
+  const sheet = { id: "sheet-2", widthMm: 1800, lengthMm: 900 };
+  const left = createStudioBasinPlacement("KF001", sheet, "piece-1", "left");
+  const right = createStudioBasinPlacement("KF001", sheet, "piece-1", "right");
+  const defaulted = createStudioBasinPlacement("KF001", sheet, "piece-1");
+  const centered = createStudioBasinPlacement("KF001", sheet, "piece-1", "center");
+
+  assert.equal(left.xMm, STUDIO_BASIN_SAFETY_MARGIN_MM);
+  const rightCut = placementCutSize(right);
+  assert.equal(right.xMm + (rightCut.widthMm ?? 0), sheet.widthMm - STUDIO_BASIN_SAFETY_MARGIN_MM);
+
+  const { id: _defaultedId, ...defaultedRest } = defaulted;
+  const { id: _centeredId, ...centeredRest } = centered;
+  assert.deepEqual(defaultedRest, centeredRest, "align defaults to \"center\" when omitted");
+});
+
+test("createStudioBasinPlacement stays fully inside the sheet even when 100mm can't fit on both sides", () => {
+  const tightSheet = { id: "sheet-3", widthMm: STUDIO_INITIAL_BOARD_WIDTH_MM, lengthMm: STUDIO_INITIAL_BOARD_LENGTH_MM };
+  const placement = createStudioBasinPlacement("KF001", tightSheet, "piece-1", "center");
+  const cutSize = placementCutSize(placement);
+  assert.ok(placement.yMm >= 0);
+  assert.ok(placement.yMm + (cutSize.heightMm ?? 0) <= tightSheet.lengthMm, "the cutout stays inside the sheet's own bounds even on the real, tighter 1800x600 counter");
 });
 
 test("basin orientation swaps the real cutout footprint and defaults legacy placements to horizontal", () => {
