@@ -12,7 +12,7 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, RefreshCw, Search, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, MessageSquare, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -195,6 +195,24 @@ function LeadPaymentSlipsBadge({ leadId }: { leadId: number }) {
   );
 }
 
+function buildSalesLineMessage(lead: CustomerLead): string {
+  const quoteUrl = lead.publicQuoteToken ? adminQuoteUrl(lead.publicQuoteToken) : "";
+  const name = lead.name || "ท่าน";
+  const quoteNum = lead.quoteNumber || "อยู่ระหว่างสรุป";
+  const project = [lead.project, lead.site].filter(Boolean).join(" · ") || "-";
+
+  const studio = lead.studioData as { estimate?: { totalTHB?: number } } | null;
+  const estimateTotal = studio?.estimate?.totalTHB ? `${studio.estimate.totalTHB.toLocaleString("th-TH")} บาท` : null;
+
+  return `สวัสดีค่ะคุณ ${name} ดิฉัน "น้องไนท์" จาก Knight Furnich นะคะ 🐴✨
+
+สรุปข้อมูลใบเสนอราคา/งานสั่งผลิตของท่าน:
+• เลขที่ใบเสนอราคา: ${quoteNum}
+• โครงการ/สถานที่: ${project}${estimateTotal ? `\n• ยอดรวมประมาณการ: ${estimateTotal}` : ""}${quoteUrl ? `\n\nท่านสามารถคลิกดูรายละเอียดและใบเสนอราคาฉบับเต็มได้ที่ลิงก์นี้ค่ะ:\n👉 ${quoteUrl}` : ""}
+
+หากต้องการปรับเปลี่ยนแบบ เพิ่ม-ลดขนาด หรือปรึกษาเรื่องการติดตั้ง สามารถแจ้งน้องไนท์ได้ตลอดเลยนะคะ ขอบคุณค่ะ 🙏`;
+}
+
 export type LeadSortField = "id" | "createdAt" | "name" | "project" | "contact" | "quoteNumber" | "mode" | "status";
 
 function LeadsTableView({
@@ -207,6 +225,8 @@ function LeadsTableView({
   quickStatusPending,
   copyQuoteLink,
   copiedQuote,
+  copySalesMessage,
+  copiedSalesMsg,
   editingNotes,
   setEditingNotes,
   editingDimensions,
@@ -226,6 +246,8 @@ function LeadsTableView({
   quickStatusPending: boolean;
   copyQuoteLink: (quoteNumber: string, publicQuoteToken: string) => Promise<void>;
   copiedQuote: string | null;
+  copySalesMessage: (lead: CustomerLead) => Promise<void>;
+  copiedSalesMsg: number | null;
   editingNotes: Record<number, string>;
   setEditingNotes: Dispatch<SetStateAction<Record<number, string>>>;
   editingDimensions: Record<number, { widthMm: string; lengthMm: string; depthMm: string }>;
@@ -332,9 +354,33 @@ function LeadsTableView({
                             {copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> ก๊อปลิงก์</>}
                           </Button>
                         )}
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 text-[14px] rounded-none font-semibold text-[var(--brand-blue)]"
+                          onClick={() => void copySalesMessage(lead)}
+                          title="คัดลอกข้อความทักทายพร้อมรายละเอียดใบเสนอราคา เพื่อส่งให้ลูกค้าทาง LINE"
+                          data-testid={`button-copy-sales-message-${lead.id}`}
+                        >
+                          {copiedSalesMsg === lead.id ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</> : <><MessageSquare className="w-3 h-3 mr-1" /> ข้อความส่งลูกค้า</>}
+                        </Button>
                       </div>
                     ) : (
-                      <span className="text-[var(--ink-soft)]">-</span>
+                      <div className="space-y-1">
+                        <span className="text-[var(--ink-soft)]">-</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 text-[14px] rounded-none font-semibold text-[var(--brand-blue)]"
+                          onClick={() => void copySalesMessage(lead)}
+                          title="คัดลอกข้อความทักทายพร้อมรายละเอียดงาน เพื่อส่งให้ลูกค้าทาง LINE"
+                          data-testid={`button-copy-sales-message-${lead.id}`}
+                        >
+                          {copiedSalesMsg === lead.id ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</> : <><MessageSquare className="w-3 h-3 mr-1" /> ข้อความส่งลูกค้า</>}
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -816,6 +862,7 @@ export function LeadsManager() {
   const [editingDimensions, setEditingDimensions] = useState<Record<number, { widthMm: string; lengthMm: string; depthMm: string }>>({});
   const [savedDimensions, setSavedDimensions] = useState<number | null>(null);
   const [copiedQuote, setCopiedQuote] = useState<string | null>(null);
+  const [copiedSalesMsg, setCopiedSalesMsg] = useState<number | null>(null);
   const [copyError, setCopyError] = useState("");
   const [quickStatusPending, setQuickStatusPending] = useState(false);
   const [sortField, setSortField] = useState<LeadSortField>("createdAt");
@@ -939,6 +986,18 @@ export function LeadsManager() {
       window.setTimeout(() => setCopiedQuote((current) => current === quoteNumber ? null : current), 1800);
     } catch {
       setCopyError("คัดลอกลิงก์ไม่ได้ กรุณาเปิดหน้าเว็บผ่าน HTTPS หรือคัดลอกจากลิงก์โดยตรง");
+    }
+  };
+
+  const copySalesMessage = async (lead: CustomerLead) => {
+    setCopyError("");
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard-unavailable");
+      await navigator.clipboard.writeText(buildSalesLineMessage(lead));
+      setCopiedSalesMsg(lead.id);
+      window.setTimeout(() => setCopiedSalesMsg((current) => current === lead.id ? null : current), 2200);
+    } catch {
+      setCopyError("คัดลอกข้อความไม่ได้ กรุณาเปิดหน้าเว็บผ่าน HTTPS");
     }
   };
 
@@ -1114,6 +1173,8 @@ export function LeadsManager() {
           quickStatusPending={quickStatusPending}
           copyQuoteLink={copyQuoteLink}
           copiedQuote={copiedQuote}
+          copySalesMessage={copySalesMessage}
+          copiedSalesMsg={copiedSalesMsg}
           editingNotes={editingNotes}
           setEditingNotes={setEditingNotes}
           editingDimensions={editingDimensions}
