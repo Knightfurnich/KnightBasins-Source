@@ -249,13 +249,14 @@ export function InstallationShowcase() {
         ✨ เลื่อนภาพเพื่อชมตัวอย่างงานจริง · คลิกที่ภาพเพื่อดูรายละเอียดขนาดใหญ่
       </p>
 
-      <div className="flex justify-center mt-5">
+      <div className="flex justify-center mt-6">
         <Link
           href="/portfolio"
-          className="inline-flex items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#002244] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+          className="installation-showcase-all-btn"
           data-testid="link-showcase-all-portfolio"
         >
-          <Images size={16} aria-hidden="true" /> ดูคลังผลงานทั้งหมด
+          <Images size={16} aria-hidden="true" />
+          <span>ดูคลังผลงานทั้งหมด (670+ ภาพ)</span>
         </Link>
       </div>
     </section>

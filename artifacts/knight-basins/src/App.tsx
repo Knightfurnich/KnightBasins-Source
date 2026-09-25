@@ -179,26 +179,27 @@ function Footer() {
   return (
     <footer className="site-footer">
       <div className="footer-inner">
-        <div className="footer-brand-col">
-          <img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" />
-          <div className="footer-brand-text">
-            <span className="footer-kicker">SOLID SURFACE / BASINS</span>
-            <p>พื้นผิวที่ทำให้รายละเอียดเล็ก ๆ มีน้ำหนักขึ้นมา</p>
+        <div className="footer-main-info">
+          <div className="footer-company-header">
+            <img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" />
+            <div>
+              <strong className="footer-company-name">บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
+              <div className="footer-address">35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+            </div>
           </div>
-        </div>
 
-        <div className="footer-contact">
-          <strong>บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
-          <div className="footer-address">35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
-          <a
-            className="footer-maps-link"
-            href="https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5"
-            target="_blank"
-            rel="noreferrer"
-            data-testid="link-footer-maps"
-          >
-            <span aria-hidden="true">🗺️</span> นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่
-          </a>
+          <div className="footer-action-row">
+            <a
+              className="footer-maps-link"
+              href="https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="link-footer-maps"
+            >
+              <span aria-hidden="true">🗺️</span> นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่
+            </a>
+          </div>
+
           <div className="footer-contact-grid">
             <div className="footer-contact-item">
               <span className="footer-contact-key">โทร</span>
