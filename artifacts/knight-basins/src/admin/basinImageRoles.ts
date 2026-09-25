@@ -8,3 +8,11 @@ export function nextQuoteImageUrl(quoteImageUrl: string | null | undefined, prim
   const effectiveQuoteImage = quoteImageUrl ?? primaryUrl;
   return effectiveQuoteImage === clickedUrl ? null : clickedUrl;
 }
+
+// Unlike the quote image, Top View has no implicit fallback (no image is
+// "Top View" unless explicitly pinned), so this is a plain toggle: clicking
+// the currently-pinned image unpins it, clicking any other image pins that
+// one instead.
+export function nextTopViewImageUrl(currentTopViewUrl: string | null | undefined, clickedUrl: string): string | null {
+  return currentTopViewUrl === clickedUrl ? null : clickedUrl;
+}

@@ -63,6 +63,7 @@ const basinSchema = z.object({
   imageUrl: z.string().max(2000).optional(),
   galleryImageUrls: z.array(z.string().max(2000)).max(4).optional(),
   quoteImageUrl: z.string().max(2000).nullable().optional(),
+  topViewImageUrl: z.string().max(2000).nullable().optional(),
   videoUrl: z.string().max(2000).nullable().optional(),
   active: z.boolean(),
   sortOrder: z.coerce.number().int().default(0),
@@ -333,6 +334,7 @@ function BasinFormDialog({
       imageUrl: initialData.imageUrl,
       galleryImageUrls: initialData.galleryImageUrls ?? [],
       quoteImageUrl: initialData.quoteImageUrl ?? null,
+      topViewImageUrl: initialData.topViewImageUrl ?? null,
       videoUrl: initialData.uploadedVideoUrl,
       active: initialData.active,
       sortOrder: initialData.sortOrder,
@@ -349,6 +351,7 @@ function BasinFormDialog({
       imageUrl: "",
       galleryImageUrls: [],
       quoteImageUrl: null,
+      topViewImageUrl: null,
       videoUrl: null,
       active: true,
       sortOrder: 0,
@@ -359,6 +362,7 @@ function BasinFormDialog({
   const imageUrl = form.watch("imageUrl");
   const galleryImageUrls = form.watch("galleryImageUrls");
   const quoteImageUrl = form.watch("quoteImageUrl");
+  const topViewImageUrl = form.watch("topViewImageUrl");
   useEffect(() => {
     if (bowlLocked && form.getValues("basinDimensions")) {
       form.setValue("basinDimensions", "", { shouldDirty: true, shouldValidate: true });
@@ -513,11 +517,13 @@ function BasinFormDialog({
                 <BasinImageManagerField
                   images={[imageUrl, ...(galleryImageUrls ?? [])].filter((url): url is string => Boolean(url))}
                   quoteImageUrl={quoteImageUrl ?? null}
+                  topViewImageUrl={topViewImageUrl ?? null}
                   onImagesChange={(images) => {
                     form.setValue("imageUrl", images[0] ?? "", { shouldDirty: true, shouldValidate: true });
                     form.setValue("galleryImageUrls", images.slice(1), { shouldDirty: true, shouldValidate: true });
                   }}
                   onQuoteImageChange={(url) => form.setValue("quoteImageUrl", url, { shouldDirty: true, shouldValidate: true })}
+                  onTopViewImageChange={(url) => form.setValue("topViewImageUrl", url, { shouldDirty: true, shouldValidate: true })}
                 />
               </FormItem>
 
