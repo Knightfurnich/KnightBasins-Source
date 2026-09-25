@@ -42,7 +42,7 @@ EVIDENCE (ต้องแนบผลรันจริงทุกข้อ —
   1) git branch --show-current + git log --oneline -1
   2) pnpm run typecheck -> 0 errors ทั้ง 9 workspace
   3) cd artifacts/knight-basins && npm test
-     baseline อ้างอิง: tests 333 / pass 327 / fail 2 / cancelled 3 / skipped 1 (non-browser tests ผ่าน 100%)
+     baseline อ้างอิง: tests 337 / pass 331 / fail 2 / cancelled 3 / skipped 1 (non-browser tests ผ่าน 100%)
   4) เทสต์ใหม่ใน studio-export-edge-finishes.test.ts ผ่าน 100%
 
 OUTPUT:
