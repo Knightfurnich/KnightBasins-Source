@@ -2522,6 +2522,30 @@ export const UpdateAdminSitePhotoResponse = zod.object({
 
 
 /**
+ * @summary Overview counts for a manual data backup/export (leads, site photos, basins, payment slips)
+ */
+export const GetAdminBackupSummaryResponse = zod.object({
+  "leadsCount": zod.number(),
+  "sitePhotosCount": zod.number(),
+  "basinsCount": zod.number(),
+  "paymentSlipsCount": zod.number(),
+  "generatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Export every lead as a CSV file (UTF-8 with BOM, for Excel)
+ */
+export const ExportAdminBackupLeadsResponse = zod.unknown()
+
+
+/**
+ * @summary Export every basin price row as a CSV file (UTF-8 with BOM, for Excel)
+ */
+export const ExportAdminBackupBasinsResponse = zod.unknown()
+
+
+/**
  * @summary Get current LINE customer identity status
  */
 export const GetLineAuthStatusResponse = zod.object({

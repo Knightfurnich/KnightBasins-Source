@@ -27,6 +27,7 @@ import type {
 import type {
   AdminApiKey,
   AdminApiKeyInput,
+  AdminBackupSummary,
   AdminDashboardStats,
   AdminInvite,
   AdminInviteInput,
@@ -5355,6 +5356,309 @@ export const useUpdateAdminSitePhoto = <TError = ErrorType<void>,
       > => {
       return useMutation(getUpdateAdminSitePhotoMutationOptions(options), queryClient);
     }
+
+export const getGetAdminBackupSummaryUrl = () => {
+
+
+
+
+  return `/api/admin/backup/summary`
+}
+
+/**
+ * @summary Overview counts for a manual data backup/export (leads, site photos, basins, payment slips)
+ */
+export const getAdminBackupSummary = async ( options?: RequestInit): Promise<AdminBackupSummary> => {
+
+  return customFetch<AdminBackupSummary>(getGetAdminBackupSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminBackupSummaryQueryKey = () => {
+    return [
+    `/api/admin/backup/summary`
+    ] as const;
+    }
+
+
+export const getGetAdminBackupSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getAdminBackupSummary>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminBackupSummary>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminBackupSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminBackupSummary>>> = ({ signal }) => getAdminBackupSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminBackupSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminBackupSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminBackupSummary>>>
+export type GetAdminBackupSummaryQueryError = ErrorType<void>
+
+
+export function useGetAdminBackupSummary<TData = Awaited<ReturnType<typeof getAdminBackupSummary>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminBackupSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminBackupSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminBackupSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminBackupSummary<TData = Awaited<ReturnType<typeof getAdminBackupSummary>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminBackupSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminBackupSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminBackupSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminBackupSummary<TData = Awaited<ReturnType<typeof getAdminBackupSummary>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminBackupSummary>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Overview counts for a manual data backup/export (leads, site photos, basins, payment slips)
+ */
+
+export function useGetAdminBackupSummary<TData = Awaited<ReturnType<typeof getAdminBackupSummary>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminBackupSummary>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminBackupSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportAdminBackupLeadsUrl = () => {
+
+
+
+
+  return `/api/admin/backup/leads-export`
+}
+
+/**
+ * @summary Export every lead as a CSV file (UTF-8 with BOM, for Excel)
+ */
+export const exportAdminBackupLeads = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getExportAdminBackupLeadsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportAdminBackupLeadsQueryKey = () => {
+    return [
+    `/api/admin/backup/leads-export`
+    ] as const;
+    }
+
+
+export const getExportAdminBackupLeadsQueryOptions = <TData = Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportAdminBackupLeadsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportAdminBackupLeads>>> = ({ signal }) => exportAdminBackupLeads({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportAdminBackupLeadsQueryResult = NonNullable<Awaited<ReturnType<typeof exportAdminBackupLeads>>>
+export type ExportAdminBackupLeadsQueryError = ErrorType<void>
+
+
+export function useExportAdminBackupLeads<TData = Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportAdminBackupLeads>>,
+          TError,
+          Awaited<ReturnType<typeof exportAdminBackupLeads>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportAdminBackupLeads<TData = Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportAdminBackupLeads>>,
+          TError,
+          Awaited<ReturnType<typeof exportAdminBackupLeads>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportAdminBackupLeads<TData = Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Export every lead as a CSV file (UTF-8 with BOM, for Excel)
+ */
+
+export function useExportAdminBackupLeads<TData = Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupLeads>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportAdminBackupLeadsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportAdminBackupBasinsUrl = () => {
+
+
+
+
+  return `/api/admin/backup/basins-export`
+}
+
+/**
+ * @summary Export every basin price row as a CSV file (UTF-8 with BOM, for Excel)
+ */
+export const exportAdminBackupBasins = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getExportAdminBackupBasinsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportAdminBackupBasinsQueryKey = () => {
+    return [
+    `/api/admin/backup/basins-export`
+    ] as const;
+    }
+
+
+export const getExportAdminBackupBasinsQueryOptions = <TData = Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportAdminBackupBasinsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportAdminBackupBasins>>> = ({ signal }) => exportAdminBackupBasins({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportAdminBackupBasinsQueryResult = NonNullable<Awaited<ReturnType<typeof exportAdminBackupBasins>>>
+export type ExportAdminBackupBasinsQueryError = ErrorType<void>
+
+
+export function useExportAdminBackupBasins<TData = Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError = ErrorType<void>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportAdminBackupBasins>>,
+          TError,
+          Awaited<ReturnType<typeof exportAdminBackupBasins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportAdminBackupBasins<TData = Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportAdminBackupBasins>>,
+          TError,
+          Awaited<ReturnType<typeof exportAdminBackupBasins>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportAdminBackupBasins<TData = Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Export every basin price row as a CSV file (UTF-8 with BOM, for Excel)
+ */
+
+export function useExportAdminBackupBasins<TData = Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError = ErrorType<void>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportAdminBackupBasins>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportAdminBackupBasinsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetLineAuthStatusUrl = () => {
 

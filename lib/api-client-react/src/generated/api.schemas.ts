@@ -1683,6 +1683,14 @@ export interface SitePhotoUpdateInput {
   leadId?: number | null;
 }
 
+export interface AdminBackupSummary {
+  leadsCount: number;
+  sitePhotosCount: number;
+  basinsCount: number;
+  paymentSlipsCount: number;
+  generatedAt: string;
+}
+
 export type CreateAdminSessionBody = {
   /** @minLength 8 */
   password: string;
