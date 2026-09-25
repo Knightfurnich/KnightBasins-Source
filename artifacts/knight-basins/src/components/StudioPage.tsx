@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { useListAdminLeads } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowRight, Bath, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
@@ -3097,6 +3098,7 @@ export function StudioPage({
                 ? "คัดลอกลิงก์ไม่สำเร็จ"
                 : "🔗 คัดลอกลิงก์ผังนี้"}
           </button>
+          <Link href="/studio-guide" className="button button--outline" data-testid="link-studio-open-guide">📖 วิธีใช้งาน 3 ขั้นตอน</Link>
         </div>
         <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} />
       </div>

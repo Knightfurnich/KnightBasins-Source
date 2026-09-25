@@ -25,6 +25,12 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://knightbasins.srv1964473.hstgr.cloud/studio-guide</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://knightbasins.srv1964473.hstgr.cloud/quote</loc>
     <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>

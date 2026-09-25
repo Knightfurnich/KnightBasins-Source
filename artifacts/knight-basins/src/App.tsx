@@ -1600,6 +1600,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
 import AdminApp from "./admin/AdminApp";
 import SalesGuide from "./components/SalesGuide";
 import { SitePrepPage } from "./pages/SitePrepPage";
+import { StudioGuidePage } from "./pages/StudioGuidePage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -1847,6 +1848,7 @@ function App() {
         <Route path="/admin/*" component={AdminApp} />
         <Route path="/readme" component={SalesGuide} />
         <Route path="/site-prep" component={SitePrepPage} />
+        <Route path="/studio-guide" component={StudioGuidePage} />
         <Route path="/portfolio" component={PortfolioPage} />
         <Route path="/" component={RootEntry} />
         <Route component={Storefront} />

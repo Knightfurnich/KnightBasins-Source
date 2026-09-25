@@ -95,3 +95,49 @@ export function buildSitePrepStructuredData(): Record<string, unknown> {
     ],
   };
 }
+/**
+ * Builds the JSON-LD document for the /studio-guide page.
+ *
+ * Modelled as a HowTo with three steps, mirroring the page copy exactly. The
+ * accepted edge finishes are listed as the same five values the configurator
+ * stores, so an assistant quoting this guide cannot invent a sixth option.
+ */
+export function buildStudioGuideStructuredData(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "@id": `${SITE}/studio-guide#howto`,
+    url: `${SITE}/studio-guide`,
+    name: "วิธีออกแบบเคาน์เตอร์หินสังเคราะห์ด้วยตัวเองใน 3 ขั้นตอน",
+    description:
+      "คู่มือใช้งานระบบ 2D Studio ของ Knight Furnich สำหรับลูกค้าและทีมขาย — เลือกสีหิน ระบุขนาดเคาน์เตอร์ และกำหนดสถานะขอบแต่ละด้าน เพื่อดูผังและราคาประมาณการก่อนขอใบเสนอราคา",
+    inLanguage: "th-TH",
+    isPartOf: { "@id": `${SITE}/#website` },
+    publisher: { "@id": `${SITE}/#organization` },
+    totalTime: "PT10M",
+    tool: [{ "@type": "HowToTool", name: "เว็บเบราว์เซอร์" }],
+    step: [
+      {
+        "@type": "HowToStep",
+        position: 1,
+        name: "เลือกสีหิน",
+        text: "กดปุ่มสีหินบนแถบด้านบน กรองตามเรตราคา ฿7,500 / ฿8,500 / ฿9,500 ต่อตารางเมตร หรือพิมพ์ค้นหาชื่อสีและรหัสสี แล้วเลือกสีที่ต้องการ",
+        url: `${SITE}/studio`,
+      },
+      {
+        "@type": "HowToStep",
+        position: 2,
+        name: "วาดขนาดเคาน์เตอร์",
+        text: "เลือกรูปทรงสำเร็จรูป ตรง ฉาก L หรือตัว U หรือพิมพ์ขนาด กว้าง × ยาว ที่วัดจากหน้างานจริงเป็นมิลลิเมตร แล้ววางอ่างลงบนผัง",
+        url: `${SITE}/studio`,
+      },
+      {
+        "@type": "HowToStep",
+        position: 3,
+        name: "ระบุสถานะขอบแต่ละด้าน",
+        text: "ลากป้ายจากแถบเครื่องมือด้านบนไปวางที่ขอบด้านที่ต้องการ หรือคลิกที่ขอบบนผัง สถานะที่รองรับมี 5 แบบ: ติดบัว, ชิดผนัง, ชิดผนัง+ติดบัว, ขอบเปิด และขอบปกติ",
+        url: `${SITE}/studio-guide`,
+      },
+    ],
+  };
+}

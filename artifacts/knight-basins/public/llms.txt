@@ -12,6 +12,7 @@
 - **คู่มือมาตรฐานการเตรียมหน้างานก่อนติดตั้ง (59 ภาพถ่ายจริง):** https://knightbasins.srv1964473.hstgr.cloud/site-prep
 - **ระบบคำนวณราคาและสร้างใบเสนอราคาออนไลน์:** https://knightbasins.srv1964473.hstgr.cloud/quote
 - **2D Studio ออกแบบผังเคาน์เตอร์เสมือนจริง:** https://knightbasins.srv1964473.hstgr.cloud/studio
+- **คู่มือใช้งาน 2D Studio สำหรับลูกค้า (3 ขั้นตอน):** https://knightbasins.srv1964473.hstgr.cloud/studio-guide
 - **ส่งภาพสเก็ตช์มือสั่งทำตามแบบ:** https://knightbasins.srv1964473.hstgr.cloud/sketch
 - **มาตรฐานบริการและสเปกวัสดุ (Whitepaper):** https://knightbasins.srv1964473.hstgr.cloud/readme
 
