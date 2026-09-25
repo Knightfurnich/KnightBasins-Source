@@ -3729,6 +3729,17 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   background: #e8f4fb;
 }
 
+.product-card-action--portfolio {
+  color: #1f5638;
+  border-color: #aacbb0;
+  background: #eef9f0;
+}
+
+.product-card-action--portfolio:hover {
+  border-color: #6e9e78;
+  background: #e2f2e4;
+}
+
 .product-card-action:focus-visible {
   outline: 3px solid rgba(42, 155, 208, .4);
   outline-offset: 2px;

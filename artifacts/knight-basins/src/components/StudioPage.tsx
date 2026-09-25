@@ -40,6 +40,9 @@ import {
   placementTargetWarnings,
   rotatePlacement,
   sideStatusKey,
+  setStudioEdgeStatus,
+  clearStudioEdgeStatus,
+  preserveCustomEdgesOnShapeChange,
   snapStudioRectanglePosition,
   studioEdgeTotals,
   studioEstimate,
@@ -391,6 +394,9 @@ function buildWizardPiece(pieceId: string, preset: StudioPreset, legs: number[],
 }
 
 function applySimpleShapeEdgeDefaults(previousPiece: StudioPiece, nextPiece: StudioPiece): StudioPiece {
+  const preservedPiece = preserveCustomEdgesOnShapeChange(previousPiece, nextPiece);
+  if (previousPiece.hasCustomEdges) return preservedPiece;
+
   const previousEdges = studioPieceEdges(previousPiece);
   const previousEdgesAreNormal = previousEdges.length > 0 && previousEdges.every((edge) => edge.status === "normal");
   const previousEdgesAreAutoMapped = previousEdges.length > 0 && previousEdges.every((edge) => {
@@ -401,23 +407,23 @@ function applySimpleShapeEdgeDefaults(previousPiece: StudioPiece, nextPiece: Stu
   });
 
   if (!previousEdgesAreNormal && !previousEdgesAreAutoMapped) {
-    const sideStatuses = { ...nextPiece.sideStatuses };
+    const sideStatuses = { ...preservedPiece.sideStatuses };
     previousPiece.rectangles.forEach((previousRectangle, index) => {
-      const nextRectangle = nextPiece.rectangles[index];
+      const nextRectangle = preservedPiece.rectangles[index];
       if (!nextRectangle) return;
       studioSideStatuses(previousPiece, previousRectangle.id).forEach(({ side, status }) => {
         if (status !== "normal") sideStatuses[sideStatusKey(nextRectangle.id, side)] = status;
       });
     });
-    return { ...nextPiece, sideStatuses };
+    return { ...preservedPiece, sideStatuses };
   }
 
-  const sideStatuses = { ...nextPiece.sideStatuses };
-  studioPieceEdges(nextPiece).forEach((edge) => {
+  const sideStatuses = { ...preservedPiece.sideStatuses };
+  studioPieceEdges(preservedPiece).forEach((edge) => {
     if (edge.exposedLengthMm <= 0) return;
     sideStatuses[edge.key] = edge.side === "top" ? "upstand" : "open-edge";
   });
-  return { ...nextPiece, sideStatuses };
+  return { ...preservedPiece, sideStatuses };
 }
 
 function studioPresetFromQuery(value: string | null): StudioPreset | null {
@@ -1165,7 +1171,15 @@ function StudioPieceEditorLegacy({
         }
       });
     }
-    return { ...current, sideStatuses: { ...current.sideStatuses, ...Object.fromEntries([...keys].map((key) => [key, status])) } };
+    return [...keys].reduce((updatedPiece, key) => {
+      const separator = key.lastIndexOf(":");
+      if (separator < 0) return updatedPiece;
+      const targetRectangleId = key.slice(0, separator);
+      const targetSide = key.slice(separator + 1) as typeof side;
+      return status === "normal"
+        ? clearStudioEdgeStatus(updatedPiece, targetRectangleId, targetSide)
+        : setStudioEdgeStatus(updatedPiece, targetRectangleId, targetSide, status);
+    }, current);
   });
   const centerSelectedBasin = () => {
     if (!selectedPlacement) return;
@@ -1504,12 +1518,15 @@ function StudioPieceEditor({
         }
       });
     }
-    const sideStatuses = { ...current.sideStatuses };
-    keys.forEach((key) => {
-      if (status === "normal") delete sideStatuses[key];
-      else sideStatuses[key] = status;
-    });
-    return { ...current, sideStatuses };
+    return [...keys].reduce((updatedPiece, key) => {
+      const separator = key.lastIndexOf(":");
+      if (separator < 0) return updatedPiece;
+      const targetRectangleId = key.slice(0, separator);
+      const targetSide = key.slice(separator + 1) as typeof side;
+      return status === "normal"
+        ? clearStudioEdgeStatus(updatedPiece, targetRectangleId, targetSide)
+        : setStudioEdgeStatus(updatedPiece, targetRectangleId, targetSide, status);
+    }, current);
   });
   const centerSelectedBasin = () => {
     if (!selectedPlacement) return;
