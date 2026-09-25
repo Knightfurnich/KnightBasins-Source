@@ -5,6 +5,7 @@ import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
 import { askHermesSupport, hermesSupportConfigured } from "../lib/hermes-support";
+import { synthesizeSpeech } from "../lib/google-tts";
 import {
   extractSupportProfileFields,
   isSupportCancellation,
@@ -327,7 +328,7 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
       const formatBasin = (basin: typeof first) =>
         `${basin.sku} ${basin.colorName} · ${basin.priceTHB.toLocaleString("th-TH")} บาท · ${basin.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น"} · ${basin.dimensions}${basin.basinDimensions ? ` · หลุม ${basin.basinDimensions}` : ""}`;
       res.json({
-        reply: `เปรียบเทียบจาก Catalog จริงให้แล้วครับ\n• ${formatBasin(first)}\n• ${formatBasin(second)}\n\nถ้าต้องการ ผมเพิ่มทั้ง 2 รุ่นเข้าใบเสนอราคาให้ได้ครับ`,
+        reply: `เปรียบเทียบจาก Catalog จริงให้แล้วค่ะ\n• ${formatBasin(first)}\n• ${formatBasin(second)}\n\nถ้าต้องการ ดิฉันเพิ่มทั้ง 2 รุ่นเข้าใบเสนอราคาให้ได้ค่ะ`,
         matchedType: "basin",
         matchedCode: null,
         compareItems: comparedBasins.map((basin) => ({
@@ -388,9 +389,33 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
     }
 
     res.json({
-      reply: "ผมช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ ลองพิมพ์เช่น KF001, KF023 หรือ BW010",
+      reply: "ดิฉันช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ค่ะ ลองพิมพ์เช่น KF001, KF023 หรือ BW010",
       matchedType: "none",
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Reads a single น้องไนท์ reply aloud. Opt-in only (the 🔊 button next to a
+ * reply bubble in KnightSupport), never triggered automatically, since each
+ * call spends real Google Cloud TTS quota. No auth required -- same public
+ * surface as /support/chat -- but rate limited harder because voice is a
+ * paid, per-character cost rather than free text.
+ */
+const supportSpeechRateLimit = createRateLimiter({ name: "support-speech", max: 20, windowMs: 60 * 60 * 1000 });
+router.post("/support/speech", supportSpeechRateLimit, async (req, res, next) => {
+  const text = typeof req.body?.text === "string" ? req.body.text : "";
+  try {
+    const result = await synthesizeSpeech(text);
+    if (!result.ok) {
+      res.status(422).json({ message: result.message });
+      return;
+    }
+    res.setHeader("Content-Type", result.contentType);
+    res.setHeader("Cache-Control", "no-store");
+    res.send(result.audio);
   } catch (error) {
     next(error);
   }
