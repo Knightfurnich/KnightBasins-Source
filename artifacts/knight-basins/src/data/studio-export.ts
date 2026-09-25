@@ -329,7 +329,7 @@ export function createStudioPngSvg(
 }
 
 function studioSideStatusLabelForExport(status: StudioEdge["status"]) {
-  return { upstand: "ติดบัว", "open-edge": "ขอบเปิด", "wall-flush": "ชิดผนัง", normal: "" }[status];
+  return { upstand: "ติดบัว", "open-edge": "ขอบเปิด", "wall-flush": "ชิดผนัง", "wall-flush+upstand": "ชิดผนัง+ติดบัว ║▲", normal: "" }[status];
 }
 
 export async function downloadStudioPng(

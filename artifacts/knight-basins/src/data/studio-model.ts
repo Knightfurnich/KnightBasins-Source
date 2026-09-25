@@ -18,7 +18,8 @@ export type StudioOrderMode = "quick-purchase" | "studio" | "sketch";
 export type CounterShape = "I" | "L" | "U";
 export type StudioLocation = "bangkok-metro" | "province";
 export type StudioQuoteFormat = "US" | "OF";
-export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "normal";
+export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "wall-flush+upstand" | "normal";
+export type StudioSide = "top" | "right" | "bottom" | "left";
 export type RectangleRotation = 0 | 90;
 export type BasinOrientation = "horizontal" | "vertical";
 export type BasinAnchor = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
@@ -411,7 +412,9 @@ export function disconnectedRectangleIds(piece: StudioPiece) {
 
 export function studioEdgeTotals(pieces: StudioPiece[]) {
   return pieces.flatMap(studioPieceEdges).reduce((totals, edge) => {
-    if (edge.status === "upstand") totals.upstandLengthMm += edge.exposedLengthMm;
+    // wall-flush+upstand still gets a physical upstand strip installed against
+    // the wall, so it counts toward Upstand Length the same as a plain upstand.
+    if (edge.status === "upstand" || edge.status === "wall-flush+upstand") totals.upstandLengthMm += edge.exposedLengthMm;
     if (edge.status === "open-edge") totals.openEdgeLengthMm += edge.exposedLengthMm;
     return totals;
   }, { upstandLengthMm: 0, openEdgeLengthMm: 0 });
@@ -422,8 +425,33 @@ export function studioSideStatusLabel(status: SideStatus) {
     upstand: "ติดบัว",
     "open-edge": "ขอบเปิด",
     "wall-flush": "ชิดผนัง",
+    "wall-flush+upstand": "ชิดผนัง+ติดบัว ║▲",
     normal: "ปกติ",
   }[status];
+}
+
+/** Directly sets one rectangle edge's finish status (immutable update). */
+export function setStudioEdgeStatus(piece: StudioPiece, rectangleId: string, side: StudioSide, status: SideStatus): StudioPiece {
+  return {
+    ...piece,
+    sideStatuses: { ...piece.sideStatuses, [sideStatusKey(rectangleId, side)]: status },
+  };
+}
+
+/** Resets one rectangle edge back to "normal" (no upstand/open-edge/wall-flush). */
+export function clearStudioEdgeStatus(piece: StudioPiece, rectangleId: string, side: StudioSide): StudioPiece {
+  return setStudioEdgeStatus(piece, rectangleId, side, "normal");
+}
+
+const STUDIO_EDGE_STATUS_CYCLE: readonly SideStatus[] = ["normal", "upstand", "wall-flush", "wall-flush+upstand", "open-edge"];
+
+/** Advances one status to the next in the fixed cycle the edge-status toggle
+ * button steps through: normal -> upstand -> wall-flush -> wall-flush+upstand
+ * -> open-edge -> normal. */
+export function cycleStudioEdgeStatus(current: SideStatus): SideStatus {
+  const index = STUDIO_EDGE_STATUS_CYCLE.indexOf(current);
+  const nextIndex = (index + 1) % STUDIO_EDGE_STATUS_CYCLE.length;
+  return STUDIO_EDGE_STATUS_CYCLE[nextIndex]!;
 }
 
 export function studioSideStatuses(piece: StudioPiece, rectangleId: string) {
