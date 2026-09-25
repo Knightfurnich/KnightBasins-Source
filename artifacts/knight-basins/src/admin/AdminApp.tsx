@@ -18,6 +18,7 @@ import { TeamManager } from "./TeamManager";
 import { AdminDashboard } from "./AdminDashboard";
 import { TechnicianCalendarPage } from "./TechnicianCalendarPage";
 import { TechnicianTeamsManager } from "./TechnicianTeamsManager";
+import { BackupVaultPage } from "./BackupVaultPage";
 import { AdminVoiceSettings } from "./AdminVoiceSettings";
 import { SitePhotosPage } from "./SitePhotosPage";
 import { knightFurnichLogo } from "@/data/assets";
@@ -65,6 +66,7 @@ const NAV_ITEMS = [
   { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads" },
   { href: "/admin/voice-settings", label: "เสียงผู้ช่วยขาย (น้องไนท์)", exact: false, permission: "leads" },
   { href: "/admin/site-photos", label: "ภาพหน้างาน", exact: false, permission: "leads" },
+  { href: "/admin/backup", label: "สำรองข้อมูล", exact: false, permission: null, adminOnly: true },
   { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true },
 ] as const;
 
@@ -72,6 +74,14 @@ const AdminAccessContext = createContext<AdminAccess>(defaultAdminAccess);
 
 function hasPermission(access: AdminAccess, permission: AdminPermission | null) {
   return permission === null || access.permissions.includes(permission);
+}
+
+function canAccessBackupVault(access: AdminAccess) {
+  return access.role === "owner" || access.canManageTeam;
+}
+
+function canShowNavItem(item: (typeof NAV_ITEMS)[number], access: AdminAccess) {
+  return !("adminOnly" in item && item.adminOnly) || canAccessBackupVault(access);
 }
 
 function useAdminAccess() {
@@ -121,8 +131,8 @@ export default function AdminApp() {
            <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
             <MobileNavSelect />
             <nav className="hidden md:flex md:flex-col gap-2">
-               {NAV_ITEMS.map((item) => (
-                 <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team}>{item.label}</NavButton>
+               {NAV_ITEMS.filter((item) => canShowNavItem(item, access)).map((item) => (
+                 <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team} adminOnly={"adminOnly" in item && item.adminOnly}>{item.label}</NavButton>
               ))}
             </nav>
           </aside>
@@ -138,6 +148,7 @@ export default function AdminApp() {
               <Route path="/admin/technician-teams" component={TechnicianTeamsManagerRoute} />
               <Route path="/admin/voice-settings" component={AdminVoiceSettingsRoute} />
               <Route path="/admin/site-photos" component={AdminSitePhotosRoute} />
+              <Route path="/admin/backup" component={AdminBackupRoute} />
               <Route path="/admin/team" component={TeamRoute} />
             </Switch>
           </main>
@@ -147,11 +158,11 @@ export default function AdminApp() {
   );
 }
 
-function NavButton({ href, children, exact, permission, team }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null, team?: boolean }) {
+function NavButton({ href, children, exact, permission, team, adminOnly }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null, team?: boolean, adminOnly?: boolean }) {
   const [location, setLocation] = useLocation();
   const access = useAdminAccess();
   const isActive = exact ? location === href : location.startsWith(href);
-  const allowed = team ? access.canManageTeam : hasPermission(access, permission);
+  const allowed = adminOnly ? canAccessBackupVault(access) : team ? access.canManageTeam : hasPermission(access, permission);
   return (
     <Button
       variant={isActive ? "secondary" : "ghost"} 
@@ -159,7 +170,7 @@ function NavButton({ href, children, exact, permission, team }: { href: string, 
       onClick={() => setLocation(allowed ? href : "/admin/access-denied")}
       aria-disabled={!allowed}
       title={!allowed ? "คุณไม่มีสิทธิ์เข้าถึงเมนูนี้" : undefined}
-       data-testid={`nav-admin-${team ? "team" : permission ?? "home"}`}
+       data-testid={`nav-admin-${adminOnly ? "backup" : team ? "team" : permission ?? "home"}`}
     >
       {!allowed && <LockKeyhole className="mr-2 h-3.5 w-3.5" aria-hidden="true" />}
       {children}
@@ -170,21 +181,22 @@ function NavButton({ href, children, exact, permission, team }: { href: string, 
 function MobileNavSelect() {
   const [location, setLocation] = useLocation();
   const access = useAdminAccess();
-  const activeHref = NAV_ITEMS.find((item) => item.exact ? location === item.href : location.startsWith(item.href))?.href ?? NAV_ITEMS[0].href;
+  const visibleItems = NAV_ITEMS.filter((item) => canShowNavItem(item, access));
+  const activeHref = visibleItems.find((item) => item.exact ? location === item.href : location.startsWith(item.href))?.href ?? NAV_ITEMS[0].href;
   return (
     <select
       className="md:hidden w-full mb-4 border border-[var(--line)] bg-transparent px-3 py-2.5 text-sm rounded-none"
       value={activeHref}
       onChange={(event) => {
-        const item = NAV_ITEMS.find((candidate) => candidate.href === event.target.value);
-         const allowed = item ? (("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission)) : false;
+        const item = visibleItems.find((candidate) => candidate.href === event.target.value);
+         const allowed = item ? canShowNavItem(item, access) && (("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission)) : false;
          setLocation(allowed ? event.target.value : "/admin/access-denied");
       }}
       aria-label="เมนูจัดการ"
       data-testid="select-admin-mobile-nav"
     >
-       {NAV_ITEMS.map((item) => {
-         const allowed = ("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission);
+       {visibleItems.map((item) => {
+         const allowed = canShowNavItem(item, access) && (("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission));
         return <option key={item.href} value={item.href}>{!allowed ? `🔒 ${item.label}` : item.label}</option>;
        })}
     </select>
@@ -196,6 +208,7 @@ function AdminDashboardRoute() {
   const [, setLocation] = useLocation();
   const canNavigate = (href: string) => {
     if (href === "/admin/team") return access.canManageTeam;
+    if (href === "/admin/backup") return canAccessBackupVault(access);
     const permissionByHref: Record<string, AdminPermission> = {
       "/admin/basins": "basins",
       "/admin/installed-stones": "installed-stones",
@@ -276,6 +289,13 @@ function AdminSitePhotosRoute() {
       <SitePhotosPage />
     </AdminPermissionGate>
   );
+}
+
+function AdminBackupRoute() {
+  const access = useAdminAccess();
+  return canAccessBackupVault(access)
+    ? <BackupVaultPage />
+    : <AccessDeniedPage resource="สำรองข้อมูล" />;
 }
 
 function TeamRoute() {
