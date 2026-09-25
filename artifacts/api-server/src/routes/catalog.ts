@@ -1,5 +1,5 @@
-import { db, basinCategories, basinPrices, installedStonePrices, sheetStonePrices } from "@workspace/db";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { db, basinCategories, basinPrices, installedStonePrices, sheetStonePrices, sitePhotos } from "@workspace/db";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { PRODUCTS, STONE_COLORS } from "../../../knight-basins/src/data/catalog";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
@@ -104,6 +104,46 @@ router.get("/catalog", async (_req, res, next) => {
     // Never let an intermediary replay an older active/archived catalog response.
     res.setHeader("Cache-Control", "no-store, max-age=0");
     res.json(await getCatalogData(true));
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Public "real installation" showcase for the storefront.
+ *
+ * Deliberately returns a curated, anonymised payload: only the photo URL and a
+ * short public caption. Sender names, internal job codes, lead ids and free-form
+ * staff notes are never exposed publicly (see the no-internal-data-on-public-pages
+ * rule), so this route selects columns explicitly instead of spreading the row.
+ */
+router.get("/site-photos/showcase", async (req, res, next) => {
+  try {
+    const requested = Number(req.query.limit ?? 6);
+    const limit = Number.isFinite(requested) ? Math.min(Math.max(Math.trunc(requested), 1), 12) : 6;
+    const rows = await db
+      .select({
+        id: sitePhotos.id,
+        imageUrl: sitePhotos.imageUrl,
+        caption: sitePhotos.description,
+        stage: sitePhotos.stage,
+      })
+      .from(sitePhotos)
+      // Only photos the crew/admin confirmed as a finished installation belong on
+      // the public storefront: survey and in-progress shots (marker drawings,
+      // building debris) undercut credibility instead of building it.
+      .where(eq(sitePhotos.stage, "completed"))
+      .orderBy(desc(sitePhotos.capturedAt), desc(sitePhotos.id))
+      .limit(limit);
+
+    res.setHeader("Cache-Control", "public, max-age=600");
+    res.json(
+      rows
+        // A photo without a usable caption adds no credibility — drop it rather
+        // than publishing an unexplained image.
+        .filter((row) => Boolean(row.imageUrl) && Boolean(row.caption?.trim()))
+        .map((row) => ({ id: row.id, imageUrl: row.imageUrl, caption: row.caption?.trim() ?? null })),
+    );
   } catch (error) {
     next(error);
   }
