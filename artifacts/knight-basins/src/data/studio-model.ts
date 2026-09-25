@@ -195,8 +195,8 @@ export const STUDIO_MAX_PIECES = 3;
 export const STUDIO_MAX_RECTANGLES = 6;
 export const STUDIO_SNAP_DISTANCE_MM = 12;
 /** Dimensions used only when a brand-new Studio drawing board is created. */
-export const STUDIO_INITIAL_BOARD_WIDTH_MM = 5000;
-export const STUDIO_INITIAL_BOARD_LENGTH_MM = 5000;
+export const STUDIO_INITIAL_BOARD_WIDTH_MM = 1800;
+export const STUDIO_INITIAL_BOARD_LENGTH_MM = 600;
 /** Existing continuation-panel defaults used by “add rectangle/piece”. */
 export const STUDIO_ADDITIONAL_RECTANGLE_WIDTH_MM = 1800;
 export const STUDIO_ADDITIONAL_RECTANGLE_LENGTH_MM = 600;
@@ -1428,6 +1428,60 @@ export function createBasinPlacement(
     xMm: 0,
     yMm: 0,
     ...size,
+    orientation: "horizontal",
+  };
+}
+
+/**
+ * Quick-add helper: places a basin on a freshly-created sheet (which has no
+ * xMm/yMm of its own yet, unlike a StudioRectangle already sitting in a
+ * piece) by SKU alone, auto-centering it or flush-aligning it left/right
+ * while always keeping at least STUDIO_BASIN_SAFETY_MARGIN_MM of clearance
+ * from every edge. xMm/yMm follow the same top-left-corner convention as
+ * every other BasinPlacement in this file (see placementCutSize,
+ * placementMeetsBasinEdgeClearance) -- centering therefore subtracts half
+ * the basin's own cut size, the same way calculateBasinCoordinates' "center"
+ * case does.
+ */
+export function createStudioBasinPlacement(
+  sku: string,
+  sheet: { id: string; widthMm: number; lengthMm: number },
+  pieceId: string,
+  align: "center" | "left" | "right" = "center",
+): BasinPlacement {
+  const product = PRODUCTS.find((item) => item.sku === sku);
+  const size = basinDimensionsForProduct(product);
+  const cutWidthMm = size.widthMm ?? 0;
+  const cutDepthMm = size.depthMm ?? 0;
+  const margin = STUDIO_BASIN_SAFETY_MARGIN_MM;
+
+  // Clamps a coordinate so the cutout keeps `margin` clearance from both
+  // edges along that axis. When the sheet is too small to fit the cutout
+  // with `margin` on both sides, this falls back to `margin` from the low
+  // edge instead of producing an inverted (max < min) range.
+  const clampAxis = (valueMm: number, sheetSizeMm: number, cutSizeMm: number) => {
+    const maxMm = Math.max(margin, sheetSizeMm - cutSizeMm - margin);
+    return Math.round(Math.min(Math.max(valueMm, margin), maxMm));
+  };
+
+  const xMm = align === "left"
+    ? clampAxis(margin, sheet.widthMm, cutWidthMm)
+    : align === "right"
+      ? clampAxis(sheet.widthMm - cutWidthMm - margin, sheet.widthMm, cutWidthMm)
+      : clampAxis((sheet.widthMm - cutWidthMm) / 2, sheet.widthMm, cutWidthMm);
+  const yMm = clampAxis((sheet.lengthMm - cutDepthMm) / 2, sheet.lengthMm, cutDepthMm);
+
+  return {
+    id: `${sku}-${sheet.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    sku,
+    pieceId,
+    sheetId: sheet.id,
+    anchor: "top-left",
+    xMm,
+    yMm,
+    widthMm: size.widthMm,
+    depthMm: size.depthMm,
+    rotation: 0,
     orientation: "horizontal",
   };
 }

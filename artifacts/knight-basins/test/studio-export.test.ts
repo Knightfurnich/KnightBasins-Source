@@ -219,7 +219,7 @@ test("PNG SVG uses the shared layout model, selected stone tone, dimensions, and
   assert.match(svg, /ติดบัว/);
 });
 
-test("fresh-board exports use the same 5000 × 5000 geometry and 25 square metre area", () => {
+test("fresh-board exports use the same 1800 × 600 geometry and 1.08 square metre area", () => {
   const fresh = state({
     dimensions: {
       depthMm: STUDIO_INITIAL_BOARD_LENGTH_MM,
@@ -246,17 +246,17 @@ test("fresh-board exports use the same 5000 × 5000 geometry and 25 square metre
   const dxf = createStudioDxf(fresh);
   const svg = createStudioPngSvg(fresh);
 
-  assert.equal(model.totalAreaSqM, 25);
+  assert.equal(model.totalAreaSqM, 1.08);
   assert.deepEqual(model.pieces[0]?.rectangles[0], {
     pieceId: "fresh-piece",
     rectangleId: "fresh-rectangle",
     xMm: 0,
     yMm: 0,
-    widthMm: 5000,
-    heightMm: 5000,
+    widthMm: 1800,
+    heightMm: 600,
   });
-  assert.match(dxf, /5000 x 5000 mm/);
-  assert.match(svg, /5000 × 5000 mm/);
+  assert.match(dxf, /1800 x 600 mm/);
+  assert.match(svg, /1800 × 600 mm/);
 });
 
 test("U layouts keep all three rectangles and the basin in the shared export model", () => {
