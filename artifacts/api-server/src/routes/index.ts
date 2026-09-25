@@ -7,6 +7,7 @@ import lineAuthRouter from "./line-auth";
 import leadsRouter from "./leads";
 import customerProfileRouter from "./customer-profile";
 import placesRouter from "./places";
+import portfolioRouter from "./portfolio";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(lineAuthRouter);
 router.use(leadsRouter);
 router.use(customerProfileRouter);
 router.use(placesRouter);
+router.use(portfolioRouter);
 
 export default router;
