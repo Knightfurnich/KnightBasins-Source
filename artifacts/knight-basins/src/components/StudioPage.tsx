@@ -736,7 +736,7 @@ function placeBasinOnCanvas(
   });
 }
 
-function StudioShortlists({ state, setState, stoneColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved, onTouchBasinDrop }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void; onTouchBasinDrop: (sku: string, clientX: number, clientY: number) => boolean }) {
+function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, selectedRectangleId, selectedPlacementId, onCatalogChangeResolved, onTouchBasinDrop }: { mode: Extract<StudioOrderMode, "studio" | "sketch">; state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor>; basinProducts: ReadonlyArray<BasinProduct>; selectedRectangleId: string | null; selectedPlacementId: string | null; onCatalogChangeResolved: (sku: string) => void; onTouchBasinDrop: (sku: string, clientX: number, clientY: number) => boolean }) {
   const [basinQuery, setBasinQuery] = useState("");
   const [basinFilter, setBasinFilter] = useState<StudioBasinFilter>("all");
   const [stonePriceFilter, setStonePriceFilter] = useState("all");
@@ -843,7 +843,7 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, selecte
     onCatalogChangeResolved(sku);
   };
   const beginTouchBasinDrag = (event: ReactPointerEvent<HTMLDivElement>, sku: string, selected: boolean) => {
-    if (!selected || event.pointerType === "mouse") return;
+    if (mode !== "studio" || !selected || event.pointerType === "mouse") return;
     touchBasinDrag.current = { sku, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, moved: false };
     setTouchDraggingSku(sku);
     try {
@@ -899,7 +899,7 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, selecte
     </section>
     <section className="studio-panel">
       <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง</h3></div><span>{state.basinSkus.length} รุ่น</span></div>
-      <p className="studio-helper">กดเลือกเพื่อเพิ่ม / นำออกจากรายการ · กด "วางบนผัง" หรือลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้</p>
+      <p className="studio-helper">{mode === "sketch" ? "เลือกรุ่นอ่างที่สนใจใส่ในแบบร่าง (ไม่บังคับ) เพื่อให้ทีมงานช่วยวางผังให้ตรงรุ่น" : 'กดเลือกเพื่อเพิ่ม / นำออกจากรายการ · กด "วางบนผัง" หรือลากรุ่นที่เลือกไปวางบนแผ่นใดก็ได้'}</p>
       {hiddenBasins.length > 0 && <div className="studio-basin-stale" role="status" data-testid="studio-hidden-basins">
         <strong>มีอ่างในแบบร่างที่ปิดการขายแล้ว</strong>
         <p>ตำแหน่งและขนาดบนผังเดิมยังคงอยู่ เลือกรุ่นใหม่เพื่อแทนที่ หรือเอารุ่นนี้ออกจากแบบ</p>
@@ -921,10 +921,10 @@ function StudioShortlists({ state, setState, stoneColors, basinProducts, selecte
        <p className="studio-basin-result-count">แสดง {visibleBasins.length} จาก {categoryBasins.length} รุ่น</p>
       <div className="studio-basin-list" data-testid="studio-basin-list">{visibleBasins.map((product) => {
         const selected = state.basinSkus.includes(product.sku);
-        return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""} ${touchDraggingSku === product.sku ? "is-touch-dragging" : ""}`} draggable={selected} onPointerDown={(event) => beginTouchBasinDrag(event, product.sku, selected)} onPointerMove={moveTouchBasinDrag} onPointerUp={endTouchBasinDrag} onPointerCancel={cancelTouchBasinDrag} onClickCapture={suppressClickAfterTouchDrag} onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }}>
+         return <div key={product.sku} className={`studio-basin-choice ${selected ? "is-selected" : ""} ${touchDraggingSku === product.sku ? "is-touch-dragging" : ""}`} draggable={mode === "studio" && selected} onPointerDown={(event) => beginTouchBasinDrag(event, product.sku, selected)} onPointerMove={moveTouchBasinDrag} onPointerUp={endTouchBasinDrag} onPointerCancel={cancelTouchBasinDrag} onClickCapture={suppressClickAfterTouchDrag} onDragStart={(event) => { if (mode !== "studio") { event.preventDefault(); return; } event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-studio-basin", product.sku); }}>
           <button type="button" className="studio-basin-choice-main" onClick={() => toggleBasin(product.sku)} aria-pressed={selected} data-testid={`button-studio-basin-${product.sku}`}><span className="studio-basin-choice-art"><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt="" tall={product.category === "tall vertical washbasin"} /></span><span>{product.sku}</span><strong>{product.colorName}</strong><small>{product.basinDimensions ? `หลุม ${product.basinDimensions}` : "รุ่นทรงสูง"} · {formatTHB(product.priceTHB)}</small></button>
           {selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}
-           {selected && <button type="button" className="studio-basin-place-button" onPointerDown={(event) => event.stopPropagation()} onClick={() => placeBasinOnCanvas(state, setState, product, resolveActiveBasinTarget(state, selectedRectangleId, selectedPlacementId))} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
+            {mode === "studio" && selected && <button type="button" className="studio-basin-place-button" onPointerDown={(event) => event.stopPropagation()} onClick={() => placeBasinOnCanvas(state, setState, product, resolveActiveBasinTarget(state, selectedRectangleId, selectedPlacementId))} data-testid={`button-studio-basin-place-${product.sku}`}><MapPin size={13} /> วางบนผัง</button>}
         </div>;
       })}{visibleBasins.length === 0 && <p className="studio-basin-empty">ไม่พบรุ่นที่ตรงกับการค้นหา</p>}</div>
     </section>
@@ -2201,6 +2201,10 @@ export function StudioPage({
   const requestedBasinProduct = requestedBasinSku
     ? basinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
     : undefined;
+  const requestedStoneCode = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("stone")?.trim() ?? "";
+  const requestedStoneColor = requestedStoneCode
+    ? stoneColors.find((stone) => stone.code.toLowerCase() === requestedStoneCode.toLowerCase())
+    : undefined;
   const [state, setState, studioHistory] = useUndoableStudioState(() => {
     const initialStudioState = linkedDraft.state ?? createInitialStudioState(
       mode,
@@ -2210,9 +2214,17 @@ export function StudioPage({
       stoneColors,
       requestedBasinProduct?.sku,
     );
-    const withRequestedBasin = mode === "studio" && requestedBasinProduct
-      ? addQueryBasinToStudioState(initialStudioState, requestedBasinProduct)
+    const withRequestedStone = requestedStoneColor
+      ? {
+          ...initialStudioState,
+          stoneColors: [...new Set([requestedStoneColor.code, ...initialStudioState.stoneColors])],
+          activeStone: requestedStoneColor.code,
+          stoneSelectionSource: "user" as const,
+        }
       : initialStudioState;
+    const withRequestedBasin = mode === "studio" && requestedBasinProduct
+      ? addQueryBasinToStudioState(withRequestedStone, requestedBasinProduct)
+      : withRequestedStone;
     return normalizeStudioState(withRequestedBasin, basinProducts, stoneColors);
   });
   const [studioUiMode, setStudioUiMode] = useState<"simple" | "detailed">("simple");
@@ -2838,7 +2850,7 @@ export function StudioPage({
     </aside>
   );
   const studioDesignLayout = <div className={`studio-design-layout ${isSimpleStudioMode ? "studio-design-layout--simple" : ""}`}>
-    <StudioShortlists state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
+    <StudioShortlists mode={mode} state={state} setState={setState} stoneColors={stoneColors} basinProducts={basinProducts} selectedRectangleId={selectedRectangleId} selectedPlacementId={selectedPlacementId} onCatalogChangeResolved={acknowledgeCatalogChange} onTouchBasinDrop={handleTouchBasinDrop} />
     {mode === "studio" ? <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} /> : <section className="studio-panel studio-sketch-panel"><div className="studio-panel-heading"><div><p className="eyebrow">03 / UPLOAD SKETCH</p><h3>แนบภาพแบบร่าง</h3></div><Upload size={20} /></div><div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">{Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
       const file = sketchFiles[index];
       const previewUrl = sketchPreviewUrls[index];
@@ -2869,6 +2881,13 @@ export function StudioPage({
       </div>}
     </> : <p className="studio-lead-sketch-empty">Lead นี้ไม่มีภาพแบบร่างแนบไว้</p>}
   </section> : null;
+  const sketchBridgeParams = new URLSearchParams();
+  const bridgeBasinSku = state.basinSkus.find((sku) => basinProducts.some((product) => product.sku === sku));
+  const bridgeStoneCode = state.activeStone || state.stoneColors[0] || "";
+  if (bridgeBasinSku) sketchBridgeParams.set("basin", bridgeBasinSku);
+  if (bridgeStoneCode) sketchBridgeParams.set("stone", bridgeStoneCode);
+  const sketchBridgeQuery = sketchBridgeParams.toString();
+  const sketchBridgeHref = `/sketch${sketchBridgeQuery ? `?${sketchBridgeQuery}` : ""}`;
   return <div className={`page-wrap studio-page ${isSimpleStudioMode ? "studio-page--simple" : ""}`}>
     {isLeadLinkedMode && <section className="studio-linked-lead-banner" data-testid="studio-linked-lead-banner">
       <div>
@@ -2879,6 +2898,14 @@ export function StudioPage({
       {linkedLead && <span className="studio-linked-lead-status">{linkedLead.status}</span>}
     </section>}
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
+    {mode === "studio" && <section className="studio-sketch-bridge-banner" aria-label="ส่งภาพแบบร่างด้วยมือ" data-testid="studio-sketch-bridge-banner">
+      <p>✍️ ออกแบบเองไม่ถนัด? ส่งภาพแบบร่างด้วยมือ ให้ทีมงาน Knight Furnich ช่วยต่อยอดแบบและคิดราคาให้ฟรี</p>
+      <a className="studio-sketch-bridge-cta" href={sketchBridgeHref} data-testid="link-studio-to-sketch">📤 ส่งภาพแบบร่างมือ <ArrowRight size={16} /></a>
+    </section>}
+    {mode === "sketch" && <section className="sketch-studio-bridge-banner" aria-label="เข้าสู่ 2D Studio" data-testid="sketch-studio-bridge-banner">
+      <p>💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง?</p>
+      <a className="sketch-studio-bridge-cta" href="/studio" data-testid="link-sketch-to-studio">✨ เข้าสู่ 2D Studio <ArrowRight size={16} /></a>
+    </section>}
     {mode === "studio" && <div className="studio-mode-switch" role="group" aria-label="โหมดการออกแบบ" data-testid="studio-mode-switch">
       <button type="button" className={studioUiMode === "simple" ? "is-active" : ""} aria-pressed={studioUiMode === "simple"} onClick={() => setStudioUiMode("simple")} data-testid="button-studio-mode-simple">โหมดง่าย</button>
       <button type="button" className={studioUiMode === "detailed" ? "is-active" : ""} aria-pressed={studioUiMode === "detailed"} onClick={() => setStudioUiMode("detailed")} data-testid="button-studio-mode-detailed">โหมดละเอียด</button>
