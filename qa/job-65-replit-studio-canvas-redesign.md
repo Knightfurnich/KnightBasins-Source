@@ -39,7 +39,8 @@ GOAL:
   2. ใน artifacts/knight-basins/src/components/StudioFootprint.tsx:
      - ปรับปรุงการแสดงผลป้ายขอบ (`studio-edge-marker`):
        * เปลี่ยนให้เป็นปุ่มกดอินเทอร์แอคทีฟ (Interactive Button) มีปุ่มเล็ก ๆ [✕] เพื่อให้คลิกเดียวล้างสถานะขอบกลับเป็นปกติ
-       * เฉพาะด้านที่ `edge.exposedLengthMm > 0` เท่านั้นที่แสดงป้ายขอบและรับ drop ได้ (รอยต่อห้ามรับ)
+       * เฉพาะด้านที่ `edge.exposedLengthMm > 0` เท่านั้นที่แสดงป้ายขอบและรับ drop ได้ (ห้ามรับบนรอยต่อ ให้เรียกใช้ helper `touchingRectangleKeys(piece, rectangleId, side)` ในการตรวจสอบขอบที่ชนกัน)
+       * ทิศทาง `top / right / bottom / left` เป็นพิกัดหน้าจอ (screen-space) เรียบร้อยแล้ว ไม่ต้องเขียนสูตรหมุนพิกัดตาม rotation ซ้ำ
        * รองรับ Drag & Drop: เพิ่ม onDragOver และ onDrop รับ `application/x-studio-edge-status` เพื่อเปลี่ยนสถานะขอบด้านนั้นทันที
   3. เขียน Unit Tests ใน artifacts/knight-basins/test/studio-canvas-redesign.test.ts (ใหม่):
      - ทดสอบการเปิด/ปิด Popover เลือกสีหินและเลือกอ่าง
