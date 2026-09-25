@@ -2954,31 +2954,76 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     } catch (error) { return next(error); }
   });
 
+  async function resolveStockData(forceRefresh: boolean): Promise<AdminStockResponse | { unconfigured: true }> {
+    if (!forceRefresh && stockCache && Date.now() - stockCache.fetchedAt < STOCK_CACHE_TTL_MS) {
+      return stockCache.data;
+    }
+
+    const credentials = loadGoogleServiceAccountCredentials();
+    if (!credentials) return { unconfigured: true };
+
+    const accessToken = await fetchGoogleAccessToken(credentials);
+    const [staronRows, zenRows] = await Promise.all([
+      fetchGoogleSheetRows(STARON_SPREADSHEET_ID, STARON_SHEET_NAME, accessToken),
+      fetchGoogleSheetRows(ZEN_SPREADSHEET_ID, ZEN_SHEET_NAME, accessToken),
+    ]);
+
+    const data: AdminStockResponse = {
+      updatedAt: new Date().toISOString(),
+      staron: buildStockSheet(STARON_TITLE, staronRows),
+      zen: buildStockSheet(ZEN_TITLE, zenRows),
+    };
+    stockCache = { data, fetchedAt: Date.now() };
+    return data;
+  }
+
   router.get("/admin/stock", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
     try {
       const forceRefresh = req.query["refresh"] === "true" || req.query["refresh"] === "1";
-      if (!forceRefresh && stockCache && Date.now() - stockCache.fetchedAt < STOCK_CACHE_TTL_MS) {
-        return res.json(stockCache.data);
+      const data = await resolveStockData(forceRefresh);
+      if ("unconfigured" in data) {
+        return res.status(503).json({ message: "ยังไม่ได้ตั้งค่า Google service account สำหรับดึงสต๊อค" });
       }
+      return res.json(data);
+    } catch (error) { return next(error); }
+  });
 
-      const credentials = loadGoogleServiceAccountCredentials();
-      if (!credentials) {
+  /** Splits a stock row's "code (name)" convention (e.g. "AA 625 (Aspen
+   * Alder)", per every example the work orders for this stock feature have
+   * used) into a code and a color name; falls back to using the whole
+   * string for both when a row doesn't follow that convention. */
+  function splitStockCodeAndName(name: string): { code: string; colorName: string } {
+    const match = name.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (match) return { code: (match[1] ?? "").trim(), colorName: (match[2] ?? "").trim() };
+    return { code: name, colorName: name };
+  }
+
+  const STOCK_EXPORT_COLUMNS = ["ยี่ห้อ", "รหัสสี", "ชื่อสี", "ขนาดแผ่น", "ความหนา", "จำนวนคงเหลือ", "หมายเหตุ", "วันที่อัปเดต"];
+
+  router.get("/admin/stock/export", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
+    try {
+      const forceRefresh = req.query["refresh"] === "true" || req.query["refresh"] === "1";
+      const data = await resolveStockData(forceRefresh);
+      if ("unconfigured" in data) {
         return res.status(503).json({ message: "ยังไม่ได้ตั้งค่า Google service account สำหรับดึงสต๊อค" });
       }
 
-      const accessToken = await fetchGoogleAccessToken(credentials);
-      const [staronRows, zenRows] = await Promise.all([
-        fetchGoogleSheetRows(STARON_SPREADSHEET_ID, STARON_SHEET_NAME, accessToken),
-        fetchGoogleSheetRows(ZEN_SPREADSHEET_ID, ZEN_SHEET_NAME, accessToken),
-      ]);
+      const rows: unknown[][] = [];
+      for (const [brand, sheet] of [["Staron", data.staron], ["Zen Stone", data.zen]] as const) {
+        for (const item of sheet.items) {
+          const { code, colorName } = splitStockCodeAndName(item.name);
+          // ขนาดแผ่น/ความหนา (sheet size/thickness) aren't part of the stock
+          // sheet data this feature reads (see Task 53's own note on this) --
+          // left blank rather than guessed.
+          rows.push([brand, code, colorName, "", "", item.qty, item.note, data.updatedAt]);
+        }
+      }
 
-      const data: AdminStockResponse = {
-        updatedAt: new Date().toISOString(),
-        staron: buildStockSheet(STARON_TITLE, staronRows),
-        zen: buildStockSheet(ZEN_TITLE, zenRows),
-      };
-      stockCache = { data, fetchedAt: Date.now() };
-      return res.json(data);
+      const csv = toCsv(STOCK_EXPORT_COLUMNS, rows);
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="knight_stone_stock_${dateStamp}.csv"`);
+      return res.send(csv);
     } catch (error) { return next(error); }
   });
 
