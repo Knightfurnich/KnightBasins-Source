@@ -1755,13 +1755,14 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   background: rgba(232,245,251,.5);
 }
 .admin-sidebar nav button {
-  min-height: 38px;
+  min-height: 34px;
   justify-content: flex-start;
-  padding-left: 10px;
-  padding-right: 10px;
-  border-radius: 9px;
-  font-size: var(--type-size-button);
-  line-height: var(--type-line-button);
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
   transition: background .2s ease, color .2s ease, transform .2s ease;
 }
 .admin-sidebar nav button:hover { transform: translateX(2px); }
