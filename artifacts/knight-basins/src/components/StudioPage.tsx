@@ -5,6 +5,7 @@ import { useListAdminLeads } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowRight, Bath, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
 import {
+  INSTALLATION_PRICE,
   PRODUCTS,
   STONE_COLORS,
   CUSTOMER_CONTACT_OPTIONS,
@@ -3030,9 +3031,107 @@ export function StudioPage({
     }
     setSubmitting(true);
     setResult("");
+    const sketchNotificationItems: StudioNotificationItem[] = [];
+    if (activeStone?.code && estimate.counterAreaSqM > 0) {
+      const stoneUnitPrice = estimate.stoneUnitPriceTHB ?? 0;
+      sketchNotificationItems.push({
+        kind: "stone" as const,
+        code: activeStone.code,
+        description: `ท็อปเคาน์เตอร์หินสังเคราะห์ ${activeStone.name || activeStone.code}`,
+        quantity: Number(estimate.counterAreaSqM.toFixed(4)),
+        unit: "ตร.ม.",
+        unitPriceTHB: stoneUnitPrice,
+        totalTHB: Math.round(estimate.counterAreaSqM * stoneUnitPrice),
+        workQuantity: Number(estimate.counterAreaSqM.toFixed(4)),
+        workUnit: "ตร.ม.",
+      });
+    }
+    state.basinSkus.forEach((sku) => {
+      const product = basinProducts.find((item) => item.sku === sku);
+      if (product) {
+        sketchNotificationItems.push({
+          kind: "basin" as const,
+          code: product.sku,
+          description: product.colorName,
+          quantity: 1,
+          unit: "ชุด",
+          unitPriceTHB: product.priceTHB,
+          totalTHB: product.priceTHB,
+          workQuantity: 1,
+          workUnit: "ชุด",
+          dimensions: product.dimensions,
+          cutoutDimensions: product.basinDimensions,
+        });
+      }
+    });
+    if (estimate.installationChargeTHB > 0) {
+      sketchNotificationItems.push({
+        kind: "service" as const,
+        code: "INSTALL-BASIN",
+        description: `ค่าบริการติดตั้งอ่างล้างหน้า (${state.basinSkus.length} จุด)`,
+        quantity: state.basinSkus.length,
+        unit: "จุด",
+        unitPriceTHB: INSTALLATION_PRICE,
+        totalTHB: estimate.installationChargeTHB,
+        workQuantity: state.basinSkus.length,
+        workUnit: "จุด",
+      });
+    }
+    if (estimate.smallJobFeeTHB > 0) {
+      sketchNotificationItems.push({
+        kind: "service" as const,
+        code: "SMALL-JOB-FEE",
+        description: "ค่าดำเนินการงานพื้นที่เล็ก",
+        quantity: 1,
+        unit: "งาน",
+        unitPriceTHB: estimate.smallJobFeeTHB,
+        totalTHB: estimate.smallJobFeeTHB,
+        workQuantity: 1,
+        workUnit: "งาน",
+      });
+    }
+
     const form = new FormData();
     sketchFiles.forEach((file) => form.append("file", file));
-    form.append("metadata", JSON.stringify({ leadKey, status: "new_lead", source: "hand_sketch", orderMode: "sketch", productSkus: state.basinSkus, name, company: company || null, phone, lineContact: contact.lineContact || null, email: email || null, project, address: address || null, site: contact.site || address || null, purchasingDepartment: contact.purchasingDepartment || null, notes: contact.notes || null, taxName: contact.taxName || null, taxId: contact.taxId || null, taxBranch: contact.taxBranch || null, taxAddress: contact.taxAddress || null, preferredContact: contact.preferredContact || null, customerRole: contact.customerRole || null, propertyType: contact.propertyType || null, condoFloor: contact.condoFloor || null, expectedInstallationDate: contact.expectedInstallationDate || null, studioData: { ...state, estimate, worksitePlaceId } }));
+    form.append("metadata", JSON.stringify({
+      leadKey,
+      status: "new_lead",
+      source: "hand_sketch",
+      orderMode: "sketch",
+      productSkus: state.basinSkus,
+      name,
+      company: company || null,
+      phone,
+      lineContact: contact.lineContact || null,
+      email: email || null,
+      project,
+      address: address || null,
+      site: contact.site || address || null,
+      purchasingDepartment: contact.purchasingDepartment || null,
+      notes: contact.notes || null,
+      taxName: contact.taxName || null,
+      taxId: contact.taxId || null,
+      taxBranch: contact.taxBranch || null,
+      taxAddress: contact.taxAddress || null,
+      preferredContact: contact.preferredContact || null,
+      customerRole: contact.customerRole || null,
+      propertyType: contact.propertyType || null,
+      condoFloor: contact.condoFloor || null,
+      expectedInstallationDate: contact.expectedInstallationDate || null,
+      studioData: {
+        ...state,
+        estimate,
+        worksitePlaceId,
+        items: sketchNotificationItems,
+        notification: {
+          items: sketchNotificationItems,
+          vat: state.vat,
+          subtotalTHB: estimate.subtotalTHB,
+          vatTHB: estimate.vatAmountTHB,
+          totalTHB: estimate.totalTHB
+        }
+      }
+    }));
     try {
       const response = await fetch("/api/leads/sketch", { method: "POST", body: form });
       const payload = await response.json() as { notificationStatus?: string; message?: string };
@@ -3187,6 +3286,62 @@ export function StudioPage({
           <div><p className="eyebrow">OPTIONAL SPECIFICATIONS</p><h2>สเปกที่สนใจ</h2></div>
         </div>
         <p className="studio-helper studio-sketch-optional-copy">เลือกสเปกที่สนใจเบื้องต้น (ไม่บังคับ) เพื่อให้ทีมงานช่วยวางผังให้ตรงรุ่น หรือปล่อยว่างเพื่อให้ทีมงานช่วยแนะนำ</p>
+        <div className="studio-sketch-dimension-card" data-testid="card-sketch-dimensions">
+          <div className="studio-sketch-dim-header">
+            <strong>📐 ขนาดเคาน์เตอร์ตามแบบร่าง (โดยประมาณ)</strong>
+            <span>พื้นที่คำนวณได้: <strong>{estimate.counterAreaSqM.toFixed(3)} ตร.ม.</strong></span>
+          </div>
+          <div className="studio-sketch-dim-row">
+            <label className="studio-sketch-dim-field">
+              <span>ความยาวเคาน์เตอร์ (มม.)</span>
+              <input
+                type="number"
+                min="100"
+                max="10000"
+                step="10"
+                value={state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm}
+                onChange={(e) => {
+                  const val = Math.max(1, Number(e.target.value) || 0);
+                  setState((curr) => ({
+                    ...curr,
+                    dimensions: { ...curr.dimensions, runAMm: val },
+                    pieces: curr.pieces ? curr.pieces.map((p, idx) => idx === 0 ? {
+                      ...p,
+                      rectangles: p.rectangles.map((r, rIdx) => rIdx === 0 ? { ...r, widthMm: val } : r)
+                    } : p) : curr.pieces
+                  }));
+                }}
+                placeholder="เช่น 1980"
+                data-testid="input-sketch-length"
+              />
+              <small>เช่น 1980 มม. (1.98 เมตร)</small>
+            </label>
+            <label className="studio-sketch-dim-field">
+              <span>ความลึก / หน้ากว้าง (มม.)</span>
+              <input
+                type="number"
+                min="100"
+                max="3000"
+                step="10"
+                value={state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm}
+                onChange={(e) => {
+                  const val = Math.max(1, Number(e.target.value) || 0);
+                  setState((curr) => ({
+                    ...curr,
+                    dimensions: { ...curr.dimensions, depthMm: val },
+                    pieces: curr.pieces ? curr.pieces.map((p, idx) => idx === 0 ? {
+                      ...p,
+                      rectangles: p.rectangles.map((r, rIdx) => rIdx === 0 ? { ...r, lengthMm: val } : r)
+                    } : p) : curr.pieces
+                  }));
+                }}
+                placeholder="เช่น 450"
+                data-testid="input-sketch-depth"
+              />
+              <small>เช่น 450 มม. (0.45 เมตร)</small>
+            </label>
+          </div>
+        </div>
         <StudioShortlists {...studioShortlistsProps} />
       </section>
     </div>

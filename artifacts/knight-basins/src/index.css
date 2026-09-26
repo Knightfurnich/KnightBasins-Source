@@ -4448,6 +4448,78 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   overflow-y: auto;
 }
 
+.studio-sketch-dimension-card {
+  background: var(--card-paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.studio-sketch-dim-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.studio-sketch-dim-header span strong {
+  color: var(--brand-blue);
+  font-size: 15px;
+}
+
+.studio-sketch-dim-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.studio-sketch-dim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.studio-sketch-dim-field span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.studio-sketch-dim-field input {
+  height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.studio-sketch-dim-field input:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(42, 155, 208, 0.16);
+}
+
+.studio-sketch-dim-field small {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 640px) {
+  .studio-sketch-dim-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .studio-page--sketch .studio-layout-bottom--sketch {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;

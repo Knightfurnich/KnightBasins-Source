@@ -1364,12 +1364,13 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
   const sheetCutPriceWarning = false;
   const stoneTotal = price === null ? 0 : roundBaht(counterArea * price) + roundBaht((upstandArea + backsplashArea) * price);
   const upstandTotal = price === null ? 0 : roundBaht(upstandArea * price);
-  // Only basins actually placed on the layout are priced or submitted — a
-  // shortlisted-but-unplaced basin is a comparison, not a commitment, so a
-  // stone-only (or stone + install-only) order must total stone/install cost
-  // alone. This must stay in sync with submitStudio's notificationItems in
-  // StudioPage.tsx, which already only counts state.basinPlacements.
-  const basinSetSkus = state.basinPlacements.map((placement) => placement.sku);
+  // Only basins actually placed on the layout are priced or submitted in Studio mode.
+  // In sketch mode, there is no 2D canvas, so all basins chosen in state.basinSkus
+  // are priced into the estimate along with their installation charge.
+  const isSketchMode = state.mode === "sketch";
+  const basinSetSkus = isSketchMode && state.basinPlacements.length === 0
+    ? state.basinSkus
+    : state.basinPlacements.map((placement) => placement.sku);
   const basins = basinSetSkus.map((sku) => products.find((product) => product.sku === sku)).filter(Boolean) as BasinProduct[];
   const basinSubtotal = basins.reduce((sum, product) => sum + roundBaht(product.priceTHB), 0);
   const requestedInstallation = roundBaht(basins.length * INSTALLATION_PRICE);
