@@ -47,6 +47,7 @@ import {
   snapStudioRectanglePosition,
   studioEdgeTotals,
   studioEstimate,
+  buildCustomShapePiece,
   applyStudioSizePreset,
   studioDefaultStoneCode,
   studioBasinCatalogEntries,
@@ -76,7 +77,6 @@ import {
   studioPieces as getStudioPieces,
   STUDIO_MAX_PIECES,
   STUDIO_MAX_RECTANGLES,
-  STUDIO_COUNTER_PRESETS,
   type BasinPlacement,
   type BasinAnchor,
   type SideStatus,
@@ -573,11 +573,15 @@ function StudioShapeWizard({
   setState,
   targetPieceId,
   simpleMode = false,
+  draftPreset,
+  onDraftPresetChange,
 }: {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
   targetPieceId?: string;
   simpleMode?: boolean;
+  draftPreset?: StudioPreset;
+  onDraftPresetChange?: (preset: StudioPreset) => void;
 }) {
   const pieces = getStudioPieces(state);
   const targetPiece = pieces.find((piece) => piece.id === targetPieceId) ?? pieces[0];
@@ -593,6 +597,7 @@ function StudioShapeWizard({
   };
 
   const [preset, setPreset] = useState<StudioPreset>(() => detectPreset(targetPiece));
+  const selectedPreset = onDraftPresetChange ? (draftPreset ?? preset) : preset;
 
   useEffect(() => {
     setPreset(detectPreset(targetPiece));
@@ -620,6 +625,11 @@ function StudioShapeWizard({
   };
 
   const selectPreset = (next: StudioPreset) => {
+    if (onDraftPresetChange) {
+      setPreset(next);
+      onDraftPresetChange(next);
+      return;
+    }
     const defaults = presetLegDefaults(next);
     const firstRectangle = targetPiece?.rectangles[0];
     const isFreshBoard =
@@ -641,14 +651,335 @@ function StudioShapeWizard({
           <button
             type="button"
             key={option}
-            className={`button button--outline studio-preset-button ${preset === option ? "is-active" : ""}`}
+            className={`button button--outline studio-preset-button ${selectedPreset === option ? "is-active" : ""}`}
             onClick={() => selectPreset(option)}
-            aria-pressed={preset === option}
+            aria-pressed={selectedPreset === option}
             data-testid={`${simpleMode ? "button-studio-shape" : "button-studio-preset"}-${option}`}
           >
             <span>{studioPresetLabels[option]}</span>
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+type StudioCustomShapePanelDraft = {
+  lengthMm: string;
+  depthMm: string;
+  edges: Record<"top" | "right" | "bottom" | "left", SideStatus>;
+};
+
+type StudioCustomShapePanelData = {
+  widthMm: number;
+  depthMm: number;
+  edges: Record<"top" | "right" | "bottom" | "left", SideStatus>;
+};
+
+const STUDIO_CUSTOM_SHAPE_EDGE_SIDES = [
+  { side: "top", testSide: "top", label: "ด้านชนผนัง" },
+  { side: "bottom", testSide: "front", label: "ด้านหน้า (คนยืน)" },
+  { side: "left", testSide: "left", label: "ด้านข้างซ้าย" },
+  { side: "right", testSide: "right", label: "ด้านข้างขวา" },
+] as const;
+
+const STUDIO_CUSTOM_SHAPE_EDGE_OPTIONS: ReadonlyArray<{ value: SideStatus; label: string }> = [
+  { value: "upstand", label: "ติดบัว ▲" },
+  { value: "wall-flush", label: "ชิดผนัง ║" },
+  { value: "wall-flush+upstand", label: "ชิดผนัง + ติดบัว ║▲" },
+  { value: "open-edge", label: "ขอบเปิด ⊗" },
+];
+
+const studioCustomShapeEdgeLabel = (status: SideStatus) =>
+  status === "normal"
+    ? "ปกติ"
+    : STUDIO_CUSTOM_SHAPE_EDGE_OPTIONS.find((option) => option.value === status)?.label ?? studioSideStatusLabel(status);
+
+function studioCustomShapePresetForPiece(piece: StudioPiece): StudioPreset {
+  if (piece.preset) return piece.preset;
+  if (piece.rectangles.length === 3) return "u";
+  if (piece.rectangles.length === 2) return (piece.rectangles[1]?.xMm ?? 0) > 0 ? "l-right" : "l-left";
+  return "i";
+}
+
+function studioCustomShapeDefaults(preset: StudioPreset): StudioCustomShapePanelDraft[] {
+  const dimensions = preset === "u"
+    ? [{ lengthMm: 1500, depthMm: 600 }, { lengthMm: 600, depthMm: 1200 }, { lengthMm: 600, depthMm: 1200 }]
+    : preset === "i"
+      ? [{ lengthMm: 1800, depthMm: 600 }]
+      : [{ lengthMm: 1800, depthMm: 600 }, { lengthMm: 600, depthMm: 1200 }];
+
+  return dimensions.map(({ lengthMm, depthMm }) => ({
+    lengthMm: String(lengthMm),
+    depthMm: String(depthMm),
+    edges: { top: "normal", right: "normal", bottom: "normal", left: "normal" },
+  }));
+}
+
+function studioCustomShapeDraftsForPiece(piece: StudioPiece, preset: StudioPreset): StudioCustomShapePanelDraft[] {
+  const defaults = studioCustomShapeDefaults(preset);
+  if (!piece.hasCustomEdges || piece.preset !== preset || piece.rectangles.length !== defaults.length) return defaults;
+
+  return piece.rectangles.map((rectangle) => ({
+    lengthMm: String(rectangle.widthMm),
+    depthMm: String(rectangle.lengthMm),
+    edges: {
+      top: piece.sideStatuses[`${rectangle.id}:top`] ?? "normal",
+      right: piece.sideStatuses[`${rectangle.id}:right`] ?? "normal",
+      bottom: piece.sideStatuses[`${rectangle.id}:bottom`] ?? "normal",
+      left: piece.sideStatuses[`${rectangle.id}:left`] ?? "normal",
+    },
+  }));
+}
+
+function studioCustomShapePanelLabel(preset: StudioPreset, index: number) {
+  if (index === 0) return preset === "i" ? "แผ่นหลัก" : "แผ่นแนวผนัง";
+  if (preset === "l-left") return "แผ่นขาซ้าย";
+  if (preset === "l-right") return "แผ่นขาขวา";
+  return index === 1 ? "แผ่นขาซ้าย" : "แผ่นขาขวา";
+}
+
+function StudioCustomShapePanel({
+  state,
+  setState,
+  targetPiece,
+  simpleMode = false,
+  onApplied,
+}: {
+  state: StudioState;
+  setState: Dispatch<SetStateAction<StudioState>>;
+  targetPiece: StudioPiece;
+  simpleMode?: boolean;
+  onApplied: () => void;
+}) {
+  const [preset, setPreset] = useState<StudioPreset>(() => studioCustomShapePresetForPiece(targetPiece));
+  const [panelDrafts, setPanelDrafts] = useState<StudioCustomShapePanelDraft[]>(
+    () => studioCustomShapeDraftsForPiece(targetPiece, preset),
+  );
+  const [openEdgeSelector, setOpenEdgeSelector] = useState<string | null>(null);
+
+  useEffect(() => {
+    const nextPreset = studioCustomShapePresetForPiece(targetPiece);
+    setPreset(nextPreset);
+    setPanelDrafts(studioCustomShapeDraftsForPiece(targetPiece, nextPreset));
+    setOpenEdgeSelector(null);
+  }, [targetPiece.id]);
+
+  const selectDraftPreset = (nextPreset: StudioPreset) => {
+    if (nextPreset === preset) return;
+    setPreset(nextPreset);
+    setPanelDrafts(studioCustomShapeDefaults(nextPreset));
+    setOpenEdgeSelector(null);
+  };
+
+  const defaultDimensions = studioCustomShapeDefaults(preset);
+  const modelPanels: StudioCustomShapePanelData[] = panelDrafts.map((panel) => ({
+    widthMm: Number(panel.lengthMm),
+    depthMm: Number(panel.depthMm),
+    edges: panel.edges,
+  }));
+  const dimensionsValid = modelPanels.length > 0 && modelPanels.every((panel) =>
+    Number.isInteger(panel.widthMm) && panel.widthMm > 0 &&
+    Number.isInteger(panel.depthMm) && panel.depthMm > 0,
+  );
+  const previewPanels = panelDrafts.map((panel, index) => {
+    const defaults = defaultDimensions[index] ?? defaultDimensions[0]!;
+    const length = Number(panel.lengthMm);
+    const depth = Number(panel.depthMm);
+    return {
+      widthMm: Number.isInteger(length) && length > 0 ? length : Number(defaults.lengthMm),
+      depthMm: Number.isInteger(depth) && depth > 0 ? depth : Number(defaults.depthMm),
+      edges: panel.edges,
+    };
+  });
+  const previewPiece = buildCustomShapePiece(`${targetPiece.id}-draft`, preset, previewPanels);
+  const lockedJointEdges = new Set(
+    studioPieceEdges(previewPiece)
+      .filter((edge) => edge.exposedLengthMm <= 0)
+      .map((edge) => `${edge.rectangleId}:${edge.side}`),
+  );
+
+  const updatePanelDimension = (index: number, key: "lengthMm" | "depthMm", value: string) => {
+    setPanelDrafts((current) => current.map((panel, panelIndex) =>
+      panelIndex === index ? { ...panel, [key]: value } : panel,
+    ));
+  };
+  const updatePanelEdge = (index: number, side: keyof StudioCustomShapePanelDraft["edges"], status: SideStatus) => {
+    setPanelDrafts((current) => current.map((panel, panelIndex) =>
+      panelIndex === index ? { ...panel, edges: { ...panel.edges, [side]: status } } : panel,
+    ));
+  };
+  const mirrorDraftShape = () => {
+    if (preset !== "l-left" && preset !== "l-right") return;
+    setPreset(preset === "l-left" ? "l-right" : "l-left");
+    setPanelDrafts((current) => current.map((panel) => ({
+      ...panel,
+      edges: { ...panel.edges, left: panel.edges.right, right: panel.edges.left },
+    })));
+    setOpenEdgeSelector(null);
+  };
+
+  const applyCustomShape = () => {
+    if (!dimensionsValid) return;
+    const shapePanels: StudioCustomShapePanelData[] = panelDrafts.map((panel) => ({
+      widthMm: Number(panel.lengthMm),
+      depthMm: Number(panel.depthMm),
+      edges: panel.edges,
+    }));
+    setState((current) => {
+      const currentPieces = getStudioPieces(current);
+      const currentPiece = currentPieces.find((piece) => piece.id === targetPiece.id);
+      if (!currentPiece) return current;
+
+      const builtPiece = {
+        ...buildCustomShapePiece(currentPiece.id, preset, shapePanels),
+        name: currentPiece.name,
+      };
+      const geometryChanged = currentPiece.preset !== preset ||
+        currentPiece.rectangles.length !== builtPiece.rectangles.length ||
+        builtPiece.rectangles.some((rectangle, index) => {
+          const previous = currentPiece.rectangles[index];
+          return !previous ||
+            previous.widthMm !== rectangle.widthMm ||
+            previous.lengthMm !== rectangle.lengthMm ||
+            previous.xMm !== rectangle.xMm ||
+            previous.yMm !== rectangle.yMm ||
+            previous.rotation !== rectangle.rotation;
+        });
+
+      return {
+        ...current,
+        shape: preset === "i" ? "I" : preset === "u" ? "U" : "L",
+        pieces: currentPieces.map((piece) => piece.id === currentPiece.id ? builtPiece : piece),
+        activePieceId: builtPiece.id,
+        basinPlacements: geometryChanged
+          ? current.basinPlacements.filter((placement) => (placement.pieceId ?? currentPiece.id) !== currentPiece.id)
+          : current.basinPlacements,
+      };
+    });
+    setOpenEdgeSelector(null);
+    onApplied();
+  };
+
+  return (
+    <div className="studio-custom-shape-panel">
+      <StudioShapeWizard
+        state={state}
+        setState={setState}
+        targetPieceId={targetPiece.id}
+        simpleMode={simpleMode}
+        draftPreset={preset}
+        onDraftPresetChange={selectDraftPreset}
+      />
+      {(preset === "l-left" || preset === "l-right") && (
+        <button
+          type="button"
+          className="button button--outline studio-mirror-button"
+          onClick={mirrorDraftShape}
+          data-testid="button-studio-mirror-l"
+        >
+          <RotateCw size={14} /> สลับข้าง L (ซ้าย ↔ ขวา)
+        </button>
+      )}
+      <div className="studio-custom-shape-pieces">
+        {panelDrafts.map((panel, index) => (
+          <section className="studio-piece-card" key={`${preset}-${index}`} aria-label={studioCustomShapePanelLabel(preset, index)}>
+            <h4>{studioCustomShapePanelLabel(preset, index)}</h4>
+            <div className="studio-piece-dimension-inputs">
+              <label>
+                <span>ความยาว (มม.)</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputMode="numeric"
+                  value={panel.lengthMm}
+                  onChange={(event) => updatePanelDimension(index, "lengthMm", event.target.value)}
+                  data-testid={`input-piece-${index}-length`}
+                />
+              </label>
+              <label>
+                <span>ความลึก (มม.)</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputMode="numeric"
+                  value={panel.depthMm}
+                  onChange={(event) => updatePanelDimension(index, "depthMm", event.target.value)}
+                  data-testid={`input-piece-${index}-depth`}
+                />
+              </label>
+            </div>
+            <div className="studio-piece-edge-row" role="group" aria-label={`กำหนดสถานะขอบของ${studioCustomShapePanelLabel(preset, index)}`}>
+              {STUDIO_CUSTOM_SHAPE_EDGE_SIDES.map(({ side, testSide, label }) => {
+                const rectangle = previewPiece.rectangles[index];
+                const isLocked = Boolean(rectangle && lockedJointEdges.has(`${rectangle.id}:${side}`));
+                const selectorId = `${index}-${testSide}`;
+                const isOpen = openEdgeSelector === selectorId;
+                const status = panel.edges[side];
+                return (
+                  <div className="studio-piece-edge-control" key={side}>
+                    <span>{label}</span>
+                    <button
+                      type="button"
+                      className={`studio-edge-select ${isLocked ? "is-locked" : ""}`}
+                      disabled={isLocked}
+                      aria-expanded={isLocked ? undefined : isOpen}
+                      aria-label={isLocked ? `${label}: รอยต่อชนแผ่น` : `${label}: ${studioCustomShapeEdgeLabel(status)}`}
+                      title={isLocked ? "รอยต่อชนแผ่นเลือกสถานะขอบไม่ได้" : `สถานะปัจจุบัน: ${studioCustomShapeEdgeLabel(status)}`}
+                      onClick={() => setOpenEdgeSelector(isOpen ? null : selectorId)}
+                      data-testid={`select-edge-${index}-${testSide}`}
+                    >
+                      {isLocked ? "🔗 รอยต่อชนแผ่น" : <>{studioCustomShapeEdgeLabel(status)} <ChevronDown size={13} /></>}
+                    </button>
+                    {!isLocked && isOpen && (
+                      <div className="studio-edge-options" role="group" aria-label={`ตัวเลือกสถานะ ${label}`}>
+                        <button
+                          type="button"
+                          className={status === "normal" ? "is-active" : ""}
+                          aria-pressed={status === "normal"}
+                          onClick={() => {
+                            updatePanelEdge(index, side, "normal");
+                            setOpenEdgeSelector(null);
+                          }}
+                        >
+                          ปกติ
+                        </button>
+                        {STUDIO_CUSTOM_SHAPE_EDGE_OPTIONS.map((option) => (
+                          <button
+                            type="button"
+                            key={option.value}
+                            className={status === option.value ? "is-active" : ""}
+                            aria-pressed={status === option.value}
+                            onClick={() => {
+                              updatePanelEdge(index, side, option.value);
+                              setOpenEdgeSelector(null);
+                            }}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+      <div className="studio-custom-shape-actions">
+        <small>พื้นที่และราคาจะคำนวณหลังจากประกอบผังเท่านั้น</small>
+        <button
+          type="button"
+          className="button button--primary"
+          onClick={applyCustomShape}
+          disabled={!dimensionsValid}
+          data-testid="button-apply-custom-shape"
+        >
+          🎨 ประกอบผังลงกระดาน
+        </button>
       </div>
     </div>
   );
@@ -1902,7 +2233,6 @@ function StudioCanvas({
     ? state.activePieceId
     : (pieces[0]?.id ?? "");
   const activePiece = pieces.find((p) => p.id === activePieceId) ?? pieces[0];
-  const currentWidthMm = state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm;
   const activePieceZoom = activePiece ? (pieceZoom[activePiece.id] ?? 1) : 1;
   const setActivePieceZoom = (updater: number | ((prev: number) => number)) => {
     if (!activePiece) return;
@@ -1949,27 +2279,6 @@ function StudioCanvas({
     setSelectedRectangleId(null);
     setSelectedPlacementId(null);
   };
-
-  const mirrorL = (pieceId: string) => {
-    setState((current) => {
-      const currentPieces = getStudioPieces(current);
-      return {
-        ...current,
-        pieces: currentPieces.map((p) => {
-          if (p.id !== pieceId) return p;
-          const mirrored = mirrorStudioPiece(p);
-          const nextPreset: StudioPreset = p.preset === "l-left" ? "l-right" : p.preset === "l-right" ? "l-left" : "l-right";
-          return { ...mirrored, preset: nextPreset };
-        }),
-      };
-    });
-  };
-
-  const isLActive = Boolean(activePiece && (
-    activePiece.preset === "l-left" ||
-    activePiece.preset === "l-right" ||
-    (activePiece.rectangles.length === 2 && (activePiece.rectangles.find((r) => r.id === "wizard-leg-1")?.yMm ?? activePiece.rectangles[1]?.yMm ?? 0) > 0)
-  ));
 
   return <section className="studio-panel studio-canvas-panel">
     <div className="studio-panel-heading">
@@ -2048,37 +2357,18 @@ function StudioCanvas({
 
     {/* Active Piece Shape Controls & Zoom */}
     <div className="studio-active-piece-controls">
-      <div className="studio-piece-shape-section">
-        <p className="studio-helper">เลือกทรงของ {activePiece.name} แล้วกรอกขนาดแต่ละแผ่น</p>
-        <StudioShapeWizard state={state} setState={setState} targetPieceId={activePiece.id} simpleMode={simpleMode} />
-        <div className="studio-size-presets" role="group" aria-label="ขนาดเคาน์เตอร์มาตรฐาน">
-          <span className="studio-size-presets-label">ขนาดเคาน์เตอร์หลัก</span>
-          {STUDIO_COUNTER_PRESETS.map((preset) => {
-            const isActive = currentWidthMm === preset.widthMm;
-            return (
-              <button
-                type="button"
-                key={preset.id}
-                className={`button button--outline studio-size-button ${isActive ? "is-active" : ""}`}
-                onClick={() => setState((current) => applyStudioSizePreset(current, preset.widthMm, preset.depthMm))}
-                aria-pressed={isActive}
-                data-testid={`button-studio-size-preset-${preset.id}`}
-              >
-                {preset.label}
-              </button>
-            );
-          })}
-        </div>
-        {isLActive && (
-          <button
-            type="button"
-            className="button button--outline studio-mirror-button"
-            onClick={() => mirrorL(activePiece.id)}
-            data-testid="button-studio-mirror-l"
-          >
-            <RotateCw size={14} /> สลับข้าง L (ซ้าย ↔ ขวา)
-          </button>
-        )}
+      <div className="studio-piece-shape-section" id="studio-piece-shape-section">
+        <p className="studio-helper">เลือกรูปทรงและกำหนดขนาดกับขอบของแต่ละแผ่น ก่อนประกอบผังลงกระดาน</p>
+        <StudioCustomShapePanel
+          state={state}
+          setState={setState}
+          targetPiece={activePiece}
+          simpleMode={simpleMode}
+          onApplied={() => {
+            setSelectedRectangleId(null);
+            setSelectedPlacementId(null);
+          }}
+        />
       </div>
 
       <div className="studio-zoom-toolbar" aria-label="ควบคุมการซูมผัง 2D">
