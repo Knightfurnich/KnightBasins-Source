@@ -855,31 +855,33 @@ export function TechnicianCalendarPage() {
                       aria-pressed={isSelected}
                       data-testid={`calendar-day-${day.date}`}
                     >
-                      {/* Top Row: Date Number (left) & Weather (right) */}
-                      <div className="flex items-center justify-between gap-1">
-                        <span className={`grid h-6 w-6 place-items-center text-xs font-semibold tabular-nums sm:h-7 sm:w-7 sm:text-sm shrink-0 ${isToday ? "bg-[var(--brand-blue)] text-white shadow-sm" : holiday ? "bg-[#c23b22]/15 text-[#c23b22] font-bold rounded-sm" : "text-[var(--ink)]"}`}>
-                          {dayNumber}
-                        </span>
-                        {weatherMap?.[day.date] && (
-                          <span className="text-[11px] tabular-nums shrink-0 text-right" title={`${weatherMap[day.date].description} (สูงสุด ${weatherMap[day.date].tempMax}°C · โอกาสฝน ${weatherMap[day.date].rainProb}%)`}>
-                            {weatherMap[day.date].icon} <span className="text-[10px] text-[var(--ink-soft)] font-normal">{weatherMap[day.date].tempMax}°</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className={`grid h-6 w-6 place-items-center text-xs font-semibold tabular-nums sm:h-7 sm:w-7 sm:text-sm shrink-0 ${isToday ? "bg-[var(--brand-blue)] text-white shadow-sm" : holiday ? "bg-[#c23b22]/15 text-[#c23b22] font-bold rounded-sm" : "text-[var(--ink)]"}`}>
+                            {dayNumber}
                           </span>
-                        )}
-                      </div>
-
-                      {/* Holiday Badge (if any) */}
-                      {holiday && (
-                        <div className="mt-1 truncate text-[10px] font-bold text-[#c23b22] leading-tight" title={holiday}>
-                          🚩 {holiday}
+                          {holiday && (
+                            <span className="hidden sm:inline-block max-w-[85px] truncate text-[10px] font-bold text-[#c23b22] leading-tight" title={holiday}>
+                              🚩 {holiday}
+                            </span>
+                          )}
                         </div>
-                      )}
-
-                      {/* Status Row: Job Count Badge */}
-                      {day.totalJobs > 0 && (
-                        <div className="mt-1 flex items-center justify-between">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold rounded leading-none ${day.dayStatus === "busy" ? "bg-[#a24439]/10 text-[#a24439]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
-                            {day.totalJobs} งาน
-                          </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {weatherMap?.[day.date] && (
+                            <span className="text-[11px] tabular-nums" title={`${weatherMap[day.date].description} (สูงสุด ${weatherMap[day.date].tempMax}°C · โอกาสฝน ${weatherMap[day.date].rainProb}%)`}>
+                              {weatherMap[day.date].icon} <span className="hidden xl:inline text-[10px] text-[var(--ink-soft)] font-normal">{weatherMap[day.date].tempMax}°</span>
+                            </span>
+                          )}
+                          {day.totalJobs > 0 && (
+                            <span className={`px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold rounded ${day.dayStatus === "busy" ? "bg-[#a24439]/10 text-[#a24439]" : "bg-[var(--line)] text-[var(--ink)]"}`}>
+                              {day.totalJobs} งาน
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {holiday && (
+                        <div className="sm:hidden text-[9px] font-bold text-[#c23b22] truncate mt-0.5">
+                          🚩 {holiday}
                         </div>
                       )}
 
