@@ -5,6 +5,7 @@ import { Router, type IRouter, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
+import { analyzeSketchImage } from "../lib/sketch-vision";
 import {
   createQuoteAccessSecret,
   publicQuoteResponse,
@@ -19,6 +20,9 @@ import { formatQuoteMonth } from "../lib/date-time";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
 const MAX_SKETCH_FILES = 5;
+// Separate limit from MAX_SKETCH_FILES above (which caps the /leads/sketch lead-submission
+// upload at 5): job-72 calls for a distinct cap of 3 for the AI vision-analysis endpoint.
+const MAX_SKETCH_VISION_FILES = 3;
 
 export function quoteTotalTHB(studioData: unknown): number | null {
   if (!studioData || typeof studioData !== "object") return null;
@@ -51,6 +55,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   const router: IRouter = Router();
   const leadRateLimit = createRateLimiter({ name: "leads", max: 30, windowMs: 60 * 1000 });
   const sketchRateLimit = createRateLimiter({ name: "sketch-upload", max: 5, windowMs: 10 * 60 * 1000 });
+  const sketchVisionRateLimit = createRateLimiter({ name: "sketch-vision-analyze", max: 5, windowMs: 10 * 60 * 1000 });
   const paymentSlipRateLimit = createRateLimiter({ name: "payment-slip-upload", max: 5, windowMs: 10 * 60 * 1000 });
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
   const notificationRateLimit = createRateLimiter({
@@ -373,6 +378,22 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
         await removeUploadedMedia(upload.filename).catch(() => undefined);
         throw error;
       }
+    } catch (error) {
+      if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) return invalid(res, error.message);
+      return next(error);
+    }
+  });
+
+  // Reads a hand-drawn sketch and pre-fills the /sketch page's form via Gemini
+  // Vision. Never fails the request over an AI problem (no key, network error,
+  // malformed response): analyzeSketchImage always resolves to an "unknown"
+  // item in that case, so the customer/sales team just fills the form by hand
+  // -- see analyzeSketchImage's docstring for the reasoning.
+  router.post("/sketch/analyze", sketchVisionRateLimit, uploadConcurrency, async (req, res, next) => {
+    try {
+      const { media } = await readMultipartForm(req, "image", { maxFiles: MAX_SKETCH_VISION_FILES });
+      const items = await Promise.all(media.map((item, index) => analyzeSketchImage(item.buffer, item.contentType, index)));
+      return res.status(200).json({ items });
     } catch (error) {
       if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) return invalid(res, error.message);
       return next(error);
