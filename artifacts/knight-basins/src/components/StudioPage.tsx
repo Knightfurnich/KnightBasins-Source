@@ -178,6 +178,7 @@ type SketchProcessingStatus = {
 };
 
 const SKETCH_ANALYSIS_FALLBACK_MESSAGE = "ไม่สามารถอ่านขนาดจากภาพได้ กรุณากรอกด้วยตนเอง";
+const SKETCH_ANALYSIS_RATE_LIMIT_MESSAGE = "ส่งวิเคราะห์บ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่ หรือกรอกขนาดด้วยตนเอง";
 
 function sketchAnalysisRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -2778,7 +2779,12 @@ export function StudioPage({
 
       try {
         const response = await fetch("/api/sketch/analyze", { method: "POST", body: formData });
-        if (!response.ok) throw new Error(`Sketch analysis request failed: HTTP ${response.status}`);
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error("RATE_LIMIT");
+          }
+          throw new Error(`Sketch analysis request failed: HTTP ${response.status}`);
+        }
         const analysis = parseSketchAnalysis(await response.json() as unknown);
         if (!sketchFilesRef.current.includes(file)) continue;
 
@@ -2825,19 +2831,21 @@ export function StudioPage({
               message: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
               busy: false,
             });
-      } catch {
+      } catch (err: unknown) {
         if (!sketchFilesRef.current.includes(file)) continue;
+        const isRateLimit = err instanceof Error && err.message === "RATE_LIMIT";
+        const message = isRateLimit ? SKETCH_ANALYSIS_RATE_LIMIT_MESSAGE : SKETCH_ANALYSIS_FALLBACK_MESSAGE;
         updateSketchAnalysisCard(file, {
           shape: "unknown",
           confidence: null,
-          notes: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
+          notes: message,
           runAMm: null,
           depthMm: null,
           phase: "unknown",
         });
         setSketchStatus({
           phase: "error",
-          message: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
+          message,
           busy: false,
         });
       } finally {
@@ -3474,11 +3482,23 @@ export function StudioPage({
           </div>
         </div>
         {sketchFiles.length < MAX_SKETCH_FILES && <div className="studio-sketch-actions">
-          <button type="button" className="button button--outline" onClick={() => cameraInputRef.current?.click()} data-testid="button-sketch-camera">
-            <Camera size={17} /> ถ่ายรูปจากกล้องทันที
+          <button
+            type="button"
+            className="button button--outline"
+            onClick={() => cameraInputRef.current?.click()}
+            disabled={sketchStatus?.busy}
+            data-testid="button-sketch-camera"
+          >
+            <Camera size={17} /> {sketchStatus?.busy ? "กำลังประมวลผล…" : "ถ่ายรูปจากกล้องทันที"}
           </button>
-          <button type="button" className="button button--outline" onClick={() => sketchInputRef.current?.click()} data-testid="button-sketch-file">
-            <FolderOpen size={17} /> เลือกภาพจากเครื่อง
+          <button
+            type="button"
+            className="button button--outline"
+            onClick={() => sketchInputRef.current?.click()}
+            disabled={sketchStatus?.busy}
+            data-testid="button-sketch-file"
+          >
+            <FolderOpen size={17} /> {sketchStatus?.busy ? "กำลังประมวลผล…" : "เลือกภาพจากเครื่อง"}
           </button>
         </div>}
         <div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">
