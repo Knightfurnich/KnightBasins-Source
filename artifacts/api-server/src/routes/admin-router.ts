@@ -179,7 +179,7 @@ const ZEN_TITLE = "สต๊อคแผ่นหินสังเคราะ�
 let stockCache: { data: AdminStockResponse; fetchedAt: number } | null = null;
 
 type AdminStockItem = { no: number; name: string; qty: number; scrap: string; lots: string[]; note: string };
-type AdminStockSheet = { title: string; total: number; inStockCount: number; items: AdminStockItem[] };
+type AdminStockSheet = { title: string; total: number; inStockCount: number; totalSheets: number; items: AdminStockItem[] };
 type AdminStockResponse = { updatedAt: string; staron: AdminStockSheet; zen: AdminStockSheet };
 
 /** Looks for the credentials as inline JSON first (GOOGLE_SERVICE_ACCOUNT_JSON),
@@ -340,6 +340,9 @@ function buildStockSheet(defaultTitle: string, rows: unknown[][]): AdminStockShe
     };
     const name = cell(1);
     if (!name || name === "รายการแผ่นหินสังเคราะห์") continue;
+    // The factory's Google Sheet ends with a SUM-formula row (e.g. "รวมแผ่นทั้งหมด")
+    // that reads back as a fake extra stone color -- drop it before it's ever an item.
+    if (/^(รวมแผ่นทั้งหมด|รวมทั้งหมด|ยอดรวม|total)/i.test(name)) continue;
 
     const lots: string[] = [];
     let note = "";
@@ -368,6 +371,7 @@ function buildStockSheet(defaultTitle: string, rows: unknown[][]): AdminStockShe
     title,
     total: items.length,
     inStockCount: items.filter((item) => item.qty > 0).length,
+    totalSheets: items.reduce((sum, item) => sum + item.qty, 0),
     items,
   };
 }
