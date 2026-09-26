@@ -24,6 +24,7 @@ export const STUDIO_EXPORT_LAYERS = [
   "OPEN_EDGE",
   "WALL_FLUSH",
   "WALL_FLUSH_UPSTAND",
+  "CLOSED_EDGE",
   "BASIN_HOLES",
   "BASIN_LABELS",
   "DIMENSIONS",
@@ -130,6 +131,7 @@ function edgeLayer(edge: StudioEdge) {
   if (edge.status === "open-edge") return "OPEN_EDGE";
   if (edge.status === "wall-flush") return "WALL_FLUSH";
   if (edge.status === "wall-flush+upstand") return "WALL_FLUSH_UPSTAND";
+  if (edge.status === "closed-edge") return "CLOSED_EDGE";
   return null;
 }
 
@@ -293,6 +295,7 @@ export function createStudioPngSvg(
     "open-edge": "#bd3f38",
     "wall-flush": "#526b7a",
     "wall-flush+upstand": "#7c3aed",
+    "closed-edge": "#1e40af",
   };
   const pieceMarkup = model.pieces.map((piece, pieceIndex) => {
     const originY = padding + headerHeight + piece.offsetY;
@@ -338,7 +341,14 @@ export function createStudioPngSvg(
 }
 
 function studioSideStatusLabelForExport(status: StudioEdge["status"]) {
-  return { upstand: "ติดบัว", "open-edge": "ขอบเปิด", "wall-flush": "ชิดผนัง", "wall-flush+upstand": "ชิดผนัง+ติดบัว ║▲", normal: "" }[status];
+  return {
+    upstand: "ติดบัว",
+    "open-edge": "ขอบเปิด",
+    "wall-flush": "ชิดผนัง",
+    "wall-flush+upstand": "ชิดผนัง+ติดบัว ║▲",
+    "closed-edge": "ขอบปิด ⊞",
+    normal: "",
+  }[status];
 }
 
 export async function downloadStudioPng(
