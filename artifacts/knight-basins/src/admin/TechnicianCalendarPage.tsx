@@ -662,7 +662,7 @@ export function TechnicianCalendarPage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_380px] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] xl:grid-cols-[1fr_210px] gap-4 items-start">
         <section className="border border-[var(--line)] bg-[var(--card-paper)] shadow-sm" aria-label="ปฏิทินรายเดือน">
           <div className="space-y-4 border-b border-[var(--line)] p-3.5 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1043,12 +1043,12 @@ export function TechnicianCalendarPage() {
           )}
         </section>
 
-        <aside className="border border-[var(--line)] bg-[var(--card-paper)] p-4 sm:p-5 shadow-sm space-y-4" data-testid="technician-team-radar">
-          <div className="border-b border-[var(--line)] pb-3 flex items-start justify-between gap-2">
+        <aside className="border border-[var(--line)] bg-[var(--card-paper)] p-2.5 sm:p-3 shadow-sm space-y-3" data-testid="technician-team-radar">
+          <div className="border-b border-[var(--line)] pb-2 flex items-start justify-between gap-1.5">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--brand-blue)]">Team Radar</p>
-              <h3 className="text-base font-semibold text-[var(--ink)] mt-0.5">เรดาร์คิวงาน 10 ทีมช่าง</h3>
-              <p className="text-xs text-[var(--ink-soft)] mt-0.5">สรุปงานประจำ{monthFormatter.format(visibleMonth)}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--brand-blue)]">Team Radar</p>
+              <h3 className="text-sm font-semibold text-[var(--ink)] mt-0.5 leading-snug">เรดาร์ 10 ทีมช่าง</h3>
+              <p className="text-[11px] text-[var(--ink-soft)] mt-0.5">ประจำ{monthFormatter.format(visibleMonth)}</p>
             </div>
             {selectedTeamCode && (
               <Button
@@ -1072,7 +1072,7 @@ export function TechnicianCalendarPage() {
                 <div
                   key={team.code}
                   onClick={() => setSelectedTeamCode(isSelected ? null : team.code)}
-                  className={`p-3 border transition-all cursor-pointer select-none relative ${
+                  className={`p-2 border transition-all cursor-pointer select-none relative ${
                     isSelected
                       ? "border-[var(--brand-blue)] bg-[var(--brand-blue)]/5 shadow-sm ring-1 ring-[var(--brand-blue)]"
                       : "border-[var(--line)] bg-[var(--paper)]/50 hover:bg-[var(--line)]/25 hover:border-[var(--ink-soft)]/40"
@@ -1094,19 +1094,18 @@ export function TechnicianCalendarPage() {
                       <Check className="h-3 w-3 stroke-[3]" />
                     </span>
                   )}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded bg-[var(--ink)] text-xs font-bold text-[var(--paper)] font-mono">
+                  <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-[var(--ink)] text-[10px] font-bold text-[var(--paper)] font-mono">
                         {team.code}
                       </span>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[var(--ink)] truncate leading-tight">{team.name}</p>
-                        {team.shortName && <p className="text-[11px] text-[var(--ink-soft)] truncate">ทีม{team.shortName}</p>}
+                        <p className="text-[12px] font-semibold text-[var(--ink)] truncate leading-tight">{team.name}</p>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 text-xs font-bold ${
+                        className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold ${
                           team.totalJobs >= 4
                             ? "bg-[#a24439]/10 text-[#a24439]"
                             : team.totalJobs > 0
@@ -1114,12 +1113,12 @@ export function TechnicianCalendarPage() {
                             : "bg-[var(--line)]/60 text-[var(--ink-soft)]"
                         }`}
                       >
-                        {team.totalJobs > 0 ? `${team.totalJobs} งาน` : "คิวว่าง"}
+                        {team.totalJobs > 0 ? `${team.totalJobs} งาน` : "ว่าง"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-2.5 flex items-center gap-2">
+                  <div className="mt-1.5 flex items-center gap-1.5">
                     <div className="h-1.5 flex-1 bg-[var(--line)] rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all ${
@@ -1132,15 +1131,15 @@ export function TechnicianCalendarPage() {
                         style={{ width: `${loadPercent}%` }}
                       />
                     </div>
-                    <span className="text-[11px] tabular-nums text-[var(--ink-soft)] font-medium shrink-0">
-                      {team.daysCount} วันนัด
+                    <span className="text-[10px] tabular-nums text-[var(--ink-soft)] font-medium shrink-0">
+                      {team.daysCount} วัน
                     </span>
                   </div>
 
                   {team.todayJobs > 0 && (
-                    <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-[var(--brand-blue)] bg-[var(--brand-blue)]/10 px-2 py-0.5">
+                    <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-[var(--brand-blue)] bg-[var(--brand-blue)]/10 px-1.5 py-0.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-blue)] animate-pulse" />
-                      <span>มีงานนัดวันนี้ ({team.todayJobs} งาน)</span>
+                      <span>นัดวันนี้ ({team.todayJobs})</span>
                     </div>
                   )}
                 </div>
