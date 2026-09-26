@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { UPLOAD_DIR } from "../lib/image-upload";
 import { createAdminAuthMiddleware, requireAnyAdminPermission } from "../middlewares/admin-auth";
 
@@ -8,6 +8,11 @@ const router: IRouter = Router();
 
 const PORTFOLIO_CATALOG_PATH = join(UPLOAD_DIR, "portfolio", "catalog.json");
 const PORTFOLIO_VISIBILITY_PATH = join(UPLOAD_DIR, "portfolio", "visibility.json");
+// A legacy knowledge-base copy the real VPS keeps outside UPLOAD_DIR entirely
+// -- overridable so a test run (which has no business reading a real path on
+// whatever machine happens to run it) can point this somewhere guaranteed
+// not to exist, without changing the real production fallback at all.
+const KNIGHT_DESIGN_KB_FEATURED_PATH = process.env["PORTFOLIO_FEATURED_KB_PATH"] ?? "/opt/data/knight-design-kb/portfolio_featured.json";
 
 type PortfolioItem = {
   id: string;
@@ -47,9 +52,34 @@ const CATEGORY_ORDER = [
   "site_prep",
 ];
 
+/** Safe, empty catalog shape returned whenever catalog.json is missing (ENOENT) or unreadable (malformed JSON, permissions, etc.) -- every /portfolio* route degrades to "no photos yet" rather than a 500. */
+function emptyCatalog(): PortfolioCatalog {
+  return { updatedAt: new Date().toISOString(), total: 0, items: [] };
+}
+
 async function loadCatalog(): Promise<PortfolioCatalog> {
-  const raw = await readFile(PORTFOLIO_CATALOG_PATH, "utf8");
-  const parsed = JSON.parse(raw) as Partial<PortfolioCatalog>;
+  let raw: string;
+  try {
+    raw = await readFile(PORTFOLIO_CATALOG_PATH, "utf8");
+  } catch (error) {
+    console.warn("Portfolio catalog.json is missing; falling back to an empty catalog", {
+      path: PORTFOLIO_CATALOG_PATH,
+      code: (error as NodeJS.ErrnoException)?.code,
+    });
+    return emptyCatalog();
+  }
+
+  let parsed: Partial<PortfolioCatalog>;
+  try {
+    parsed = JSON.parse(raw) as Partial<PortfolioCatalog>;
+  } catch (error) {
+    console.warn("Portfolio catalog.json is not valid JSON; falling back to an empty catalog", {
+      path: PORTFOLIO_CATALOG_PATH,
+      error: error instanceof Error ? error.message : error,
+    });
+    return emptyCatalog();
+  }
+
   const items = Array.isArray(parsed.items) ? parsed.items : [];
   // The import contains a handful of duplicate ids (two files ingested under
   // the same id, e.g. counter_001). Ids drive the allowlist, the visibility
@@ -120,7 +150,12 @@ async function loadVisibilityMap(): Promise<PortfolioVisibilityMap> {
   }
 }
 
+/** Ensures the portfolio/ directory exists before writing -- on a fresh
+ * environment (a new deploy, or this local test harness) it may not have
+ * been created yet, which would otherwise fail the write with ENOENT and
+ * surface as a 500 on an admin toggling one photo's visibility. */
 async function saveVisibilityMap(map: PortfolioVisibilityMap): Promise<void> {
+  await mkdir(dirname(PORTFOLIO_VISIBILITY_PATH), { recursive: true });
   await writeFile(PORTFOLIO_VISIBILITY_PATH, JSON.stringify(map), "utf8");
 }
 
@@ -256,7 +291,7 @@ router.get("/portfolio/featured", async (_req, res, next) => {
     const candidatePaths = [
       join(UPLOAD_DIR, "portfolio", "featured.json"),
       join(UPLOAD_DIR, "portfolio_featured.json"),
-      "/opt/data/knight-design-kb/portfolio_featured.json",
+      KNIGHT_DESIGN_KB_FEATURED_PATH,
     ];
 
     let featured: { updatedAt?: string; items?: unknown[] } | null = null;
