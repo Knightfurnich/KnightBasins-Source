@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getAdminStock,
@@ -8,7 +8,7 @@ import {
   type AdminStockResponse,
   type AdminStockSheet,
 } from "@workspace/api-client-react";
-import { AlertTriangle, Check, Database, Download, PackageCheck, PackageX, RefreshCw, Search } from "lucide-react";
+import { AlertTriangle, Check, Copy, Database, Download, PackageCheck, PackageX, RefreshCw, Search } from "lucide-react";
 
 export type StockItem = AdminStockItem;
 export type StockGroup = AdminStockSheet;
@@ -16,6 +16,9 @@ export type StockResponse = AdminStockResponse;
 
 export type StockMaterial = "staron" | "zen";
 export type StockFilter = "all" | "positive" | "zero";
+export type StockSortColumn = "no" | "name" | "qty" | "scrap" | "lots" | "note";
+export type StockSortDirection = "asc" | "desc";
+export type StockLineBrand = "Staron" | "Zen Stone";
 
 export const STOCK_QUERY_KEY = getGetAdminStockQueryKey();
 
@@ -95,10 +98,47 @@ export function filterStockItems(
   });
 }
 
+export function sortStockItems(
+  items: StockItem[],
+  column: StockSortColumn,
+  direction: StockSortDirection = "asc",
+): StockItem[] {
+  const directionMultiplier = direction === "asc" ? 1 : -1;
+  const textValue = (item: StockItem): string => {
+    if (column === "name") return item.name ?? "";
+    if (column === "scrap") return item.scrap ?? "";
+    if (column === "lots") return item.lots?.join(",") ?? "";
+    if (column === "note") return item.note ?? "";
+    return "";
+  };
+
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      let comparison = 0;
+      if (column === "no") comparison = left.item.no - right.item.no;
+      else if (column === "qty") comparison = left.item.qty - right.item.qty;
+      else comparison = textValue(left.item).localeCompare(textValue(right.item), "th", { numeric: true, sensitivity: "base" });
+      return comparison === 0 ? left.index - right.index : comparison * directionMultiplier;
+    })
+    .map(({ item }) => item);
+}
+
+export function totalStockSheets(items: StockItem[]): number {
+  return items.reduce((total, item) => total + item.qty, 0);
+}
+
+export function buildStockLineMessage(brand: StockLineBrand, item: StockItem): string {
+  const stockStatus = item.qty > 0
+    ? `สต็อกโรงงานพร้อมส่ง ${formatStockNumber(item.qty)} แผ่นค่ะ`
+    : "ปัจจุบันหมดสต็อกค่ะ";
+  return `หิน ${brand} รหัส ${item.name} ${stockStatus}`;
+}
+
 export type StockQuantityTone = "good" | "caution" | "empty";
 
 export function getStockQuantityTone(qty: number): StockQuantityTone {
-  if (qty > 10) return "good";
+  if (qty >= 10) return "good";
   if (qty > 0) return "caution";
   return "empty";
 }
@@ -110,8 +150,8 @@ function getErrorMessage(): string {
 function StockLoadingState() {
   return (
     <section className="space-y-4" aria-label="กำลังโหลดข้อมูลสต็อก" data-testid="stock-loading">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {[1, 2, 3].map((item) => (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((item) => (
           <div key={item} className="h-[116px] border border-[var(--line)] bg-[var(--card-paper)] p-5">
             <div className="h-3 w-20 bg-[var(--line)]" />
             <div className="mt-5 h-8 w-24 bg-[var(--line)]" />
@@ -165,12 +205,14 @@ function KpiCard({
   tone,
   icon,
   testId,
+  unit = "สี",
 }: {
   label: string;
   value: number;
   tone: "neutral" | "positive" | "negative";
   icon: "database" | "check" | "empty";
   testId: string;
+  unit?: "สี" | "แผ่น";
 }) {
   const Icon = icon === "database" ? Database : icon === "check" ? PackageCheck : PackageX;
   const toneClass =
@@ -189,7 +231,7 @@ function KpiCard({
       <p className={`mt-4 font-mono text-3xl leading-none tracking-tight ${toneClass}`} data-testid={`${testId}-value`}>
         {formatStockNumber(value)}
       </p>
-      <p className="mt-2 text-xs text-[var(--ink-soft)]">สี</p>
+      <p className="mt-2 text-xs text-[var(--ink-soft)]">{unit}</p>
     </article>
   );
 }
@@ -205,12 +247,40 @@ function QuantityBadge({ qty }: { qty: number }) {
 
   return (
     <span
-      className={`inline-flex min-w-[58px] justify-center border px-2 py-1 font-mono text-sm ${toneClass}`}
+      className={`stock-quantity-badge stock-quantity-badge--${tone}`}
       data-testid={`stock-qty-${qty}`}
+      data-stock-tone={tone}
     >
       {formatStockNumber(qty)}
     </span>
   );
+}
+
+async function copyTextToClipboard(text: string): Promise<void> {
+  let clipboardError: unknown;
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch (error) {
+      clipboardError = error;
+    }
+  }
+
+  if (typeof document === "undefined") {
+    throw clipboardError instanceof Error ? clipboardError : new Error("Clipboard is unavailable");
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw clipboardError instanceof Error ? clipboardError : new Error("Clipboard copy failed");
 }
 
 export function StockInventoryView({
@@ -227,12 +297,66 @@ export function StockInventoryView({
   const [material, setMaterial] = useState<StockMaterial>("staron");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StockFilter>("all");
+  const [sortColumn, setSortColumn] = useState<StockSortColumn>("no");
+  const [sortDirection, setSortDirection] = useState<StockSortDirection>("asc");
+  const [copyFeedback, setCopyFeedback] = useState<{ key: string; status: "copied" | "error" } | null>(null);
+  const copyFeedbackTimerRef = useRef<number | null>(null);
   const group = stock[material];
-  const visibleItems = useMemo(
+  const filteredItems = useMemo(
     () => filterStockItems(group.items, search, filter),
     [filter, group.items, search],
   );
+  const visibleItems = useMemo(
+    () => sortStockItems(filteredItems, sortColumn, sortDirection),
+    [filteredItems, sortColumn, sortDirection],
+  );
   const outOfStock = group.total - group.inStockCount;
+  const totalSheets = totalStockSheets(group.items);
+
+  useEffect(() => () => {
+    if (copyFeedbackTimerRef.current !== null) window.clearTimeout(copyFeedbackTimerRef.current);
+  }, []);
+
+  const handleSort = (column: StockSortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((current) => current === "asc" ? "desc" : "asc");
+      return;
+    }
+    setSortColumn(column);
+    setSortDirection(column === "qty" ? "desc" : "asc");
+  };
+  const ariaSort = (column: StockSortColumn): "ascending" | "descending" | "none" =>
+    sortColumn !== column ? "none" : sortDirection === "asc" ? "ascending" : "descending";
+  const sortHeader = (column: StockSortColumn, label: string, numeric = false) => (
+    <button
+      type="button"
+      className={`stock-sort-header${numeric ? " stock-sort-header--numeric" : ""}`}
+      onClick={() => handleSort(column)}
+      data-testid={`button-sort-stock-${column}`}
+      aria-label={`เรียงตาม ${label}${sortColumn === column ? sortDirection === "asc" ? " จากน้อยไปมาก" : " จากมากไปน้อย" : ""}`}
+    >
+      <span>{label}</span>
+      <span className="stock-sort-indicator" aria-hidden="true">
+        {sortColumn !== column ? "↕" : sortDirection === "asc" ? "▲" : "▼"}
+      </span>
+    </button>
+  );
+  const copyLineStatus = async (item: StockItem) => {
+    const key = `${material}:${item.no}`;
+    const brand: StockLineBrand = material === "staron" ? "Staron" : "Zen Stone";
+    let status: "copied" | "error" = "copied";
+    try {
+      await copyTextToClipboard(buildStockLineMessage(brand, item));
+    } catch {
+      status = "error";
+    }
+    if (copyFeedbackTimerRef.current !== null) window.clearTimeout(copyFeedbackTimerRef.current);
+    setCopyFeedback({ key, status });
+    copyFeedbackTimerRef.current = window.setTimeout(() => {
+      setCopyFeedback((current) => current?.key === key ? null : current);
+      copyFeedbackTimerRef.current = null;
+    }, 1800);
+  };
 
   return (
     <div className="admin-manager space-y-6" data-testid="stock-inventory-page">
@@ -299,10 +423,11 @@ export function StockInventoryView({
         </p>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="สรุปจำนวนสี">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="สรุปจำนวนสีและสต็อก">
         <KpiCard label="สีทั้งหมด" value={group.total} tone="neutral" icon="database" testId="stock-kpi-total" />
         <KpiCard label="มีสต็อก" value={group.inStockCount} tone="positive" icon="check" testId="stock-kpi-in-stock" />
         <KpiCard label="หมดสต็อก" value={outOfStock} tone="negative" icon="empty" testId="stock-kpi-out-of-stock" />
+        <KpiCard label="สต็อกรวมทั้งหมด (แผ่น)" value={totalSheets} tone="neutral" icon="database" testId="stock-kpi-total-sheets" unit="แผ่น" />
       </section>
 
       <section className="border border-[var(--line)] bg-[var(--card-paper)]" aria-label="รายการสี">
@@ -375,16 +500,17 @@ export function StockInventoryView({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left" data-testid="stock-table">
+            <table className="w-full min-w-[980px] border-collapse text-left" data-testid="stock-table">
               <caption className="sr-only">รายการสต็อก {group.title}</caption>
               <thead>
                 <tr className="border-b border-[var(--line)] bg-[var(--paper)]">
-                  <th scope="col" className="w-16 px-4 py-3 text-right font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">No.</th>
-                  <th scope="col" className="px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">รหัส / ชื่อสี</th>
-                  <th scope="col" className="w-28 px-4 py-3 text-right font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">Qty (แผ่น)</th>
-                  <th scope="col" className="w-28 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">Scrap</th>
-                  <th scope="col" className="w-36 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">Lot No.</th>
-                  <th scope="col" className="px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">หมายเหตุ</th>
+                  <th scope="col" aria-sort={ariaSort("no")} className="w-16 px-4 py-3 text-right font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("no", "No.", true)}</th>
+                  <th scope="col" aria-sort={ariaSort("name")} className="px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("name", "รหัส / ชื่อสี")}</th>
+                  <th scope="col" aria-sort={ariaSort("qty")} className="w-28 px-4 py-3 text-right font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("qty", "Qty (แผ่น)", true)}</th>
+                  <th scope="col" aria-sort={ariaSort("scrap")} className="w-28 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("scrap", "Scrap")}</th>
+                  <th scope="col" aria-sort={ariaSort("lots")} className="w-36 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("lots", "Lot No.")}</th>
+                  <th scope="col" aria-sort={ariaSort("note")} className="px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("note", "หมายเหตุ")}</th>
+                  <th scope="col" className="w-52 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">LINE</th>
                 </tr>
               </thead>
               <tbody>
@@ -406,6 +532,25 @@ export function StockInventoryView({
                     <td className="px-4 py-4 font-mono text-sm text-[var(--ink-soft)]">{formatStockValue(item.scrap)}</td>
                     <td className="px-4 py-4 font-mono text-xs text-[var(--ink-soft)]">{formatStockLots(item.lots)}</td>
                     <td className="max-w-[260px] px-4 py-4 text-sm leading-relaxed text-[var(--ink-soft)]">{formatStockValue(item.note)}</td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const feedbackKey = `${material}:${item.no}`;
+                        const feedback = copyFeedback?.key === feedbackKey ? copyFeedback.status : null;
+                        return (
+                          <button
+                            type="button"
+                            className={`stock-copy-button${feedback ? ` stock-copy-button--${feedback}` : ""}`}
+                            onClick={() => void copyLineStatus(item)}
+                            data-testid={`button-copy-stock-${item.no}`}
+                            aria-label={feedback === "copied" ? `คัดลอกสถานะสต็อก ${item.name} แล้ว` : feedback === "error" ? `คัดลอกสถานะสต็อก ${item.name} ไม่สำเร็จ` : `คัดลอกสถานะ ${item.name} ส่งทาง LINE`}
+                            aria-live="polite"
+                          >
+                            {feedback === "copied" ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+                            <span>{feedback === "copied" ? "✓ คัดลอกแล้ว" : feedback === "error" ? "คัดลอกไม่สำเร็จ" : "คัดลอกข้อความ LINE"}</span>
+                          </button>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 ))}
               </tbody>
