@@ -4638,7 +4638,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 }
 
 .studio-selector-popover--basins {
-  width: min(820px, calc(100vw - 36px));
+  width: min(1080px, calc(100vw - 36px));
 }
 
 .studio-selector-popover .studio-selector-panel {
@@ -4654,8 +4654,26 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 }
 
 .studio-design-layout--canvas-first .studio-basin-list {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-height: min(390px, 45vh);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  max-height: min(440px, 55vh);
+}
+
+.studio-design-layout--canvas-first .studio-basin-choice {
+  padding: 8px;
+  min-height: auto;
+}
+
+.studio-design-layout--canvas-first .studio-basin-choice-art {
+  height: 92px;
+}
+
+.studio-design-layout--canvas-first .studio-basin-choice-main > strong {
+  font-size: 11px;
+}
+
+.studio-design-layout--canvas-first .studio-basin-choice-main > small {
+  font-size: 10px;
 }
 
 .studio-canvas-column {
