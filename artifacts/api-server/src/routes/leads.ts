@@ -6,6 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
+import { validateNumericDimensions, verifyAndSanitizeQuoteTotal } from "../lib/price-integrity";
 import { analyzeSketchImage } from "../lib/sketch-vision";
 import {
   createQuoteAccessSecret,
@@ -29,16 +30,9 @@ const MAX_SKETCH_VISION_FILES = 3;
 // keep this literal in sync if that model ever changes.
 const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 
+/** Delegates to price-integrity.ts's tamper-aware check; a negative, non-finite, or out-of-range total is treated the same as "no total present" here, never trusted through as-is. */
 export function quoteTotalTHB(studioData: unknown): number | null {
-  if (!studioData || typeof studioData !== "object") return null;
-  const data = studioData as {
-    total?: unknown;
-    notification?: { total?: unknown };
-    quickQuote?: { total?: unknown };
-    estimate?: { totalTHB?: unknown };
-  };
-  const value = data.notification?.total ?? data.total ?? data.quickQuote?.total ?? data.estimate?.totalTHB;
-  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null;
+  return verifyAndSanitizeQuoteTotal(studioData).verifiedTotal;
 }
 
 function invalid(res: Response, message: string, details?: unknown) {
@@ -78,6 +72,27 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
  router.post("/leads", leadRateLimit, async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
   if (!parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
+
+  // Zero-Trust guard: studioData's `total` (and, if present, `widthMm`/`depthMm`)
+  // come straight from the browser-side studio calculator, so a negative,
+  // non-finite, or wildly out-of-range value is treated as a tampered
+  // payload and rejected before it ever reaches the database -- never
+  // silently clamped or saved as-is.
+  const priceCheck = verifyAndSanitizeQuoteTotal(parsed.data.studioData);
+  if (priceCheck.isTampered) {
+    console.warn("Rejected lead payload: tampered quote total in studioData", { leadKey: parsed.data.leadKey });
+    return invalid(res, "Invalid quote total");
+  }
+  const dimensions = parsed.data.studioData as { widthMm?: unknown; depthMm?: unknown } | undefined;
+  if (
+    dimensions &&
+    typeof dimensions.widthMm === "number" &&
+    typeof dimensions.depthMm === "number" &&
+    !validateNumericDimensions(dimensions.widthMm, dimensions.depthMm)
+  ) {
+    console.warn("Rejected lead payload: tampered dimensions in studioData", { leadKey: parsed.data.leadKey });
+    return invalid(res, "Invalid dimensions");
+  }
 
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
