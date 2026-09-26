@@ -196,7 +196,11 @@ function positiveSketchDimension(value: unknown): number | null {
 
 function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "phase"> {
   const root = sketchAnalysisRecord(payload) ?? {};
-  const result = sketchAnalysisRecord(root.analysis)
+  const firstItem = Array.isArray(root.items) && root.items.length > 0
+    ? sketchAnalysisRecord(root.items[0])
+    : null;
+  const result = firstItem
+    ?? sketchAnalysisRecord(root.analysis)
     ?? sketchAnalysisRecord(root.result)
     ?? sketchAnalysisRecord(root.data)
     ?? root;
