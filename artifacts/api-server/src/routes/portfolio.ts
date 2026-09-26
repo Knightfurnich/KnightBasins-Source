@@ -8,6 +8,11 @@ const router: IRouter = Router();
 
 const PORTFOLIO_CATALOG_PATH = join(UPLOAD_DIR, "portfolio", "catalog.json");
 const PORTFOLIO_VISIBILITY_PATH = join(UPLOAD_DIR, "portfolio", "visibility.json");
+// A legacy knowledge-base copy the real VPS keeps outside UPLOAD_DIR entirely
+// -- overridable so a test run (which has no business reading a real path on
+// whatever machine happens to run it) can point this somewhere guaranteed
+// not to exist, without changing the real production fallback at all.
+const KNIGHT_DESIGN_KB_FEATURED_PATH = process.env["PORTFOLIO_FEATURED_KB_PATH"] ?? "/opt/data/knight-design-kb/portfolio_featured.json";
 
 type PortfolioItem = {
   id: string;
@@ -286,7 +291,7 @@ router.get("/portfolio/featured", async (_req, res, next) => {
     const candidatePaths = [
       join(UPLOAD_DIR, "portfolio", "featured.json"),
       join(UPLOAD_DIR, "portfolio_featured.json"),
-      "/opt/data/knight-design-kb/portfolio_featured.json",
+      KNIGHT_DESIGN_KB_FEATURED_PATH,
     ];
 
     let featured: { updatedAt?: string; items?: unknown[] } | null = null;

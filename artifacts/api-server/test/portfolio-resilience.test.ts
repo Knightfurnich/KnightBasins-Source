@@ -39,6 +39,7 @@ const originalEnv = {
   DATABASE_URL: process.env["DATABASE_URL"],
   SESSION_SECRET: process.env["SESSION_SECRET"],
   ADMIN_PASSWORD: process.env["ADMIN_PASSWORD"],
+  PORTFOLIO_FEATURED_KB_PATH: process.env["PORTFOLIO_FEATURED_KB_PATH"],
 };
 let uploadDirectory: string;
 
@@ -48,6 +49,11 @@ before(async () => {
   process.env["DATABASE_URL"] = "postgres://portfolio-resilience-test";
   process.env["SESSION_SECRET"] = "portfolio-resilience-test-secret";
   process.env["ADMIN_PASSWORD"] = "portfolio-resilience-test-password";
+  // portfolio.ts's 3rd featured.json candidate is a hardcoded path outside
+  // UPLOAD_DIR (a real file on the production VPS) -- point it inside this
+  // test's own throwaway temp directory, where it's guaranteed never to
+  // exist, so these tests behave the same on every machine that runs them.
+  process.env["PORTFOLIO_FEATURED_KB_PATH"] = path.join(uploadDirectory, "never-created-knight-design-kb-featured.json");
 });
 
 after(async () => {
