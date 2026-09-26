@@ -18,7 +18,7 @@ export type StudioOrderMode = "quick-purchase" | "studio" | "sketch";
 export type CounterShape = "I" | "L" | "U";
 export type StudioLocation = "bangkok-metro" | "province";
 export type StudioQuoteFormat = "US" | "OF";
-export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "wall-flush+upstand" | "normal";
+export type SideStatus = "upstand" | "open-edge" | "wall-flush" | "wall-flush+upstand" | "closed-edge" | "normal";
 export type StudioSide = "top" | "right" | "bottom" | "left";
 export type RectangleRotation = 0 | 90;
 export type BasinOrientation = "horizontal" | "vertical";
@@ -428,6 +428,7 @@ export function studioSideStatusLabel(status: SideStatus) {
     "open-edge": "ขอบเปิด",
     "wall-flush": "ชิดผนัง",
     "wall-flush+upstand": "ชิดผนัง+ติดบัว ║▲",
+    "closed-edge": "ขอบปิด ⊞",
     normal: "ปกติ",
   }[status];
 }
@@ -479,6 +480,72 @@ export function preserveCustomEdgesOnShapeChange(previousPiece: StudioPiece, nex
     if (nextRectangleIds.has(rectangleId)) sideStatuses[key] = status;
   }
   return { ...nextPiece, hasCustomEdges: true, sideStatuses };
+}
+
+export type StudioCustomShapePanel = {
+  widthMm: number;
+  depthMm: number;
+  edges: Record<StudioSide, SideStatus>;
+};
+
+/**
+ * Assembles a StudioPiece from real panel dimensions and per-side edge
+ * finishes, for a "build my exact shape" flow instead of starting from a
+ * generic preset and resizing it afterward.
+ *
+ * `panels` supplies one entry per rectangle in build order: 1 for "i", 2 for
+ * "l-left"/"l-right" (back run, then leg), 3 for "u" (back run, left leg,
+ * right leg). Panel positioning mirrors reflowStudioRectangles' conventions
+ * for these same presets (l-left drops its leg from the back run's left
+ * edge, l-right from its right edge, u drops both legs and pushes the right
+ * one flush with the back run's right edge).
+ *
+ * Every edge status is applied through setStudioEdgeStatus, so a joint
+ * between two panels (exposedLengthMm === 0) is silently left alone even if
+ * the caller asked for a finish there -- the same guard Task 66 added, reused
+ * rather than re-implemented. hasCustomEdges ends up true because at least
+ * one real (non-joint) edge always exists on a piece built this way.
+ */
+export function buildCustomShapePiece(pieceId: string, shape: StudioPreset, panels: StudioCustomShapePanel[]): StudioPiece {
+  const rectangles: StudioRectangle[] = panels.map((panel, index) => ({
+    id: `${pieceId}-${index + 1}`,
+    widthMm: panel.widthMm,
+    lengthMm: panel.depthMm,
+    xMm: 0,
+    yMm: 0,
+    rotation: 0,
+  }));
+
+  const backRun = rectangles[0];
+  const leftLeg = rectangles[1];
+  const rightLeg = rectangles[2];
+  if (backRun && leftLeg && (shape === "l-left" || shape === "u")) {
+    leftLeg.xMm = backRun.xMm;
+    leftLeg.yMm = backRun.yMm + backRun.lengthMm;
+  }
+  if (backRun && shape === "l-right" && leftLeg) {
+    leftLeg.xMm = Math.max(0, backRun.xMm + backRun.widthMm - leftLeg.widthMm);
+    leftLeg.yMm = backRun.yMm + backRun.lengthMm;
+  }
+  if (backRun && leftLeg && rightLeg && shape === "u") {
+    rightLeg.xMm = Math.max(backRun.xMm + leftLeg.widthMm, backRun.xMm + backRun.widthMm - rightLeg.widthMm);
+    rightLeg.yMm = backRun.yMm + backRun.lengthMm;
+  }
+
+  let piece: StudioPiece = {
+    id: pieceId,
+    name: `ชิ้นงาน ${pieceId}`,
+    rectangles,
+    sideStatuses: {},
+    preset: shape,
+  };
+  panels.forEach((panel, index) => {
+    const rectangleId = rectangles[index]!.id;
+    (["top", "right", "bottom", "left"] as const).forEach((side) => {
+      piece = setStudioEdgeStatus(piece, rectangleId, side, panel.edges[side]);
+    });
+  });
+  return piece;
 }
 
 const STUDIO_EDGE_STATUS_CYCLE: readonly SideStatus[] = ["normal", "upstand", "wall-flush", "wall-flush+upstand", "open-edge"];
