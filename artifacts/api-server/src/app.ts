@@ -9,6 +9,12 @@ import { UPLOAD_DIR } from "./lib/image-upload";
 const app: Express = express();
 
 app.disable("x-powered-by");
+// Only affects req.secure/req.protocol (the admin cookie's `secure` flag,
+// HSTS-related logic below) now -- lib/rate-limit.ts's clientKey() no longer
+// reads Express's req.ip at all (SECURITY_AUDIT_REPORT.md Finding #1: a
+// caller could rotate X-Forwarded-For to get a fresh req.ip, and therefore a
+// fresh rate-limit bucket, on every request); it verifies the real nginx
+// hop itself instead of trusting this setting.
 app.set("trust proxy", 1);
 
 app.use(
