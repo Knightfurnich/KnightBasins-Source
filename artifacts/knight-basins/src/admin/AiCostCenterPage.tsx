@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Clock3, Coins, Database, RefreshCw, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { BarChart3, Clock3, Coins, Database, Download, RefreshCw, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { customFetch } from "@workspace/api-client-react";
 import { useState, type ReactNode } from "react";
@@ -37,6 +37,48 @@ const periods: Array<{ value: AiCostPeriod; label: string; helper: string }> = [
   { value: "30d", label: "30 วัน", helper: "ย้อนหลัง 30 วัน" },
   { value: "all", label: "ทั้งหมด", helper: "ตั้งแต่เริ่มบันทึก" },
 ];
+
+function formatReportDate(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function csvCell(value: string | number) {
+  const text = String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+export function exportAiCostToCsv(data: AiCostCenterResponse, period: AiCostPeriod): string {
+  const selectedPeriod = periods.find((item) => item.value === period)?.label ?? period;
+  const rows: Array<Array<string | number>> = [
+    ["รายงาน", "สรุปต้นทุน AI - Knight Basins"],
+    ["ช่วงเวลา", selectedPeriod],
+    ["วันที่สร้างรายงาน", formatReportDate(new Date())],
+    ["ยอดเงินรวม (บาท)", data.totalCostThb],
+    ["จำนวนคำขอรวม", data.totalRequests],
+    ["โทเค็นรวม", data.totalTokens],
+    [],
+    ["รหัสบริการ", "ชื่อบริการ", "จำนวนคำขอ", "จำนวนโทเค็น", "ต้นทุน (บาท)", "สถานะ"],
+    ...data.services.map((service) => [
+      service.id,
+      service.name,
+      service.requests,
+      service.tokens,
+      service.costThb,
+      service.status === "active" ? "ทำงานอยู่" : "ไม่มีข้อมูล",
+    ]),
+    [],
+    ["ชื่อโมเดล", "จำนวนคำขอ", "ต้นทุน (บาท)"],
+    ...data.modelBreakdown.map((model) => [model.model, model.requests, model.costThb]),
+  ];
+  return "\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
 
 const countFormatter = new Intl.NumberFormat("th-TH");
 const thbFormatter = new Intl.NumberFormat("th-TH", {
@@ -180,6 +222,19 @@ export default function AiCostCenterPage() {
   const averageSatang = data && data.totalRequests > 0
     ? (data.totalCostThb * 100) / data.totalRequests
     : 0;
+  const handleExportCsv = () => {
+    if (!data) return;
+    const csv = exportAiCostToCsv(data, period);
+    const objectUrl = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const downloadLink = document.createElement("a");
+    downloadLink.href = objectUrl;
+    downloadLink.download = `knight-basins-ai-cost-${period}-${formatReportDate(new Date())}.csv`;
+    downloadLink.style.display = "none";
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  };
 
   return (
     <div className="ai-cost-page" data-testid="ai-cost-page">
@@ -226,16 +281,28 @@ export default function AiCostCenterPage() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="ai-cost-button ai-cost-button--refresh"
-          onClick={() => void refetch()}
-          disabled={isFetching}
-          data-testid="button-ai-cost-refresh"
-        >
-          <RefreshCw size={15} className={isFetching ? "ai-cost-spin" : ""} aria-hidden="true" />
-          {isFetching ? "กำลังอัปเดต" : "รีเฟรช"}
-        </button>
+        <div className="ai-cost-toolbar__actions">
+          <button
+            type="button"
+            className="ai-cost-button ai-cost-button--refresh"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            data-testid="button-ai-cost-refresh"
+          >
+            <RefreshCw size={15} className={isFetching ? "ai-cost-spin" : ""} aria-hidden="true" />
+            {isFetching ? "กำลังอัปเดต" : "รีเฟรช"}
+          </button>
+          <button
+            type="button"
+            className="ai-cost-button ai-cost-button--export"
+            onClick={handleExportCsv}
+            disabled={!data || isLoading}
+            data-testid="button-ai-cost-export-csv"
+          >
+            <Download size={15} aria-hidden="true" />
+            ส่งออกเป็น CSV
+          </button>
+        </div>
       </div>
 
       {isLoading ? (

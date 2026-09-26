@@ -600,6 +600,12 @@ button { border: 0; cursor: pointer; }
   gap: 16px;
   padding: 24px 0 18px;
 }
+.ai-cost-toolbar__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
 .ai-cost-periods {
   display: flex;
   flex-wrap: wrap;
@@ -756,7 +762,13 @@ button { border: 0; cursor: pointer; }
   .ai-cost-hero { display: block; padding-top: 0; }
   .ai-cost-hero__aside { margin-top: 22px; }
   .ai-cost-toolbar { display: block; }
-  .ai-cost-button--refresh { width: 100%; margin-top: 12px; }
+  .ai-cost-toolbar__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    margin-top: 12px;
+  }
+  .ai-cost-toolbar__actions .ai-cost-button { width: 100%; min-width: 0; padding-right: 8px; padding-left: 8px; }
   .ai-cost-period { flex: 1 1 calc(50% - 3px); min-width: 0; }
   .ai-cost-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ai-cost-context-line { align-items: flex-start; flex-direction: column; gap: 5px; }
