@@ -5,6 +5,7 @@ import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
 import { askHermesSupport, hermesSupportConfigured } from "../lib/hermes-support";
+import { detectPromptInjection, sanitizeAiResponse } from "../lib/prompt-guard";
 import { synthesizeSpeech } from "../lib/google-tts";
 import {
   extractSupportProfileFields,
@@ -196,6 +197,18 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
     return;
   }
 
+  // Prompt Guard: checked before any other branch (profile extraction,
+  // catalog lookups, the AI call itself) so a jailbreak/system-prompt
+  // extraction attempt never gets a chance to interact with those either.
+  const injectionCheck = detectPromptInjection(message);
+  if (injectionCheck.isSuspicious) {
+    res.json({
+      reply: "ขออภัยค่ะ น้องไนท์สามารถให้ข้อมูลเฉพาะเรื่องแคตตาล็อกสินค้า อ่างล้างหน้า และการออกแบบเคาน์เตอร์ของ Knight Furnich เท่านั้นค่ะ หากมีข้อสงสัยเพิ่มเติมติดต่อทีมงานได้ที่ 094-496-1949 นะคะ",
+      matchedType: "none",
+    });
+    return;
+  }
+
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
     let pending: PendingProfileUpdate | undefined;
@@ -383,7 +396,7 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
         contextSummary,
       });
       if (hermesResult.ok) {
-        res.json({ reply: hermesResult.reply, matchedType: "none" });
+        res.json({ reply: sanitizeAiResponse(hermesResult.reply), matchedType: "none" });
         return;
       }
     }
