@@ -14,7 +14,7 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, MessageSquare, RefreshCw, Search, X } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, MessageSquare, RefreshCw, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, leadStatusLabels as statusLabels } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
+import {
+  basinPlacementsViolatingEdgeClearance,
+  placementCrossesPanelJoint,
+  studioPieces,
+  STUDIO_BASIN_SAFETY_MARGIN_MM,
+  type BasinPlacement,
+  type StudioState,
+} from "@/data/studio-model";
 
 const statusOptions: string[] = [
   "new_lead",
@@ -40,6 +48,132 @@ const modeLabels: Record<string, string> = {
   studio: "2D Studio",
   sketch: "แบบร่างมือ",
 };
+const FABRICATION_RISK_LABEL = "⚠️ มีจุดเสี่ยงงานช่าง";
+const FABRICATION_RISK_GENERIC = "พบข้อมูลความเสี่ยงงานช่าง โปรดตรวจสอบแบบก่อนผลิต";
+const FABRICATION_CLEARANCE_WARNING = `ระยะขอบเจาะอ่างต่ำกว่า ${STUDIO_BASIN_SAFETY_MARGIN_MM} มม.`;
+const FABRICATION_JOINT_WARNING = "ตำแหน่งอ่างทับแนวรอยต่อแผ่นหิน";
+
+type FabricationFilter = "all" | "normal" | "risk";
+type LeadWithFabricationWarnings = CustomerLead & { fabricationWarnings?: unknown };
+
+function objectRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function hasWarningSignal(value: unknown): boolean {
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "number") return value > 0;
+  if (typeof value === "boolean") return value;
+  if (Array.isArray(value)) return value.length > 0;
+  const record = objectRecord(value);
+  return record ? Object.values(record).some(hasWarningSignal) : false;
+}
+
+function fabricationWarningMessages(value: unknown): string[] {
+  if (typeof value === "string") return value.trim() ? [value.trim()] : [];
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => {
+      const messages = fabricationWarningMessages(item);
+      return messages.length ? messages : [FABRICATION_RISK_GENERIC];
+    });
+  }
+  const record = objectRecord(value);
+  if (!record) return value === true ? [FABRICATION_RISK_GENERIC] : [];
+  const message = [record.message, record.summary, record.warning, record.description]
+    .find((candidate): candidate is string => typeof candidate === "string" && candidate.trim().length > 0);
+  if (message) return [message.trim()];
+  const kind = [record.code, record.type, record.kind]
+    .find((candidate): candidate is string => typeof candidate === "string")
+    ?.toLowerCase();
+  if (kind?.includes("clearance")) return [FABRICATION_CLEARANCE_WARNING];
+  if (kind?.includes("joint")) return [FABRICATION_JOINT_WARNING];
+  const keyedWarnings = Object.entries(record).flatMap(([key, candidate]) => {
+    if (!hasWarningSignal(candidate)) return [];
+    const normalizedKey = key.toLowerCase();
+    if (normalizedKey.includes("clearance")) return [FABRICATION_CLEARANCE_WARNING];
+    if (normalizedKey.includes("joint")) return [FABRICATION_JOINT_WARNING];
+    if (["warning", "message", "issue", "risk"].some((term) => normalizedKey.includes(term))) {
+      return fabricationWarningMessages(candidate);
+    }
+    return [];
+  });
+  if (keyedWarnings.length) return keyedWarnings;
+  const nested = [record.warnings, record.messages, record.issues]
+    .flatMap((candidate) => fabricationWarningMessages(candidate));
+  if (nested.length) return nested;
+  return record.hasRisk === true || record.risky === true || record.isSafe === false
+    ? [FABRICATION_RISK_GENERIC]
+    : [];
+}
+
+function leadFabricationWarnings(lead: CustomerLead): string[] {
+  const extendedLead = lead as LeadWithFabricationWarnings;
+  const studioData = objectRecord(lead.studioData);
+  const estimate = objectRecord(studioData?.estimate);
+  const warnings = [
+    ...fabricationWarningMessages(extendedLead.fabricationWarnings),
+    ...fabricationWarningMessages(studioData?.fabricationWarnings),
+    ...fabricationWarningMessages(estimate?.fabricationWarnings),
+  ];
+
+  if (Array.isArray(estimate?.crossJointPlacements) && estimate.crossJointPlacements.length > 0) {
+    warnings.push(FABRICATION_JOINT_WARNING);
+  }
+  if (
+    Array.isArray(estimate?.basinPlacementsViolatingEdgeClearance) &&
+    estimate.basinPlacementsViolatingEdgeClearance.length > 0
+  ) {
+    warnings.push(FABRICATION_CLEARANCE_WARNING);
+  }
+
+  const stateData = objectRecord(studioData?.state) ?? studioData;
+  const rawPlacements = stateData?.basinPlacements;
+  const dimensions = objectRecord(stateData?.dimensions);
+  const hasLegacyGeometry = ["I", "L", "U"].includes(String(stateData?.shape)) &&
+    dimensions !== null &&
+    ["depthMm", "runAMm", "runBMm", "runCMm"].every((key) => typeof dimensions[key] === "number");
+  if (
+    Array.isArray(rawPlacements) &&
+    rawPlacements.length > 0 &&
+    (Array.isArray(stateData?.pieces) || hasLegacyGeometry)
+  ) {
+    try {
+      const state = stateData as unknown as Pick<StudioState, "pieces" | "shape" | "dimensions" | "basinPlacements">;
+      if (basinPlacementsViolatingEdgeClearance(state, STUDIO_BASIN_SAFETY_MARGIN_MM).length > 0) {
+        warnings.push(FABRICATION_CLEARANCE_WARNING);
+      }
+      const pieces = studioPieces(state);
+      const hasCrossJointPlacement = rawPlacements.some((rawPlacement) => {
+        const placement = rawPlacement as BasinPlacement;
+        const piece = pieces.find((candidate) => candidate.id === placement.pieceId) ?? pieces[0];
+        return piece ? placementCrossesPanelJoint(piece, placement) : false;
+      });
+      if (hasCrossJointPlacement) warnings.push(FABRICATION_JOINT_WARNING);
+    } catch {
+      // Malformed or legacy payloads do not break the admin list; API warnings above remain visible.
+    }
+  }
+
+  return [...new Set(warnings.map((warning) => warning.trim()).filter(Boolean))];
+}
+
+function LeadFabricationSafetyBadge({ leadId, warnings }: { leadId: number; warnings: readonly string[] }) {
+  if (warnings.length === 0) return null;
+  const summary = warnings.join(" · ");
+  return (
+    <span
+      className="inline-flex items-center gap-1 border border-[#e5a354] bg-[#fff4e3] px-2 py-1 text-[11px] font-semibold leading-tight text-[#8a421d]"
+      title={summary}
+      aria-label={`${FABRICATION_RISK_LABEL}: ${summary}`}
+      data-testid={`badge-fabrication-risk-${leadId}`}
+    >
+      <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden="true" />
+      {FABRICATION_RISK_LABEL}
+    </span>
+  );
+}
 
 function sketchImageUrls(lead: { sketchUrl?: string | null; studioData?: unknown }) {
   const studio = lead.studioData as { sketchUrls?: unknown } | null | undefined;
@@ -286,6 +420,7 @@ export type LeadSortField = "id" | "createdAt" | "name" | "project" | "contact" 
 
 function LeadsTableView({
   leads,
+  fabricationWarningsByLeadId,
   expandedLeadId,
   setExpandedLeadId,
   updateStatus,
@@ -307,6 +442,7 @@ function LeadsTableView({
   onSort,
 }: {
   leads: CustomerLead[];
+  fabricationWarningsByLeadId: ReadonlyMap<number, readonly string[]>;
   expandedLeadId: number | null;
   setExpandedLeadId: (id: number | null) => void;
   updateStatus: (id: number, status: string, notes?: string | null) => void;
@@ -384,7 +520,10 @@ function LeadsTableView({
                     {formatLeadDate(lead.createdAt)}
                   </TableCell>
                   <TableCell>
-                    <div className="font-semibold text-[var(--ink)] leading-snug">{lead.name || "ยังไม่ระบุชื่อ"}</div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-semibold text-[var(--ink)] leading-snug">{lead.name || "ยังไม่ระบุชื่อ"}</span>
+                      <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
+                    </div>
                     {lead.company && <div className="text-[14px] text-[var(--ink-soft)] truncate max-w-[170px]">{lead.company}</div>}
                   </TableCell>
                   <TableCell>
@@ -919,6 +1058,7 @@ export function LeadsManager() {
   const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
   const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
+  const [fabricationFilter, setFabricationFilter] = useState<FabricationFilter>("all");
   const initialStatusParam = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("status");
   const [filter, setFilter] = useState<string>(
     initialStatusParam && initialStatusParam !== "awaiting_contact" ? initialStatusParam : "all",
@@ -937,6 +1077,14 @@ export function LeadsManager() {
   const [quickStatusPending, setQuickStatusPending] = useState(false);
   const [sortField, setSortField] = useState<LeadSortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const fabricationWarningsByLeadId = useMemo(() => {
+    const warningsByLeadId = new Map<number, string[]>();
+    (leads ?? []).forEach((lead) => {
+      const warnings = leadFabricationWarnings(lead);
+      if (warnings.length > 0) warningsByLeadId.set(lead.id, warnings);
+    });
+    return warningsByLeadId;
+  }, [leads]);
 
   const handleSort = (field: LeadSortField) => {
     if (sortField === field) {
@@ -949,6 +1097,11 @@ export function LeadsManager() {
 
   const visibleLeads = useMemo(() => {
     let result = filterAdminLeads(leads ?? [], filter, search, { fromDate, toDate });
+    if (fabricationFilter === "risk") {
+      result = result.filter((lead) => fabricationWarningsByLeadId.has(lead.id));
+    } else if (fabricationFilter === "normal") {
+      result = result.filter((lead) => !fabricationWarningsByLeadId.has(lead.id));
+    }
     if (quoteTypeFilter !== "all") {
       result = result.filter((lead) => (lead.quoteNumber ?? "").toUpperCase().includes(quoteTypeFilter));
     }
@@ -985,8 +1138,10 @@ export function LeadsManager() {
       }
       return sortDirection === "desc" ? -cmp : cmp;
     });
-  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly, sortField, sortDirection]);
+  }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly, sortField, sortDirection, fabricationFilter, fabricationWarningsByLeadId]);
   const hasSearchFilters = Boolean(search || fromDate || toDate || quoteTypeFilter !== "all");
+  const fabricationRiskCount = fabricationWarningsByLeadId.size;
+  const fabricationNormalCount = Math.max(0, (leads?.length ?? 0) - fabricationRiskCount);
 
   const clearAwaitingContactOnly = () => {
     setAwaitingContactOnly(false);
@@ -1185,6 +1340,19 @@ export function LeadsManager() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-1 border border-[var(--line)] p-1 text-xs" role="group" aria-label="กรองความเสี่ยงงานช่าง" data-testid="filter-fabrication-risk">
+        <span className="text-[var(--ink-soft)] px-1">ความเสี่ยงงานช่าง:</span>
+        <Button type="button" size="sm" variant={fabricationFilter === "all" ? "secondary" : "ghost"} aria-pressed={fabricationFilter === "all"} onClick={() => setFabricationFilter("all")} className="h-7 px-2 text-xs rounded-none" data-testid="filter-fabrication-all">
+          ทั้งหมด ({leads?.length ?? 0})
+        </Button>
+        <Button type="button" size="sm" variant={fabricationFilter === "normal" ? "secondary" : "ghost"} aria-pressed={fabricationFilter === "normal"} onClick={() => setFabricationFilter("normal")} className="h-7 px-2 text-xs rounded-none" data-testid="filter-fabrication-normal">
+          ปกติ ({fabricationNormalCount})
+        </Button>
+        <Button type="button" size="sm" variant={fabricationFilter === "risk" ? "secondary" : "ghost"} aria-pressed={fabricationFilter === "risk"} onClick={() => setFabricationFilter("risk")} className="h-7 px-2 text-xs rounded-none text-[#8a421d]" data-testid="filter-fabrication-risk-only">
+          {FABRICATION_RISK_LABEL} ({fabricationRiskCount})
+        </Button>
+      </div>
+
       <div className="border border-[var(--line)] bg-[var(--card-paper)] p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm font-medium"><Search className="w-4 h-4 text-[var(--brand-blue)]" /> ค้นหาใบเสนอราคาและลูกค้า</div>
@@ -1235,6 +1403,7 @@ export function LeadsManager() {
       ) : displayMode === "table" ? (
         <LeadsTableView
           leads={visibleLeads}
+          fabricationWarningsByLeadId={fabricationWarningsByLeadId}
           expandedLeadId={expandedLeadId}
           setExpandedLeadId={setExpandedLeadId}
           updateStatus={updateStatus}
@@ -1264,6 +1433,7 @@ export function LeadsManager() {
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-lg">{lead.name || "ยังไม่ระบุชื่อ"}</strong>
                     <span className="text-xs border border-[var(--line)] px-2 py-1">{statusLabels[lead.status]}</span>
+                    <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
                   </div>
                   <p className="text-sm text-[var(--ink-soft)] mt-1">{lead.project || "ยังไม่ระบุโครงการ"} · แหล่งที่มา {lead.source}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-1">หน้างาน: {lead.site || "ยังไม่ระบุ"}</p>
