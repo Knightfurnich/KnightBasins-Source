@@ -2770,7 +2770,7 @@ export function StudioPage({
         busy: true,
       });
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("file", file);
 
       try {
         const response = await fetch("/api/sketch/analyze", { method: "POST", body: formData });

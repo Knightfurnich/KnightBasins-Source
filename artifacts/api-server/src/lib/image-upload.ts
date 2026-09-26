@@ -280,7 +280,7 @@ export async function readMultipartForm(
     const disposition = headerValue(headers, "content-disposition");
     const fieldName = disposition.match(/name="([^"]*)"/i)?.[1];
     const fileName = disposition.match(/filename="([^"]*)"/i)?.[1];
-    if (fieldName === "file" && fileName) {
+    if ((fieldName === "file" || fieldName === "image") && fileName) {
       if (media.length >= maxFiles) {
         throw new Error(isImage ? `Choose up to ${maxFiles} images` : `Choose up to ${maxFiles} videos`);
       }

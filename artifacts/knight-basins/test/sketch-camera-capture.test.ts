@@ -36,7 +36,7 @@ describe("Sketch camera capture", () => {
 
   it("shows analysis progress and per-image results, with a safe fallback and editable dimensions", () => {
     assert.match(studioPageSource, /fetch\("\/api\/sketch\/analyze", \{ method: "POST", body: formData \}\)/);
-    assert.match(studioPageSource, /formData\.append\("image", file\)/);
+    assert.match(studioPageSource, /formData\.append\("file", file\)/);
     assert.match(studioPageSource, /data-testid="status-sketch-analysis"/);
     assert.match(studioPageSource, /role="status"/);
     assert.match(studioPageSource, /aria-live="polite"/);
