@@ -111,6 +111,7 @@
 | **Sketch Pricing & URLs** | เดวิด | คำนวณราคาอ่าง+พื้นที่จริงในโหมดส่งแบบร่าง + กล่องกรอกขนาดเคาน์เตอร์ + ซิงก์ URL สั่งซื้อ | `1c20868` | ✅ **Live บน VPS** · ผ่าน 2/2 tests · คิดราคาอ่าง KF025 + พื้นที่ 1.98x0.45m เป๊ะ |
 | **Task 72 (Sketch Vision API)** | ชัย/เดวิด | API วิเคราะห์ภาพแบบร่างด้วย AI (Gemini 3.8 Flash Vision อ่านลายมือ ถอดทรง I/L/U และมิติ) (PR #47) | `feat/chai-sketch-vision-api` | ✅ **Live บน VPS** · ผ่าน 11/11 tests · อ่านภาพสเก็ตช์ 1980x450mm สำเร็จจริงบน Production |
 | **Task 73 (Sketch Camera & AI UI)** | Replit | ปุ่มถ่ายรูปกล้องสด + จำกัด 3 รูป + แถบสถานะ AI + กรอกมิติอัตโนมัติ | `feat/replit-sketch-camera-capture` | 🔄 มอบหมายแล้ว (`qa/job-73-replit-sketch-camera-capture.md`) |
+| **Studio Basin 5-Col** | เดวิด | ขยายถาดเลือกอ่างใน 2D Studio เป็น 5 คอลัมน์ (จาก 3) + กว้าง 1080px | `482ada0` | ✅ **Live บน VPS** · 5 คอลัมน์/การ์ด 194px · มือถือ 2 คอลัมน์ |
 | **Address Input Fix** | เดวิด | แก้ช่อง "ที่อยู่/สถานที่ติดตั้ง" พิมพ์ต่อไม่ได้ + เลิกขึ้น "กำลังค้นหาตำแหน่ง" หลอกทุกคีย์ | `30de2ba` | ✅ **Live บน VPS** · ผ่าน 2/2 tests · พิมพ์เร็ว 4 ตัวติดครบ + suggestions 5 รายการ |
 | **Readme Hub & Showcase** | เดวิด | ฝังภาพผลงานจริงเลื่อนวนใน /readme + การ์ดทางลัด 3 ศูนย์ข้อมูล (คลังภาพ/หน้างาน/Studio) | `b432217` | ✅ **Live บน VPS** · ผ่าน 3/3 tests · ภาพเลื่อนจริง + ลิงก์ 3 Hubs |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ (อัปเกรด V2 ไร้ขอบ 30/30 รุ่น) | `87a6bc5` + VPS V2 | ✅ **Live บน VPS** · ภาพ Top View ตัดขอบเนียน 100% ครบทั้ง 30 รุ่นใน Production |
