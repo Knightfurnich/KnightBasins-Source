@@ -23,6 +23,8 @@ export type PortfolioResponse = {
   total: number;
   categories: PortfolioCategory[];
   count: number;
+  hasMore?: boolean;
+  nextOffset?: number | null;
   items: PortfolioItem[];
 };
 
@@ -129,11 +131,16 @@ export function toggleVisibility(currentlyVisible: boolean): boolean {
   return !currentlyVisible;
 }
 
-async function fetchPortfolio(category: string): Promise<PortfolioResponse> {
-  const url = category === "all"
-    ? "/api/portfolio?limit=200&includeHidden=true"
-    : `/api/portfolio?category=${encodeURIComponent(category)}&limit=200&includeHidden=true`;
-  const response = await fetch(url);
+async function fetchPortfolio(
+  category: string,
+  offset = 0,
+  limit: number | "all" = category === "all" ? "all" : 200,
+): Promise<PortfolioResponse> {
+  const params = new URLSearchParams({ limit: String(limit), includeHidden: "true" });
+  if (category !== "all") params.set("category", category);
+  if (offset > 0) params.set("offset", String(offset));
+
+  const response = await fetch(`/api/portfolio?${params.toString()}`);
   if (!response.ok) throw new Error("โหลดคลังภาพผลงานไม่สำเร็จ");
   return response.json() as Promise<PortfolioResponse>;
 }
@@ -303,6 +310,20 @@ export function PortfolioGalleryPage() {
     queryKey,
     queryFn: () => fetchPortfolio(selectedCategory),
   });
+  const loadMoreMutation = useMutation({
+    mutationFn: ({ category, offset }: { category: string; offset: number }) => fetchPortfolio(category, offset, 200),
+    onSuccess: (page, { category }) => {
+      queryClient.setQueryData<PortfolioResponse>(["/api/portfolio", category], (current) => {
+        if (!current) return page;
+        const existingIds = new Set(current.items.map((item) => item.id));
+        return {
+          ...page,
+          items: [...current.items, ...page.items.filter((item) => !existingIds.has(item.id))],
+        };
+      });
+    },
+    onError: () => setPageFeedback({ type: "error", message: "โหลดรูปเพิ่มเติมไม่สำเร็จ กรุณาลองอีกครั้ง" }),
+  });
   const duplicatesQuery = useQuery({
     queryKey: DUPLICATES_QUERY_KEY,
     queryFn: fetchPortfolioDuplicates,
@@ -392,7 +413,7 @@ export function PortfolioGalleryPage() {
     [duplicateIds, onlyDuplicates, visibleItems],
   );
   const writesPending = uploadMutation.isPending || deleteMutation.isPending;
-  const actionsDisabled = writesPending || toggleMutation.isPending;
+  const actionsDisabled = writesPending || toggleMutation.isPending || loadMoreMutation.isPending;
 
   useEffect(() => () => {
     uploadObjectUrls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -468,6 +489,13 @@ export function PortfolioGalleryPage() {
     if (!window.confirm(DELETE_CONFIRMATION_TEXT)) return;
     setPageFeedback(null);
     deleteMutation.mutate(item.id);
+  };
+
+  const handleLoadMorePortfolioItems = () => {
+    const nextOffset = portfolioQuery.data?.nextOffset;
+    if (actionsDisabled || typeof nextOffset !== "number") return;
+    setPageFeedback(null);
+    loadMoreMutation.mutate({ category: selectedCategory, offset: nextOffset });
   };
 
   const handleToggleVisibility = (item: PortfolioItem) => {
@@ -581,6 +609,31 @@ export function PortfolioGalleryPage() {
           ))}
         </div>
       </div>
+
+      {portfolioQuery.data && !portfolioQuery.isError && (
+        <div className="flex flex-wrap items-center justify-between gap-3" data-testid="portfolio-results-summary">
+          <p className="text-sm text-[var(--ink-soft)]" role="status" data-testid="status-portfolio-count">
+            แสดง {filteredItems.length} จาก {portfolioQuery.data.count} รายการ
+          </p>
+          {portfolioQuery.data.hasMore === true && (
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={handleLoadMorePortfolioItems}
+              disabled={actionsDisabled || typeof portfolioQuery.data.nextOffset !== "number"}
+              data-testid="button-portfolio-load-more"
+            >
+              {loadMoreMutation.isPending ? "กำลังโหลด…" : "⬇️ โหลดเพิ่ม"}
+            </Button>
+          )}
+        </div>
+      )}
+      {loadMoreMutation.isError && (
+        <p className="text-sm text-red-800" role="alert" data-testid="status-portfolio-load-more-error">
+          โหลดรูปเพิ่มเติมไม่สำเร็จ กรุณาลองอีกครั้ง
+        </p>
+      )}
 
       {portfolioQuery.isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" aria-label="กำลังโหลดคลังภาพผลงาน" data-testid="status-portfolio-loading">

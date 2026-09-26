@@ -18,6 +18,32 @@ test("upload UI selects multiple images, captures per-image titles, and posts th
   assert.match(adminSource, /invalidateQueries\(\{ queryKey: \["\/api\/portfolio"\] \}\)/);
 });
 
+test("all-category view requests the complete collection while category views stay scoped", () => {
+  assert.match(adminSource, /async function fetchPortfolio\(\s*category: string,\s*offset = 0,\s*limit: number \| "all" = category === "all" \? "all" : 200/);
+  assert.match(adminSource, /new URLSearchParams\(\{ limit: String\(limit\), includeHidden: "true" \}\)/);
+  assert.match(adminSource, /if \(category !== "all"\) params\.set\("category", category\)/);
+  assert.match(adminSource, /if \(offset > 0\) params\.set\("offset", String\(offset\)\)/);
+  assert.match(adminSource, /queryFn: \(\) => fetchPortfolio\(selectedCategory\)/);
+});
+
+test("pagination shows loaded and total counts and offers the API-provided next page", () => {
+  assert.match(adminSource, /hasMore\?: boolean/);
+  assert.match(adminSource, /nextOffset\?: number \| null/);
+  assert.match(adminSource, /fetchPortfolio\(category, offset, 200\)/);
+  assert.match(adminSource, /queryClient\.setQueryData<PortfolioResponse>\(\["\/api\/portfolio", category\]/);
+  assert.match(adminSource, /items: \[\.\.\.current\.items, \.\.\.page\.items\.filter\(\(item\) => !existingIds\.has\(item\.id\)\)\]/);
+  assert.match(adminSource, /data-testid="status-portfolio-count"[\s\S]*?แสดง \{filteredItems\.length\} จาก \{portfolioQuery\.data\.count\} รายการ/);
+  assert.match(adminSource, /portfolioQuery\.data\.hasMore === true && \([\s\S]*?data-testid="button-portfolio-load-more"/);
+  assert.match(adminSource, /offset: nextOffset/);
+});
+
+test("search, visibility, and duplicate filters compose over the loaded portfolio items", () => {
+  assert.match(adminSource, /const allItems = portfolioQuery\.data\?\.items \?\? \[\]/);
+  assert.match(adminSource, /filterPortfolioItems\(allItems, searchQuery\)/);
+  assert.match(adminSource, /filterPortfolioItemsByVisibility\(searchedItems, visibilityFilter\)/);
+  assert.match(adminSource, /onlyDuplicates \? visibleItems\.filter\(\(item\) => duplicateIds\.has\(item\.id\)\) : visibleItems/);
+});
+
 test("card and lightbox deletion share a confirmation guard and the DELETE endpoint", () => {
   const confirmationText = "ลบรูปนี้ออกจากคลังผลงานถาวร? รูปจะหายจากหน้าเว็บและลบไฟล์ออกจากเซิร์ฟเวอร์";
   assert.ok(adminSource.includes(confirmationText));
