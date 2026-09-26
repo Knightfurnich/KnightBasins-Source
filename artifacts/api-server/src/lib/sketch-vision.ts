@@ -379,9 +379,10 @@ export async function analyzeSketchImage(buffer: Buffer, mimeType: string, index
     }
     return parseSketchVisionResponse(text, index);
   } catch (error) {
-    const message = error instanceof Error
-      ? (error.name === "AbortError" ? "เรียก Gemini Vision หมดเวลา (timeout)" : `เรียก Gemini Vision ไม่สำเร็จ: ${error.message}`)
-      : "เรียก Gemini Vision ไม่สำเร็จ";
+    const isTimeout = error instanceof Error && error.name === "AbortError";
+    const message = isTimeout
+      ? "เรียกวิเคราะห์ภาพหมดเวลา (timeout) กรุณาลองใหม่อีกครั้ง"
+      : "ไม่สามารถเชื่อมต่อระบบวิเคราะห์ภาพได้ในขณะนี้ กรุณากรอกขนาดด้วยตนเอง";
     return unknownItem(index, message);
   } finally {
     clearTimeout(timeout);
