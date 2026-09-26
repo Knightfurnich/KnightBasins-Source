@@ -886,7 +886,7 @@ export function TechnicianCalendarPage() {
                       )}
 
                       <div className="mt-1.5 space-y-1 overflow-hidden">
-                        {teamJobs.slice(0, 2).map((j) => (
+                        {teamJobs.slice(0, 3).map((j) => (
                           <div
                             key={j.id}
                             className="flex items-center gap-1 truncate rounded border border-[var(--line)]/60 bg-[var(--paper)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--ink)] sm:text-[11px]"
@@ -896,9 +896,9 @@ export function TechnicianCalendarPage() {
                             <span className="truncate">{j.name.replace(/^ลูกค้า\s*/, "")}</span>
                           </div>
                         ))}
-                        {teamJobs.length > 2 && (
+                        {teamJobs.length > 3 && (
                           <p className="text-[10px] text-[var(--ink-soft)] font-medium pl-1 leading-tight">
-                            +{teamJobs.length - 2} งานเพิ่มเติม
+                            +{teamJobs.length - 3} งานเพิ่มเติม
                           </p>
                         )}
                       </div>
