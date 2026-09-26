@@ -1,4 +1,4 @@
-# ใบงาน 80 (ชัย) — กรองแถวสรุปยอดรวมแผ่นออกจาก API สต็อกหิน Staron และ Zen Stone
+# ใบงาน 80 (ชัย) — กรองแถวสรุปยอดรวมแผ่นออกจาก API สต็อกหิน Staron และ Zen Stone + คำนวณยอดแผ่นรวมทั้งโกดัง
 
 **วันที่:** 26 ก.ย. 69 · **ออกโดย:** เดวิด (หัวหน้าทีม)
 **สถานะ:** มอบหมายให้ ชัย (API & Data Cleaning)
@@ -13,11 +13,11 @@
      * `"รวมทั้งหมด"`
      * `"ยอดรวม"`
      * `"Total"`
-   - คำนวณ `totalSheets: number` (ผลรวมแผ่นจริงของทุกสีที่เหลือ) ส่งกลับไปใน `AdminStockSheet` ด้วย เพื่อให้หน้าบ้านสามารถนำตัวเลข "จำนวนแผ่นหินรวมทั้งโกดัง" ไปแสดงในการ์ด KPI ได้อย่างถูกต้องแม่นยำ
+   - เพิ่มฟิลด์ `totalSheets: number` (ผลรวมแผ่นจริงของทุกสีที่เหลือ) ส่งกลับไปใน `AdminStockSheet` ด้วย เพื่อให้หน้าบ้านสามารถนำตัวเลข "จำนวนแผ่นหินรวมทั้งโกดัง" ไปแสดงในการ์ด KPI ได้อย่างถูกต้องแม่นยำ
 2. **รักษาความเข้ากันได้:**
    - ไม่แก้ Endpoint path (`/admin/stock` และ `/admin/stock/export` ยังคงทำงานได้เหมือนเดิม)
-3. **เขียน/อัปเดต Unit Tests ใน `artifacts/api-server/test/`:**
-   - ทดสอบว่าเมื่อฟีดข้อมูลที่มีแถว "รวมแผ่นทั้งหมด" ระบบจะคัดทิ้ง และนับจำนวนสีเฉพาะหินจริงเท่านั้น
+3. **อัปเดต Unit Tests ใน `artifacts/api-server/test/admin-stock-api.test.ts`:**
+   - ทดสอบว่าเมื่อฟีดข้อมูลที่มีแถว "รวมแผ่นทั้งหมด" ระบบจะคัดทิ้ง และนับจำนวนสีเฉพาะหินจริงเท่านั้น พร้อมทั้งคืนค่า `totalSheets` ถูกต้อง
 
 ```
 ✅ มาตรฐานการออกใบงาน · 12/12 · 26 ก.ย. 69 · เดวิด
@@ -27,29 +27,30 @@
 GOAL:
   1. ใน artifacts/api-server/src/routes/admin-router.ts:
      - ใน buildStockSheet(): เพิ่มเงื่อนไขกรอง name ที่เข้าข่ายแถวสรุปยอดรวม:
-       /^(รวมแผ่นทั้งหมด|รวมทั้งหมด|ยอดรวม|total)/i.test(name) -> ให้ continue ข้ามไป
-     - เพิ่มฟิลด์ totalSheets ใน AdminStockSheet (sum ของ item.qty ทั้งหมด)
-  2. ใน artifacts/api-server/test/ (หรือ stock test ที่เกี่ยวข้อง):
+       if (/^(รวมแผ่นทั้งหมด|รวมทั้งหมด|ยอดรวม|total)/i.test(name)) continue;
+     - เพิ่มฟิลด์ totalSheets: number ใน AdminStockSheet (sum ของ item.qty ทั้งหมด)
+  2. ใน artifacts/api-server/test/admin-stock-api.test.ts:
      - ทดสอบว่าแถว "รวมแผ่นทั้งหมด" ถูกตัดทิ้ง ไม่ถูกนับเป็น item และไม่รวมเป็นสีหิน
+     - ทดสอบว่า totalSheets มีค่าเท่ากับผลบวก qty ของทุกสีจริง
 
 SCOPE:
   - /opt/data/cache/kbsrc/artifacts/api-server/src/routes/admin-router.ts
   - /opt/data/cache/kbsrc/artifacts/api-server/test/admin-stock-api.test.ts
 
 FORBIDDEN:
-  - ห้ามแตะต้อง artifacts/knight-basins/ ทุกไฟล์ (งานหน้าบ้านจะออกให้ Replit ใน Task 81)
+  - ห้ามแตะต้อง artifacts/knight-basins/ ทุกไฟล์ (งานหน้าบ้านแยกให้ Replit ใน Task 81)
   - ห้ามแตะต้อง lib/db/ และ artifacts/api-server/src/routes/leads.ts
   - ห้าม push ตรงเข้า main ให้ทำงานผ่าน branch: feat/chai-stock-exclude-summary-row
 
 EVIDENCE (ต้องแนบผลรันจริงทุกข้อ — ตัวเลข ไม่ใช่คำรับรอง):
   1) git branch --show-current -> feat/chai-stock-exclude-summary-row
   2) pnpm run typecheck -> 0 errors ทั้ง 9 workspace
-  3) node --experimental-strip-types --test <test-file> -> ผ่านครบ 100%
+  3) node --experimental-strip-types --test artifacts/api-server/test/admin-stock-api.test.ts -> ผ่านครบ 100%
   4) npm test ใน artifacts/api-server -> รายงานผลเทียบ baseline เดิม (370 tests / 365 pass / 5 fail เดิม)
 
 OUTPUT:
   - branch: feat/chai-stock-exclude-summary-row (เปิด PR เข้า main)
-  - ไฟล์ตามรายการ SCOPE
+  - 2 ไฟล์ตามรายการ SCOPE
   - EVIDENCE ครบ 4 ข้อ
 
 STOP (หยุดทันทีแล้วรายงาน ถ้าเข้าเงื่อนไขใด):
