@@ -77,7 +77,7 @@ import {
   saveUploadedVideo,
   UploadFileCollisionError,
 } from "../lib/image-upload";
-import { createQuoteNumber, quoteTotalTHB } from "./leads";
+import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./leads";
 import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
 
@@ -1834,6 +1834,14 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
         };
         if (parsed.data.staffDimensions !== undefined) {
           studioData = { ...studioData, staffDimensions: parsed.data.staffDimensions };
+        }
+        // Fabrication Geometry Guard (job-95/job-97): re-run on every admin
+        // save too, not just lead creation -- staff editing studioData
+        // directly (e.g. staffDimensions) could just as easily introduce an
+        // unsafe basin-cutout layout as the original customer submission.
+        const fabricationAudit = auditStudioFabrication(studioData);
+        if (!fabricationAudit.safe) {
+          studioData = { ...studioData, fabricationWarnings: fabricationAudit.warnings };
         }
         // A lead without a quote number yet (e.g. a hand-sketch lead) gets one
         // the first time staff attach studioData to it, so the public quote
