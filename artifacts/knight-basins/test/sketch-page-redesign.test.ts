@@ -123,7 +123,7 @@ describe("Sketch page redesign", () => {
       assert.ok(studioPageSource.includes(`data-testid={\`${testId}\`}`), `missing ${testId}`);
     }
 
-    assert.match(studioPageSource, /const MAX_SKETCH_FILES = 5/);
+    assert.match(studioPageSource, /const MAX_SKETCH_FILES = 3/);
     assert.match(uploadSource, /onDragEnter=/);
     assert.match(uploadSource, /onDragOver=/);
     assert.match(uploadSource, /onDrop=/);
