@@ -98,7 +98,7 @@ import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDi
 import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraftRecord, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, upsertStoredStudioDraft, writeStoredStudioDraft, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
-import { cleanPhoneInput, normalizeDimensionInput } from "@/data/input-sanitizers";
+import { cleanPhoneInput, normalizeDimensionInput, sanitizeIntegerRange, sanitizeTextInput } from "@/data/input-sanitizers";
 import { WorksiteAddressAutocomplete } from "./WorksiteAddressAutocomplete";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineContact" | "email" | "project" | "address" | "site" | "purchasingDepartment" | "notes" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
@@ -122,6 +122,11 @@ const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineCo
   condoFloor: "",
   expectedInstallationDate: "",
 };
+
+const MAX_STUDIO_SUBMISSION_DIMENSION_MM = 10_000;
+const MAX_STUDIO_SUBMISSION_POSITION_MM = 100_000;
+const MAX_STUDIO_SUBMISSION_PRICE_THB = 1_000_000_000;
+const MAX_STUDIO_SUBMISSION_RATE_THB = 1_000_000;
 
 export type StudioSubmission = {
   state: StudioState;
@@ -827,10 +832,152 @@ const STUDIO_CUSTOM_SHAPE_EDGE_OPTIONS: ReadonlyArray<{ value: SideStatus; label
 function parseBoundedIntegerInput(value: string, min: number, max: number, step = 1): number | null {
   const trimmed = value.trim();
   if (!/^\d+$/.test(trimmed)) return null;
-  const parsed = Number(trimmed);
-  return Number.isSafeInteger(parsed) && parsed >= min && parsed <= max && (parsed - min) % step === 0
-    ? parsed
-    : null;
+  if (!Number.isSafeInteger(step) || step <= 0) return null;
+  const parsed = sanitizeIntegerRange(Number(trimmed), min, max);
+  return parsed !== null && (parsed - min) % step === 0 ? parsed : null;
+}
+
+function sanitizeStudioContactForPayload(contact: typeof emptyContact): typeof emptyContact {
+  const cleanText = (value: string) => sanitizeTextInput(value).trim();
+  return {
+    ...contact,
+    name: cleanText(contact.name),
+    company: cleanText(contact.company),
+    phone: cleanPhoneInput(contact.phone),
+    lineContact: cleanText(contact.lineContact),
+    email: cleanText(contact.email),
+    project: cleanText(contact.project),
+    address: cleanText(contact.address),
+    site: cleanText(contact.site),
+    purchasingDepartment: cleanText(contact.purchasingDepartment),
+    notes: cleanText(contact.notes),
+    taxName: cleanText(contact.taxName),
+    taxId: contact.taxId.replace(/\D/g, "").slice(0, 13),
+    taxBranch: cleanText(contact.taxBranch),
+    taxAddress: cleanText(contact.taxAddress),
+    preferredContact: CUSTOMER_CONTACT_OPTIONS.find((option) => option.value === contact.preferredContact)?.value ?? "",
+    customerRole: CUSTOMER_ROLE_OPTIONS.find((option) => option.value === contact.customerRole)?.value ?? "",
+    propertyType: PROPERTY_TYPE_OPTIONS.find((option) => option.value === contact.propertyType)?.value ?? "",
+    condoFloor: cleanText(contact.condoFloor),
+    expectedInstallationDate: cleanText(contact.expectedInstallationDate),
+  };
+}
+
+function isSafeStudioSubmissionAmount(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= MAX_STUDIO_SUBMISSION_PRICE_THB;
+}
+
+function sanitizeStudioSubmissionRate(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > MAX_STUDIO_SUBMISSION_RATE_THB) return null;
+  const roundedRate = Math.round(value * 100) / 100;
+  return Math.abs(value - roundedRate) < 1e-9 ? roundedRate : null;
+}
+
+function prepareStudioSubmissionPayload(state: StudioState, basinProducts: ReadonlyArray<BasinProduct>) {
+  try {
+    if (!state || typeof state !== "object" || !state.dimensions || !state.backsplash ||
+      !Array.isArray(state.basinSkus) || !Array.isArray(state.basinPlacements) ||
+      !Array.isArray(state.stoneColors) ||
+      !["quick-purchase", "studio", "sketch"].includes(state.mode) ||
+      !["I", "L", "U"].includes(state.shape) ||
+      !["bangkok-metro", "province"].includes(state.location) ||
+      !["US", "OF"].includes(state.quoteFormat) ||
+      typeof state.backsplash.enabled !== "boolean" ||
+      typeof state.vat !== "boolean" ||
+      !Number.isSafeInteger(state.backsplash.heightMm)) return null;
+
+    const discount = sanitizeIntegerRange(state.discountTHB ?? 0, 0, MAX_STUDIO_SUBMISSION_PRICE_THB);
+    const openEdgeRate = state.openEdgePricePerMTHB == null
+      ? null
+      : sanitizeStudioSubmissionRate(state.openEdgePricePerMTHB);
+    const upstandHeight = state.upstandHeightMm == null
+      ? state.upstandHeightMm
+      : sanitizeIntegerRange(state.upstandHeightMm, 0, 500);
+    if (discount === null || (state.openEdgePricePerMTHB != null && openEdgeRate === null) ||
+      (state.upstandHeightMm != null && upstandHeight === null) ||
+      sanitizeIntegerRange(state.backsplash.heightMm, 0, 500) === null) return null;
+
+    const allowedSkus = new Set(basinProducts.map((product) => product.sku));
+    if (state.basinSkus.length > 100 || state.basinSkus.some((sku) => typeof sku !== "string" || !allowedSkus.has(sku))) return null;
+    const allowedStoneCodes = new Set(STONE_COLORS.map((stone) => stone.code));
+    if (state.stoneColors.length > allowedStoneCodes.size ||
+      state.stoneColors.some((code) => typeof code !== "string" || !allowedStoneCodes.has(code)) ||
+      (state.activeStone !== "" && !allowedStoneCodes.has(state.activeStone))) return null;
+    if (state.basinPlacements.length > 100 || state.basinPlacements.some((placement) =>
+      !placement || typeof placement.sku !== "string" || !allowedSkus.has(placement.sku) ||
+      !Number.isFinite(placement.xMm) || placement.xMm < 0 || placement.xMm > MAX_STUDIO_SUBMISSION_POSITION_MM ||
+      !Number.isFinite(placement.yMm) || placement.yMm < 0 || placement.yMm > MAX_STUDIO_SUBMISSION_POSITION_MM ||
+      (placement.offsetXMm !== undefined && (!Number.isFinite(placement.offsetXMm) || Math.abs(placement.offsetXMm) > MAX_STUDIO_SUBMISSION_DIMENSION_MM)) ||
+      (placement.offsetYMm !== undefined && (!Number.isFinite(placement.offsetYMm) || Math.abs(placement.offsetYMm) > MAX_STUDIO_SUBMISSION_DIMENSION_MM)) ||
+      (placement.widthMm !== null && sanitizeIntegerRange(placement.widthMm, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM) === null) ||
+      (placement.depthMm !== null && sanitizeIntegerRange(placement.depthMm, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM) === null) ||
+      (placement.rotation !== undefined && placement.rotation !== 0 && placement.rotation !== 90) ||
+      (placement.orientation !== undefined && placement.orientation !== "horizontal" && placement.orientation !== "vertical") ||
+      (placement.anchor !== undefined && !["top-left", "top-right", "bottom-left", "bottom-right", "center"].includes(placement.anchor)) ||
+      (placement.pieceId !== undefined && typeof placement.pieceId !== "string") ||
+      (placement.sheetId !== undefined && typeof placement.sheetId !== "string")
+    )) return null;
+
+    const safeState: StudioState = {
+      ...state,
+      discountTHB: discount,
+      openEdgePricePerMTHB: openEdgeRate,
+      upstandHeightMm: upstandHeight,
+    };
+    const legacyDimensions = [
+      safeState.dimensions.depthMm,
+      safeState.dimensions.runAMm,
+      safeState.dimensions.runBMm,
+      safeState.dimensions.runCMm,
+    ];
+    if (legacyDimensions.some((value) => sanitizeIntegerRange(value, 0, MAX_STUDIO_SUBMISSION_DIMENSION_MM) === null)) return null;
+
+    const pieces = getStudioPieces(safeState);
+    if (!studioStateDimensionsValid(safeState) || pieces.length > STUDIO_MAX_PIECES ||
+      pieces.some((piece) => piece.rectangles.length > STUDIO_MAX_RECTANGLES ||
+        piece.rectangles.some((rectangle) =>
+          sanitizeIntegerRange(rectangle.widthMm, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM) === null ||
+          sanitizeIntegerRange(rectangle.lengthMm, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM) === null ||
+          !Number.isFinite(rectangle.xMm) || rectangle.xMm < 0 || rectangle.xMm > MAX_STUDIO_SUBMISSION_POSITION_MM ||
+          !Number.isFinite(rectangle.yMm) || rectangle.yMm < 0 || rectangle.yMm > MAX_STUDIO_SUBMISSION_POSITION_MM ||
+          (rectangle.rotation !== 0 && rectangle.rotation !== 90)
+        ))) return null;
+
+    const estimate = studioEstimate(safeState, basinProducts);
+    const moneyValues = [
+      estimate.stoneTotalTHB,
+      estimate.upstandTotalTHB,
+      estimate.openEdgeTotalTHB,
+      estimate.basinSubtotalTHB,
+      estimate.installationChargeTHB,
+      estimate.installationDiscountTHB,
+      estimate.discountTHB,
+      estimate.smallJobFeeTHB,
+      estimate.grossSubtotalTHB,
+      estimate.subtotalTHB,
+      estimate.vatAmountTHB,
+      estimate.totalTHB,
+    ];
+    const rateValues = [estimate.stoneUnitPriceTHB, estimate.openEdgeUnitPriceTHB];
+    const quantityValues = [
+      estimate.counterAreaSqM,
+      estimate.backsplashAreaSqM,
+      estimate.upstandAreaSqM,
+      estimate.upstandLengthM,
+      estimate.openEdgeLengthM,
+      estimate.stoneAreaSqM,
+    ];
+    if (moneyValues.some((value) => !isSafeStudioSubmissionAmount(value)) ||
+      rateValues.some((value) => value !== null && !isSafeStudioSubmissionAmount(value)) ||
+      quantityValues.some((value) => typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1_000_000) ||
+      sanitizeIntegerRange(estimate.pieceCount, 0, STUDIO_MAX_PIECES) === null ||
+      sanitizeIntegerRange(estimate.rectangleCount, 0, STUDIO_MAX_PIECES * STUDIO_MAX_RECTANGLES) === null) return null;
+    if ((safeState.discountTHB ?? 0) > Math.max(0, estimate.grossSubtotalTHB - estimate.installationDiscountTHB)) return null;
+
+    return { state: safeState, estimate };
+  } catch {
+    return null;
+  }
 }
 
 const studioCustomShapeEdgeLabel = (status: SideStatus) =>
@@ -1759,22 +1906,22 @@ function StudioPieceEditorLegacy({
           <div className="studio-rectangle-editor-heading"><strong>แผ่น {index + 1}</strong></div>
           <div className="studio-rectangle-inputs">
              <label>กว้าง (มม.)<input type="number" min="1" value={rectangle.widthMm} onChange={(event) => {
-               const widthMm = parseBoundedIntegerInput(event.target.value, 1, Number.MAX_SAFE_INTEGER);
+               const widthMm = parseBoundedIntegerInput(event.target.value, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM);
                if (widthMm === null) return;
                setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, widthMm } : item) }));
              }} data-testid={`input-rectangle-width-${rectangle.id}`} /></label>
              <label>ยาว (มม.)<input type="number" min="1" value={rectangle.lengthMm} onChange={(event) => {
-               const lengthMm = parseBoundedIntegerInput(event.target.value, 1, Number.MAX_SAFE_INTEGER);
+               const lengthMm = parseBoundedIntegerInput(event.target.value, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM);
                if (lengthMm === null) return;
                setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, lengthMm } : item) }));
              }} data-testid={`input-rectangle-length-${rectangle.id}`} /></label>
              <label>X<input type="number" min="0" value={rectangle.xMm} onChange={(event) => {
-               const xMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+               const xMm = parseBoundedIntegerInput(event.target.value, 0, MAX_STUDIO_SUBMISSION_POSITION_MM);
                if (xMm === null) return;
                setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, xMm } : item) }));
              }} data-testid={`input-rectangle-x-${rectangle.id}`} /></label>
              <label>Y<input type="number" min="0" value={rectangle.yMm} onChange={(event) => {
-               const yMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+               const yMm = parseBoundedIntegerInput(event.target.value, 0, MAX_STUDIO_SUBMISSION_POSITION_MM);
                if (yMm === null) return;
                setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, yMm } : item) }));
              }} data-testid={`input-rectangle-y-${rectangle.id}`} /></label>
@@ -2252,7 +2399,7 @@ function StudioPieceEditor({
           <div className="studio-rectangle-editor">
            <div className="studio-rectangle-inputs">
             <label>กว้าง (มม.)<input type="number" min="1" value={activeRectangle.widthMm} onChange={(event) => {
-              const widthMm = parseBoundedIntegerInput(event.target.value, 1, Number.MAX_SAFE_INTEGER);
+              const widthMm = parseBoundedIntegerInput(event.target.value, 1, MAX_STUDIO_SUBMISSION_DIMENSION_MM);
               if (widthMm === null) return;
               updateRectangle((rectangle) => ({ ...rectangle, widthMm }));
             }} data-testid={`input-rectangle-width-${activeRectangle.id}`} /></label>
@@ -2260,7 +2407,7 @@ function StudioPieceEditor({
                 const totalLengthMm = parseBoundedIntegerInput(
                   event.target.value,
                   simpleShapeLegDepthMm > 0 ? simpleShapeLegDepthMm + 1 : 1,
-                  Number.MAX_SAFE_INTEGER,
+                  MAX_STUDIO_SUBMISSION_DIMENSION_MM,
                 );
                 if (totalLengthMm === null) return;
                 updateRectangle((rectangle) => ({ ...rectangle, lengthMm: totalLengthMm - simpleShapeLegDepthMm }));
@@ -2312,12 +2459,12 @@ function StudioPieceEditor({
               <>
                 <div className="studio-rectangle-inputs studio-rectangle-position-inputs">
                   <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => {
-                    const xMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+                    const xMm = parseBoundedIntegerInput(event.target.value, 0, MAX_STUDIO_SUBMISSION_POSITION_MM);
                     if (xMm === null) return;
                     updateRectangle((rectangle) => ({ ...rectangle, xMm }));
                   }} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
                   <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => {
-                    const yMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+                    const yMm = parseBoundedIntegerInput(event.target.value, 0, MAX_STUDIO_SUBMISSION_POSITION_MM);
                     if (yMm === null) return;
                     updateRectangle((rectangle) => ({ ...rectangle, yMm }));
                   }} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
@@ -3721,20 +3868,28 @@ export function StudioPage({
       return;
     }
     setHasAttemptedSubmit(true);
-    const validationMessage = studioSubmissionValidationMessage(state, estimate);
+    const prepared = prepareStudioSubmissionPayload(state, basinProducts);
+    if (!prepared) {
+      setResult("ข้อมูลขนาดหรือราคาไม่ถูกต้อง กรุณาตรวจสอบก่อนส่ง");
+      return;
+    }
+    const safeState = prepared.state;
+    const safeEstimate = prepared.estimate;
+    const safeContact = sanitizeStudioContactForPayload(contact);
+    const validationMessage = studioSubmissionValidationMessage(safeState, safeEstimate);
     if (validationMessage) {
       setResult(validationMessage);
       return;
     }
-    if (!contact.name.trim() || !contact.phone.trim() || !contact.project.trim() || !contact.address.trim()) {
+    if (!safeContact.name || !safeContact.phone || !safeContact.project || !safeContact.address) {
       setResult("กรุณากรอกชื่อผู้ติดต่อ โทรศัพท์ ชื่อโครงการ และสถานที่ติดตั้ง");
       return;
     }
-    if (!isValidPhoneNumber(contact.phone)) {
+    if (!isValidPhoneNumber(safeContact.phone)) {
       setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
       return;
     }
-    if (contact.taxId && !/^[0-9]{13}$/.test(contact.taxId)) {
+    if (safeContact.taxId && !/^[0-9]{13}$/.test(safeContact.taxId)) {
       setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
@@ -3742,7 +3897,7 @@ export function StudioPage({
       setResult("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
       return;
     }
-    if (!isValidEmailAddress(contact.email)) {
+    if (!isValidEmailAddress(safeContact.email)) {
       setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
     }
@@ -3751,7 +3906,7 @@ export function StudioPage({
     setResult("");
     try {
       const basinCounts = new Map<string, number>();
-      state.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
+      safeState.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
       const notificationItems: StudioNotificationItem[] = Array.from(basinCounts.entries()).flatMap(([sku, quantity]) => {
         const product = basinProducts.find((item) => item.sku === sku);
         return product ? [{
@@ -3768,30 +3923,31 @@ export function StudioPage({
           cutoutDimensions: product.basinDimensions,
         }] : [];
       });
-      const stoneMaterialPrice = stoneColorByName(activeStone.code, stoneColors).sheetPriceTHB;
-      const stoneLaborPrice = estimate.stoneUnitPriceTHB !== null && stoneMaterialPrice !== null
-        ? Math.max(0, estimate.stoneUnitPriceTHB - stoneMaterialPrice)
+      const safeActiveStone = stoneColorByName(safeState.activeStone, stoneColors);
+      const stoneMaterialPrice = safeActiveStone.sheetPriceTHB;
+      const stoneLaborPrice = safeEstimate.stoneUnitPriceTHB !== null && stoneMaterialPrice !== null
+        ? Math.max(0, safeEstimate.stoneUnitPriceTHB - stoneMaterialPrice)
         : null;
-      if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) notificationItems.push({
+      if (safeEstimate.stoneUnitPriceTHB !== null && safeEstimate.stoneAreaSqM > 0) notificationItems.push({
         kind: "stone",
-        code: activeStone.code,
-        description: activeStone.name,
-        quantity: estimate.counterAreaSqM,
+        code: safeActiveStone.code,
+        description: safeActiveStone.name,
+        quantity: safeEstimate.counterAreaSqM,
         unit: "ตร.ม.",
-        unitPriceTHB: estimate.stoneUnitPriceTHB,
-        totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB),
-        areaSqM: estimate.counterAreaSqM,
+        unitPriceTHB: safeEstimate.stoneUnitPriceTHB,
+        totalTHB: Math.max(0, safeEstimate.stoneTotalTHB - safeEstimate.upstandTotalTHB),
+        areaSqM: safeEstimate.counterAreaSqM,
         productUnitPriceTHB: stoneMaterialPrice,
         laborUnitPriceTHB: stoneLaborPrice,
-        workQuantity: estimate.counterAreaSqM,
+        workQuantity: safeEstimate.counterAreaSqM,
         workUnit: "ตร.ม.",
       });
-      notificationItems.push({ kind: "service", code: "WORKPIECES", description: `${estimate.pieceCount} ชิ้นงาน · ${estimate.rectangleCount} แผ่น`, quantity: estimate.pieceCount, unit: "ชิ้นงาน", unitPriceTHB: 0, totalTHB: 0, workQuantity: estimate.pieceCount, workUnit: "ชิ้นงาน" });
-      if (estimate.upstandLengthM > 0) notificationItems.push({ kind: "service", code: "UPSTAND", description: `บัวยาว ${estimate.upstandLengthM.toFixed(2)} ม. · สูง ${state.upstandHeightMm ?? "ไม่ระบุ"} มม.`, quantity: estimate.upstandLengthM, unit: "ม.", unitPriceTHB: estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0, totalTHB: estimate.upstandTotalTHB, workQuantity: estimate.upstandLengthM, workUnit: "ม." });
-      if (estimate.openEdgeLengthM > 0) notificationItems.push({ kind: "service", code: "OPEN_EDGE", description: `ขอบเปิดยาว ${estimate.openEdgeLengthM.toFixed(2)} ม.`, quantity: estimate.openEdgeLengthM, unit: "ม.", unitPriceTHB: estimate.openEdgeUnitPriceTHB ?? 0, totalTHB: estimate.openEdgeTotalTHB, workQuantity: estimate.openEdgeLengthM, workUnit: "ม." });
-      if (estimate.installationChargeTHB > 0) notificationItems.push({ kind: "service", code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: state.basinPlacements.length, unit: "ชุด", unitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, totalTHB: estimate.installationChargeTHB, laborUnitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0, workQuantity: state.basinPlacements.length, workUnit: "ชุด" });
-      if (estimate.smallJobFeeTHB > 0) notificationItems.push({ kind: "service", code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPriceTHB: estimate.smallJobFeeTHB, totalTHB: estimate.smallJobFeeTHB, workQuantity: 1, workUnit: "งาน" });
-      await onSubmitStudio({ state, estimate, contact, worksitePlaceId, notification: { items: notificationItems, grossSubtotal: estimate.grossSubtotalTHB, discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB, subtotal: estimate.subtotalTHB, vatAmount: estimate.vatAmountTHB, total: estimate.totalTHB, vat: state.vat } });
+      notificationItems.push({ kind: "service", code: "WORKPIECES", description: `${safeEstimate.pieceCount} ชิ้นงาน · ${safeEstimate.rectangleCount} แผ่น`, quantity: safeEstimate.pieceCount, unit: "ชิ้นงาน", unitPriceTHB: 0, totalTHB: 0, workQuantity: safeEstimate.pieceCount, workUnit: "ชิ้นงาน" });
+      if (safeEstimate.upstandLengthM > 0) notificationItems.push({ kind: "service", code: "UPSTAND", description: `บัวยาว ${safeEstimate.upstandLengthM.toFixed(2)} ม. · สูง ${safeState.upstandHeightMm ?? "ไม่ระบุ"} มม.`, quantity: safeEstimate.upstandLengthM, unit: "ม.", unitPriceTHB: safeEstimate.upstandLengthM ? safeEstimate.upstandTotalTHB / safeEstimate.upstandLengthM : 0, totalTHB: safeEstimate.upstandTotalTHB, workQuantity: safeEstimate.upstandLengthM, workUnit: "ม." });
+      if (safeEstimate.openEdgeLengthM > 0) notificationItems.push({ kind: "service", code: "OPEN_EDGE", description: `ขอบเปิดยาว ${safeEstimate.openEdgeLengthM.toFixed(2)} ม.`, quantity: safeEstimate.openEdgeLengthM, unit: "ม.", unitPriceTHB: safeEstimate.openEdgeUnitPriceTHB ?? 0, totalTHB: safeEstimate.openEdgeTotalTHB, workQuantity: safeEstimate.openEdgeLengthM, workUnit: "ม." });
+      if (safeEstimate.installationChargeTHB > 0) notificationItems.push({ kind: "service", code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: safeState.basinPlacements.length, unit: "ชุด", unitPriceTHB: safeState.basinPlacements.length ? safeEstimate.installationChargeTHB / safeState.basinPlacements.length : 0, totalTHB: safeEstimate.installationChargeTHB, laborUnitPriceTHB: safeState.basinPlacements.length ? safeEstimate.installationChargeTHB / safeState.basinPlacements.length : 0, workQuantity: safeState.basinPlacements.length, workUnit: "ชุด" });
+      if (safeEstimate.smallJobFeeTHB > 0) notificationItems.push({ kind: "service", code: "SMALL-JOB", description: "ค่าดำเนินการงานพื้นที่เล็ก", quantity: 1, unit: "งาน", unitPriceTHB: safeEstimate.smallJobFeeTHB, totalTHB: safeEstimate.smallJobFeeTHB, workQuantity: 1, workUnit: "งาน" });
+      await onSubmitStudio({ state: safeState, estimate: safeEstimate, contact: safeContact, worksitePlaceId, notification: { items: notificationItems, grossSubtotal: safeEstimate.grossSubtotalTHB, discountAmount: safeEstimate.grossSubtotalTHB - safeEstimate.subtotalTHB, subtotal: safeEstimate.subtotalTHB, vatAmount: safeEstimate.vatAmountTHB, total: safeEstimate.totalTHB, vat: safeState.vat } });
     } catch (error) {
       // onSubmitStudio only fails via the API client, whose error.message is a
       // technical "HTTP {status} {statusText}" string meant for logs, not
@@ -3814,7 +3970,14 @@ export function StudioPage({
       setResult("ไม่พบ Lead ที่ต้องการบันทึก กรุณากลับไปเลือก Lead อีกครั้ง");
       return;
     }
-    const validationMessage = studioSubmissionValidationMessage(state, estimate);
+    const prepared = prepareStudioSubmissionPayload(state, basinProducts);
+    if (!prepared) {
+      setResult("ข้อมูลขนาดหรือราคาไม่ถูกต้อง กรุณาตรวจสอบก่อนบันทึก");
+      return;
+    }
+    const safeState = prepared.state;
+    const safeEstimate = prepared.estimate;
+    const validationMessage = studioSubmissionValidationMessage(safeState, safeEstimate);
     if (validationMessage) {
       setResult(validationMessage);
       return;
@@ -3826,9 +3989,9 @@ export function StudioPage({
     try {
       const studioData = {
         ...studioDataRecord(linkedLead.studioData),
-        ...state,
-        state,
-        estimate,
+        ...safeState,
+        state: safeState,
+        estimate: safeEstimate,
         worksitePlaceId,
       };
       const response = await fetch(`/api/admin/leads/${encodeURIComponent(linkedLeadId)}`, {
@@ -3837,7 +4000,7 @@ export function StudioPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: linkedLead.status,
-          notes: linkedLead.notes ?? null,
+          notes: linkedLead.notes == null ? null : sanitizeTextInput(linkedLead.notes),
           studioData,
         }),
       });
@@ -3863,12 +4026,20 @@ export function StudioPage({
       setResult("กรุณากรอกขนาดเป็นจำนวนเต็มในช่วงที่กำหนด");
       return;
     }
-    const name = contact.name.trim();
-    const company = contact.company.trim();
-    const phone = contact.phone.trim();
-    const email = contact.email.trim();
-    const project = contact.project.trim();
-    const address = contact.address.trim();
+    const prepared = prepareStudioSubmissionPayload(state, basinProducts);
+    if (!prepared) {
+      setResult("ข้อมูลขนาดหรือราคาไม่ถูกต้อง กรุณาตรวจสอบก่อนส่ง");
+      return;
+    }
+    const safeState = prepared.state;
+    const safeEstimate = prepared.estimate;
+    const safeContact = sanitizeStudioContactForPayload(contact);
+    const name = safeContact.name;
+    const company = safeContact.company;
+    const phone = safeContact.phone;
+    const email = safeContact.email;
+    const project = safeContact.project;
+    const address = safeContact.address;
     if (!sketchFiles.length || !name || !phone || !project) {
       setResult("กรุณาแนบไฟล์ และกรอกชื่อผู้ติดต่อ โทรศัพท์ และชื่อโครงการ");
       return;
@@ -3881,7 +4052,7 @@ export function StudioPage({
       setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
     }
-    if (contact.taxId && !/^[0-9]{13}$/.test(contact.taxId)) {
+    if (safeContact.taxId && !/^[0-9]{13}$/.test(safeContact.taxId)) {
       setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
@@ -3893,21 +4064,21 @@ export function StudioPage({
     setSubmitting(true);
     setResult("");
     const sketchNotificationItems: StudioNotificationItem[] = [];
-    if (activeStone?.code && estimate.counterAreaSqM > 0) {
-      const stoneUnitPrice = estimate.stoneUnitPriceTHB ?? 0;
+    if (activeStone?.code && safeEstimate.counterAreaSqM > 0) {
+      const stoneUnitPrice = safeEstimate.stoneUnitPriceTHB ?? 0;
       sketchNotificationItems.push({
         kind: "stone" as const,
         code: activeStone.code,
         description: `ท็อปเคาน์เตอร์หินสังเคราะห์ ${activeStone.name || activeStone.code}`,
-        quantity: Number(estimate.counterAreaSqM.toFixed(4)),
+        quantity: Number(safeEstimate.counterAreaSqM.toFixed(4)),
         unit: "ตร.ม.",
         unitPriceTHB: stoneUnitPrice,
-        totalTHB: Math.round(estimate.counterAreaSqM * stoneUnitPrice),
-        workQuantity: Number(estimate.counterAreaSqM.toFixed(4)),
+        totalTHB: Math.round(safeEstimate.counterAreaSqM * stoneUnitPrice),
+        workQuantity: Number(safeEstimate.counterAreaSqM.toFixed(4)),
         workUnit: "ตร.ม.",
       });
     }
-    state.basinSkus.forEach((sku) => {
+    safeState.basinSkus.forEach((sku) => {
       const product = basinProducts.find((item) => item.sku === sku);
       if (product) {
         sketchNotificationItems.push({
@@ -3925,28 +4096,28 @@ export function StudioPage({
         });
       }
     });
-    if (estimate.installationChargeTHB > 0) {
+    if (safeEstimate.installationChargeTHB > 0) {
       sketchNotificationItems.push({
         kind: "service" as const,
         code: "INSTALL-BASIN",
-        description: `ค่าบริการติดตั้งอ่างล้างหน้า (${state.basinSkus.length} จุด)`,
-        quantity: state.basinSkus.length,
+        description: `ค่าบริการติดตั้งอ่างล้างหน้า (${safeState.basinSkus.length} จุด)`,
+        quantity: safeState.basinSkus.length,
         unit: "จุด",
         unitPriceTHB: INSTALLATION_PRICE,
-        totalTHB: estimate.installationChargeTHB,
-        workQuantity: state.basinSkus.length,
+        totalTHB: safeEstimate.installationChargeTHB,
+        workQuantity: safeState.basinSkus.length,
         workUnit: "จุด",
       });
     }
-    if (estimate.smallJobFeeTHB > 0) {
+    if (safeEstimate.smallJobFeeTHB > 0) {
       sketchNotificationItems.push({
         kind: "service" as const,
         code: "SMALL-JOB-FEE",
         description: "ค่าดำเนินการงานพื้นที่เล็ก",
         quantity: 1,
         unit: "งาน",
-        unitPriceTHB: estimate.smallJobFeeTHB,
-        totalTHB: estimate.smallJobFeeTHB,
+        unitPriceTHB: safeEstimate.smallJobFeeTHB,
+        totalTHB: safeEstimate.smallJobFeeTHB,
         workQuantity: 1,
         workUnit: "งาน",
       });
@@ -3959,37 +4130,38 @@ export function StudioPage({
       status: "new_lead",
       source: "hand_sketch",
       orderMode: "sketch",
-      productSkus: state.basinSkus,
+      productSkus: safeState.basinSkus,
       name,
       company: company || null,
       phone,
-      lineContact: contact.lineContact || null,
+      lineContact: safeContact.lineContact || null,
       email: email || null,
       project,
       address: address || null,
-      site: contact.site || address || null,
-      purchasingDepartment: contact.purchasingDepartment || null,
-      notes: contact.notes || null,
-      taxName: contact.taxName || null,
-      taxId: contact.taxId || null,
-      taxBranch: contact.taxBranch || null,
-      taxAddress: contact.taxAddress || null,
-      preferredContact: contact.preferredContact || null,
-      customerRole: contact.customerRole || null,
-      propertyType: contact.propertyType || null,
-      condoFloor: contact.condoFloor || null,
-      expectedInstallationDate: contact.expectedInstallationDate || null,
+      site: safeContact.site || address || null,
+      purchasingDepartment: safeContact.purchasingDepartment || null,
+      notes: safeContact.notes || null,
+      taxName: safeContact.taxName || null,
+      taxId: safeContact.taxId || null,
+      taxBranch: safeContact.taxBranch || null,
+      taxAddress: safeContact.taxAddress || null,
+      preferredContact: safeContact.preferredContact || null,
+      customerRole: safeContact.customerRole || null,
+      propertyType: safeContact.propertyType || null,
+      condoFloor: safeContact.condoFloor || null,
+      expectedInstallationDate: safeContact.expectedInstallationDate || null,
       studioData: {
-        ...state,
-        estimate,
+        ...safeState,
+        state: safeState,
+        estimate: safeEstimate,
         worksitePlaceId,
         items: sketchNotificationItems,
         notification: {
           items: sketchNotificationItems,
-          vat: state.vat,
-          subtotalTHB: estimate.subtotalTHB,
-          vatTHB: estimate.vatAmountTHB,
-          totalTHB: estimate.totalTHB
+          vat: safeState.vat,
+          subtotalTHB: safeEstimate.subtotalTHB,
+          vatTHB: safeEstimate.vatAmountTHB,
+          totalTHB: safeEstimate.totalTHB
         }
       }
     }));
