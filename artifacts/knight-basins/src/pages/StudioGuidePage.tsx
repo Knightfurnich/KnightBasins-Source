@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, ArrowRight, Check, Layers, MessageCircle, Palette, PencilRuler, Ruler, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Images, Layers, MessageCircle, Palette, PencilRuler, Ruler, Sparkles } from "lucide-react";
 import { knightFurnichLogo } from "@/data/assets";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { buildStudioGuideStructuredData } from "@/data/structured-data";
+import { STUDIO_GUIDE_GALLERY, STUDIO_GUIDE_GALLERY_INTERVAL_MS } from "@/data/studio-guide-gallery";
 
 const LINE_OA_URL = "https://line.me/R/ti/p/@789gcnhq";
 const PHONE_PRIMARY = "094-496-1949";
@@ -16,7 +18,8 @@ const PHONE_SECONDARY = "089-762-2209";
  * vocabulary. Every claim here matches behaviour that actually ships: the
  * three steps map to the real order of the Studio page (choose color → draw
  * the counter → mark the edges), and the edge finishes listed are exactly the
- * five `SideStatus` values the configurator accepts.
+ * four `SideStatus` values the configurator accepts, plus the auto-locked
+ * joint status between panels.
  */
 
 type Step = {
@@ -88,6 +91,104 @@ const FAQS = [
     a: "ได้ครับ กด “บันทึกผังเป็นรูปภาพ (PNG)” เพื่อส่งใน LINE หรือดาวน์โหลดเป็นไฟล์ DXF / PDF สำหรับงานผลิตได้เลย",
   },
 ];
+
+/**
+ * Auto-rotating reference gallery (the boss asked for every supplied shot to be
+ * shown, cycling — "เอาทั้งหมด แล้วให้ภาพวนๆไป").
+ *
+ * Slides cross-fade on a plain interval; hovering, focusing or the user picking
+ * a dot pauses the rotation, and `prefers-reduced-motion` disables auto-advance
+ * entirely. Only Tailwind utilities + inline style are used, so no shared
+ * stylesheet has to change.
+ */
+function GuideGallery() {
+  const slides = STUDIO_GUIDE_GALLERY;
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused || slides.length < 2) return;
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+    const timer = window.setInterval(() => {
+      setActive((current) => (current + 1) % slides.length);
+    }, STUDIO_GUIDE_GALLERY_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [paused, slides.length]);
+
+  return (
+    <section className="space-y-4" data-testid="section-studio-guide-gallery">
+      <div className="flex items-center gap-2">
+        <Images size={18} className="text-[#003366]" aria-hidden="true" />
+        <h2 className="text-lg font-bold text-[#003366]">ไอเดียผังเคาน์เตอร์ & อ่างหิน</h2>
+      </div>
+      <div
+        className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-sm"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}
+        data-testid="studio-guide-gallery"
+      >
+        <div className="relative aspect-square w-full sm:aspect-[4/3]">
+          {slides.map((slide, index) => (
+            <img
+              key={slide.src}
+              src={slide.src}
+              alt={slide.alt}
+              loading={index === 0 ? "eager" : "lazy"}
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out"
+              style={{ opacity: index === active ? 1 : 0 }}
+              data-testid={`studio-guide-gallery-slide-${index}`}
+            />
+          ))}
+          <span className="absolute left-3 top-3 rounded-full bg-[#003366] px-3 py-1 text-xs font-semibold text-white">
+            {slides[active].tag}
+          </span>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-[var(--line)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <p
+            className="text-sm leading-relaxed text-[var(--ink-soft)]"
+            data-testid="studio-guide-gallery-caption"
+          >
+            {slides[active].caption}
+          </p>
+          <div className="flex shrink-0 items-center" data-testid="studio-guide-gallery-dots">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.src}
+                type="button"
+                onClick={() => {
+                  setActive(index);
+                  setPaused(true);
+                }}
+                aria-label={`ดูภาพที่ ${index + 1}`}
+                aria-current={index === active}
+                className="grid h-11 w-6 place-items-center"
+                data-testid={`button-studio-guide-gallery-dot-${index}`}
+              >
+                <span
+                  className="block h-2.5 rounded-full transition-all"
+                  style={{
+                    width: index === active ? "1.75rem" : "0.625rem",
+                    background: index === active ? "#003366" : "rgba(0,51,102,0.28)",
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="text-xs leading-relaxed text-[var(--ink-soft)]">
+        ภาพตัวอย่างเพื่อดูแนวทางผังและวัสดุ · ถ้ามีแบบหน้างานอยู่แล้ว ส่งให้ทีมงานวางผังและประเมินราคาให้ได้เลย
+      </p>
+    </section>
+  );
+}
 
 export function StudioGuidePage() {
   const structuredData = buildStudioGuideStructuredData();
@@ -171,6 +272,8 @@ export function StudioGuidePage() {
             );
           })}
         </section>
+
+        <GuideGallery />
 
         <section className="space-y-4" data-testid="section-studio-guide-edge-legend">
           <div className="flex items-center gap-2">
