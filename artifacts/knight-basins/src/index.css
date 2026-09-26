@@ -1755,8 +1755,11 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   background: rgba(232,245,251,.5);
 }
 .admin-sidebar nav button {
-  min-height: 42px;
-  border-radius: 10px;
+  min-height: 38px;
+  justify-content: flex-start;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 9px;
   font-size: var(--type-size-button);
   line-height: var(--type-line-button);
   transition: background .2s ease, color .2s ease, transform .2s ease;

@@ -44,28 +44,29 @@ const STEPS: Step[] = [
   {
     index: 2,
     icon: Ruler,
-    title: "วาดขนาดเคาน์เตอร์ให้ตรงหน้างาน",
-    lead: "เลือกรูปทรงสำเร็จรูป (ตรง / ฉาก L / ตัว U) หรือพิมพ์ขนาด กว้าง × ยาว ที่วัดมาจากหน้างานจริง",
+    title: "เลือกทรงและกรอกขนาดแผ่นจริง",
+    lead: "เลือกทรงเคาน์เตอร์ (ทรงตรง I / ฉาก L-ซ้าย / ฉาก L-ขวา / ตัว U) และกรอกขนาดแยกตามจำนวนแผ่นจริง",
     points: [
-      "ทุกอย่างคิดเป็นมิลลิเมตร เช่น 1800 มม. = 1.8 เมตร",
-      "เลือกขนาดสำเร็จรูป 1.20 / 1.50 / 1.80 / 2.00 ม. ได้ในคลิกเดียว",
-      "วางอ่างลงบนผังได้เลย ระบบเว้นระยะขอบปลอดภัยให้อัตโนมัติ",
+      "ทรง I มี 1 แผ่น · ทรง L มี 2 แผ่น · ทรง U มี 3 แผ่น",
+      "กรอกความยาวและหน้ากว้าง/ความลึก (มม.) แยกอิสระตามขนาดหน้างาน",
+      "วางอ่างล้างหน้าลงบนผังได้เลย ระบบเว้นระยะขอบปลอดภัยให้อัตโนมัติ",
     ],
     tip: "ระยะขอบหลุมเจาะปลอดภัยขั้นต่ำ 100 มม. ระบบจะเตือนถ้าวางอ่างชิดขอบเกินไป",
   },
   {
     index: 3,
     icon: PencilRuler,
-    title: "ระบุขอบแต่ละด้านด้วยตัวเอง",
-    lead: "ลากป้ายจากแถบเครื่องมือด้านบนไปวางที่ขอบด้านที่ต้องการ หรือคลิกที่ขอบบนผังโดยตรง",
+    title: "ระบุขอบ 4 สถานะ แล้วประกอบผัง",
+    lead: "กำหนดสถานะขอบของแต่ละแผ่น (ด้านชนผนัง / ด้านหน้าคนยืน / ด้านข้าง) ให้ตรงตามหน้างานจริง",
     points: [
       "ติดบัว ▲ — ด้านที่ชนผนังปูนและต้องมีบัวกันน้ำ",
       "ชิดผนัง ║ — ด้านที่แนบผนัง แต่ไม่ต้องมีบัว",
-      "ชิดผนัง + ติดบัว ║▲ — ด้านที่แนบผนังและมีบัวด้วย",
       "ขอบเปิด ⊗ — ด้านที่โชว์ลอย ต้องขัดขอบให้เนียน",
-      "กด ✕ ที่ป้ายเพื่อเอาสถานะออก กลับเป็นขอบปกติได้ทุกเมื่อ",
+      "ขอบปิด ⊞ — ด้านที่โชว์ปิดขอบให้เนียน (บังหน้า/ขอบปิด)",
+      "ด้านที่เป็นรอยต่อระหว่างแผ่น ระบบจะล็อกอัตโนมัติ (🔗 รอยต่อชนแผ่น)",
+      "เมื่อตั้งค่าครบแล้ว กดปุ่ม [ 🎨 ประกอบผังลงกระดาน ] เพื่อวาดผังและคำนวณราคา",
     ],
-    tip: "ด้านที่เป็นรอยต่อระหว่างแผ่น ระบบจะไม่ให้ติดบัว เพราะไม่ใช่ขอบที่มองเห็นจากภายนอก",
+    tip: "ระบบจะไม่คำนวณราคาสดระหว่างพิมพ์ขนาด ต้องกดปุ่ม Action ประกอบผังลงกระดานเท่านั้น",
   },
 ];
 
@@ -174,42 +175,42 @@ export function StudioGuidePage() {
         <section className="space-y-4" data-testid="section-studio-guide-edge-legend">
           <div className="flex items-center gap-2">
             <Layers size={18} className="text-[#003366]" aria-hidden="true" />
-            <h2 className="text-lg font-bold text-[#003366]">ความหมายของป้ายขอบทั้ง 5 แบบ</h2>
+            <h2 className="text-lg font-bold text-[#003366]">ความหมายของป้ายขอบทั้ง 4 สถานะ</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse" data-testid="table-studio-guide-edge-legend">
               <thead>
                 <tr className="text-left border-b border-[var(--line)]">
-                  <th className="py-2 pr-4 font-semibold">ป้ายบนผัง</th>
-                  <th className="py-2 pr-4 font-semibold">ความหมาย</th>
-                  <th className="py-2 font-semibold">ผลต่อราคา</th>
+                  <th className="py-2 pr-4 font-semibold">ป้ายสถานะขอบ</th>
+                  <th className="py-2 pr-4 font-semibold">ความหมายเชิงกายภาพ</th>
+                  <th className="py-2 font-semibold">ผลต่อราคาและการผลิต</th>
                 </tr>
               </thead>
               <tbody className="text-[var(--ink-soft)]">
                 <tr className="border-b border-[var(--line)]/60">
                   <td className="py-2.5 pr-4 font-semibold text-[#8a5a00]">ติดบัว ▲</td>
-                  <td className="py-2.5 pr-4">แนบผนังปูน และมีบัวกันน้ำยกขึ้นตามผนัง</td>
+                  <td className="py-2.5 pr-4">ด้านที่ชนผนังปูน และต้องมีบัวกันน้ำยกขึ้นตามแนวผนัง</td>
                   <td className="py-2.5">คิดค่าบัวตามความยาวของด้านนั้น</td>
                 </tr>
                 <tr className="border-b border-[var(--line)]/60">
                   <td className="py-2.5 pr-4 font-semibold text-[#1268B3]">ชิดผนัง ║</td>
-                  <td className="py-2.5 pr-4">แนบผนัง แต่ไม่ต้องมีบัว</td>
-                  <td className="py-2.5">ไม่คิดเพิ่ม</td>
-                </tr>
-                <tr className="border-b border-[var(--line)]/60">
-                  <td className="py-2.5 pr-4 font-semibold text-[#1268B3]">ชิดผนัง + ติดบัว ║▲</td>
-                  <td className="py-2.5 pr-4">แนบผนัง และมีบัวด้วย</td>
-                  <td className="py-2.5">คิดค่าบัวตามความยาวของด้านนั้น</td>
+                  <td className="py-2.5 pr-4">ด้านที่แนบผนัง แต่ไม่ต้องมีบัวกันน้ำ</td>
+                  <td className="py-2.5">ไม่คิดเพิ่ม (รวมในเรต ตร.ม. แล้ว)</td>
                 </tr>
                 <tr className="border-b border-[var(--line)]/60">
                   <td className="py-2.5 pr-4 font-semibold text-[#0f7a52]">ขอบเปิด ⊗</td>
-                  <td className="py-2.5 pr-4">โชว์ลอย ไม่มีผนังบัง ต้องขัดขอบให้เนียน</td>
-                  <td className="py-2.5">คิดค่าขอบเปิดตามความยาว</td>
+                  <td className="py-2.5 pr-4">ด้านที่โชว์ลอย ไม่มีผนังบัง ต้องขัดขอบให้เนียน</td>
+                  <td className="py-2.5">ไม่คิดเพิ่ม (รวมในเรต ตร.ม. แล้ว)</td>
+                </tr>
+                <tr className="border-b border-[var(--line)]/60">
+                  <td className="py-2.5 pr-4 font-semibold text-[#1e40af]">ขอบปิด ⊞</td>
+                  <td className="py-2.5 pr-4">ด้านที่โชว์ปิดขอบให้เนียน เช่น งานบังหน้า หรือปิดข้างโชว์</td>
+                  <td className="py-2.5">โรงงานปิดขอบเนียนตามแบบ</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 pr-4 font-semibold">＋ (ขอบปกติ)</td>
-                  <td className="py-2.5 pr-4">ขอบทั่วไป ยังไม่ได้ระบุสถานะ</td>
-                  <td className="py-2.5">ไม่คิดเพิ่ม</td>
+                  <td className="py-2.5 pr-4 font-semibold text-[#64748b]">🔗 รอยต่อชนแผ่น</td>
+                  <td className="py-2.5 pr-4">ด้านที่แผ่นหินชนกัน (รอยต่อของทรง L หรือ U) ระบบล็อกอัตโนมัติ</td>
+                  <td className="py-2.5">ไม่คิดค่าขอบ/บัวซ้ำซ้อน</td>
                 </tr>
               </tbody>
             </table>

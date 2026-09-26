@@ -134,9 +134,9 @@ export default function AdminApp() {
           </div>
         </header>
         <div className="flex flex-col md:flex-row flex-1 w-full mx-auto">
-           <aside className="admin-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-[var(--line)] p-4 md:p-6">
+           <aside className="admin-sidebar w-full md:w-52 border-b md:border-b-0 md:border-r border-[var(--line)] p-3 md:p-4 shrink-0">
             <MobileNavSelect />
-            <nav className="hidden md:flex md:flex-col gap-2">
+            <nav className="hidden md:flex md:flex-col gap-1.5">
                {NAV_ITEMS.filter((item) => canShowNavItem(item, access)).map((item) => (
                  <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team} adminOnly={"adminOnly" in item && item.adminOnly}>{item.label}</NavButton>
               ))}
