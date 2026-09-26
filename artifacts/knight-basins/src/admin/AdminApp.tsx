@@ -23,6 +23,7 @@ import { BackupVaultPage } from "./BackupVaultPage";
 import { AdminVoiceSettings } from "./AdminVoiceSettings";
 import { SitePhotosPage } from "./SitePhotosPage";
 import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
+import AiCostCenterPage from "./AiCostCenterPage";
 import { knightFurnichLogo } from "@/data/assets";
 
 const loginSchema = z.object({
@@ -65,6 +66,7 @@ const NAV_ITEMS = [
   { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
   { href: "/admin/stock", label: "สต็อกหิน", exact: false, permission: "basins" },
   { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
+  { href: "/admin/ai-cost", label: "ต้นทุน AI", exact: false, permission: "leads" },
   { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads" },
   { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads" },
   { href: "/admin/voice-settings", label: "เสียงผู้ช่วยขาย (น้องไนท์)", exact: false, permission: "leads" },
@@ -149,6 +151,7 @@ export default function AdminApp() {
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
               <Route path="/admin/stock" component={StockInventoryRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
+              <Route path="/admin/ai-cost" component={AiCostCenterRoute} />
               <Route path="/admin/calendar" component={TechnicianCalendarRoute} />
               <Route path="/admin/technician-teams" component={TechnicianTeamsManagerRoute} />
               <Route path="/admin/voice-settings" component={AdminVoiceSettingsRoute} />
@@ -279,6 +282,10 @@ function StockInventoryRoute() {
 
 function LeadsRoute() {
   return <AdminPermissionGate permission="leads" resource="ลูกค้า / Lead"><LeadsManager /></AdminPermissionGate>;
+}
+
+function AiCostCenterRoute() {
+  return <AdminPermissionGate permission="leads" resource="ต้นทุน AI"><AiCostCenterPage /></AdminPermissionGate>;
 }
 
 function TechnicianCalendarRoute() {
