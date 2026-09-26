@@ -38,6 +38,27 @@ const dashboardPeriods: Array<{ value: AdminDashboardStatsPeriod; label: string 
 ];
 const countFormatter = new Intl.NumberFormat("th-TH");
 const bahtFormatter = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
+const aiCostCurrencyFormatter = new Intl.NumberFormat("th-TH", {
+  style: "currency",
+  currency: "THB",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+type AiCostCenterSummary = {
+  totalCostThb: number;
+  totalRequests: number;
+  services: Array<{
+    id: "sales_bot" | "sketch_vision" | "hermes_ops";
+    status: "active" | "no-data";
+  }>;
+};
+
+const aiCostServices: Array<{ id: AiCostCenterSummary["services"][number]["id"]; label: string; detail: string }> = [
+  { id: "sales_bot", label: "น้องไนท์", detail: "LINE Bot" },
+  { id: "sketch_vision", label: "Blueprint Reader", detail: "อ่านแบบร่าง" },
+  { id: "hermes_ops", label: "เฮอร์มีส", detail: "งานระบบ" },
+];
 
 function useAdminDashboardStats(period: AdminDashboardStatsPeriod) {
   return useQuery<AdminDashboardStats>({
@@ -47,6 +68,101 @@ function useAdminDashboardStats(period: AdminDashboardStatsPeriod) {
     gcTime: 0,
     retry: 1,
   });
+}
+
+function useDashboardAiCostSummary() {
+  return useQuery<AiCostCenterSummary>({
+    queryKey: ["/api/admin/ai-cost-center", "30d"],
+    queryFn: () =>
+      customFetch<AiCostCenterSummary>("/api/admin/ai-cost-center?period=30d", {
+        method: "GET",
+        credentials: "include",
+        responseType: "json",
+      }),
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    retry: 1,
+  });
+}
+
+function DashboardAiCostWidget({ canNavigate }: { canNavigate: (href: string) => boolean }) {
+  const { data, isError, isLoading } = useDashboardAiCostSummary();
+  const activeServices = data?.services.filter((service) => service.status === "active").length ?? 0;
+
+  return (
+    <Panel
+      className="dashboard-ai-cost-card p-4 sm:p-5"
+      data-testid="panel-dashboard-ai-cost"
+      aria-busy={isLoading && !data}
+    >
+      <div className="dashboard-ai-cost-card__header">
+        <div>
+          <p className="dashboard-ai-cost-card__eyebrow">06 / AI OPERATIONS</p>
+          <h2 className="dashboard-ai-cost-card__title">ต้นทุน &amp; ปริมาณงาน AI รวม (30 วัน)</h2>
+        </div>
+        <span className="dashboard-ai-cost-card__index" aria-hidden="true">06</span>
+      </div>
+
+      {isLoading && !data ? (
+        <div className="dashboard-ai-cost-skeleton" role="status" aria-label="กำลังโหลดสรุปต้นทุน AI" data-testid="dashboard-ai-cost-loading">
+          <span className="dashboard-ai-cost-skeleton__amount" />
+          <span className="dashboard-ai-cost-skeleton__detail" />
+          <span className="dashboard-ai-cost-skeleton__badges" />
+        </div>
+      ) : data ? (
+        <div className="dashboard-ai-cost-card__body">
+          <div className="dashboard-ai-cost-card__total">
+            <span className="dashboard-ai-cost-card__label">ยอดรวม 30 วัน</span>
+            <strong data-testid="dashboard-ai-cost-total">{aiCostCurrencyFormatter.format(data.totalCostThb)}</strong>
+          </div>
+          <div className="dashboard-ai-cost-card__summary">
+            <span className="dashboard-ai-cost-card__label">ปริมาณงาน</span>
+            <p data-testid="dashboard-ai-cost-requests">
+              {countFormatter.format(data.totalRequests)} คำขอ · {countFormatter.format(activeServices)} บริการ Active
+            </p>
+          </div>
+        </div>
+      ) : (
+        <p className="dashboard-ai-cost-card__error" role="status" data-testid="dashboard-ai-cost-error">
+          สรุปต้นทุน AI ยังโหลดไม่สำเร็จ ลองดูข้อมูลอีกครั้งที่หน้ารายละเอียด
+        </p>
+      )}
+
+      {data && (
+        <div className="dashboard-ai-badges" aria-label="สถานะบริการ AI">
+          {aiCostServices.map((item) => {
+            const service = data.services.find((candidate) => candidate.id === item.id);
+            const isActive = service?.status === "active";
+            return (
+              <span
+                key={item.id}
+                className={`dashboard-ai-badge ${isActive ? "dashboard-ai-badge--active" : "dashboard-ai-badge--empty"}`}
+                data-testid={`dashboard-ai-cost-service-${item.id}`}
+              >
+                <span className="dashboard-ai-badge__dot" aria-hidden="true" />
+                <span className="dashboard-ai-badge__name">{item.label}</span>
+                <span className="dashboard-ai-badge__detail">{item.detail}</span>
+                <span className="dashboard-ai-badge__status">{isActive ? "Active" : "ไม่มีข้อมูล"}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {isError && data && (
+        <p className="dashboard-ai-cost-card__stale" role="status">
+          รีเฟรชสรุปต้นทุนไม่สำเร็จ กำลังแสดงข้อมูลก่อนหน้า
+        </p>
+      )}
+
+      {(canNavigate("/admin/ai-cost") || canNavigate("/admin/leads")) && (
+        <a className="dashboard-ai-cost-link" href="/admin/ai-cost" data-testid="link-dashboard-ai-cost">
+          <span>ดูรายละเอียดต้นทุน AI</span>
+          <ArrowRight size={16} aria-hidden="true" />
+        </a>
+      )}
+    </Panel>
+  );
 }
 
 function safeDate(value: string) {
@@ -559,7 +675,7 @@ function RecentActivitiesPanel({ items }: { items: AdminDashboardActivity[] }) {
     );
     }
 
-export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
+export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps) {
   const [period, setPeriod] = useState<AdminDashboardStatsPeriod>("30d");
   const [isSendingBriefing, setIsSendingBriefing] = useState(false);
   const { data, isError, isFetching, isLoading, refetch } = useAdminDashboardStats(period);
@@ -708,6 +824,10 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           accent="bg-[var(--brand-blue)]"
         />
       </section>
+
+      {(canNavigate("/admin/ai-cost") || canNavigate("/admin/leads")) && (
+        <DashboardAiCostWidget canNavigate={canNavigate} />
+      )}
 
       <Panel className="p-4 sm:p-5" data-testid="panel-dashboard-actions">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
