@@ -140,6 +140,55 @@ function isVisible(visibilityMap: PortfolioVisibilityMap, itemId: string): boole
 }
 
 /**
+ * Distributes items fairly across categories when the caller asked for
+ * "everything" (no category filter): one item per category per round, in
+ * CATEGORY_ORDER sequence, instead of grouping all of one category
+ * together first. This is what actually fixes the "หมวดอื่นไม่เคยขึ้นเลย" bug
+ * -- bathroom having 312 items no longer means the first `limit` items (a
+ * simple contiguous slice) are 100% bathroom, since every category gets a
+ * turn before bathroom's 2nd item is ever placed. Each category's own
+ * items are id-sorted first so the result is stable and reproducible
+ * across calls, per job-105's tiebreak requirement.
+ */
+function distributeFairlyAcrossCategories(items: PortfolioItem[]): PortfolioItem[] {
+  const buckets = new Map<string, PortfolioItem[]>();
+  for (const item of items) {
+    const bucket = buckets.get(item.category);
+    if (bucket) bucket.push(item);
+    else buckets.set(item.category, [item]);
+  }
+  for (const bucket of buckets.values()) {
+    bucket.sort((a, b) => a.id.localeCompare(b.id));
+  }
+  const categorySlugs = [
+    ...CATEGORY_ORDER.filter((slug) => buckets.has(slug)),
+    ...[...buckets.keys()].filter((slug) => !CATEGORY_ORDER.includes(slug)).sort(),
+  ];
+
+  const result: PortfolioItem[] = [];
+  for (let round = 0; result.length < items.length; round += 1) {
+    for (const slug of categorySlugs) {
+      const bucket = buckets.get(slug)!;
+      if (round < bucket.length) result.push(bucket[round]!);
+    }
+  }
+  return result;
+}
+
+/** Same CATEGORY_ORDER-then-id ordering GET /portfolio has always used when a specific category is requested -- kept byte-for-byte so that path's behavior never changes (job-105 explicitly forbids it). */
+function orderWithinCategoryOrder(items: PortfolioItem[]): PortfolioItem[] {
+  return [...items].sort((a, b) => {
+    const ai = CATEGORY_ORDER.indexOf(a.category);
+    const bi = CATEGORY_ORDER.indexOf(b.category);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+}
+
+/** Portfolio has 647 real items as of this writing; 2000 comfortably covers "give me everything" without an unbounded response. `limit=all` is shorthand for this same ceiling. */
+const PORTFOLIO_MAX_LIMIT = 2000;
+const PORTFOLIO_DEFAULT_LIMIT = 60;
+
+/**
  * GET /api/portfolio
  * Public read-only gallery of real completed installation photos.
  * Never exposes customer names, job codes, or internal notes — only the image
@@ -153,8 +202,14 @@ router.get("/portfolio", async (req, res, next) => {
     const includeHidden = req.query["includeHidden"] === "true" || req.query["includeHidden"] === "1";
     const categoryFilter = typeof req.query["category"] === "string" ? req.query["category"].trim() : "";
     const searchQuery = typeof req.query["q"] === "string" ? req.query["q"].trim().toLowerCase() : "";
-    const limitRaw = Number(req.query["limit"]);
-    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 600) : 60;
+    const rawLimit = req.query["limit"];
+    const wantsEverything = typeof rawLimit === "string" && rawLimit.trim().toLowerCase() === "all";
+    const limitRaw = Number(rawLimit);
+    const limit = wantsEverything
+      ? PORTFOLIO_MAX_LIMIT
+      : Number.isFinite(limitRaw) && limitRaw > 0
+        ? Math.min(Math.floor(limitRaw), PORTFOLIO_MAX_LIMIT)
+        : PORTFOLIO_DEFAULT_LIMIT;
     const offsetRaw = Number(req.query["offset"]);
     const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? Math.floor(offsetRaw) : 0;
 
@@ -184,11 +239,12 @@ router.get("/portfolio", async (req, res, next) => {
         )
       : byCategory;
 
-    const ordered = [...filtered].sort((a, b) => {
-      const ai = CATEGORY_ORDER.indexOf(a.category);
-      const bi = CATEGORY_ORDER.indexOf(b.category);
-      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-    });
+    // With a specific category requested, every item already shares that
+    // one category -- keep the exact prior ordering unchanged. Without one,
+    // a plain CATEGORY_ORDER sort would group all of bathroom's 312 items
+    // before any other category ever appears; distribute round-robin
+    // instead so every category gets fair representation on page 1.
+    const ordered = categoryFilter ? orderWithinCategoryOrder(filtered) : distributeFairlyAcrossCategories(filtered);
 
     const counts = new Map<string, number>();
     for (const item of visibleItems) {
@@ -206,13 +262,18 @@ router.get("/portfolio", async (req, res, next) => {
         };
       });
 
+    const page = ordered.slice(offset, offset + limit);
+    const hasMore = offset + page.length < ordered.length;
+
     res.setHeader("Cache-Control", includeHidden ? "no-store" : "public, max-age=600");
     res.json({
       updatedAt: catalog.updatedAt,
       total: visibleItems.length,
       categories,
       count: ordered.length,
-      items: ordered.slice(offset, offset + limit).map((item) => ({
+      hasMore,
+      nextOffset: hasMore ? offset + page.length : null,
+      items: page.map((item) => ({
         id: item.id,
         category: item.category,
         categoryName: item.categoryName,
