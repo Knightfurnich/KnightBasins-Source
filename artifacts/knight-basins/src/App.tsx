@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ErrorInfo, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, FileText, GripVertical, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, Wrench, X } from "lucide-react";
 import { WorkshopProductionSheet, type ProductionItem } from "@/components/WorkshopProductionSheet";
@@ -1851,21 +1851,147 @@ function Storefront() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Switch>
-        <Route path="/admin" component={AdminApp} />
-        <Route path="/admin/ai-cost" component={AdminApp} />
-        <Route path="/admin/*" component={AdminApp} />
-        <Route path="/readme" component={SalesGuide} />
-        <Route path="/site-prep" component={SitePrepPage} />
-        <Route path="/studio-guide" component={StudioGuidePage} />
-        <Route path="/portfolio" component={PortfolioPage} />
-        <Route path="/" component={RootEntry} />
-        <Route component={Storefront} />
-      </Switch>
-      <Toaster />
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <NetworkStatusBanner />
+      <QueryClientProvider client={queryClient}>
+        <Switch>
+          <Route path="/admin" component={AdminApp} />
+          <Route path="/admin/ai-cost" component={AdminApp} />
+          <Route path="/admin/*" component={AdminApp} />
+          <Route path="/readme" component={SalesGuide} />
+          <Route path="/site-prep" component={SitePrepPage} />
+          <Route path="/studio-guide" component={StudioGuidePage} />
+          <Route path="/portfolio" component={PortfolioPage} />
+          <Route path="/" component={RootEntry} />
+          <Route component={Storefront} />
+        </Switch>
+        <Toaster />
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
+}
+
+type NetworkBannerStatus = "offline" | "online" | "hidden";
+
+function NetworkStatusBanner() {
+  const [status, setStatus] = useState<NetworkBannerStatus>(() =>
+    typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "hidden",
+  );
+  const [isFading, setIsFading] = useState(false);
+
+  useEffect(() => {
+    let fadeTimer: number | undefined;
+    let hideTimer: number | undefined;
+    const clearTimers = () => {
+      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer);
+      if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+      fadeTimer = undefined;
+      hideTimer = undefined;
+    };
+    const handleOffline = () => {
+      clearTimers();
+      setStatus("offline");
+      setIsFading(false);
+    };
+    const handleOnline = () => {
+      clearTimers();
+      setStatus("online");
+      setIsFading(false);
+      fadeTimer = window.setTimeout(() => setIsFading(true), 2700);
+      hideTimer = window.setTimeout(() => {
+        setStatus("hidden");
+        setIsFading(false);
+      }, 3000);
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    if (typeof navigator !== "undefined" && !navigator.onLine) handleOffline();
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+      clearTimers();
+    };
+  }, []);
+
+  if (status === "hidden") return null;
+  const isOffline = status === "offline";
+
+  return (
+    <div
+      className={`sticky top-0 z-[100] flex w-full items-center justify-center gap-2 border-b px-4 py-2 text-center text-sm font-medium transition-opacity duration-300 ${
+        isOffline
+          ? "border-amber-300 bg-amber-50 text-amber-900"
+          : `border-emerald-300 bg-emerald-50 text-emerald-900 ${isFading ? "opacity-0" : "opacity-100"}`
+      }`}
+      role="status"
+      aria-live={isOffline ? "assertive" : "polite"}
+      data-testid={isOffline ? "status-network-offline" : "status-network-online"}
+    >
+      {isOffline ? (
+        <>
+          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>⚠️ สัญญาณอินเทอร์เน็ตขาดหาย กรุณาตรวจสอบการเชื่อมต่อ ข้อมูลร่างใน Studio จะยังคงบันทึกไว้ในเครื่อง</span>
+        </>
+      ) : (
+        <>
+          <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>เชื่อมต่ออินเทอร์เน็ตเรียบร้อยแล้ว</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+type AppErrorBoundaryState = { hasError: boolean };
+
+class AppErrorBoundary extends Component<{ children: ReactNode }, AppErrorBoundaryState> {
+  state: AppErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(_error: Error): AppErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Application render error caught by AppErrorBoundary", error, errorInfo.componentStack);
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children;
+
+    return (
+      <main
+        className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--paper)] px-5 py-12 text-center text-[var(--ink)]"
+        role="alert"
+        aria-live="assertive"
+        data-testid="app-error-boundary-fallback"
+      >
+        <AlertTriangle className="h-10 w-10 text-amber-600" aria-hidden="true" />
+        <div className="max-w-lg space-y-2">
+          <h1 className="text-xl font-semibold">ขออภัย เกิดข้อผิดพลาดในการแสดงหน้านี้</h1>
+          <p className="text-sm leading-relaxed text-[var(--ink-soft)]">
+            กรุณาลองโหลดหน้าใหม่อีกครั้ง หากยังพบปัญหา ติดต่อทีมงานได้ที่{" "}
+            <a
+              href="tel:0944961949"
+              className="font-semibold text-[var(--brand-blue)] underline underline-offset-2"
+              data-testid="link-error-support-phone"
+            >
+              094-496-1949
+            </a>
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 bg-[var(--ink)] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-blue)]"
+          data-testid="button-reload-error-page"
+        >
+          🔄 โหลดหน้านี้ใหม่
+        </button>
+      </main>
+    );
+  }
 }
 
 function RootEntry() {
