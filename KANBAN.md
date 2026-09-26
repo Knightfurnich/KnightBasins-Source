@@ -111,6 +111,7 @@
 | **Sketch Pricing & URLs** | เดวิด | คำนวณราคาอ่าง+พื้นที่จริงในโหมดส่งแบบร่าง + กล่องกรอกขนาดเคาน์เตอร์ + ซิงก์ URL สั่งซื้อ | `1c20868` | ✅ **Live บน VPS** · ผ่าน 2/2 tests · คิดราคาอ่าง KF025 + พื้นที่ 1.98x0.45m เป๊ะ |
 | **Task 72 (Sketch Vision API)** | ชัย | API วิเคราะห์ภาพแบบร่างด้วย AI (อ่านลายมือ ถอดทรง I/L/U และมิติ) | `feat/chai-sketch-vision-api` | 🔄 มอบหมายแล้ว (`qa/job-72-chai-sketch-vision-api.md`) |
 | **Task 73 (Sketch Camera & AI UI)** | Replit | ปุ่มถ่ายรูปกล้องสด + จำกัด 3 รูป + แถบสถานะ AI + กรอกมิติอัตโนมัติ | `feat/replit-sketch-camera-capture` | 🔄 มอบหมายแล้ว (`qa/job-73-replit-sketch-camera-capture.md`) |
+| **Address Input Fix** | เดวิด | แก้ช่อง "ที่อยู่/สถานที่ติดตั้ง" พิมพ์ต่อไม่ได้ + เลิกขึ้น "กำลังค้นหาตำแหน่ง" หลอกทุกคีย์ | `30de2ba` | ✅ **Live บน VPS** · ผ่าน 2/2 tests · พิมพ์เร็ว 4 ตัวติดครบ + suggestions 5 รายการ |
 | **TopView Live** | เดวิด | เชื่อมภาพ Top View จริง 30 รุ่นของคุณนพลงบน 2D Studio ทุกทรงเคาน์เตอร์ (อัปเกรด V2 ไร้ขอบ 30/30 รุ่น) | `87a6bc5` + VPS V2 | ✅ **Live บน VPS** · ภาพ Top View ตัดขอบเนียน 100% ครบทั้ง 30 รุ่นใน Production |
 | **Sales Msg** | เดวิด | ปุ่ม 1-Click คัดลอกข้อความน้องไนท์ (ค่ะ/ดิฉัน) ส่งลูกค้าทาง LINE | `d893aed` | ✅ **Live บน VPS** · ปุ่ม "ข้อความส่งลูกค้า" บนทุก Lead (72 ราย) |
 | **Task 45** | Replit | ปุ่มเลือก Preset ขนาดเคาน์เตอร์สำเร็จรูป 4 ขนาดใน 2D Studio | `feat/replit-counter-size-presets-ui` | ✅ **Live บน VPS** · PR #21 merge + deploy · ปุ่ม 1.2/1.5/1.8/2.0ม. ใช้งานได้จริง |
