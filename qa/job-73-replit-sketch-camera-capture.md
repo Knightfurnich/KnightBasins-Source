@@ -32,7 +32,12 @@
    - แสดงรูปทรงที่ตรวจพบเป็นป้าย เช่น `[ 🟦 ทรงตรง (I) ]` / `[ 🟨 ทรงแอลซ้าย (L) ]` / `[ 🟪 ทรงตัวยู (U) ]`
    - แสดง `confidence` และ `notes` จาก AI ให้ผู้ใช้รู้ว่าควรตรวจทานตรงไหน
 
-6. **📱 Responsive:**
+6. **🧹 จัดระเบียบการ์ดประมาณการในโหมด Sketch (Clean Estimate):**
+   - ใน `mode === "sketch"` ซ่อนกล่อง "เปรียบเทียบสีหิน" (`StudioStoneComparison`) ออก (เพราะเลือกหินสีเดียว ไม่ต้องเทียบกับตัวเอง)
+   - ซ่อนช่องกรอกเทคนิค (`studio-pricing-inputs`: ความสูงบัว, ราคาขอบเปิด, ส่วนลด) ออกในโหมด sketch
+   - ซ่อนบรรทัด CAD ที่เป็น 0 (จำนวนชิ้นงาน, บัว 0 ม., ขอบเปิด 0 ม.) ให้เหลือเฉพาะ ค่าหิน, ค่าอ่าง, ค่าติดตั้ง, ค่าพื้นที่เล็ก, และยอดรวม เพื่อให้เข้าใจง่ายและโปร่งใส
+
+7. **📱 Responsive:**
    - บนมือถือ ปุ่มถ่ายรูปและปุ่มเลือกไฟล์ต้องแตะง่าย ไม่ล้นจอ
 
 ```
@@ -52,6 +57,7 @@ GOAL:
        * เมื่อได้ผล ให้ setState อัปเดต pieces[0].rectangles[0].widthMm / lengthMm และ dimensions.runAMm / depthMm
        * ถ้า fetch ล้มเหลวหรือได้ shape unknown ให้ตั้งสถานะ "ไม่สามารถอ่านขนาดจากภาพได้ กรุณากรอกด้วยตนเอง"
      - เพิ่มการ์ดแสดงผลวิเคราะห์ต่อภาพ (data-testid="card-sketch-analysis-{index}") แสดงรูปทรง + confidence + notes
+     - ใน estimatePanel: เมื่อ mode === "sketch" ให้ซ่อน StudioStoneComparison และ studio-pricing-inputs และซ่อนบรรทัดชิ้นงาน/บัว/ขอบเปิดที่ค่าเป็น 0
   2. ใน artifacts/knight-basins/src/index.css:
      - เพิ่มสไตล์ .studio-sketch-actions (ปุ่ม 2 ปุ่มเรียงคู่), .studio-sketch-status (แถบสถานะพร้อมอนิเมชันหมุน), .studio-sketch-analysis-card
      - รองรับ Mobile: ปุ่มเรียงเป็นคอลัมน์เดียวบนจอแคบ
@@ -59,6 +65,7 @@ GOAL:
      - ทดสอบว่ามี capture="environment" ในซอร์สโค้ด
      - ทดสอบว่า MAX_SKETCH_FILES = 3
      - ทดสอบว่ามี data-testid ของปุ่มกล้อง ปุ่มไฟล์ แถบสถานะ และการ์ดผลวิเคราะห์
+     - ทดสอบว่าในโหมด sketch ไม่แสดง StudioStoneComparison หรือ studio-pricing-inputs
 
 SCOPE:
   - artifacts/knight-basins/src/components/StudioPage.tsx
