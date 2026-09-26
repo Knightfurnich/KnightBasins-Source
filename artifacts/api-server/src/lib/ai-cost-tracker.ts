@@ -144,9 +144,10 @@ function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null {
  * log format.
  */
 function readHermesAuditEvents(): RecordedAiUsageEvent[] {
+  const auditPath = process.env["HERMES_AUDIT_LOG_PATH"] || HERMES_AUDIT_LOG_PATH;
   let raw: string;
   try {
-    raw = readFileSync(HERMES_AUDIT_LOG_PATH, "utf8");
+    raw = readFileSync(auditPath, "utf8");
   } catch {
     return [];
   }

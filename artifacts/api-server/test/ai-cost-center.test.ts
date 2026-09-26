@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, afterEach, before, describe, it } from "node:test";
+import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -108,6 +108,9 @@ describe("calculateModelCostThb", () => {
 });
 
 describe("recordAiUsage / getUnifiedAiCostSummary aggregation", () => {
+  beforeEach(() => {
+    process.env["HERMES_AUDIT_LOG_PATH"] = "/tmp/non-existent-hermes-audit.jsonl";
+  });
   it("aggregates requests, tokens, and cost separately per service", () => {
     recordAiUsage({ service: "sales_bot", model: "deepseek-v4.1-flash", promptTokens: 500, completionTokens: 200, success: true });
     recordAiUsage({ service: "sketch_vision", model: "gemini-3.8-flash", imageCount: 2, success: true });
@@ -148,6 +151,7 @@ describe("recordAiUsage / getUnifiedAiCostSummary aggregation", () => {
   });
 
   it("filters events by period: 'today' excludes an event recorded on a prior day", () => {
+    process.env["HERMES_AUDIT_LOG_PATH"] = "/tmp/non-existent-hermes-audit.jsonl";
     recordAiUsage({ service: "sales_bot", model: "deepseek-v4.1-flash", promptTokens: 100, success: true });
     const now = new Date();
     const allSummary = getUnifiedAiCostSummary("all", now);
