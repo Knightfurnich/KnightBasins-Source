@@ -27,6 +27,18 @@ export function WorksiteAddressAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [selectedText, setSelectedText] = useState("");
+  /**
+   * The text the visitor is typing right now. This input is controlled by the
+   * parent form, and that round-trip can lag a keystroke (the parent re-syncs
+   * contact defaults). Without this guard the field could repaint an older
+   * value and the visitor could not keep typing. We hold the typed text until
+   * the parent catches up, then hand control back.
+   */
+  const [typedDraft, setTypedDraft] = useState<string | null>(null);
+  useEffect(() => {
+    if (typedDraft !== null && value.trim() === typedDraft.trim()) setTypedDraft(null);
+  }, [value, typedDraft]);
+  const displayValue = typedDraft ?? value;
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(value.trim()), 350);
@@ -50,6 +62,14 @@ export function WorksiteAddressAutocomplete({
   );
   const suggestions = data?.suggestions ?? [];
   const showPanel = isOpen && normalizedValue.length >= 3 && !selectedPlaceId;
+  /**
+   * The panel must never tell the visitor the system is "searching" while they
+   * are still typing: the 350ms debounce used to show the spinner on every
+   * keystroke, which read as a hung field ("พิมพ์ต่อไม่ได้"). Only an in-flight
+   * request shows the spinner now; the debounce itself is silent.
+   */
+  const isWaitingForDebounce = !queryMatchesValue && !isFetching;
+  const showSuggestions = !isFetching && queryMatchesValue && suggestions.length > 0;
 
   const selectSuggestion = (index: number) => {
     const suggestion = suggestions[index];
@@ -88,9 +108,11 @@ export function WorksiteAddressAutocomplete({
             maxLength={250}
             autoComplete="street-address"
             placeholder="พิมพ์ที่อยู่เต็ม เช่น 99 ถนนสุขุมวิท เขตวัฒนา กรุงเทพฯ"
-            value={value}
+            value={displayValue}
             onChange={(event) => {
-              onValueChange(event.target.value);
+              const next = event.target.value;
+              setTypedDraft(next);
+              onValueChange(next);
               onClearPlace();
               setSelectedText("");
               setActiveIndex(-1);
@@ -112,9 +134,13 @@ export function WorksiteAddressAutocomplete({
           />
           {showPanel && (
             <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden border border-[var(--line)] bg-[var(--card-paper)] shadow-xl">
-              {isFetching || !queryMatchesValue ? (
+              {isFetching ? (
                 <div className="flex items-center gap-2 px-3 py-3 text-sm text-[var(--ink-soft)]" role="status">
                   <Loader2 className="h-4 w-4 animate-spin" /> กำลังค้นหาตำแหน่ง…
+                </div>
+              ) : isWaitingForDebounce ? (
+                <div className="px-3 py-3 text-sm text-[var(--ink-soft)]" role="status">
+                  พิมพ์ต่อได้เลยครับ ระบบจะค้นหาให้เอง
                 </div>
               ) : isError ? (
                 <div className="px-3 py-3 text-sm text-[var(--ink-soft)]" role="status" data-testid="status-studio-address-autocomplete">
