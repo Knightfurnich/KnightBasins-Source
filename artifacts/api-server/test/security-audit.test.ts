@@ -1,13 +1,22 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { build } from "esbuild";
-import type { Express } from "express";
+import type { Request, Express } from "express";
 import { mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createAdminToken } from "../src/middlewares/admin-auth.ts";
+import { clearRateLimitStore, clientKey } from "../src/lib/rate-limit.ts";
 
 type AppModule = { default: Express };
+
+function fakeRequest(overrides: Record<string, unknown> = {}) {
+  return {
+    socket: { remoteAddress: "203.0.113.1" },
+    headers: {},
+    ...overrides,
+  } as unknown as Request;
+}
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 
@@ -171,19 +180,19 @@ describe("Area 1: admin-login rate limiting", () => {
     }
   });
 
-  it("SECURITY FINDING: rotating X-Forwarded-For lets an attacker bypass the same limiter entirely", async () => {
-    // Demonstrates Finding 1 in SECURITY_AUDIT_REPORT.md: app.ts sets
-    // `trust proxy: 1`, so createRateLimiter's default IP key (req.ip) is
-    // taken from the caller-supplied X-Forwarded-For header. Sending a
-    // distinct value on every request buckets each one separately, so the
-    // 5-attempts/60s cap on admin login never trips even after far more than
-    // 5 attempts. This test documents the CURRENT (vulnerable) behavior so a
-    // future fix (pinning trust proxy to a verified hop count, or an infra
-    // guard that strips client-supplied X-Forwarded-For) has a regression
-    // test to flip red-to-green against.
+  it("FIXED (job-86): rotating X-Forwarded-For from a direct connection no longer bypasses the limiter", async () => {
+    // Task 84 Finding #1: app.ts's `trust proxy: 1` made createRateLimiter's
+    // old default key (Express's own req.ip) follow whatever the caller put
+    // in X-Forwarded-For. This test's HTTP client connects directly to the
+    // loopback test server -- exactly like an attacker who never went
+    // through this deployment's real nginx container would -- so the
+    // hardened clientKey() in lib/rate-limit.ts must now ignore the header
+    // entirely and bucket every one of these by the same raw socket peer,
+    // regardless of what X-Forwarded-For claims.
     const server = await startApp();
     try {
-      for (let attempt = 0; attempt < 12; attempt += 1) {
+      let lastStatus = 0;
+      for (let attempt = 0; attempt < 6; attempt += 1) {
         const response = await fetch(`${server.url}/api/admin/session`, {
           method: "POST",
           headers: {
@@ -192,11 +201,60 @@ describe("Area 1: admin-login rate limiting", () => {
           },
           body: JSON.stringify({ password: "wrong-password" }),
         });
-        assert.equal(response.status, 401, `spoofed attempt ${attempt + 1} should never be rate limited (bypass confirmed)`);
+        lastStatus = response.status;
+        if (attempt < 5) assert.equal(response.status, 401, `attempt ${attempt + 1} should just be a wrong-password rejection`);
       }
+      assert.equal(lastStatus, 429, "a rotating X-Forwarded-For header must not create a fresh bucket per request");
     } finally {
       await server.close();
     }
+  });
+});
+
+describe("Area 1: clientKey() IP resolution (unit)", () => {
+  before(() => clearRateLimitStore());
+  after(() => clearRateLimitStore());
+
+  it("ignores X-Forwarded-For entirely when the socket peer is not the trusted nginx hop", () => {
+    const directPublicPeer = fakeRequest({ socket: { remoteAddress: "8.8.8.8" }, headers: { "x-forwarded-for": "1.2.3.4, 5.6.7.8" } });
+    const directLoopbackPeer = fakeRequest({ socket: { remoteAddress: "127.0.0.1" }, headers: { "x-forwarded-for": "1.2.3.4" } });
+    assert.ok(clientKey(directPublicPeer).startsWith("8.8.8.8#"), "an untrusted public peer must resolve to its own socket address, not the header");
+    assert.ok(clientKey(directLoopbackPeer).startsWith("127.0.0.1#"), "loopback is never the nginx container, so it must fall back to the socket address too");
+  });
+
+  it("reads the real client from X-Forwarded-For only when the socket peer is nginx's own private-network container", () => {
+    // nginx.conf's $proxy_add_x_forwarded_for always appends nginx's own
+    // observed peer as the LAST entry -- the real client is the one before it.
+    const throughNginx = fakeRequest({
+      socket: { remoteAddress: "172.20.0.5" },
+      headers: { "x-forwarded-for": "203.0.113.9, 172.20.0.5" },
+    });
+    assert.ok(clientKey(throughNginx).startsWith("203.0.113.9#"), "must extract the entry nginx itself received, not nginx's own appended IP");
+  });
+
+  it("a rotating X-Forwarded-For value through the trusted nginx peer cannot change the resolved IP on its own", () => {
+    // Even if a caller controlled the leftmost entry, it's the SECOND entry
+    // (nginx's own observed peer) that anchors trust -- rotating only the
+    // leftmost entry while the real nginx-observed peer stays the same
+    // real attacker IP still collapses to one bucket.
+    const keys = new Set<string>();
+    for (let i = 0; i < 5; i += 1) {
+      const req = fakeRequest({
+        socket: { remoteAddress: "172.20.0.5" },
+        headers: { "x-forwarded-for": `attacker-fake-${i}, 172.20.0.5` },
+      });
+      keys.add(clientKey(req));
+    }
+    // The spoofed leftmost entries aren't valid IPs (looksLikeIp rejects
+    // "attacker-fake-N"), so every one of these falls back to the trusted
+    // nginx peer address itself -- all 5 must collapse to the same key.
+    assert.equal(keys.size, 1, `expected every malformed-header attempt to collapse to one bucket, got ${keys.size}`);
+  });
+
+  it("folds a User-Agent fingerprint into the key as a secondary defense-in-depth layer", () => {
+    const chrome = fakeRequest({ headers: { "user-agent": "Mozilla/5.0 Chrome" } });
+    const curl = fakeRequest({ headers: { "user-agent": "curl/8.0" } });
+    assert.notEqual(clientKey(chrome), clientKey(curl), "different User-Agents on the same IP should not silently share a bucket");
   });
 });
 
