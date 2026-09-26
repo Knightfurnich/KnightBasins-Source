@@ -278,7 +278,8 @@ function parseWorkpieces(value: unknown): SketchWorkpiece[] {
  * to runA/runB/runC, and basinCount sums every "basin" cutout's count.
  */
 function summarizeFirstWorkpiece(workpiece: SketchWorkpiece) {
-  const panelByIndex = (index: number) => workpiece.panels.find((panel) => panel.panelIndex === index);
+  const panelByIndex = (index: number) =>
+    workpiece.panels.find((panel) => panel.panelIndex === index) ?? workpiece.panels[index];
   const basinCutouts = workpiece.cutouts.filter((cutout) => cutout.type === "basin");
   return {
     shape: workpiece.shape,
