@@ -8,7 +8,7 @@ import { createAdminToken } from "../src/middlewares/admin-auth.ts";
 import { importTypeScriptModule } from "./route-harness.ts";
 
 type AdminStockItemPayload = { no: number; name: string; qty: number; scrap: string; lots: string[]; note: string };
-type AdminStockSheetPayload = { title: string; total: number; inStockCount: number; items: AdminStockItemPayload[] };
+type AdminStockSheetPayload = { title: string; total: number; inStockCount: number; totalSheets: number; items: AdminStockItemPayload[] };
 type AdminStockResponsePayload = { updatedAt: string; staron: AdminStockSheetPayload; zen: AdminStockSheetPayload };
 
 type AdminRouteModule = {
@@ -178,15 +178,101 @@ describe("GET /admin/stock", () => {
       assert.equal(payload.staron.title, "สต๊อคแผ่นหินสังเคราะห์ Staron");
       assert.equal(payload.staron.total, 2);
       assert.equal(payload.staron.inStockCount, 1, "only AA 625 has qty > 0");
+      assert.equal(payload.staron.totalSheets, 21, "sum of every item's qty (21 + 0)");
       assert.deepEqual(payload.staron.items[0], { no: 1, name: "AA 625 (Aspen Alder)", qty: 21, scrap: "", lots: ["L001", "L002"], note: "" });
       assert.deepEqual(payload.staron.items[1], { no: 2, name: "BW 010 (Bianco White)", qty: 0, scrap: "0.4 ตร.ม.", lots: [], note: "หมดสต๊อค" });
 
       assert.equal(payload.zen.title, "สต๊อคแผ่นหินสังเคราะห์ Zen Stone");
       assert.equal(payload.zen.total, 2, "the blank row is skipped");
       assert.equal(payload.zen.inStockCount, 2);
+      assert.equal(payload.zen.totalSheets, 8, "sum of every item's qty (3 + 5)");
       assert.deepEqual(payload.zen.items[1]!.lots, ["L010", "L011"], "lots split on newlines too");
 
       assert.equal(fetchMock.mock.callCount() > 0, true);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("drops the factory sheet's trailing SUM-formula row instead of counting it as a fake extra stone color (job-80)", async () => {
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    const fetchMock = mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
+      if (url.includes(`/spreadsheets/${STARON_ID}/values/`)) {
+        return new Response(JSON.stringify({
+          values: [
+            ["no", "name", "qty", "scrap", "lots", "note"],
+            ["1", "AA 625 (Aspen Alder)", "21", "", "", ""],
+            ["2", "BW 010 (Bianco White)", "5", "", "", ""],
+            ["63", "รวมแผ่นทั้งหมด", "26", "", "", ""],
+          ],
+        }), { status: 200 });
+      }
+      if (url.includes(`/spreadsheets/${ZEN_ID}/values/`)) {
+        return new Response(JSON.stringify({
+          values: [
+            ["no", "name", "qty", "scrap", "lots", "note"],
+            ["1", "AP 100 (Apex)", "3", "", "", ""],
+            ["2", "NW 013 (Night White)", "5", "", "", ""],
+            ["3", "รวมทั้งหมด", "8", "", "", ""],
+          ],
+        }), { status: 200 });
+      }
+      return realFetch(input as never, init);
+    });
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/stock`, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      const payload = await response.json() as AdminStockResponsePayload;
+
+      assert.equal(payload.staron.total, 2, "the SUM row must not be counted as a 3rd stone color");
+      assert.equal(payload.staron.items.some((item) => item.name.includes("รวมแผ่นทั้งหมด")), false);
+      assert.equal(payload.staron.totalSheets, 26, "26 real sheets (21 + 5), matching what the SUM row itself claimed");
+
+      assert.equal(payload.zen.total, 2);
+      assert.equal(payload.zen.items.some((item) => item.name.includes("รวมทั้งหมด")), false);
+      assert.equal(payload.zen.totalSheets, 8);
+
+      assert.equal(fetchMock.mock.callCount() > 0, true);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("recognizes every documented summary-row phrasing ('รวมแผ่นทั้งหมด' / 'รวมทั้งหมด' / 'ยอดรวม' / 'Total'), case-insensitively", async () => {
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
+      if (url.includes(`/spreadsheets/${STARON_ID}/values/`)) {
+        return new Response(JSON.stringify({
+          values: [
+            ["no", "name", "qty", "scrap", "lots", "note"],
+            ["1", "AA 625 (Aspen Alder)", "21", "", "", ""],
+            ["2", "ยอดรวม", "21", "", "", ""],
+            ["3", "TOTAL", "21", "", "", ""],
+          ],
+        }), { status: 200 });
+      }
+      if (url.includes(`/spreadsheets/${ZEN_ID}/values/`)) {
+        return new Response(JSON.stringify({ values: [["no", "name", "qty", "scrap", "lots", "note"], ["1", "AP 100 (Apex)", "3", "", "", ""]] }), { status: 200 });
+      }
+      return realFetch(input as never, init);
+    });
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/stock`, { headers: { cookie } });
+      const payload = await response.json() as AdminStockResponsePayload;
+      assert.equal(payload.staron.total, 1, "both the Thai 'ยอดรวม' row and the English 'TOTAL' row must be dropped");
+      assert.equal(payload.staron.totalSheets, 21);
     } finally {
       await server.close();
     }
