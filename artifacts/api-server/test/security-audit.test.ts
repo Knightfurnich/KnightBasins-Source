@@ -258,6 +258,139 @@ describe("Area 1: clientKey() IP resolution (unit)", () => {
   });
 });
 
+// ---- Final Security Sign-off Verification (Task 87) ----------------------
+//
+// End-to-end sanity pass against the real bundled app.ts, run once both
+// patches (Task 86 / Finding #1, and the sketch-vision Finding #2 fix) had
+// landed on main -- exercising the exact API surface job-87 names, on top
+// of (not instead of) the targeted regression tests above.
+
+function sketchAnalyzeForm(fileCount: number) {
+  const form = new FormData();
+  for (let i = 0; i < fileCount; i += 1) {
+    form.append("file", new Blob([Buffer.from("89504e470d0a1a0a", "hex")], { type: "image/png" }), `sketch-${i}.png`);
+  }
+  return form;
+}
+
+describe("Final sign-off: POST /api/sketch/analyze", () => {
+  it("accepts a normal upload (within the 3-file cap) and returns 200", async () => {
+    const server = await startApp();
+    try {
+      const response = await fetch(`${server.url}/api/sketch/analyze`, { method: "POST", body: sketchAnalyzeForm(1) });
+      assert.equal(response.status, 200);
+      const body = (await response.json()) as { items?: unknown[] };
+      assert.equal(body.items?.length, 1);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("rejects more than 3 files with 400", async () => {
+    const server = await startApp();
+    try {
+      const response = await fetch(`${server.url}/api/sketch/analyze`, { method: "POST", body: sketchAnalyzeForm(4) });
+      assert.equal(response.status, 400);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 429 once called more than 5 times in the 10-minute window", async () => {
+    const server = await startApp();
+    try {
+      let lastStatus = 0;
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const response = await fetch(`${server.url}/api/sketch/analyze`, { method: "POST", body: sketchAnalyzeForm(1) });
+        lastStatus = response.status;
+        if (attempt < 5) assert.equal(response.status, 200, `attempt ${attempt + 1} should still be within quota`);
+      }
+      assert.equal(lastStatus, 429, "the 6th attempt within the window must be rate limited");
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+describe("Final sign-off: GET /api/places/autocomplete", () => {
+  it("rejects an empty/too-short search value with 400", async () => {
+    const server = await startApp();
+    try {
+      const empty = await fetch(`${server.url}/api/places/autocomplete?input=`);
+      assert.equal(empty.status, 400);
+      const tooShort = await fetch(`${server.url}/api/places/autocomplete?input=ab`);
+      assert.equal(tooShort.status, 400);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 429 once called more than 30 times in the 1-minute window", async () => {
+    const server = await startApp();
+    try {
+      let lastStatus = 0;
+      for (let attempt = 0; attempt < 31; attempt += 1) {
+        const response = await fetch(`${server.url}/api/places/autocomplete?input=knight+basins`);
+        lastStatus = response.status;
+        if (attempt < 30) assert.notEqual(response.status, 429, `attempt ${attempt + 1} should still be within quota`);
+      }
+      assert.equal(lastStatus, 429, "the 31st attempt within the window must be rate limited");
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+describe("Final sign-off: POST /admin/session brute-force cap", () => {
+  it("caps login attempts at 5/minute regardless of endpoint order (re-verified post-patch)", async () => {
+    const server = await startApp();
+    try {
+      let lastStatus = 0;
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const response = await fetch(`${server.url}/api/admin/session`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ password: "wrong-password" }),
+        });
+        lastStatus = response.status;
+      }
+      assert.equal(lastStatus, 429);
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+describe("Final sign-off: GET /admin/ai-cost-center", () => {
+  it("rejects with 401 when there is no session", async () => {
+    const server = await startApp();
+    try {
+      const response = await fetch(`${server.url}/api/admin/ai-cost-center`);
+      assert.equal(response.status, 401);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns a real 200 with the full JSON shape for a correctly-permissioned session", async () => {
+    // Unlike most /admin/* routes, ai-cost-center's handler is pure in-memory
+    // aggregation (no database call), so this can assert a genuine 200 --
+    // not just "not 401/403" -- without needing a real Postgres.
+    const server = await startApp();
+    try {
+      const cookie = `knight_admin_session=${createAdminToken()}`;
+      const response = await fetch(`${server.url}/api/admin/ai-cost-center`, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      const body = (await response.json()) as { period?: string; services?: unknown[]; modelBreakdown?: unknown[] };
+      assert.equal(body.period, "all");
+      assert.equal(body.services?.length, 3);
+      assert.ok(Array.isArray(body.modelBreakdown));
+    } finally {
+      await server.close();
+    }
+  });
+});
+
 // ---- Area 4: Secret Leakage & Error Hygiene ------------------------------
 
 describe("Area 4: global error handler never leaks internals", () => {
