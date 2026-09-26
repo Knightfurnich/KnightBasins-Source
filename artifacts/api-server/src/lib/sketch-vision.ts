@@ -18,6 +18,41 @@ const GEMINI_MODEL = "gemini-3.8-flash";
 export type SketchVisionShape = "I" | "L-left" | "L-right" | "U" | "unknown";
 export type SketchVisionConfidence = "high" | "medium" | "low";
 
+export type SketchWorkpiecePanel = {
+  panelIndex: number;
+  label: string;
+  lengthMm: number | null;
+  depthMm: number | null;
+};
+
+export type SketchWorkpieceEdgeSide = "top" | "front" | "left" | "right";
+export type SketchWorkpieceEdgeStatus = "upstand" | "wall-flush" | "open-edge" | "closed-edge" | "joint" | "unknown";
+
+export type SketchWorkpieceEdge = {
+  side: SketchWorkpieceEdgeSide;
+  status: SketchWorkpieceEdgeStatus;
+  note?: string;
+};
+
+export type SketchWorkpieceCutoutType = "basin" | "hob" | "other";
+
+export type SketchWorkpieceCutout = {
+  type: SketchWorkpieceCutoutType;
+  description: string;
+  count: number;
+};
+
+export type SketchWorkpiece = {
+  id: string;
+  shape: SketchVisionShape;
+  label: string;
+  dimensionsSummary: string;
+  panels: SketchWorkpiecePanel[];
+  edges: SketchWorkpieceEdge[];
+  cutouts: SketchWorkpieceCutout[];
+  notes?: string;
+};
+
 export type SketchVisionItem = {
   index: number;
   shape: SketchVisionShape;
@@ -30,12 +65,26 @@ export type SketchVisionItem = {
   rawText: string | null;
   confidence: SketchVisionConfidence;
   notes: string | null;
+  workpieceCount: number;
+  workpieces: SketchWorkpiece[];
 };
 
-const SKETCH_VISION_PROMPT = `คุณคือช่างประเมินหน้างานหินสังเคราะห์ที่มีประสบการณ์ กำลังดูภาพแบบร่าง (สเก็ตช์มือหรือแปลน) ของเคาน์เตอร์ครัว/อ่างล้างหน้าที่ลูกค้าวาดมา
+const SKETCH_VISION_PROMPT = `คุณคือช่างประเมินหน้างานหินสังเคราะห์มืออาชีพระดับสูง กำลังดูภาพแบบร่าง (สเก็ตช์มือหรือแปลน) ของเคาน์เตอร์ครัว/อ่างล้างหน้าที่ลูกค้าหรือสถาปนิกวาดหรือถ่ายมา
 
-อ่านภาพแล้วตอบกลับเป็น JSON ตาม schema นี้เท่านั้น ไม่ต้องมีข้อความอื่นนอกเหนือจาก JSON:
+อ่านภาพอย่างละเอียดแล้วตอบกลับเป็น JSON ตาม schema นี้เท่านั้น ไม่ต้องมีข้อความอื่นนอกเหนือจาก JSON:
 {
+  "workpieces": [
+    {
+      "id": string,
+      "shape": "I" | "L-left" | "L-right" | "U" | "unknown",
+      "label": string (เช่น "ชิ้นล่าง (เคาน์เตอร์ครัว)", "ชิ้นบน (ตู้ลอย)"),
+      "dimensionsSummary": string (สรุปมิติสั้นๆ อ่านง่าย เช่น "1.98 x 0.6 ม."),
+      "panels": [ { "panelIndex": number, "label": string, "lengthMm": number หรือ null, "depthMm": number หรือ null } ],
+      "edges": [ { "side": "top" | "front" | "left" | "right", "status": "upstand" | "wall-flush" | "open-edge" | "closed-edge" | "joint" | "unknown", "note": string (ถ้ามี) } ],
+      "cutouts": [ { "type": "basin" | "hob" | "other", "description": string, "count": number } ],
+      "notes": string (ถ้ามี)
+    }
+  ],
   "shape": "I" | "L-left" | "L-right" | "U" | "unknown",
   "runAMm": number หรือ null,
   "runBMm": number หรือ null,
@@ -49,12 +98,16 @@ const SKETCH_VISION_PROMPT = `คุณคือช่างประเมิ�
 }
 
 กติกาสำคัญ:
-- runAMm/runBMm/runCMm/depthMm ต้องเป็นหน่วยมิลลิเมตร (mm) เสมอ ไม่ว่าตัวเลขในภาพจะเขียนเป็นเมตร (ม.), เซนติเมตร (ซม.), หรือไม่มีหน่วยกำกับก็ตาม ให้แปลงเป็นมิลลิเมตรก่อนตอบ
-- shape "I" มีด้านเดียว (runAMm), "L-left"/"L-right" มีสองด้าน (runAMm, runBMm), "U" มีสามด้าน (runAMm, runBMm, runCMm)
-- basinCount คือจำนวนอ่างที่วาดหรือระบุในภาพ
+- ระบุจำนวนชิ้นงานทั้งหมดที่เห็นในภาพให้ครบ: workpieces ต้องมีอย่างน้อย 1 รายการเสมอ ถ้าภาพมีมากกว่า 1 ชิ้น (เช่น เคาน์เตอร์ล่างทรง L + ตู้ลอยชิ้นตรงด้านบน) ให้แยกเป็นหลาย workpieces
+- panels คือรายการแผ่นหินที่ต้องตัดของชิ้นงานนั้น (ทรง I = 1 แผ่น, L-left/L-right = 2 แผ่น, U = 3 แผ่น) ระบุ lengthMm และ depthMm ของแต่ละแผ่น
+- edges คือสถานะขอบที่อ่านจากสัญลักษณ์ในภาพ: upstand (▲ ติดบัว กันน้ำชนผนังปูน), wall-flush (║ ชิดผนัง ไม่มีบัว), open-edge (⊗ ขอบเปิดโชว์ลอย ขัดเนียน), closed-edge (⊞ ขอบปิด/บังหน้าโชว์เนียน), joint (🔗 รอยต่อชนแผ่น — เป็นจุดที่ล็อกอัตโนมัติในระบบอยู่แล้ว ไม่ต้องอ่านจากภาพก็ได้) — ถ้าอ่านสัญลักษณ์ขอบด้านใดไม่ชัดเจน ให้ตอบสถานะเป็น "unknown" ห้ามเดา
+- cutouts คือจุดเจาะอ่าง/ก๊อก/เตาที่วาดหรือระบุในภาพ พร้อมคำอธิบาย (description) และจำนวน (count)
+- กฎเหล็กสำคัญที่สุด: ห้ามหักพื้นที่ช่องเจาะ (อ่าง/ก๊อก/เตา) ออกจากพื้นที่คำนวณราคาหินเด็ดขาด ราคาหินคิดเต็มพื้นที่กว้าง × ยาวเสมอไม่ว่าจะมีรูเจาะกี่จุด ห้ามใส่ตัวเลขพื้นที่หรือราคาหักลบใน cutouts เด็ดขาด
+- ฟิลด์ระดับบน (shape, runAMm, runBMm, runCMm, depthMm, basinCount) ให้สรุปค่าจากชิ้นงานแรก (workpieces[0]) เสมอ เพื่อให้ระบบเดิมที่ยังอ่านฟิลด์เหล่านี้ใช้งานได้ต่อเนื่อง
+- ทุกตัวเลขความยาว/ความลึกต้องเป็นหน่วยมิลลิเมตร (mm) เสมอ ไม่ว่าตัวเลขในภาพจะเขียนเป็นเมตร (ม.), เซนติเมตร (ซม.), หรือไม่มีหน่วยกำกับก็ตาม ให้แปลงเป็นมิลลิเมตรก่อนตอบ
 - stoneHint คือรหัส/ชื่อสีหินถ้าอ่านเจอในภาพ ไม่งั้นเป็น null
 - rawText คือข้อความ/ตัวเลขทั้งหมดที่อ่านได้จากภาพ (สำหรับให้ทีมขายตรวจทาน)
-- ถ้าอ่านตัวเลขหรือรูปทรงไม่ได้ชัดเจน ห้ามเดา ให้ตอบ null สำหรับค่านั้น และถ้าอ่านรูปทรงไม่ได้เลยให้ตอบ shape เป็น "unknown"
+- ถ้าอ่านตัวเลข รูปทรง หรือสถานะขอบไม่ได้ชัดเจน ห้ามเดา ให้ตอบ null หรือ "unknown" สำหรับค่านั้น
 - confidence สะท้อนความมั่นใจโดยรวมของการอ่านภาพนี้`;
 
 function sketchVisionConfig() {
@@ -80,11 +133,16 @@ function unknownItem(index: number, notes: string): SketchVisionItem {
     rawText: null,
     confidence: "low",
     notes,
+    workpieceCount: 0,
+    workpieces: [],
   };
 }
 
 const SKETCH_SHAPES: readonly SketchVisionShape[] = ["I", "L-left", "L-right", "U", "unknown"];
 const SKETCH_CONFIDENCES: readonly SketchVisionConfidence[] = ["high", "medium", "low"];
+const SKETCH_WORKPIECE_EDGE_SIDES: readonly SketchWorkpieceEdgeSide[] = ["top", "front", "left", "right"];
+const SKETCH_WORKPIECE_EDGE_STATUSES: readonly SketchWorkpieceEdgeStatus[] = ["upstand", "wall-flush", "open-edge", "closed-edge", "joint", "unknown"];
+const SKETCH_WORKPIECE_CUTOUT_TYPES: readonly SketchWorkpieceCutoutType[] = ["basin", "hob", "other"];
 
 /**
  * Normalizes one dimension value from the AI's JSON into millimeters.
@@ -136,6 +194,102 @@ function parseBasinCount(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
 }
 
+function parseWorkpiecePanel(value: unknown, fallbackIndex: number): SketchWorkpiecePanel | null {
+  if (!value || typeof value !== "object") return null;
+  const body = value as Record<string, unknown>;
+  const panelIndex = typeof body["panelIndex"] === "number" && Number.isFinite(body["panelIndex"]) ? Math.round(body["panelIndex"]) : fallbackIndex;
+  const label = parseNullableString(body["label"]) ?? `แผ่น ${panelIndex + 1}`;
+  return { panelIndex, label, lengthMm: parseDimensionToMm(body["lengthMm"]), depthMm: parseDimensionToMm(body["depthMm"]) };
+}
+
+function parseWorkpiecePanels(value: unknown): SketchWorkpiecePanel[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry, index) => parseWorkpiecePanel(entry, index))
+    .filter((panel): panel is SketchWorkpiecePanel => panel !== null);
+}
+
+/** An edge with no recognized `side` is dropped entirely -- there is no safe "unknown side" to attach a status to. */
+function parseWorkpieceEdge(value: unknown): SketchWorkpieceEdge | null {
+  if (!value || typeof value !== "object") return null;
+  const body = value as Record<string, unknown>;
+  const side = typeof body["side"] === "string" && (SKETCH_WORKPIECE_EDGE_SIDES as readonly string[]).includes(body["side"])
+    ? (body["side"] as SketchWorkpieceEdgeSide)
+    : null;
+  if (!side) return null;
+  const status = typeof body["status"] === "string" && (SKETCH_WORKPIECE_EDGE_STATUSES as readonly string[]).includes(body["status"])
+    ? (body["status"] as SketchWorkpieceEdgeStatus)
+    : "unknown";
+  const note = parseNullableString(body["note"]);
+  return note ? { side, status, note } : { side, status };
+}
+
+function parseWorkpieceEdges(value: unknown): SketchWorkpieceEdge[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(parseWorkpieceEdge).filter((edge): edge is SketchWorkpieceEdge => edge !== null);
+}
+
+function parseWorkpieceCutout(value: unknown): SketchWorkpieceCutout | null {
+  if (!value || typeof value !== "object") return null;
+  const body = value as Record<string, unknown>;
+  const type = typeof body["type"] === "string" && (SKETCH_WORKPIECE_CUTOUT_TYPES as readonly string[]).includes(body["type"])
+    ? (body["type"] as SketchWorkpieceCutoutType)
+    : "other";
+  const description = parseNullableString(body["description"]) ?? "";
+  const count = typeof body["count"] === "number" && Number.isFinite(body["count"]) && body["count"] >= 0 ? Math.round(body["count"]) : 1;
+  return { type, description, count };
+}
+
+function parseWorkpieceCutouts(value: unknown): SketchWorkpieceCutout[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(parseWorkpieceCutout).filter((cutout): cutout is SketchWorkpieceCutout => cutout !== null);
+}
+
+function parseWorkpiece(value: unknown, fallbackIndex: number): SketchWorkpiece | null {
+  if (!value || typeof value !== "object") return null;
+  const body = value as Record<string, unknown>;
+  const notes = parseNullableString(body["notes"]);
+  return {
+    id: parseNullableString(body["id"]) ?? `workpiece-${fallbackIndex}`,
+    shape: parseShape(body["shape"]),
+    label: parseNullableString(body["label"]) ?? `ชิ้นงาน ${fallbackIndex + 1}`,
+    dimensionsSummary: parseNullableString(body["dimensionsSummary"]) ?? "",
+    panels: parseWorkpiecePanels(body["panels"]),
+    edges: parseWorkpieceEdges(body["edges"]),
+    cutouts: parseWorkpieceCutouts(body["cutouts"]),
+    ...(notes ? { notes } : {}),
+  };
+}
+
+/** Never throws: an entry that isn't a plain object is dropped rather than aborting the whole array. */
+function parseWorkpieces(value: unknown): SketchWorkpiece[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry, index) => parseWorkpiece(entry, index))
+    .filter((workpiece): workpiece is SketchWorkpiece => workpiece !== null);
+}
+
+/**
+ * Derives the legacy flat summary fields (shape/runAMm/runBMm/runCMm/depthMm/
+ * basinCount) from the first workpiece, per job-76's backward-compatibility
+ * requirement: once workpieces[] exists, it is the single source of truth for
+ * these fields (never a separately AI-provided top-level value that could
+ * silently drift from what the workpiece itself says) -- panelIndex 0/1/2 map
+ * to runA/runB/runC, and basinCount sums every "basin" cutout's count.
+ */
+function summarizeFirstWorkpiece(workpiece: SketchWorkpiece) {
+  const panelByIndex = (index: number) => workpiece.panels.find((panel) => panel.panelIndex === index);
+  const basinCutouts = workpiece.cutouts.filter((cutout) => cutout.type === "basin");
+  return {
+    shape: workpiece.shape,
+    runAMm: panelByIndex(0)?.lengthMm ?? null,
+    runBMm: panelByIndex(1)?.lengthMm ?? null,
+    runCMm: panelByIndex(2)?.lengthMm ?? null,
+    depthMm: workpiece.panels[0]?.depthMm ?? null,
+    basinCount: basinCutouts.length > 0 ? basinCutouts.reduce((sum, cutout) => sum + cutout.count, 0) : null,
+  };
+}
+
 /**
  * Turns Gemini's raw JSON text response into a typed SketchVisionItem.
  * Never throws -- a malformed or unexpected-shape response degrades to the
@@ -153,18 +307,32 @@ export function parseSketchVisionResponse(rawText: string, index: number): Sketc
     return unknownItem(index, "อ่านผลลัพธ์จาก AI ไม่ได้ (รูปแบบไม่ถูกต้อง)");
   }
   const body = parsed as Record<string, unknown>;
+  const workpieces = parseWorkpieces(body["workpieces"]);
+  const primary = workpieces[0];
+  const summary = primary
+    ? summarizeFirstWorkpiece(primary)
+    : {
+        shape: parseShape(body["shape"]),
+        runAMm: parseDimensionToMm(body["runAMm"]),
+        runBMm: parseDimensionToMm(body["runBMm"]),
+        runCMm: parseDimensionToMm(body["runCMm"]),
+        depthMm: parseDimensionToMm(body["depthMm"]),
+        basinCount: parseBasinCount(body["basinCount"]),
+      };
   return {
     index,
-    shape: parseShape(body["shape"]),
-    runAMm: parseDimensionToMm(body["runAMm"]),
-    runBMm: parseDimensionToMm(body["runBMm"]),
-    runCMm: parseDimensionToMm(body["runCMm"]),
-    depthMm: parseDimensionToMm(body["depthMm"]),
-    basinCount: parseBasinCount(body["basinCount"]),
+    shape: summary.shape,
+    runAMm: summary.runAMm,
+    runBMm: summary.runBMm,
+    runCMm: summary.runCMm,
+    depthMm: summary.depthMm,
+    basinCount: summary.basinCount,
     stoneHint: parseNullableString(body["stoneHint"]),
     rawText: parseNullableString(body["rawText"]),
     confidence: parseConfidence(body["confidence"]),
     notes: parseNullableString(body["notes"]),
+    workpieceCount: workpieces.length,
+    workpieces,
   };
 }
 
