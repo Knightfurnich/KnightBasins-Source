@@ -99,7 +99,10 @@ const SKETCH_CONFIDENCES: readonly SketchVisionConfidence[] = ["high", "medium",
  */
 export function parseDimensionToMm(value: unknown): number | null {
   if (typeof value === "number") {
-    return Number.isFinite(value) ? Math.round(value < 10 ? value * 1000 : value * 10) : null;
+    if (!Number.isFinite(value) || value <= 0) return null;
+    if (value < 10) return Math.round(value * 1000);
+    if (value < 100) return Math.round(value * 10);
+    return Math.round(value);
   }
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -107,12 +110,14 @@ export function parseDimensionToMm(value: unknown): number | null {
   const match = trimmed.match(/^(-?\d+(?:\.\d+)?)\s*(mm|cm|m|มม\.?|ซม\.?|ม\.?)?$/i);
   if (!match) return null;
   const amount = Number(match[1]);
-  if (!Number.isFinite(amount)) return null;
+  if (!Number.isFinite(amount) || amount <= 0) return null;
   const unit = (match[2] ?? "").toLowerCase().replace(/\.$/, "");
   if (unit === "mm" || unit === "มม") return Math.round(amount);
   if (unit === "cm" || unit === "ซม") return Math.round(amount * 10);
   if (unit === "m" || unit === "ม") return Math.round(amount * 1000);
-  return Math.round(amount < 10 ? amount * 1000 : amount * 10);
+  if (amount < 10) return Math.round(amount * 1000);
+  if (amount < 100) return Math.round(amount * 10);
+  return Math.round(amount);
 }
 
 function parseShape(value: unknown): SketchVisionShape {

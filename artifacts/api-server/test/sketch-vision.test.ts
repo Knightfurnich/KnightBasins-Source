@@ -86,6 +86,10 @@ describe("parseDimensionToMm", () => {
     assert.equal(parseDimensionToMm("45"), 450);
     assert.equal(parseDimensionToMm(1.98), 1980);
     assert.equal(parseDimensionToMm(45), 450);
+    assert.equal(parseDimensionToMm(1980), 1980);
+    assert.equal(parseDimensionToMm("1980"), 1980);
+    assert.equal(parseDimensionToMm(450), 450);
+    assert.equal(parseDimensionToMm("450"), 450);
   });
 
   it("returns null for an unparseable dimension instead of guessing", () => {
