@@ -13,7 +13,7 @@
 // never include request content.
 
 const REQUEST_TIMEOUT_MS = 30_000;
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.8-flash";
 
 export type SketchVisionShape = "I" | "L-left" | "L-right" | "U" | "unknown";
 export type SketchVisionConfidence = "high" | "medium" | "low";
