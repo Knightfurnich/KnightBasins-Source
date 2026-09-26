@@ -6041,3 +6041,29 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ── Studio Guide: contact block on the dark navy panel ──────────────────────
+   The global `h1, h2, h3 { color: var(--ink) }` and `a { color: inherit }`
+   rules above made the heading and the white LINE button unreadable on the
+   bg-[#003366] panel (dark text on dark, white text on white). Pin the
+   colours explicitly here so the contact block stays legible. */
+.studio-guide-contact .studio-guide-contact-title {
+  color: #ffffff !important;
+}
+.studio-guide-contact .studio-guide-contact-line {
+  background: #ffffff !important;
+  color: #003366 !important;
+}
+.studio-guide-contact .studio-guide-contact-line svg {
+  color: #003366 !important;
+}
+.studio-guide-contact .studio-guide-contact-line:hover {
+  background: rgba(255, 255, 255, .9) !important;
+}
+.studio-guide-contact .studio-guide-contact-btn {
+  border-color: rgba(255, 255, 255, .45) !important;
+  color: #ffffff !important;
+}
+.studio-guide-contact .studio-guide-contact-btn:hover {
+  background: rgba(255, 255, 255, .12) !important;
+}

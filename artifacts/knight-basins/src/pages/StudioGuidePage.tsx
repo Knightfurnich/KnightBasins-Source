@@ -229,8 +229,8 @@ export function StudioGuidePage() {
           </div>
         </section>
 
-        <section className="rounded-2xl bg-[#003366] text-white p-6 space-y-4" data-testid="section-studio-guide-contact">
-          <h2 className="text-lg font-bold">ให้ทีมงานช่วยเหลือ</h2>
+        <section className="studio-guide-contact rounded-2xl bg-[#003366] text-white p-6 space-y-4" data-testid="section-studio-guide-contact">
+          <h2 className="studio-guide-contact-title text-lg font-bold">ให้ทีมงานช่วยเหลือ</h2>
           <p className="text-sm leading-relaxed text-white/85">
             ถ้าติดตรงไหน หรืออยากให้ทีมงานช่วยวางผังและประเมินราคาให้ ส่งแบบร่างเข้ามาได้เลยครับ
           </p>
@@ -239,21 +239,21 @@ export function StudioGuidePage() {
               href={LINE_OA_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-white text-[#003366] px-4 py-2.5 text-sm font-semibold hover:bg-white/90"
+              className="studio-guide-contact-line inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold"
               data-testid="link-studio-guide-contact-line"
             >
               <MessageCircle size={15} /> LINE: @789gcnhq
             </a>
             <a
               href={`tel:${PHONE_PRIMARY.replace(/-/g, "")}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/40 px-4 py-2.5 text-sm font-semibold hover:bg-white/10"
+              className="studio-guide-contact-btn inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold"
               data-testid="link-studio-guide-contact-phone-primary"
             >
               โทร {PHONE_PRIMARY}
             </a>
             <a
               href={`tel:${PHONE_SECONDARY.replace(/-/g, "")}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/40 px-4 py-2.5 text-sm font-semibold hover:bg-white/10"
+              className="studio-guide-contact-btn inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold"
               data-testid="link-studio-guide-contact-phone-secondary"
             >
               โทร {PHONE_SECONDARY}
