@@ -148,6 +148,214 @@ describe("parseSketchVisionResponse", () => {
   });
 });
 
+describe("parseSketchVisionResponse -- workpieces breakdown (job-76)", () => {
+  it("parses multiple workpieces from one image, each with its own shape and label", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({
+        workpieces: [
+          { id: "wp-bottom", shape: "L-left", label: "ชิ้นล่าง (เคาน์เตอร์ครัว)", dimensionsSummary: "1.98 x 0.6 ม.", panels: [], edges: [], cutouts: [] },
+          { id: "wp-top", shape: "I", label: "ชิ้นบน (ตู้ลอย)", dimensionsSummary: "1.2 ม.", panels: [], edges: [], cutouts: [] },
+        ],
+      }),
+      0,
+    );
+    assert.equal(item.workpieceCount, 2);
+    assert.equal(item.workpieces.length, 2);
+    assert.equal(item.workpieces[0]?.id, "wp-bottom");
+    assert.equal(item.workpieces[0]?.shape, "L-left");
+    assert.equal(item.workpieces[0]?.label, "ชิ้นล่าง (เคาน์เตอร์ครัว)");
+    assert.equal(item.workpieces[1]?.id, "wp-top");
+    assert.equal(item.workpieces[1]?.shape, "I");
+  });
+
+  it("converts each panel's lengthMm/depthMm units to millimeters, same rules as the top-level fields", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({
+        workpieces: [
+          {
+            shape: "L-left",
+            panels: [
+              { panelIndex: 0, label: "แผ่นหลัง", lengthMm: "1.98 m", depthMm: "60 cm" },
+              { panelIndex: 1, label: "แผ่นขา", lengthMm: "45 cm", depthMm: "0.6 m" },
+            ],
+            edges: [],
+            cutouts: [],
+          },
+        ],
+      }),
+      0,
+    );
+    const [panelA, panelB] = item.workpieces[0]!.panels;
+    assert.equal(panelA?.lengthMm, 1980);
+    assert.equal(panelA?.depthMm, 600);
+    assert.equal(panelB?.lengthMm, 450);
+    assert.equal(panelB?.depthMm, 600);
+  });
+
+  it("maps all 4 edge-finish symbols plus the joint status through unchanged", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({
+        workpieces: [
+          {
+            shape: "U",
+            panels: [],
+            edges: [
+              { side: "top", status: "upstand" },
+              { side: "front", status: "wall-flush" },
+              { side: "left", status: "open-edge" },
+              { side: "right", status: "closed-edge" },
+            ],
+            cutouts: [],
+          },
+        ],
+      }),
+      0,
+    );
+    const byStatus = Object.fromEntries(item.workpieces[0]!.edges.map((edge) => [edge.side, edge.status]));
+    assert.equal(byStatus["top"], "upstand");
+    assert.equal(byStatus["front"], "wall-flush");
+    assert.equal(byStatus["left"], "open-edge");
+    assert.equal(byStatus["right"], "closed-edge");
+  });
+
+  it("keeps a 'joint' edge status as-is and defaults an unrecognized status to 'unknown' rather than guessing", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({
+        workpieces: [
+          {
+            shape: "I",
+            panels: [],
+            edges: [
+              { side: "top", status: "joint" },
+              { side: "front", status: "some-made-up-status" },
+            ],
+            cutouts: [],
+          },
+        ],
+      }),
+      0,
+    );
+    const edges = item.workpieces[0]!.edges;
+    assert.equal(edges.find((edge) => edge.side === "top")?.status, "joint");
+    assert.equal(edges.find((edge) => edge.side === "front")?.status, "unknown");
+  });
+
+  it("drops an edge entry with an unrecognized side entirely instead of attaching a guessed side", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({ workpieces: [{ shape: "I", panels: [], edges: [{ side: "diagonal", status: "upstand" }], cutouts: [] }] }),
+      0,
+    );
+    assert.equal(item.workpieces[0]!.edges.length, 0);
+  });
+
+  it("parses cutouts (basin/hob/other) with their description and count", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({
+        workpieces: [
+          {
+            shape: "I",
+            panels: [],
+            edges: [],
+            cutouts: [
+              { type: "basin", description: "อ่างล้างหน้า 1 หลุม กลางแผ่น", count: 1 },
+              { type: "hob", description: "เตาแก๊ส 2 หัว", count: 1 },
+              { type: "other", description: "ช่องเสียบปลั๊ก", count: 2 },
+            ],
+          },
+        ],
+      }),
+      0,
+    );
+    const [basin, hob, other] = item.workpieces[0]!.cutouts;
+    assert.equal(basin?.type, "basin");
+    assert.equal(basin?.description, "อ่างล้างหน้า 1 หลุม กลางแผ่น");
+    assert.equal(hob?.type, "hob");
+    assert.equal(other?.count, 2);
+  });
+
+  it("never deducts cutout area from anything -- cutouts carry only description/count, no area or price fields", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({ workpieces: [{ shape: "I", panels: [], edges: [], cutouts: [{ type: "basin", description: "อ่าง", count: 1 }] }] }),
+      0,
+    );
+    const cutout = item.workpieces[0]!.cutouts[0] as Record<string, unknown>;
+    assert.deepEqual(Object.keys(cutout).sort(), ["count", "description", "type"]);
+  });
+
+  it("derives the legacy top-level fields (shape/runAMm/runBMm/runCMm/depthMm/basinCount) from workpieces[0], ignoring a mismatched top-level value", () => {
+    const item = parseSketchVisionResponse(
+      JSON.stringify({
+        // A stray/inconsistent top-level block that must be ignored once workpieces[] exists.
+        shape: "unknown",
+        runAMm: 1,
+        basinCount: 99,
+        workpieces: [
+          {
+            shape: "U",
+            panels: [
+              { panelIndex: 0, label: "หลัง", lengthMm: 1500, depthMm: 600 },
+              { panelIndex: 1, label: "ขาซ้าย", lengthMm: 600, depthMm: 1200 },
+              { panelIndex: 2, label: "ขาขวา", lengthMm: 600, depthMm: 1200 },
+            ],
+            edges: [],
+            cutouts: [
+              { type: "basin", description: "อ่างซ้าย", count: 1 },
+              { type: "basin", description: "อ่างขวา", count: 1 },
+            ],
+          },
+        ],
+      }),
+      0,
+    );
+    assert.equal(item.shape, "U");
+    assert.equal(item.runAMm, 1500);
+    assert.equal(item.runBMm, 600);
+    assert.equal(item.runCMm, 600);
+    assert.equal(item.depthMm, 600);
+    assert.equal(item.basinCount, 2, "basinCount must sum the basin cutouts' count, not trust the stray top-level 99");
+  });
+
+  it("falls back to the old flat top-level fields when the AI returns no workpieces array at all", () => {
+    const item = parseSketchVisionResponse(JSON.stringify({ shape: "I", runAMm: "1.98 m", basinCount: 1 }), 0);
+    assert.equal(item.workpieceCount, 0);
+    assert.deepEqual(item.workpieces, []);
+    assert.equal(item.shape, "I");
+    assert.equal(item.runAMm, 1980);
+    assert.equal(item.basinCount, 1);
+  });
+
+  it("never throws and degrades to an empty breakdown when the AI returns an empty or incomplete JSON object", () => {
+    assert.doesNotThrow(() => parseSketchVisionResponse("{}", 0));
+    const empty = parseSketchVisionResponse("{}", 0);
+    assert.equal(empty.workpieceCount, 0);
+    assert.deepEqual(empty.workpieces, []);
+    assert.equal(empty.shape, "unknown");
+
+    assert.doesNotThrow(() => parseSketchVisionResponse(JSON.stringify({ workpieces: [{}, null, "not-an-object", 42] }), 0));
+    const partial = parseSketchVisionResponse(JSON.stringify({ workpieces: [{}, null, "not-an-object", 42] }), 0);
+    assert.equal(partial.workpieceCount, 1, "only the one genuinely object-shaped entry survives; the rest are dropped, not thrown");
+    assert.deepEqual(partial.workpieces[0]!.panels, []);
+    assert.deepEqual(partial.workpieces[0]!.edges, []);
+    assert.deepEqual(partial.workpieces[0]!.cutouts, []);
+  });
+
+  it("never throws when a workpiece's panels/edges/cutouts are missing or the wrong type entirely", () => {
+    assert.doesNotThrow(() => parseSketchVisionResponse(JSON.stringify({ workpieces: [{ shape: "I" }] }), 0));
+    const missingArrays = parseSketchVisionResponse(JSON.stringify({ workpieces: [{ shape: "I" }] }), 0);
+    assert.deepEqual(missingArrays.workpieces[0]!.panels, []);
+    assert.deepEqual(missingArrays.workpieces[0]!.edges, []);
+    assert.deepEqual(missingArrays.workpieces[0]!.cutouts, []);
+
+    const wrongTypes = parseSketchVisionResponse(
+      JSON.stringify({ workpieces: [{ shape: "I", panels: "not-an-array", edges: 5, cutouts: {} }] }),
+      0,
+    );
+    assert.deepEqual(wrongTypes.workpieces[0]!.panels, []);
+    assert.deepEqual(wrongTypes.workpieces[0]!.edges, []);
+    assert.deepEqual(wrongTypes.workpieces[0]!.cutouts, []);
+  });
+});
+
 describe("analyzeSketchImage", () => {
   it("returns an unknown item without calling fetch when GOOGLE_API_KEY is not configured", async () => {
     assert.equal(sketchVisionConfigured(), false);
