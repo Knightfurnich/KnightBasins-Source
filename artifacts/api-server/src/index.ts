@@ -1,4 +1,5 @@
 import app from "./app";
+import { execFileSync } from "node:child_process";
 import { logger } from "./lib/logger";
 import { seedCatalogIfEmpty } from "./routes/catalog";
 
@@ -17,6 +18,14 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 async function start() {
+  if (process.env["NODE_ENV"] === "development" && process.env["REPL_ID"]) {
+    execFileSync("bash", ["scripts/prepare-replit-dev-db.sh"], {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: "inherit",
+    });
+  }
+
   await seedCatalogIfEmpty();
 
   const server = app.listen(port, (err) => {
@@ -33,6 +42,6 @@ async function start() {
 }
 
 start().catch((error) => {
-  logger.error({ error }, "Unable to initialize catalog");
+  logger.error({ error }, "Unable to initialize API database");
   process.exit(1);
 });
