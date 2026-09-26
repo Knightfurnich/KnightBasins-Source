@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useListAdminLeads } from "@workspace/api-client-react";
-import { AlertTriangle, ArrowRight, Bath, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, Loader2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
 import {
   INSTALLATION_PRICE,
@@ -158,7 +158,77 @@ export type StudioNotificationSnapshot = {
   vat: boolean;
 };
 
-const MAX_SKETCH_FILES = 5;
+const MAX_SKETCH_FILES = 3;
+
+type SketchAnalysisShape = "I" | "L" | "U" | "unknown";
+type SketchAnalysisCardPhase = "queued" | "uploading" | "analyzing" | "complete" | "unknown";
+type SketchAnalysisCardState = {
+  shape: SketchAnalysisShape;
+  confidence: number | null;
+  notes: string;
+  runAMm: number | null;
+  depthMm: number | null;
+  phase: SketchAnalysisCardPhase;
+};
+type SketchProcessingPhase = "uploading" | "analyzing" | "calculating" | "success" | "error";
+type SketchProcessingStatus = {
+  phase: SketchProcessingPhase;
+  message: string;
+  busy: boolean;
+};
+
+const SKETCH_ANALYSIS_FALLBACK_MESSAGE = "ไม่สามารถอ่านขนาดจากภาพได้ กรุณากรอกด้วยตนเอง";
+
+function sketchAnalysisRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function positiveSketchDimension(value: unknown): number | null {
+  const number = typeof value === "number"
+    ? value
+    : typeof value === "string" && value.trim()
+      ? Number(value)
+      : Number.NaN;
+  return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "phase"> {
+  const root = sketchAnalysisRecord(payload) ?? {};
+  const result = sketchAnalysisRecord(root.analysis)
+    ?? sketchAnalysisRecord(root.result)
+    ?? sketchAnalysisRecord(root.data)
+    ?? root;
+  const rawShape = String(result.shape ?? result.shapeType ?? "").trim().toUpperCase();
+  const shape: SketchAnalysisShape = rawShape === "I" || rawShape === "L" || rawShape === "U" ? rawShape : "unknown";
+  const rawConfidence = result.confidence;
+  const confidence = typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
+    ? rawConfidence
+    : typeof rawConfidence === "string" && rawConfidence.trim() && Number.isFinite(Number(rawConfidence))
+      ? Number(rawConfidence)
+      : null;
+  const rawNotes = result.notes;
+  const notes = typeof rawNotes === "string"
+    ? rawNotes
+    : Array.isArray(rawNotes)
+      ? rawNotes.filter((note): note is string => typeof note === "string").join(" · ")
+      : "";
+  return {
+    shape,
+    confidence,
+    notes,
+    runAMm: positiveSketchDimension(result.runAMm),
+    depthMm: positiveSketchDimension(result.depthMm),
+  };
+}
+
+function sketchShapeLabel(shape: SketchAnalysisShape): string {
+  if (shape === "I") return "🟦 ทรงตรง (I)";
+  if (shape === "L") return "🟨 ทรงแอลซ้าย (L)";
+  if (shape === "U") return "🟪 ทรงตัวยู (U)";
+  return "shape: unknown · ยังไม่ทราบรูปทรง";
+}
 
 type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
@@ -2469,8 +2539,15 @@ export function StudioPage({
   const [sketchFiles, setSketchFiles] = useState<File[]>([]);
   const [sketchPreviewUrls, setSketchPreviewUrls] = useState<string[]>([]);
   const [sketchDropActive, setSketchDropActive] = useState(false);
+  const [sketchAnalysisByFile, setSketchAnalysisByFile] = useState<Map<File, SketchAnalysisCardState>>(() => new Map());
+  const [sketchStatus, setSketchStatus] = useState<SketchProcessingStatus | null>(null);
   const sketchPreviewUrlCache = useRef<Map<File, string>>(new Map());
   const sketchInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const sketchFilesRef = useRef<File[]>([]);
+  const sketchAnalysisQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const sketchDimensionEditVersionRef = useRef(0);
+  const activeSketchAnalysisFileRef = useRef<File | null>(null);
   useEffect(() => {
     if (mode !== "studio" || !requestedBasinSku) return;
     const product = basinProducts.find((item) => item.sku.toLowerCase() === requestedBasinSku.toLowerCase());
@@ -2657,12 +2734,167 @@ export function StudioPage({
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [expandedSketchUrl]);
+  const updateSketchAnalysisCard = (file: File, patch: Partial<SketchAnalysisCardState>) => {
+    setSketchAnalysisByFile((current) => {
+      const next = new Map(current);
+      const previous = next.get(file) ?? {
+        shape: "unknown" as const,
+        confidence: null,
+        notes: "",
+        runAMm: null,
+        depthMm: null,
+        phase: "queued" as const,
+      };
+      next.set(file, { ...previous, ...patch });
+      return next;
+    });
+  };
+  const analyzeSketch = async (files: File[]) => {
+    for (const file of files) {
+      if (!sketchFilesRef.current.includes(file)) continue;
+      const dimensionEditVersion = sketchDimensionEditVersionRef.current;
+      activeSketchAnalysisFileRef.current = file;
+      updateSketchAnalysisCard(file, { phase: "uploading" });
+      setSketchStatus({
+        phase: "uploading",
+        message: "[1/3] 📤 กำลังอัปโหลดภาพเข้าสู่ระบบ…",
+        busy: true,
+      });
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      if (!sketchFilesRef.current.includes(file)) continue;
+
+      updateSketchAnalysisCard(file, { phase: "analyzing" });
+      setSketchStatus({
+        phase: "analyzing",
+        message: "[2/3] 🧠 AI กำลังวิเคราะห์ลายมือและรูปทรงเคาน์เตอร์…",
+        busy: true,
+      });
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const response = await fetch("/api/sketch/analyze", { method: "POST", body: formData });
+        if (!response.ok) throw new Error(`Sketch analysis request failed: HTTP ${response.status}`);
+        const analysis = parseSketchAnalysis(await response.json() as unknown);
+        if (!sketchFilesRef.current.includes(file)) continue;
+
+        const dimensionsAvailable = analysis.runAMm !== null && analysis.depthMm !== null;
+        const recognized = analysis.shape !== "unknown" && dimensionsAvailable;
+        if (recognized) {
+          setSketchStatus({
+            phase: "calculating",
+            message: "[3/3] 📐 AI ถอดขนาดสำเร็จ กำลังคำนวณราคา…",
+            busy: true,
+          });
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+          if (!sketchFilesRef.current.includes(file)) continue;
+        }
+        if (recognized && dimensionEditVersion === sketchDimensionEditVersionRef.current) {
+          setState((current) => ({
+            ...current,
+            dimensions: {
+              ...current.dimensions,
+              runAMm: analysis.runAMm!,
+              depthMm: analysis.depthMm!,
+            },
+            pieces: current.pieces?.map((piece, pieceIndex) => pieceIndex === 0 ? {
+              ...piece,
+              rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0
+                ? { ...rectangle, widthMm: analysis.runAMm!, lengthMm: analysis.depthMm! }
+                : rectangle),
+            } : piece),
+          }));
+        }
+        updateSketchAnalysisCard(file, {
+          ...analysis,
+          notes: analysis.notes || (recognized ? "กรุณาตรวจสอบขนาดที่อ่านได้" : SKETCH_ANALYSIS_FALLBACK_MESSAGE),
+          phase: recognized ? "complete" : "unknown",
+        });
+        setSketchStatus(recognized
+          ? {
+              phase: "success",
+              message: "✅ ตรวจสอบตัวเลขที่ AI อ่านได้ แล้วแก้ไขได้ทันที",
+              busy: false,
+            }
+          : {
+              phase: "error",
+              message: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
+              busy: false,
+            });
+      } catch {
+        if (!sketchFilesRef.current.includes(file)) continue;
+        updateSketchAnalysisCard(file, {
+          shape: "unknown",
+          confidence: null,
+          notes: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
+          runAMm: null,
+          depthMm: null,
+          phase: "unknown",
+        });
+        setSketchStatus({
+          phase: "error",
+          message: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
+          busy: false,
+        });
+      } finally {
+        if (activeSketchAnalysisFileRef.current === file) activeSketchAnalysisFileRef.current = null;
+      }
+    }
+  };
   const addSketchFiles = (files: File[]) => {
     if (!files.length) return;
-    setSketchFiles((current) => [...current, ...files].slice(0, MAX_SKETCH_FILES));
+    const currentFiles = sketchFilesRef.current;
+    const remaining = Math.max(0, MAX_SKETCH_FILES - currentFiles.length);
+    const accepted = files
+      .filter((file) => file.type.startsWith("image/") || /\.(jpe?g|png|webp|gif)$/i.test(file.name))
+      .slice(0, remaining);
+    if (!accepted.length) {
+      if (remaining > 0) {
+        setSketchStatus({
+          phase: "error",
+          message: "กรุณาเลือกไฟล์ภาพ JPG, PNG, WEBP หรือ GIF",
+          busy: false,
+        });
+      }
+      return;
+    }
+    const nextFiles = [...currentFiles, ...accepted];
+    sketchFilesRef.current = nextFiles;
+    setSketchFiles(nextFiles);
+    setSketchAnalysisByFile((current) => {
+      const next = new Map(current);
+      accepted.forEach((file) => next.set(file, {
+        shape: "unknown",
+        confidence: null,
+        notes: "กำลังรอผลวิเคราะห์",
+        runAMm: null,
+        depthMm: null,
+        phase: "queued",
+      }));
+      return next;
+    });
+    setResult("");
+    sketchAnalysisQueueRef.current = sketchAnalysisQueueRef.current.then(() => analyzeSketch(accepted));
   };
   const removeSketchFile = (index: number) => {
-    setSketchFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
+    const file = sketchFilesRef.current[index];
+    if (!file) return;
+    const nextFiles = sketchFilesRef.current.filter((_, fileIndex) => fileIndex !== index);
+    sketchFilesRef.current = nextFiles;
+    setSketchFiles(nextFiles);
+    setSketchAnalysisByFile((current) => {
+      const next = new Map(current);
+      next.delete(file);
+      return next;
+    });
+    if (activeSketchAnalysisFileRef.current === file) {
+      activeSketchAnalysisFileRef.current = null;
+      setSketchStatus(nextFiles.length
+        ? { phase: "success", message: "ตรวจสอบตัวเลขที่ AI อ่านได้ แล้วแก้ไขได้ทันที", busy: false }
+        : null);
+    } else if (!nextFiles.length) {
+      setSketchStatus(null);
+    }
   };
   useEffect(() => {
     if (!contactDefaults || isLeadLinkedMode) return;
@@ -3138,7 +3370,11 @@ export function StudioPage({
       if (!response.ok) throw new Error(payload.message || "ส่งไฟล์ไม่สำเร็จ");
       setResult(payload.message || (payload.notificationStatus === "notified" ? "ส่งแบบร่างเรียบร้อยแล้ว ทีมขายได้รับการแจ้งเตือน" : "บันทึกแบบร่างเรียบร้อยแล้ว"));
       setSketchFiles([]);
-       if (sketchInputRef.current) sketchInputRef.current.value = "";
+      sketchFilesRef.current = [];
+      setSketchAnalysisByFile(new Map());
+      setSketchStatus(null);
+      if (sketchInputRef.current) sketchInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
     } catch (error) {
       setResult(error instanceof Error ? error.message : "ส่งไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง");
     } finally {
@@ -3155,21 +3391,24 @@ export function StudioPage({
     <aside className={`studio-panel studio-estimate-panel ${mode === "studio" ? "studio-estimate-panel--dock" : ""}`}>
       <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
       <div className="studio-estimate-lines">
-        <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>
-        <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>
-        <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>
-        <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>
+        {mode !== "sketch" && <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>}
+        {mode !== "sketch" && <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>}
+        {!(mode === "sketch" && estimate.upstandLengthM <= 0) && <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>}
+        {!(mode === "sketch" && estimate.openEdgeLengthM <= 0) && <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>}
         <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
         {(() => {
           const tier = stonePriceTier(stoneColorByName(state.activeStone, stoneColors).installedPriceTHB, stoneColors);
-          return tier && <p className="studio-price-tier" data-testid="text-studio-price-tier">สี {activeStone.code} อยู่ในระดับราคา <strong>{tier.label}</strong> เทียบกับหินทั้งหมด {tier.total} สีในแคตตาล็อก</p>;
+          return mode !== "sketch" && tier && <p className="studio-price-tier" data-testid="text-studio-price-tier">สี {activeStone.code} อยู่ในระดับราคา <strong>{tier.label}</strong> เทียบกับหินทั้งหมด {tier.total} สีในแคตตาล็อก</p>;
         })()}
-        <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>
+        {mode === "sketch" ? <>
+          <div><span>อ่าง</span><strong>{formatTHB(estimate.basinSubtotalTHB)}</strong></div>
+          <div><span>ค่าติดตั้ง</span><strong>{formatTHB(estimate.installationChargeTHB)}</strong></div>
+        </> : <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>}
         {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
-        <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>
+        {mode !== "sketch" && <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>}
       </div>
-      <StudioStoneComparison state={state} setState={setState} />
-      <div className="studio-pricing-inputs">
+      {mode !== "sketch" && <StudioStoneComparison state={state} setState={setState} />}
+      {mode !== "sketch" && <div className="studio-pricing-inputs">
         <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} onBlur={(event) => {
           if (event.currentTarget.value.trim()) return;
           setState((current) => current.upstandHeightMm === null || current.upstandHeightMm === undefined
@@ -3178,7 +3417,7 @@ export function StudioPage({
         }} data-testid="input-studio-upstand-height" /></label>
         <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
         <label data-testid="studio-discount-field">ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
-      </div>
+      </div>}
       <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
       {missingTaxIdForVat && <p className="studio-warning studio-warning--amber" role="status" data-testid="status-studio-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}
       <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
@@ -3227,11 +3466,17 @@ export function StudioPage({
           <div className="studio-sketch-dropzone-copy">
             <strong>ลากภาพแบบร่างหรือรูปถ่ายหน้างานมาวางที่นี่</strong>
             <span>หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP และ GIF</span>
+            <small data-testid="text-sketch-file-count">แนบแล้ว {sketchFiles.length} / {MAX_SKETCH_FILES} รูป</small>
           </div>
-          <button type="button" className="button button--outline studio-sketch-select-button" onClick={() => sketchInputRef.current?.click()}>
-            <Upload size={16} /> เลือกภาพ
-          </button>
         </div>
+        {sketchFiles.length < MAX_SKETCH_FILES && <div className="studio-sketch-actions">
+          <button type="button" className="button button--outline" onClick={() => cameraInputRef.current?.click()} data-testid="button-sketch-camera">
+            <Camera size={17} /> ถ่ายรูปจากกล้องทันที
+          </button>
+          <button type="button" className="button button--outline" onClick={() => sketchInputRef.current?.click()} data-testid="button-sketch-file">
+            <FolderOpen size={17} /> เลือกภาพจากเครื่อง
+          </button>
+        </div>}
         <div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">
           {Array.from({ length: MAX_SKETCH_FILES }).map((_, index) => {
             const file = sketchFiles[index];
@@ -3244,7 +3489,7 @@ export function StudioPage({
                 </div>
               );
             }
-            if (index === sketchFiles.length) {
+            if (index === sketchFiles.length && sketchFiles.length < MAX_SKETCH_FILES) {
               return (
                 <button key={index} type="button" className="studio-sketch-slot studio-sketch-slot--add" onClick={() => sketchInputRef.current?.click()} data-testid={`button-add-studio-sketch-${index}`}>
                   <span className="studio-sketch-add-plus" aria-hidden="true">+</span>
@@ -3255,7 +3500,47 @@ export function StudioPage({
             return <div key={index} className="studio-sketch-slot studio-sketch-slot--empty" aria-hidden="true" />;
           })}
         </div>
+        {sketchStatus && <div
+          className={`studio-sketch-status ${sketchStatus.busy ? "is-busy" : ""} studio-sketch-status--${sketchStatus.phase}`}
+          role="status"
+          aria-live="polite"
+          data-testid="status-sketch-analysis"
+          data-phase={sketchStatus.phase}
+        >
+          {sketchStatus.busy && <Loader2 className="studio-sketch-status-spinner" size={17} aria-hidden="true" />}
+          <span>{sketchStatus.message}</span>
+        </div>}
+        {sketchFiles.length > 0 && <div className="studio-sketch-analysis-list">
+          {sketchFiles.map((file, index) => {
+            const analysis = sketchAnalysisByFile.get(file) ?? {
+              shape: "unknown" as const,
+              confidence: null,
+              notes: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
+              runAMm: null,
+              depthMm: null,
+              phase: "queued" as const,
+            };
+            const isBusy = analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
+            const confidence = analysis.confidence === null
+              ? "ยังไม่ระบุ"
+              : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
+            return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
+              {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
+              <div className="studio-sketch-analysis-copy">
+                <strong className="studio-sketch-analysis-title">{file.name}</strong>
+                <span className={`studio-sketch-shape studio-sketch-shape--${analysis.shape}`}>{sketchShapeLabel(analysis.shape)}</span>
+                <span>ความมั่นใจ: {confidence}</span>
+                <span>{analysis.runAMm !== null && analysis.depthMm !== null
+                  ? `ขนาดที่อ่านได้: ${analysis.runAMm} × ${analysis.depthMm} มม.`
+                  : "ยังไม่มีขนาดจาก AI — กรอกขนาดด้วยตนเองได้"}</span>
+                <p>{analysis.notes || SKETCH_ANALYSIS_FALLBACK_MESSAGE}</p>
+                {isBusy && <span className="studio-sketch-analysis-pending"><Loader2 className="studio-sketch-status-spinner" size={14} aria-hidden="true" /> กำลังวิเคราะห์ภาพนี้</span>}
+              </div>
+            </article>;
+          })}
+        </div>}
       </div>
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-sketch-camera" />
       <input ref={sketchInputRef} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" className="studio-sketch-file-input" onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; addSketchFiles(files); }} data-testid="input-studio-sketch" />
       <small className="studio-sketch-hint">ไม่เกิน 10 MB ต่อไฟล์ · สูงสุด {MAX_SKETCH_FILES} รูป · สามารถเพิ่มหรือลบรูปได้ก่อนส่ง</small>
     </section>
@@ -3301,6 +3586,7 @@ export function StudioPage({
                 step="10"
                 value={state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm}
                 onChange={(e) => {
+                  sketchDimensionEditVersionRef.current += 1;
                   const val = Math.max(1, Number(e.target.value) || 0);
                   setState((curr) => ({
                     ...curr,
@@ -3325,6 +3611,7 @@ export function StudioPage({
                 step="10"
                 value={state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm}
                 onChange={(e) => {
+                  sketchDimensionEditVersionRef.current += 1;
                   const val = Math.max(1, Number(e.target.value) || 0);
                   setState((curr) => ({
                     ...curr,
