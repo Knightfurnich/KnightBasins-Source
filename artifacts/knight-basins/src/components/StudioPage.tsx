@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useListAdminLeads } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, Loader2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
@@ -160,14 +160,42 @@ export type StudioNotificationSnapshot = {
 
 const MAX_SKETCH_FILES = 3;
 
-type SketchAnalysisShape = "I" | "L" | "U" | "unknown";
+type SketchAnalysisShape = "I" | "L" | "L-left" | "L-right" | "U" | "unknown";
 type SketchAnalysisCardPhase = "queued" | "uploading" | "analyzing" | "complete" | "unknown";
+type SketchWorkpiecePanel = {
+  panelIndex: number;
+  label: string;
+  lengthMm: number | null;
+  depthMm: number | null;
+};
+type SketchWorkpieceEdge = {
+  side: "top" | "front" | "left" | "right";
+  status: "upstand" | "wall-flush" | "open-edge" | "closed-edge" | "joint" | "unknown";
+  note: string;
+};
+type SketchWorkpieceCutout = {
+  type: "basin" | "hob" | "other";
+  description: string;
+  count: number | null;
+};
+type SketchAnalysisWorkpiece = {
+  id: string;
+  label: string;
+  shape: SketchAnalysisShape;
+  dimensionsSummary: string;
+  panels: SketchWorkpiecePanel[];
+  edges: SketchWorkpieceEdge[];
+  cutouts: SketchWorkpieceCutout[];
+  notes: string;
+};
 type SketchAnalysisCardState = {
   shape: SketchAnalysisShape;
   confidence: number | null;
   notes: string;
   runAMm: number | null;
   depthMm: number | null;
+  workpieceCount: number;
+  workpieces: SketchAnalysisWorkpiece[];
   phase: SketchAnalysisCardPhase;
 };
 type SketchProcessingPhase = "uploading" | "analyzing" | "calculating" | "success" | "error";
@@ -195,6 +223,77 @@ function positiveSketchDimension(value: unknown): number | null {
   return Number.isFinite(number) && number > 0 ? number : null;
 }
 
+function parseSketchShape(value: unknown): SketchAnalysisShape {
+  const rawShape = typeof value === "string" ? value.trim().toUpperCase() : "";
+  if (rawShape === "I" || rawShape === "L" || rawShape === "U") return rawShape;
+  if (rawShape === "L-LEFT") return "L-left";
+  if (rawShape === "L-RIGHT") return "L-right";
+  return "unknown";
+}
+
+function parseSketchWorkpiece(value: unknown, index: number): SketchAnalysisWorkpiece | null {
+  const workpiece = sketchAnalysisRecord(value);
+  if (!workpiece) return null;
+  const panels = Array.isArray(workpiece.panels)
+    ? workpiece.panels.flatMap((panelValue, panelIndex) => {
+        const panel = sketchAnalysisRecord(panelValue);
+        if (!panel) return [];
+        const parsedPanelIndex = typeof panel.panelIndex === "number" && Number.isSafeInteger(panel.panelIndex) && panel.panelIndex > 0
+          ? panel.panelIndex
+          : panelIndex + 1;
+        return [{
+          panelIndex: parsedPanelIndex,
+          label: typeof panel.label === "string" && panel.label.trim() ? panel.label.trim() : `แผ่น ${parsedPanelIndex}`,
+          lengthMm: positiveSketchDimension(panel.lengthMm),
+          depthMm: positiveSketchDimension(panel.depthMm),
+        }];
+      })
+    : [];
+  const edges = Array.isArray(workpiece.edges)
+    ? workpiece.edges.flatMap((edgeValue) => {
+        const edge = sketchAnalysisRecord(edgeValue);
+        if (!edge || !["top", "front", "left", "right"].includes(String(edge.side))) return [];
+        const status = ["upstand", "wall-flush", "open-edge", "closed-edge", "joint", "unknown"].includes(String(edge.status))
+          ? edge.status as SketchWorkpieceEdge["status"]
+          : "unknown";
+        return [{
+          side: edge.side as SketchWorkpieceEdge["side"],
+          status,
+          note: typeof edge.note === "string" ? edge.note.trim() : "",
+        }];
+      })
+    : [];
+  const cutouts = Array.isArray(workpiece.cutouts)
+    ? workpiece.cutouts.flatMap((cutoutValue) => {
+        const cutout = sketchAnalysisRecord(cutoutValue);
+        if (!cutout) return [];
+        const type: SketchWorkpieceCutout["type"] = cutout.type === "basin"
+          ? "basin"
+          : cutout.type === "hob"
+            ? "hob"
+            : "other";
+        const count = typeof cutout.count === "number" && Number.isSafeInteger(cutout.count) && cutout.count >= 0
+          ? cutout.count
+          : null;
+        return [{
+          type,
+          description: typeof cutout.description === "string" ? cutout.description.trim() : "",
+          count,
+        }];
+      })
+    : [];
+  return {
+    id: typeof workpiece.id === "string" && workpiece.id.trim() ? workpiece.id.trim() : `workpiece-${index + 1}`,
+    label: typeof workpiece.label === "string" && workpiece.label.trim() ? workpiece.label.trim() : `ชิ้นงาน ${index + 1}`,
+    shape: parseSketchShape(workpiece.shape),
+    dimensionsSummary: typeof workpiece.dimensionsSummary === "string" ? workpiece.dimensionsSummary.trim() : "",
+    panels,
+    edges,
+    cutouts,
+    notes: typeof workpiece.notes === "string" ? workpiece.notes.trim() : "",
+  };
+}
+
 function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "phase"> {
   const root = sketchAnalysisRecord(payload) ?? {};
   const firstItem = Array.isArray(root.items) && root.items.length > 0
@@ -205,8 +304,15 @@ function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "p
     ?? sketchAnalysisRecord(root.result)
     ?? sketchAnalysisRecord(root.data)
     ?? root;
-  const rawShape = String(result.shape ?? result.shapeType ?? "").trim().toUpperCase();
-  const shape: SketchAnalysisShape = rawShape === "I" || rawShape === "L" || rawShape === "U" ? rawShape : "unknown";
+  const workpieces = Array.isArray(result.workpieces)
+    ? result.workpieces.flatMap((workpiece, index) => {
+        const parsedWorkpiece = parseSketchWorkpiece(workpiece, index);
+        return parsedWorkpiece ? [parsedWorkpiece] : [];
+      })
+    : [];
+  const firstWorkpiece = workpieces[0];
+  const firstPanel = firstWorkpiece?.panels[0];
+  const shape = parseSketchShape(result.shape ?? result.shapeType ?? firstWorkpiece?.shape);
   const rawConfidence = result.confidence;
   const confidence = typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
     ? rawConfidence
@@ -223,16 +329,42 @@ function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "p
     shape,
     confidence,
     notes,
-    runAMm: positiveSketchDimension(result.runAMm),
-    depthMm: positiveSketchDimension(result.depthMm),
+    runAMm: positiveSketchDimension(result.runAMm) ?? firstPanel?.lengthMm ?? null,
+    depthMm: positiveSketchDimension(result.depthMm) ?? firstPanel?.depthMm ?? null,
+    workpieceCount: typeof result.workpieceCount === "number" && Number.isSafeInteger(result.workpieceCount) && result.workpieceCount >= 0
+      ? Math.max(result.workpieceCount, workpieces.length)
+      : workpieces.length,
+    workpieces,
   };
 }
 
 function sketchShapeLabel(shape: SketchAnalysisShape): string {
   if (shape === "I") return "🟦 ทรงตรง (I)";
-  if (shape === "L") return "🟨 ทรงแอลซ้าย (L)";
+  if (shape === "L" || shape === "L-left") return "🟨 ทรงแอลซ้าย (L-Left)";
+  if (shape === "L-right") return "🟨 ทรงแอลขวา (L-Right)";
   if (shape === "U") return "🟪 ทรงตัวยู (U)";
   return "shape: unknown · ยังไม่ทราบรูปทรง";
+}
+
+function sketchWorkpieceEdgeStatusLabel(status: SketchWorkpieceEdge["status"]): string {
+  if (status === "upstand") return "ติดบัว ▲";
+  if (status === "wall-flush") return "ชิดผนัง ║";
+  if (status === "open-edge") return "ขอบเปิด ⊗";
+  if (status === "closed-edge") return "ขอบปิด ⊞";
+  if (status === "joint") return "รอยต่อแผ่น";
+  return "ไม่ระบุ";
+}
+
+function sketchWorkpieceEdgeSideLabel(side: SketchWorkpieceEdge["side"]): string {
+  if (side === "top") return "บน";
+  if (side === "front") return "หน้า";
+  return side === "left" ? "ซ้าย" : "ขวา";
+}
+
+function sketchCutoutTypeLabel(type: SketchWorkpieceCutout["type"]): string {
+  if (type === "basin") return "อ่าง";
+  if (type === "hob") return "เตา";
+  return "จุดเจาะ";
 }
 
 type StudioPageProps = {
@@ -527,8 +659,9 @@ function applyStudioShareParameters(
   state: StudioState,
   requestedPreset: StudioPreset | null,
   requestedWidthMm: number | null,
+  requestedDepthMm: number | null = null,
 ): StudioState {
-  if (!requestedPreset && requestedWidthMm === null) return state;
+  if (!requestedPreset && requestedWidthMm === null && requestedDepthMm === null) return state;
   const firstPiece = getStudioPieces(state)[0];
   const firstRectangle = firstPiece?.rectangles[0];
   if (!firstPiece || !firstRectangle) return state;
@@ -537,7 +670,7 @@ function applyStudioShareParameters(
   const isFreshBoard = firstPiece.rectangles.length === 1 &&
     firstRectangle.widthMm === STUDIO_INITIAL_BOARD_WIDTH_MM &&
     firstRectangle.lengthMm === STUDIO_INITIAL_BOARD_LENGTH_MM;
-  const depthMm = Math.max(
+  const depthMm = requestedDepthMm ?? Math.max(
     1,
     requestedPreset && isFreshBoard ? STUDIO_PRESET_DEFAULT_DEPTH_MM : firstRectangle.lengthMm,
   );
@@ -2754,6 +2887,7 @@ export function StudioPage({
   stoneColors = STONE_COLORS,
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
+  const [, setLocation] = useLocation();
   const studioSearchParams = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
   const leadIdParam = studioSearchParams.get("leadId");
   const isLeadLinkedMode = leadIdParam !== null;
@@ -2770,18 +2904,22 @@ export function StudioPage({
       : readLinkedDraft(),
     [isLeadLinkedMode],
   );
-  const requestedBasinSku = studioSearchParams.get("basin")?.trim() ?? "";
+  const requestedBasinSku = (studioSearchParams.get("basinSku") ?? studioSearchParams.get("basin") ?? "").trim();
   const requestedBasinProduct = requestedBasinSku
     ? basinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
     : undefined;
-  const requestedStoneCode = studioSearchParams.get("stone")?.trim() ?? "";
+  const requestedStoneCode = (studioSearchParams.get("stoneColor") ?? studioSearchParams.get("stone") ?? "").trim();
   const requestedStoneColor = requestedStoneCode
     ? stoneColors.find((stone) => stone.code.toLowerCase() === requestedStoneCode.toLowerCase())
     : undefined;
   const requestedStudioPreset = studioPresetFromQuery(studioSearchParams.get("shape"));
-  const requestedStudioWidthValue = Number(studioSearchParams.get("width"));
+  const requestedStudioWidthValue = Number(studioSearchParams.get("runAMm") ?? studioSearchParams.get("width"));
   const requestedStudioWidthMm = Number.isSafeInteger(requestedStudioWidthValue) && requestedStudioWidthValue > 0
     ? requestedStudioWidthValue
+    : null;
+  const requestedStudioDepthValue = Number(studioSearchParams.get("depthMm") ?? studioSearchParams.get("depth"));
+  const requestedStudioDepthMm = Number.isSafeInteger(requestedStudioDepthValue) && requestedStudioDepthValue > 0
+    ? requestedStudioDepthValue
     : null;
   const [state, setState, studioHistory] = useUndoableStudioState(() => {
     const initialStudioState = linkedDraft.state ?? createInitialStudioState(
@@ -2804,7 +2942,7 @@ export function StudioPage({
       ? addQueryBasinToStudioState(withRequestedStone, requestedBasinProduct)
       : withRequestedStone;
     const withRequestedStudioParameters = mode === "studio"
-      ? applyStudioShareParameters(withRequestedBasin, requestedStudioPreset, requestedStudioWidthMm)
+      ? applyStudioShareParameters(withRequestedBasin, requestedStudioPreset, requestedStudioWidthMm, requestedStudioDepthMm)
       : withRequestedBasin;
     return normalizeStudioState(withRequestedStudioParameters, basinProducts, stoneColors);
   });
@@ -3038,6 +3176,8 @@ export function StudioPage({
         notes: "",
         runAMm: null,
         depthMm: null,
+        workpieceCount: 0,
+        workpieces: [],
         phase: "queued" as const,
       };
       next.set(file, { ...previous, ...patch });
@@ -3090,20 +3230,29 @@ export function StudioPage({
           if (!sketchFilesRef.current.includes(file)) continue;
         }
         if (recognized && dimensionEditVersion === sketchDimensionEditVersionRef.current) {
-          setState((current) => ({
-            ...current,
-            dimensions: {
-              ...current.dimensions,
-              runAMm: analysis.runAMm!,
-              depthMm: analysis.depthMm!,
-            },
-            pieces: current.pieces?.map((piece, pieceIndex) => pieceIndex === 0 ? {
-              ...piece,
-              rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0
-                ? { ...rectangle, widthMm: analysis.runAMm!, lengthMm: analysis.depthMm! }
-                : rectangle),
-            } : piece),
-          }));
+          const requestedPreset: StudioPreset = analysis.shape === "U"
+            ? "u"
+            : analysis.shape === "L-right"
+              ? "l-right"
+              : analysis.shape === "L" || analysis.shape === "L-left"
+                ? "l-left"
+                : "i";
+          setState((current) => {
+            const resizedState = applyStudioShareParameters(
+              current,
+              requestedPreset,
+              analysis.runAMm!,
+              analysis.depthMm!,
+            );
+            return {
+              ...resizedState,
+              dimensions: {
+                ...resizedState.dimensions,
+                runAMm: analysis.runAMm!,
+                depthMm: analysis.depthMm!,
+              },
+            };
+          });
         }
         updateSketchAnalysisCard(file, {
           ...analysis,
@@ -3131,6 +3280,8 @@ export function StudioPage({
           notes: message,
           runAMm: null,
           depthMm: null,
+          workpieceCount: 0,
+          workpieces: [],
           phase: "unknown",
         });
         setSketchStatus({
@@ -3171,6 +3322,8 @@ export function StudioPage({
         notes: "กำลังรอผลวิเคราะห์",
         runAMm: null,
         depthMm: null,
+        workpieceCount: 0,
+        workpieces: [],
         phase: "queued",
       }));
       return next;
@@ -3688,6 +3841,32 @@ export function StudioPage({
   const hasUnsavedLinkedLeadChanges = isLeadLinkedMode && savedLeadStateFingerprint !== null && !linkedLeadLayoutIsSaved;
   const linkedLeadUnavailable = isLeadLinkedMode && (!linkedLeadId || !linkedLead || leadsQuery.isLoading);
   const primarySubmit = isLeadLinkedMode ? saveStudioToLinkedLead : mode === "studio" ? submitStudio : submitSketch;
+  const sketchBridgeAnalysis = sketchFiles
+    .map((file) => sketchAnalysisByFile.get(file))
+    .find((analysis) => analysis && analysis.shape !== "unknown");
+  const sketchBridgeShape: StudioPreset = sketchBridgeAnalysis
+    ? sketchBridgeAnalysis.shape === "U"
+      ? "u"
+      : sketchBridgeAnalysis.shape === "L-right"
+        ? "l-right"
+        : sketchBridgeAnalysis.shape === "L" || sketchBridgeAnalysis.shape === "L-left"
+          ? "l-left"
+          : "i"
+    : studioPresetForShare(state);
+  const sketchBridgeRectangle = getStudioPieces(state)[0]?.rectangles[0];
+  const sketchBridgeRunAMm = Math.round(sketchBridgeRectangle?.widthMm ?? state.dimensions.runAMm);
+  const sketchBridgeDepthMm = Math.round(sketchBridgeRectangle?.lengthMm ?? state.dimensions.depthMm);
+  const bridgeToStudio = () => {
+    const params = new URLSearchParams();
+    params.set("shape", sketchBridgeShape);
+    params.set("runAMm", String(sketchBridgeRunAMm));
+    params.set("depthMm", String(sketchBridgeDepthMm));
+    const basinSku = state.basinSkus.find((sku) => basinProducts.some((product) => product.sku === sku));
+    const stoneColor = state.activeStone || state.stoneColors[0];
+    if (stoneColor) params.set("stoneColor", stoneColor);
+    if (basinSku) params.set("basinSku", basinSku);
+    setLocation(`/studio?${params.toString()}`);
+  };
   const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const estimatePanel = (
     <aside className={`studio-panel studio-estimate-panel ${mode === "studio" ? "studio-estimate-panel--dock" : ""}`}>
@@ -3730,7 +3909,18 @@ export function StudioPage({
         <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
       </div>}
       {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
-      <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : mode === "studio" ? "ขอใบเสนอราคาจากแบบนี้" : "🚀 ส่งภาพแบบร่างให้ทีมขายประเมินราคา"} <ArrowRight size={16} /></button>
+      {mode === "sketch" && !isLeadLinkedMode
+        ? <div className="studio-sketch-button-pair">
+          <button type="button" className="button button--dark" disabled={submitting} onClick={() => void primarySubmit()} data-testid="button-submit-sketch-lead">
+            <span data-testid="button-submit-sketch">{submitting ? "กำลังส่ง..." : "🚀 ส่งภาพแบบร่างให้ทีมขายประเมินราคา ➔"}</span>
+          </button>
+          <button type="button" className="button button--accent" onClick={bridgeToStudio} data-testid="button-bridge-to-studio">
+            🎨 นำขนาดเข้าสู่ 2D Studio ➔
+          </button>
+        </div>
+        : <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>
+          {submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : "ขอใบเสนอราคาจากแบบนี้"} <ArrowRight size={16} />
+        </button>}
       {result && <p className="studio-result" role="status">{result}</p>}
       {hasUnsavedLinkedLeadChanges && <p className="studio-lead-unsaved" role="status">มีการแก้ไขผังที่ยังไม่ได้บันทึก</p>}
       {isLeadLinkedMode && linkedLeadLayoutIsSaved && linkedLead?.publicQuoteToken && <p className="studio-lead-quote-link" data-testid="link-existing-lead-quote"><a href={adminQuoteUrl(linkedLead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา{linkedLead.quoteNumber ? ` ${linkedLead.quoteNumber}` : ""}</a></p>}
@@ -3832,22 +4022,71 @@ export function StudioPage({
               notes: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
               runAMm: null,
               depthMm: null,
+              workpieceCount: 0,
+              workpieces: [],
               phase: "queued" as const,
             };
             const isBusy = analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
             const confidence = analysis.confidence === null
               ? "ยังไม่ระบุ"
               : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
+            const shapeClass = analysis.shape.startsWith("L") ? "L" : analysis.shape;
             return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
               {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
               <div className="studio-sketch-analysis-copy">
                 <strong className="studio-sketch-analysis-title">{file.name}</strong>
-                <span className={`studio-sketch-shape studio-sketch-shape--${analysis.shape}`}>{sketchShapeLabel(analysis.shape)}</span>
+                <span className={`studio-sketch-shape studio-sketch-shape--${shapeClass}`}>{sketchShapeLabel(analysis.shape)}</span>
                 <span>ความมั่นใจ: {confidence}</span>
                 <span>{analysis.runAMm !== null && analysis.depthMm !== null
                   ? `ขนาดที่อ่านได้: ${analysis.runAMm} × ${analysis.depthMm} มม.`
                   : "ยังไม่มีขนาดจาก AI — กรอกขนาดด้วยตนเองได้"}</span>
                 <p>{analysis.notes || SKETCH_ANALYSIS_FALLBACK_MESSAGE}</p>
+                {analysis.workpieces.length > 0 && <div className="studio-sketch-workpieces" data-testid={`list-sketch-workpieces-${index}`}>
+                  <strong className="studio-sketch-workpieces-summary">พบ {analysis.workpieceCount || analysis.workpieces.length} ชิ้นงานในภาพนี้</strong>
+                  {analysis.workpieces.map((workpiece, workpieceIndex) => <section className="studio-sketch-workpiece-card" key={`${workpiece.id}-${workpieceIndex}`} data-testid={`card-sketch-workpiece-${index}-${workpieceIndex}`}>
+                    <div className="studio-sketch-workpiece-heading">
+                      <strong>{workpiece.label}</strong>
+                      <span className="studio-sketch-workpiece-shape">{sketchShapeLabel(workpiece.shape)}</span>
+                    </div>
+                    <p className="studio-sketch-workpiece-dimensions">{workpiece.dimensionsSummary || "ขนาดรวมยังไม่ระบุ"}</p>
+                    {workpiece.panels.length > 0 && <div className="studio-sketch-workpiece-section">
+                      <strong>แผ่นหิน (Panels)</strong>
+                      <div className="studio-sketch-workpiece-badges">
+                        {workpiece.panels.map((panel, panelIndex) => <span
+                          className="studio-sketch-panel-badge"
+                          key={`${panel.panelIndex}-${panelIndex}`}
+                          data-testid={`badge-sketch-panel-${index}-${workpieceIndex}-${panel.panelIndex}`}
+                        >
+                          {panel.label} · {panel.lengthMm ?? "—"} × {panel.depthMm ?? "—"} มม.
+                        </span>)}
+                      </div>
+                    </div>}
+                    {workpiece.edges.length > 0 && <div className="studio-sketch-workpiece-section">
+                      <strong>ขอบที่ถอดได้</strong>
+                      <div className="studio-sketch-workpiece-badges">
+                        {workpiece.edges.map((edge, edgeIndex) => <span
+                          className={`studio-sketch-edge-badge studio-sketch-edge-badge--${edge.status}`}
+                          key={`${edge.side}-${edgeIndex}`}
+                          data-testid={`badge-sketch-edge-${index}-${workpieceIndex}-${edgeIndex}`}
+                        >
+                          {sketchWorkpieceEdgeSideLabel(edge.side)} · {sketchWorkpieceEdgeStatusLabel(edge.status)}{edge.note ? ` · ${edge.note}` : ""}
+                        </span>)}
+                      </div>
+                    </div>}
+                    <div className="studio-sketch-workpiece-section" data-testid={`section-sketch-cutouts-${index}-${workpieceIndex}`}>
+                      <strong>งานเจาะ (Cutouts)</strong>
+                      {workpiece.cutouts.length > 0
+                        ? <ul className="studio-sketch-cutout-list">
+                          {workpiece.cutouts.map((cutout, cutoutIndex) => <li key={`${cutout.type}-${cutoutIndex}`} data-testid={`item-sketch-cutout-${index}-${workpieceIndex}-${cutoutIndex}`}>
+                            {sketchCutoutTypeLabel(cutout.type)}{cutout.count !== null ? ` × ${cutout.count}` : ""}{cutout.description ? ` · ${cutout.description}` : ""}
+                          </li>)}
+                        </ul>
+                        : <span className="studio-sketch-no-cutouts">ไม่พบจุดเจาะที่ระบุ</span>}
+                      <p className="studio-sketch-cutout-note">คิดราคาเต็มผืน ไม่หักช่องเจาะ</p>
+                    </div>
+                    {workpiece.notes && <p className="studio-sketch-workpiece-notes">{workpiece.notes}</p>}
+                  </section>)}
+                </div>}
                 {isBusy && <span className="studio-sketch-analysis-pending"><Loader2 className="studio-sketch-status-spinner" size={14} aria-hidden="true" /> กำลังวิเคราะห์ภาพนี้</span>}
               </div>
             </article>;
