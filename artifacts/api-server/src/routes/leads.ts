@@ -3,6 +3,7 @@ import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
+import { recordAiUsage } from "../lib/ai-cost-tracker";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
 import { analyzeSketchImage } from "../lib/sketch-vision";
@@ -23,6 +24,10 @@ const MAX_SKETCH_FILES = 5;
 // Separate limit from MAX_SKETCH_FILES above (which caps the /leads/sketch lead-submission
 // upload at 5): job-72 calls for a distinct cap of 3 for the AI vision-analysis endpoint.
 const MAX_SKETCH_VISION_FILES = 3;
+// Mirrors sketch-vision.ts's own GEMINI_MODEL constant, for cost-tracking labeling only.
+// job-82's SCOPE excludes sketch-vision.ts, so this can't import that constant directly;
+// keep this literal in sync if that model ever changes.
+const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 
 export function quoteTotalTHB(studioData: unknown): number | null {
   if (!studioData || typeof studioData !== "object") return null;
@@ -392,7 +397,22 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
   router.post("/sketch/analyze", sketchVisionRateLimit, uploadConcurrency, async (req, res, next) => {
     try {
       const { media } = await readMultipartForm(req, "image", { maxFiles: MAX_SKETCH_VISION_FILES });
+      const startedAt = Date.now();
       const items = await Promise.all(media.map((item, index) => analyzeSketchImage(item.buffer, item.contentType, index)));
+      // analyzeSketchImage never throws (see its own docstring), so reaching this
+      // line means the request completed; it doesn't distinguish a genuine AI
+      // read from its own internal "unknown" fallback, and exact token counts
+      // aren't exposed here either -- both would need sketch-vision.ts itself
+      // (out of SCOPE for job-82) to expose. Cost for this event is computed
+      // from imageCount alone, per the per-image rate job-82's pricing table
+      // defines specifically for that reason.
+      recordAiUsage({
+        service: "sketch_vision",
+        model: SKETCH_VISION_COST_MODEL,
+        imageCount: media.length,
+        durationMs: Date.now() - startedAt,
+        success: true,
+      });
       return res.status(200).json({ items });
     } catch (error) {
       if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) return invalid(res, error.message);

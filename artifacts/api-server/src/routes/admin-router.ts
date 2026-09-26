@@ -56,6 +56,7 @@ import {
   accessForAdminMember,
 } from "../middlewares/admin-auth";
 import { requestOrigin } from "../lib/public-origin";
+import { AI_COST_PERIODS, getUnifiedAiCostSummary, type AiCostPeriod } from "../lib/ai-cost-tracker";
 import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-invites";
 import { ADMIN_API_KEY_SCOPE, createAdminApiKeySecret } from "../lib/admin-api-keys";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
@@ -1725,6 +1726,18 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
 
       const teams = await loadTechnicianTeams();
       res.json(computeAdminDashboardStats(leadRows, slipRows, new Date(), period, teams));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/admin/ai-cost-center", requireAdminPermission("leads"), (req, res, next) => {
+    try {
+      const rawPeriod = req.query["period"];
+      const period: AiCostPeriod = typeof rawPeriod === "string" && (AI_COST_PERIODS as string[]).includes(rawPeriod)
+        ? rawPeriod as AiCostPeriod
+        : "all";
+      res.json(getUnifiedAiCostSummary(period));
     } catch (error) {
       next(error);
     }
