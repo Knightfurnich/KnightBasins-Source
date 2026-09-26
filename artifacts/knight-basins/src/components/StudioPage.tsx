@@ -21,6 +21,7 @@ import {
 } from "@/data/catalog";
 import {
   basinDimensionsForProduct,
+  basinPlacementsViolatingEdgeClearance,
   basinPlacementOverlapWarnings,
   calculateBasinCoordinates,
   calculateBasinOffsets,
@@ -66,6 +67,7 @@ import {
   studioSubmissionValidationMessages,
   studioStoneName,
   studioStateDimensionsValid,
+  STUDIO_BASIN_SAFETY_MARGIN_MM,
   STUDIO_ADDITIONAL_RECTANGLE_LENGTH_MM,
   STUDIO_ADDITIONAL_RECTANGLE_WIDTH_MM,
   STUDIO_INITIAL_BOARD_LENGTH_MM,
@@ -127,6 +129,10 @@ const MAX_STUDIO_SUBMISSION_DIMENSION_MM = 10_000;
 const MAX_STUDIO_SUBMISSION_POSITION_MM = 100_000;
 const MAX_STUDIO_SUBMISSION_PRICE_THB = 1_000_000_000;
 const MAX_STUDIO_SUBMISSION_RATE_THB = 1_000_000;
+const MIN_BASIN_CLEARANCE_MM = STUDIO_BASIN_SAFETY_MARGIN_MM;
+const STUDIO_BASIN_CLEARANCE_WARNING = "⚠️ ระยะขอบหินรอบอ่างต้องไม่น้อยกว่า 100 มม. (ปัจจุบันเหลือน้อยเกินไป) เพื่อป้องกันหินแตกระหว่างเจาะ";
+const STUDIO_BASIN_JOINT_WARNING = "⚠️ ตำแหน่งอ่างวางทับแนวรอยต่อแผ่นหิน กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียวกัน";
+const STUDIO_BASIN_MODEL_JOINT_WARNING = "อ่างวางตรงรอยต่อแผ่น กรุณาขยับอ่างให้อยู่ภายในแผ่นเดียว";
 
 export type StudioSubmission = {
   state: StudioState;
@@ -3384,6 +3390,17 @@ export function StudioPage({
       : studioEstimate(state, basinProducts),
     [mode, state, basinProducts, studioLayoutApplied],
   );
+  const basinClearanceViolationIds = useMemo(
+    () => mode === "studio" && studioLayoutApplied
+      ? basinPlacementsViolatingEdgeClearance(state, MIN_BASIN_CLEARANCE_MM)
+      : [],
+    [mode, state, studioLayoutApplied],
+  );
+  const basinJointViolationIds = mode === "studio" && studioLayoutApplied
+    ? estimate.crossJointPlacements
+    : [];
+  const hasBasinClash = mode === "studio" && studioLayoutApplied &&
+    (basinClearanceViolationIds.length > 0 || basinJointViolationIds.length > 0);
   const activeStone = stoneColorByName(state.activeStone, stoneColors);
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
   const exportReady = mode === "studio" && studioLayoutApplied && studioExportDimensionsValid(state);
@@ -3397,7 +3414,10 @@ export function StudioPage({
   // premature nagging, but once they've tried, a full checklist beats
   // discovering one blocker per submit attempt.
   const studioIssues = useMemo(() => {
-    const issues = studioSubmissionValidationMessages(state, estimate);
+    const issues = studioSubmissionValidationMessages(state, estimate).map((issue) =>
+      issue === STUDIO_BASIN_MODEL_JOINT_WARNING ? STUDIO_BASIN_JOINT_WARNING : issue,
+    );
+    if (basinClearanceViolationIds.length > 0) issues.unshift(STUDIO_BASIN_CLEARANCE_WARNING);
     if (!hasAttemptedSubmit) return issues;
     const contactIssues: string[] = [];
     if (!contact.name.trim() || !contact.phone.trim() || !contact.project.trim() || !contact.address.trim()) contactIssues.push("กรุณากรอกชื่อผู้ติดต่อ โทรศัพท์ ชื่อโครงการ และสถานที่ติดตั้ง");
@@ -3406,7 +3426,7 @@ export function StudioPage({
     if (hasPastInstallationDate) contactIssues.push("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
     if (contact.email.trim() && !isValidEmailAddress(contact.email)) contactIssues.push("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
     return [...issues, ...contactIssues];
-  }, [state, estimate, hasAttemptedSubmit, contact.name, contact.phone, contact.project, contact.address, contact.taxId, contact.email, hasPastInstallationDate]);
+  }, [state, estimate, basinClearanceViolationIds, hasAttemptedSubmit, contact.name, contact.phone, contact.project, contact.address, contact.taxId, contact.email, hasPastInstallationDate]);
   useEffect(() => {
     if (mode !== "studio") return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -4261,7 +4281,7 @@ export function StudioPage({
       <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
       {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
       {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
-      {mode === "studio" && studioIssues.length > 0 && <div className="studio-issues-summary" role="status" data-testid="status-studio-issues-summary">
+      {mode === "studio" && studioIssues.length > 0 && <div id="status-studio-issues-summary" className="studio-issues-summary" role="status" data-testid="status-studio-issues-summary">
         <strong>{studioIssues.length === 1 ? "มี 1 จุดที่ต้องแก้ไขก่อนส่งคำขอ" : `มี ${studioIssues.length} จุดที่ต้องแก้ไขก่อนส่งคำขอ`}</strong>
         <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
       </div>}
@@ -4275,7 +4295,7 @@ export function StudioPage({
             {sketchStatus?.busy ? "กำลังวิเคราะห์ภาพแบบร่าง…" : "🎨 นำขนาดเข้าสู่ 2D Studio ➔"}
           </button>
         </div>
-        : <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>
+        : <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable || hasBasinClash} aria-describedby={hasBasinClash ? "status-studio-issues-summary" : undefined} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>
           {submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : "ขอใบเสนอราคาจากแบบนี้"} <ArrowRight size={16} />
         </button>}
       {result && <p className="studio-result" role="status">{result}</p>}
@@ -4631,7 +4651,7 @@ export function StudioPage({
       {mode !== "studio" && !isSimpleStudioMode && estimatePanel}
     </section>
       {mode === "studio" && studioLayoutApplied && <StudioPrintLayout state={state} basinProducts={basinProducts} stoneColors={stoneColors} />}
-       {mode === "studio" && studioLayoutApplied && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-mobile-studio-save-lead" : "button-mobile-studio-submit"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึก Lead" : "ส่งขอราคา"}</button></div></div>}
+       {mode === "studio" && studioLayoutApplied && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting || linkedLeadUnavailable || hasBasinClash} aria-describedby={hasBasinClash ? "status-studio-issues-summary" : undefined} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-mobile-studio-save-lead" : "button-mobile-studio-submit"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึก Lead" : "ส่งขอราคา"}</button></div></div>}
       {expandedSketchUrl && <div className="studio-lead-sketch-lightbox" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) { setExpandedSketchUrl(null); setSketchImageZoomed(false); } }}>
         <section className="studio-lead-sketch-dialog" role="dialog" aria-modal="true" aria-label="ดูภาพแบบร่างต้นฉบับ" onClick={(event) => event.stopPropagation()}>
           <header><strong>แบบร่างต้นฉบับ</strong><div><a href={expandedSketchUrl} target="_blank" rel="noreferrer">เปิดไฟล์ต้นฉบับ</a><button type="button" onClick={() => { setExpandedSketchUrl(null); setSketchImageZoomed(false); }} aria-label="ปิดภาพแบบร่าง"><X size={18} /></button></div></header>
