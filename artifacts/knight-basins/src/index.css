@@ -4486,6 +4486,148 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   color: #485d6b;
 }
 
+.studio-page--sketch .studio-sketch-workpieces {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.studio-page--sketch .studio-sketch-workpieces-summary {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #d6e5ec;
+  border-radius: 10px;
+  background: #f8fbfd;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--ink);
+}
+
+.studio-page--sketch .studio-sketch-workpiece-shape {
+  color: #175071;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-dimensions {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-section {
+  display: grid;
+  gap: 5px;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-section > strong {
+  color: #344b59;
+  font-size: 11px;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.studio-page--sketch .studio-sketch-panel-badge,
+.studio-page--sketch .studio-sketch-edge-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 7px;
+  border: 1px solid #d8e4eb;
+  border-radius: 7px;
+  background: #fff;
+  color: #3d5361;
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.studio-page--sketch .studio-sketch-panel-badge {
+  border-color: #c5dfee;
+  background: #eef7fc;
+  color: #175071;
+  font-weight: 700;
+}
+
+.studio-page--sketch .studio-sketch-edge-badge--upstand {
+  border-color: #f0daa0;
+  background: #fff8e4;
+}
+
+.studio-page--sketch .studio-sketch-edge-badge--wall-flush {
+  border-color: #cbdce5;
+  background: #f2f7fa;
+}
+
+.studio-page--sketch .studio-sketch-edge-badge--open-edge {
+  border-color: #c2e0d1;
+  background: #eff9f3;
+}
+
+.studio-page--sketch .studio-sketch-edge-badge--closed-edge {
+  border-color: #d6c9e8;
+  background: #f7f3fb;
+}
+
+.studio-page--sketch .studio-sketch-cutout-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding-left: 18px;
+  color: #3d5361;
+}
+
+.studio-page--sketch .studio-sketch-no-cutouts {
+  color: #687c88;
+}
+
+.studio-page--sketch .studio-sketch-cutout-note {
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #fff6df;
+  color: #78561b !important;
+  font-weight: 700;
+}
+
+.studio-page--sketch .studio-sketch-workpiece-notes {
+  font-size: 11px;
+}
+
+.studio-sketch-button-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.studio-estimate-panel .studio-sketch-button-pair .button {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  margin-top: 0;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  white-space: normal;
+}
+
 .studio-page--sketch .studio-sketch-analysis-pending {
   display: inline-flex;
   align-items: center;
@@ -5322,6 +5464,15 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .studio-page--sketch .studio-sketch-analysis-card {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
+  }
+
+  .studio-sketch-button-pair {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .studio-estimate-panel .studio-sketch-button-pair .button {
+    min-height: 50px;
   }
 
   .studio-page--sketch .studio-sketch-analysis-preview {
