@@ -6067,3 +6067,236 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-guide-contact .studio-guide-contact-btn:hover {
   background: rgba(255, 255, 255, .12) !important;
 }
+
+.stock-print-header,
+.stock-print-table-wrap {
+  display: none;
+}
+
+@page stock-inventory-report {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  html:has(.stock-inventory-page) {
+    background: #fff !important;
+  }
+
+  body:has(.stock-inventory-page) {
+    page: stock-inventory-report;
+    color: #111 !important;
+    background: #fff !important;
+  }
+
+  body:has(.stock-inventory-page) .admin-app {
+    min-height: 0 !important;
+    height: auto !important;
+    background: #fff !important;
+  }
+
+  body:has(.stock-inventory-page)::before,
+  body:has(.stock-inventory-page) .site-header,
+  body:has(.stock-inventory-page) .site-footer,
+  body:has(.stock-inventory-page) .admin-header,
+  body:has(.stock-inventory-page) .admin-sidebar,
+  body:has(.stock-inventory-page) .knight-support,
+  body:has(.stock-inventory-page) nav,
+  body:has(.stock-inventory-page) .stock-brand-section,
+  body:has(.stock-inventory-page) .stock-kpi-grid,
+  body:has(.stock-inventory-page) .stock-toolbar,
+  body:has(.stock-inventory-page) [data-testid="stock-updated-at"],
+  body:has(.stock-inventory-page) [data-testid="stock-empty-filter"],
+  body:has(.stock-inventory-page) .stock-summary-footer,
+  body:has(.stock-inventory-page) .stock-read-only-note {
+    display: none !important;
+  }
+
+  body:has(.stock-inventory-page) .admin-main {
+    min-width: 0;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .stock-inventory-page {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #111 !important;
+    background: #fff !important;
+  }
+
+  .stock-inventory-page > header {
+    display: none !important;
+  }
+
+  .stock-inventory-page .stock-print-header {
+    display: block !important;
+    margin: 0 0 5mm;
+    padding: 0 0 4mm;
+    border-bottom: 2px solid #333;
+    color: #111 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .stock-print-company {
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+  }
+
+  .stock-print-mark {
+    display: grid;
+    width: 15mm;
+    height: 15mm;
+    flex: 0 0 15mm;
+    place-items: center;
+    border: 1.5px solid #111;
+    color: #111;
+    font: 700 12pt/1 var(--app-font-mono, monospace);
+    letter-spacing: -0.08em;
+  }
+
+  .stock-print-company-name {
+    margin: 0;
+    color: #111 !important;
+    font-size: 15pt;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+  }
+
+  .stock-print-company h1 {
+    margin: 1.5mm 0 0;
+    color: #111 !important;
+    font-size: 13pt;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .stock-print-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3mm;
+    margin-top: 4mm;
+  }
+
+  .stock-print-summary-item {
+    display: grid;
+    align-content: start;
+    gap: 1mm;
+    min-width: 0;
+    padding: 2.5mm 3mm;
+    border: 1px solid #555;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .stock-print-summary-item > span {
+    color: #444;
+    font-size: 8pt;
+  }
+
+  .stock-print-summary-item > strong,
+  .stock-print-summary-item > time {
+    color: #111;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+
+  .stock-inventory-page .stock-table-section {
+    border: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .stock-inventory-page .stock-screen-table-wrap {
+    display: none !important;
+  }
+
+  .stock-inventory-page .stock-print-table-wrap {
+    display: block !important;
+    width: 100%;
+    overflow: visible !important;
+  }
+
+  .stock-inventory-page .stock-line-column {
+    display: none !important;
+  }
+
+  .stock-inventory-page .stock-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    color: #111;
+    font-size: 9pt;
+  }
+
+  .stock-inventory-page .stock-print-table thead {
+    display: table-header-group;
+  }
+
+  .stock-inventory-page .stock-print-table tfoot {
+    display: table-footer-group;
+  }
+
+  .stock-inventory-page .stock-print-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .stock-inventory-page .stock-print-table th,
+  .stock-inventory-page .stock-print-table td {
+    padding: 2mm 2.2mm;
+    border: 1px solid #333 !important;
+    color: #111 !important;
+    background: #fff !important;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .stock-inventory-page .stock-print-table th {
+    background: #e9eef1 !important;
+    font-size: 8.5pt;
+    font-weight: 700;
+  }
+
+  .stock-inventory-page .stock-print-table th:nth-child(1),
+  .stock-inventory-page .stock-print-table td:nth-child(1) {
+    width: 8%;
+    text-align: right;
+  }
+
+  .stock-inventory-page .stock-print-table th:nth-child(2),
+  .stock-inventory-page .stock-print-table td:nth-child(2) {
+    width: 28%;
+  }
+
+  .stock-inventory-page .stock-print-table th:nth-child(3),
+  .stock-inventory-page .stock-print-table td:nth-child(3) {
+    width: 12%;
+    text-align: right;
+  }
+
+  .stock-inventory-page .stock-print-table th:nth-child(4),
+  .stock-inventory-page .stock-print-table td:nth-child(4) {
+    width: 12%;
+  }
+
+  .stock-inventory-page .stock-print-table th:nth-child(5),
+  .stock-inventory-page .stock-print-table td:nth-child(5) {
+    width: 17%;
+  }
+
+  .stock-inventory-page .stock-print-table th:nth-child(6),
+  .stock-inventory-page .stock-print-table td:nth-child(6) {
+    width: 23%;
+  }
+}
