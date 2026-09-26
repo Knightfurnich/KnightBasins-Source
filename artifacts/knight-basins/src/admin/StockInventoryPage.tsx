@@ -8,7 +8,7 @@ import {
   type AdminStockResponse,
   type AdminStockSheet,
 } from "@workspace/api-client-react";
-import { AlertTriangle, Check, Copy, Database, Download, PackageCheck, PackageX, RefreshCw, Search } from "lucide-react";
+import { AlertTriangle, Check, Copy, Database, Download, PackageCheck, PackageX, Printer, RefreshCw, Search } from "lucide-react";
 
 export type StockItem = AdminStockItem;
 export type StockGroup = AdminStockSheet;
@@ -34,6 +34,15 @@ export function formatStockLots(lots: string[] | null | undefined): string {
 
 export function formatStockNumber(value: number): string {
   return new Intl.NumberFormat("th-TH").format(value);
+}
+
+export function formatStockPrintDate(value: Date): string {
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    calendar: "buddhist",
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(value);
 }
 
 export function formatStockUpdatedAt(value: string | null | undefined): string {
@@ -300,8 +309,10 @@ export function StockInventoryView({
   const [sortColumn, setSortColumn] = useState<StockSortColumn>("no");
   const [sortDirection, setSortDirection] = useState<StockSortDirection>("asc");
   const [copyFeedback, setCopyFeedback] = useState<{ key: string; status: "copied" | "error" } | null>(null);
+  const [printDate, setPrintDate] = useState(() => new Date());
   const copyFeedbackTimerRef = useRef<number | null>(null);
   const group = stock[material];
+  const brandLabel = material === "staron" ? "Staron" : "Zen Stone";
   const filteredItems = useMemo(
     () => filterStockItems(group.items, search, filter),
     [filter, group.items, search],
@@ -309,6 +320,10 @@ export function StockInventoryView({
   const visibleItems = useMemo(
     () => sortStockItems(filteredItems, sortColumn, sortDirection),
     [filteredItems, sortColumn, sortDirection],
+  );
+  const printableItems = useMemo(
+    () => sortStockItems(group.items, sortColumn, sortDirection),
+    [group.items, sortColumn, sortDirection],
   );
   const outOfStock = group.total - group.inStockCount;
   const totalSheets = totalStockSheets(group.items);
@@ -343,7 +358,7 @@ export function StockInventoryView({
   );
   const copyLineStatus = async (item: StockItem) => {
     const key = `${material}:${item.no}`;
-    const brand: StockLineBrand = material === "staron" ? "Staron" : "Zen Stone";
+    const brand: StockLineBrand = brandLabel;
     let status: "copied" | "error" = "copied";
     try {
       await copyTextToClipboard(buildStockLineMessage(brand, item));
@@ -357,9 +372,43 @@ export function StockInventoryView({
       copyFeedbackTimerRef.current = null;
     }, 1800);
   };
+  const handlePrintReport = () => {
+    setPrintDate(new Date());
+    window.requestAnimationFrame(() => window.print());
+  };
 
   return (
-    <div className="admin-manager space-y-6" data-testid="stock-inventory-page">
+    <div className="admin-manager stock-inventory-page space-y-6" data-testid="stock-inventory-page">
+      <div className="stock-print-header" data-testid="stock-print-header">
+        <div className="stock-print-company">
+          <span className="stock-print-mark" aria-hidden="true">KF</span>
+          <div>
+            <p className="stock-print-company-name">KNIGHT FURNICH</p>
+            <h1>รายงานสต็อกแผ่นหินสังเคราะห์</h1>
+          </div>
+        </div>
+        <div className="stock-print-summary">
+          <div className="stock-print-summary-item">
+            <span>แบรนด์</span>
+            <strong data-testid="stock-print-brand">{brandLabel}</strong>
+          </div>
+          <div className="stock-print-summary-item">
+            <span>วันที่พิมพ์รายงาน</span>
+            <time data-testid="stock-print-date" dateTime={printDate.toISOString()}>
+              {formatStockPrintDate(printDate)} น.
+            </time>
+          </div>
+          <div className="stock-print-summary-item">
+            <span>สีทั้งหมด</span>
+            <strong data-testid="stock-print-total-colors">{formatStockNumber(group.total)} สี</strong>
+          </div>
+          <div className="stock-print-summary-item">
+            <span>สต็อกรวม</span>
+            <strong data-testid="stock-print-total-sheets">{formatStockNumber(totalSheets)} แผ่น</strong>
+          </div>
+        </div>
+      </div>
+
       <header className="flex flex-col gap-5 border-b border-[var(--line)] pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="eyebrow accent">04 / STOCK INVENTORY</p>
@@ -391,7 +440,7 @@ export function StockInventoryView({
         </div>
       </header>
 
-      <section aria-label="เลือกแบรนด์หิน" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section aria-label="เลือกแบรนด์หิน" className="stock-brand-section flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="inline-flex w-full border border-[var(--line)] bg-[var(--card-paper)] p-1 sm:w-auto" role="tablist" aria-label="แบรนด์หิน">
           {(["staron", "zen"] as const).map((key) => {
             const isSelected = material === key;
@@ -423,15 +472,15 @@ export function StockInventoryView({
         </p>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="สรุปจำนวนสีและสต็อก">
+      <section className="stock-kpi-grid grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="สรุปจำนวนสีและสต็อก">
         <KpiCard label="สีทั้งหมด" value={group.total} tone="neutral" icon="database" testId="stock-kpi-total" />
         <KpiCard label="มีสต็อก" value={group.inStockCount} tone="positive" icon="check" testId="stock-kpi-in-stock" />
         <KpiCard label="หมดสต็อก" value={outOfStock} tone="negative" icon="empty" testId="stock-kpi-out-of-stock" />
         <KpiCard label="สต็อกรวมทั้งหมด (แผ่น)" value={totalSheets} tone="neutral" icon="database" testId="stock-kpi-total-sheets" unit="แผ่น" />
       </section>
 
-      <section className="border border-[var(--line)] bg-[var(--card-paper)]" aria-label="รายการสี">
-        <div className="flex flex-col gap-4 border-b border-[var(--line)] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+      <section className="stock-table-section border border-[var(--line)] bg-[var(--card-paper)]" aria-label="รายการสี">
+        <div className="stock-toolbar flex flex-col gap-4 border-b border-[var(--line)] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-2 border-b border-[var(--line)] pb-2 lg:w-[min(100%,340px)]">
             <Search className="h-4 w-4 shrink-0 text-[var(--ink-soft)]" aria-hidden="true" />
             <label className="sr-only" htmlFor="stock-search">ค้นหารหัสหรือชื่อสี</label>
@@ -476,6 +525,16 @@ export function StockInventoryView({
               <Download className="h-3.5 w-3.5" aria-hidden="true" />
               ส่งออกสต็อกเป็น CSV
             </a>
+            <button
+              type="button"
+              onClick={handlePrintReport}
+              className="inline-flex min-h-9 items-center gap-1.5 border border-[var(--ink)] bg-[var(--ink)] px-3 text-xs text-[var(--paper)] transition-colors hover:bg-[#3c5056] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--saffron)]"
+              data-testid="button-stock-print"
+              aria-label="พิมพ์รายงานสต็อก A4"
+            >
+              <Printer className="h-3.5 w-3.5" aria-hidden="true" />
+              พิมพ์รายงาน A4
+            </button>
           </div>
         </div>
 
@@ -499,8 +558,8 @@ export function StockInventoryView({
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse text-left" data-testid="stock-table">
+          <div className="stock-screen-table-wrap overflow-x-auto">
+            <table className="stock-screen-table w-full min-w-[980px] border-collapse text-left" data-testid="stock-table">
               <caption className="sr-only">รายการสต็อก {group.title}</caption>
               <thead>
                 <tr className="border-b border-[var(--line)] bg-[var(--paper)]">
@@ -510,7 +569,7 @@ export function StockInventoryView({
                   <th scope="col" aria-sort={ariaSort("scrap")} className="w-28 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("scrap", "Scrap")}</th>
                   <th scope="col" aria-sort={ariaSort("lots")} className="w-36 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("lots", "Lot No.")}</th>
                   <th scope="col" aria-sort={ariaSort("note")} className="px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">{sortHeader("note", "หมายเหตุ")}</th>
-                  <th scope="col" className="w-52 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">LINE</th>
+                  <th scope="col" className="stock-line-column w-52 px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-wider text-[var(--ink-soft)]">LINE</th>
                 </tr>
               </thead>
               <tbody>
@@ -532,7 +591,7 @@ export function StockInventoryView({
                     <td className="px-4 py-4 font-mono text-sm text-[var(--ink-soft)]">{formatStockValue(item.scrap)}</td>
                     <td className="px-4 py-4 font-mono text-xs text-[var(--ink-soft)]">{formatStockLots(item.lots)}</td>
                     <td className="max-w-[260px] px-4 py-4 text-sm leading-relaxed text-[var(--ink-soft)]">{formatStockValue(item.note)}</td>
-                    <td className="px-4 py-3">
+                    <td className="stock-line-column px-4 py-3">
                       {(() => {
                         const feedbackKey = `${material}:${item.no}`;
                         const feedback = copyFeedback?.key === feedbackKey ? copyFeedback.status : null;
@@ -557,13 +616,40 @@ export function StockInventoryView({
             </table>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3 border-t border-[var(--line)] bg-[var(--paper)] px-4 py-3 text-xs text-[var(--ink-soft)] sm:px-5">
+        <div className="stock-print-table-wrap" data-testid="stock-print-table-wrap">
+          <table className="stock-print-table" data-testid="stock-print-table">
+            <caption className="sr-only">รายการสต็อก {brandLabel}</caption>
+            <thead>
+              <tr>
+                <th scope="col">ลำดับ</th>
+                <th scope="col">รหัส / ชื่อสี</th>
+                <th scope="col">Qty (แผ่น)</th>
+                <th scope="col">Scrap</th>
+                <th scope="col">Lot No.</th>
+                <th scope="col">หมายเหตุ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {printableItems.map((item) => (
+                <tr key={`print-${material}-${item.no}-${item.name}`} data-testid={`stock-print-row-${material}-${item.no}`}>
+                  <td>{formatStockNumber(item.no)}</td>
+                  <td>{formatStockValue(item.name)}</td>
+                  <td>{formatStockNumber(item.qty)}</td>
+                  <td>{formatStockValue(item.scrap)}</td>
+                  <td>{formatStockLots(item.lots)}</td>
+                  <td>{formatStockValue(item.note)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="stock-summary-footer flex items-center justify-between gap-3 border-t border-[var(--line)] bg-[var(--paper)] px-4 py-3 text-xs text-[var(--ink-soft)] sm:px-5">
           <span data-testid="stock-visible-count">แสดง {formatStockNumber(visibleItems.length)} รายการ</span>
           <span className="font-mono">{group.title}</span>
         </div>
       </section>
 
-      <p className="flex items-start gap-2 text-xs leading-relaxed text-[var(--ink-soft)]" data-testid="stock-read-only-note">
+      <p className="stock-read-only-note flex items-start gap-2 text-xs leading-relaxed text-[var(--ink-soft)]" data-testid="stock-read-only-note">
         <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#197b67]" aria-hidden="true" />
         หน้านี้ใช้ตรวจสอบข้อมูลเท่านั้น การแก้ไขสต็อกทำในแหล่งข้อมูลต้นทาง
       </p>
