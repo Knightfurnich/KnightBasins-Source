@@ -821,7 +821,17 @@ const STUDIO_CUSTOM_SHAPE_EDGE_OPTIONS: ReadonlyArray<{ value: SideStatus; label
   { value: "wall-flush", label: "ชิดผนัง ║" },
   { value: "wall-flush+upstand", label: "ชิดผนัง + ติดบัว ║▲" },
   { value: "open-edge", label: "ขอบเปิด ⊗" },
+  { value: "closed-edge", label: "ขอบปิด ⊞" },
 ];
+
+function parseBoundedIntegerInput(value: string, min: number, max: number, step = 1): number | null {
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number(trimmed);
+  return Number.isSafeInteger(parsed) && parsed >= min && parsed <= max && (parsed - min) % step === 0
+    ? parsed
+    : null;
+}
 
 const studioCustomShapeEdgeLabel = (status: SideStatus) =>
   status === "normal"
@@ -912,8 +922,8 @@ function StudioCustomShapePanel({
     edges: panel.edges,
   }));
   const dimensionsValid = modelPanels.length > 0 && modelPanels.every((panel) =>
-    Number.isInteger(panel.widthMm) && panel.widthMm > 0 &&
-    Number.isInteger(panel.depthMm) && panel.depthMm > 0,
+    Number.isSafeInteger(panel.widthMm) && panel.widthMm > 0 &&
+    Number.isSafeInteger(panel.depthMm) && panel.depthMm > 0,
   );
   const previewPanels = panelDrafts.map((panel, index) => {
     const defaults = defaultDimensions[index] ?? defaultDimensions[0]!;
@@ -1027,6 +1037,7 @@ function StudioCustomShapePanel({
                   step="1"
                   inputMode="numeric"
                   value={panel.lengthMm}
+                  aria-invalid={!Number.isSafeInteger(Number(panel.lengthMm)) || Number(panel.lengthMm) <= 0}
                   onChange={(event) => updatePanelDimension(index, "lengthMm", event.target.value)}
                   data-testid={`input-piece-${index}-length`}
                 />
@@ -1039,6 +1050,7 @@ function StudioCustomShapePanel({
                   step="1"
                   inputMode="numeric"
                   value={panel.depthMm}
+                  aria-invalid={!Number.isSafeInteger(Number(panel.depthMm)) || Number(panel.depthMm) <= 0}
                   onChange={(event) => updatePanelDimension(index, "depthMm", event.target.value)}
                   data-testid={`input-piece-${index}-depth`}
                 />
@@ -1103,6 +1115,7 @@ function StudioCustomShapePanel({
         ))}
       </div>
       <div className="studio-custom-shape-actions">
+        {!dimensionsValid && <p className="studio-warning" role="alert" data-testid="status-studio-shape-invalid-dimensions">กรุณากรอกขนาดทุกช่องเป็นจำนวนเต็มที่มากกว่า 0 มม.</p>}
         <small>พื้นที่และราคาจะคำนวณหลังจากประกอบผังเท่านั้น</small>
         <button
           type="button"
@@ -1745,16 +1758,32 @@ function StudioPieceEditorLegacy({
         return <div className="studio-rectangle-editor" key={rectangle.id}>
           <div className="studio-rectangle-editor-heading"><strong>แผ่น {index + 1}</strong></div>
           <div className="studio-rectangle-inputs">
-             <label>กว้าง (มม.)<input type="number" min="1" value={rectangle.widthMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, widthMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-width-${rectangle.id}`} /></label>
-             <label>ยาว (มม.)<input type="number" min="1" value={rectangle.lengthMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, lengthMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-length-${rectangle.id}`} /></label>
-             <label>X<input type="number" min="0" value={rectangle.xMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, xMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-x-${rectangle.id}`} /></label>
-             <label>Y<input type="number" min="0" value={rectangle.yMm} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, yMm: numericValue(event.target.value) } : item) }))} data-testid={`input-rectangle-y-${rectangle.id}`} /></label>
+             <label>กว้าง (มม.)<input type="number" min="1" value={rectangle.widthMm} onChange={(event) => {
+               const widthMm = parseBoundedIntegerInput(event.target.value, 1, Number.MAX_SAFE_INTEGER);
+               if (widthMm === null) return;
+               setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, widthMm } : item) }));
+             }} data-testid={`input-rectangle-width-${rectangle.id}`} /></label>
+             <label>ยาว (มม.)<input type="number" min="1" value={rectangle.lengthMm} onChange={(event) => {
+               const lengthMm = parseBoundedIntegerInput(event.target.value, 1, Number.MAX_SAFE_INTEGER);
+               if (lengthMm === null) return;
+               setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, lengthMm } : item) }));
+             }} data-testid={`input-rectangle-length-${rectangle.id}`} /></label>
+             <label>X<input type="number" min="0" value={rectangle.xMm} onChange={(event) => {
+               const xMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+               if (xMm === null) return;
+               setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, xMm } : item) }));
+             }} data-testid={`input-rectangle-x-${rectangle.id}`} /></label>
+             <label>Y<input type="number" min="0" value={rectangle.yMm} onChange={(event) => {
+               const yMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+               if (yMm === null) return;
+               setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, yMm } : item) }));
+             }} data-testid={`input-rectangle-y-${rectangle.id}`} /></label>
           </div>
             {smallDimensions.length > 0 && <div className="studio-warning studio-warning--small" data-testid={`status-small-rectangle-${rectangle.id}`} aria-live="polite"><AlertTriangle size={16} /><div>{smallDimensions.map((value) => <p key={value}>{smallRectangleWarning(value)}</p>)}</div></div>}
            <p className="studio-helper">หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
            {rectangle.widthMm > 900 && <div className="studio-dimension-suggestion" aria-live="polite"><span>ความกว้าง (แนวลึก) เกิน 900 มม. ตรวจสอบทิศทางอีกครั้ง</span><button type="button" className="button button--outline" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, widthMm: item.lengthMm, lengthMm: item.widthMm } : item) }))} data-testid={`button-swap-rectangle-dimensions-${rectangle.id}`}><RotateCw size={14} /> สลับ กว้าง ↔ ยาว</button></div>}
            <button type="button" className="button button--outline studio-rotate-button" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.map((item) => item.id === rectangle.id ? { ...item, rotation: item.rotation === 0 ? 90 : 0 } : item) }))}><RotateCw size={14} /> สลับแนวนอน / แนวตั้ง</button>
-           <div className="studio-side-status-grid">{statuses.map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(rectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option></select></label>)}</div>
+           <div className="studio-side-status-grid">{statuses.map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(rectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option><option value="wall-flush+upstand">ชิดผนัง + ติดบัว ║▲</option><option value="closed-edge">ขอบปิด ⊞</option></select></label>)}</div>
            <p className="studio-helper">ติดบัว = ชิดผนังปูน / ขอบเปิด = โชว์ลอยในอากาศ</p>
         </div>;
       })}
@@ -2222,8 +2251,20 @@ function StudioPieceEditor({
            </label>
           <div className="studio-rectangle-editor">
            <div className="studio-rectangle-inputs">
-            <label>กว้าง (มม.)<input type="number" min="1" value={activeRectangle.widthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, widthMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-width-${activeRectangle.id}`} /></label>
-              <label>{simpleShapeLegDepthMm > 0 ? "ยาวรวม (มม.)" : "ยาว (มม.)"}<input type="number" min={simpleShapeLegDepthMm > 0 ? simpleShapeLegDepthMm + 1 : 1} value={activeRectangle.lengthMm + simpleShapeLegDepthMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, lengthMm: Math.max(1, numericValue(event.target.value) - simpleShapeLegDepthMm) }))} data-testid={`input-rectangle-length-${activeRectangle.id}`} /></label>
+            <label>กว้าง (มม.)<input type="number" min="1" value={activeRectangle.widthMm} onChange={(event) => {
+              const widthMm = parseBoundedIntegerInput(event.target.value, 1, Number.MAX_SAFE_INTEGER);
+              if (widthMm === null) return;
+              updateRectangle((rectangle) => ({ ...rectangle, widthMm }));
+            }} data-testid={`input-rectangle-width-${activeRectangle.id}`} /></label>
+              <label>{simpleShapeLegDepthMm > 0 ? "ยาวรวม (มม.)" : "ยาว (มม.)"}<input type="number" min={simpleShapeLegDepthMm > 0 ? simpleShapeLegDepthMm + 1 : 1} value={activeRectangle.lengthMm + simpleShapeLegDepthMm} onChange={(event) => {
+                const totalLengthMm = parseBoundedIntegerInput(
+                  event.target.value,
+                  simpleShapeLegDepthMm > 0 ? simpleShapeLegDepthMm + 1 : 1,
+                  Number.MAX_SAFE_INTEGER,
+                );
+                if (totalLengthMm === null) return;
+                updateRectangle((rectangle) => ({ ...rectangle, lengthMm: totalLengthMm - simpleShapeLegDepthMm }));
+              }} data-testid={`input-rectangle-length-${activeRectangle.id}`} /></label>
            </div>
             <div className="studio-join-controls" data-testid={`studio-join-controls-${activeRectangle.id}`}>
               <div className="studio-join-controls-heading">
@@ -2270,8 +2311,16 @@ function StudioPieceEditor({
             {piece.rectangles.length > 1 && (
               <>
                 <div className="studio-rectangle-inputs studio-rectangle-position-inputs">
-                  <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, xMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
-                  <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => updateRectangle((rectangle) => ({ ...rectangle, yMm: numericValue(event.target.value) }))} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
+                  <label>X (มม.)<input type="number" min="0" value={activeRectangle.xMm} onChange={(event) => {
+                    const xMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+                    if (xMm === null) return;
+                    updateRectangle((rectangle) => ({ ...rectangle, xMm }));
+                  }} data-testid={`input-rectangle-x-${activeRectangle.id}`} /></label>
+                  <label>Y (มม.)<input type="number" min="0" value={activeRectangle.yMm} onChange={(event) => {
+                    const yMm = parseBoundedIntegerInput(event.target.value, 0, Number.MAX_SAFE_INTEGER);
+                    if (yMm === null) return;
+                    updateRectangle((rectangle) => ({ ...rectangle, yMm }));
+                  }} data-testid={`input-rectangle-y-${activeRectangle.id}`} /></label>
                 </div>
                 <p className="studio-helper">X / Y คือระยะจากมุมซ้ายบนของกรอบผังถึงมุมซ้ายบนของแผ่น · หน่วยมิลลิเมตร · ขนาดแผ่นใช้หน่วย มิลลิเมตร (มม.) เช่น 600 มม. = 60 ซม. / 1800 มม. = 1.8 เมตร</p>
               </>
@@ -2284,7 +2333,7 @@ function StudioPieceEditor({
             // Paired by opposite edges (top+bottom, then left+right) instead of the
             // natural top/right/bottom/left order, so each row groups the two sides
             // a person naturally compares against each other.
-            return [bySide("top"), bySide("bottom"), bySide("left"), bySide("right")].map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(activeRectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option></select></label>);
+            return [bySide("top"), bySide("bottom"), bySide("left"), bySide("right")].map(({ side, label, status }) => <label key={side}>{label}<select value={status} onChange={(event) => changeStatus(activeRectangle.id, side, event.target.value as SideStatus)}><option value="normal">ปกติ</option><option value="upstand">ติดบัว ▲</option><option value="open-edge">ขอบเปิด ⊗</option><option value="wall-flush">ชิดผนัง ║</option><option value="wall-flush+upstand">ชิดผนัง + ติดบัว ║▲</option><option value="closed-edge">ขอบปิด ⊞</option></select></label>);
           })()}</div>
           <p className="studio-helper">ติดบัว = ชิดผนังปูน / ขอบเปิด = โชว์ลอยในอากาศ</p>
             <div className="studio-inspector-actions"><button type="button" className="button button--outline" disabled={piece.rectangles.length >= STUDIO_MAX_RECTANGLES} onClick={addRectangle} data-testid={`button-add-studio-rectangle-${piece.id}`}><Plus size={14} /> เพิ่มแผ่น</button><button type="button" className="button button--outline studio-panel-delete" onClick={() => setPieceState(setState, piece.id, (current) => ({ ...current, rectangles: current.rectangles.filter((item) => item.id !== activeRectangle.id) }))} disabled={piece.rectangles.length <= 1} data-testid={`button-delete-studio-rectangle-${piece.id}`}><Trash2 size={14} /> ลบแผ่น</button></div>
@@ -2338,6 +2387,7 @@ function StudioPerspectivePreview({ piece, stoneTone, basinPlacements }: { piece
 function StudioCanvas({
   state,
   setState,
+  onLayoutApplied,
   pieceZoom,
   setPieceZoom,
   selectedPlacementId,
@@ -2350,6 +2400,7 @@ function StudioCanvas({
 }: {
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
+  onLayoutApplied: () => void;
   pieceZoom: Record<string, number>;
   setPieceZoom: Dispatch<SetStateAction<Record<string, number>>>;
   selectedPlacementId: string | null;
@@ -2500,6 +2551,7 @@ function StudioCanvas({
           onApplied={() => {
             setSelectedRectangleId(null);
             setSelectedPlacementId(null);
+            onLayoutApplied();
           }}
         />
       </div>
@@ -2818,6 +2870,47 @@ function StudioProgressChecklist({ state, contact, estimate }: { state: StudioSt
 
 const STUDIO_HISTORY_DEBOUNCE_MS = 500;
 const STUDIO_HISTORY_LIMIT = 50;
+const UNASSEMBLED_STUDIO_ESTIMATE: StudioEstimate = {
+  pieceCount: 0,
+  rectangleCount: 0,
+  counterAreaSqM: 0,
+  backsplashAreaSqM: 0,
+  upstandAreaSqM: 0,
+  upstandLengthM: 0,
+  openEdgeLengthM: 0,
+  stoneAreaSqM: 0,
+  stoneUnitPriceTHB: null,
+  stoneTotalTHB: 0,
+  upstandTotalTHB: 0,
+  openEdgeUnitPriceTHB: null,
+  openEdgeTotalTHB: 0,
+  basinSubtotalTHB: 0,
+  installationChargeTHB: 0,
+  installationDiscountTHB: 0,
+  discountTHB: 0,
+  smallJobFeeTHB: 0,
+  grossSubtotalTHB: 0,
+  subtotalTHB: 0,
+  vatAmountTHB: 0,
+  totalTHB: 0,
+  standardSheetWarning: false,
+  standardSheetMessage: "",
+  sheetCutPriceWarning: false,
+  upstandHeightMissing: false,
+  openEdgePriceMissing: false,
+  openEdgePriceInvalid: false,
+  upstandHeightInvalid: false,
+  basinOverlapWarnings: [],
+  inactiveBasinSkus: [],
+  overlapWarnings: [],
+  unsafePlacements: [],
+  crossJointPlacements: [],
+  unknownDimensionPlacements: [],
+  disconnectedRectangles: [],
+  discountInvalid: false,
+  warnings: [],
+  isValid: false,
+};
 
 /** Debounced undo/redo history for the main Studio state. Coalesces rapid
  * successive edits (typing digits into a field, several drags in a row)
@@ -2888,6 +2981,11 @@ export function StudioPage({
   basinProducts = PRODUCTS,
 }: StudioPageProps) {
   const [, setLocation] = useLocation();
+  const studioRouteKey = mode === "studio" && typeof window !== "undefined"
+    ? `${window.location.pathname}${window.location.search}`
+    : "";
+  const [assembledStudioRoute, setAssembledStudioRoute] = useState<string | null>(null);
+  const studioLayoutApplied = mode !== "studio" || assembledStudioRoute === studioRouteKey;
   const studioSearchParams = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
   const leadIdParam = studioSearchParams.get("leadId");
   const isLeadLinkedMode = leadIdParam !== null;
@@ -2981,6 +3079,50 @@ export function StudioPage({
   const sketchAnalysisQueueRef = useRef<Promise<void>>(Promise.resolve());
   const sketchDimensionEditVersionRef = useRef(0);
   const activeSketchAnalysisFileRef = useRef<File | null>(null);
+  const sketchLengthMm = state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm;
+  const sketchDepthMm = state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm;
+  const [sketchDimensionDrafts, setSketchDimensionDrafts] = useState(() => ({
+    length: String(sketchLengthMm),
+    depth: String(sketchDepthMm),
+  }));
+  const previousSketchDimensionsRef = useRef({ length: sketchLengthMm, depth: sketchDepthMm });
+  const sketchDimensionsValid =
+    parseBoundedIntegerInput(sketchDimensionDrafts.length, 100, 10_000, 10) !== null &&
+    parseBoundedIntegerInput(sketchDimensionDrafts.depth, 100, 3_000, 10) !== null;
+  useEffect(() => {
+    const previous = previousSketchDimensionsRef.current;
+    if (previous.length === sketchLengthMm && previous.depth === sketchDepthMm) return;
+    setSketchDimensionDrafts((current) => ({
+      length: previous.length === sketchLengthMm ? current.length : String(sketchLengthMm),
+      depth: previous.depth === sketchDepthMm ? current.depth : String(sketchDepthMm),
+    }));
+    previousSketchDimensionsRef.current = { length: sketchLengthMm, depth: sketchDepthMm };
+  }, [sketchLengthMm, sketchDepthMm]);
+  const updateSketchDimension = (field: "length" | "depth", value: string) => {
+    setSketchDimensionDrafts((current) => ({ ...current, [field]: value }));
+    sketchDimensionEditVersionRef.current += 1;
+    const parsed = field === "length"
+      ? parseBoundedIntegerInput(value, 100, 10_000, 10)
+      : parseBoundedIntegerInput(value, 100, 3_000, 10);
+    if (parsed === null) return;
+    setState((current) => field === "length"
+      ? {
+          ...current,
+          dimensions: { ...current.dimensions, runAMm: parsed },
+          pieces: current.pieces ? current.pieces.map((piece, pieceIndex) => pieceIndex === 0 ? {
+            ...piece,
+            rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0 ? { ...rectangle, widthMm: parsed } : rectangle),
+          } : piece) : current.pieces,
+        }
+      : {
+          ...current,
+          dimensions: { ...current.dimensions, depthMm: parsed },
+          pieces: current.pieces ? current.pieces.map((piece, pieceIndex) => pieceIndex === 0 ? {
+            ...piece,
+            rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0 ? { ...rectangle, lengthMm: parsed } : rectangle),
+          } : piece) : current.pieces,
+        });
+  };
   useEffect(() => {
     if (mode !== "studio" || !requestedBasinSku) return;
     const product = basinProducts.find((item) => item.sku.toLowerCase() === requestedBasinSku.toLowerCase());
@@ -2995,6 +3137,7 @@ export function StudioPage({
   }, []);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const submissionInFlightRef = useRef(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [pieceZoom, setPieceZoom] = useState<Record<string, number>>({});
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
@@ -3088,10 +3231,15 @@ export function StudioPage({
     }));
     return true;
   }, [basinProducts, pieceZoom, selectedRectangleId, setState, state]);
-  const estimate = useMemo(() => studioEstimate(state, basinProducts), [state, basinProducts]);
+  const estimate = useMemo(
+    () => mode === "studio" && !studioLayoutApplied
+      ? UNASSEMBLED_STUDIO_ESTIMATE
+      : studioEstimate(state, basinProducts),
+    [mode, state, basinProducts, studioLayoutApplied],
+  );
   const activeStone = stoneColorByName(state.activeStone, stoneColors);
   const counterStoneTotal = Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB);
-  const exportReady = mode === "studio" && studioExportDimensionsValid(state);
+  const exportReady = mode === "studio" && studioLayoutApplied && studioExportDimensionsValid(state);
   const exportName = contact.project || "studio-layout";
   const today = thaiDateInputValue(new Date());
   const hasPastInstallationDate = Boolean(contact.expectedInstallationDate && contact.expectedInstallationDate < today);
@@ -3295,6 +3443,7 @@ export function StudioPage({
     }
   };
   const addSketchFiles = (files: File[]) => {
+    if (submissionInFlightRef.current) return;
     if (!files.length) return;
     const currentFiles = sketchFilesRef.current;
     const remaining = Math.max(0, MAX_SKETCH_FILES - currentFiles.length);
@@ -3332,6 +3481,7 @@ export function StudioPage({
     sketchAnalysisQueueRef.current = sketchAnalysisQueueRef.current.then(() => analyzeSketch(accepted));
   };
   const removeSketchFile = (index: number) => {
+    if (submissionInFlightRef.current) return;
     const file = sketchFilesRef.current[index];
     if (!file) return;
     const nextFiles = sketchFilesRef.current.filter((_, fileIndex) => fileIndex !== index);
@@ -3565,6 +3715,11 @@ export function StudioPage({
     }
   };
   const submitStudio = async () => {
+    if (submissionInFlightRef.current) return;
+    if (!studioLayoutApplied) {
+      setResult("กรุณากดปุ่มประกอบผังก่อนส่งขอราคา");
+      return;
+    }
     setHasAttemptedSubmit(true);
     const validationMessage = studioSubmissionValidationMessage(state, estimate);
     if (validationMessage) {
@@ -3591,6 +3746,7 @@ export function StudioPage({
       setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
       return;
     }
+    submissionInFlightRef.current = true;
     setSubmitting(true);
     setResult("");
     try {
@@ -3644,10 +3800,16 @@ export function StudioPage({
       console.error("Studio submission failed:", error);
       setResult("ส่งใบเสนอราคาไม่สำเร็จ กรุณาลองอีกครั้ง หรือติดต่อทีมขายโดยตรงหากยังพบปัญหา");
     } finally {
+      submissionInFlightRef.current = false;
       setSubmitting(false);
     }
   };
   const saveStudioToLinkedLead = async () => {
+    if (submissionInFlightRef.current) return;
+    if (!studioLayoutApplied) {
+      setResult("กรุณากดปุ่มประกอบผังก่อนบันทึกเข้า Lead");
+      return;
+    }
     if (!linkedLeadId || !linkedLead) {
       setResult("ไม่พบ Lead ที่ต้องการบันทึก กรุณากลับไปเลือก Lead อีกครั้ง");
       return;
@@ -3657,6 +3819,7 @@ export function StudioPage({
       setResult(validationMessage);
       return;
     }
+    submissionInFlightRef.current = true;
     setSubmitting(true);
     setResult("");
     setSavedLeadStateFingerprint(null);
@@ -3686,10 +3849,20 @@ export function StudioPage({
       console.error("Studio lead save failed:", error);
       setResult("บันทึกผังและประมาณการไม่สำเร็จ กรุณาลองอีกครั้ง");
     } finally {
+      submissionInFlightRef.current = false;
       setSubmitting(false);
     }
   };
   const submitSketch = async () => {
+    if (submissionInFlightRef.current) return;
+    if (sketchStatus?.busy) {
+      setResult("กรุณารอให้วิเคราะห์ภาพแบบร่างเสร็จก่อนส่ง");
+      return;
+    }
+    if (!sketchDimensionsValid) {
+      setResult("กรุณากรอกขนาดเป็นจำนวนเต็มในช่วงที่กำหนด");
+      return;
+    }
     const name = contact.name.trim();
     const company = contact.company.trim();
     const phone = contact.phone.trim();
@@ -3716,6 +3889,7 @@ export function StudioPage({
       setResult("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
       return;
     }
+    submissionInFlightRef.current = true;
     setSubmitting(true);
     setResult("");
     const sketchNotificationItems: StudioNotificationItem[] = [];
@@ -3833,6 +4007,7 @@ export function StudioPage({
     } catch (error) {
       setResult(error instanceof Error ? error.message : "ส่งไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง");
     } finally {
+      submissionInFlightRef.current = false;
       setSubmitting(false);
     }
   };
@@ -3857,6 +4032,11 @@ export function StudioPage({
   const sketchBridgeRunAMm = Math.round(sketchBridgeRectangle?.widthMm ?? state.dimensions.runAMm);
   const sketchBridgeDepthMm = Math.round(sketchBridgeRectangle?.lengthMm ?? state.dimensions.depthMm);
   const bridgeToStudio = () => {
+    if (submissionInFlightRef.current || sketchStatus?.busy) return;
+    if (!sketchDimensionsValid) {
+      setResult("กรุณากรอกขนาดเป็นจำนวนเต็มในช่วงที่กำหนด");
+      return;
+    }
     const params = new URLSearchParams();
     params.set("shape", sketchBridgeShape);
     params.set("runAMm", String(sketchBridgeRunAMm));
@@ -3868,7 +4048,12 @@ export function StudioPage({
     setLocation(`/studio?${params.toString()}`);
   };
   const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  const estimatePanel = (
+  const estimatePanel = mode === "studio" && !studioLayoutApplied
+    ? <aside className="studio-panel studio-estimate-panel studio-estimate-panel--dock" data-testid="studio-estimate-not-ready">
+      <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div></div>
+      <p className="studio-helper" role="status" data-testid="status-studio-estimate-locked">กด “ประกอบผังลงกระดาน” เพื่อคำนวณพื้นที่และราคา</p>
+    </aside>
+    : (
     <aside className={`studio-panel studio-estimate-panel ${mode === "studio" ? "studio-estimate-panel--dock" : ""}`}>
       <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
       <div className="studio-estimate-lines">
@@ -3911,11 +4096,11 @@ export function StudioPage({
       {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
       {mode === "sketch" && !isLeadLinkedMode
         ? <div className="studio-sketch-button-pair">
-          <button type="button" className="button button--dark" disabled={submitting} onClick={() => void primarySubmit()} data-testid="button-submit-sketch-lead">
-            <span data-testid="button-submit-sketch">{submitting ? "กำลังส่ง..." : "🚀 ส่งภาพแบบร่างให้ทีมขายประเมินราคา ➔"}</span>
+          <button type="button" className="button button--dark" disabled={submitting || sketchStatus?.busy || !sketchDimensionsValid} onClick={() => void primarySubmit()} data-testid="button-submit-sketch-lead">
+            <span data-testid="button-submit-sketch">{submitting ? "กำลังส่ง..." : sketchStatus?.busy ? "กำลังวิเคราะห์ภาพแบบร่าง…" : "🚀 ส่งภาพแบบร่างให้ทีมขายประเมินราคา ➔"}</span>
           </button>
-          <button type="button" className="button button--accent" onClick={bridgeToStudio} data-testid="button-bridge-to-studio">
-            🎨 นำขนาดเข้าสู่ 2D Studio ➔
+          <button type="button" className="button button--accent" disabled={submitting || sketchStatus?.busy || !sketchDimensionsValid} onClick={bridgeToStudio} data-testid="button-bridge-to-studio">
+            {sketchStatus?.busy ? "กำลังวิเคราะห์ภาพแบบร่าง…" : "🎨 นำขนาดเข้าสู่ 2D Studio ➔"}
           </button>
         </div>
         : <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>
@@ -3966,19 +4151,19 @@ export function StudioPage({
             type="button"
             className="button button--outline"
             onClick={() => cameraInputRef.current?.click()}
-            disabled={sketchStatus?.busy}
+            disabled={submitting || sketchStatus?.busy}
             data-testid="button-sketch-camera"
           >
-            <Camera size={17} /> {sketchStatus?.busy ? "กำลังประมวลผล…" : "ถ่ายรูปจากกล้องทันที"}
+            <Camera size={17} /> {submitting ? "กำลังส่ง..." : sketchStatus?.busy ? "กำลังประมวลผล…" : "ถ่ายรูปจากกล้องทันที"}
           </button>
           <button
             type="button"
             className="button button--outline"
             onClick={() => sketchInputRef.current?.click()}
-            disabled={sketchStatus?.busy}
+            disabled={submitting || sketchStatus?.busy}
             data-testid="button-sketch-file"
           >
-            <FolderOpen size={17} /> {sketchStatus?.busy ? "กำลังประมวลผล…" : "เลือกภาพจากเครื่อง"}
+            <FolderOpen size={17} /> {submitting ? "กำลังส่ง..." : sketchStatus?.busy ? "กำลังประมวลผล…" : "เลือกภาพจากเครื่อง"}
           </button>
         </div>}
         <div className="studio-sketch-slots" data-testid="grid-studio-sketch-slots">
@@ -3989,13 +4174,13 @@ export function StudioPage({
               return (
                 <div key={index} className="studio-sketch-slot studio-sketch-slot--filled" data-testid={`slot-studio-sketch-${index}`}>
                   <img className="studio-sketch-slot-preview" src={previewUrl} alt={`ตัวอย่างไฟล์ ${file.name}`} data-testid={`img-studio-sketch-preview-${index}`} />
-                  <button type="button" className="studio-sketch-slot-remove" onClick={() => removeSketchFile(index)} aria-label={`ลบไฟล์ ${file.name}`} data-testid={`button-remove-studio-sketch-${index}`}><X size={14} /></button>
+                  <button type="button" className="studio-sketch-slot-remove" disabled={submitting} onClick={() => removeSketchFile(index)} aria-label={`ลบไฟล์ ${file.name}`} data-testid={`button-remove-studio-sketch-${index}`}><X size={14} /></button>
                 </div>
               );
             }
             if (index === sketchFiles.length && sketchFiles.length < MAX_SKETCH_FILES) {
               return (
-                <button key={index} type="button" className="studio-sketch-slot studio-sketch-slot--add" onClick={() => sketchInputRef.current?.click()} data-testid={`button-add-studio-sketch-${index}`}>
+                <button key={index} type="button" className="studio-sketch-slot studio-sketch-slot--add" disabled={submitting} onClick={() => sketchInputRef.current?.click()} data-testid={`button-add-studio-sketch-${index}`}>
                   <span className="studio-sketch-add-plus" aria-hidden="true">+</span>
                   <small>เพิ่มรูป</small>
                 </button>
@@ -4137,18 +4322,12 @@ export function StudioPage({
                 min="100"
                 max="10000"
                 step="10"
-                value={state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm}
-                onChange={(e) => {
-                  sketchDimensionEditVersionRef.current += 1;
-                  const val = Math.max(1, Number(e.target.value) || 0);
-                  setState((curr) => ({
-                    ...curr,
-                    dimensions: { ...curr.dimensions, runAMm: val },
-                    pieces: curr.pieces ? curr.pieces.map((p, idx) => idx === 0 ? {
-                      ...p,
-                      rectangles: p.rectangles.map((r, rIdx) => rIdx === 0 ? { ...r, widthMm: val } : r)
-                    } : p) : curr.pieces
-                  }));
+                value={sketchDimensionDrafts.length}
+                aria-invalid={parseBoundedIntegerInput(sketchDimensionDrafts.length, 100, 10_000, 10) === null}
+                onChange={(event) => updateSketchDimension("length", event.target.value)}
+                onBlur={() => {
+                  if (parseBoundedIntegerInput(sketchDimensionDrafts.length, 100, 10_000, 10) !== null) return;
+                  setSketchDimensionDrafts((current) => ({ ...current, length: String(sketchLengthMm) }));
                 }}
                 placeholder="เช่น 1980"
                 data-testid="input-sketch-length"
@@ -4162,18 +4341,12 @@ export function StudioPage({
                 min="100"
                 max="3000"
                 step="10"
-                value={state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm}
-                onChange={(e) => {
-                  sketchDimensionEditVersionRef.current += 1;
-                  const val = Math.max(1, Number(e.target.value) || 0);
-                  setState((curr) => ({
-                    ...curr,
-                    dimensions: { ...curr.dimensions, depthMm: val },
-                    pieces: curr.pieces ? curr.pieces.map((p, idx) => idx === 0 ? {
-                      ...p,
-                      rectangles: p.rectangles.map((r, rIdx) => rIdx === 0 ? { ...r, lengthMm: val } : r)
-                    } : p) : curr.pieces
-                  }));
+                value={sketchDimensionDrafts.depth}
+                aria-invalid={parseBoundedIntegerInput(sketchDimensionDrafts.depth, 100, 3_000, 10) === null}
+                onChange={(event) => updateSketchDimension("depth", event.target.value)}
+                onBlur={() => {
+                  if (parseBoundedIntegerInput(sketchDimensionDrafts.depth, 100, 3_000, 10) !== null) return;
+                  setSketchDimensionDrafts((current) => ({ ...current, depth: String(sketchDepthMm) }));
                 }}
                 placeholder="เช่น 450"
                 data-testid="input-sketch-depth"
@@ -4181,6 +4354,7 @@ export function StudioPage({
               <small>เช่น 450 มม. (0.45 เมตร)</small>
             </label>
           </div>
+          {!sketchDimensionsValid && <p className="studio-warning" role="alert" data-testid="status-sketch-invalid-dimensions">ขนาดต้องเป็นจำนวนเต็มตั้งแต่ 100 มม. และอยู่ในช่วงที่กำหนด</p>}
         </div>
         <StudioShortlists {...studioShortlistsProps} />
       </section>
@@ -4207,7 +4381,7 @@ export function StudioPage({
             </button>
             <Link href="/studio-guide" className="button button--outline" data-testid="link-studio-open-guide">📖 วิธีใช้งาน 3 ขั้นตอน</Link>
           </div>
-          <StudioCanvas state={state} setState={setState} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} />
+          <StudioCanvas state={state} setState={setState} onLayoutApplied={() => setAssembledStudioRoute(studioRouteKey)} pieceZoom={pieceZoom} setPieceZoom={setPieceZoom} selectedPlacementId={selectedPlacementId} setSelectedPlacementId={setSelectedPlacementId} selectedRectangleId={selectedRectangleId} setSelectedRectangleId={setSelectedRectangleId} basinProducts={basinProducts} stoneColors={stoneColors} simpleMode={isSimpleStudioMode} />
         </div>
       ) : studioSketchUploadPanel}
       {mode === "studio" && estimatePanel}
@@ -4284,8 +4458,8 @@ export function StudioPage({
        </div>
       {mode !== "studio" && !isSimpleStudioMode && estimatePanel}
     </section>
-    {mode === "studio" && <StudioPrintLayout state={state} basinProducts={basinProducts} stoneColors={stoneColors} />}
-      {mode === "studio" && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-mobile-studio-save-lead" : "button-mobile-studio-submit"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึก Lead" : "ส่งขอราคา"}</button></div></div>}
+      {mode === "studio" && studioLayoutApplied && <StudioPrintLayout state={state} basinProducts={basinProducts} stoneColors={stoneColors} />}
+       {mode === "studio" && studioLayoutApplied && <div className="studio-mobile-estimate-bar" data-testid="studio-mobile-estimate-bar"><div><span>ยอดประเมินรวม:</span><strong>{formatTHB(estimate.totalTHB)}</strong></div><div><button type="button" className="button button--outline" onClick={scrollToEstimate} data-testid="button-mobile-studio-details">ดูรายละเอียด</button><button type="button" className="button button--accent" disabled={submitting || linkedLeadUnavailable} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-mobile-studio-save-lead" : "button-mobile-studio-submit"}>{submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึก Lead" : "ส่งขอราคา"}</button></div></div>}
       {expandedSketchUrl && <div className="studio-lead-sketch-lightbox" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) { setExpandedSketchUrl(null); setSketchImageZoomed(false); } }}>
         <section className="studio-lead-sketch-dialog" role="dialog" aria-modal="true" aria-label="ดูภาพแบบร่างต้นฉบับ" onClick={(event) => event.stopPropagation()}>
           <header><strong>แบบร่างต้นฉบับ</strong><div><a href={expandedSketchUrl} target="_blank" rel="noreferrer">เปิดไฟล์ต้นฉบับ</a><button type="button" onClick={() => { setExpandedSketchUrl(null); setSketchImageZoomed(false); }} aria-label="ปิดภาพแบบร่าง"><X size={18} /></button></div></header>
