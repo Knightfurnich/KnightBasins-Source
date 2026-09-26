@@ -496,6 +496,90 @@ router.delete(
   },
 );
 
+/** Hard ceiling on how many ids a single batch-delete request may carry, so one request can't be used to fan out an unbounded number of disk unlinks/catalog rewrites (DoS). */
+const PORTFOLIO_BATCH_DELETE_MAX_IDS = 50;
+
+type PortfolioBatchDeleteBody = { ids?: unknown };
+
+/**
+ * POST /api/admin/portfolio/batch-delete
+ * Same catalog-entry + on-disk-file + visibility.json removal as
+ * DELETE /admin/portfolio/:id, but for up to PORTFOLIO_BATCH_DELETE_MAX_IDS
+ * ids in a single call. Requires the "delete" action (not just the
+ * middleware default of "view") -- same permission level the single-item
+ * delete route already requires, since this is just that same destructive
+ * operation done in bulk.
+ */
+router.post(
+  "/admin/portfolio/batch-delete",
+  createAdminAuthMiddleware(),
+  requireAnyAdminPermission(["leads", "basins"], "delete"),
+  async (req, res, next) => {
+    try {
+      const rawIds = (req.body as PortfolioBatchDeleteBody | undefined)?.ids;
+      const isStringArray = Array.isArray(rawIds) && rawIds.every((id): id is string => typeof id === "string" && id.length > 0);
+      if (!isStringArray || rawIds.length === 0) {
+        return res.status(400).json({ message: "ids must be a non-empty array of strings" });
+      }
+      if (rawIds.length > PORTFOLIO_BATCH_DELETE_MAX_IDS) {
+        return res.status(400).json({ message: `ids must not exceed ${PORTFOLIO_BATCH_DELETE_MAX_IDS} per request` });
+      }
+      const ids = rawIds as string[];
+
+      const catalog = await loadCatalog(UPLOAD_DIR);
+      const requestedIds = new Set(ids);
+      const toDelete = catalog.items.filter((item) => requestedIds.has(item.id));
+      const foundIds = new Set(toDelete.map((item) => item.id));
+      const deletedIds = ids.filter((id) => foundIds.has(id));
+      const notFoundIds = ids.filter((id) => !foundIds.has(id));
+
+      let filesRemovedCount = 0;
+      for (const item of toDelete) {
+        const filePath = resolvePortfolioFilePath(UPLOAD_DIR, item.category, item.filename);
+        if (!filePath) {
+          console.warn("Portfolio batch delete: refusing to touch a file outside uploads/portfolio/", {
+            id: item.id,
+            category: item.category,
+            filename: item.filename,
+          });
+          continue;
+        }
+        try {
+          await unlink(filePath);
+          filesRemovedCount += 1;
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        }
+      }
+
+      const remainingItems = catalog.items.filter((item) => !foundIds.has(item.id));
+      await saveCatalog(UPLOAD_DIR, { updatedAt: new Date().toISOString(), total: remainingItems.length, items: remainingItems });
+
+      const visibilityMap = await loadVisibilityMap();
+      let visibilityChanged = false;
+      for (const id of foundIds) {
+        if (id in visibilityMap) {
+          delete visibilityMap[id];
+          visibilityChanged = true;
+        }
+      }
+      if (visibilityChanged) await saveVisibilityMap(visibilityMap);
+
+      console.info("Portfolio batch delete", {
+        admin: req.adminMember?.displayName ?? "owner",
+        at: new Date().toISOString(),
+        deletedIds,
+        notFoundIds,
+        filesRemovedCount,
+      });
+
+      return res.json({ deletedIds, notFoundIds, filesRemovedCount });
+    } catch (error) {
+      return next(error);
+    }
+  },
+);
+
 /**
  * GET /api/admin/portfolio/duplicates
  * Flags likely-duplicate photos two ways: (a) byte-identical files (MD5),
