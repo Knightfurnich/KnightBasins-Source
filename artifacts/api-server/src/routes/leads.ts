@@ -4,6 +4,7 @@ import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
+import { checkCutoutJointClash, MIN_BASIN_CLEARANCE_MM, validateBasinClearance } from "../lib/fabrication-geometry";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
 import { validateNumericDimensions, verifyAndSanitizeQuoteTotal } from "../lib/price-integrity";
@@ -33,6 +34,78 @@ const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 /** Delegates to price-integrity.ts's tamper-aware check; a negative, non-finite, or out-of-range total is treated the same as "no total present" here, never trusted through as-is. */
 export function quoteTotalTHB(studioData: unknown): number | null {
   return verifyAndSanitizeQuoteTotal(studioData).verifiedTotal;
+}
+
+export type FabricationAudit = {
+  safe: boolean;
+  warnings: string[];
+};
+
+type StudioFabricationBasin = {
+  counterWidthMm?: unknown;
+  counterDepthMm?: unknown;
+  widthMm?: unknown;
+  depthMm?: unknown;
+  xMm?: unknown;
+  yMm?: unknown;
+};
+
+/**
+ * Server-side Fabrication Geometry Guard (job-95/job-97): runs
+ * validateBasinClearance/checkCutoutJointClash from fabrication-geometry.ts
+ * against whatever basin-cutout layout `studioData` describes, and returns a
+ * warning list rather than rejecting -- a risky layout must still be
+ * reachable by sales (the customer/lead flow can't hard-fail on this), but
+ * an admin needs to see the warning before the job goes to production.
+ *
+ * The shape this currently reads is deliberately simple --
+ * `studioData.basin = { counterWidthMm, counterDepthMm, widthMm, depthMm,
+ * xMm, yMm }` and `studioData.joints = [{ x, y }, ...]` -- rather than the
+ * full StudioState/BasinPlacement[]/StudioPiece[] shape the studio
+ * calculator (artifacts/knight-basins/, out of this job's SCOPE) actually
+ * produces; wiring the real calculator output into this shape is a
+ * follow-up for whoever owns that frontend. Missing or non-numeric fields
+ * are skipped, never treated as a fabricated warning.
+ */
+export function auditStudioFabrication(studioData: unknown): FabricationAudit {
+  const warnings: string[] = [];
+  if (!studioData || typeof studioData !== "object") return { safe: true, warnings };
+
+  const data = studioData as { basin?: StudioFabricationBasin; joints?: unknown };
+  const basin = data.basin;
+  const hasNumericBasinLayout =
+    basin &&
+    typeof basin.counterWidthMm === "number" &&
+    typeof basin.counterDepthMm === "number" &&
+    typeof basin.widthMm === "number" &&
+    typeof basin.depthMm === "number" &&
+    typeof basin.xMm === "number" &&
+    typeof basin.yMm === "number";
+
+  if (hasNumericBasinLayout) {
+    const { counterWidthMm, counterDepthMm, widthMm, depthMm, xMm, yMm } = basin as Required<StudioFabricationBasin> as Record<string, number>;
+    const clearance = validateBasinClearance(counterWidthMm, counterDepthMm, widthMm, depthMm, xMm, yMm);
+    if (!clearance.valid) {
+      warnings.push(
+        `ระยะเนื้อหินรอบอ่างต่ำกว่ามาตรฐานความปลอดภัย ${MIN_BASIN_CLEARANCE_MM}mm (พบ ${clearance.minClearanceMm}mm) เสี่ยงหินแตกขณะเจาะ`,
+      );
+    }
+
+    const joints = Array.isArray(data.joints)
+      ? data.joints.filter(
+          (joint): joint is { x: number; y: number } =>
+            Boolean(joint) &&
+            typeof joint === "object" &&
+            typeof (joint as { x?: unknown }).x === "number" &&
+            typeof (joint as { y?: unknown }).y === "number",
+        )
+      : [];
+    if (joints.length > 0 && checkCutoutJointClash(xMm, yMm, widthMm, depthMm, joints)) {
+      warnings.push("ตำแหน่งหลุมเจาะอ่างวางทับแนวรอยต่อแผ่นหิน (Joint Line) เสี่ยงจุดประกบกาวอ่อนแอ");
+    }
+  }
+
+  return { safe: warnings.length === 0, warnings };
 }
 
 function invalid(res: Response, message: string, details?: unknown) {
@@ -94,6 +167,17 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
     return invalid(res, "Invalid dimensions");
   }
 
+  // Fabrication Geometry Guard (job-95/job-97): a risky basin-cutout layout
+  // is a warning, not a rejection -- sales still needs to save the lead, but
+  // an admin must see this before the job is confirmed for production.
+  const fabricationAudit = auditStudioFabrication(parsed.data.studioData);
+  const studioDataToSave = fabricationAudit.safe
+    ? parsed.data.studioData
+    : { ...(parsed.data.studioData as Record<string, unknown>), fabricationWarnings: fabricationAudit.warnings };
+  if (!fabricationAudit.safe) {
+    console.warn("Lead payload flagged by fabrication geometry guard", { leadKey: parsed.data.leadKey, warnings: fabricationAudit.warnings });
+  }
+
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
     const [existing] = await database
@@ -125,6 +209,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
         quoteNumber,
         quoteAccessSecret,
         customerAccountId: account?.id ?? null,
+        studioData: studioDataToSave,
       })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
@@ -154,7 +239,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
            quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
             quoteAccessSecret: quoteAccessSecret ?? customerLeads.quoteAccessSecret,
            orderMode: parsed.data.orderMode,
-           studioData: parsed.data.studioData,
+           studioData: studioDataToSave,
            sketchUrl: parsed.data.sketchUrl,
            customerAccountId: account?.id ?? customerLeads.customerAccountId,
           updatedAt: new Date(),
