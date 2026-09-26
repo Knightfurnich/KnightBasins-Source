@@ -51,6 +51,7 @@ GOAL:
 
 SCOPE:
   - artifacts/knight-basins/src/admin/AiCostCenterPage.tsx
+  - artifacts/knight-basins/src/admin/AdminApp.tsx
   - artifacts/knight-basins/src/App.tsx
   - artifacts/knight-basins/src/index.css
   - artifacts/knight-basins/test/ai-cost-center-ui.test.ts
