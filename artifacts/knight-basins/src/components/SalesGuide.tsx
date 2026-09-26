@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { InstallationShowcase } from "@/components/InstallationShowcase";
 import {
   ArrowLeft,
   ArrowRight,
@@ -20,6 +21,8 @@ import {
   Layers,
   Wrench,
   Camera,
+  BookOpen,
+  Images,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,7 +160,7 @@ export default function SalesGuide() {
                   <CardDescription className="text-xs text-[var(--ink-soft)]" data-type="caption">Custom Sketch</CardDescription>
                 </CardHeader>
                 <CardContent className="text-sm leading-relaxed text-[var(--ink-soft)] space-y-3">
-                  <p>แนบไฟล์ภาพแปลนจากสถาปนิก หรือภาพวาดมือพร้อมขนาดหน้างานจริง เพื่อให้ทีมงานผู้เชี่ยวชาญช่วยถอดแบบและประเมินราคากลับอย่างแม่นยำ</p>
+                  <p>ถ่ายรูปสดจากกล้องหน้างาน หรือแนบภาพสเก็ตช์/แปลนสถาปนิก พร้อมระบบ AI ช่วยอ่านลายมือ ถอดรูปทรงเคาน์เตอร์ และประเมินราคาให้อัตโนมัติ</p>
                   <div className="pt-2 text-sm font-semibold text-[#003366] flex items-center gap-1 group-hover:underline">
                     คลิกเพื่อส่งแบบร่าง <ArrowRight size={13} />
                   </div>
@@ -252,19 +255,65 @@ export default function SalesGuide() {
                 <strong className="text-[var(--ink)]">รับประกันงานติดตั้ง 1 ปีเต็ม:</strong> ดูแลความเรียบร้อยของโครงสร้าง รอยต่อ และการยึดเกาะตลอดระยะเวลา 1 ปี พร้อมทีมบริการหลังการขายคอยให้คำปรึกษาตลอดอายุการใช้งาน
               </p>
             </div>
+          </div>
+        </section>
 
-            {/* Link to Real Installation Showcase */}
-            <div className="pt-2 border-t border-[var(--line)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <span className="text-xs text-[var(--ink)] font-medium">
-                ต้องการดูตัวอย่างผลงานติดตั้งจริงที่หน้างานลูกค้า?
-              </span>
-              <a
-                href="/#installation-showcase"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#003366] hover:underline"
-              >
-                <Camera size={14} /> <span>ชมคลังภาพผลงานติดตั้งจริงจากหน้างาน</span> <ArrowRight size={13} />
-              </a>
-            </div>
+        {/* Section 5: Real Installation Showcase Marquee */}
+        <section className="space-y-4 pt-2" data-testid="guide-section-showcase">
+          <InstallationShowcase />
+        </section>
+
+        {/* Section 6: Knowledge & Design Hubs */}
+        <section className="space-y-4 pt-2">
+          <h2 className="font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "var(--type-size-heading-lg)", lineHeight: "var(--type-line-heading-lg)" }}>
+            <span>📚</span> 5. ศูนย์ข้อมูลและการออกแบบเฉพาะทาง
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Link href="/portfolio" className="group block focus:outline-none" data-testid="link-guide-hub-portfolio">
+              <div className="p-4 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] hover:border-[#003366] hover:shadow-sm transition space-y-2 h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[#003366] font-semibold text-sm">
+                    <Images size={16} /> คลังผลงานจริง
+                  </div>
+                  <p className="text-xs text-[var(--ink-soft)] mt-1.5 leading-relaxed">
+                    ชมภาพถ่ายงานติดตั้งจริง 670+ ภาพ แยกหมวดห้องน้ำ ครัว และเคาน์เตอร์
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  เปิดคลังภาพ <ArrowRight size={12} />
+                </span>
+              </div>
+            </Link>
+            <Link href="/site-prep" className="group block focus:outline-none" data-testid="link-guide-hub-site-prep">
+              <div className="p-4 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] hover:border-[#003366] hover:shadow-sm transition space-y-2 h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[#003366] font-semibold text-sm">
+                    <Ruler size={16} /> เตรียมหน้างาน
+                  </div>
+                  <p className="text-xs text-[var(--ink-soft)] mt-1.5 leading-relaxed">
+                    สเปกท่อน้ำดี-น้ำทิ้ง ระยะบล็อกปูน และการเตรียมโครงสร้างก่อนติดตั้ง
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  เปิดดูคู่มือ <ArrowRight size={12} />
+                </span>
+              </div>
+            </Link>
+            <Link href="/studio-guide" className="group block focus:outline-none" data-testid="link-guide-hub-studio-guide">
+              <div className="p-4 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] hover:border-[#003366] hover:shadow-sm transition space-y-2 h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[#003366] font-semibold text-sm">
+                    <BookOpen size={16} /> วิธีใช้ 2D Studio
+                  </div>
+                  <p className="text-xs text-[var(--ink-soft)] mt-1.5 leading-relaxed">
+                    3 ขั้นตอนการออกแบบผังเคาน์เตอร์ เลือกลายหิน และคำนวณราคาด้วยตนเอง
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  เปิดดูขั้นตอน <ArrowRight size={12} />
+                </span>
+              </div>
+            </Link>
           </div>
         </section>
 
