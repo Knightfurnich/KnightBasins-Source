@@ -41,6 +41,7 @@ GOAL:
      - เพิ่ม Route path="/updates" component={UpdatesPage}
      - ใน Footer เพิ่ม <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v1.0)</Link>
   3. สร้าง artifacts/knight-basins/test/updates-page.test.ts (ใหม่)
+     - หมายเหตุสำหรับ Unit Test: ให้เขียนเทสต์แบบ Static Source Inspection (อ่านไฟล์ด้วย readFileSync เหมือน studio-guide-gallery.test.ts หรือ storefront-theme-toggle.test.ts) หลีกเลี่ยงการ dynamic import คอมโพเนนต์ที่เรียก assets.ts ตรงๆ เนื่องจาก tsx loader ของ node:test ไม่มี import.meta.env.BASE_URL ของ Vite
 
 SCOPE:
   - artifacts/knight-basins/src/pages/UpdatesPage.tsx · (ใหม่)
