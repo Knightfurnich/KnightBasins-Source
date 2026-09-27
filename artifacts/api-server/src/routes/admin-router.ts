@@ -1,7 +1,7 @@
 import { createHash, sign as cryptoSign } from "node:crypto";
 import { createReadStream, readFileSync } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { readdir, stat, unlink } from "node:fs/promises";
+import { join, resolve, sep } from "node:path";
 import {
   basinCategories,
   basinPrices,
@@ -124,6 +124,51 @@ function invalid(res: Response, message: string, details?: unknown) {
 
 const SITE_PHOTO_STAGES = ["survey", "installation", "service", "completed"] as const;
 const SITE_PHOTO_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+const SITE_PHOTO_UPLOAD_PATH_PATTERN = /^\/(?:api\/uploads|kb\/images\/uploads)\/(.+)$/;
+
+function sitePhotoUploadFilename(imageUrl: unknown): string | undefined {
+  if (typeof imageUrl !== "string" || !imageUrl.trim()) return undefined;
+
+  let pathname: string;
+  try {
+    pathname = /^https?:\/\//i.test(imageUrl) ? new URL(imageUrl).pathname : imageUrl.split(/[?#]/)[0]!;
+  } catch {
+    return undefined;
+  }
+
+  const match = pathname.match(SITE_PHOTO_UPLOAD_PATH_PATTERN);
+  if (!match) return undefined;
+
+  let filename: string;
+  try {
+    filename = decodeURIComponent(match[1]!);
+  } catch {
+    return undefined;
+  }
+
+  if (!filename || filename === "." || filename === ".." || filename.includes("/") || filename.includes("\\")) {
+    return undefined;
+  }
+  return filename;
+}
+
+/** Only removes files that resolve to a path inside UPLOAD_DIR; any lookup or
+ * unlink failure is swallowed so a missing/foreign file never blocks the
+ * caller from deleting the database row. */
+async function deleteSitePhotoUpload(imageUrl: unknown) {
+  const filename = sitePhotoUploadFilename(imageUrl);
+  if (!filename) return;
+
+  const uploadRoot = resolve(UPLOAD_DIR);
+  const filePath = resolve(uploadRoot, filename);
+  if (!filePath.startsWith(`${uploadRoot}${sep}`)) return;
+
+  try {
+    await unlink(filePath);
+  } catch {
+    // missing or inaccessible file: the sitePhotos row is still deleted
+  }
+}
 
 const LEAD_STATUS_LABELS_TH: Record<string, string> = {
   new_lead: "ลูกค้าใหม่",
@@ -2217,6 +2262,25 @@ export function createAdminRouter(
         .returning();
       if (!updated) return res.status(404).json({ message: "Site photo not found" });
       return res.json(updated);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.delete("/admin/site-photos/:id", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid site photo id");
+
+    try {
+      const [deleted] = await database
+        .delete(sitePhotos)
+        .where(eq(sitePhotos.id, id))
+        .returning();
+      if (!deleted) return res.status(404).json({ message: "Site photo not found" });
+
+      await deleteSitePhotoUpload(deleted.imageUrl);
+
+      return res.json({ success: true, deletedId: id });
     } catch (error) {
       return next(error);
     }
