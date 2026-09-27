@@ -49,6 +49,9 @@ SCOPE:
   - artifacts/knight-basins/src/admin/SitePhotosPage.tsx
   - artifacts/knight-basins/test/admin-site-photos-ui.test.ts
   - artifacts/knight-basins/test/admin-site-photos-manage.test.ts
+  - artifacts/knight-basins/test/admin-site-photos-extra-filters.test.ts
+  - artifacts/knight-basins/test/admin-site-photos-smart-search.test.ts
+  - artifacts/knight-basins/test/admin-site-photos-zip-download-ui.test.ts
   - artifacts/knight-basins/test/admin-site-photos-hide-ui.test.ts · (ใหม่)
 
 FORBIDDEN:
