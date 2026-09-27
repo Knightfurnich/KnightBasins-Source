@@ -1,6 +1,8 @@
 import { useMemo, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
+  Archive,
   ArrowRight,
   ArrowUpRight,
   Banknote,
@@ -10,6 +12,7 @@ import {
   ClipboardList,
   Factory,
   FileStack,
+  HardDrive,
   Loader2,
   MapPin,
   PackageCheck,
@@ -44,6 +47,7 @@ const aiCostCurrencyFormatter = new Intl.NumberFormat("th-TH", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+const storageSizeFormatter = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 });
 
 type AiCostCenterSummary = {
   totalCostThb: number;
@@ -52,6 +56,17 @@ type AiCostCenterSummary = {
     id: "sales_bot" | "sketch_vision" | "hermes_ops";
     status: "active" | "no-data";
   }>;
+};
+
+type AdminStorageStats = {
+  portfolio?: { count?: number | null; totalBytes?: number | null } | null;
+  backups?: {
+    count?: number | null;
+    totalBytes?: number | null;
+    oldestDate?: string | null;
+    newestDate?: string | null;
+  } | null;
+  status?: "healthy" | "warning" | null;
 };
 
 const aiCostServices: Array<{ id: AiCostCenterSummary["services"][number]["id"]; label: string; detail: string }> = [
@@ -83,6 +98,39 @@ function useDashboardAiCostSummary() {
     gcTime: 5 * 60_000,
     retry: 1,
   });
+}
+
+function useDashboardStorageStats() {
+  return useQuery<AdminStorageStats>({
+    queryKey: ["/api/admin/storage/stats"],
+    queryFn: () =>
+      customFetch<AdminStorageStats>("/api/admin/storage/stats", {
+        method: "GET",
+        credentials: "include",
+        responseType: "json",
+      }),
+    staleTime: 30_000,
+    gcTime: 0,
+    retry: 1,
+  });
+}
+
+function formatStorageCount(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
+  return countFormatter.format(Math.floor(value));
+}
+
+function formatStorageSize(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
+  const bytes = Math.floor(value);
+  if (bytes < 1024 * 1024) return `${storageSizeFormatter.format(bytes / 1024)} KB`;
+  return `${storageSizeFormatter.format(bytes / (1024 * 1024))} MB`;
+}
+
+function formatBackupDate(value: unknown) {
+  if (typeof value !== "string") return "ไม่มีข้อมูลวันสำรอง";
+  const date = safeDate(value);
+  return date ? formatThaiDateTime(date) : "ไม่มีข้อมูลวันสำรอง";
 }
 
 function DashboardAiCostWidget({ canNavigate }: { canNavigate: (href: string) => boolean }) {
@@ -159,6 +207,120 @@ function DashboardAiCostWidget({ canNavigate }: { canNavigate: (href: string) =>
         <a className="dashboard-ai-cost-link" href="/admin/ai-cost" data-testid="link-dashboard-ai-cost">
           <span>ดูรายละเอียดต้นทุน AI</span>
           <ArrowRight size={16} aria-hidden="true" />
+        </a>
+      )}
+    </Panel>
+  );
+}
+
+function DashboardStorageHealthWidget({ canNavigate }: { canNavigate: (href: string) => boolean }) {
+  const { data, isError, isLoading } = useDashboardStorageStats();
+  const status = data?.status === "healthy" || data?.status === "warning" ? data.status : "unknown";
+  const backupCount = data?.backups?.count;
+  const hasBackups = typeof backupCount === "number" && Number.isFinite(backupCount) && backupCount > 0;
+  const backupReady = hasBackups && status === "healthy";
+  const statusClass = status === "healthy"
+    ? "border-[#17816d]/30 bg-[#17816d]/5 text-[#17816d]"
+    : status === "warning"
+      ? "border-[#a9791f]/30 bg-[#a9791f]/5 text-[#8a6318]"
+      : "border-[var(--line)] bg-[var(--paper)] text-[var(--ink-soft)]";
+  const statusLabel = status === "healthy"
+    ? "สถานะพื้นที่ปกติ (Healthy)"
+    : status === "warning"
+      ? "ควรตรวจสอบพื้นที่ (Warning)"
+      : "ไม่ทราบสถานะพื้นที่";
+
+  return (
+    <Panel
+      className="p-4 sm:p-5"
+      data-testid="widget-storage-health"
+      aria-busy={isLoading && !data}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">07 / STORAGE &amp; BACKUP HEALTH</p>
+          <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">Storage &amp; Backup Health</h2>
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">สถานะคลังภาพและไฟล์สำรองข้อมูล</p>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold ${statusClass}`}
+          data-testid="storage-health-status"
+          role="status"
+        >
+          {status === "healthy" ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : null}
+          {status === "warning" ? <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> : null}
+          {statusLabel}
+        </span>
+      </div>
+
+      {isLoading && !data ? (
+        <div className="mt-4 flex items-center gap-2 border border-dashed border-[var(--line)] px-3 py-5 text-sm text-[var(--ink-soft)]" role="status" data-testid="storage-health-loading">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          กำลังโหลดสถิติพื้นที่จัดเก็บ…
+        </div>
+      ) : isError && !data ? (
+        <p className="mt-4 border border-dashed border-[var(--line)] px-3 py-5 text-sm text-[var(--ink-soft)]" role="status" data-testid="storage-health-error">
+          โหลดสถิติพื้นที่จัดเก็บไม่สำเร็จ ข้อมูลส่วนนี้ยังไม่พร้อมใช้งาน
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <section className="border border-[var(--line)] bg-[var(--paper)] p-3 sm:p-4" aria-label="สถิติคลังภาพ Portfolio" data-testid="storage-portfolio-stats">
+            <div className="flex items-center gap-2 text-[var(--ink-soft)]">
+              <HardDrive className="h-4 w-4" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-[var(--ink)]">Portfolio</h3>
+            </div>
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">รูปภาพทั้งหมด</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--ink)]" data-testid="storage-portfolio-count">
+              {formatStorageCount(data?.portfolio?.count)} รูป
+            </p>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">
+              ใช้พื้นที่ {formatStorageSize(data?.portfolio?.totalBytes)}
+            </p>
+          </section>
+
+          <section className="border border-[var(--line)] bg-[var(--paper)] p-3 sm:p-4" aria-label="สถิติไฟล์สำรอง" data-testid="storage-backup-stats">
+            <div className="flex items-center gap-2 text-[var(--ink-soft)]">
+              <Archive className="h-4 w-4" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-[var(--ink)]">Backup Vault</h3>
+            </div>
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">ชุดแบ็กอัปที่จัดเก็บ</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--ink)]" data-testid="storage-backup-count">
+              {formatStorageCount(data?.backups?.count)} ชุด
+            </p>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]" data-testid="storage-backup-newest-date">
+              สำรองล่าสุด: {formatBackupDate(data?.backups?.newestDate)}
+            </p>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">
+              ใช้พื้นที่ {formatStorageSize(data?.backups?.totalBytes)}
+            </p>
+            <span
+              className={`mt-3 inline-flex items-center border px-2 py-1 text-[11px] font-semibold ${
+                backupReady
+                  ? "border-[#17816d]/30 bg-[#17816d]/5 text-[#17816d]"
+                  : "border-[var(--line)] bg-[var(--card-paper)] text-[var(--ink-soft)]"
+              }`}
+              data-testid="storage-backup-readiness"
+            >
+              {backupReady ? "● พร้อมกู้ภัย (RTO ≤ 4h)" : hasBackups ? "● ตรวจสอบสถานะการกู้คืน" : "● ยังไม่มีไฟล์สำรอง"}
+            </span>
+          </section>
+        </div>
+      )}
+
+      {isError && data && (
+        <p className="mt-3 text-xs text-[#8a6318]" role="status" data-testid="storage-health-stale">
+          รีเฟรชสถิติไม่สำเร็จ กำลังแสดงข้อมูลที่โหลดได้ก่อนหน้า
+        </p>
+      )}
+
+      {canNavigate("/admin/portfolio") && (
+        <a
+          className="mt-4 inline-flex min-h-10 items-center gap-2 border border-[var(--brand-blue)]/40 px-3 py-2 text-sm font-medium text-[var(--brand-blue)] transition-colors hover:bg-[var(--brand-blue)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]"
+          href="/admin/portfolio"
+          data-testid="link-storage-portfolio"
+        >
+          จัดการคลังภาพ
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>
       )}
     </Panel>
@@ -827,6 +989,10 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
 
       {(canNavigate("/admin/ai-cost") || canNavigate("/admin/leads")) && (
         <DashboardAiCostWidget canNavigate={canNavigate} />
+      )}
+
+      {(canNavigate("/admin/leads") || canNavigate("/admin/basins")) && (
+        <DashboardStorageHealthWidget canNavigate={canNavigate} />
       )}
 
       <Panel className="p-4 sm:p-5" data-testid="panel-dashboard-actions">
