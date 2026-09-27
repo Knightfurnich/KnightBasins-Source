@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   FileText,
   ClipboardList,
+  Database,
   Factory,
   FileStack,
   HardDrive,
@@ -48,6 +49,9 @@ const aiCostCurrencyFormatter = new Intl.NumberFormat("th-TH", {
   maximumFractionDigits: 2,
 });
 const storageSizeFormatter = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 });
+const databaseLatencyFormatter = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 });
+const databaseHealthQueryKey = ["/api/admin/database/health"] as const;
+const DATABASE_HEALTH_DEGRADED_LATENCY_MS = 500;
 
 type AiCostCenterSummary = {
   totalCostThb: number;
@@ -67,6 +71,14 @@ type AdminStorageStats = {
     newestDate?: string | null;
   } | null;
   status?: "healthy" | "warning" | null;
+};
+
+type AdminDatabaseHealth = {
+  status: "healthy" | "degraded";
+  latencyMs: number;
+  database: "postgres" | string;
+  timestamp: string;
+  tablesCount: number;
 };
 
 const aiCostServices: Array<{ id: AiCostCenterSummary["services"][number]["id"]; label: string; detail: string }> = [
@@ -115,9 +127,31 @@ function useDashboardStorageStats() {
   });
 }
 
+function useDashboardDatabaseHealth() {
+  return useQuery<AdminDatabaseHealth>({
+    queryKey: databaseHealthQueryKey,
+    queryFn: () =>
+      customFetch<AdminDatabaseHealth>("/api/admin/database/health", {
+        method: "GET",
+        credentials: "include",
+        responseType: "json",
+      }),
+    staleTime: 15_000,
+    gcTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+    retry: 1,
+  });
+}
+
 function formatStorageCount(value: unknown) {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
   return countFormatter.format(Math.floor(value));
+}
+
+function formatDatabaseLatency(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
+  return databaseLatencyFormatter.format(value);
 }
 
 function formatStorageSize(value: unknown) {
@@ -322,6 +356,110 @@ function DashboardStorageHealthWidget({ canNavigate }: { canNavigate: (href: str
           จัดการคลังภาพ
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>
+      )}
+    </Panel>
+  );
+}
+
+export function DashboardDatabaseHealthWidget() {
+  const { data, isError, isFetching, isLoading, refetch } = useDashboardDatabaseHealth();
+  const hasValidLatency = typeof data?.latencyMs === "number"
+    && Number.isFinite(data.latencyMs)
+    && data.latencyMs >= 0;
+  const status = !data
+    ? "unknown"
+    : data.status !== "healthy" || !hasValidLatency || data.latencyMs >= DATABASE_HEALTH_DEGRADED_LATENCY_MS
+      ? "degraded"
+      : "healthy";
+  const statusClass = status === "healthy"
+    ? "border-[#17816d]/30 bg-[#17816d]/5 text-[#17816d]"
+    : status === "degraded"
+      ? "border-[#a9791f]/30 bg-[#a9791f]/5 text-[#8a6318]"
+      : "border-[var(--line)] bg-[var(--paper)] text-[var(--ink-soft)]";
+  const statusLabel = status === "healthy"
+    ? "● พร้อมใช้งาน (Healthy)"
+    : status === "degraded"
+      ? "● ตอบสนองช้า (Degraded)"
+      : "● ไม่ทราบสถานะ";
+
+  return (
+    <Panel
+      className="p-4 sm:p-5"
+      data-testid="widget-database-health"
+      aria-busy={isFetching}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">08 / DATABASE &amp; CONNECTION HEALTH</p>
+          <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">Database &amp; Connection Health</h2>
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">สถานะการเชื่อมต่อ PostgreSQL และเวลาตอบสนอง</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold ${statusClass}`}
+            data-testid="database-health-status"
+            role="status"
+          >
+            {statusLabel}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 rounded-none text-[var(--ink-soft)]"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            aria-label="รีเฟรชสถานะฐานข้อมูล"
+            title="รีเฟรชสถานะฐานข้อมูล"
+            data-testid="button-refresh-db-health"
+          >
+            {isFetching ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
+          </Button>
+        </div>
+      </div>
+
+      {isLoading && !data ? (
+        <div className="mt-4 flex items-center gap-2 border border-dashed border-[var(--line)] px-3 py-5 text-sm text-[var(--ink-soft)]" role="status" data-testid="db-health-loading">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          กำลังตรวจสอบสถานะฐานข้อมูล…
+        </div>
+      ) : isError && !data ? (
+        <p className="mt-4 border border-dashed border-[var(--line)] px-3 py-5 text-sm text-[var(--ink-soft)]" role="status" data-testid="db-health-error">
+          ตรวจสอบสถานะฐานข้อมูลไม่สำเร็จ ข้อมูลส่วนนี้ยังไม่พร้อมใช้งาน
+        </p>
+      ) : data ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <section className="border border-[var(--line)] bg-[var(--paper)] p-3 sm:p-4" aria-label="เวลาตอบสนองฐานข้อมูล">
+            <div className="flex items-center gap-2 text-[var(--ink-soft)]">
+              <Database className="h-4 w-4" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-[var(--ink)]">เวลาตอบสนอง (Query Latency)</h3>
+            </div>
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">Latency</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--ink)]" data-testid="db-latency-value">
+              {formatDatabaseLatency(data.latencyMs)} ms
+            </p>
+          </section>
+
+          <section className="border border-[var(--line)] bg-[var(--paper)] p-3 sm:p-4" aria-label="รายละเอียดฐานข้อมูล">
+            <div className="flex items-center gap-2 text-[var(--ink-soft)]">
+              <HardDrive className="h-4 w-4" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-[var(--ink)]">PostgreSQL</h3>
+            </div>
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">จำนวนตารางหลัก</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--ink)]" data-testid="db-tables-count">
+              {formatStorageCount(data.tablesCount)} ตาราง
+            </p>
+            <p className="mt-3 text-xs text-[var(--ink-soft)]" data-testid="db-last-checked">
+              ตรวจสอบล่าสุด: {safeDate(data.timestamp) ? formatThaiDateTime(safeDate(data.timestamp)!) : "ไม่ทราบเวลา"}
+            </p>
+          </section>
+        </div>
+      ) : null}
+
+      {isError && data && (
+        <p className="mt-3 text-xs text-[#8a6318]" role="status" data-testid="db-health-stale">
+          รีเฟรชสถานะไม่สำเร็จ กำลังแสดงข้อมูลที่โหลดได้ก่อนหน้า
+        </p>
       )}
     </Panel>
   );
@@ -991,9 +1129,12 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
         <DashboardAiCostWidget canNavigate={canNavigate} />
       )}
 
-      {(canNavigate("/admin/leads") || canNavigate("/admin/basins")) && (
-        <DashboardStorageHealthWidget canNavigate={canNavigate} />
-      )}
+      <div className={(canNavigate("/admin/leads") || canNavigate("/admin/basins")) ? "grid gap-4 xl:grid-cols-2" : "grid"}>
+        <DashboardDatabaseHealthWidget />
+        {(canNavigate("/admin/leads") || canNavigate("/admin/basins")) && (
+          <DashboardStorageHealthWidget canNavigate={canNavigate} />
+        )}
+      </div>
 
       <Panel className="p-4 sm:p-5" data-testid="panel-dashboard-actions">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
