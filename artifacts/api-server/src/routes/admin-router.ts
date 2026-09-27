@@ -66,6 +66,7 @@ import {
   publicQuoteTokenForLead,
 } from "../lib/quote-access";
 import { createRateLimiter, createConcurrencyLimiter } from "../lib/rate-limit";
+import { pruneBackupVault } from "../lib/backup-vault";
 import {
   cleanupUnreferencedUploadedImages,
   readMultipartForm,
@@ -2976,6 +2977,19 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       res.setHeader("Content-Length", String(info.size));
       res.setHeader("Cache-Control", "no-store");
       return createReadStream(filePath).pipe(res);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Retention & prune for the off-container backup vault (see BACKUP_DIR
+   * above). Enforces the disaster-recovery safety rules from src/lib/backup-vault.ts:
+   * never touch anything younger than 7 days, only prune past 30 days, and
+   * never let the vault drop below 3 remaining backups.
+   */
+  router.post("/admin/backup/prune", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const result = await pruneBackupVault(BACKUP_DIR);
+      return res.json(result);
     } catch (error) { return next(error); }
   });
 
