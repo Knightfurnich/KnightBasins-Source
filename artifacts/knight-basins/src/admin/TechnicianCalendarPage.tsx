@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Check,
   ChevronRight,
+  Copy,
   Flame,
   LayoutGrid,
   MapPin,
@@ -26,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getThaiHoliday } from "@/data/thaiHolidays";
 import { useWeatherForecast } from "@/data/weatherForecast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Sheet,
   SheetContent,
@@ -92,7 +94,82 @@ const dateFormatter = new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
   month: "long",
   year: "numeric",
 });
+const timeFormatter = new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
+  timeZone: BANGKOK_TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
 const countFormatter = new Intl.NumberFormat("th-TH");
+
+export interface DailyScheduleWeather {
+  icon: string;
+  description: string;
+  tempMax: number;
+  rainProb: number;
+  isRainy: boolean;
+}
+
+export function buildDailyScheduleMessage(
+  day: CalendarDay,
+  weather?: DailyScheduleWeather,
+  generatedAt: Date = new Date(),
+) {
+  const lines = [
+    "คิวช่างประจำวัน",
+    dateFormatter.format(dateFromBangkokDateKey(day.date)),
+    `จัดทำเมื่อ ${timeFormatter.format(generatedAt)} น.`,
+  ];
+
+  if (weather) {
+    lines.push(
+      "",
+      `${weather.icon} สภาพอากาศหน้างาน: ${weather.description} · สูงสุด ${weather.tempMax}°C · โอกาสฝน ${weather.rainProb}%${weather.isRainy ? " · ⚠️ ระวังหินเปียกฝน" : ""}`,
+    );
+  }
+
+  const teamsWithJobs = day.teams.filter((team) => team.jobs.length > 0);
+  if (teamsWithJobs.length === 0) {
+    lines.push("", "ไม่มีคิวงานติดตั้งในวันนี้");
+    return lines.join("\n");
+  }
+
+  teamsWithJobs.forEach((team) => {
+    lines.push("", `ทีมช่าง: ${team.teamName.trim() || team.teamCode}`);
+    team.jobs.forEach((job, index) => {
+      lines.push(
+        `${index + 1}. ${job.name.trim() || "งานติดตั้ง"}`,
+        `   โครงการ: ${job.project?.trim() || "ไม่ระบุ"}`,
+        `   สถานที่: ${job.address?.trim() || "ยังไม่ได้ระบุที่อยู่"}`,
+      );
+    });
+  });
+
+  return lines.join("\n");
+}
+
+type DailyScheduleToast = (options: {
+  description: string;
+  variant?: "destructive";
+}) => void;
+
+export async function copyDailyScheduleToClipboard(
+  message: string,
+  writeText: (value: string) => Promise<void>,
+  notify: DailyScheduleToast,
+) {
+  try {
+    await writeText(message);
+    notify({ description: "คัดลอกสรุปคิวงานส่ง LINE เรียบร้อยแล้ว" });
+    return true;
+  } catch {
+    notify({
+      description: "คัดลอกสรุปคิวงานส่ง LINE ไม่สำเร็จ",
+      variant: "destructive",
+    });
+    return false;
+  }
+}
 
 const statusPresentation: Record<
   CalendarStatus,
@@ -391,13 +468,37 @@ function TeamQueue({
   );
 }
 
+export function DailyScheduleCopyButton({
+  onClick,
+  isCopying = false,
+}: {
+  onClick: () => void;
+  isCopying?: boolean;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={onClick}
+      disabled={isCopying}
+      data-testid="button-calendar-copy-daily-schedule"
+    >
+      <Copy className="h-4 w-4" aria-hidden="true" />
+      {isCopying ? "กำลังคัดลอก..." : "คัดลอกคิวงานส่ง LINE"}
+    </Button>
+  );
+}
+
 export function TechnicianCalendarPage() {
   const today = new Date();
   const todayKey = toBangkokDateKey(today);
   const [visibleMonth, setVisibleMonth] = useState(() => monthStartFromBangkokDateKey(todayKey));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isCopyingDailySchedule, setIsCopyingDailySchedule] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const updateTech = useUpdateAdminLeadTechnician();
   const {
     data: technicianTeams,
@@ -478,6 +579,20 @@ export function TechnicianCalendarPage() {
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [activeWeekDate, setActiveWeekDate] = useState<string>(todayKey);
   const { data: weatherMap } = useWeatherForecast();
+  const handleCopyDailySchedule = async () => {
+    if (!selectedDay || isCopyingDailySchedule) return;
+    setIsCopyingDailySchedule(true);
+    try {
+      const message = buildDailyScheduleMessage(selectedDay, weatherMap?.[selectedDay.date]);
+      await copyDailyScheduleToClipboard(
+        message,
+        (value) => navigator.clipboard.writeText(value),
+        toast,
+      );
+    } finally {
+      setIsCopyingDailySchedule(false);
+    }
+  };
 
   const pickerAnchorDate = selectedDate
     ? dateFromBangkokDateKey(selectedDate)
@@ -1184,6 +1299,10 @@ export function TechnicianCalendarPage() {
                   <span className="text-[12px] text-[var(--ink-soft)]">
                     ซิงก์จากคำสั่งซื้อจริง
                   </span>
+                  <DailyScheduleCopyButton
+                    onClick={handleCopyDailySchedule}
+                    isCopying={isCopyingDailySchedule}
+                  />
                 </div>
                 {getThaiHoliday(selectedDay.date) && (
                   <div className="mt-3 flex items-start gap-2 rounded-none border border-[#c23b22]/30 bg-[#c23b22]/10 p-2.5 text-xs text-[#c23b22] font-semibold" data-testid="calendar-detail-holiday-banner">
