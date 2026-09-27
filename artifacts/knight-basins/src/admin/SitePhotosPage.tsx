@@ -39,11 +39,9 @@ const STAGE_BADGE_LABEL: Record<SitePhotoStage, string> = {
 };
 
 /**
- * Pure: turns the page's filter state into the query params sent to
- * GET /admin/site-photos, so the search bar and stage buttons genuinely
- * drive the server-side filters instead of filtering an already-fetched
- * page client-side. Blank/whitespace-only jobCode and the "all" stage
- * are both omitted so an unfiltered request lists everything.
+ * Builds the server-side list query. The universal search stays client-side
+ * because the endpoint's jobCode filter cannot match descriptions or senders.
+ * Blank/whitespace-only jobCode and the "all" stage are omitted.
  */
 export function sitePhotosQueryParams(filters: { jobCode: string; stage: SitePhotoStageFilter }): ListAdminSitePhotosParams {
   const params: ListAdminSitePhotosParams = {};
@@ -55,6 +53,66 @@ export function sitePhotosQueryParams(filters: { jobCode: string; stage: SitePho
 
 export type SitePhotoExtraFilters = { onlyUnassigned: boolean; month: string };
 export const ALL_SITE_PHOTOS_MONTHS = "all";
+export type SitePhotoTimeRange = "all" | "30d" | "year";
+export type SitePhotoYearPeriod = "all" | "q1" | "q2" | "q3" | "q4" | `month:${string}`;
+
+const SITE_PHOTO_TIME_ZONE_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  timeZone: THAI_TIME_ZONE,
+});
+
+function sitePhotoDate(photo: SitePhoto): Date | null {
+  for (const value of [photo.capturedAt, photo.createdAt]) {
+    if (!value) continue;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+  return null;
+}
+
+function sitePhotoDateParts(date: Date): { year: string; month: string } | null {
+  const parts = SITE_PHOTO_TIME_ZONE_DATE_FORMATTER.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  return year && month ? { year, month } : null;
+}
+
+export function sitePhotoYearOptions(photos: readonly SitePhoto[]) {
+  const years = new Set<string>();
+  for (const photo of photos) {
+    const date = sitePhotoDate(photo);
+    const parts = date ? sitePhotoDateParts(date) : null;
+    if (parts) years.add(parts.year);
+  }
+  return Array.from(years)
+    .sort((left, right) => Number(right) - Number(left))
+    .map((value) => ({ value, label: `พ.ศ. ${Number(value) + 543}` }));
+}
+
+export function sitePhotoYearPeriodOptions(photos: readonly SitePhoto[], year: string) {
+  const monthKeys = new Set<string>();
+  if (year) {
+    for (const photo of photos) {
+      const date = sitePhotoDate(photo);
+      const parts = date ? sitePhotoDateParts(date) : null;
+      if (parts?.year === year) monthKeys.add(`${parts.year}-${parts.month}`);
+    }
+  }
+  return [
+    { value: "all" as const, label: "ทั้งปี (ทุกเดือน)" },
+    { value: "q1" as const, label: "ไตรมาส 1" },
+    { value: "q2" as const, label: "ไตรมาส 2" },
+    { value: "q3" as const, label: "ไตรมาส 3" },
+    { value: "q4" as const, label: "ไตรมาส 4" },
+    ...Array.from(monthKeys)
+      .sort((left, right) => left.localeCompare(right))
+      .map((monthKey) => ({
+        value: `month:${monthKey}` as const,
+        label: sitePhotoMonthLabel(monthKey),
+      })),
+  ];
+}
 
 export function sitePhotoCapturedMonthKey(capturedAt: string | null | undefined): string | null {
   if (!capturedAt) return null;
@@ -100,6 +158,60 @@ export function filterSitePhotosExtra(photos: readonly SitePhoto[], filters: Sit
     return true;
   });
 }
+
+export function filterSitePhotosSmart(
+  photos: readonly SitePhoto[],
+  filters: {
+    search: string;
+    stage: SitePhotoStageFilter;
+    onlyUnassigned: boolean;
+    timeRange: SitePhotoTimeRange;
+    year: string;
+    yearPeriod: SitePhotoYearPeriod;
+  },
+  now = new Date(),
+): SitePhoto[] {
+  const search = filters.search.trim().toLocaleLowerCase();
+  const nowMs = now.getTime();
+  const thirtyDaysAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000;
+
+  return photos.filter((photo) => {
+    if (filters.stage !== "all" && photo.stage !== filters.stage) return false;
+
+    const isUnassigned = !photo.jobCode || photo.jobCode.trim() === "";
+    if (filters.onlyUnassigned && !isUnassigned) return false;
+
+    if (search) {
+      const matchesSearch = [photo.jobCode, photo.description, photo.senderName]
+        .some((value) => value?.trim().toLocaleLowerCase().includes(search) ?? false);
+      if (!matchesSearch) return false;
+    }
+
+    if (filters.timeRange === "30d") {
+      const date = sitePhotoDate(photo);
+      const timestamp = date?.getTime();
+      if (timestamp === undefined || timestamp < thirtyDaysAgoMs || timestamp > nowMs) return false;
+    }
+
+    if (filters.timeRange === "year") {
+      if (!filters.year) return false;
+      const date = sitePhotoDate(photo);
+      const parts = date ? sitePhotoDateParts(date) : null;
+      if (!parts || parts.year !== filters.year) return false;
+
+      if (filters.yearPeriod.startsWith("q")) {
+        const quarter = Number(filters.yearPeriod.slice(1));
+        if (!Number.isInteger(quarter) || Math.ceil(Number(parts.month) / 3) !== quarter) return false;
+      } else if (filters.yearPeriod.startsWith("month:")) {
+        const monthKey = `${parts.year}-${parts.month}`;
+        if (filters.yearPeriod.slice("month:".length) !== monthKey) return false;
+      }
+    }
+
+    return true;
+  });
+}
+
 const SITE_PHOTOS_BASE_QUERY_KEY = getListAdminSitePhotosQueryKey();
 
 function StageBadge({ stage }: { stage: SitePhotoStage }) {
@@ -240,10 +352,12 @@ function SitePhotoLightbox({
 }
 
 export function SitePhotosPage() {
-  const [jobCodeInput, setJobCodeInput] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [stageFilter, setStageFilter] = useState<SitePhotoStageFilter>("all");
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
-  const [monthFilter, setMonthFilter] = useState<string>(ALL_SITE_PHOTOS_MONTHS);
+  const [timeRange, setTimeRange] = useState<SitePhotoTimeRange>("all");
+  const [yearFilter, setYearFilter] = useState("");
+  const [yearPeriodFilter, setYearPeriodFilter] = useState<SitePhotoYearPeriod>("all");
   const [selectedPhoto, setSelectedPhoto] = useState<SitePhoto | null>(null);
   const [editDescriptionOnOpen, setEditDescriptionOnOpen] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<SitePhoto | null>(null);
@@ -256,22 +370,36 @@ export function SitePhotosPage() {
   const updatePhoto = useUpdateAdminSitePhoto();
 
   const params = useMemo(
-    () => sitePhotosQueryParams({ jobCode: jobCodeInput, stage: stageFilter }),
-    [jobCodeInput, stageFilter],
+    () => sitePhotosQueryParams({ jobCode: "", stage: stageFilter }),
+    [stageFilter],
   );
   const photosQuery = useListAdminSitePhotos(params);
   const photos = photosQuery.data ?? [];
-  const monthOptions = useMemo(() => sitePhotoMonthOptions(photos, monthFilter), [photos, monthFilter]);
+  const yearOptions = useMemo(() => sitePhotoYearOptions(photos), [photos]);
+  const periodYear = yearFilter || yearOptions[0]?.value || "";
+  const yearPeriodOptions = useMemo(
+    () => sitePhotoYearPeriodOptions(photos, periodYear),
+    [photos, periodYear],
+  );
   const visiblePhotos = useMemo(
-    () => filterSitePhotosExtra(photos, { onlyUnassigned, month: monthFilter }),
-    [photos, onlyUnassigned, monthFilter],
+    () => filterSitePhotosSmart(photos, {
+      search: searchInput,
+      stage: stageFilter,
+      onlyUnassigned,
+      timeRange,
+      year: yearFilter,
+      yearPeriod: yearPeriodFilter,
+    }),
+    [photos, searchInput, stageFilter, onlyUnassigned, timeRange, yearFilter, yearPeriodFilter],
   );
 
   const clearFilters = () => {
-    setJobCodeInput("");
+    setSearchInput("");
     setStageFilter("all");
     setOnlyUnassigned(false);
-    setMonthFilter(ALL_SITE_PHOTOS_MONTHS);
+    setTimeRange("all");
+    setYearFilter("");
+    setYearPeriodFilter("all");
   };
 
   const refresh = () => {
@@ -335,12 +463,12 @@ export function SitePhotosPage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          value={jobCodeInput}
-          onChange={(event) => setJobCodeInput(event.target.value)}
-          placeholder="ค้นหารหัสงาน เช่น JB01/2569"
-          className="max-w-xs rounded-none"
-          disabled={onlyUnassigned}
-          data-testid="input-site-photos-job-code"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder="ค้นหารหัสงาน สถานที่ คำอธิบาย หรือชื่อช่าง"
+          className="w-full max-w-md rounded-none"
+          aria-label="ค้นหาภาพหน้างาน"
+          data-testid="input-site-photos-search"
         />
         <div className="flex flex-wrap gap-2" role="group" aria-label="กรองตามขั้นตอนงาน">
           {SITE_PHOTO_STAGE_OPTIONS.map((option) => (
@@ -364,23 +492,76 @@ export function SitePhotosPage() {
             onClick={() => {
               const nextOnlyUnassigned = !onlyUnassigned;
               setOnlyUnassigned(nextOnlyUnassigned);
-              if (nextOnlyUnassigned) setJobCodeInput("");
+              if (nextOnlyUnassigned) setSearchInput("");
             }}
           >
             ⚠️ ยังไม่ระบุรหัสงาน
           </Button>
         </div>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="กรองตามช่วงเวลา">
+          <Button
+            type="button"
+            variant={timeRange === "all" ? "default" : "outline"}
+            className="rounded-none"
+            aria-pressed={timeRange === "all"}
+            onClick={() => {
+              setTimeRange("all");
+              setYearFilter("");
+              setYearPeriodFilter("all");
+            }}
+            data-testid="button-site-photos-time-all"
+          >
+            ทั้งหมด
+          </Button>
+          <Button
+            type="button"
+            variant={timeRange === "30d" ? "default" : "outline"}
+            className="rounded-none"
+            aria-pressed={timeRange === "30d"}
+            onClick={() => {
+              setTimeRange("30d");
+              setYearFilter("");
+              setYearPeriodFilter("all");
+            }}
+            data-testid="button-site-photos-time-30d"
+          >
+            30 วันล่าสุด
+          </Button>
+        </div>
+        <label htmlFor="select-site-photo-year" className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
+          <span>ปี พ.ศ.</span>
+          <select
+            id="select-site-photo-year"
+            value={yearFilter}
+            onChange={(event) => {
+              const nextYear = event.target.value;
+              setYearFilter(nextYear);
+              setYearPeriodFilter("all");
+              setTimeRange(nextYear ? "year" : "all");
+            }}
+            className="rounded-none border border-[var(--line)] bg-[var(--card-paper)] px-3 py-2 text-sm text-[var(--ink)]"
+            data-testid="select-site-photo-year"
+          >
+            <option value="">เลือกปี</option>
+            {yearOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
         <label htmlFor="select-site-photo-month" className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
-          <span>เดือนที่ถ่าย</span>
+          <span>ช่วงในปี</span>
           <select
             id="select-site-photo-month"
-            value={monthFilter}
-            onChange={(event) => setMonthFilter(event.target.value)}
-            className="rounded-none border border-[var(--line)] bg-[var(--card-paper)] px-3 py-2 text-sm text-[var(--ink)]"
+            value={yearPeriodFilter}
+            onChange={(event) => {
+              setYearPeriodFilter(event.target.value as SitePhotoYearPeriod);
+              setTimeRange("year");
+            }}
+            disabled={!yearFilter}
+            className="rounded-none border border-[var(--line)] bg-[var(--card-paper)] px-3 py-2 text-sm text-[var(--ink)] disabled:opacity-60"
             data-testid="select-site-photo-month"
           >
-            <option value={ALL_SITE_PHOTOS_MONTHS}>ทุกเดือน</option>
-            {monthOptions.map((option) => (
+            {yearPeriodOptions.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
