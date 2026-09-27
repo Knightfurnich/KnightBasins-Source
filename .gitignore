@@ -56,3 +56,10 @@ Thumbs.db
 # Crash dumps: a stray core file was staged once and the push was rejected for 640 MB.
 core
 core.[0-9]*
+
+# Secrets / credentials -- never commit these. google-service-account.ts looks
+# for a service-account key at exactly this relative filename as one of its
+# candidate paths, so it must never be committable by accident.
+.env
+.env.*
+*credentials*.json
