@@ -57,7 +57,7 @@ type AiCostCenterSummary = {
   totalCostThb: number;
   totalRequests: number;
   services: Array<{
-    id: "sales_bot" | "sketch_vision" | "hermes_ops";
+    id: "sales_bot" | "sketch_vision" | "hermes_ops" | "vertex_gemini";
     status: "active" | "no-data";
   }>;
 };
@@ -85,6 +85,7 @@ const aiCostServices: Array<{ id: AiCostCenterSummary["services"][number]["id"];
   { id: "sales_bot", label: "น้องไนท์", detail: "LINE Bot" },
   { id: "sketch_vision", label: "Blueprint Reader", detail: "อ่านแบบร่าง" },
   { id: "hermes_ops", label: "เฮอร์มีส", detail: "งานระบบ" },
+  { id: "vertex_gemini", label: "Vertex AI", detail: "Gemini 2.5 Flash" },
 ];
 
 function useAdminDashboardStats(period: AdminDashboardStatsPeriod) {
@@ -110,6 +111,33 @@ function useDashboardAiCostSummary() {
     gcTime: 5 * 60_000,
     retry: 1,
   });
+}
+
+export function DashboardAiCostBadges({
+  services,
+}: {
+  services: AiCostCenterSummary["services"];
+}) {
+  return (
+    <div className="dashboard-ai-badges" aria-label="สถานะบริการ AI">
+      {aiCostServices.map((item) => {
+        const service = services.find((candidate) => candidate.id === item.id);
+        const isActive = service?.status === "active";
+        return (
+          <span
+            key={item.id}
+            className={`dashboard-ai-badge ${isActive ? "dashboard-ai-badge--active" : "dashboard-ai-badge--empty"}`}
+            data-testid={`dashboard-ai-cost-service-${item.id}`}
+          >
+            <span className="dashboard-ai-badge__dot" aria-hidden="true" />
+            <span className="dashboard-ai-badge__name">{item.label}</span>
+            <span className="dashboard-ai-badge__detail">{item.detail}</span>
+            <span className="dashboard-ai-badge__status">{isActive ? "Active" : "ไม่มีข้อมูล"}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 function useDashboardStorageStats() {
@@ -211,24 +239,7 @@ function DashboardAiCostWidget({ canNavigate }: { canNavigate: (href: string) =>
       )}
 
       {data && (
-        <div className="dashboard-ai-badges" aria-label="สถานะบริการ AI">
-          {aiCostServices.map((item) => {
-            const service = data.services.find((candidate) => candidate.id === item.id);
-            const isActive = service?.status === "active";
-            return (
-              <span
-                key={item.id}
-                className={`dashboard-ai-badge ${isActive ? "dashboard-ai-badge--active" : "dashboard-ai-badge--empty"}`}
-                data-testid={`dashboard-ai-cost-service-${item.id}`}
-              >
-                <span className="dashboard-ai-badge__dot" aria-hidden="true" />
-                <span className="dashboard-ai-badge__name">{item.label}</span>
-                <span className="dashboard-ai-badge__detail">{item.detail}</span>
-                <span className="dashboard-ai-badge__status">{isActive ? "Active" : "ไม่มีข้อมูล"}</span>
-              </span>
-            );
-          })}
-        </div>
+        <DashboardAiCostBadges services={data.services} />
       )}
 
       {isError && data && (
