@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { inflateRawSync } from "node:zlib";
 import { after, afterEach, before, describe, it } from "node:test";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -193,6 +194,51 @@ const JOB_ROWS: FakeSitePhotoRow[] = [
 const EOCD_SIGNATURE = 0x06054b50;
 const LOCAL_HEADER_SIGNATURE = 0x04034b50;
 
+/** Minimal, dependency-free ZIP reader used only to prove archives this route
+ * produces are actually readable -- follows the EOCD -> central directory ->
+ * localHeaderOffset chain a real zip tool relies on, then inflates each
+ * entry's compressed bytes and checks the size against the central directory
+ * record. This is what caught job-129: that bug corrupted every offset field
+ * after the first entry while leaving signatures/entry names looking fine to
+ * a superficial byte-signature-and-substring check. */
+function readZipEntries(archive: Buffer): Array<{ name: string; content: Buffer }> {
+  const eocdOffset = archive.length - 22;
+  assert.equal(archive.readUInt32LE(eocdOffset), EOCD_SIGNATURE, "missing EOCD record");
+  const totalEntries = archive.readUInt16LE(eocdOffset + 10);
+  const centralDirectorySize = archive.readUInt32LE(eocdOffset + 12);
+  const centralDirectoryStart = archive.readUInt32LE(eocdOffset + 16);
+  assert.equal(
+    centralDirectoryStart + centralDirectorySize,
+    eocdOffset,
+    "central directory must end exactly where the EOCD record begins",
+  );
+
+  const entries: Array<{ name: string; content: Buffer }> = [];
+  let cursor = centralDirectoryStart;
+  for (let i = 0; i < totalEntries; i++) {
+    assert.equal(archive.readUInt32LE(cursor), 0x02014b50, `central directory entry ${i} has a bad signature`);
+    const compressedSize = archive.readUInt32LE(cursor + 20);
+    const uncompressedSize = archive.readUInt32LE(cursor + 24);
+    const nameLength = archive.readUInt16LE(cursor + 28);
+    const localHeaderOffset = archive.readUInt32LE(cursor + 42);
+    const name = archive.toString("utf8", cursor + 46, cursor + 46 + nameLength);
+    cursor += 46 + nameLength;
+
+    assert.equal(
+      archive.readUInt32LE(localHeaderOffset),
+      LOCAL_HEADER_SIGNATURE,
+      `local header for "${name}" has a bad signature at its recorded offset -- offsets are corrupted`,
+    );
+    const localNameLength = archive.readUInt16LE(localHeaderOffset + 26);
+    const dataStart = localHeaderOffset + 30 + localNameLength;
+    const compressed = archive.subarray(dataStart, dataStart + compressedSize);
+    const content = inflateRawSync(compressed);
+    assert.equal(content.length, uncompressedSize, `inflated size for "${name}" must match the central directory record`);
+    entries.push({ name, content });
+  }
+  return entries;
+}
+
 describe("GET /admin/site-photos/download-zip", () => {
   it("rejects unauthenticated callers with 401", async () => {
     const server = await startAdminRoute(createFakeSitePhotoDatabase(JOB_ROWS));
@@ -257,6 +303,25 @@ describe("GET /admin/site-photos/download-zip", () => {
       assert.ok(text.includes("survey_1_survey-a.webp"), "stage-prefixed entry name for the survey photo");
       assert.ok(text.includes("installation_2_install-b.webp"), "stage-prefixed entry name for the install photo");
       assert.ok(!text.includes("other-job.webp"), "photos of a different job must not be included");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("produces an archive a real zip reader can locate and inflate byte-for-byte (job-129 regression)", async () => {
+    const server = await startAdminRoute(createFakeSitePhotoDatabase(JOB_ROWS));
+    try {
+      const response = await fetch(`${server.url}/api/admin/site-photos/download-zip?jobCode=${encodeURIComponent("JB01/2569")}`, {
+        headers: { cookie: `knight_admin_session=${createAdminToken()}` },
+      });
+      const archive = Buffer.from(await response.arrayBuffer());
+      const entries = readZipEntries(archive);
+      assert.equal(entries.length, 2);
+      assert.deepEqual(
+        entries.map((entry) => entry.content.toString("utf8")),
+        ["fake-webp-survey-payload", "fake-webp-install-payload"],
+        "each entry's actual bytes must round-trip through the real offsets, not just contain the right filename",
+      );
     } finally {
       await server.close();
     }

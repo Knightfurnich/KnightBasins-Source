@@ -270,7 +270,7 @@ type ZipCentralDirectoryEntry = {
  * skipped entries are simply left out of the central directory that readers
  * use to enumerate the archive. */
 async function appendZipEntry(
-  write: (buffer: Buffer) => void,
+  write: (buffer: Buffer) => boolean,
   currentOffset: () => number,
   filePath: string,
   entryName: string,
@@ -321,7 +321,12 @@ async function appendZipEntry(
 
       deflate.on("data", (chunk: Buffer) => {
         compressedSize += chunk.length;
-        if (!res.write(chunk)) {
+        // Must go through `write()`, not res.write() directly -- otherwise
+        // these bytes reach the client fine but never advance `offset`, so
+        // every localHeaderOffset/centralDirectoryStart recorded after the
+        // first entry's compressed data points at the wrong byte and a real
+        // zip reader parses the central directory as garbage (job-129).
+        if (!write(chunk)) {
           deflate.pause();
           res.once("drain", () => deflate.resume());
         }
@@ -350,9 +355,9 @@ async function appendZipEntry(
  * in this workspace. */
 async function streamSitePhotosZip(res: Response, photos: Array<{ imageUrl: unknown; stage: unknown }>): Promise<void> {
   let offset = 0;
-  const write = (buffer: Buffer) => {
+  const write = (buffer: Buffer): boolean => {
     offset += buffer.length;
-    res.write(buffer);
+    return res.write(buffer);
   };
 
   const entries: ZipCentralDirectoryEntry[] = [];
