@@ -25,15 +25,15 @@
 
 ---
 
-### 📦 กล่องที่ 2: ระบบความโปร่งใสหลังบ้าน & ศูนย์ควบคุม AI (Admin Health & Enterprise AI Suite) — 🟡 รอชิ้นสุดท้าย (Task 136)
+### 📦 กล่องที่ 2: ระบบความโปร่งใสหลังบ้าน & ศูนย์ควบคุม AI (Admin Health & Enterprise AI Suite) — 🟢 ปิดกล่องสำเร็จ 100% (Certified)
 * [x] **Task 113 (Replit):** Storage & Backup Vault Health Widget on Dashboard
 * [x] **Task 114 (Chai):** Real-time Database Health & Latency API
 * [x] **Task 134 (Replit):** Database Health & Latency Dashboard Widget
 * [x] **Task 124 + Task 126 (Chai):** Vertex AI Gemini (Singapore asia-southeast1) + Service Account Migration
 * [x] **Task 133 (Replit):** Sketch Canvas 90° Image Rotation before Vision Analysis
 * [x] **Task 135 (Chai):** Vertex AI Gemini Token & Cost Tracking in Unified Cost Center
-* [ ] **Task 136 (Replit):** AI Cost Center Vertex Gemini Pillar UI & Dashboard Badge (กำลังทำ)
-* 👉 **เป้าหมายตัดรอบ:** ทันทีที่ Replit ส่ง Task 136 และ Deploy Live ➔ **ประกาศปิดกล่องที่ 2 และเปิดตัว Knight Basins V1.0 ทันที!**
+* [x] **Task 136 (Replit):** AI Cost Center Vertex Gemini Pillar UI & Dashboard Badge
+* 👉 **สถานะ:** ปิดกล่องสมบูรณ์ · ครบตามเป้าหมายของ Knight Basins V1.0 · เข้าสู่ช่วงพักระบบ 48 ชม. (เปิดเฉพาะ Fast-track แก้บั๊ก)
 
 ---
 
@@ -202,7 +202,7 @@
 | **Task 132 (Site Photos Hide/Unhide UI)** | Replit | เปลี่ยนปุ่มลบภาพเป็นปุ่มซ่อนภาพ (Soft Hide) พร้อมแท็บสลับดูภาพที่ซ่อนไว้และปุ่มกู้คืน (Unhide) | `feat/replit-admin-site-photos-hide-ui` | ✅ **Merged & Live (PR #98)** `2519e33` · เดวิดตรวจรับและ merge ตามอำนาจ 1 สัปดาห์ · typecheck 0 errors · เทสต์ 40/40 ผ่าน · Asset `index-DOoYAoev.js` HTTP 200 บน VPS |
 | **Task 135 (Vertex AI Cost Center Integration)** | ชัย | บันทึกต้นทุนการใช้งาน Vertex AI Gemini เข้า Unified AI Cost Center แยกเสาหลักที่ 4 ชัดเจน พร้อมนับ Token จริง | `feat/chai-vertex-ai-cost-tracking` | ✅ **Merged & Live** `e9124cb` · typecheck 0 errors · เทสต์ผ่าน 14/14 · security-audit 18/18 · deploy VPS สำเร็จ |
 | **Task 134 (DB Health Widget on Dashboard)** | Replit | เพิ่มวิดเจ็ต Database & Connection Health บน Admin Dashboard แสดงสถานะ, latency และจำนวนตาราง | `feat/replit-admin-database-health-widget` | ✅ **Merged & Live (PR #99)** `6fc3538` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
-| **Task 136 (AI Cost Vertex Gemini Pillar UI)** | Replit | เพิ่มการแสดงผลบริการ Vertex AI Gemini ในหน้ารายงานต้นทุน AI (/admin/ai-cost) และ Badge บนแดชบอร์ด | `feat/replit-admin-ai-cost-vertex-ui` | 🟡 **มอบหมายแล้ว** (`qa/job-136-replit-admin-ai-cost-vertex-ui.md`) |
+| **Task 136 (AI Cost Vertex Gemini Pillar UI)** | Replit | เพิ่มการแสดงผลบริการ Vertex AI Gemini ในหน้ารายงานต้นทุน AI (/admin/ai-cost) และ Badge บนแดชบอร์ด | `feat/replit-admin-ai-cost-vertex-ui` | ✅ **Merged & Live (PR #100)** `eb8f42a` · typecheck 0 errors · เทสต์ผ่าน 3/3 · deploy VPS สำเร็จ |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
