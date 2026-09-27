@@ -1,5 +1,5 @@
-import { createHash, sign as cryptoSign } from "node:crypto";
-import { createReadStream, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
 import { readdir, stat, unlink } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
 import {
@@ -84,6 +84,7 @@ import {
 import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./leads";
 import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
+import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "../lib/google-service-account";
 
 export type AdminDatabase = {
   select: (...args: any[]) => any;
@@ -207,14 +208,11 @@ function toCsv(columns: string[], rows: unknown[][]): string {
 // ---- Stock sheet sync (GET /admin/stock) --------------------------------
 //
 // Reads live stock levels for Staron and Zen Stone directly from their
-// Google Sheets via a Google service account (JWT Bearer Token flow --
-// signed here with node:crypto so no new dependency is needed), rather than
-// the public-CSV-export workaround the existing n8n stock-sync workflow
-// uses for a different purpose (matching SKUs for WooCommerce).
+// Google Sheets via a Google service account (see lib/google-service-account.ts
+// for the JWT Bearer Token flow), rather than the public-CSV-export
+// workaround the existing n8n stock-sync workflow uses for a different
+// purpose (matching SKUs for WooCommerce).
 
-type GoogleServiceAccountCredentials = { client_email: string; private_key: string };
-
-const STOCK_GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const STOCK_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 const STOCK_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -231,82 +229,6 @@ let stockCache: { data: AdminStockResponse; fetchedAt: number } | null = null;
 type AdminStockItem = { no: number; name: string; qty: number; scrap: string; lots: string[]; note: string };
 type AdminStockSheet = { title: string; total: number; inStockCount: number; totalSheets: number; items: AdminStockItem[] };
 type AdminStockResponse = { updatedAt: string; staron: AdminStockSheet; zen: AdminStockSheet };
-
-/** Looks for the credentials as inline JSON first (GOOGLE_SERVICE_ACCOUNT_JSON),
- * then as a file path (GOOGLE_APPLICATION_CREDENTIALS, or the two conventional
- * locations the work order names for the server and a dev machine). */
-function loadGoogleServiceAccountCredentials(): GoogleServiceAccountCredentials | null {
-  if (process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] === "true") return null;
-
-  const parseIfValid = (raw: string): GoogleServiceAccountCredentials | null => {
-    try {
-      const parsed = JSON.parse(raw) as Partial<GoogleServiceAccountCredentials>;
-      return typeof parsed.client_email === "string" && typeof parsed.private_key === "string"
-        ? { client_email: parsed.client_email, private_key: parsed.private_key }
-        : null;
-    } catch {
-      return null;
-    }
-  };
-
-  const inline = process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
-  if (inline) {
-    const credentials = parseIfValid(inline);
-    if (credentials) return credentials;
-  }
-
-  const candidatePaths = [
-    process.env["GOOGLE_APPLICATION_CREDENTIALS"],
-    "/app/google-credentials.json",
-    "./google-credentials.json",
-    "/docker/knightbasins/google-credentials.json",
-    "/opt/data/.google-credentials.json",
-  ].filter((path): path is string => Boolean(path));
-
-  for (const path of candidatePaths) {
-    try {
-      const credentials = parseIfValid(readFileSync(path, "utf8"));
-      if (credentials) return credentials;
-    } catch {
-      // try the next candidate path
-    }
-  }
-  return null;
-}
-
-function base64UrlEncode(input: string): string {
-  return Buffer.from(input, "utf8").toString("base64url");
-}
-
-/** Signs a Google service-account JWT and exchanges it for an access token
- * (the standard JWT Bearer Token flow for server-to-server auth). */
-async function fetchGoogleAccessToken(credentials: GoogleServiceAccountCredentials): Promise<string> {
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const header = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const claims = base64UrlEncode(JSON.stringify({
-    iss: credentials.client_email,
-    scope: STOCK_SHEETS_SCOPE,
-    aud: STOCK_GOOGLE_TOKEN_URL,
-    iat: nowSeconds,
-    exp: nowSeconds + 3600,
-  }));
-  const unsigned = `${header}.${claims}`;
-  const signature = cryptoSign("RSA-SHA256", Buffer.from(unsigned), credentials.private_key).toString("base64url");
-  const assertion = `${unsigned}.${signature}`;
-
-  const response = await fetch(STOCK_GOOGLE_TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion,
-    }),
-  });
-  if (!response.ok) throw new Error(`Google token exchange failed with ${response.status}`);
-  const payload = await response.json() as { access_token?: unknown };
-  if (typeof payload.access_token !== "string") throw new Error("Google token exchange returned no access_token");
-  return payload.access_token;
-}
 
 function parseCsvRows(text: string): string[][] {
   return text.split(/\r?\n/).map((line) => {
@@ -3097,7 +3019,7 @@ export function createAdminRouter(
     const credentials = loadGoogleServiceAccountCredentials();
     if (!credentials) return { unconfigured: true };
 
-    const accessToken = await fetchGoogleAccessToken(credentials);
+    const accessToken = await fetchGoogleAccessToken(credentials, STOCK_SHEETS_SCOPE);
     const [staronRows, zenRows] = await Promise.all([
       fetchGoogleSheetRows(STARON_SPREADSHEET_ID, STARON_SHEET_NAME, accessToken),
       fetchGoogleSheetRows(ZEN_SPREADSHEET_ID, ZEN_SHEET_NAME, accessToken),

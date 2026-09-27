@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
 import { after, afterEach, before, describe, it, mock } from "node:test";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -139,9 +140,22 @@ afterEach(() => {
 
 // Mocking globalThis.fetch also intercepts this test file's own calls to the
 // local admin server (same process, same global) -- same pattern
-// support-speech-route.test.ts uses -- so anything that isn't the Google TTS
-// URL must fall through to the real fetch.
+// support-speech-route.test.ts uses -- so anything that isn't Google's own
+// endpoints must fall through to the real fetch.
 const realFetch = globalThis.fetch;
+
+// A genuine RSA key pair, so the real JWT-signing code in
+// lib/google-service-account.ts runs unmocked -- only the token exchange and
+// Text-to-Speech HTTP calls below are mocked. This never leaves this process.
+const { privateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: { type: "pkcs1", format: "pem" },
+  publicKeyEncoding: { type: "pkcs1", format: "pem" },
+});
+const FAKE_CREDENTIALS_JSON = JSON.stringify({
+  client_email: "knight-basins-tts@test.iam.gserviceaccount.com",
+  private_key: privateKey,
+});
 
 describe("GET /admin/support-voice", () => {
   it("requires an authenticated admin session", async () => {
@@ -338,10 +352,13 @@ describe("POST /admin/support-voice/preview", () => {
   });
 
   it("returns audio/mpeg bytes synthesized with the requested candidate voice", async () => {
-    process.env["GOOGLE_TTS_API_KEY"] = "test-key";
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
     let capturedBody: Record<string, unknown> = {};
     mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
       if (url.includes("texttospeech.googleapis.com")) {
         capturedBody = JSON.parse(String(init?.body));
         return new Response(JSON.stringify({ audioContent: Buffer.from([1, 2, 3]).toString("base64") }), { status: 200 });
@@ -361,7 +378,7 @@ describe("POST /admin/support-voice/preview", () => {
       assert.equal(response.headers.get("content-type"), "audio/mpeg");
       assert.equal((capturedBody["voice"] as { name: string }).name, "th-TH-Chirp3-HD-Zephyr", "previews the candidate voice, not the currently-saved one");
     } finally {
-      delete process.env["GOOGLE_TTS_API_KEY"];
+      delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
       await server.close();
     }
   });

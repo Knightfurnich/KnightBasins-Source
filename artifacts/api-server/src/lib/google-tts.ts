@@ -5,7 +5,15 @@
 // specifically and were picked after a side-by-side listening comparison.
 // This is opt-in per message (a 🔊 button in the chat widget), never
 // auto-played, since each call spends real quota.
+//
+// Authenticates with a Google service account (the org's GCP project
+// disallows API keys) via lib/google-service-account.ts -- the same JWT
+// Bearer Token flow the admin stock-sheet sync uses, just with the
+// cloud-platform scope instead of spreadsheets.readonly.
 
+import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "./google-service-account.ts";
+
+const TTS_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 const REQUEST_TIMEOUT_MS = 30_000;
 const DEFAULT_LANGUAGE_CODE = "th-TH";
 // "Kore" -- picked after comparing all th-TH Chirp3-HD/Neural2 voices side
@@ -106,14 +114,8 @@ async function refreshActiveVoiceRow(): Promise<ActiveVoiceRow | null> {
   return row;
 }
 
-function googleTtsConfig() {
-  const apiKey = process.env["GOOGLE_TTS_API_KEY"];
-  if (!apiKey) return null;
-  return { apiKey };
-}
-
 export function googleTtsConfigured() {
-  return googleTtsConfig() !== null;
+  return loadGoogleServiceAccountCredentials() !== null;
 }
 
 /**
@@ -130,8 +132,8 @@ export async function synthesizeSpeech(text: string, voiceNameOverride?: string)
     return { ok: false, message: `ข้อความยาวเกินไป (จำกัด ${MAX_TEXT_LENGTH} ตัวอักษรต่อครั้ง)` };
   }
 
-  const config = googleTtsConfig();
-  if (!config) return { ok: false, message: "ยังไม่ได้ตั้งค่า GOOGLE_TTS_API_KEY" };
+  const credentials = loadGoogleServiceAccountCredentials();
+  if (!credentials) return { ok: false, message: "ยังไม่ได้ตั้งค่า Google Service Account (GOOGLE_SERVICE_ACCOUNT_JSON)" };
 
   let voice: ActiveVoiceConfig;
   if (voiceNameOverride) {
@@ -146,9 +148,13 @@ export async function synthesizeSpeech(text: string, voiceNameOverride?: string)
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${config.apiKey}`, {
+    const accessToken = await fetchGoogleAccessToken(credentials, TTS_SCOPE);
+    const response = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify({
         input: { text: trimmed },
         voice: { languageCode: voice.languageCode, name: voice.voiceName },
