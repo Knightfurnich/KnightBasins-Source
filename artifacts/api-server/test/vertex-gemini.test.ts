@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { generateKeyPairSync } from "node:crypto";
 import { afterEach, describe, it, mock } from "node:test";
 import { askGemini, vertexGeminiConfigured } from "../src/lib/vertex-gemini.ts";
+import { clearAiUsageEvents, getUnifiedAiCostSummary } from "../src/lib/ai-cost-tracker.ts";
 
 const originalEnv = {
   projectId: process.env["VERTEX_AI_PROJECT_ID"],
@@ -13,6 +14,7 @@ const originalEnv = {
 
 afterEach(() => {
   mock.restoreAll();
+  clearAiUsageEvents();
   for (const [key, value] of Object.entries(originalEnv)) {
     const envKey = {
       projectId: "VERTEX_AI_PROJECT_ID",
@@ -200,6 +202,38 @@ describe("askGemini", () => {
     mockVertexFetch(() => new Response(JSON.stringify({ choices: [{ message: { content: "  " } }] }), { status: 200 }));
     const result = await askGemini({ message: "hi" });
     assert.equal(result.ok, false);
+  });
+
+  it("records a vertex_gemini usage event with the real prompt/completion tokens and duration on success", async () => {
+    setConfigured();
+    mockVertexFetch(() =>
+      new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "สวัสดีค่ะ" } }],
+          usage: { prompt_tokens: 12, completion_tokens: 34, total_tokens: 46 },
+        }),
+        { status: 200 },
+      ));
+    const result = await askGemini({ message: "hi" });
+    assert.equal(result.ok, true);
+
+    const summary = getUnifiedAiCostSummary("all");
+    const vertexGemini = summary.services.find((service) => service.id === "vertex_gemini")!;
+    assert.equal(vertexGemini.requests, 1);
+    assert.equal(vertexGemini.tokens, 46);
+    assert.equal(vertexGemini.status, "active");
+  });
+
+  it("still records a vertex_gemini usage event with success:false when Vertex AI responds with a non-2xx status", async () => {
+    setConfigured();
+    mockVertexFetch(() =>
+      new Response(JSON.stringify({ error: { message: "The caller does not have permission" } }), { status: 403 }));
+    const result = await askGemini({ message: "hi" });
+    assert.equal(result.ok, false);
+
+    const summary = getUnifiedAiCostSummary("all");
+    const vertexGemini = summary.services.find((service) => service.id === "vertex_gemini")!;
+    assert.equal(vertexGemini.requests, 1, "an event is still recorded even though the call failed");
   });
 
   it("returns a timeout failure when the request is aborted", async () => {

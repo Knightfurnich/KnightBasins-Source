@@ -13,7 +13,7 @@
 // not this module.
 import { readFileSync } from "node:fs";
 
-export type AiUsageService = "sales_bot" | "sketch_vision" | "hermes_ops";
+export type AiUsageService = "sales_bot" | "sketch_vision" | "hermes_ops" | "vertex_gemini";
 
 export type AiUsageEvent = {
   service: AiUsageService;
@@ -80,6 +80,7 @@ const GEMINI_FLASH_PRICING: ModelPricing = {
 const MODEL_PRICING: Record<string, ModelPricing> = {
   "gemini-3.8-flash": GEMINI_FLASH_PRICING,
   "gemini-2.5-flash": GEMINI_FLASH_PRICING,
+  "google/gemini-2.5-flash": GEMINI_FLASH_PRICING, // vertex-gemini.ts's model id includes the "google/" vendor prefix
   "deepseek-v4.1-flash": {
     inputThbPerThousandTokens: (0.14 / 1000) * USD_TO_THB, // 0.0049 บ./1k tokens
     outputThbPerThousandTokens: (0.28 / 1000) * USD_TO_THB, // 0.0098 บ./1k tokens
@@ -161,11 +162,12 @@ function readHermesAuditEvents(): RecordedAiUsageEvent[] {
   return events;
 }
 
-const SERVICE_ORDER: readonly AiUsageService[] = ["sales_bot", "sketch_vision", "hermes_ops"];
+const SERVICE_ORDER: readonly AiUsageService[] = ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini"];
 const SERVICE_NAMES: Record<AiUsageService, string> = {
   sales_bot: "น้องไนท์ (LINE Bot ผู้ช่วยขาย)",
   sketch_vision: "AI Blueprint Reader (อ่านแบบร่าง)",
   hermes_ops: "เฮอร์มีส (งานบริหารระบบ & งานช่าง)",
+  vertex_gemini: "ผู้ช่วย AI (Vertex AI Gemini)",
 };
 
 function periodStartMs(period: AiCostPeriod, now: Date): number {
