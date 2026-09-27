@@ -67,6 +67,7 @@ import {
 } from "../lib/quote-access";
 import { createRateLimiter, createConcurrencyLimiter } from "../lib/rate-limit";
 import { pruneBackupVault } from "../lib/backup-vault";
+import { computeStorageStats } from "../lib/storage-stats";
 import {
   cleanupUnreferencedUploadedImages,
   readMultipartForm,
@@ -76,6 +77,7 @@ import {
   saveUploadedMedia,
   saveUploadedImage,
   saveUploadedVideo,
+  UPLOAD_DIR,
   UploadFileCollisionError,
 } from "../lib/image-upload";
 import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./leads";
@@ -2990,6 +2992,19 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     try {
       const result = await pruneBackupVault(BACKUP_DIR);
       return res.json(result);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Storage & file health snapshot (job-112): portfolio photo count/size from
+   * the catalog (see lib/portfolio-catalog.ts), backup vault count/size/age
+   * from BACKUP_DIR (see lib/backup-vault.ts's notion of a backup file), and
+   * free/used space on the upload partition via statfs.
+   */
+  router.get("/admin/storage/stats", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const stats = await computeStorageStats(UPLOAD_DIR, BACKUP_DIR);
+      return res.json(stats);
     } catch (error) { return next(error); }
   });
 
