@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clipboard, Images, MessageCircle, Search, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 export type PortfolioCategory = { slug: string; name: string; icon: string; count: number };
 export type PortfolioItem = {
@@ -23,19 +23,98 @@ export type PortfolioResponse = {
   total: number;
   categories: PortfolioCategory[];
   count: number;
+  hasMore?: boolean;
+  nextOffset?: number | null;
   items: PortfolioItem[];
 };
 
 type PortfolioDuplicateGroup = { reason: "md5" | "dimensions"; itemIds: string[] };
 type PortfolioDuplicatesResponse = { groups: PortfolioDuplicateGroup[] };
-type UploadDraft = { id: number; file: File; title: string; previewUrl: string };
+type UploadDraft = {
+  id: number;
+  /** File sent to the API; replaced with the optimized file when preprocessing completes. */
+  file: File;
+  originalFile: File;
+  title: string;
+  previewUrl: string;
+  compressionStatus: "processing" | "ready";
+};
 type UploadFailure = { id: number; message: string };
 type UploadBatchResult = { uploadedIds: number[]; failures: UploadFailure[] };
+type PortfolioBatchDeleteResult = { deletedIds: string[]; notFoundIds: string[]; filesRemovedCount: number };
 type PortfolioApiError = Error & { status: number; apiMessage: string };
 
 const DUPLICATES_QUERY_KEY = ["/api/admin/portfolio/duplicates"] as const;
 const DELETE_CONFIRMATION_TEXT = "ลบรูปนี้ออกจากคลังผลงานถาวร? รูปจะหายจากหน้าเว็บและลบไฟล์ออกจากเซิร์ฟเวอร์";
+const PORTFOLIO_BATCH_DELETE_LIMIT = 50;
+const PORTFOLIO_IMAGE_MAX_DIMENSION = 1920;
+const PORTFOLIO_IMAGE_WEBP_QUALITY = 0.82;
+const PORTFOLIO_IMAGE_SMALL_FILE_THRESHOLD = 256 * 1024;
 let nextUploadDraftId = 0;
+
+type PortfolioImageDimensions = { width: number; height: number };
+
+export function getPortfolioImageDimensions(width: number, height: number): PortfolioImageDimensions {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return { width: 0, height: 0 };
+  }
+
+  const scale = Math.min(1, PORTFOLIO_IMAGE_MAX_DIMENSION / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+export function shouldCompressPortfolioImage(file: Pick<File, "name" | "size" | "type">): boolean {
+  const isWebp = file.type.toLowerCase() === "image/webp" || file.name.toLowerCase().endsWith(".webp");
+  return !isWebp && file.size > PORTFOLIO_IMAGE_SMALL_FILE_THRESHOLD;
+}
+
+async function optimizePortfolioImage(file: File): Promise<File> {
+  if (!shouldCompressPortfolioImage(file) || typeof document === "undefined" || typeof URL.createObjectURL !== "function") {
+    return file;
+  }
+
+  let imageUrl: string | null = null;
+  try {
+    imageUrl = URL.createObjectURL(file);
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("Could not decode image"));
+      element.src = imageUrl as string;
+    });
+
+    const dimensions = getPortfolioImageDimensions(image.naturalWidth || image.width, image.naturalHeight || image.height);
+    if (dimensions.width === 0 || dimensions.height === 0) return file;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+    const context = canvas.getContext("2d");
+    if (!context) return file;
+    context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/webp", PORTFOLIO_IMAGE_WEBP_QUALITY);
+    });
+    if (!blob || blob.type.toLowerCase() !== "image/webp" || blob.size === 0 || blob.size >= file.size) return file;
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "") || "portfolio-image";
+    return new File([blob], `${baseName}.webp`, { type: "image/webp", lastModified: file.lastModified });
+  } catch {
+    return file;
+  } finally {
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+  }
+}
+
+function formatPortfolioFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${bytes} B`;
+}
 
 function createPortfolioApiError(status: number, apiMessage: string): PortfolioApiError {
   const error = new Error(apiMessage || "Request failed") as PortfolioApiError;
@@ -129,11 +208,16 @@ export function toggleVisibility(currentlyVisible: boolean): boolean {
   return !currentlyVisible;
 }
 
-async function fetchPortfolio(category: string): Promise<PortfolioResponse> {
-  const url = category === "all"
-    ? "/api/portfolio?limit=200&includeHidden=true"
-    : `/api/portfolio?category=${encodeURIComponent(category)}&limit=200&includeHidden=true`;
-  const response = await fetch(url);
+async function fetchPortfolio(
+  category: string,
+  offset = 0,
+  limit: number | "all" = category === "all" ? "all" : 200,
+): Promise<PortfolioResponse> {
+  const params = new URLSearchParams({ limit: String(limit), includeHidden: "true" });
+  if (category !== "all") params.set("category", category);
+  if (offset > 0) params.set("offset", String(offset));
+
+  const response = await fetch(`/api/portfolio?${params.toString()}`);
   if (!response.ok) throw new Error("โหลดคลังภาพผลงานไม่สำเร็จ");
   return response.json() as Promise<PortfolioResponse>;
 }
@@ -164,6 +248,31 @@ async function deletePortfolioItem(id: string): Promise<{ id: string; deleted: b
     throw createPortfolioApiError(response.status, apiMessage);
   }
   return response.json() as Promise<{ id: string; deleted: boolean; fileRemoved: boolean }>;
+}
+
+async function batchDeletePortfolioItems(ids: string[]): Promise<PortfolioBatchDeleteResult> {
+  if (ids.length === 0 || ids.length > PORTFOLIO_BATCH_DELETE_LIMIT) {
+    throw new Error(`เลือกรูปได้ตั้งแต่ 1 ถึง ${PORTFOLIO_BATCH_DELETE_LIMIT} รูปต่อครั้ง`);
+  }
+  const response = await fetch("/api/admin/portfolio/batch-delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  if (!response.ok) {
+    const apiMessage = await readPortfolioApiMessage(response, "ลบรูปไม่สำเร็จ");
+    throw createPortfolioApiError(response.status, apiMessage);
+  }
+
+  const result = await response.json() as Partial<PortfolioBatchDeleteResult>;
+  if (
+    !Array.isArray(result.deletedIds)
+    || !Array.isArray(result.notFoundIds)
+    || typeof result.filesRemovedCount !== "number"
+  ) {
+    throw new Error("ผลตอบกลับจาก API ลบรูปเป็นชุดไม่ถูกต้อง");
+  }
+  return result as PortfolioBatchDeleteResult;
 }
 
 async function patchPortfolioVisibility(id: string, visible: boolean): Promise<{ id: string; visible: boolean }> {
@@ -287,6 +396,9 @@ export function PortfolioGalleryPage() {
   const [visibilityFilter, setVisibilityFilter] = useState<PortfolioVisibilityFilter>("all");
   const [onlyDuplicates, setOnlyDuplicates] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedBatchDeleteIds, setSelectedBatchDeleteIds] = useState<string[]>([]);
+  const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadCategory, setUploadCategory] = useState("");
   const [uploadDrafts, setUploadDrafts] = useState<UploadDraft[]>([]);
@@ -302,6 +414,20 @@ export function PortfolioGalleryPage() {
   const portfolioQuery = useQuery({
     queryKey,
     queryFn: () => fetchPortfolio(selectedCategory),
+  });
+  const loadMoreMutation = useMutation({
+    mutationFn: ({ category, offset }: { category: string; offset: number }) => fetchPortfolio(category, offset, 200),
+    onSuccess: (page, { category }) => {
+      queryClient.setQueryData<PortfolioResponse>(["/api/portfolio", category], (current) => {
+        if (!current) return page;
+        const existingIds = new Set(current.items.map((item) => item.id));
+        return {
+          ...page,
+          items: [...current.items, ...page.items.filter((item) => !existingIds.has(item.id))],
+        };
+      });
+    },
+    onError: () => setPageFeedback({ type: "error", message: "โหลดรูปเพิ่มเติมไม่สำเร็จ กรุณาลองอีกครั้ง" }),
   });
   const duplicatesQuery = useQuery({
     queryKey: DUPLICATES_QUERY_KEY,
@@ -361,6 +487,7 @@ export function PortfolioGalleryPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deletePortfolioItem(id),
     onSuccess: (_result, id) => {
+      setSelectedBatchDeleteIds((current) => current.filter((selectedId) => selectedId !== id));
       queryClient.setQueriesData<PortfolioResponse>({ queryKey: ["/api/portfolio"] }, (old) => {
         if (!old) return old;
         const itemWasLoaded = old.items.some((item) => item.id === id);
@@ -378,6 +505,28 @@ export function PortfolioGalleryPage() {
     },
     onError: (error) => setPageFeedback({ type: "error", message: portfolioDeleteErrorMessage(error) }),
   });
+  const batchDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => batchDeletePortfolioItems(ids),
+    onSuccess: async (result) => {
+      setSelectedBatchDeleteIds([]);
+      setMultiSelectMode(false);
+      setBatchDeleteDialogOpen(false);
+      setPageFeedback({
+        type: "success",
+        message: result.notFoundIds.length > 0
+          ? `ลบรูปภาพเรียบร้อยแล้ว ${result.deletedIds.length} รายการ (ไม่พบ ${result.notFoundIds.length} รายการ)`
+          : `ลบรูปภาพเรียบร้อยแล้ว ${result.deletedIds.length} รายการ`,
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] }),
+        queryClient.invalidateQueries({ queryKey: DUPLICATES_QUERY_KEY }),
+      ]);
+    },
+    onError: (error) => {
+      setBatchDeleteDialogOpen(false);
+      setPageFeedback({ type: "error", message: portfolioDeleteErrorMessage(error) });
+    },
+  });
 
   const categories = portfolioQuery.data?.categories ?? [];
   const allItems = portfolioQuery.data?.items ?? [];
@@ -392,7 +541,10 @@ export function PortfolioGalleryPage() {
     [duplicateIds, onlyDuplicates, visibleItems],
   );
   const writesPending = uploadMutation.isPending || deleteMutation.isPending;
-  const actionsDisabled = writesPending || toggleMutation.isPending;
+  const actionsDisabled = writesPending || batchDeleteMutation.isPending || toggleMutation.isPending || loadMoreMutation.isPending;
+  const uploadCompressionPending = uploadDrafts.some((draft) => draft.compressionStatus === "processing");
+  const allVisibleItemsSelected = filteredItems.length > 0
+    && filteredItems.every((item) => selectedBatchDeleteIds.includes(item.id));
 
   useEffect(() => () => {
     uploadObjectUrls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -425,12 +577,28 @@ export function PortfolioGalleryPage() {
       setUploadError("");
     }
     if (validFiles.length === 0) return;
-    const drafts = validFiles.map((file) => {
+    const drafts: UploadDraft[] = validFiles.map((file) => {
       const previewUrl = URL.createObjectURL(file);
       uploadObjectUrls.current.add(previewUrl);
-      return { id: ++nextUploadDraftId, file, title: "", previewUrl };
+      return {
+        id: ++nextUploadDraftId,
+        file,
+        originalFile: file,
+        title: "",
+        previewUrl,
+        compressionStatus: "processing",
+      };
     });
     setUploadDrafts((current) => [...current, ...drafts]);
+    drafts.forEach((draft) => {
+      void optimizePortfolioImage(draft.originalFile)
+        .catch(() => draft.originalFile)
+        .then((optimizedFile) => {
+          setUploadDrafts((current) => current.map((item) => item.id === draft.id
+            ? { ...item, file: optimizedFile, compressionStatus: "ready" }
+            : item));
+        });
+    });
   };
 
   const removeUploadDraft = (id: number) => {
@@ -457,7 +625,7 @@ export function PortfolioGalleryPage() {
   };
 
   const handleUploadSubmit = () => {
-    if (writesPending || uploadDrafts.length === 0 || !uploadCategory) return;
+    if (writesPending || uploadCompressionPending || uploadDrafts.length === 0 || !uploadCategory) return;
     setUploadError("");
     setUploadProgress(0);
     uploadMutation.mutate({ category: uploadCategory, drafts: uploadDrafts });
@@ -468,6 +636,60 @@ export function PortfolioGalleryPage() {
     if (!window.confirm(DELETE_CONFIRMATION_TEXT)) return;
     setPageFeedback(null);
     deleteMutation.mutate(item.id);
+  };
+
+  const handleToggleMultiSelectMode = () => {
+    if (actionsDisabled) return;
+    if (multiSelectMode) {
+      setMultiSelectMode(false);
+      setSelectedBatchDeleteIds([]);
+      setBatchDeleteDialogOpen(false);
+      return;
+    }
+    setMultiSelectMode(true);
+  };
+
+  const toggleBatchDeleteSelection = (id: string) => {
+    if (actionsDisabled) return;
+    setSelectedBatchDeleteIds((current) => {
+      if (current.includes(id)) return current.filter((selectedId) => selectedId !== id);
+      if (current.length >= PORTFOLIO_BATCH_DELETE_LIMIT) return current;
+      return [...current, id];
+    });
+  };
+
+  const selectAllVisibleBatchItems = () => {
+    if (actionsDisabled) return;
+    setSelectedBatchDeleteIds((current) => {
+      const next = [...current];
+      for (const item of filteredItems) {
+        if (next.length >= PORTFOLIO_BATCH_DELETE_LIMIT) break;
+        if (!next.includes(item.id)) next.push(item.id);
+      }
+      return next;
+    });
+  };
+
+  const openBatchDeleteConfirmation = () => {
+    if (actionsDisabled || selectedBatchDeleteIds.length === 0) return;
+    setPageFeedback(null);
+    setBatchDeleteDialogOpen(true);
+  };
+
+  const confirmBatchDelete = () => {
+    if (
+      actionsDisabled
+      || selectedBatchDeleteIds.length === 0
+      || selectedBatchDeleteIds.length > PORTFOLIO_BATCH_DELETE_LIMIT
+    ) return;
+    batchDeleteMutation.mutate([...selectedBatchDeleteIds]);
+  };
+
+  const handleLoadMorePortfolioItems = () => {
+    const nextOffset = portfolioQuery.data?.nextOffset;
+    if (actionsDisabled || typeof nextOffset !== "number") return;
+    setPageFeedback(null);
+    loadMoreMutation.mutate({ category: selectedCategory, offset: nextOffset });
   };
 
   const handleToggleVisibility = (item: PortfolioItem) => {
@@ -492,15 +714,28 @@ export function PortfolioGalleryPage() {
               ค้นหาและคัดลอกภาพผลงานจริงจากโรงงาน ส่งให้ลูกค้าได้ทันทีโดยไม่ต้องดาวน์โหลด
             </p>
           </div>
-          <Button
-            type="button"
-            className="w-full rounded-none sm:w-auto"
-            onClick={openUploadDialog}
-            disabled={actionsDisabled}
-            data-testid="button-open-portfolio-upload"
-          >
-            <Upload className="mr-2 h-4 w-4" /> ➕ เพิ่มรูปเข้าคลัง
-          </Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button
+              type="button"
+              variant={multiSelectMode ? "default" : "outline"}
+              className="w-full rounded-none sm:w-auto"
+              onClick={handleToggleMultiSelectMode}
+              disabled={actionsDisabled}
+              aria-pressed={multiSelectMode}
+              data-testid="button-portfolio-toggle-multiselect"
+            >
+              ☑️ {multiSelectMode ? "เสร็จสิ้นการเลือก" : "เลือกหลายรูป"}
+            </Button>
+            <Button
+              type="button"
+              className="w-full rounded-none sm:w-auto"
+              onClick={openUploadDialog}
+              disabled={actionsDisabled}
+              data-testid="button-open-portfolio-upload"
+            >
+              <Upload className="mr-2 h-4 w-4" /> ➕ เพิ่มรูปเข้าคลัง
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -546,6 +781,50 @@ export function PortfolioGalleryPage() {
         )}
       </div>
 
+      {multiSelectMode && (
+        <div
+          className="flex flex-col gap-3 border border-[var(--line)] bg-[var(--card-paper)] p-3 sm:flex-row sm:items-center sm:justify-between"
+          role="group"
+          aria-label="เครื่องมือเลือกหลายรูป"
+          data-testid="portfolio-multiselect-toolbar"
+        >
+          <p className="text-sm font-medium" role="status" data-testid="status-portfolio-selected-count">
+            เลือกแล้ว {selectedBatchDeleteIds.length} รายการ (สูงสุด {PORTFOLIO_BATCH_DELETE_LIMIT})
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={selectAllVisibleBatchItems}
+              disabled={actionsDisabled || allVisibleItemsSelected || selectedBatchDeleteIds.length >= PORTFOLIO_BATCH_DELETE_LIMIT}
+              data-testid="button-portfolio-select-all-visible"
+            >
+              เลือกทั้งหมดในหน้านี้
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={() => setSelectedBatchDeleteIds([])}
+              disabled={actionsDisabled || selectedBatchDeleteIds.length === 0}
+              data-testid="button-portfolio-clear-selection"
+            >
+              ยกเลิกการเลือก
+            </Button>
+            <Button
+              type="button"
+              className="rounded-none bg-red-800 text-white hover:bg-red-900"
+              onClick={openBatchDeleteConfirmation}
+              disabled={actionsDisabled || selectedBatchDeleteIds.length === 0}
+              data-testid="button-portfolio-batch-delete"
+            >
+              {batchDeleteMutation.isPending ? "กำลังลบ…" : `🗑️ ลบที่เลือก (${selectedBatchDeleteIds.length})`}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-xs flex-1">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-soft)]" />
@@ -582,6 +861,31 @@ export function PortfolioGalleryPage() {
         </div>
       </div>
 
+      {portfolioQuery.data && !portfolioQuery.isError && (
+        <div className="flex flex-wrap items-center justify-between gap-3" data-testid="portfolio-results-summary">
+          <p className="text-sm text-[var(--ink-soft)]" role="status" data-testid="status-portfolio-count">
+            แสดง {filteredItems.length} จาก {portfolioQuery.data.count} รายการ
+          </p>
+          {portfolioQuery.data.hasMore === true && (
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={handleLoadMorePortfolioItems}
+              disabled={actionsDisabled || typeof portfolioQuery.data.nextOffset !== "number"}
+              data-testid="button-portfolio-load-more"
+            >
+              {loadMoreMutation.isPending ? "กำลังโหลด…" : "⬇️ โหลดเพิ่ม"}
+            </Button>
+          )}
+        </div>
+      )}
+      {loadMoreMutation.isError && (
+        <p className="text-sm text-red-800" role="alert" data-testid="status-portfolio-load-more-error">
+          โหลดรูปเพิ่มเติมไม่สำเร็จ กรุณาลองอีกครั้ง
+        </p>
+      )}
+
       {portfolioQuery.isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" aria-label="กำลังโหลดคลังภาพผลงาน" data-testid="status-portfolio-loading">
           {[0, 1, 2, 3, 4].map((item) => (
@@ -602,6 +906,22 @@ export function PortfolioGalleryPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="grid-portfolio-items">
           {filteredItems.map((item) => (
             <div key={item.id} className="group relative aspect-square overflow-hidden border border-[var(--line)] bg-black/5" data-testid={`card-portfolio-item-${item.id}`}>
+              {multiSelectMode && (
+                <label
+                  className="absolute left-2 top-2 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-sm bg-white/95 shadow-sm"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-[#003366]"
+                    checked={selectedBatchDeleteIds.includes(item.id)}
+                    onChange={() => toggleBatchDeleteSelection(item.id)}
+                    disabled={actionsDisabled || (!selectedBatchDeleteIds.includes(item.id) && selectedBatchDeleteIds.length >= PORTFOLIO_BATCH_DELETE_LIMIT)}
+                    aria-label={`เลือก ${item.title}`}
+                    data-testid={`checkbox-portfolio-item-${item.id}`}
+                  />
+                </label>
+              )}
               <button
                 type="button"
                 onClick={() => setSelectedItem(item)}
@@ -617,7 +937,7 @@ export function PortfolioGalleryPage() {
               </button>
               {duplicateIds.has(item.id) && (
                 <span
-                  className="absolute left-2 top-2 z-10 rounded-sm border border-amber-500/40 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-900 shadow-sm"
+                  className={`absolute left-2 ${multiSelectMode ? "top-12" : "top-2"} z-10 rounded-sm border border-amber-500/40 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-900 shadow-sm`}
                   data-testid={`badge-portfolio-duplicate-${item.id}`}
                 >
                   🔁 รูปซ้ำ
@@ -657,6 +977,40 @@ export function PortfolioGalleryPage() {
               isDeleting={deleteMutation.isPending && deleteMutation.variables === selectedItem.id}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={batchDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!batchDeleteMutation.isPending) setBatchDeleteDialogOpen(open);
+        }}
+      >
+        <DialogContent className="max-w-lg rounded-none" data-testid="dialog-portfolio-batch-delete">
+          <DialogTitle>ยืนยันการลบรูปภาพเป็นชุด</DialogTitle>
+          <DialogDescription data-testid="description-portfolio-batch-delete-confirmation">
+            คุณต้องการลบรูปภาพที่เลือกจำนวน {selectedBatchDeleteIds.length} รูปอย่างถาวรใช่หรือไม่? รูปภาพและไฟล์จริงบนเซิร์ฟเวอร์จะถูกลบทันที
+          </DialogDescription>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={() => setBatchDeleteDialogOpen(false)}
+              disabled={batchDeleteMutation.isPending}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              className="rounded-none bg-red-800 text-white hover:bg-red-900"
+              onClick={confirmBatchDelete}
+              disabled={actionsDisabled || selectedBatchDeleteIds.length === 0}
+              data-testid="button-confirm-batch-delete"
+            >
+              {batchDeleteMutation.isPending ? "กำลังลบ…" : `ยืนยันลบ ${selectedBatchDeleteIds.length} รูป`}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -731,11 +1085,22 @@ export function PortfolioGalleryPage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="list-portfolio-upload-files">
                   {uploadDrafts.map((draft) => (
                     <div key={draft.id} className="flex gap-3 border border-[var(--line)] bg-white p-3">
-                      <img src={draft.previewUrl} alt={`ตัวอย่าง ${draft.file.name}`} className="h-20 w-20 shrink-0 object-cover" />
+                      <img src={draft.previewUrl} alt={`ตัวอย่าง ${draft.originalFile.name}`} className="h-20 w-20 shrink-0 object-cover" />
                       <div className="min-w-0 flex-1 space-y-2">
-                        <p className="truncate text-xs text-[var(--ink-soft)]" title={draft.file.name}>{draft.file.name}</p>
+                        <p className="truncate text-xs text-[var(--ink-soft)]" title={draft.originalFile.name}>{draft.originalFile.name}</p>
+                        <p
+                          className="text-xs text-[var(--ink-soft)]"
+                          role="status"
+                          data-testid={`status-portfolio-upload-compression-${draft.id}`}
+                        >
+                          {draft.compressionStatus === "processing"
+                            ? "กำลังเตรียมรูปก่อนอัปโหลด…"
+                            : `${formatPortfolioFileSize(draft.originalFile.size)} → ${formatPortfolioFileSize(draft.file.size)}${draft.file.size < draft.originalFile.size
+                              ? ` (ลดลง ${Math.round(((draft.originalFile.size - draft.file.size) / draft.originalFile.size) * 100)}%)`
+                              : " (ใช้ไฟล์ต้นฉบับ)"}`}
+                        </p>
                         <label className="block text-xs font-medium">
-                          <span className="sr-only">ชื่อเรื่องของ {draft.file.name} (ไม่บังคับ)</span>
+                          <span className="sr-only">ชื่อเรื่องของ {draft.originalFile.name} (ไม่บังคับ)</span>
                           <Input
                             value={draft.title}
                             onChange={(event) => setUploadDrafts((current) => current.map((item) => item.id === draft.id ? { ...item, title: event.target.value } : item))}
@@ -751,7 +1116,7 @@ export function PortfolioGalleryPage() {
                         className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--ink-soft)] hover:bg-red-50 hover:text-red-800 disabled:opacity-50"
                         onClick={() => removeUploadDraft(draft.id)}
                         disabled={actionsDisabled}
-                        aria-label={`ลบไฟล์ ${draft.file.name} ออกจากรายการ`}
+                        aria-label={`ลบไฟล์ ${draft.originalFile.name} ออกจากรายการ`}
                         data-testid={`button-remove-portfolio-upload-file-${draft.id}`}
                       >
                         <X size={16} aria-hidden="true" />
@@ -775,10 +1140,14 @@ export function PortfolioGalleryPage() {
                 <Button
                   type="submit"
                   className="rounded-none"
-                  disabled={writesPending || uploadDrafts.length === 0 || !uploadCategory}
+                  disabled={writesPending || uploadCompressionPending || uploadDrafts.length === 0 || !uploadCategory}
                   data-testid="button-submit-portfolio-upload"
                 >
-                  {uploadMutation.isPending ? "กำลังอัปโหลด…" : `อัปโหลด${uploadDrafts.length > 0 ? ` (${uploadDrafts.length})` : ""}`}
+                  {uploadMutation.isPending
+                    ? "กำลังอัปโหลด…"
+                    : uploadCompressionPending
+                      ? "กำลังบีบอัด…"
+                      : `อัปโหลด${uploadDrafts.length > 0 ? ` (${uploadDrafts.length})` : ""}`}
                 </Button>
               </div>
             </form>

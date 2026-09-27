@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Loader2, RefreshCw, X, ImageOff, Check } from "lucide-react";
+import { Loader2, RefreshCw, X, ImageOff, Check, Pencil, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  customFetch,
   useListAdminSitePhotos,
   useUpdateAdminSitePhoto,
   getListAdminSitePhotosQueryKey,
@@ -116,15 +117,26 @@ function capturedOrCreatedAt(photo: SitePhoto) {
   return formatThaiDateTime(new Date(photo.capturedAt ?? photo.createdAt));
 }
 
-function SitePhotoLightbox({ photo, onClose }: { photo: SitePhoto; onClose: () => void }) {
+function SitePhotoLightbox({
+  photo,
+  onClose,
+  startEditingDescription,
+}: {
+  photo: SitePhoto;
+  onClose: () => void;
+  startEditingDescription: boolean;
+}) {
+  const [savedDescription, setSavedDescription] = useState(photo.description ?? "");
+  const [savedStage, setSavedStage] = useState<SitePhotoStage>(photo.stage);
   const [description, setDescription] = useState(photo.description ?? "");
   const [stage, setStage] = useState<SitePhotoStage>(photo.stage);
+  const [editingDescription, setEditingDescription] = useState(startEditingDescription);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const updatePhoto = useUpdateAdminSitePhoto();
   const queryClient = useQueryClient();
 
-  const dirty = description !== (photo.description ?? "") || stage !== photo.stage;
+  const dirty = description !== savedDescription || stage !== savedStage;
 
   const save = () => {
     setError("");
@@ -135,7 +147,10 @@ function SitePhotoLightbox({ photo, onClose }: { photo: SitePhoto; onClose: () =
         onError: () => setError("บันทึกไม่สำเร็จ กรุณาลองใหม่"),
         onSuccess: () => {
           void queryClient.invalidateQueries({ queryKey: SITE_PHOTOS_BASE_QUERY_KEY });
+          setSavedDescription(description.trim());
+          setSavedStage(stage);
           setSaved(true);
+          setEditingDescription(false);
         },
       },
     );
@@ -173,14 +188,33 @@ function SitePhotoLightbox({ photo, onClose }: { photo: SitePhoto; onClose: () =
           ))}
         </div>
 
-        <Textarea
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="คำบรรยาย AI หรือหมายเหตุเพิ่มเติม"
-          className="rounded-none"
-          rows={3}
-          data-testid="textarea-lightbox-description"
-        />
+        {editingDescription ? (
+          <div className="space-y-2">
+            <label htmlFor="site-photo-job-description" className="text-sm font-medium">คำอธิบายงาน — ชื่องาน / สถานที่ / เจ้าของงาน</label>
+            <Textarea
+              id="site-photo-job-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="เช่น บ้านเดี่ยว คุณสมชาย ซอยราชพฤกษ์ 15"
+              className="rounded-none"
+              rows={3}
+              data-testid="textarea-lightbox-description"
+            />
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">คำอธิบายงาน</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--ink-soft)]" data-testid="text-lightbox-description">
+                {description || "ยังไม่มีคำอธิบายงาน"}
+              </p>
+            </div>
+            <Button type="button" variant="outline" className="rounded-none" onClick={() => setEditingDescription(true)} data-testid="button-lightbox-edit-description">
+              <Pencil className="mr-2 h-4 w-4" />
+              แก้ไขข้อมูลงาน
+            </Button>
+          </div>
+        )}
 
         {error && <p className="text-sm text-[#a24439]" role="alert" data-testid="status-lightbox-error">{error}</p>}
         {saved && !dirty && <p className="text-sm text-[var(--success)]" data-testid="status-lightbox-saved">บันทึกแล้ว</p>}
@@ -211,7 +245,15 @@ export function SitePhotosPage() {
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [monthFilter, setMonthFilter] = useState<string>(ALL_SITE_PHOTOS_MONTHS);
   const [selectedPhoto, setSelectedPhoto] = useState<SitePhoto | null>(null);
+  const [editDescriptionOnOpen, setEditDescriptionOnOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<SitePhoto | null>(null);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteNotice, setDeleteNotice] = useState("");
+  const [stageUpdatingPhotoId, setStageUpdatingPhotoId] = useState<number | null>(null);
+  const [stageUpdateFeedback, setStageUpdateFeedback] = useState<{ photoId: number; message: string; isError: boolean } | null>(null);
   const queryClient = useQueryClient();
+  const updatePhoto = useUpdateAdminSitePhoto();
 
   const params = useMemo(
     () => sitePhotosQueryParams({ jobCode: jobCodeInput, stage: stageFilter }),
@@ -234,6 +276,51 @@ export function SitePhotosPage() {
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: SITE_PHOTOS_BASE_QUERY_KEY });
+  };
+
+  const openPhoto = (photo: SitePhoto, editDescription = false) => {
+    setEditDescriptionOnOpen(editDescription);
+    setSelectedPhoto(photo);
+  };
+
+  const closePhoto = () => {
+    setSelectedPhoto(null);
+    setEditDescriptionOnOpen(false);
+  };
+
+  const changePhotoStage = (photo: SitePhoto, nextStage: SitePhotoStage) => {
+    if (nextStage === photo.stage || stageUpdatingPhotoId !== null) return;
+    setStageUpdateFeedback(null);
+    setStageUpdatingPhotoId(photo.id);
+    updatePhoto.mutate(
+      { id: photo.id, data: { stage: nextStage } },
+      {
+        onError: () => setStageUpdateFeedback({ photoId: photo.id, message: "ย้ายขั้นตอนไม่สำเร็จ กรุณาลองใหม่", isError: true }),
+        onSuccess: () => {
+          void queryClient.invalidateQueries({ queryKey: SITE_PHOTOS_BASE_QUERY_KEY });
+          setStageUpdateFeedback({ photoId: photo.id, message: "เปลี่ยนขั้นตอนแล้ว", isError: false });
+        },
+        onSettled: () => setStageUpdatingPhotoId(null),
+      },
+    );
+  };
+
+  const confirmDeleteSitePhoto = async () => {
+    if (!photoToDelete || deletingPhotoId !== null) return;
+    const photo = photoToDelete;
+    setDeleteError("");
+    setDeletingPhotoId(photo.id);
+    try {
+      await customFetch<void>(`/api/admin/site-photos/${encodeURIComponent(photo.id)}`, { method: "DELETE" });
+      void queryClient.invalidateQueries({ queryKey: SITE_PHOTOS_BASE_QUERY_KEY });
+      if (selectedPhoto?.id === photo.id) closePhoto();
+      setDeleteNotice("ลบภาพหน้างานแล้ว");
+      setPhotoToDelete(null);
+    } catch {
+      setDeleteError("ลบภาพไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setDeletingPhotoId(null);
+    }
   };
 
   return (
@@ -317,6 +404,12 @@ export function SitePhotosPage() {
         </div>
       </div>
 
+      {deleteNotice && (
+        <p className="text-sm text-[var(--success)]" role="status" data-testid="status-site-photo-deleted">
+          {deleteNotice}
+        </p>
+      )}
+
       {photosQuery.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="กำลังโหลดภาพหน้างาน" data-testid="status-site-photos-loading">
           {[0, 1, 2].map((item) => (
@@ -339,40 +432,149 @@ export function SitePhotosPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="grid-site-photos">
           {visiblePhotos.map((photo) => (
-            <button
-              key={photo.id}
-              type="button"
-              onClick={() => setSelectedPhoto(photo)}
-              className="group flex flex-col overflow-hidden border border-[var(--line)] bg-[var(--card-paper)] text-left rounded-none"
-              data-testid={`card-site-photo-${photo.id}`}
-            >
-              <div className="aspect-video overflow-hidden bg-black/5">
-                <img
-                  src={photo.imageUrl}
-                  alt={photo.description || photo.jobCode || "ภาพหน้างาน"}
-                  className="h-full w-full object-cover transition group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <div className="flex flex-1 flex-col gap-2 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <StageBadge stage={photo.stage} />
-                  {photo.jobCode && <span className="font-mono text-xs text-[var(--ink-soft)]">{photo.jobCode}</span>}
+            <article key={photo.id} className="flex flex-col overflow-hidden border border-[var(--line)] bg-[var(--card-paper)] rounded-none">
+              <button
+                type="button"
+                onClick={() => openPhoto(photo)}
+                className="group flex w-full flex-col text-left"
+                data-testid={`card-site-photo-${photo.id}`}
+              >
+                <div className="aspect-video w-full overflow-hidden bg-black/5">
+                  <img
+                    src={photo.imageUrl}
+                    alt={photo.description || photo.jobCode || "ภาพหน้างาน"}
+                    className="h-full w-full object-cover transition group-hover:scale-105"
+                    loading="lazy"
+                  />
                 </div>
-                {photo.description && <p className="line-clamp-2 text-sm text-[var(--ink-soft)]">{photo.description}</p>}
-                <div className="mt-auto flex items-center justify-between text-xs text-[var(--ink-soft)]">
-                  <span>{photo.senderName ?? "ไม่ระบุผู้ส่ง"}</span>
-                  <span>{capturedOrCreatedAt(photo)}</span>
+                <div className="flex w-full flex-1 flex-col gap-2 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <StageBadge stage={photo.stage} />
+                    {photo.jobCode && <span className="font-mono text-xs text-[var(--ink-soft)]">{photo.jobCode}</span>}
+                  </div>
+                  {photo.description && <p className="line-clamp-2 text-sm text-[var(--ink-soft)]">{photo.description}</p>}
+                  <div className="mt-auto flex items-center justify-between text-xs text-[var(--ink-soft)]">
+                    <span>{photo.senderName ?? "ไม่ระบุผู้ส่ง"}</span>
+                    <span>{capturedOrCreatedAt(photo)}</span>
+                  </div>
                 </div>
+              </button>
+
+              <div className="space-y-3 border-t border-[var(--line)] p-4">
+                <label htmlFor={`select-site-photo-stage-${photo.id}`} className="block text-sm font-medium">
+                  ย้ายขั้นตอน
+                </label>
+                <select
+                  id={`select-site-photo-stage-${photo.id}`}
+                  value={photo.stage}
+                  onChange={(event) => changePhotoStage(photo, event.target.value as SitePhotoStage)}
+                  disabled={stageUpdatingPhotoId !== null}
+                  aria-label={`ย้ายขั้นตอนภาพ ${photo.id}`}
+                  className="w-full rounded-none border border-[var(--line)] bg-[var(--card-paper)] px-3 py-2 text-sm text-[var(--ink)] disabled:opacity-60"
+                  data-testid={`select-site-photo-stage-${photo.id}`}
+                >
+                  {(Object.keys(STAGE_BADGE_LABEL) as SitePhotoStage[]).map((stage) => (
+                    <option key={stage} value={stage}>{STAGE_BADGE_LABEL[stage]}</option>
+                  ))}
+                </select>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 rounded-none"
+                    onClick={() => openPhoto(photo, true)}
+                    data-testid="button-edit-site-photo-description"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    แก้ไขข้อมูลงาน
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-none text-[#a24439] hover:text-[#a24439]"
+                    disabled={deletingPhotoId !== null}
+                    onClick={() => {
+                      setDeleteError("");
+                      setDeleteNotice("");
+                      setPhotoToDelete(photo);
+                    }}
+                    aria-label={`ลบภาพ ${photo.jobCode || photo.id}`}
+                    data-testid="button-delete-site-photo"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    ลบภาพ
+                  </Button>
+                </div>
+                {stageUpdateFeedback?.photoId === photo.id && (
+                  <p
+                    className={`text-sm ${stageUpdateFeedback.isError ? "text-[#a24439]" : "text-[var(--success)]"}`}
+                    role={stageUpdateFeedback.isError ? "alert" : "status"}
+                    data-testid={`status-site-photo-stage-${photo.id}`}
+                  >
+                    {stageUpdateFeedback.message}
+                  </p>
+                )}
               </div>
-            </button>
+            </article>
           ))}
         </div>
       )}
 
-      <Dialog open={selectedPhoto !== null} onOpenChange={(open) => { if (!open) setSelectedPhoto(null); }}>
+      <Dialog open={selectedPhoto !== null} onOpenChange={(open) => { if (!open) closePhoto(); }}>
         <DialogContent className="max-w-3xl gap-0 rounded-none p-0" data-testid="dialog-site-photo-lightbox">
-          {selectedPhoto && <SitePhotoLightbox photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
+          {selectedPhoto && (
+            <SitePhotoLightbox
+              photo={selectedPhoto}
+              onClose={closePhoto}
+              startEditingDescription={editDescriptionOnOpen}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={photoToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && deletingPhotoId === null) {
+            setPhotoToDelete(null);
+            setDeleteError("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-md rounded-none" data-testid="dialog-delete-site-photo">
+          <DialogTitle>ยืนยันการลบภาพหน้างาน</DialogTitle>
+          <p className="text-sm text-[var(--ink-soft)]">คุณต้องการลบภาพนี้ออกจากระบบใช่หรือไม่?</p>
+          {photoToDelete && (
+            <p className="text-sm font-medium">
+              {photoToDelete.description || photoToDelete.jobCode || `ภาพหน้างาน #${photoToDelete.id}`}
+            </p>
+          )}
+          {deleteError && <p className="text-sm text-[#a24439]" role="alert" data-testid="status-site-photo-delete-error">{deleteError}</p>}
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              disabled={deletingPhotoId !== null}
+              onClick={() => {
+                setPhotoToDelete(null);
+                setDeleteError("");
+              }}
+              data-testid="button-cancel-delete-site-photo"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              className="rounded-none"
+              disabled={deletingPhotoId !== null}
+              onClick={() => void confirmDeleteSitePhoto()}
+              data-testid="button-confirm-delete-site-photo"
+            >
+              {deletingPhotoId !== null ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+              {deletingPhotoId !== null ? "กำลังลบ…" : "ยืนยันลบภาพ"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -28,6 +28,7 @@ import {
   studioPieces,
   STUDIO_BASIN_SAFETY_MARGIN_MM,
   type BasinPlacement,
+  type SideStatus,
   type StudioState,
 } from "@/data/studio-model";
 
@@ -175,12 +176,16 @@ function LeadFabricationSafetyBadge({ leadId, warnings }: { leadId: number; warn
   );
 }
 
-function sketchImageUrls(lead: { sketchUrl?: string | null; studioData?: unknown }) {
-  const studio = lead.studioData as { sketchUrls?: unknown } | null | undefined;
-  const urls = Array.isArray(studio?.sketchUrls)
-    ? studio.sketchUrls.filter((url): url is string => typeof url === "string" && url.length > 0)
+function sketchImageUrls(lead: { sketchUrl?: string | null; sketchUrls?: unknown; studioData?: unknown }) {
+  const studio = objectRecord(lead.studioData);
+  const studioUrls = Array.isArray(studio?.sketchUrls)
+    ? studio.sketchUrls.filter((url): url is string => typeof url === "string" && url.trim().length > 0)
     : [];
-  if (urls.length) return urls;
+  if (studioUrls.length) return studioUrls;
+  const leadUrls = Array.isArray(lead.sketchUrls)
+    ? lead.sketchUrls.filter((url): url is string => typeof url === "string" && url.trim().length > 0)
+    : [];
+  if (leadUrls.length) return leadUrls;
   return lead.sketchUrl ? [lead.sketchUrl] : [];
 }
 
@@ -232,6 +237,282 @@ function studioSummary(value: unknown) {
   if (!dimensions) return null;
   const runs = [dimensions.runAMm, dimensions.runBMm, dimensions.runCMm].filter((run): run is number => typeof run === "number" && run > 0).join(" / ");
   return `${data.state?.shape ?? "-"} · ${runs} × ${dimensions.depthMm ?? "-"} mm · ${data.estimate?.stoneAreaSqM?.toFixed(2) ?? "-"} m² · ประมาณ ${data.estimate?.totalTHB?.toLocaleString("th-TH") ?? "-"} บาท · ${data.state?.location === "province" ? "ต่างจังหวัด" : "กรุงเทพฯ/ปริมณฑล"}`;
+}
+
+const STUDIO_DRAFT_KEY_PATTERN = /^dft_[a-f0-9]{24}$/i;
+
+type LeadStudioDraftPayload = {
+  shape: string;
+  dimensions: StudioState["dimensions"];
+  stoneColor?: string;
+  basinSku?: string;
+  basinPlacements: BasinPlacement[];
+  edges: {
+    activePieceId?: string;
+    pieces: NonNullable<StudioState["pieces"]>;
+    sideStatusesByPiece: Record<string, Record<string, string>>;
+  };
+};
+
+export type LeadStudioDraftLink = {
+  draftKey: string;
+  resumeUrl: string;
+  studioUrl: string;
+};
+
+function finiteDimension(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+export function buildLeadStudioDraftPayload(value: unknown): LeadStudioDraftPayload {
+  const studioData = objectRecord(value);
+  if (!studioData) throw new Error("studio-data-unavailable");
+  const state = objectRecord(studioData.state) ?? studioData;
+  const sourceDimensions = objectRecord(state.dimensions);
+  if (!sourceDimensions) throw new Error("studio-dimensions-unavailable");
+
+  const shapeValue = typeof state.shape === "string" ? state.shape : "I";
+  const statePieces = Array.isArray(state.pieces)
+    ? state.pieces as NonNullable<StudioState["pieces"]>
+    : undefined;
+  const pieces = studioPieces({
+    shape: shapeValue as StudioState["shape"],
+    dimensions: {
+      depthMm: finiteDimension(sourceDimensions.depthMm),
+      runAMm: finiteDimension(sourceDimensions.runAMm),
+      runBMm: finiteDimension(sourceDimensions.runBMm),
+      runCMm: finiteDimension(sourceDimensions.runCMm),
+    },
+    ...(statePieces ? { pieces: statePieces } : {}),
+  });
+  const firstPiece = pieces[0];
+  const rectangles = firstPiece?.rectangles ?? [];
+  const firstRectangle = rectangles[0];
+  const secondRectangle = rectangles[1];
+  const thirdRectangle = rectangles[2];
+  const positiveDimension = (key: string, fallback: number) => {
+    const candidate = sourceDimensions[key];
+    return typeof candidate === "number" && Number.isFinite(candidate) && candidate > 0
+      ? candidate
+      : fallback;
+  };
+  const depthMm = positiveDimension("depthMm", firstRectangle?.lengthMm ?? 600);
+  const dimensions = {
+    depthMm,
+    runAMm: positiveDimension("runAMm", firstRectangle?.widthMm ?? 1500),
+    runBMm: positiveDimension("runBMm", secondRectangle ? secondRectangle.lengthMm + depthMm : 0),
+    runCMm: positiveDimension("runCMm", thirdRectangle ? thirdRectangle.lengthMm + depthMm : 0),
+  };
+  const secondLeg = rectangles.find((rectangle) => rectangle.id === "wizard-leg-1") ?? secondRectangle;
+  const shape = typeof firstPiece?.preset === "string"
+    ? firstPiece.preset
+    : rectangles.length === 3
+      ? "u"
+      : rectangles.length === 2
+        ? (secondLeg?.xMm ?? 0) > 0 ? "l-right" : "l-left"
+        : shapeValue === "U" ? "u" : shapeValue === "L" ? "l-left" : "i";
+
+  const rawPlacements = Array.isArray(state.basinPlacements) ? state.basinPlacements : [];
+  const basinPlacements = rawPlacements.map((placement) => ({ ...placement })) as BasinPlacement[];
+  const firstPlacement = objectRecord(rawPlacements[0]);
+  const basinSkus = Array.isArray(state.basinSkus) ? state.basinSkus : [];
+  const basinSku = typeof firstPlacement?.sku === "string" && firstPlacement.sku
+    ? firstPlacement.sku
+    : typeof basinSkus[0] === "string" && basinSkus[0]
+      ? basinSkus[0]
+      : undefined;
+  const activeStone = typeof state.activeStone === "string" ? state.activeStone.trim() : "";
+  const safePieces = pieces.map((piece) => {
+    if (!piece || typeof piece.id !== "string" || !Array.isArray(piece.rectangles)) {
+      throw new Error("studio-piece-invalid");
+    }
+    const sideStatuses = (objectRecord(piece.sideStatuses) ?? {}) as Record<string, SideStatus>;
+    return {
+      ...piece,
+      rectangles: piece.rectangles.map((rectangle) => ({ ...rectangle })),
+      sideStatuses: { ...sideStatuses },
+    };
+  });
+
+  return {
+    shape,
+    dimensions,
+    ...(activeStone ? { stoneColor: activeStone } : {}),
+    ...(basinSku ? { basinSku } : {}),
+    basinPlacements,
+    edges: {
+      activePieceId: typeof state.activePieceId === "string" ? state.activePieceId : safePieces[0]?.id,
+      pieces: safePieces,
+      sideStatusesByPiece: Object.fromEntries(
+        safePieces.map((piece) => [piece.id, { ...piece.sideStatuses }]),
+      ),
+    },
+  };
+}
+
+export async function createLeadStudioDraft(
+  studioData: unknown,
+  fetcher: typeof fetch = fetch,
+  origin?: string,
+): Promise<LeadStudioDraftLink> {
+  const payload = buildLeadStudioDraftPayload(studioData);
+  const response = await fetcher("/api/studio/draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`studio-draft-http-${response.status}`);
+
+  const result = objectRecord(await response.json());
+  const draftKey = typeof result?.draftKey === "string" ? result.draftKey : "";
+  const resumeUrl = typeof result?.resumeUrl === "string" ? result.resumeUrl.trim() : "";
+  if (!STUDIO_DRAFT_KEY_PATTERN.test(draftKey) || !resumeUrl) {
+    throw new Error("studio-draft-response-invalid");
+  }
+  const baseOrigin = origin ?? (typeof window === "undefined" ? "" : window.location.origin);
+  if (!baseOrigin) throw new Error("studio-draft-origin-unavailable");
+
+  return {
+    draftKey,
+    resumeUrl: new URL(resumeUrl, baseOrigin).toString(),
+    studioUrl: `/studio?draft=${encodeURIComponent(draftKey)}`,
+  };
+}
+
+export async function handleLeadStudioDraftRequest(
+  studioData: unknown,
+  onCreated: (draft: LeadStudioDraftLink) => void,
+  fetcher: typeof fetch = fetch,
+  origin?: string,
+): Promise<LeadStudioDraftLink> {
+  const draft = await createLeadStudioDraft(studioData, fetcher, origin);
+  onCreated(draft);
+  return draft;
+}
+
+export function LeadStudioDraftDialogContent({
+  draft,
+  copied,
+  error,
+  onCopy,
+}: {
+  draft: LeadStudioDraftLink;
+  copied: boolean;
+  error: string;
+  onCopy: () => void;
+}) {
+  return (
+    <>
+      <DialogTitle>ลิงก์แบบร่าง Studio</DialogTitle>
+      <label htmlFor="lead-studio-draft-url" className="mt-3 text-sm font-medium">ลิงก์สำหรับแชร์</label>
+      <Input
+        id="lead-studio-draft-url"
+        value={draft.resumeUrl}
+        readOnly
+        className="mt-1 rounded-none"
+        data-testid="input-lead-studio-draft-url"
+      />
+      {error && <p className="text-sm text-[#a24439]" role="alert">{error}</p>}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button type="button" variant="outline" className="rounded-none" onClick={onCopy} data-testid="button-copy-lead-studio-draft-link">
+          {copied ? <><Check className="mr-1 h-4 w-4" /> คัดลอกแล้ว</> : <><Clipboard className="mr-1 h-4 w-4" /> คัดลอกลิงก์</>}
+        </Button>
+        <Link href={draft.studioUrl} className="button button--accent" data-testid="link-lead-studio-draft-open">
+          ↗️ เปิดใน Studio
+        </Link>
+      </div>
+    </>
+  );
+}
+
+export function LeadStudioDraftAction({ lead }: { lead: CustomerLead }) {
+  const [draft, setDraft] = useState<LeadStudioDraftLink | null>(null);
+  const [pending, setPending] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+
+  const createDraft = async () => {
+    setError("");
+    setCopied(false);
+    setPending(true);
+    try {
+      await handleLeadStudioDraftRequest(lead.studioData, setDraft);
+    } catch {
+      setError("สร้างลิงก์ Studio ไม่สำเร็จ กรุณาลองอีกครั้ง");
+    } finally {
+      setPending(false);
+    }
+  };
+  const copyDraftLink = async () => {
+    if (!draft) return;
+    setError("");
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard-unavailable");
+      await navigator.clipboard.writeText(draft.resumeUrl);
+      setCopied(true);
+    } catch {
+      setError("คัดลอกลิงก์ไม่ได้ กรุณาคัดลอกจากช่องลิงก์โดยตรง");
+    }
+  };
+
+  return (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="rounded-none"
+        disabled={pending}
+        onClick={(event) => {
+          event.stopPropagation();
+          void createDraft();
+        }}
+        data-testid="button-lead-generate-studio-draft"
+      >
+        {pending ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> กำลังสร้างลิงก์...</> : "📐 สร้างลิงก์ Studio"}
+      </Button>
+      {error && !draft && <p className="mt-2 text-sm text-[#a24439]" role="alert">{error}</p>}
+      <Dialog
+        open={draft !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDraft(null);
+            setCopied(false);
+            setError("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg rounded-none" data-testid="dialog-lead-studio-draft">
+          {draft && (
+            <LeadStudioDraftDialogContent
+              draft={draft}
+              copied={copied}
+              error={error}
+              onCopy={() => void copyDraftLink()}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+export function LeadSketchAction({ lead }: { lead: CustomerLead }) {
+  const imageUrl = sketchImageUrls(lead)[0];
+  if (!imageUrl) return null;
+  return (
+    <a
+      href={imageUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      className="button button--outline"
+      data-testid="button-lead-view-sketch"
+    >
+      🖼️ ดูภาพแบบร่าง
+    </a>
+  );
 }
 
 const paymentStatusLabels: Record<string, string> = {
@@ -1457,6 +1738,15 @@ export function LeadsManager() {
                       ))}
                     </div>
                   )}
+                  {lead.studioData ? (
+                    <div className="mt-3">
+                      <LeadStudioDraftAction lead={lead} />
+                    </div>
+                  ) : sketchImageUrls(lead).length > 0 ? (
+                    <div className="mt-3">
+                      <LeadSketchAction lead={lead} />
+                    </div>
+                  ) : null}
                   {(lead.orderMode === "sketch" || sketchImageUrls(lead).length > 0) && (
                     <div className="mt-3">
                       <Link

@@ -25,6 +25,7 @@ import { SitePhotosPage } from "./SitePhotosPage";
 import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
 import AiCostCenterPage from "./AiCostCenterPage";
 import { knightFurnichLogo } from "@/data/assets";
+import { AdminThemeToggle, useAdminTheme } from "./admin-theme";
 
 const loginSchema = z.object({
   password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
@@ -95,6 +96,7 @@ function useAdminAccess() {
 }
 
 export default function AdminApp() {
+  const { theme, toggleTheme } = useAdminTheme();
   const { data: session, isLoading } = useGetAdminSession();
   const queryClient = useQueryClient();
   const adminSession = session as AdminSessionPayload | undefined;
@@ -117,7 +119,7 @@ export default function AdminApp() {
 
   return (
     <AdminAccessContext.Provider value={access}>
-      <div className="admin-app min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col">
+      <div className="admin-app min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col" data-admin-theme={theme}>
         <header className="admin-header border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img className="admin-logo" src={knightFurnichLogo} alt="Knight Furnich" />
@@ -130,6 +132,7 @@ export default function AdminApp() {
             <span className="hidden sm:inline-flex items-center border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-soft)]" data-testid="admin-role">
               {adminSession?.member?.displayName ? `${adminSession.member.displayName} · ` : ""}{roleLabels[access.role]}
             </span>
+            <AdminThemeToggle theme={theme} onToggle={toggleTheme} />
             <AdminLogout />
           </div>
         </header>

@@ -55,6 +55,7 @@ import { isValidEmailAddress } from "@/data/validation";
 import { stoneHeroFrame } from "@/data/stone-hero";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
 import { knightFurnichLogo, lineQrCode } from "@/data/assets";
+import { StorefrontThemeProvider, ThemeToggle, useStorefrontTheme } from "@/components/ThemeToggle";
 
 const emptyCustomer: CustomerDetails = {
   name: "",
@@ -199,6 +200,7 @@ function Header({ cartCount }: { cartCount: number }) {
       <Link href="/quote" className={`quote-link ${location === "/quote" ? "is-active" : ""}`} data-testid="link-quote">ใบเสนอราคา <span>{cartCount}</span></Link>
     </nav>
     <div className="header-actions">
+      <ThemeToggle />
       <LineLoginButton compact />
       <Link href="/quote" className="mobile-cart" aria-label="ดูใบเสนอราคา" data-testid="link-mobile-quote"><ShoppingBag size={18} /><span>{cartCount}</span></Link>
     </div>
@@ -1850,21 +1852,29 @@ function Storefront() {
 }
 
 function App() {
+  const [location] = useLocation();
+  const themeValue = useStorefrontTheme();
+  const isAdminRoute = location === "/admin" || location.startsWith("/admin/");
+
   return (
     <AppErrorBoundary>
       <NetworkStatusBanner />
       <QueryClientProvider client={queryClient}>
-        <Switch>
-          <Route path="/admin" component={AdminApp} />
-          <Route path="/admin/ai-cost" component={AdminApp} />
-          <Route path="/admin/*" component={AdminApp} />
-          <Route path="/readme" component={SalesGuide} />
-          <Route path="/site-prep" component={SitePrepPage} />
-          <Route path="/studio-guide" component={StudioGuidePage} />
-          <Route path="/portfolio" component={PortfolioPage} />
-          <Route path="/" component={RootEntry} />
-          <Route component={Storefront} />
-        </Switch>
+        <div className="storefront-theme-root" data-theme={isAdminRoute ? "light" : themeValue.theme}>
+          <StorefrontThemeProvider value={themeValue}>
+            <Switch>
+              <Route path="/admin" component={AdminApp} />
+              <Route path="/admin/ai-cost" component={AdminApp} />
+              <Route path="/admin/*" component={AdminApp} />
+              <Route path="/readme" component={SalesGuide} />
+              <Route path="/site-prep" component={SitePrepPage} />
+              <Route path="/studio-guide" component={StudioGuidePage} />
+              <Route path="/portfolio" component={PortfolioPage} />
+              <Route path="/" component={RootEntry} />
+              <Route component={Storefront} />
+            </Switch>
+          </StorefrontThemeProvider>
+        </div>
         <Toaster />
       </QueryClientProvider>
     </AppErrorBoundary>

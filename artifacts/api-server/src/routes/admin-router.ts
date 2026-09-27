@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { readdir, stat, unlink } from "node:fs/promises";
+import { join, resolve, sep } from "node:path";
 import {
   basinCategories,
   basinPrices,
@@ -66,6 +66,9 @@ import {
   publicQuoteTokenForLead,
 } from "../lib/quote-access";
 import { createRateLimiter, createConcurrencyLimiter } from "../lib/rate-limit";
+import { pruneBackupVault } from "../lib/backup-vault";
+import { computeStorageStats } from "../lib/storage-stats";
+import { checkDatabaseHealth, type DatabaseHealthMetrics } from "../lib/db-metrics";
 import {
   cleanupUnreferencedUploadedImages,
   readMultipartForm,
@@ -75,6 +78,7 @@ import {
   saveUploadedMedia,
   saveUploadedImage,
   saveUploadedVideo,
+  UPLOAD_DIR,
   UploadFileCollisionError,
 } from "../lib/image-upload";
 import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./leads";
@@ -121,6 +125,51 @@ function invalid(res: Response, message: string, details?: unknown) {
 
 const SITE_PHOTO_STAGES = ["survey", "installation", "service", "completed"] as const;
 const SITE_PHOTO_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+const SITE_PHOTO_UPLOAD_PATH_PATTERN = /^\/(?:api\/uploads|kb\/images\/uploads)\/(.+)$/;
+
+function sitePhotoUploadFilename(imageUrl: unknown): string | undefined {
+  if (typeof imageUrl !== "string" || !imageUrl.trim()) return undefined;
+
+  let pathname: string;
+  try {
+    pathname = /^https?:\/\//i.test(imageUrl) ? new URL(imageUrl).pathname : imageUrl.split(/[?#]/)[0]!;
+  } catch {
+    return undefined;
+  }
+
+  const match = pathname.match(SITE_PHOTO_UPLOAD_PATH_PATTERN);
+  if (!match) return undefined;
+
+  let filename: string;
+  try {
+    filename = decodeURIComponent(match[1]!);
+  } catch {
+    return undefined;
+  }
+
+  if (!filename || filename === "." || filename === ".." || filename.includes("/") || filename.includes("\\")) {
+    return undefined;
+  }
+  return filename;
+}
+
+/** Only removes files that resolve to a path inside UPLOAD_DIR; any lookup or
+ * unlink failure is swallowed so a missing/foreign file never blocks the
+ * caller from deleting the database row. */
+async function deleteSitePhotoUpload(imageUrl: unknown) {
+  const filename = sitePhotoUploadFilename(imageUrl);
+  if (!filename) return;
+
+  const uploadRoot = resolve(UPLOAD_DIR);
+  const filePath = resolve(uploadRoot, filename);
+  if (!filePath.startsWith(`${uploadRoot}${sep}`)) return;
+
+  try {
+    await unlink(filePath);
+  } catch {
+    // missing or inaccessible file: the sitePhotos row is still deleted
+  }
+}
 
 const LEAD_STATUS_LABELS_TH: Record<string, string> = {
   new_lead: "ลูกค้าใหม่",
@@ -1258,7 +1307,10 @@ async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult
   }
 }
 
-export function createAdminRouter(database: AdminDatabase): IRouter {
+export function createAdminRouter(
+  database: AdminDatabase,
+  checkDbHealth: () => Promise<DatabaseHealthMetrics> = checkDatabaseHealth,
+): IRouter {
   const router: IRouter = Router();
   const adminLoginRateLimit = createRateLimiter({ name: "admin-login", max: 5, windowMs: 60 * 1000 });
   // Each basin can now hold up to 5 photos (primary + 4 gallery), so a bulk photo
@@ -2137,6 +2189,25 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     }
   });
 
+  router.delete("/admin/site-photos/:id", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid site photo id");
+
+    try {
+      const [deleted] = await database
+        .delete(sitePhotos)
+        .where(eq(sitePhotos.id, id))
+        .returning();
+      if (!deleted) return res.status(404).json({ message: "Site photo not found" });
+
+      await deleteSitePhotoUpload(deleted.imageUrl);
+
+      return res.json({ success: true, deletedId: id });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   router.get("/admin/leads/:id/payment-slips", requireAdminPermission("leads"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid lead id");
@@ -2898,6 +2969,45 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
       res.setHeader("Content-Length", String(info.size));
       res.setHeader("Cache-Control", "no-store");
       return createReadStream(filePath).pipe(res);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Retention & prune for the off-container backup vault (see BACKUP_DIR
+   * above). Enforces the disaster-recovery safety rules from src/lib/backup-vault.ts:
+   * never touch anything younger than 7 days, only prune past 30 days, and
+   * never let the vault drop below 3 remaining backups.
+   */
+  router.post("/admin/backup/prune", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const result = await pruneBackupVault(BACKUP_DIR);
+      return res.json(result);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Storage & file health snapshot (job-112): portfolio photo count/size from
+   * the catalog (see lib/portfolio-catalog.ts), backup vault count/size/age
+   * from BACKUP_DIR (see lib/backup-vault.ts's notion of a backup file), and
+   * free/used space on the upload partition via statfs.
+   */
+  router.get("/admin/storage/stats", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const stats = await computeStorageStats(UPLOAD_DIR, BACKUP_DIR);
+      return res.json(stats);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Database health & connection pool snapshot (job-114): query latency via
+   * SELECT current_timestamp and core-table presence via lib/db-metrics.ts.
+   * checkDbHealth already degrades safely on connection failure, so this
+   * always answers 200 with status "healthy" | "degraded" rather than 500.
+   */
+  router.get("/admin/database/health", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const metrics = await checkDbHealth();
+      return res.json(metrics);
     } catch (error) { return next(error); }
   });
 

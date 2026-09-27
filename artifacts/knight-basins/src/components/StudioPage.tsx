@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { useListAdminLeads } from "@workspace/api-client-react";
+import { customFetch, useListAdminLeads } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, Loader2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
 import {
@@ -524,6 +524,199 @@ function studioDataRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+const STUDIO_API_DRAFT_KEY_PATTERN = /^dft_[a-f0-9]{24}$/i;
+const STUDIO_SIDE_STATUSES: SideStatus[] = ["upstand", "open-edge", "wall-flush", "wall-flush+upstand", "closed-edge", "normal"];
+
+type StudioDraftApiPayload = {
+  shape: string;
+  dimensions: StudioState["dimensions"];
+  stoneColor?: string;
+  basinSku?: string;
+  basinPlacements: BasinPlacement[];
+  edges: {
+    activePieceId?: string;
+    pieces: StudioPiece[];
+    sideStatusesByPiece: Record<string, Record<string, SideStatus>>;
+  };
+};
+
+type StudioDraftApiResponse = {
+  draftKey: string;
+  resumeUrl: string;
+  expiresAt?: string;
+};
+
+function isStudioApiDraftKey(value: string): boolean {
+  return STUDIO_API_DRAFT_KEY_PATTERN.test(value);
+}
+
+function isStudioSideStatus(value: unknown): value is SideStatus {
+  return typeof value === "string" && STUDIO_SIDE_STATUSES.includes(value as SideStatus);
+}
+
+function studioDraftDimensions(state: StudioState, pieces: StudioPiece[]): StudioState["dimensions"] {
+  const firstPiece = pieces[0];
+  const firstRectangle = firstPiece?.rectangles[0];
+  const secondRectangle = firstPiece?.rectangles[1];
+  const thirdRectangle = firstPiece?.rectangles[2];
+  const depthMm = state.dimensions.depthMm > 0 ? state.dimensions.depthMm : firstRectangle?.lengthMm ?? 600;
+  return {
+    depthMm,
+    runAMm: state.dimensions.runAMm > 0 ? state.dimensions.runAMm : firstRectangle?.widthMm ?? 1500,
+    runBMm: state.dimensions.runBMm > 0 ? state.dimensions.runBMm : secondRectangle ? secondRectangle.lengthMm + depthMm : 0,
+    runCMm: state.dimensions.runCMm > 0 ? state.dimensions.runCMm : thirdRectangle ? thirdRectangle.lengthMm + depthMm : 0,
+  };
+}
+
+function createStudioDraftPayload(state: StudioState): StudioDraftApiPayload {
+  const pieces = getStudioPieces(state);
+  const basinSku = state.basinPlacements[0]?.sku ?? state.basinSkus[0];
+  return {
+    shape: studioPresetForShare(state, pieces[0]),
+    dimensions: studioDraftDimensions(state, pieces),
+    ...(state.activeStone ? { stoneColor: state.activeStone } : {}),
+    ...(basinSku ? { basinSku } : {}),
+    basinPlacements: state.basinPlacements.map((placement) => ({ ...placement })),
+    edges: {
+      activePieceId: state.activePieceId ?? pieces[0]?.id,
+      pieces: pieces.map((piece) => ({
+        ...piece,
+        rectangles: piece.rectangles.map((rectangle) => ({ ...rectangle })),
+        sideStatuses: { ...piece.sideStatuses },
+      })),
+      sideStatusesByPiece: Object.fromEntries(pieces.map((piece) => [piece.id, { ...piece.sideStatuses }])),
+    },
+  };
+}
+
+function studioDraftPiecesFromEdges(edges: Record<string, unknown>): StudioPiece[] | null {
+  if (!Array.isArray(edges.pieces) || !edges.pieces.length) return null;
+  const pieces: StudioPiece[] = [];
+  for (const value of edges.pieces) {
+    const candidate = studioDataRecord(value);
+    if (
+      typeof candidate.id !== "string" ||
+      typeof candidate.name !== "string" ||
+      !Array.isArray(candidate.rectangles) ||
+      candidate.rectangles.length === 0 ||
+      candidate.rectangles.some((rectangle) => {
+        const item = studioDataRecord(rectangle);
+        return typeof item.id !== "string" ||
+          typeof item.widthMm !== "number" ||
+          typeof item.lengthMm !== "number" ||
+          typeof item.xMm !== "number" ||
+          typeof item.yMm !== "number" ||
+          (item.rotation !== 0 && item.rotation !== 90);
+      }) ||
+      !candidate.sideStatuses ||
+      typeof candidate.sideStatuses !== "object" ||
+      Array.isArray(candidate.sideStatuses)
+    ) return null;
+    const sideStatuses = Object.fromEntries(
+      Object.entries(studioDataRecord(candidate.sideStatuses)).filter(([, status]) => isStudioSideStatus(status)),
+    ) as Record<string, SideStatus>;
+    pieces.push({
+      ...candidate,
+      rectangles: candidate.rectangles as StudioPiece["rectangles"],
+      sideStatuses,
+    } as StudioPiece);
+  }
+  return pieces;
+}
+
+function restoreStudioDraftState(
+  current: StudioState,
+  value: unknown,
+  basinProducts: ReadonlyArray<BasinProduct>,
+  availableStoneColors: ReadonlyArray<StoneColor>,
+): StudioState {
+  const response = studioDataRecord(value);
+  const draft = studioDataRecord(response.draft ?? response.data ?? value);
+  const dimensionsRecord = studioDataRecord(draft.dimensions);
+  const positiveDimension = (key: keyof StudioState["dimensions"], fallback: number) => {
+    const candidate = dimensionsRecord[key];
+    return typeof candidate === "number" && Number.isFinite(candidate) && candidate > 0
+      ? Math.round(candidate)
+      : fallback;
+  };
+  const preset = studioPresetFromQuery(typeof draft.shape === "string" ? draft.shape : null);
+  const defaults = preset ? presetLegDefaults(preset) : [];
+  const dimensions = {
+    depthMm: positiveDimension("depthMm", current.dimensions.depthMm),
+    runAMm: positiveDimension("runAMm", current.dimensions.runAMm),
+    runBMm: positiveDimension("runBMm", defaults[1] ?? current.dimensions.runBMm),
+    runCMm: positiveDimension("runCMm", defaults[2] ?? current.dimensions.runCMm),
+  };
+  const placements = Array.isArray(draft.basinPlacements)
+    ? draft.basinPlacements.filter((placement): placement is BasinPlacement => {
+        const item = studioDataRecord(placement);
+        return typeof item.id === "string" &&
+          typeof item.sku === "string" &&
+          typeof item.xMm === "number" &&
+          typeof item.yMm === "number";
+      })
+    : [];
+  const edges = studioDataRecord(draft.edges);
+  const savedPieces = studioDraftPiecesFromEdges(edges);
+  const existingPieces = getStudioPieces(current);
+  const shape = preset === "u" ? "U" : preset === "i" ? "I" : preset ? "L" : current.shape;
+  let pieces = savedPieces;
+  if (!pieces && preset) {
+    const savedPieceId = placements.find((placement) => placement.pieceId)?.pieceId;
+    const pieceId = savedPieceId ?? existingPieces[0]?.id ?? WIZARD_PIECE_ID;
+    const extension = (runMm: number, fallbackOverallMm: number) =>
+      Math.max(1, (runMm > 0 ? runMm : fallbackOverallMm) - dimensions.depthMm);
+    const legs = preset === "i"
+      ? [dimensions.runAMm]
+      : preset === "u"
+        ? [dimensions.runAMm, extension(dimensions.runBMm, defaults[1] ?? dimensions.depthMm + 600), extension(dimensions.runCMm, defaults[2] ?? dimensions.depthMm + 600)]
+        : [dimensions.runAMm, extension(dimensions.runBMm, defaults[1] ?? dimensions.depthMm + 600)];
+    pieces = [buildWizardPiece(pieceId, preset, legs, dimensions.depthMm)];
+  }
+
+  if (pieces) {
+    const sideStatusesByPiece = studioDataRecord(edges.sideStatusesByPiece);
+    const legacyStatuses = studioDataRecord(edges.sideStatuses ?? edges);
+    pieces = pieces.map((piece, index) => {
+      const matchingStatuses = studioDataRecord(
+        sideStatusesByPiece[piece.id] ?? Object.values(sideStatusesByPiece)[index] ?? legacyStatuses,
+      );
+      const sideStatuses = { ...piece.sideStatuses };
+      for (const rectangle of piece.rectangles) {
+        for (const side of ["top", "right", "bottom", "left"] as const) {
+          const key = `${rectangle.id}:${side}`;
+          const status = matchingStatuses[key] ?? matchingStatuses[side];
+          if (isStudioSideStatus(status)) sideStatuses[key] = status;
+        }
+      }
+      return { ...piece, sideStatuses };
+    });
+  }
+
+  const edgeActivePieceId = typeof edges.activePieceId === "string" ? edges.activePieceId : undefined;
+  const activePieceId = pieces?.some((piece) => piece.id === edgeActivePieceId)
+    ? edgeActivePieceId
+    : pieces?.[0]?.id ?? current.activePieceId;
+  const savedStone = typeof draft.stoneColor === "string" ? draft.stoneColor.trim() : "";
+  const stoneColor = savedStone
+    ? availableStoneColors.find((stone) => stone.code.toLowerCase() === savedStone.toLowerCase())?.code ?? savedStone
+    : current.activeStone;
+  const savedBasinSku = typeof draft.basinSku === "string" ? draft.basinSku.trim() : "";
+  const basinSkus = [...new Set([savedBasinSku, ...placements.map((placement) => placement.sku)].filter(Boolean))];
+  const next: StudioState = {
+    ...current,
+    shape,
+    dimensions,
+    ...(pieces ? { pieces, activePieceId } : {}),
+    stoneColors: stoneColor ? [stoneColor] : current.stoneColors,
+    activeStone: stoneColor,
+    stoneSelectionSource: savedStone ? "user" : current.stoneSelectionSource,
+    basinSkus,
+    basinPlacements: placements,
+  };
+  return normalizeStudioState(next, basinProducts, availableStoneColors);
 }
 
 function linkedLeadStudioState(value: unknown): StudioState | null {
@@ -3153,8 +3346,11 @@ export function StudioPage({
     () => isLeadLinkedMode
       ? { token: "", state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined }
       : readLinkedDraft(),
-    [isLeadLinkedMode],
+    [isLeadLinkedMode, studioRouteKey],
   );
+  const remoteDraftKey = mode === "studio" && !isLeadLinkedMode && isStudioApiDraftKey(linkedDraft.token)
+    ? linkedDraft.token
+    : "";
   const requestedBasinSku = (studioSearchParams.get("basinSku") ?? studioSearchParams.get("basin") ?? "").trim();
   const requestedBasinProduct = requestedBasinSku
     ? basinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
@@ -3201,15 +3397,24 @@ export function StudioPage({
   const isSimpleStudioMode = mode === "studio" && studioUiMode === "simple";
   const [studioShareFeedback, setStudioShareFeedback] = useState<"copied" | "failed" | null>(null);
   const studioShareFeedbackTimeoutRef = useRef<number | null>(null);
-  const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !isLeadLinkedMode && !linkedDraft.state ? readStoredStudioDraft() : null);
+  const [draftNotice, setDraftNotice] = useState<StudioDraftRecord | null>(() => mode === "studio" && !isLeadLinkedMode && !linkedDraft.state && !remoteDraftKey ? readStoredStudioDraft() : null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
-  const [draftResult, setDraftResult] = useState(() => linkedDraft.token && !linkedDraft.state ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่" : "");
+  const [draftResult, setDraftResult] = useState(() => remoteDraftKey
+    ? "กำลังโหลดแบบร่างจากลิงก์…"
+    : linkedDraft.token && !linkedDraft.state
+      ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่"
+      : "");
   const [catalogNotice, setCatalogNotice] = useState<StudioCatalogNotice | null>(() => linkedDraft.catalogContext ? studioCatalogNotice(linkedDraft.catalogContext, basinProducts) : null);
   const [namedDrafts, setNamedDrafts] = useState<NamedStudioDraftRecord[]>(() => mode === "studio" ? readStoredStudioDrafts() : []);
   const [editingNamedDraftId, setEditingNamedDraftId] = useState<string | null>(null);
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false);
   const [draftName, setDraftName] = useState("");
+  const [isLoadingShareableDraft, setIsLoadingShareableDraft] = useState(() => Boolean(remoteDraftKey));
+  const [isSavingShareableDraft, setIsSavingShareableDraft] = useState(false);
+  const [shareableDraftDialogOpen, setShareableDraftDialogOpen] = useState(false);
+  const [shareableDraftUrl, setShareableDraftUrl] = useState("");
+  const [shareableDraftCopied, setShareableDraftCopied] = useState(false);
   const skipNextDraftSave = useRef(false);
   const hasMountedDraftEffect = useRef(false);
   const linkedLeadHydratedRef = useRef<string | null>(null);
@@ -3702,7 +3907,46 @@ export function StudioPage({
     }
   }, [estimate.crossJointPlacements.length, result]);
   useEffect(() => {
-    if (mode !== "studio" || isLeadLinkedMode) return;
+    if (!remoteDraftKey) {
+      setIsLoadingShareableDraft(false);
+      return;
+    }
+    let isCurrent = true;
+    setIsLoadingShareableDraft(true);
+    void customFetch<unknown>(`/api/studio/draft/${encodeURIComponent(remoteDraftKey)}`, { responseType: "json" })
+      .then((remoteDraft) => {
+        if (!isCurrent) return;
+        setState((current) => restoreStudioDraftState(current, remoteDraft, basinProducts, stoneColors));
+        const response = studioDataRecord(remoteDraft);
+        const savedDraft = studioDataRecord(response.draft ?? response.data ?? remoteDraft);
+        const savedAt = typeof savedDraft.savedAt === "string" && !Number.isNaN(Date.parse(savedDraft.savedAt))
+          ? savedDraft.savedAt
+          : new Date().toISOString();
+        setLastSavedAt(savedAt);
+        setDraftNotice(null);
+        setEditingNamedDraftId(null);
+        setCatalogNotice(null);
+        setPieceZoom({});
+        setSelectedPlacementId(null);
+        setSelectedRectangleId(null);
+        setDraftResult("เปิดแบบร่างจากลิงก์แล้ว");
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) return;
+        const status = studioDataRecord(error).status;
+        setDraftResult(status === 404
+          ? "ไม่พบแบบร่างหรือลิงก์หมดอายุแล้ว"
+          : "โหลดแบบร่างไม่สำเร็จ กรุณาลองเปิดลิงก์อีกครั้ง");
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoadingShareableDraft(false);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [remoteDraftKey, basinProducts, stoneColors, setState]);
+  useEffect(() => {
+    if (mode !== "studio" || isLeadLinkedMode || isLoadingShareableDraft) return;
     if (!hasMountedDraftEffect.current) {
       hasMountedDraftEffect.current = true;
       return;
@@ -3720,7 +3964,7 @@ export function StudioPage({
       setIsSavingDraft(false);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [mode, isLeadLinkedMode, state, basinProducts, catalogNotice]);
+  }, [mode, isLeadLinkedMode, isLoadingShareableDraft, state, basinProducts, catalogNotice]);
   const acknowledgeCatalogChange = (sku: string) => {
     setCatalogNotice((current) => {
       if (!current) return current;
@@ -3768,6 +4012,41 @@ export function StudioPage({
     writeStoredStudioDraft({ version: 1, savedAt, state: normalizedState, catalogContext });
     setLastSavedAt(savedAt);
     await copyStateLink(normalizedState, "บันทึกและคัดลอกลิงก์แบบร่างแล้ว เปิดลิงก์นี้ใน Incognito เพื่อแก้ไขต่อได้", createStudioShareLink, catalogContext);
+  };
+  const saveStudioDraftForResume = async () => {
+    if (isSavingShareableDraft) return;
+    setIsSavingShareableDraft(true);
+    setShareableDraftUrl("");
+    setShareableDraftCopied(false);
+    try {
+      const normalizedState = normalizeStudioState(state, basinProducts, stoneColors);
+      const saved = await customFetch<StudioDraftApiResponse>("/api/studio/draft", {
+        method: "POST",
+        body: JSON.stringify(createStudioDraftPayload(normalizedState)),
+        responseType: "json",
+      });
+      if (!isStudioApiDraftKey(saved.draftKey) || typeof saved.resumeUrl !== "string" || !saved.resumeUrl.trim()) {
+        throw new Error("The draft API returned an invalid resume link.");
+      }
+      setShareableDraftUrl(new URL(saved.resumeUrl, window.location.origin).toString());
+      setShareableDraftDialogOpen(true);
+      setDraftResult("บันทึกแบบร่างสำหรับเปิดต่อแล้ว");
+    } catch {
+      setDraftResult("บันทึกแบบร่างไม่สำเร็จ กรุณาลองอีกครั้ง");
+    } finally {
+      setIsSavingShareableDraft(false);
+    }
+  };
+  const copyShareableDraftUrl = async () => {
+    if (!shareableDraftUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareableDraftUrl);
+      setShareableDraftCopied(true);
+      setDraftResult("คัดลอกลิงก์แบบร่างแล้ว");
+    } catch {
+      setShareableDraftCopied(false);
+      setDraftResult("คัดลอกไม่สำเร็จ เลือก URL ในช่องแล้วคัดลอกด้วยตนเอง");
+    }
   };
   const openSaveDraftDialog = () => {
     const editingDraft = editingNamedDraftId ? namedDrafts.find((draft) => draft.id === editingNamedDraftId) : undefined;
@@ -4628,7 +4907,7 @@ export function StudioPage({
     {mode === "studio" && <StudioProgressChecklist state={state} contact={contact} estimate={estimate} />}
     {mode === "studio" && draftNotice && <div className="studio-draft-banner" role="alert" data-testid="studio-draft-banner"><div><strong>พบแบบร่างที่ทำค้างไว้เมื่อ {formatDraftTimestamp(draftNotice.savedAt)}</strong><small>แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้</small></div><div className="studio-draft-banner-actions"><button type="button" className="button button--accent" onClick={resumeDraft} data-testid="button-resume-studio-draft">ดึงแบบร่างเดิม</button><button type="button" className="button button--outline" onClick={startNewDraft} data-testid="button-new-studio-draft">เริ่มออกแบบใหม่</button></div></div>}
      {mode === "studio" && catalogNotice && <StudioCatalogChangeNotice notice={catalogNotice} />}
-     {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
+    {mode === "studio" && <div className="studio-draft-toolbar"><div><p className="eyebrow">DRAFT WORKSPACE</p><span className={`studio-draft-status ${isSavingDraft ? "is-saving" : ""}`} data-testid="status-studio-draft-autosave">{isSavingDraft ? "กำลังบันทึก…" : editingNamedDraftId ? `กำลังแก้ไขแบบร่างที่ตั้งชื่อไว้` : lastSavedAt ? `บันทึกอัตโนมัติล่าสุด ${formatDraftTimestamp(lastSavedAt)}` : "ยังไม่มีแบบร่างที่บันทึก"}</span></div><div className="studio-draft-toolbar-actions"><button type="button" className="icon-button" disabled={!studioHistory.canUndo} onClick={studioHistory.undo} title="ย้อนกลับ (Ctrl+Z)" aria-label="ย้อนกลับ" data-testid="button-studio-undo"><Undo2 size={15} /></button><button type="button" className="icon-button" disabled={!studioHistory.canRedo} onClick={studioHistory.redo} title="ทำซ้ำ (Ctrl+Y)" aria-label="ทำซ้ำ" data-testid="button-studio-redo"><Redo2 size={15} /></button><button type="button" className="button button--outline" disabled={isSavingShareableDraft || isLoadingShareableDraft} onClick={() => void saveStudioDraftForResume()} data-testid="button-studio-save-draft"><Save size={15} /> {isSavingShareableDraft ? "กำลังบันทึก…" : "บันทึกแบบร่างไว้ทำต่อ"}</button><button type="button" className="button button--accent" onClick={openSaveDraftDialog} data-testid="button-save-named-studio-draft"><Save size={15} /> {editingNamedDraftId ? "อัปเดตแบบร่าง" : "บันทึกแบบร่าง"}</button><button type="button" className="button button--outline" onClick={() => setDraftDrawerOpen(true)} data-testid="button-open-studio-drafts"><FolderOpen size={15} /> แบบร่างของฉัน ({namedDrafts.length})</button><button type="button" className="button button--outline" onClick={() => void copyDraftLink()} data-testid="button-save-studio-draft-link"><Link2 size={15} /> คัดลอกลิงก์ปัจจุบัน</button></div></div>}
     {draftResult && <p className="studio-result studio-draft-result" role="status" data-testid="status-studio-draft">{draftResult}</p>}
       {isLeadLinkedMode && linkedLead
         ? <div className="studio-lead-workspace">{linkedSketchViewer}{studioDesignLayout}</div>
@@ -4663,5 +4942,6 @@ export function StudioPage({
       </div>}
      {mode === "studio" && draftDrawerOpen && <StudioDraftDrawer drafts={namedDrafts} basinProducts={basinProducts} stoneColors={stoneColors} onClose={() => setDraftDrawerOpen(false)} onOpen={openNamedDraft} onCopy={(draft) => void copyNamedDraftLink(draft)} onDelete={deleteNamedDraft} />}
      {mode === "studio" && saveDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setSaveDraftDialogOpen(false)} /><form className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-save-draft-title" onSubmit={saveNamedDraft} data-testid="studio-save-draft-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">SAVE WORKSPACE</p><h2 id="studio-save-draft-title">บันทึกแบบร่าง</h2></div><button type="button" className="icon-button" onClick={() => setSaveDraftDialogOpen(false)} aria-label="ปิดหน้าต่างบันทึกแบบร่าง"><X size={18} /></button></div><label>ชื่อแบบร่าง<input autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)} data-testid="input-studio-draft-name" /></label><p>เก็บผัง 2D สีหิน ขนาด อ่าง และค่ารายด้านไว้กลับมาทำต่อได้</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setSaveDraftDialogOpen(false)} data-testid="button-cancel-save-studio-draft">ยกเลิก</button><button type="submit" className="button button--accent" data-testid="button-confirm-save-studio-draft">บันทึกแบบร่าง</button></div></form></div>}
+     {mode === "studio" && shareableDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setShareableDraftDialogOpen(false)} /><section className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-draft-resume-title" data-testid="studio-draft-resume-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">STUDIO DRAFT LINK</p><h2 id="studio-draft-resume-title">บันทึกแบบร่างแล้ว</h2></div><button type="button" className="icon-button" onClick={() => setShareableDraftDialogOpen(false)} aria-label="ปิดหน้าต่างลิงก์แบบร่าง"><X size={18} /></button></div><label>ลิงก์สำหรับเปิดแบบร่างต่อ<input readOnly value={shareableDraftUrl} onFocus={(event) => event.currentTarget.select()} data-testid="input-studio-draft-resume-url" /></label><p>ลิงก์นี้ใช้เปิดผังเดิมเพื่อกลับมาทำต่อได้ภายใน 30 วัน</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setShareableDraftDialogOpen(false)}>ปิด</button><button type="button" className="button button--accent" onClick={() => void copyShareableDraftUrl()} data-testid="button-studio-copy-draft-link"><Copy size={15} /> {shareableDraftCopied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}</button></div></section></div>}
   </div>;
 }
