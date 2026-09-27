@@ -170,6 +170,62 @@ export type StudioNotificationSnapshot = {
 };
 
 const MAX_SKETCH_FILES = 3;
+const MAX_SKETCH_IMAGE_EDGE = 1920;
+
+export function getRotatedSketchDimensions(width: number, height: number, maxEdge = MAX_SKETCH_IMAGE_EDGE) {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    throw new RangeError("Sketch image dimensions must be positive numbers");
+  }
+  if (!Number.isFinite(maxEdge) || maxEdge <= 0) {
+    throw new RangeError("Maximum sketch image edge must be a positive number");
+  }
+
+  const scale = Math.min(1, maxEdge / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(height * scale)),
+    height: Math.max(1, Math.round(width * scale)),
+  };
+}
+
+export async function rotateSketchFile(file: File): Promise<File> {
+  const image = await createImageBitmap(file);
+  try {
+    const outputDimensions = getRotatedSketchDimensions(image.width, image.height);
+    const scale = Math.min(1, MAX_SKETCH_IMAGE_EDGE / Math.max(image.width, image.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = outputDimensions.width;
+    canvas.height = outputDimensions.height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas 2D context is unavailable");
+
+    const outputType = file.type === "image/png" || file.type === "image/webp" ? file.type : "image/jpeg";
+    if (outputType === "image/jpeg") {
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.translate(canvas.width, 0);
+    context.rotate(Math.PI / 2);
+    context.scale(scale, scale);
+    context.drawImage(image, 0, 0);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => result ? resolve(result) : reject(new Error("Canvas could not encode the rotated sketch")),
+        outputType,
+        outputType === "image/jpeg" ? 0.92 : undefined,
+      );
+    });
+
+    return new File([blob], file.name, {
+      type: blob.type || outputType,
+      lastModified: file.lastModified,
+    });
+  } finally {
+    image.close();
+  }
+}
 
 type SketchAnalysisShape = "I" | "L" | "L-left" | "L-right" | "U" | "unknown";
 type SketchAnalysisCardPhase = "queued" | "uploading" | "analyzing" | "complete" | "unknown";
@@ -3428,12 +3484,14 @@ export function StudioPage({
   const [sketchFiles, setSketchFiles] = useState<File[]>([]);
   const [sketchPreviewUrls, setSketchPreviewUrls] = useState<string[]>([]);
   const [sketchDropActive, setSketchDropActive] = useState(false);
+  const [rotatingSketchFile, setRotatingSketchFile] = useState<File | null>(null);
   const [sketchAnalysisByFile, setSketchAnalysisByFile] = useState<Map<File, SketchAnalysisCardState>>(() => new Map());
   const [sketchStatus, setSketchStatus] = useState<SketchProcessingStatus | null>(null);
   const sketchPreviewUrlCache = useRef<Map<File, string>>(new Map());
   const sketchInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const sketchFilesRef = useRef<File[]>([]);
+  const rotatingSketchFileRef = useRef<File | null>(null);
   const sketchAnalysisQueueRef = useRef<Promise<void>>(Promise.resolve());
   const sketchDimensionEditVersionRef = useRef(0);
   const activeSketchAnalysisFileRef = useRef<File | null>(null);
@@ -3812,6 +3870,70 @@ export function StudioPage({
       } finally {
         if (activeSketchAnalysisFileRef.current === file) activeSketchAnalysisFileRef.current = null;
       }
+    }
+  };
+  const rotateSketchAtIndex = async (index: number) => {
+    if (
+      submissionInFlightRef.current ||
+      sketchStatus?.busy ||
+      rotatingSketchFileRef.current
+    ) return;
+
+    const file = sketchFilesRef.current[index];
+    if (!file) return;
+    const analysisPhase = sketchAnalysisByFile.get(file)?.phase;
+    if (analysisPhase === "queued" || analysisPhase === "uploading" || analysisPhase === "analyzing") return;
+
+    rotatingSketchFileRef.current = file;
+    setRotatingSketchFile(file);
+    setSketchStatus({
+      phase: "analyzing",
+      message: "กำลังหมุนภาพแบบร่าง…",
+      busy: true,
+    });
+
+    try {
+      const rotatedFile = await rotateSketchFile(file);
+      const currentIndex = sketchFilesRef.current.indexOf(file);
+      if (currentIndex === -1) return;
+
+      const nextFiles = [...sketchFilesRef.current];
+      nextFiles[currentIndex] = rotatedFile;
+      sketchFilesRef.current = nextFiles;
+      setSketchFiles(nextFiles);
+      setSketchAnalysisByFile((current) => {
+        const next = new Map(current);
+        next.delete(file);
+        next.set(rotatedFile, {
+          shape: "unknown",
+          confidence: null,
+          notes: "กำลังรอผลวิเคราะห์",
+          runAMm: null,
+          depthMm: null,
+          workpieceCount: 0,
+          workpieces: [],
+          phase: "queued",
+        });
+        return next;
+      });
+      setResult("");
+      setSketchStatus({
+        phase: "uploading",
+        message: "หมุนภาพแล้ว กำลังส่งวิเคราะห์ใหม่…",
+        busy: true,
+      });
+
+      sketchAnalysisQueueRef.current = sketchAnalysisQueueRef.current.then(() => analyzeSketch([rotatedFile]));
+      await sketchAnalysisQueueRef.current;
+    } catch {
+      setSketchStatus({
+        phase: "error",
+        message: "หมุนภาพไม่สำเร็จ กรุณาลองอีกครั้ง",
+        busy: false,
+      });
+    } finally {
+      rotatingSketchFileRef.current = null;
+      setRotatingSketchFile(null);
     }
   };
   const addSketchFiles = (files: File[]) => {
@@ -4617,6 +4739,7 @@ export function StudioPage({
             <small data-testid="text-sketch-file-count">แนบแล้ว {sketchFiles.length} / {MAX_SKETCH_FILES} รูป</small>
           </div>
         </div>
+        <small data-testid="text-sketch-rotate-hint">ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ AI อ่าน</small>
         {sketchFiles.length < MAX_SKETCH_FILES && <div className="studio-sketch-actions">
           <button
             type="button"
@@ -4682,7 +4805,8 @@ export function StudioPage({
               workpieces: [],
               phase: "queued" as const,
             };
-            const isBusy = analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
+            const isRotating = rotatingSketchFile === file;
+            const isBusy = isRotating || analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
             const confidence = analysis.confidence === null
               ? "ยังไม่ระบุ"
               : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
@@ -4690,6 +4814,18 @@ export function StudioPage({
             return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
               {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
               <div className="studio-sketch-analysis-copy">
+                <button
+                  type="button"
+                  className="button button--outline"
+                  style={{ minHeight: 40, alignSelf: "flex-start" }}
+                  aria-label="หมุนภาพแบบร่าง 90 องศา"
+                  disabled={submissionInFlightRef.current || submitting || sketchStatus?.busy || isBusy}
+                  onClick={() => void rotateSketchAtIndex(index)}
+                  data-testid={`button-rotate-sketch-${index}`}
+                >
+                  {isRotating ? <Loader2 size={16} aria-hidden="true" /> : <RotateCw size={16} aria-hidden="true" />}
+                  หมุน 90°
+                </button>
                 <strong className="studio-sketch-analysis-title">{file.name}</strong>
                 <span className={`studio-sketch-shape studio-sketch-shape--${shapeClass}`}>{sketchShapeLabel(analysis.shape)}</span>
                 <span>ความมั่นใจ: {confidence}</span>
@@ -4743,7 +4879,7 @@ export function StudioPage({
                     {workpiece.notes && <p className="studio-sketch-workpiece-notes">{workpiece.notes}</p>}
                   </section>)}
                 </div>}
-                {isBusy && <span className="studio-sketch-analysis-pending"><Loader2 className="studio-sketch-status-spinner" size={14} aria-hidden="true" /> กำลังวิเคราะห์ภาพนี้</span>}
+                {isBusy && <span className="studio-sketch-analysis-pending"><Loader2 className="studio-sketch-status-spinner" size={14} aria-hidden="true" /> {isRotating ? "กำลังหมุนภาพนี้" : "กำลังวิเคราะห์ภาพนี้"}</span>}
               </div>
             </article>;
           })}
