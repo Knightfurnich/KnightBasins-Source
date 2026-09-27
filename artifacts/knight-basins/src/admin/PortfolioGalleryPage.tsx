@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clipboard, Images, MessageCircle, Search, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 export type PortfolioCategory = { slug: string; name: string; icon: string; count: number };
 export type PortfolioItem = {
@@ -41,10 +41,12 @@ type UploadDraft = {
 };
 type UploadFailure = { id: number; message: string };
 type UploadBatchResult = { uploadedIds: number[]; failures: UploadFailure[] };
+type PortfolioBatchDeleteResult = { deletedIds: string[]; notFoundIds: string[]; filesRemovedCount: number };
 type PortfolioApiError = Error & { status: number; apiMessage: string };
 
 const DUPLICATES_QUERY_KEY = ["/api/admin/portfolio/duplicates"] as const;
 const DELETE_CONFIRMATION_TEXT = "ลบรูปนี้ออกจากคลังผลงานถาวร? รูปจะหายจากหน้าเว็บและลบไฟล์ออกจากเซิร์ฟเวอร์";
+const PORTFOLIO_BATCH_DELETE_LIMIT = 50;
 const PORTFOLIO_IMAGE_MAX_DIMENSION = 1920;
 const PORTFOLIO_IMAGE_WEBP_QUALITY = 0.82;
 const PORTFOLIO_IMAGE_SMALL_FILE_THRESHOLD = 256 * 1024;
@@ -248,6 +250,31 @@ async function deletePortfolioItem(id: string): Promise<{ id: string; deleted: b
   return response.json() as Promise<{ id: string; deleted: boolean; fileRemoved: boolean }>;
 }
 
+async function batchDeletePortfolioItems(ids: string[]): Promise<PortfolioBatchDeleteResult> {
+  if (ids.length === 0 || ids.length > PORTFOLIO_BATCH_DELETE_LIMIT) {
+    throw new Error(`เลือกรูปได้ตั้งแต่ 1 ถึง ${PORTFOLIO_BATCH_DELETE_LIMIT} รูปต่อครั้ง`);
+  }
+  const response = await fetch("/api/admin/portfolio/batch-delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  if (!response.ok) {
+    const apiMessage = await readPortfolioApiMessage(response, "ลบรูปไม่สำเร็จ");
+    throw createPortfolioApiError(response.status, apiMessage);
+  }
+
+  const result = await response.json() as Partial<PortfolioBatchDeleteResult>;
+  if (
+    !Array.isArray(result.deletedIds)
+    || !Array.isArray(result.notFoundIds)
+    || typeof result.filesRemovedCount !== "number"
+  ) {
+    throw new Error("ผลตอบกลับจาก API ลบรูปเป็นชุดไม่ถูกต้อง");
+  }
+  return result as PortfolioBatchDeleteResult;
+}
+
 async function patchPortfolioVisibility(id: string, visible: boolean): Promise<{ id: string; visible: boolean }> {
   const response = await fetch(`/api/admin/portfolio/${encodeURIComponent(id)}/visibility`, {
     method: "PATCH",
@@ -369,6 +396,9 @@ export function PortfolioGalleryPage() {
   const [visibilityFilter, setVisibilityFilter] = useState<PortfolioVisibilityFilter>("all");
   const [onlyDuplicates, setOnlyDuplicates] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedBatchDeleteIds, setSelectedBatchDeleteIds] = useState<string[]>([]);
+  const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadCategory, setUploadCategory] = useState("");
   const [uploadDrafts, setUploadDrafts] = useState<UploadDraft[]>([]);
@@ -457,6 +487,7 @@ export function PortfolioGalleryPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deletePortfolioItem(id),
     onSuccess: (_result, id) => {
+      setSelectedBatchDeleteIds((current) => current.filter((selectedId) => selectedId !== id));
       queryClient.setQueriesData<PortfolioResponse>({ queryKey: ["/api/portfolio"] }, (old) => {
         if (!old) return old;
         const itemWasLoaded = old.items.some((item) => item.id === id);
@@ -474,6 +505,28 @@ export function PortfolioGalleryPage() {
     },
     onError: (error) => setPageFeedback({ type: "error", message: portfolioDeleteErrorMessage(error) }),
   });
+  const batchDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => batchDeletePortfolioItems(ids),
+    onSuccess: async (result) => {
+      setSelectedBatchDeleteIds([]);
+      setMultiSelectMode(false);
+      setBatchDeleteDialogOpen(false);
+      setPageFeedback({
+        type: "success",
+        message: result.notFoundIds.length > 0
+          ? `ลบรูปภาพเรียบร้อยแล้ว ${result.deletedIds.length} รายการ (ไม่พบ ${result.notFoundIds.length} รายการ)`
+          : `ลบรูปภาพเรียบร้อยแล้ว ${result.deletedIds.length} รายการ`,
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] }),
+        queryClient.invalidateQueries({ queryKey: DUPLICATES_QUERY_KEY }),
+      ]);
+    },
+    onError: (error) => {
+      setBatchDeleteDialogOpen(false);
+      setPageFeedback({ type: "error", message: portfolioDeleteErrorMessage(error) });
+    },
+  });
 
   const categories = portfolioQuery.data?.categories ?? [];
   const allItems = portfolioQuery.data?.items ?? [];
@@ -488,8 +541,10 @@ export function PortfolioGalleryPage() {
     [duplicateIds, onlyDuplicates, visibleItems],
   );
   const writesPending = uploadMutation.isPending || deleteMutation.isPending;
-  const actionsDisabled = writesPending || toggleMutation.isPending || loadMoreMutation.isPending;
+  const actionsDisabled = writesPending || batchDeleteMutation.isPending || toggleMutation.isPending || loadMoreMutation.isPending;
   const uploadCompressionPending = uploadDrafts.some((draft) => draft.compressionStatus === "processing");
+  const allVisibleItemsSelected = filteredItems.length > 0
+    && filteredItems.every((item) => selectedBatchDeleteIds.includes(item.id));
 
   useEffect(() => () => {
     uploadObjectUrls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -583,6 +638,53 @@ export function PortfolioGalleryPage() {
     deleteMutation.mutate(item.id);
   };
 
+  const handleToggleMultiSelectMode = () => {
+    if (actionsDisabled) return;
+    if (multiSelectMode) {
+      setMultiSelectMode(false);
+      setSelectedBatchDeleteIds([]);
+      setBatchDeleteDialogOpen(false);
+      return;
+    }
+    setMultiSelectMode(true);
+  };
+
+  const toggleBatchDeleteSelection = (id: string) => {
+    if (actionsDisabled) return;
+    setSelectedBatchDeleteIds((current) => {
+      if (current.includes(id)) return current.filter((selectedId) => selectedId !== id);
+      if (current.length >= PORTFOLIO_BATCH_DELETE_LIMIT) return current;
+      return [...current, id];
+    });
+  };
+
+  const selectAllVisibleBatchItems = () => {
+    if (actionsDisabled) return;
+    setSelectedBatchDeleteIds((current) => {
+      const next = [...current];
+      for (const item of filteredItems) {
+        if (next.length >= PORTFOLIO_BATCH_DELETE_LIMIT) break;
+        if (!next.includes(item.id)) next.push(item.id);
+      }
+      return next;
+    });
+  };
+
+  const openBatchDeleteConfirmation = () => {
+    if (actionsDisabled || selectedBatchDeleteIds.length === 0) return;
+    setPageFeedback(null);
+    setBatchDeleteDialogOpen(true);
+  };
+
+  const confirmBatchDelete = () => {
+    if (
+      actionsDisabled
+      || selectedBatchDeleteIds.length === 0
+      || selectedBatchDeleteIds.length > PORTFOLIO_BATCH_DELETE_LIMIT
+    ) return;
+    batchDeleteMutation.mutate([...selectedBatchDeleteIds]);
+  };
+
   const handleLoadMorePortfolioItems = () => {
     const nextOffset = portfolioQuery.data?.nextOffset;
     if (actionsDisabled || typeof nextOffset !== "number") return;
@@ -612,15 +714,28 @@ export function PortfolioGalleryPage() {
               ค้นหาและคัดลอกภาพผลงานจริงจากโรงงาน ส่งให้ลูกค้าได้ทันทีโดยไม่ต้องดาวน์โหลด
             </p>
           </div>
-          <Button
-            type="button"
-            className="w-full rounded-none sm:w-auto"
-            onClick={openUploadDialog}
-            disabled={actionsDisabled}
-            data-testid="button-open-portfolio-upload"
-          >
-            <Upload className="mr-2 h-4 w-4" /> ➕ เพิ่มรูปเข้าคลัง
-          </Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button
+              type="button"
+              variant={multiSelectMode ? "default" : "outline"}
+              className="w-full rounded-none sm:w-auto"
+              onClick={handleToggleMultiSelectMode}
+              disabled={actionsDisabled}
+              aria-pressed={multiSelectMode}
+              data-testid="button-portfolio-toggle-multiselect"
+            >
+              ☑️ {multiSelectMode ? "เสร็จสิ้นการเลือก" : "เลือกหลายรูป"}
+            </Button>
+            <Button
+              type="button"
+              className="w-full rounded-none sm:w-auto"
+              onClick={openUploadDialog}
+              disabled={actionsDisabled}
+              data-testid="button-open-portfolio-upload"
+            >
+              <Upload className="mr-2 h-4 w-4" /> ➕ เพิ่มรูปเข้าคลัง
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -665,6 +780,50 @@ export function PortfolioGalleryPage() {
           </span>
         )}
       </div>
+
+      {multiSelectMode && (
+        <div
+          className="flex flex-col gap-3 border border-[var(--line)] bg-[var(--card-paper)] p-3 sm:flex-row sm:items-center sm:justify-between"
+          role="group"
+          aria-label="เครื่องมือเลือกหลายรูป"
+          data-testid="portfolio-multiselect-toolbar"
+        >
+          <p className="text-sm font-medium" role="status" data-testid="status-portfolio-selected-count">
+            เลือกแล้ว {selectedBatchDeleteIds.length} รายการ (สูงสุด {PORTFOLIO_BATCH_DELETE_LIMIT})
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={selectAllVisibleBatchItems}
+              disabled={actionsDisabled || allVisibleItemsSelected || selectedBatchDeleteIds.length >= PORTFOLIO_BATCH_DELETE_LIMIT}
+              data-testid="button-portfolio-select-all-visible"
+            >
+              เลือกทั้งหมดในหน้านี้
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={() => setSelectedBatchDeleteIds([])}
+              disabled={actionsDisabled || selectedBatchDeleteIds.length === 0}
+              data-testid="button-portfolio-clear-selection"
+            >
+              ยกเลิกการเลือก
+            </Button>
+            <Button
+              type="button"
+              className="rounded-none bg-red-800 text-white hover:bg-red-900"
+              onClick={openBatchDeleteConfirmation}
+              disabled={actionsDisabled || selectedBatchDeleteIds.length === 0}
+              data-testid="button-portfolio-batch-delete"
+            >
+              {batchDeleteMutation.isPending ? "กำลังลบ…" : `🗑️ ลบที่เลือก (${selectedBatchDeleteIds.length})`}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-xs flex-1">
@@ -747,6 +906,22 @@ export function PortfolioGalleryPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="grid-portfolio-items">
           {filteredItems.map((item) => (
             <div key={item.id} className="group relative aspect-square overflow-hidden border border-[var(--line)] bg-black/5" data-testid={`card-portfolio-item-${item.id}`}>
+              {multiSelectMode && (
+                <label
+                  className="absolute left-2 top-2 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-sm bg-white/95 shadow-sm"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-[#003366]"
+                    checked={selectedBatchDeleteIds.includes(item.id)}
+                    onChange={() => toggleBatchDeleteSelection(item.id)}
+                    disabled={actionsDisabled || (!selectedBatchDeleteIds.includes(item.id) && selectedBatchDeleteIds.length >= PORTFOLIO_BATCH_DELETE_LIMIT)}
+                    aria-label={`เลือก ${item.title}`}
+                    data-testid={`checkbox-portfolio-item-${item.id}`}
+                  />
+                </label>
+              )}
               <button
                 type="button"
                 onClick={() => setSelectedItem(item)}
@@ -762,7 +937,7 @@ export function PortfolioGalleryPage() {
               </button>
               {duplicateIds.has(item.id) && (
                 <span
-                  className="absolute left-2 top-2 z-10 rounded-sm border border-amber-500/40 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-900 shadow-sm"
+                  className={`absolute left-2 ${multiSelectMode ? "top-12" : "top-2"} z-10 rounded-sm border border-amber-500/40 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-900 shadow-sm`}
                   data-testid={`badge-portfolio-duplicate-${item.id}`}
                 >
                   🔁 รูปซ้ำ
@@ -802,6 +977,40 @@ export function PortfolioGalleryPage() {
               isDeleting={deleteMutation.isPending && deleteMutation.variables === selectedItem.id}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={batchDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!batchDeleteMutation.isPending) setBatchDeleteDialogOpen(open);
+        }}
+      >
+        <DialogContent className="max-w-lg rounded-none" data-testid="dialog-portfolio-batch-delete">
+          <DialogTitle>ยืนยันการลบรูปภาพเป็นชุด</DialogTitle>
+          <DialogDescription data-testid="description-portfolio-batch-delete-confirmation">
+            คุณต้องการลบรูปภาพที่เลือกจำนวน {selectedBatchDeleteIds.length} รูปอย่างถาวรใช่หรือไม่? รูปภาพและไฟล์จริงบนเซิร์ฟเวอร์จะถูกลบทันที
+          </DialogDescription>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              onClick={() => setBatchDeleteDialogOpen(false)}
+              disabled={batchDeleteMutation.isPending}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              className="rounded-none bg-red-800 text-white hover:bg-red-900"
+              onClick={confirmBatchDelete}
+              disabled={actionsDisabled || selectedBatchDeleteIds.length === 0}
+              data-testid="button-confirm-batch-delete"
+            >
+              {batchDeleteMutation.isPending ? "กำลังลบ…" : `ยืนยันลบ ${selectedBatchDeleteIds.length} รูป`}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
