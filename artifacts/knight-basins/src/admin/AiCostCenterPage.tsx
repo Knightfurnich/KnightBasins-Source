@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Clock3, Coins, Database, Download, RefreshCw, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { BarChart3, Clock3, Coins, Copy, Database, Download, RefreshCw, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { customFetch } from "@workspace/api-client-react";
 import { useState, type ReactNode } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 type AiCostPeriod = "today" | "7d" | "30d" | "all";
 
@@ -118,6 +119,57 @@ function formatCount(value: number) {
   return countFormatter.format(Number.isFinite(value) ? Math.max(0, value) : 0);
 }
 
+export function buildAiCostSummaryMessage(data: AiCostCenterResponse, period: AiCostPeriod) {
+  const selectedPeriod = periods.find((item) => item.value === period)?.label ?? period;
+  const serviceLines = data.services.length > 0
+    ? data.services.map((service) =>
+      `• ${service.name}: ${formatThb(service.costThb)} · ${formatCount(service.requests)} คำขอ · ${formatCount(service.tokens)} โทเค็น`,
+    )
+    : ["• ยังไม่มีข้อมูลบริการในช่วงเวลานี้"];
+  const modelLines = data.modelBreakdown.length > 0
+    ? data.modelBreakdown.map((model) =>
+      `• ${model.model}: ${formatThb(model.costThb)} · ${formatCount(model.requests)} คำขอ`,
+    )
+    : ["• ยังไม่มีข้อมูลโมเดลในช่วงเวลานี้"];
+
+  return [
+    "สรุปต้นทุน AI - Knight Basins",
+    `ช่วงเวลา: ${selectedPeriod}`,
+    `ยอดรวม: ${formatThb(data.totalCostThb)}`,
+    `จำนวนคำขอ: ${formatCount(data.totalRequests)}`,
+    `โทเค็นรวม: ${formatCount(data.totalTokens)}`,
+    "",
+    "แยกตามบริการ:",
+    ...serviceLines,
+    "",
+    "แยกตามโมเดล:",
+    ...modelLines,
+  ].join("\n");
+}
+
+type AiCostSummaryToast = (options: {
+  description: string;
+  variant?: "destructive";
+}) => void;
+
+export async function copyAiCostSummaryToClipboard(
+  message: string,
+  writeText: (value: string) => Promise<void>,
+  notify: AiCostSummaryToast,
+) {
+  try {
+    await writeText(message);
+    notify({ description: "คัดลอกสรุปต้นทุน AI เรียบร้อยแล้ว" });
+    return true;
+  } catch {
+    notify({
+      description: "คัดลอกสรุปต้นทุน AI ไม่สำเร็จ",
+      variant: "destructive",
+    });
+    return false;
+  }
+}
+
 function formatUpdatedAt(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "เวลาอัปเดตไม่พร้อมใช้งาน";
@@ -215,8 +267,33 @@ function ServiceStatus({ status }: { status: AiCostService["status"] }) {
   );
 }
 
+export function AiCostCopySummaryButton({
+  onClick,
+  disabled = false,
+  isCopying = false,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  isCopying?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="ai-cost-button ai-cost-button--export"
+      onClick={onClick}
+      disabled={disabled || isCopying}
+      data-testid="button-ai-cost-copy-summary"
+    >
+      <Copy size={15} aria-hidden="true" />
+      {isCopying ? "กำลังคัดลอก..." : "คัดลอกสรุปส่ง LINE"}
+    </button>
+  );
+}
+
 export default function AiCostCenterPage() {
   const [period, setPeriod] = useState<AiCostPeriod>("30d");
+  const [isCopyingSummary, setIsCopyingSummary] = useState(false);
+  const { toast } = useToast();
   const { data, isError, isFetching, isLoading, refetch } = useAiCostCenter(period);
   const selectedPeriod = periods.find((item) => item.value === period) ?? periods[2];
   const averageSatang = data && data.totalRequests > 0
@@ -234,6 +311,20 @@ export default function AiCostCenterPage() {
     downloadLink.click();
     downloadLink.remove();
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  };
+  const handleCopySummary = async () => {
+    if (!data || isCopyingSummary) return;
+    setIsCopyingSummary(true);
+    try {
+      const message = buildAiCostSummaryMessage(data, period);
+      await copyAiCostSummaryToClipboard(
+        message,
+        (value) => navigator.clipboard.writeText(value),
+        toast,
+      );
+    } finally {
+      setIsCopyingSummary(false);
+    }
   };
 
   return (
@@ -302,6 +393,11 @@ export default function AiCostCenterPage() {
             <Download size={15} aria-hidden="true" />
             ส่งออกเป็น CSV
           </button>
+          <AiCostCopySummaryButton
+            onClick={handleCopySummary}
+            disabled={!data || isLoading}
+            isCopying={isCopyingSummary}
+          />
         </div>
       </div>
 
