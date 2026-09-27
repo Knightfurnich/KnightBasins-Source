@@ -38,7 +38,9 @@ const page = await import(${JSON.stringify(componentUrl)});
 const photos = ${JSON.stringify(PHOTOS)};
 const renderPage = (visiblePhotos) => {
   const queryClient = new QueryClient();
-  const params = page.sitePhotosQueryParams({ jobCode: "", stage: "all" });
+  const params = page.sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "visible" });
+  const hiddenParams = page.sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "hidden" });
+  queryClient.setQueryData(getListAdminSitePhotosQueryKey(hiddenParams), []);
   queryClient.setQueryData(getListAdminSitePhotosQueryKey(params), visiblePhotos);
   return renderToStaticMarkup(
     createElement(QueryClientProvider, { client: queryClient }, createElement(page.SitePhotosPage)),

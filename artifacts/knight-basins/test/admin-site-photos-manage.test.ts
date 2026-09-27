@@ -42,9 +42,11 @@ import { getListAdminSitePhotosQueryKey } from "@workspace/api-client-react";
 const mod = await import(${JSON.stringify(componentUrl)});
 const { SitePhotosPage, sitePhotosQueryParams } = mod;
 const photos = ${JSON.stringify(FIXTURE_PHOTOS)};
-const params = sitePhotosQueryParams({ jobCode: "", stage: "all" });
+const params = sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "visible" });
+const hiddenParams = sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "hidden" });
 const queryClient = new QueryClient();
 queryClient.setQueryData(getListAdminSitePhotosQueryKey(params), photos);
+queryClient.setQueryData(getListAdminSitePhotosQueryKey(hiddenParams), []);
 const html = renderToStaticMarkup(
   createElement(QueryClientProvider, { client: queryClient }, createElement(SitePhotosPage)),
 );
@@ -83,29 +85,30 @@ after(() => {
 });
 
 describe("admin site photo management UI", () => {
-  it("renders delete, description-edit, and stage controls for every photo", () => {
+  it("renders hide, description-edit, and stage controls for every visible photo", () => {
     for (const photo of FIXTURE_PHOTOS) {
       assert.ok(renderedHtml.includes(`data-testid="card-site-photo-${photo.id}"`));
       assert.ok(renderedHtml.includes(`data-testid="select-site-photo-stage-${photo.id}"`));
     }
-    assert.equal((renderedHtml.match(/data-testid="button-delete-site-photo"/g) ?? []).length, FIXTURE_PHOTOS.length);
+    assert.equal((renderedHtml.match(/data-testid="button-hide-site-photo"/g) ?? []).length, FIXTURE_PHOTOS.length);
     assert.equal((renderedHtml.match(/data-testid="button-edit-site-photo-description"/g) ?? []).length, FIXTURE_PHOTOS.length);
     for (const stage of ["survey", "installation", "service", "completed"]) {
       assert.ok(renderedHtml.includes(`<option value="${stage}"`), `missing stage option ${stage}`);
     }
   });
 
-  it("requires confirmation before sending the site-photo DELETE request", () => {
-    assert.ok(componentSource.includes("คุณต้องการลบภาพนี้ออกจากระบบใช่หรือไม่?"));
-    assert.match(componentSource, /data-testid="dialog-delete-site-photo"/);
-    assert.match(componentSource, /onClick=\{\(\) => void confirmDeleteSitePhoto\(\)\}[\s\S]*?data-testid="button-confirm-delete-site-photo"/);
-    assert.match(componentSource, /setPhotoToDelete\(photo\);[\s\S]*?data-testid="button-delete-site-photo"/);
+  it("confirms hiding through the visibility PATCH and never sends DELETE", () => {
+    assert.ok(componentSource.includes("ซ่อนภาพนี้จากรายการ? ภาพจะไม่ถูกลบและกู้คืนได้ทุกเมื่อ"));
+    assert.match(componentSource, /data-testid="dialog-hide-site-photo"/);
+    assert.match(componentSource, /onClick=\{\(\) => photoToHide && void updateSitePhotoVisibility\(photoToHide, false\)\}[\s\S]*?data-testid="button-confirm-hide-site-photo"/);
+    assert.match(componentSource, /setPhotoToHide\(photo\);[\s\S]*?data-testid="button-hide-site-photo"/);
 
-    const handler = componentSource.match(/const confirmDeleteSitePhoto = async \(\) => \{([\s\S]*?)\n  \};/);
-    assert.ok(handler, "expected a confirmation handler");
-    assert.match(handler[1]!, /if \(!photoToDelete \|\| deletingPhotoId !== null\) return/);
-    assert.match(handler[1]!, /customFetch<void>\(`\/api\/admin\/site-photos\/\$\{encodeURIComponent\(photo\.id\)\}`, \{ method: "DELETE" \}\)/);
+    const handler = componentSource.match(/const updateSitePhotoVisibility = async \(photo: SitePhoto, isVisible: boolean\) => \{([\s\S]*?)\n  \};/);
+    assert.ok(handler, "expected a visibility update handler");
+    assert.match(handler[1]!, /const request = sitePhotoVisibilityRequest\(photo\.id, isVisible\)/);
+    assert.match(handler[1]!, /customFetch<unknown>\(request\.url, request\.init\)/);
     assert.match(handler[1]!, /invalidateQueries\(\{ queryKey: SITE_PHOTOS_BASE_QUERY_KEY \}\)/);
+    assert.doesNotMatch(componentSource, /method:\s*["']DELETE["']/);
   });
 
   it("sends only the selected stage through the existing PATCH mutation", () => {

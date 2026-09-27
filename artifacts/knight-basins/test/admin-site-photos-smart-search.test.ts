@@ -53,7 +53,9 @@ const baseFilters = {
 };
 const ids = (filters) => page.filterSitePhotosSmart(photos, { ...baseFilters, ...filters }, now).map((photo) => photo.id);
 const queryClient = new QueryClient();
-const queryParams = page.sitePhotosQueryParams({ jobCode: "", stage: "all" });
+const queryParams = page.sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "visible" });
+const hiddenQueryParams = page.sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "hidden" });
+queryClient.setQueryData(getListAdminSitePhotosQueryKey(hiddenQueryParams), []);
 queryClient.setQueryData(getListAdminSitePhotosQueryKey(queryParams), photos.filter((photo) => photo.id !== 8));
 const renderedHtml = renderToStaticMarkup(
   createElement(QueryClientProvider, { client: queryClient }, createElement(page.SitePhotosPage)),
