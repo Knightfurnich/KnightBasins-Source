@@ -47,6 +47,7 @@ GOAL:
 
 SCOPE:
   - artifacts/knight-basins/src/admin/SitePhotosPage.tsx
+  - artifacts/knight-basins/test/admin-site-photos-manage.test.ts
   - artifacts/knight-basins/test/admin-site-photos-hide-ui.test.ts · (ใหม่)
 
 FORBIDDEN:
