@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { readdir, stat, unlink } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
 import { createDeflateRaw } from "node:zlib";
 import {
@@ -185,6 +185,46 @@ function resolveSitePhotoUploadPath(imageUrl: unknown): string | undefined {
   if (!filePath.startsWith(`${uploadRoot}${sep}`)) return undefined;
   return filePath;
 }
+
+/** id -> isVisible. A photo with no entry here is visible by default -- this
+ * file (same non-destructive JSON-mapping pattern as portfolio.ts's
+ * visibility.json) only ever needs to record photos an admin has explicitly
+ * hidden (or re-shown after hiding), never every row in sitePhotos, and never
+ * touches the sitePhotos table or its files on disk. */
+type SitePhotoVisibilityMap = Record<string, boolean>;
+
+const SITE_PHOTO_VISIBILITY_PATH = join(UPLOAD_DIR, "site_photos_visibility.json");
+
+async function loadSitePhotoVisibilityMap(): Promise<SitePhotoVisibilityMap> {
+  try {
+    const raw = await readFile(SITE_PHOTO_VISIBILITY_PATH, "utf8");
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const map: SitePhotoVisibilityMap = {};
+    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value === "boolean") map[id] = value;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+/** Ensures UPLOAD_DIR exists before writing -- on a fresh environment (a new
+ * deploy, or this local test harness) it may not have been created yet,
+ * which would otherwise fail the write with ENOENT and surface as a 500 on
+ * an admin toggling one photo's visibility. */
+async function saveSitePhotoVisibilityMap(map: SitePhotoVisibilityMap): Promise<void> {
+  await mkdir(UPLOAD_DIR, { recursive: true });
+  await writeFile(SITE_PHOTO_VISIBILITY_PATH, JSON.stringify(map), "utf8");
+}
+
+function isSitePhotoVisible(map: SitePhotoVisibilityMap, id: number): boolean {
+  return map[String(id)] !== false;
+}
+
+const SITE_PHOTO_VISIBILITY_FILTERS = ["visible", "hidden", "all"] as const;
+type SitePhotoVisibilityFilter = (typeof SITE_PHOTO_VISIBILITY_FILTERS)[number];
 
 const CRC32_TABLE = (() => {
   const table = new Uint32Array(256);
@@ -2347,6 +2387,14 @@ export function createAdminRouter(
         limit = Math.min(parsedLimit, 200);
       }
 
+      const rawVisibility = req.query["visibility"];
+      const visibilityFilter: SitePhotoVisibilityFilter = typeof rawVisibility === "string" && rawVisibility.trim() !== ""
+        ? (rawVisibility as SitePhotoVisibilityFilter)
+        : "visible";
+      if (!(SITE_PHOTO_VISIBILITY_FILTERS as readonly string[]).includes(visibilityFilter)) {
+        return invalid(res, `visibility must be one of: ${SITE_PHOTO_VISIBILITY_FILTERS.join(", ")}`);
+      }
+
       const conditions = [
         jobCode !== undefined ? eq(sitePhotos.jobCode, jobCode) : undefined,
         leadIdFilter !== undefined ? eq(sitePhotos.leadId, leadIdFilter) : undefined,
@@ -2373,7 +2421,16 @@ export function createAdminRouter(
         .orderBy(desc(sitePhotos.capturedAt), desc(sitePhotos.id))
         .limit(limit);
 
-      return res.json(rows);
+      const visibleRows = visibilityFilter === "all"
+        ? rows
+        : await (async () => {
+          const visibilityMap = await loadSitePhotoVisibilityMap();
+          return rows.filter((row: { id: number }) =>
+            visibilityFilter === "hidden" ? !isSitePhotoVisible(visibilityMap, row.id) : isSitePhotoVisible(visibilityMap, row.id),
+          );
+        })();
+
+      return res.json(visibleRows);
     } catch (error) {
       return next(error);
     }
@@ -2464,6 +2521,35 @@ export function createAdminRouter(
         .returning();
       if (!updated) return res.status(404).json({ message: "Site photo not found" });
       return res.json(updated);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  /**
+   * PATCH /admin/site-photos/:id/visibility
+   * Show/hide one site photo from the admin gallery's default view without
+   * deleting its sitePhotos row or its file on disk (Soft Hide) -- the
+   * hidden/shown state lives entirely in site_photos_visibility.json.
+   */
+  router.patch("/admin/site-photos/:id/visibility", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid site photo id");
+
+    const rawIsVisible = (req.body as { isVisible?: unknown } | undefined)?.isVisible;
+    if (typeof rawIsVisible !== "boolean") {
+      return invalid(res, "isVisible must be a boolean");
+    }
+
+    try {
+      const [existing] = await database.select().from(sitePhotos).where(eq(sitePhotos.id, id));
+      if (!existing) return res.status(404).json({ message: "Site photo not found" });
+
+      const visibilityMap = await loadSitePhotoVisibilityMap();
+      visibilityMap[String(id)] = rawIsVisible;
+      await saveSitePhotoVisibilityMap(visibilityMap);
+
+      return res.json({ success: true, id, isVisible: rawIsVisible });
     } catch (error) {
       return next(error);
     }
