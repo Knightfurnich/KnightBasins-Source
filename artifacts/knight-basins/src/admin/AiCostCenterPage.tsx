@@ -267,6 +267,20 @@ function ServiceStatus({ status }: { status: AiCostService["status"] }) {
   );
 }
 
+export function AiCostServiceName({ service }: { service: AiCostService }) {
+  return (
+    <span
+      className="ai-cost-service-name"
+      data-testid={service.id === "vertex_gemini" ? "ai-cost-service-vertex-gemini" : undefined}
+    >
+      {service.id === "vertex_gemini" && (
+        <Sparkles size={15} aria-hidden="true" data-testid="icon-ai-cost-vertex-gemini" />
+      )}
+      {service.name}
+    </span>
+  );
+}
+
 export function AiCostCopySummaryButton({
   onClick,
   disabled = false,
@@ -477,7 +491,7 @@ export default function AiCostCenterPage() {
                     {data.services.length > 0 ? data.services.map((service) => (
                       <tr key={service.id}>
                         <th scope="row">
-                          <span className="ai-cost-service-name">{service.name}</span>
+                          <AiCostServiceName service={service} />
                         </th>
                         <td className="is-number">{formatCount(service.requests)}</td>
                         <td className="is-number">{formatCount(service.tokens)}</td>
