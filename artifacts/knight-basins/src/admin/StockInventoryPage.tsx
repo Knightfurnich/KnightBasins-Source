@@ -9,13 +9,14 @@ import {
   type AdminStockSheet,
 } from "@workspace/api-client-react";
 import { AlertTriangle, Check, Copy, Database, Download, PackageCheck, PackageX, Printer, RefreshCw, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export type StockItem = AdminStockItem;
 export type StockGroup = AdminStockSheet;
 export type StockResponse = AdminStockResponse;
 
 export type StockMaterial = "staron" | "zen";
-export type StockFilter = "all" | "positive" | "zero";
+export type StockFilter = "all" | "positive" | "zero" | "has-scrap";
 export type StockSortColumn = "no" | "name" | "qty" | "scrap" | "lots" | "note";
 export type StockSortDirection = "asc" | "desc";
 export type StockLineBrand = "Staron" | "Zen Stone";
@@ -102,7 +103,8 @@ export function filterStockItems(
     const matchesFilter =
       filter === "all" ||
       (filter === "positive" && item.qty > 0) ||
-      (filter === "zero" && item.qty === 0);
+      (filter === "zero" && item.qty === 0) ||
+      (filter === "has-scrap" && hasStockScrap(item.scrap));
     return matchesSearch && matchesFilter;
   });
 }
@@ -142,6 +144,43 @@ export function buildStockLineMessage(brand: StockLineBrand, item: StockItem): s
     ? `สต็อกโรงงานพร้อมส่ง ${formatStockNumber(item.qty)} แผ่นค่ะ`
     : "ปัจจุบันหมดสต็อกค่ะ";
   return `หิน ${brand} รหัส ${item.name} ${stockStatus}`;
+}
+
+export function hasStockScrap(value: string | null | undefined): boolean {
+  const scrap = value?.trim() ?? "";
+  return scrap !== "" && scrap !== "—" && scrap !== "0";
+}
+
+export function buildStockSummaryMessage(brand: StockLineBrand, items: StockItem[]): string {
+  const rows = items.map((item) => {
+    const scrap = hasStockScrap(item.scrap) ? item.scrap.trim() : "ไม่มีเศษ";
+    return `• ${item.name} — ${formatStockNumber(item.qty)} แผ่น · ${scrap}`;
+  });
+  return [
+    `สรุปสต็อก ${brand}`,
+    `แสดง ${formatStockNumber(items.length)} รายการ`,
+    ...(rows.length > 0 ? rows : ["ไม่พบรายการตามตัวกรอง"]),
+  ].join("\n");
+}
+
+export type StockSummaryToastOptions = {
+  description: string;
+  variant?: "destructive";
+};
+
+export async function copyStockSummaryToClipboard(
+  summary: string,
+  copyText: (text: string) => Promise<void>,
+  notify: (options: StockSummaryToastOptions) => void,
+): Promise<boolean> {
+  try {
+    await copyText(summary);
+    notify({ description: "คัดลอกข้อความสรุปสต็อกเรียบร้อยแล้ว" });
+    return true;
+  } catch {
+    notify({ description: "คัดลอกข้อความสรุปสต็อกไม่สำเร็จ", variant: "destructive" });
+    return false;
+  }
 }
 
 export type StockQuantityTone = "good" | "caution" | "empty";
@@ -311,6 +350,7 @@ export function StockInventoryView({
   const [copyFeedback, setCopyFeedback] = useState<{ key: string; status: "copied" | "error" } | null>(null);
   const [printDate, setPrintDate] = useState(() => new Date());
   const copyFeedbackTimerRef = useRef<number | null>(null);
+  const { toast } = useToast();
   const group = stock[material];
   const brandLabel = material === "staron" ? "Staron" : "Zen Stone";
   const filteredItems = useMemo(
@@ -375,6 +415,10 @@ export function StockInventoryView({
   const handlePrintReport = () => {
     setPrintDate(new Date());
     window.requestAnimationFrame(() => window.print());
+  };
+  const handleCopySummary = () => {
+    const summary = buildStockSummaryMessage(brandLabel, visibleItems);
+    void copyStockSummaryToClipboard(summary, copyTextToClipboard, toast);
   };
 
   return (
@@ -500,6 +544,7 @@ export function StockInventoryView({
                 ["all", "ทั้งหมด"],
                 ["positive", "qty > 0"],
                 ["zero", "qty = 0"],
+                ["has-scrap", "มีเศษหิน"],
               ] as const).map(([value, label]) => (
                 <button
                   key={value}
@@ -534,6 +579,15 @@ export function StockInventoryView({
             >
               <Printer className="h-3.5 w-3.5" aria-hidden="true" />
               พิมพ์รายงาน A4
+            </button>
+            <button
+              type="button"
+              onClick={handleCopySummary}
+              className="inline-flex min-h-9 items-center gap-1.5 border border-[var(--ink)] px-3 text-xs text-[var(--ink)] transition-colors hover:bg-[var(--ink)] hover:text-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--saffron)]"
+              data-testid="button-stock-copy-summary"
+            >
+              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+              คัดลอกสรุปส่ง LINE
             </button>
           </div>
         </div>
