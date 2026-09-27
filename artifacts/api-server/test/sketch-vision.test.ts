@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
 import { after, afterEach, before, describe, it, mock } from "node:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
@@ -11,6 +12,42 @@ import {
   parseSketchVisionResponse,
   sketchVisionConfigured,
 } from "../src/lib/sketch-vision.ts";
+
+const realFetch = globalThis.fetch;
+
+// A genuine RSA key pair, so the real JWT-signing code in
+// lib/google-service-account.ts runs unmocked -- only the token exchange and
+// Vertex AI generateContent HTTP calls below are mocked. This never leaves
+// this process.
+const { privateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: { type: "pkcs1", format: "pem" },
+  publicKeyEncoding: { type: "pkcs1", format: "pem" },
+});
+const FAKE_CREDENTIALS_JSON = JSON.stringify({
+  client_email: "knight-basins-vertex@test.iam.gserviceaccount.com",
+  private_key: privateKey,
+});
+
+function setVertexConfigured() {
+  process.env["VERTEX_AI_PROJECT_ID"] = "knight-basins-voice";
+  process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+}
+
+/** Mocks Google's token endpoint to always succeed; the caller supplies how
+ * the Vertex AI generateContent endpoint itself responds. */
+function mockVertexFetch(generateContentResponse: (init?: RequestInit) => Response | Promise<Response>) {
+  return mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.startsWith("https://oauth2.googleapis.com/token")) {
+      return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+    }
+    if (url.includes("aiplatform.googleapis.com")) {
+      return generateContentResponse(init);
+    }
+    return realFetch(input as never, init);
+  });
+}
 
 type LeadRouteModule = typeof import("../src/routes/leads.ts");
 
@@ -49,13 +86,25 @@ const originalEnv = {
   DATABASE_URL: process.env["DATABASE_URL"],
   SESSION_SECRET: process.env["SESSION_SECRET"],
   GOOGLE_API_KEY: process.env["GOOGLE_API_KEY"],
+  VERTEX_AI_PROJECT_ID: process.env["VERTEX_AI_PROJECT_ID"],
+  VERTEX_AI_LOCATION: process.env["VERTEX_AI_LOCATION"],
+  GOOGLE_SERVICE_ACCOUNT_JSON: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
+  GOOGLE_APPLICATION_CREDENTIALS: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
 };
 let uploadDirectory: string;
+
+function clearSketchVisionCredentials() {
+  delete process.env["GOOGLE_API_KEY"];
+  delete process.env["VERTEX_AI_PROJECT_ID"];
+  delete process.env["VERTEX_AI_LOCATION"];
+  delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
+  delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
+}
 
 before(async () => {
   process.env["DATABASE_URL"] = "postgres://sketch-vision-test";
   process.env["SESSION_SECRET"] = "sketch-vision-test-secret";
-  delete process.env["GOOGLE_API_KEY"];
+  clearSketchVisionCredentials();
   uploadDirectory = await mkdtemp(path.join(os.tmpdir(), "sketch-vision-uploads-"));
   process.env["UPLOAD_DIR"] = uploadDirectory;
 });
@@ -71,6 +120,7 @@ after(async () => {
 
 afterEach(() => {
   mock.restoreAll();
+  clearSketchVisionCredentials();
 });
 
 describe("parseDimensionToMm", () => {
@@ -357,7 +407,7 @@ describe("parseSketchVisionResponse -- workpieces breakdown (job-76)", () => {
 });
 
 describe("analyzeSketchImage", () => {
-  it("returns an unknown item without calling fetch when GOOGLE_API_KEY is not configured", async () => {
+  it("returns an unknown item without calling fetch when neither Service Account nor GOOGLE_API_KEY is configured", async () => {
     assert.equal(sketchVisionConfigured(), false);
     let called = false;
     mock.method(globalThis, "fetch", async () => {
@@ -365,11 +415,110 @@ describe("analyzeSketchImage", () => {
       return new Response("{}");
     });
     const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
-    assert.equal(called, false, "must never call the AI when no key is configured");
+    assert.equal(called, false, "must never call the AI when no credentials are configured");
     assert.equal(item.shape, "unknown");
     assert.equal(item.confidence, "low");
     assert.equal(item.index, 0);
     assert.ok(item.notes);
+  });
+
+  describe("Vertex AI Service Account flow (job-126)", () => {
+    it("is configured when both VERTEX_AI_PROJECT_ID and a Google Service Account are set", () => {
+      setVertexConfigured();
+      assert.equal(sketchVisionConfigured(), true);
+    });
+
+    it("sends a Service Account bearer token to the Vertex AI generateContent endpoint (default location)", async () => {
+      setVertexConfigured();
+      let capturedAuth = "";
+      let capturedBody: Record<string, unknown> = {};
+      mockVertexFetch((init) => {
+        capturedAuth = String((init?.headers as Record<string, string> | undefined)?.["Authorization"]);
+        capturedBody = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ shape: "I", confidence: "high" }) }] } }] }), { status: 200 });
+      });
+      const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.equal(capturedAuth, "Bearer fake-access-token");
+      assert.ok(Array.isArray(capturedBody["contents"] as Array<unknown>));
+      assert.equal(item.shape, "I");
+      assert.equal(item.confidence, "high");
+    });
+
+    it("uses VERTEX_AI_LOCATION override in the request URL", async () => {
+      setVertexConfigured();
+      process.env["VERTEX_AI_LOCATION"] = "us-central1";
+      let capturedUrl = "";
+      mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) {
+          return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+        }
+        if (url.includes("aiplatform.googleapis.com")) {
+          capturedUrl = url;
+          return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "{}" }] } }] }), { status: 200 });
+        }
+        return realFetch(input as never, init);
+      });
+      await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.equal(capturedUrl, "https://us-central1-aiplatform.googleapis.com/v1/projects/knight-basins-voice/locations/us-central1/publishers/google/models/gemini-3.8-flash:generateContent");
+    });
+
+    it("falls back to an unknown item without throwing when the token exchange fails", async () => {
+      setVertexConfigured();
+      let vertexCalled = false;
+      mock.method(globalThis, "fetch", async (input: string | URL) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) {
+          return new Response(JSON.stringify({ error: "invalid_grant" }), { status: 400 });
+        }
+        if (url.includes("aiplatform.googleapis.com")) {
+          vertexCalled = true;
+          return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "{}" }] } }] }), { status: 200 });
+        }
+        return realFetch(input as never, undefined);
+      });
+      const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.equal(vertexCalled, false, "must not call generateContent when the token exchange failed");
+      assert.equal(item.shape, "unknown");
+      assert.ok(item.notes);
+    });
+
+    it("falls back to GOOGLE_API_KEY mode when no Service Account is configured but an API key is set", async () => {
+      process.env["GOOGLE_API_KEY"] = "fake-api-key";
+      let capturedUrl = "";
+      mock.method(globalThis, "fetch", async (input: string | URL) => {
+        capturedUrl = String(input);
+        return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ shape: "L-left" }) }] } }] }), { status: 200 });
+      });
+      const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.match(capturedUrl, /^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-3\.8-flash:generateContent\?key=fake-api-key$/);
+      assert.equal(item.shape, "L-left");
+    });
+
+    it("prefers the Service Account over GOOGLE_API_KEY when both are configured", async () => {
+      setVertexConfigured();
+      process.env["GOOGLE_API_KEY"] = "fake-api-key";
+      let calledVertex = false;
+      let calledApiKey = false;
+      mock.method(globalThis, "fetch", async (input: string | URL) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) {
+          return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+        }
+        if (url.includes("aiplatform.googleapis.com")) {
+          calledVertex = true;
+          return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "{}" }] } }] }), { status: 200 });
+        }
+        if (url.includes("generativelanguage.googleapis.com")) {
+          calledApiKey = true;
+          return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "{}" }] } }] }), { status: 200 });
+        }
+        return realFetch(input as never, undefined);
+      });
+      await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.equal(calledVertex, true);
+      assert.equal(calledApiKey, false);
+    });
   });
 });
 

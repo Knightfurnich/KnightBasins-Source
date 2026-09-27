@@ -12,8 +12,12 @@
 // the photo -- only this module's own config/HTTP-failure messages, which
 // never include request content.
 
+import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken, type GoogleServiceAccountCredentials } from "./google-service-account.ts";
+
 const REQUEST_TIMEOUT_MS = 30_000;
 const GEMINI_MODEL = "gemini-3.8-flash";
+const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+const DEFAULT_VERTEX_AI_LOCATION = "asia-southeast1";
 
 export type SketchVisionShape = "I" | "L-left" | "L-right" | "U" | "unknown";
 export type SketchVisionConfidence = "high" | "medium" | "low";
@@ -110,14 +114,48 @@ const SKETCH_VISION_PROMPT = `คุณคือช่างประเมิ�
 - ถ้าอ่านตัวเลข รูปทรง หรือสถานะขอบไม่ได้ชัดเจน ห้ามเดา ให้ตอบ null หรือ "unknown" สำหรับค่านั้น
 - confidence สะท้อนความมั่นใจโดยรวมของการอ่านภาพนี้`;
 
-function sketchVisionConfig() {
+type SketchVisionConfig =
+  | { mode: "vertex"; projectId: string; location: string; credentials: GoogleServiceAccountCredentials }
+  | { mode: "api-key"; apiKey: string };
+
+/**
+ * Google Service Account (Vertex AI) is the primary path -- it needs both
+ * VERTEX_AI_PROJECT_ID and a loadable service account. GOOGLE_API_KEY is kept
+ * as a graceful fallback for environments that haven't migrated yet, so this
+ * module still works during a rollout without a hard cutover.
+ */
+function sketchVisionConfig(): SketchVisionConfig | null {
+  const projectId = process.env["VERTEX_AI_PROJECT_ID"];
+  if (projectId) {
+    const credentials = loadGoogleServiceAccountCredentials();
+    if (credentials) {
+      return { mode: "vertex", projectId, location: process.env["VERTEX_AI_LOCATION"] || DEFAULT_VERTEX_AI_LOCATION, credentials };
+    }
+  }
   const apiKey = process.env["GOOGLE_API_KEY"];
-  if (!apiKey) return null;
-  return { apiKey };
+  if (apiKey) return { mode: "api-key", apiKey };
+  return null;
 }
 
 export function sketchVisionConfigured() {
   return sketchVisionConfig() !== null;
+}
+
+/** Builds the request URL/headers for whichever auth mode is configured -- the
+ * request body (contents/parts/inline_data) is identical either way since
+ * Vertex AI's native generateContent endpoint mirrors the AI Studio API. */
+async function buildSketchVisionRequest(config: SketchVisionConfig): Promise<{ url: string; headers: Record<string, string> }> {
+  if (config.mode === "vertex") {
+    const accessToken = await fetchGoogleAccessToken(config.credentials, VERTEX_AI_SCOPE);
+    return {
+      url: `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${GEMINI_MODEL}:generateContent`,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    };
+  }
+  return {
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${config.apiKey}`,
+    headers: { "Content-Type": "application/json" },
+  };
 }
 
 function unknownItem(index: number, notes: string): SketchVisionItem {
@@ -347,14 +385,15 @@ export function parseSketchVisionResponse(rawText: string, index: number): Sketc
  */
 export async function analyzeSketchImage(buffer: Buffer, mimeType: string, index = 0): Promise<SketchVisionItem> {
   const config = sketchVisionConfig();
-  if (!config) return unknownItem(index, "ยังไม่ได้ตั้งค่า GOOGLE_API_KEY");
+  if (!config) return unknownItem(index, "ยังไม่ได้ตั้งค่า Google Service Account หรือ GOOGLE_API_KEY");
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${config.apiKey}`, {
+    const { url, headers } = await buildSketchVisionRequest(config);
+    const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         contents: [{
           parts: [
