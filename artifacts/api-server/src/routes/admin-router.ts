@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readdir, stat, unlink } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
+import { createDeflateRaw } from "node:zlib";
 import {
   basinCategories,
   basinPrices,
@@ -169,6 +170,204 @@ async function deleteSitePhotoUpload(imageUrl: unknown) {
   } catch {
     // missing or inaccessible file: the sitePhotos row is still deleted
   }
+}
+
+/** Resolves a sitePhotos.imageUrl to an absolute path guaranteed to live inside
+ * UPLOAD_DIR, mirroring the guard in deleteSitePhotoUpload; returns undefined
+ * for anything unrecognized or outside the upload root so callers can skip the
+ * entry instead of ever opening a foreign path. */
+function resolveSitePhotoUploadPath(imageUrl: unknown): string | undefined {
+  const filename = sitePhotoUploadFilename(imageUrl);
+  if (!filename) return undefined;
+
+  const uploadRoot = resolve(UPLOAD_DIR);
+  const filePath = resolve(uploadRoot, filename);
+  if (!filePath.startsWith(`${uploadRoot}${sep}`)) return undefined;
+  return filePath;
+}
+
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function updateCrc32(crc: number, chunk: Buffer): number {
+  let c = crc ^ 0xffffffff;
+  for (let i = 0; i < chunk.length; i++) {
+    c = CRC32_TABLE[(c ^ chunk[i]!) & 0xff]! ^ (c >>> 8);
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime(date: Date) {
+  const dosTime = ((date.getHours() & 0x1f) << 11) | ((date.getMinutes() & 0x3f) << 5) | ((date.getSeconds() >> 1) & 0x1f);
+  const dosDate =
+    (((Math.max(date.getFullYear(), 1980) - 1980) & 0x7f) << 9) | (((date.getMonth() + 1) & 0xf) << 5) | (date.getDate() & 0x1f);
+  return { dosTime, dosDate };
+}
+
+type ZipCentralDirectoryEntry = {
+  name: string;
+  crc32: number;
+  compressedSize: number;
+  uncompressedSize: number;
+  localHeaderOffset: number;
+  dosTime: number;
+  dosDate: number;
+};
+
+/** Compresses one file on disk with DEFLATE and appends it (local header + data
+ * + data descriptor) to the in-progress zip via `write`. Returns the central
+ * directory entry to record, or undefined if the entry must be skipped
+ * (missing file or a stream failure) without corrupting the archive so far —
+ * skipped entries are simply left out of the central directory that readers
+ * use to enumerate the archive. */
+async function appendZipEntry(
+  write: (buffer: Buffer) => void,
+  currentOffset: () => number,
+  filePath: string,
+  entryName: string,
+  res: Response,
+): Promise<ZipCentralDirectoryEntry | undefined> {
+  let fileStat;
+  try {
+    fileStat = await stat(filePath);
+  } catch {
+    return undefined; // missing file on disk: skip rather than failing the whole zip
+  }
+  if (!fileStat.isFile()) return undefined;
+
+  const nameBytes = Buffer.from(entryName, "utf8");
+  const { dosTime, dosDate } = dosDateTime(fileStat.mtime);
+  const localHeaderOffset = currentOffset();
+
+  const localHeader = Buffer.alloc(30);
+  localHeader.writeUInt32LE(0x04034b50, 0);
+  localHeader.writeUInt16LE(20, 4);
+  localHeader.writeUInt16LE(0x0808, 6); // bit3 = data descriptor follows, bit11 = UTF-8 name
+  localHeader.writeUInt16LE(8, 8); // method 8 = DEFLATE
+  localHeader.writeUInt16LE(dosTime, 10);
+  localHeader.writeUInt16LE(dosDate, 12);
+  localHeader.writeUInt32LE(0, 14); // crc-32: deferred to the data descriptor
+  localHeader.writeUInt32LE(0, 18); // compressed size: deferred
+  localHeader.writeUInt32LE(0, 22); // uncompressed size: deferred
+  localHeader.writeUInt16LE(nameBytes.length, 26);
+  localHeader.writeUInt16LE(0, 28);
+  write(localHeader);
+  write(nameBytes);
+
+  let crc = 0;
+  let uncompressedSize = 0;
+  let compressedSize = 0;
+
+  try {
+    await new Promise<void>((settle, fail) => {
+      const readStream = createReadStream(filePath);
+      const deflate = createDeflateRaw();
+
+      readStream.on("error", (error) => deflate.destroy(error));
+      readStream.on("data", (chunk: Buffer) => {
+        crc = updateCrc32(crc, chunk);
+        uncompressedSize += chunk.length;
+      });
+      readStream.pipe(deflate);
+
+      deflate.on("data", (chunk: Buffer) => {
+        compressedSize += chunk.length;
+        if (!res.write(chunk)) {
+          deflate.pause();
+          res.once("drain", () => deflate.resume());
+        }
+      });
+      deflate.on("end", () => settle());
+      deflate.on("error", (error) => fail(error));
+    });
+  } catch {
+    return undefined; // read/compression failure mid-stream: leave this entry out of the archive
+  }
+
+  const dataDescriptor = Buffer.alloc(16);
+  dataDescriptor.writeUInt32LE(0x08074b50, 0);
+  dataDescriptor.writeUInt32LE(crc, 4);
+  dataDescriptor.writeUInt32LE(compressedSize, 8);
+  dataDescriptor.writeUInt32LE(uncompressedSize, 12);
+  write(dataDescriptor);
+
+  return { name: entryName, crc32: crc, compressedSize, uncompressedSize, localHeaderOffset, dosTime, dosDate };
+}
+
+/** Streams a minimal ZIP archive (UTF-8 names, DEFLATE compression, per-entry
+ * data descriptors) directly to `res` one file at a time, so memory use stays
+ * bounded by a single file/chunk instead of the whole archive — built on
+ * Node's built-in zlib/stream since no third-party zip library is installed
+ * in this workspace. */
+async function streamSitePhotosZip(res: Response, photos: Array<{ imageUrl: unknown; stage: unknown }>): Promise<void> {
+  let offset = 0;
+  const write = (buffer: Buffer) => {
+    offset += buffer.length;
+    res.write(buffer);
+  };
+
+  const entries: ZipCentralDirectoryEntry[] = [];
+  let index = 0;
+  for (const photo of photos) {
+    index += 1;
+    const filePath = resolveSitePhotoUploadPath(photo.imageUrl);
+    if (!filePath) continue;
+
+    const originalName = filePath.split(sep).pop() ?? `photo-${index}`;
+    const stagePrefix = typeof photo.stage === "string" && photo.stage ? photo.stage : "photo";
+    const entryName = `${stagePrefix}_${index}_${originalName}`.replace(/[/\\]/g, "_");
+
+    const entry = await appendZipEntry(write, () => offset, filePath, entryName, res);
+    if (entry) entries.push(entry);
+  }
+
+  const centralDirectoryStart = offset;
+  for (const entry of entries) {
+    const nameBytes = Buffer.from(entry.name, "utf8");
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0808, 8);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt16LE(entry.dosTime, 12);
+    central.writeUInt16LE(entry.dosDate, 14);
+    central.writeUInt32LE(entry.crc32, 16);
+    central.writeUInt32LE(entry.compressedSize, 20);
+    central.writeUInt32LE(entry.uncompressedSize, 24);
+    central.writeUInt16LE(nameBytes.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(entry.localHeaderOffset, 42);
+    write(central);
+    write(nameBytes);
+  }
+  const centralDirectorySize = offset - centralDirectoryStart;
+
+  const endRecord = Buffer.alloc(22);
+  endRecord.writeUInt32LE(0x06054b50, 0);
+  endRecord.writeUInt16LE(0, 4);
+  endRecord.writeUInt16LE(0, 6);
+  endRecord.writeUInt16LE(entries.length, 8);
+  endRecord.writeUInt16LE(entries.length, 10);
+  endRecord.writeUInt32LE(centralDirectorySize, 12);
+  endRecord.writeUInt32LE(centralDirectoryStart, 16);
+  endRecord.writeUInt16LE(0, 20);
+  write(endRecord);
+
+  res.end();
 }
 
 const LEAD_STATUS_LABELS_TH: Record<string, string> = {
@@ -2175,6 +2374,50 @@ export function createAdminRouter(
         .limit(limit);
 
       return res.json(rows);
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/site-photos/download-zip", requireAdminPermission("leads"), async (req, res, next) => {
+    try {
+      const rawJobCode = req.query["jobCode"];
+      const jobCode = typeof rawJobCode === "string" && rawJobCode.trim() !== "" ? rawJobCode.trim() : undefined;
+
+      const rawLeadId = req.query["leadId"];
+      let leadIdFilter: number | undefined;
+      if (rawLeadId !== undefined) {
+        const parsed = idFrom(rawLeadId as string | string[]);
+        if (parsed === null) return invalid(res, "leadId must be a positive integer");
+        leadIdFilter = parsed;
+      }
+
+      if (jobCode === undefined && leadIdFilter === undefined) {
+        return invalid(res, "jobCode or leadId is required");
+      }
+
+      const conditions = [
+        jobCode !== undefined ? eq(sitePhotos.jobCode, jobCode) : undefined,
+        leadIdFilter !== undefined ? eq(sitePhotos.leadId, leadIdFilter) : undefined,
+      ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
+
+      const rows = await database
+        .select()
+        .from(sitePhotos)
+        .where(and(...conditions))
+        .orderBy(asc(sitePhotos.stage), asc(sitePhotos.id));
+
+      if (rows.length === 0) {
+        return res.status(404).json({ message: "No site photos found for this job" });
+      }
+
+      const zipNameSource = jobCode ?? `lead-${leadIdFilter}`;
+      const safeZipName = zipNameSource.replace(/[^a-zA-Z0-9_.-]/g, "_");
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", `attachment; filename="site-photos-${safeZipName}.zip"`);
+      res.setHeader("Cache-Control", "no-store");
+
+      await streamSitePhotosZip(res, rows);
     } catch (error) {
       return next(error);
     }
