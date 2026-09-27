@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Loader2, RefreshCw, X, ImageOff, Check, Pencil, Trash2, Download } from "lucide-react";
+import { Loader2, RefreshCw, X, ImageOff, Check, Pencil, Eye, EyeOff, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   customFetch,
@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { formatThaiDateTime, THAI_TIME_ZONE } from "@/data/date-time";
 
 export type SitePhotoStageFilter = SitePhotoStage | "all";
+export type SitePhotoVisibilityFilter = "visible" | "hidden";
 
 export const SITE_PHOTO_STAGE_OPTIONS: ReadonlyArray<{ value: SitePhotoStageFilter; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
@@ -43,12 +44,28 @@ const STAGE_BADGE_LABEL: Record<SitePhotoStage, string> = {
  * because the endpoint's jobCode filter cannot match descriptions or senders.
  * Blank/whitespace-only jobCode and the "all" stage are omitted.
  */
-export function sitePhotosQueryParams(filters: { jobCode: string; stage: SitePhotoStageFilter }): ListAdminSitePhotosParams {
-  const params: ListAdminSitePhotosParams = {};
+export function sitePhotosQueryParams(filters: {
+  jobCode: string;
+  stage: SitePhotoStageFilter;
+  visibility?: SitePhotoVisibilityFilter;
+}): ListAdminSitePhotosParams & { visibility?: SitePhotoVisibilityFilter } {
+  const params: ListAdminSitePhotosParams & { visibility?: SitePhotoVisibilityFilter } = {};
+  if (filters.visibility) params.visibility = filters.visibility;
   const jobCode = filters.jobCode.trim();
   if (jobCode !== "") params.jobCode = jobCode;
   if (filters.stage !== "all") params.stage = filters.stage;
   return params;
+}
+
+export function sitePhotoVisibilityRequest(photoId: number, isVisible: boolean): { url: string; init: RequestInit } {
+  return {
+    url: `/api/admin/site-photos/${encodeURIComponent(photoId)}/visibility`,
+    init: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isVisible }),
+    },
+  };
 }
 
 export type SitePhotoExtraFilters = { onlyUnassigned: boolean; month: string };
@@ -372,12 +389,12 @@ export function SitePhotosPage() {
   const [timeRange, setTimeRange] = useState<SitePhotoTimeRange>("all");
   const [yearFilter, setYearFilter] = useState("");
   const [yearPeriodFilter, setYearPeriodFilter] = useState<SitePhotoYearPeriod>("all");
+  const [visibilityFilter, setVisibilityFilter] = useState<SitePhotoVisibilityFilter>("visible");
   const [selectedPhoto, setSelectedPhoto] = useState<SitePhoto | null>(null);
   const [editDescriptionOnOpen, setEditDescriptionOnOpen] = useState(false);
-  const [photoToDelete, setPhotoToDelete] = useState<SitePhoto | null>(null);
-  const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
-  const [deleteError, setDeleteError] = useState("");
-  const [deleteNotice, setDeleteNotice] = useState("");
+  const [photoToHide, setPhotoToHide] = useState<SitePhoto | null>(null);
+  const [visibilityUpdatingPhotoId, setVisibilityUpdatingPhotoId] = useState<number | null>(null);
+  const [visibilityFeedback, setVisibilityFeedback] = useState<{ message: string; isError: boolean } | null>(null);
   const [zipDownloadFeedback, setZipDownloadFeedback] = useState<{ message: string; isError: boolean } | null>(null);
   const [downloadingJobCode, setDownloadingJobCode] = useState<string | null>(null);
   const [stageUpdatingPhotoId, setStageUpdatingPhotoId] = useState<number | null>(null);
@@ -386,11 +403,17 @@ export function SitePhotosPage() {
   const updatePhoto = useUpdateAdminSitePhoto();
 
   const params = useMemo(
-    () => sitePhotosQueryParams({ jobCode: "", stage: stageFilter }),
-    [stageFilter],
+    () => sitePhotosQueryParams({ jobCode: "", stage: stageFilter, visibility: visibilityFilter }),
+    [stageFilter, visibilityFilter],
   );
   const photosQuery = useListAdminSitePhotos(params);
   const photos = photosQuery.data ?? [];
+  const hiddenCountParams = useMemo(
+    () => sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "hidden" }),
+    [],
+  );
+  const hiddenPhotosQuery = useListAdminSitePhotos(hiddenCountParams);
+  const hiddenPhotoCount = hiddenPhotosQuery.data?.length ?? 0;
   const yearOptions = useMemo(() => sitePhotoYearOptions(photos), [photos]);
   const periodYear = yearFilter || yearOptions[0]?.value || "";
   const yearPeriodOptions = useMemo(
@@ -476,21 +499,26 @@ export function SitePhotosPage() {
     );
   };
 
-  const confirmDeleteSitePhoto = async () => {
-    if (!photoToDelete || deletingPhotoId !== null) return;
-    const photo = photoToDelete;
-    setDeleteError("");
-    setDeletingPhotoId(photo.id);
+  const updateSitePhotoVisibility = async (photo: SitePhoto, isVisible: boolean) => {
+    if (visibilityUpdatingPhotoId !== null) return;
+    setVisibilityFeedback(null);
+    setVisibilityUpdatingPhotoId(photo.id);
     try {
-      await customFetch<void>(`/api/admin/site-photos/${encodeURIComponent(photo.id)}`, { method: "DELETE" });
+      const request = sitePhotoVisibilityRequest(photo.id, isVisible);
+      await customFetch<unknown>(request.url, request.init);
       void queryClient.invalidateQueries({ queryKey: SITE_PHOTOS_BASE_QUERY_KEY });
-      if (selectedPhoto?.id === photo.id) closePhoto();
-      setDeleteNotice("ลบภาพหน้างานแล้ว");
-      setPhotoToDelete(null);
+      setVisibilityFeedback({
+        message: isVisible ? "นำภาพกลับมาแสดงแล้ว" : "ซ่อนภาพนี้จากรายการแล้ว (กู้คืนได้ทุกเมื่อ)",
+        isError: false,
+      });
+      if (!isVisible) setPhotoToHide(null);
     } catch {
-      setDeleteError("ลบภาพไม่สำเร็จ กรุณาลองใหม่");
+      setVisibilityFeedback({
+        message: isVisible ? "นำภาพกลับมาแสดงไม่สำเร็จ กรุณาลองใหม่" : "ซ่อนภาพไม่สำเร็จ กรุณาลองใหม่",
+        isError: true,
+      });
     } finally {
-      setDeletingPhotoId(null);
+      setVisibilityUpdatingPhotoId(null);
     }
   };
 
@@ -513,6 +541,30 @@ export function SitePhotosPage() {
           aria-label="ค้นหาภาพหน้างาน"
           data-testid="input-site-photos-search"
         />
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="กรองการแสดงภาพ">
+          <Button
+            type="button"
+            role="tab"
+            variant={visibilityFilter === "visible" ? "default" : "outline"}
+            className="rounded-none"
+            aria-selected={visibilityFilter === "visible"}
+            onClick={() => setVisibilityFilter("visible")}
+            data-testid="button-visibility-visible"
+          >
+            👁️ ภาพที่แสดงอยู่
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            variant={visibilityFilter === "hidden" ? "default" : "outline"}
+            className="rounded-none"
+            aria-selected={visibilityFilter === "hidden"}
+            onClick={() => setVisibilityFilter("hidden")}
+            data-testid="button-visibility-hidden"
+          >
+            🙈 ภาพที่ซ่อนไว้ ({hiddenPhotoCount})
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="กรองตามขั้นตอนงาน">
           {SITE_PHOTO_STAGE_OPTIONS.map((option) => (
             <Button
@@ -628,7 +680,7 @@ export function SitePhotosPage() {
         </div>
       </div>
 
-      {zipJobCode && (
+      {visibilityFilter === "visible" && zipJobCode && (
         <div className="flex flex-wrap items-center gap-3" data-testid="site-photos-zip-actions">
           <Button
             type="button"
@@ -658,9 +710,13 @@ export function SitePhotosPage() {
         </div>
       )}
 
-      {deleteNotice && (
-        <p className="text-sm text-[var(--success)]" role="status" data-testid="status-site-photo-deleted">
-          {deleteNotice}
+      {visibilityFeedback && (!visibilityFeedback.isError || photoToHide === null) && (
+        <p
+          className={`text-sm ${visibilityFeedback.isError ? "text-[#a24439]" : "text-[var(--success)]"}`}
+          role={visibilityFeedback.isError ? "alert" : "status"}
+          data-testid="status-site-photo-visibility"
+        >
+          {visibilityFeedback.message}
         </p>
       )}
 
@@ -732,7 +788,7 @@ export function SitePhotosPage() {
                   ))}
                 </select>
                 <div className="flex flex-wrap gap-2">
-                  {photo.jobCode?.trim() && (
+                  {visibilityFilter === "visible" && photo.jobCode?.trim() && (
                     <Button
                       type="button"
                       variant="outline"
@@ -760,22 +816,36 @@ export function SitePhotosPage() {
                     <Pencil className="mr-2 h-4 w-4" />
                     แก้ไขข้อมูลงาน
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="rounded-none text-[#a24439] hover:text-[#a24439]"
-                    disabled={deletingPhotoId !== null}
-                    onClick={() => {
-                      setDeleteError("");
-                      setDeleteNotice("");
-                      setPhotoToDelete(photo);
-                    }}
-                    aria-label={`ลบภาพ ${photo.jobCode || photo.id}`}
-                    data-testid="button-delete-site-photo"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    ลบภาพ
-                  </Button>
+                  {visibilityFilter === "visible" ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 rounded-none"
+                      disabled={visibilityUpdatingPhotoId !== null}
+                      onClick={() => {
+                        setVisibilityFeedback(null);
+                        setPhotoToHide(photo);
+                      }}
+                      aria-label={`ซ่อนภาพ ${photo.jobCode || photo.id}`}
+                      data-testid="button-hide-site-photo"
+                    >
+                      <EyeOff className="mr-2 h-4 w-4" />
+                      ซ่อนภาพ
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 rounded-none"
+                      disabled={visibilityUpdatingPhotoId !== null}
+                      onClick={() => void updateSitePhotoVisibility(photo, true)}
+                      aria-label={`แสดงภาพอีกครั้ง ${photo.jobCode || photo.id}`}
+                      data-testid="button-unhide-site-photo"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      แสดงอีกครั้ง
+                    </Button>
+                  )}
                 </div>
                 {stageUpdateFeedback?.photoId === photo.id && (
                   <p
@@ -805,46 +875,50 @@ export function SitePhotosPage() {
       </Dialog>
 
       <Dialog
-        open={photoToDelete !== null}
+        open={photoToHide !== null}
         onOpenChange={(open) => {
-          if (!open && deletingPhotoId === null) {
-            setPhotoToDelete(null);
-            setDeleteError("");
+          if (!open && visibilityUpdatingPhotoId === null) {
+            setPhotoToHide(null);
+            setVisibilityFeedback(null);
           }
         }}
       >
-        <DialogContent className="max-w-md rounded-none" data-testid="dialog-delete-site-photo">
-          <DialogTitle>ยืนยันการลบภาพหน้างาน</DialogTitle>
-          <p className="text-sm text-[var(--ink-soft)]">คุณต้องการลบภาพนี้ออกจากระบบใช่หรือไม่?</p>
-          {photoToDelete && (
+        <DialogContent className="max-w-md rounded-none" data-testid="dialog-hide-site-photo">
+          <DialogTitle>ซ่อนภาพหน้างาน?</DialogTitle>
+          <p className="text-sm text-[var(--ink-soft)]">ซ่อนภาพนี้จากรายการ? ภาพจะไม่ถูกลบและกู้คืนได้ทุกเมื่อ</p>
+          {photoToHide && (
             <p className="text-sm font-medium">
-              {photoToDelete.description || photoToDelete.jobCode || `ภาพหน้างาน #${photoToDelete.id}`}
+              {photoToHide.description || photoToHide.jobCode || `ภาพหน้างาน #${photoToHide.id}`}
             </p>
           )}
-          {deleteError && <p className="text-sm text-[#a24439]" role="alert" data-testid="status-site-photo-delete-error">{deleteError}</p>}
+          {visibilityFeedback?.isError && photoToHide && (
+            <p className="text-sm text-[#a24439]" role="alert" data-testid="status-site-photo-visibility-error">
+              {visibilityFeedback.message}
+            </p>
+          )}
           <div className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               className="rounded-none"
-              disabled={deletingPhotoId !== null}
+              disabled={visibilityUpdatingPhotoId !== null}
               onClick={() => {
-                setPhotoToDelete(null);
-                setDeleteError("");
+                setPhotoToHide(null);
+                setVisibilityFeedback(null);
               }}
-              data-testid="button-cancel-delete-site-photo"
+              data-testid="button-cancel-hide-site-photo"
             >
               ยกเลิก
             </Button>
             <Button
               type="button"
               className="rounded-none"
-              disabled={deletingPhotoId !== null}
-              onClick={() => void confirmDeleteSitePhoto()}
-              data-testid="button-confirm-delete-site-photo"
+              disabled={visibilityUpdatingPhotoId !== null || photoToHide === null}
+              onClick={() => photoToHide && void updateSitePhotoVisibility(photoToHide, false)}
+              data-testid="button-confirm-hide-site-photo"
             >
-              {deletingPhotoId !== null ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-              {deletingPhotoId !== null ? "กำลังลบ…" : "ยืนยันลบภาพ"}
+              {visibilityUpdatingPhotoId !== null ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <EyeOff className="mr-2 h-4 w-4" />}
+              {visibilityUpdatingPhotoId !== null ? "กำลังซ่อน…" : "ซ่อนภาพ"}
             </Button>
           </div>
         </DialogContent>

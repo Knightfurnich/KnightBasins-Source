@@ -70,9 +70,11 @@ const { SitePhotosPage, sitePhotosQueryParams } = mod;
 
 function renderWithCache(data) {
   const queryClient = new QueryClient();
+  const visibleParams = sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "visible" });
+  const hiddenParams = sitePhotosQueryParams({ jobCode: "", stage: "all", visibility: "hidden" });
+  queryClient.setQueryData(getListAdminSitePhotosQueryKey(hiddenParams), []);
   if (data !== undefined) {
-    const params = sitePhotosQueryParams({ jobCode: "", stage: "all" });
-    queryClient.setQueryData(getListAdminSitePhotosQueryKey(params), data);
+    queryClient.setQueryData(getListAdminSitePhotosQueryKey(visibleParams), data);
   }
   return renderToStaticMarkup(createElement(QueryClientProvider, { client: queryClient }, createElement(SitePhotosPage)));
 }
