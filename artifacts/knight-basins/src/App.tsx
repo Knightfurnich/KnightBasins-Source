@@ -268,6 +268,7 @@ function Footer() {
           <span>ราคาสินค้ายังไม่รวม VAT</span>
           <Link href="/portfolio" className="footer-owner-link">คลังผลงานติดตั้งจริง</Link>
           <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
+          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v1.0)</Link>
         </div>
         <Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link>
       </div>
@@ -1610,6 +1611,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
 import AdminApp from "./admin/AdminApp";
 import SalesGuide from "./components/SalesGuide";
 import { SitePrepPage } from "./pages/SitePrepPage";
+import UpdatesPage from "./pages/UpdatesPage";
 import { StudioGuidePage } from "./pages/StudioGuidePage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -1868,6 +1870,7 @@ function App() {
               <Route path="/admin/*" component={AdminApp} />
               <Route path="/readme" component={SalesGuide} />
               <Route path="/site-prep" component={SitePrepPage} />
+              <Route path="/updates" component={UpdatesPage} />
               <Route path="/studio-guide" component={StudioGuidePage} />
               <Route path="/portfolio" component={PortfolioPage} />
               <Route path="/" component={RootEntry} />
