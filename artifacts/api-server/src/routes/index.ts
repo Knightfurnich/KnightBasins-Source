@@ -8,6 +8,7 @@ import leadsRouter from "./leads";
 import customerProfileRouter from "./customer-profile";
 import placesRouter from "./places";
 import portfolioRouter from "./portfolio";
+import studioDraftRouter from "./studio-draft";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(leadsRouter);
 router.use(customerProfileRouter);
 router.use(placesRouter);
 router.use(portfolioRouter);
+router.use(studioDraftRouter);
 
 export default router;
