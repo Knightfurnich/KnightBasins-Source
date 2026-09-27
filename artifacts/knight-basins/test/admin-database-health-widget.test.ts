@@ -1,1 +1,131 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgeyBhZnRlciwgYmVmb3JlLCBkZXNjcmliZSwgaXQgfSBmcm9tICJub2RlOnRlc3QiOwppbXBvcnQgeyBleGVjRmlsZVN5bmMgfSBmcm9tICJub2RlOmNoaWxkX3Byb2Nlc3MiOwppbXBvcnQgeyBleGlzdHNTeW5jLCBta2R0ZW1wU3luYywgcmVhZEZpbGVTeW5jLCBybVN5bmMsIHdyaXRlRmlsZVN5bmMgfSBmcm9tICJub2RlOmZzIjsKaW1wb3J0IHsgam9pbiwgZGlybmFtZSB9IGZyb20gIm5vZGU6cGF0aCI7CmltcG9ydCB7IGZpbGVVUkxUb1BhdGgsIHBhdGhUb0ZpbGVVUkwgfSBmcm9tICJub2RlOnVybCI7Cgp0eXBlIERhdGFiYXNlSGVhbHRoRml4dHVyZSA9IHsKICBzdGF0dXM6ICJoZWFsdGh5IiB8ICJkZWdyYWRlZCI7CiAgbGF0ZW5jeU1zOiBudW1iZXI7CiAgZGF0YWJhc2U6ICJwb3N0Z3JlcyI7CiAgdGltZXN0YW1wOiBzdHJpbmc7CiAgdGFibGVzQ291bnQ6IG51bWJlcjsKfTsKCmNvbnN0IGhlYWx0aHlSZXNwb25zZTogRGF0YWJhc2VIZWFsdGhGaXh0dXJlID0gewogIHN0YXR1czogImhlYWx0aHkiLAogIGxhdGVuY3lNczogMTIsCiAgZGF0YWJhc2U6ICJwb3N0Z3JlcyIsCiAgdGltZXN0YW1wOiAiMjAyNi0wOS0yN1QwNDozMDowMC4wMDBaIiwKICB0YWJsZXNDb3VudDogMTgsCn07Cgpjb25zdCBkZWdyYWRlZFJlc3BvbnNlOiBEYXRhYmFzZUhlYWx0aEZpeHR1cmUgPSB7CiAgLi4uaGVhbHRoeVJlc3BvbnNlLAogIGxhdGVuY3lNczogODUwLAp9OwoKY29uc3QgdGVzdERpciA9IGRpcm5hbWUoZmlsZVVSTFRvUGF0aChpbXBvcnQubWV0YS51cmwpKTsKY29uc3QgYXBwUm9vdCA9IGpvaW4odGVzdERpciwgIi4uIik7CmNvbnN0IGNvbXBvbmVudFBhdGggPSBqb2luKGFwcFJvb3QsICJzcmMvYWRtaW4vQWRtaW5EYXNoYm9hcmQudHN4Iik7CmNvbnN0IGNvbXBvbmVudFVybCA9IHBhdGhUb0ZpbGVVUkwoY29tcG9uZW50UGF0aCkuaHJlZjsKY29uc3QgdHN4TG9hZGVyUGF0aCA9IGpvaW4oYXBwUm9vdCwgIi4uLy4uL3NjcmlwdHMvbm9kZV9tb2R1bGVzL3RzeC9kaXN0L2xvYWRlci5tanMiKTsKY29uc3QgY29tcG9uZW50U291cmNlID0gcmVhZEZpbGVTeW5jKGNvbXBvbmVudFBhdGgsICJ1dGY4Iik7Cgpjb25zdCBIQVJORVNTX1NDUklQVCA9IGAKaW1wb3J0IHsgY3JlYXRlRWxlbWVudCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgcmVuZGVyVG9TdGF0aWNNYXJrdXAgfSBmcm9tICJyZWFjdC1kb20vc2VydmVyIjsKaW1wb3J0IHsgUXVlcnlDbGllbnQsIFF1ZXJ5Q2xpZW50UHJvdmlkZXIgfSBmcm9tICJAdGFuc3RhY2svcmVhY3QtcXVlcnkiOwoKY29uc3QgbW9kID0gYXdhaXQgaW1wb3J0KCR7SlNPTi5zdHJpbmdpZnkoY29tcG9uZW50VXJsKX0pOwpjb25zdCBoZWFsdGh5UmVzcG9uc2UgPSAke0pTT04uc3RyaW5naWZ5KGhlYWx0aHlSZXNwb25zZSl9Owpjb25zdCBkZWdyYWRlZFJlc3BvbnNlID0gJHtKU09OLnN0cmluZ2lmeShkZWdyYWRlZFJlc3BvbnNlKX07CgpmdW5jdGlvbiByZW5kZXJXaWRnZXQocmVzcG9uc2UpIHsKICBjb25zdCBxdWVyeUNsaWVudCA9IG5ldyBRdWVyeUNsaWVudCgpOwogIHF1ZXJ5Q2xpZW50LnNldFF1ZXJ5RGF0YShbIi9hcGkvYWRtaW4vZGF0YWJhc2UvaGVhbHRoIl0sIHJlc3BvbnNlKTsKICByZXR1cm4gcmVuZGVyVG9TdGF0aWNNYXJrdXAoCiAgICBjcmVhdGVFbGVtZW50KAogICAgICBRdWVyeUNsaWVudFByb3ZpZGVyLAogICAgICB7IGNsaWVudDogcXVlcnlDbGllbnQgfSwKICAgICAgY3JlYXRlRWxlbWVudChtb2QuRGFzaGJvYXJkRGF0YWJhc2VIZWFsdGhXaWRnZXQpLAogICAgKSwKICApOwp9Cgpwcm9jZXNzLnN0ZG91dC53cml0ZShKU09OLnN0cmluZ2lmeSh7CiAgaGVhbHRoeUh0bWw6IHJlbmRlcldpZGdldChoZWFsdGh5UmVzcG9uc2UpLAogIGRlZ3JhZGVkSHRtbDogcmVuZGVyV2lkZ2V0KGRlZ3JhZGVkUmVzcG9uc2UpLAp9KSk7CmA7Cgp0eXBlIEhhcm5lc3NSZXN1bHQgPSB7CiAgaGVhbHRoeUh0bWw6IHN0cmluZzsKICBkZWdyYWRlZEh0bWw6IHN0cmluZzsKfTsKCmxldCBoYXJuZXNzOiBIYXJuZXNzUmVzdWx0OwpsZXQgdGVtcERpcjogc3RyaW5nIHwgdW5kZWZpbmVkOwoKYmVmb3JlKCgpID0+IHsKICBpZiAoIWV4aXN0c1N5bmModHN4TG9hZGVyUGF0aCkpIHsKICAgIHRocm93IG5ldyBFcnJvcihgRXhwZWN0ZWQgdGhlIHdvcmtzcGFjZSB0c3ggbG9hZGVyIGF0ICR7dHN4TG9hZGVyUGF0aH1gKTsKICB9CiAgY29uc3Qgb3ZlcnJpZGVUc2NvbmZpZyA9IHsKICAgIGV4dGVuZHM6IGpvaW4oYXBwUm9vdCwgInRzY29uZmlnLmpzb24iKS5yZXBsYWNlKC9cXC9nLCAiLyIpLAogICAgY29tcGlsZXJPcHRpb25zOiB7IGpzeDogInJlYWN0LWpzeCIgfSwKICB9OwogIHRlbXBEaXIgPSBta2R0ZW1wU3luYyhqb2luKGFwcFJvb3QsICJub2RlX21vZHVsZXMiLCAiLmFkbWluLWRhdGFiYXNlLWhlYWx0aC10ZXN0LSIpKTsKICBjb25zdCB0c2NvbmZpZ1BhdGggPSBqb2luKHRlbXBEaXIsICJ0c2NvbmZpZy5vdmVycmlkZS5qc29uIik7CiAgY29uc3QgaGFybmVzc1BhdGggPSBqb2luKHRlbXBEaXIsICJoYXJuZXNzLm1qcyIpOwogIHdyaXRlRmlsZVN5bmModHNjb25maWdQYXRoLCBKU09OLnN0cmluZ2lmeShvdmVycmlkZVRzY29uZmlnKSwgInV0ZjgiKTsKICB3cml0ZUZpbGVTeW5jKGhhcm5lc3NQYXRoLCBIQVJORVNTX1NDUklQVCwgInV0ZjgiKTsKICBjb25zdCBzdGRvdXQgPSBleGVjRmlsZVN5bmMoCiAgICBwcm9jZXNzLmV4ZWNQYXRoLAogICAgWyItLWltcG9ydCIsIHBhdGhUb0ZpbGVVUkwodHN4TG9hZGVyUGF0aCkuaHJlZiwgaGFybmVzc1BhdGhdLAogICAgewogICAgICBjd2Q6IGFwcFJvb3QsCiAgICAgIGVudjogeyAuLi5wcm9jZXNzLmVudiwgVFNYX1RTQ09ORklHX1BBVEg6IHRzY29uZmlnUGF0aCB9LAogICAgICBlbmNvZGluZzogInV0ZjgiLAogICAgfSwKICApOwogIGhhcm5lc3MgPSBKU09OLnBhcnNlKHN0ZG91dCkgYXMgSGFybmVzc1Jlc3VsdDsKfSk7CgphZnRlcigoKSA9PiB7CiAgaWYgKHRlbXBEaXIpIHJtU3luYyh0ZW1wRGlyLCB7IHJlY3Vyc2l2ZTogdHJ1ZSwgZm9yY2U6IHRydWUgfSk7Cn0pOwoKZGVzY3JpYmUoImFkbWluIGRhc2hib2FyZCBkYXRhYmFzZSBoZWFsdGggd2lkZ2V0IiwgKCkgPT4gewogIGl0KCJsb2FkcyB0aGUgaGVhbHRoIGVuZHBvaW50IHdpdGggY3JlZGVudGlhbHMgYW5kIHBvbGxzIGZvciBjdXJyZW50IHN0YXR1cyIsICgpID0+IHsKICAgIGFzc2VydC5tYXRjaChjb21wb25lbnRTb3VyY2UsIC9xdWVyeUtleTpccypkYXRhYmFzZUhlYWx0aFF1ZXJ5S2V5Lyk7CiAgICBhc3NlcnQubWF0Y2goCiAgICAgIGNvbXBvbmVudFNvdXJjZSwKICAgICAgL2N1c3RvbUZldGNoPEFkbWluRGF0YWJhc2VIZWFsdGg+XCgiXC9hcGlcL2FkbWluXC9kYXRhYmFzZVwvaGVhbHRoIixccypce1xzKm1ldGhvZDpccyoiR0VUIixccypjcmVkZW50aWFsczpccyoiaW5jbHVkZSIsXHMqcmVzcG9uc2VUeXBlOlxzKiJqc29uIi8sCiAgICApOwogICAgYXNzZXJ0Lm1hdGNoKGNvbXBvbmVudFNvdXJjZSwgL3JlZmV0Y2hJbnRlcnZhbDpccyozMF8wMDAvKTsKICAgIGFzc2VydC5tYXRjaChjb21wb25lbnRTb3VyY2UsIC9jb25zdCBkYXRhYmFzZUhlYWx0aFF1ZXJ5S2V5ID0gXFsiXC9hcGlcL2FkbWluXC9kYXRhYmFzZVwvaGVhbHRoIlxdLyk7CiAgfSk7CgogIGl0KCJyZW5kZXJzIHRoZSBoZWFsdGh5IHN0YXR1cywgbGF0ZW5jeSwgZGF0YWJhc2UgdGFibGUgY291bnQsIGxhdGVzdCBjaGVjaywgYW5kIHJlZnJlc2ggYnV0dG9uIiwgKCkgPT4gewogICAgYXNzZXJ0Lm9rKGhhcm5lc3MuaGVhbHRoeUh0bWwuaW5jbHVkZXMoJ2RhdGEtdGVzdGlkPSJ3aWRnZXQtZGF0YWJhc2UtaGVhbHRoIicpKTsKICAgIGFzc2VydC5vayhoYXJuZXNzLmhlYWx0aHlIdG1sLmluY2x1ZGVzKCLguJ7guKPguYnguK3guKHguYPguIrguYnguIfguLLguJkgKEhlYWx0aHkpIikpOwogICAgYXNzZXJ0Lm9rKGhhcm5lc3MuaGVhbHRoeUh0bWwuaW5jbHVkZXMoJ2RhdGEtdGVzdGlkPSJkYi1sYXRlbmN5LXZhbHVlIj4xMiBtczwvcD4nKSk7CiAgICBhc3NlcnQub2soaGFybmVzcy5oZWFsdGh5SHRtbC5pbmNsdWRlcygnZGF0YS10ZXN0aWQ9ImRiLXRhYmxlcy1jb3VudCI+MTgg4LiV4Liy4Lij4Liy4LiHPC9wPicpKTsKICAgIGFzc2VydC5vayhoYXJuZXNzLmhlYWx0aHlIdG1sLmluY2x1ZGVzKCJQb3N0Z3JlU1FMIikpOwogICAgYXNzZXJ0Lm9rKGhhcm5lc3MuaGVhbHRoeUh0bWwuaW5jbHVkZXMoJ2RhdGEtdGVzdGlkPSJkYi1sYXN0LWNoZWNrZWQiJykpOwogICAgYXNzZXJ0Lm9rKGhhcm5lc3MuaGVhbHRoeUh0bWwuaW5jbHVkZXMoJ2RhdGEtdGVzdGlkPSJidXR0b24tcmVmcmVzaC1kYi1oZWFsdGgiJykpOwogIH0pOwoKICBpdCgibWFya3MgYSBoaWdoLWxhdGVuY3kgZGF0YWJhc2UgY29ubmVjdGlvbiBhcyBkZWdyYWRlZCIsICgpID0+IHsKICAgIGFzc2VydC5vayhoYXJuZXNzLmRlZ3JhZGVkSHRtbC5pbmNsdWRlcygi4LiV4Lit4Lia4Liq4LiZ4Lit4LiH4LiK4LmJ4LiyIChEZWdyYWRlZCkiKSk7CiAgICBhc3NlcnQub2soaGFybmVzcy5kZWdyYWRlZEh0bWwuaW5jbHVkZXMoJ2RhdGEtdGVzdGlkPSJkYi1sYXRlbmN5LXZhbHVlIj44NTAgbXM8L3A+JykpOwogIH0pOwoKICBpdCgiY29ubmVjdHMgdGhlIHJlZnJlc2ggYnV0dG9uIHRvIFJlYWN0IFF1ZXJ5IGFuZCBwcmVzZXJ2ZXMgdGhlIHN0b3JhZ2Ugd2lkZ2V0IiwgKCkgPT4gewogICAgYXNzZXJ0Lm1hdGNoKGNvbXBvbmVudFNvdXJjZSwgL29uQ2xpY2s9XHtcKFwpID0+IHZvaWQgcmVmZXRjaFwoXClcfVtcc1xTXSo/ZGF0YS10ZXN0aWQ9ImJ1dHRvbi1yZWZyZXNoLWRiLWhlYWx0aCIvKTsKICAgIGFzc2VydC5vayhjb21wb25lbnRTb3VyY2UuaW5jbHVkZXMoJ2RhdGEtdGVzdGlkPSJ3aWRnZXQtc3RvcmFnZS1oZWFsdGgiJykpOwogICAgYXNzZXJ0Lm9rKGNvbXBvbmVudFNvdXJjZS5pbmNsdWRlcygiRGFzaGJvYXJkU3RvcmFnZUhlYWx0aFdpZGdldCBjYW5OYXZpZ2F0ZT17Y2FuTmF2aWdhdGV9IikpOwogIH0pOwp9KTs=
+import assert from "node:assert/strict";
+import { after, before, describe, it } from "node:test";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+type DatabaseHealthFixture = {
+  status: "healthy" | "degraded";
+  latencyMs: number;
+  database: "postgres";
+  timestamp: string;
+  tablesCount: number;
+};
+
+const healthyResponse: DatabaseHealthFixture = {
+  status: "healthy",
+  latencyMs: 12,
+  database: "postgres",
+  timestamp: "2026-09-27T04:30:00.000Z",
+  tablesCount: 18,
+};
+
+const degradedResponse: DatabaseHealthFixture = {
+  ...healthyResponse,
+  latencyMs: 850,
+};
+
+const testDir = dirname(fileURLToPath(import.meta.url));
+const appRoot = join(testDir, "..");
+const componentPath = join(appRoot, "src/admin/AdminDashboard.tsx");
+const componentUrl = pathToFileURL(componentPath).href;
+const tsxLoaderPath = join(appRoot, "../../scripts/node_modules/tsx/dist/loader.mjs");
+const componentSource = readFileSync(componentPath, "utf8");
+
+const HARNESS_SCRIPT = `
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const mod = await import(${JSON.stringify(componentUrl)});
+const healthyResponse = ${JSON.stringify(healthyResponse)};
+const degradedResponse = ${JSON.stringify(degradedResponse)};
+
+function renderWidget(response) {
+  const queryClient = new QueryClient();
+  queryClient.setQueryData(["/api/admin/database/health"], response);
+  return renderToStaticMarkup(
+    createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      createElement(mod.DashboardDatabaseHealthWidget),
+    ),
+  );
+}
+
+process.stdout.write(JSON.stringify({
+  healthyHtml: renderWidget(healthyResponse),
+  degradedHtml: renderWidget(degradedResponse),
+}));
+`;
+
+type HarnessResult = {
+  healthyHtml: string;
+  degradedHtml: string;
+};
+
+let harness: HarnessResult;
+let tempDir: string | undefined;
+
+before(() => {
+  if (!existsSync(tsxLoaderPath)) {
+    throw new Error(`Expected the workspace tsx loader at ${tsxLoaderPath}`);
+  }
+  const overrideTsconfig = {
+    extends: join(appRoot, "tsconfig.json").replace(/\\/g, "/"),
+    compilerOptions: { jsx: "react-jsx" },
+  };
+  tempDir = mkdtempSync(join(appRoot, "node_modules", ".admin-database-health-test-"));
+  const tsconfigPath = join(tempDir, "tsconfig.override.json");
+  const harnessPath = join(tempDir, "harness.mjs");
+  writeFileSync(tsconfigPath, JSON.stringify(overrideTsconfig), "utf8");
+  writeFileSync(harnessPath, HARNESS_SCRIPT, "utf8");
+  const stdout = execFileSync(
+    process.execPath,
+    ["--import", pathToFileURL(tsxLoaderPath).href, harnessPath],
+    {
+      cwd: appRoot,
+      env: { ...process.env, TSX_TSCONFIG_PATH: tsconfigPath },
+      encoding: "utf8",
+    },
+  );
+  harness = JSON.parse(stdout) as HarnessResult;
+});
+
+after(() => {
+  if (tempDir) rmSync(tempDir, { recursive: true, force: true });
+});
+
+describe("admin dashboard database health widget", () => {
+  it("loads the health endpoint with credentials and polls for current status", () => {
+    assert.match(componentSource, /queryKey:\s*databaseHealthQueryKey/);
+    assert.match(
+      componentSource,
+      /customFetch<AdminDatabaseHealth>\("\/api\/admin\/database\/health",\s*\{\s*method:\s*"GET",\s*credentials:\s*"include",\s*responseType:\s*"json"/,
+    );
+    assert.match(componentSource, /refetchInterval:\s*30_000/);
+    assert.match(componentSource, /const databaseHealthQueryKey = \["\/api\/admin\/database\/health"\]/);
+  });
+
+  it("renders the healthy status, latency, database table count, latest check, and refresh button", () => {
+    assert.ok(harness.healthyHtml.includes('data-testid="widget-database-health"'));
+    assert.ok(harness.healthyHtml.includes("พร้อมใช้งาน (Healthy)"));
+    assert.ok(harness.healthyHtml.includes('data-testid="db-latency-value">12 ms</p>'));
+    assert.ok(harness.healthyHtml.includes('data-testid="db-tables-count">18 ตาราง</p>'));
+    assert.ok(harness.healthyHtml.includes("PostgreSQL"));
+    assert.ok(harness.healthyHtml.includes('data-testid="db-last-checked"'));
+    assert.ok(harness.healthyHtml.includes('data-testid="button-refresh-db-health"'));
+  });
+
+  it("marks a high-latency database connection as degraded", () => {
+    assert.ok(harness.degradedHtml.includes("ตอบสนองช้า (Degraded)"));
+    assert.ok(harness.degradedHtml.includes('data-testid="db-latency-value">850 ms</p>'));
+  });
+
+  it("connects the refresh button to React Query and preserves the storage widget", () => {
+    assert.match(componentSource, /onClick=\{\(\) => void refetch\(\)\}[\s\S]*?data-testid="button-refresh-db-health"/);
+    assert.ok(componentSource.includes('data-testid="widget-storage-health"'));
+    assert.ok(componentSource.includes("DashboardStorageHealthWidget canNavigate={canNavigate}"));
+  });
+});
