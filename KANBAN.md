@@ -5,6 +5,38 @@
 
 ---
 
+## 🏆 Milestone & Feature Box Tracker (กรอบการตัดรอบความสำเร็จตามโมเดลที่ 1)
+
+> **กติกาทีม (อนุมัติโดยบอส 27 ก.ย. 69):** 
+> 1. เมื่อกล่องฟีเจอร์ใดทำครบทุกใบงานแล้ว ให้ **"ปิดกล่องความสำเร็จ (Closed & Certified)"** ทันที
+> 2. ประกาศ **Cool-down Period 48 ชั่วโมง** หลังจบกล่องใหญ่ ห้ามออกใบงานฟีเจอร์ใหม่เด็ดขาด เพื่อให้ทีมได้พักและบอสได้ลองใช้งานจริง
+> 3. **🛡️ Bugfix Fast-Track Rule (ช่องทางด่วนแก้บั๊ก):** ระหว่างช่วงพักรอบ หากบอสหรือทีมงานพบข้อผิดพลาด/บั๊กจากการใช้งานจริง อนุญาตให้ออกใบงานเฉพาะกิจประเภท `Fix/Hotfix` เพื่อซ่อมแซมได้ทันทีโดยไม่ต้องรอหมดรอบพัก
+
+---
+
+### 📦 กล่องที่ 1: ระบบจัดการภาพหน้างานช่างครบวงจร (Site Photos Suite) — 🟢 ปิดกล่องสำเร็จ 100% (Certified)
+* [x] **Task 128 (Chai):** Universal Search (ILIKE jobCode, description, senderName) & Date Range API
+* [x] **Task 127 (Replit):** Smart Search & 30-Day Quick Filter UI
+* [x] **Task 129 + PR #96 (Chai):** Batch Download Photos as ZIP API (Streaming & Safe Traversal)
+* [x] **Task 130 (Replit):** Batch ZIP Download Button UI
+* [x] **Task 131 (Chai):** Reversible Visibility & Soft-Hide API
+* [x] **Task 132 (Replit):** Soft-Hide & Restore UI (เปลี่ยนปุ่มลบเป็นซ่อน พร้อมแท็บสลับดูและกู้คืน)
+* 👉 **สถานะ:** ปิดกล่องสมบูรณ์ · ห้ามเพิ่มฟีเจอร์ใหม่ในส่วนนี้ · เปิดเฉพาะรับแก้บั๊กจริงเท่านั้น
+
+---
+
+### 📦 กล่องที่ 2: ระบบความโปร่งใสหลังบ้าน & ศูนย์ควบคุม AI (Admin Health & Enterprise AI Suite) — 🟡 รอชิ้นสุดท้าย (Task 136)
+* [x] **Task 113 (Replit):** Storage & Backup Vault Health Widget on Dashboard
+* [x] **Task 114 (Chai):** Real-time Database Health & Latency API
+* [x] **Task 134 (Replit):** Database Health & Latency Dashboard Widget
+* [x] **Task 124 + Task 126 (Chai):** Vertex AI Gemini (Singapore asia-southeast1) + Service Account Migration
+* [x] **Task 133 (Replit):** Sketch Canvas 90° Image Rotation before Vision Analysis
+* [x] **Task 135 (Chai):** Vertex AI Gemini Token & Cost Tracking in Unified Cost Center
+* [ ] **Task 136 (Replit):** AI Cost Center Vertex Gemini Pillar UI & Dashboard Badge (กำลังทำ)
+* 👉 **เป้าหมายตัดรอบ:** ทันทีที่ Replit ส่ง Task 136 และ Deploy Live ➔ **ประกาศปิดกล่องที่ 2 และเปิดตัว Knight Basins V1.0 ทันที!**
+
+---
+
 ## 📌 สรุปภาพรวมสถานะ (Kanban Board)
 
 ```
