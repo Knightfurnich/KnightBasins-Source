@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Loader2, RefreshCw, X, ImageOff, Check, Pencil, Trash2 } from "lucide-react";
+import { Loader2, RefreshCw, X, ImageOff, Check, Pencil, Trash2, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   customFetch,
@@ -212,6 +212,20 @@ export function filterSitePhotosSmart(
   });
 }
 
+export function sitePhotoZipDownloadUrl(jobCode: string): string {
+  return `/api/admin/site-photos/download-zip?jobCode=${encodeURIComponent(jobCode.trim())}`;
+}
+
+export function sitePhotoZipJobCode(photos: readonly SitePhoto[]): string | null {
+  const jobCodes = new Set(
+    photos
+      .map((photo) => photo.jobCode?.trim())
+      .filter((jobCode): jobCode is string => Boolean(jobCode)),
+  );
+  if (jobCodes.size !== 1) return null;
+  return jobCodes.values().next().value ?? null;
+}
+
 const SITE_PHOTOS_BASE_QUERY_KEY = getListAdminSitePhotosQueryKey();
 
 function StageBadge({ stage }: { stage: SitePhotoStage }) {
@@ -364,6 +378,8 @@ export function SitePhotosPage() {
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const [deleteNotice, setDeleteNotice] = useState("");
+  const [zipDownloadFeedback, setZipDownloadFeedback] = useState<{ message: string; isError: boolean } | null>(null);
+  const [downloadingJobCode, setDownloadingJobCode] = useState<string | null>(null);
   const [stageUpdatingPhotoId, setStageUpdatingPhotoId] = useState<number | null>(null);
   const [stageUpdateFeedback, setStageUpdateFeedback] = useState<{ photoId: number; message: string; isError: boolean } | null>(null);
   const queryClient = useQueryClient();
@@ -392,6 +408,7 @@ export function SitePhotosPage() {
     }),
     [photos, searchInput, stageFilter, onlyUnassigned, timeRange, yearFilter, yearPeriodFilter],
   );
+  const zipJobCode = sitePhotoZipJobCode(visiblePhotos);
 
   const clearFilters = () => {
     setSearchInput("");
@@ -404,6 +421,32 @@ export function SitePhotosPage() {
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: SITE_PHOTOS_BASE_QUERY_KEY });
+  };
+
+  const downloadSitePhotoZip = async (jobCode: string) => {
+    const normalizedJobCode = jobCode.trim();
+    if (!normalizedJobCode || downloadingJobCode !== null) return;
+
+    setZipDownloadFeedback(null);
+    setDownloadingJobCode(normalizedJobCode);
+    try {
+      const blob = await customFetch<Blob>(sitePhotoZipDownloadUrl(normalizedJobCode), { responseType: "blob" });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeJobCode = normalizedJobCode.replace(/[^a-zA-Z0-9._-]+/g, "_");
+      link.href = downloadUrl;
+      link.download = `${safeJobCode || "site-photos"}.zip`;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      setZipDownloadFeedback({ message: `เริ่มดาวน์โหลด ZIP ของ ${normalizedJobCode} แล้ว`, isError: false });
+    } catch {
+      setZipDownloadFeedback({ message: `ดาวน์โหลด ZIP ของ ${normalizedJobCode} ไม่สำเร็จ กรุณาลองอีกครั้ง`, isError: true });
+    } finally {
+      setDownloadingJobCode(null);
+    }
   };
 
   const openPhoto = (photo: SitePhoto, editDescription = false) => {
@@ -585,6 +628,36 @@ export function SitePhotosPage() {
         </div>
       </div>
 
+      {zipJobCode && (
+        <div className="flex flex-wrap items-center gap-3" data-testid="site-photos-zip-actions">
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-none"
+            disabled={downloadingJobCode !== null}
+            onClick={() => void downloadSitePhotoZip(zipJobCode)}
+            data-testid="button-download-site-photos-zip"
+          >
+            {downloadingJobCode === zipJobCode ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+            )}
+            {downloadingJobCode === zipJobCode ? "กำลังเตรียม ZIP..." : "ดาวน์โหลด ZIP ของงานนี้"}
+          </Button>
+          {zipDownloadFeedback && (
+            <p
+              className={`text-sm ${zipDownloadFeedback.isError ? "text-[#a24439]" : "text-[var(--success)]"}`}
+              role={zipDownloadFeedback.isError ? "alert" : "status"}
+              aria-live={zipDownloadFeedback.isError ? "assertive" : "polite"}
+              data-testid="status-site-photos-zip-download"
+            >
+              {zipDownloadFeedback.message}
+            </p>
+          )}
+        </div>
+      )}
+
       {deleteNotice && (
         <p className="text-sm text-[var(--success)]" role="status" data-testid="status-site-photo-deleted">
           {deleteNotice}
@@ -631,7 +704,7 @@ export function SitePhotosPage() {
                 <div className="flex w-full flex-1 flex-col gap-2 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <StageBadge stage={photo.stage} />
-                    {photo.jobCode && <span className="font-mono text-xs text-[var(--ink-soft)]">{photo.jobCode}</span>}
+                  {photo.jobCode && <span className="font-mono text-xs text-[var(--ink-soft)]">{photo.jobCode}</span>}
                   </div>
                   {photo.description && <p className="line-clamp-2 text-sm text-[var(--ink-soft)]">{photo.description}</p>}
                   <div className="mt-auto flex items-center justify-between text-xs text-[var(--ink-soft)]">
@@ -659,6 +732,24 @@ export function SitePhotosPage() {
                   ))}
                 </select>
                 <div className="flex flex-wrap gap-2">
+                  {photo.jobCode?.trim() && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-none"
+                      title="ดาวน์โหลดรูปทั้งหมดของรหัสงานนี้เป็น ZIP"
+                      aria-label={`ดาวน์โหลดรูปทั้งหมดของ ${photo.jobCode} เป็น ZIP`}
+                      disabled={downloadingJobCode !== null}
+                      onClick={() => void downloadSitePhotoZip(photo.jobCode!)}
+                      data-testid={`button-card-download-zip-${photo.id}`}
+                    >
+                      {downloadingJobCode === photo.jobCode.trim() ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <Download className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
