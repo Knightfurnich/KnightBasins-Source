@@ -119,9 +119,9 @@
 | **Task 54** | ชัย | ระบบ API ตัวกรองภาพหน้างานขั้นสูง (unassigned + month + sender) | `feat/chai-site-photos-filters` | ✅ **Merged & Live (PR #30)** · ผ่าน 11/11 tests · API /admin/site-photos รองรับครบ 3 filter |
 | **Task 55** | Replit | เพิ่มแถบตัวกรอง 'ยังไม่ระบุรหัสงาน' และตัวเลือกเดือน ในหน้าคลังภาพ (/admin/site-photos) | `feat/replit-site-photos-filters` | ✅ **Merged & Live (PR #31)** · ผ่าน 6/6 tests · ปุ่ม unassigned + ดรอปดาวน์เดือนใช้งานได้จริงบนจอ |
 | **Task 56** | ชัย | ระบบ API สต็อกหินสังเคราะห์ Read-Only ดึงสดจาก Google Drive Service Account (`GET /api/admin/stock`) | `feat/chai-stock-api` | 🔄 มอบหมายแล้ว (`qa/job-56-chai-stock-api.md`) |
-| **Task 57** | Replit | สร้างหน้าจอสต็อกหินสังเคราะห์ Real-Time ในระบบแอดมิน (`/admin/stock`) | `feat/replit-stock-inventory-ui` | 🔄 มอบหมายแล้ว (`qa/job-57-replit-stock-ui.md`) |
+| **Task 57** | Replit | สร้างหน้าจอสต็อกหินสังเคราะห์ Real-Time ในระบบแอดมิน (`/admin/stock`) | `feat/replit-stock-inventory-ui` | ✅ **Merged & Live** `9acdcd3` · Stock CSV export + Portfolio search |
 | **Portfolio API** | เดวิด | `GET /api/portfolio` คลังภาพผลงานจริง 360 ภาพ แยก 17 หมวดหมู่ | `main` (c9ef002) | ✅ **Live บน VPS** · ทดสอบ HTTP 200 · คืนครบ 360 ภาพ |
-| **Task 58** | Replit | หน้าคู่มือเตรียมหน้างานก่อนติดตั้ง (`/site-prep`) ใช้ภาพจริง 59 ภาพ | `feat/replit-site-prep-guide` | 🔄 มอบหมายแล้ว (`qa/job-58-replit-site-prep-guide.md`) |
+| **Task 58** | Replit | หน้าคู่มือเตรียมหน้างานก่อนติดตั้ง (`/site-prep`) ใช้ภาพจริง 59 ภาพ | `feat/replit-site-prep-guide` | ✅ **Merged & Live** `f6ed674` · Wall-flush+upstand edge & Site Prep Guide |
 | **Task 59** | ชัย | คลังภาพผลงานทีมขายในแอดมิน (`/admin/portfolio`) + ปุ่มคัดลอกส่งลูกค้า | `feat/chai-admin-portfolio-gallery` | ✅ **Merged & Live (PR #33)** · ผ่าน 10/10 tests · page + เมนูใช้งานได้จริงบนจอ |
 | **readme v2** | เดวิด | ปรับหน้า `/readme` เป็นคู่มือมาตรฐานระบบบริการและสเปกวัสดุ 6 หมวด | `main` (bc5d3ad) | ✅ **Live บน VPS** · เพิ่มจุดเด่นวัสดุ 4 ด้าน · Safety Margin 100 มม. · Maps โรงงาน |
 | **Featured Showcase** | เดวิด | แถบเลื่อนภาพผลงานจริง 10 ภาพวนลูปต่อเนื่อง + Lightbox บนหน้าแรก | `main` (4a7a72c) | ✅ **Live บน VPS** · ดึงภาพชุด Masterpiece 10 ภาพวนลูปอัตโนมัติ · ปุ่มเลื่อนซ้าย/ขวา |
