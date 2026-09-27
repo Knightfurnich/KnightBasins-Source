@@ -2113,6 +2113,33 @@ export function createAdminRouter(
       const rawSenderName = req.query["senderName"];
       const senderName = typeof rawSenderName === "string" && rawSenderName.trim() !== "" ? rawSenderName.trim() : undefined;
 
+      const rawQuery = req.query["q"] ?? req.query["search"];
+      const searchQuery = typeof rawQuery === "string" && rawQuery.trim() !== "" ? rawQuery.trim() : undefined;
+
+      const rawStartDate = req.query["startDate"];
+      let startDate: Date | undefined;
+      if (typeof rawStartDate === "string" && rawStartDate.trim() !== "") {
+        const parsed = new Date(rawStartDate);
+        if (Number.isNaN(parsed.getTime())) return invalid(res, "startDate must be a valid date");
+        startDate = parsed;
+      }
+
+      const rawEndDate = req.query["endDate"];
+      let endDate: Date | undefined;
+      if (typeof rawEndDate === "string" && rawEndDate.trim() !== "") {
+        const parsed = new Date(rawEndDate);
+        if (Number.isNaN(parsed.getTime())) return invalid(res, "endDate must be a valid date");
+        endDate = parsed;
+      }
+
+      const rawDays = req.query["days"];
+      let sinceDate: Date | undefined;
+      if (typeof rawDays === "string" && rawDays.trim() !== "") {
+        const parsedDays = Number(rawDays);
+        if (!Number.isInteger(parsedDays) || parsedDays < 1) return invalid(res, "days must be a positive integer");
+        sinceDate = new Date(Date.now() - parsedDays * 24 * 60 * 60 * 1000);
+      }
+
       const rawLimit = req.query["limit"];
       let limit = 50;
       if (typeof rawLimit === "string" && rawLimit.trim() !== "") {
@@ -2128,6 +2155,16 @@ export function createAdminRouter(
         unassigned ? or(isNull(sitePhotos.jobCode), eq(sitePhotos.jobCode, "")) : undefined,
         monthRange !== undefined ? and(gte(sitePhotos.capturedAt, monthRange.start), lt(sitePhotos.capturedAt, monthRange.end)) : undefined,
         senderName !== undefined ? ilike(sitePhotos.senderName, `%${senderName}%`) : undefined,
+        searchQuery !== undefined
+          ? or(
+              ilike(sitePhotos.jobCode, `%${searchQuery}%`),
+              ilike(sitePhotos.description, `%${searchQuery}%`),
+              ilike(sitePhotos.senderName, `%${searchQuery}%`),
+            )
+          : undefined,
+        startDate !== undefined ? gte(sitePhotos.capturedAt, startDate) : undefined,
+        endDate !== undefined ? lte(sitePhotos.capturedAt, endDate) : undefined,
+        sinceDate !== undefined ? gte(sitePhotos.capturedAt, sinceDate) : undefined,
       ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
 
       const rows = await database
