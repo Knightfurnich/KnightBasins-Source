@@ -68,6 +68,7 @@ import {
 import { createRateLimiter, createConcurrencyLimiter } from "../lib/rate-limit";
 import { pruneBackupVault } from "../lib/backup-vault";
 import { computeStorageStats } from "../lib/storage-stats";
+import { checkDatabaseHealth, type DatabaseHealthMetrics } from "../lib/db-metrics";
 import {
   cleanupUnreferencedUploadedImages,
   readMultipartForm,
@@ -1339,7 +1340,10 @@ async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult
   }
 }
 
-export function createAdminRouter(database: AdminDatabase): IRouter {
+export function createAdminRouter(
+  database: AdminDatabase,
+  checkDbHealth: () => Promise<DatabaseHealthMetrics> = checkDatabaseHealth,
+): IRouter {
   const router: IRouter = Router();
   const adminLoginRateLimit = createRateLimiter({ name: "admin-login", max: 5, windowMs: 60 * 1000 });
   // Each basin can now hold up to 5 photos (primary + 4 gallery), so a bulk photo
@@ -3005,6 +3009,19 @@ export function createAdminRouter(database: AdminDatabase): IRouter {
     try {
       const stats = await computeStorageStats(UPLOAD_DIR, BACKUP_DIR);
       return res.json(stats);
+    } catch (error) { return next(error); }
+  });
+
+  /**
+   * Database health & connection pool snapshot (job-114): query latency via
+   * SELECT current_timestamp and core-table presence via lib/db-metrics.ts.
+   * checkDbHealth already degrades safely on connection failure, so this
+   * always answers 200 with status "healthy" | "degraded" rather than 500.
+   */
+  router.get("/admin/database/health", requireAnyAdminPermission(["leads", "basins"]), async (_req, res, next) => {
+    try {
+      const metrics = await checkDbHealth();
+      return res.json(metrics);
     } catch (error) { return next(error); }
   });
 
