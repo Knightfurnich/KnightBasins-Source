@@ -30,14 +30,89 @@ export type PortfolioResponse = {
 
 type PortfolioDuplicateGroup = { reason: "md5" | "dimensions"; itemIds: string[] };
 type PortfolioDuplicatesResponse = { groups: PortfolioDuplicateGroup[] };
-type UploadDraft = { id: number; file: File; title: string; previewUrl: string };
+type UploadDraft = {
+  id: number;
+  /** File sent to the API; replaced with the optimized file when preprocessing completes. */
+  file: File;
+  originalFile: File;
+  title: string;
+  previewUrl: string;
+  compressionStatus: "processing" | "ready";
+};
 type UploadFailure = { id: number; message: string };
 type UploadBatchResult = { uploadedIds: number[]; failures: UploadFailure[] };
 type PortfolioApiError = Error & { status: number; apiMessage: string };
 
 const DUPLICATES_QUERY_KEY = ["/api/admin/portfolio/duplicates"] as const;
 const DELETE_CONFIRMATION_TEXT = "ลบรูปนี้ออกจากคลังผลงานถาวร? รูปจะหายจากหน้าเว็บและลบไฟล์ออกจากเซิร์ฟเวอร์";
+const PORTFOLIO_IMAGE_MAX_DIMENSION = 1920;
+const PORTFOLIO_IMAGE_WEBP_QUALITY = 0.82;
+const PORTFOLIO_IMAGE_SMALL_FILE_THRESHOLD = 256 * 1024;
 let nextUploadDraftId = 0;
+
+type PortfolioImageDimensions = { width: number; height: number };
+
+export function getPortfolioImageDimensions(width: number, height: number): PortfolioImageDimensions {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return { width: 0, height: 0 };
+  }
+
+  const scale = Math.min(1, PORTFOLIO_IMAGE_MAX_DIMENSION / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+export function shouldCompressPortfolioImage(file: Pick<File, "name" | "size" | "type">): boolean {
+  const isWebp = file.type.toLowerCase() === "image/webp" || file.name.toLowerCase().endsWith(".webp");
+  return !isWebp && file.size > PORTFOLIO_IMAGE_SMALL_FILE_THRESHOLD;
+}
+
+async function optimizePortfolioImage(file: File): Promise<File> {
+  if (!shouldCompressPortfolioImage(file) || typeof document === "undefined" || typeof URL.createObjectURL !== "function") {
+    return file;
+  }
+
+  let imageUrl: string | null = null;
+  try {
+    imageUrl = URL.createObjectURL(file);
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("Could not decode image"));
+      element.src = imageUrl as string;
+    });
+
+    const dimensions = getPortfolioImageDimensions(image.naturalWidth || image.width, image.naturalHeight || image.height);
+    if (dimensions.width === 0 || dimensions.height === 0) return file;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+    const context = canvas.getContext("2d");
+    if (!context) return file;
+    context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/webp", PORTFOLIO_IMAGE_WEBP_QUALITY);
+    });
+    if (!blob || blob.type.toLowerCase() !== "image/webp" || blob.size === 0 || blob.size >= file.size) return file;
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "") || "portfolio-image";
+    return new File([blob], `${baseName}.webp`, { type: "image/webp", lastModified: file.lastModified });
+  } catch {
+    return file;
+  } finally {
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+  }
+}
+
+function formatPortfolioFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${bytes} B`;
+}
 
 function createPortfolioApiError(status: number, apiMessage: string): PortfolioApiError {
   const error = new Error(apiMessage || "Request failed") as PortfolioApiError;
@@ -414,6 +489,7 @@ export function PortfolioGalleryPage() {
   );
   const writesPending = uploadMutation.isPending || deleteMutation.isPending;
   const actionsDisabled = writesPending || toggleMutation.isPending || loadMoreMutation.isPending;
+  const uploadCompressionPending = uploadDrafts.some((draft) => draft.compressionStatus === "processing");
 
   useEffect(() => () => {
     uploadObjectUrls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -446,12 +522,28 @@ export function PortfolioGalleryPage() {
       setUploadError("");
     }
     if (validFiles.length === 0) return;
-    const drafts = validFiles.map((file) => {
+    const drafts: UploadDraft[] = validFiles.map((file) => {
       const previewUrl = URL.createObjectURL(file);
       uploadObjectUrls.current.add(previewUrl);
-      return { id: ++nextUploadDraftId, file, title: "", previewUrl };
+      return {
+        id: ++nextUploadDraftId,
+        file,
+        originalFile: file,
+        title: "",
+        previewUrl,
+        compressionStatus: "processing",
+      };
     });
     setUploadDrafts((current) => [...current, ...drafts]);
+    drafts.forEach((draft) => {
+      void optimizePortfolioImage(draft.originalFile)
+        .catch(() => draft.originalFile)
+        .then((optimizedFile) => {
+          setUploadDrafts((current) => current.map((item) => item.id === draft.id
+            ? { ...item, file: optimizedFile, compressionStatus: "ready" }
+            : item));
+        });
+    });
   };
 
   const removeUploadDraft = (id: number) => {
@@ -478,7 +570,7 @@ export function PortfolioGalleryPage() {
   };
 
   const handleUploadSubmit = () => {
-    if (writesPending || uploadDrafts.length === 0 || !uploadCategory) return;
+    if (writesPending || uploadCompressionPending || uploadDrafts.length === 0 || !uploadCategory) return;
     setUploadError("");
     setUploadProgress(0);
     uploadMutation.mutate({ category: uploadCategory, drafts: uploadDrafts });
@@ -784,11 +876,22 @@ export function PortfolioGalleryPage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="list-portfolio-upload-files">
                   {uploadDrafts.map((draft) => (
                     <div key={draft.id} className="flex gap-3 border border-[var(--line)] bg-white p-3">
-                      <img src={draft.previewUrl} alt={`ตัวอย่าง ${draft.file.name}`} className="h-20 w-20 shrink-0 object-cover" />
+                      <img src={draft.previewUrl} alt={`ตัวอย่าง ${draft.originalFile.name}`} className="h-20 w-20 shrink-0 object-cover" />
                       <div className="min-w-0 flex-1 space-y-2">
-                        <p className="truncate text-xs text-[var(--ink-soft)]" title={draft.file.name}>{draft.file.name}</p>
+                        <p className="truncate text-xs text-[var(--ink-soft)]" title={draft.originalFile.name}>{draft.originalFile.name}</p>
+                        <p
+                          className="text-xs text-[var(--ink-soft)]"
+                          role="status"
+                          data-testid={`status-portfolio-upload-compression-${draft.id}`}
+                        >
+                          {draft.compressionStatus === "processing"
+                            ? "กำลังเตรียมรูปก่อนอัปโหลด…"
+                            : `${formatPortfolioFileSize(draft.originalFile.size)} → ${formatPortfolioFileSize(draft.file.size)}${draft.file.size < draft.originalFile.size
+                              ? ` (ลดลง ${Math.round(((draft.originalFile.size - draft.file.size) / draft.originalFile.size) * 100)}%)`
+                              : " (ใช้ไฟล์ต้นฉบับ)"}`}
+                        </p>
                         <label className="block text-xs font-medium">
-                          <span className="sr-only">ชื่อเรื่องของ {draft.file.name} (ไม่บังคับ)</span>
+                          <span className="sr-only">ชื่อเรื่องของ {draft.originalFile.name} (ไม่บังคับ)</span>
                           <Input
                             value={draft.title}
                             onChange={(event) => setUploadDrafts((current) => current.map((item) => item.id === draft.id ? { ...item, title: event.target.value } : item))}
@@ -804,7 +907,7 @@ export function PortfolioGalleryPage() {
                         className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--ink-soft)] hover:bg-red-50 hover:text-red-800 disabled:opacity-50"
                         onClick={() => removeUploadDraft(draft.id)}
                         disabled={actionsDisabled}
-                        aria-label={`ลบไฟล์ ${draft.file.name} ออกจากรายการ`}
+                        aria-label={`ลบไฟล์ ${draft.originalFile.name} ออกจากรายการ`}
                         data-testid={`button-remove-portfolio-upload-file-${draft.id}`}
                       >
                         <X size={16} aria-hidden="true" />
@@ -828,10 +931,14 @@ export function PortfolioGalleryPage() {
                 <Button
                   type="submit"
                   className="rounded-none"
-                  disabled={writesPending || uploadDrafts.length === 0 || !uploadCategory}
+                  disabled={writesPending || uploadCompressionPending || uploadDrafts.length === 0 || !uploadCategory}
                   data-testid="button-submit-portfolio-upload"
                 >
-                  {uploadMutation.isPending ? "กำลังอัปโหลด…" : `อัปโหลด${uploadDrafts.length > 0 ? ` (${uploadDrafts.length})` : ""}`}
+                  {uploadMutation.isPending
+                    ? "กำลังอัปโหลด…"
+                    : uploadCompressionPending
+                      ? "กำลังบีบอัด…"
+                      : `อัปโหลด${uploadDrafts.length > 0 ? ` (${uploadDrafts.length})` : ""}`}
                 </Button>
               </div>
             </form>
