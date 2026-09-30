@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { after, before, describe, it } from "node:test";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -317,7 +318,7 @@ describe("authenticated dispatch persistence browser flow", () => {
   const dateKeys = monthAndDateKeys();
 
   before(async () => {
-    if (!adminPassword) throw new Error("ADMIN_PASSWORD is required for the dispatch browser test");
+    if (!adminPassword || !existsSync(chromiumPath)) return;
     if (!process.env["DATABASE_URL"]) throw new Error("DATABASE_URL is required for dispatch browser fixtures");
 
     pool = new Pool({ connectionString: process.env["DATABASE_URL"] });
@@ -404,7 +405,10 @@ describe("authenticated dispatch persistence browser flow", () => {
     }
   });
 
-  it("persists team edits and calendar assignments after API refetches and browser reloads", async () => {
+  it(
+    "persists team edits and calendar assignments after API refetches and browser reloads",
+    { skip: (!adminPassword || !existsSync(chromiumPath)) && "ADMIN_PASSWORD and Chromium are required for browser test" },
+    async () => {
     const page = browser.page;
     const checkProxy = () => {
       assert.equal(proxyError, null, `Browser API forwarding failed: ${proxyError}`);
@@ -665,5 +669,6 @@ describe("authenticated dispatch persistence browser flow", () => {
     );
     assert.equal(persistedDateInput, dateKeys.rescheduled);
     checkProxy();
-  });
+    },
+  );
 });

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -533,6 +534,7 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
   let browser: Awaited<ReturnType<typeof launchBrowser>>;
 
   before(async () => {
+    if (!existsSync(chromiumPath)) return;
     browser = await launchBrowser();
     await browser.page.command("Runtime.enable");
     await browser.page.command("Page.enable");
@@ -542,7 +544,10 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     if (browser) await stopBrowser(browser);
   });
 
-  it("keeps real basin images clean across storefront cards and quote rows", async () => {
+  it(
+    "keeps real basin images clean across storefront cards and quote rows",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate("document.readyState"),
@@ -599,9 +604,13 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
       "transparent quote PNGs",
     );
     assertLoadedImageVisuals(await readVisuals(browser.page, ".quote-line .basin-visual"), "transparent quote rows");
-  });
+    },
+  );
 
-  it("falls back to the CSS basin when an image fails", async () => {
+  it(
+    "falls back to the CSS basin when an image fails",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     const result = await browser.page.evaluate(`(() => {
       const image = document.querySelector(".quote-line img.basin-image");
       if (!(image instanceof HTMLImageElement)) return false;
@@ -618,9 +627,13 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     assert.ok(failed);
     assert.equal(failed?.mockupElementCount, 3, "failed images must restore the body, bowl, and drain CSS visual");
     assert.equal(failed?.shadow.display, "block");
-  });
+    },
+  );
 
-  it("keeps Workbench favourite-basin cards on the same image layer", async () => {
+  it(
+    "keeps Workbench favourite-basin cards on the same image layer",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     assert.ok(adminPassword, "ADMIN_PASSWORD is required for the Workbench visual regression");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/?workbench=1` });
     await waitFor(
@@ -656,5 +669,6 @@ describe("transparent basin image visual regression", { concurrency: false }, ()
     await applyTransparentBasinFixture(browser.page, ".top-basin-art img.basin-image");
     const workbenchPixels = await captureBasinPixels(browser.page, ".top-basin-art .basin-visual");
     assertBasinPixelBaseline(workbenchPixels, pixelBaselines.workbench, "Workbench favourite cards");
-  });
+    },
+  );
 });

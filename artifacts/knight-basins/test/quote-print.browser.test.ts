@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -198,6 +199,7 @@ describe("long formal quote print flow", { concurrency: false }, () => {
   let browser: Awaited<ReturnType<typeof launchBrowser>>;
 
   before(async () => {
+    if (!existsSync(chromiumPath)) return;
     browser = await launchBrowser();
     await browser.page.command("Runtime.enable");
     await browser.page.command("Page.enable");
@@ -214,7 +216,10 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     if (browser) await stopBrowser(browser);
   });
 
-  it("keeps every basin and stone row readable on mobile and across print pages", async () => {
+  it(
+    "keeps every basin and stone row readable on mobile and across print pages",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="card-product-KF001"]\') !== null'),
@@ -374,9 +379,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       await rm(pdfDirectory, { force: true, recursive: true });
     }
 
-  });
+    },
+  );
 
-  it("renders the OF format with installation-point details", async () => {
+  it(
+    "renders the OF format with installation-point details",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="card-product-KF001"]\') !== null'),
@@ -427,9 +436,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.match(ofQuote.body, /จุดติดตั้ง ห้องน้ำชั้น 2/);
     assert.equal(ofQuote.hasQrHeader, true);
     assert.ok(ofQuote.imageCount >= 1);
-  });
+    },
+  );
 
-  it("offers catalog name, SKU, price, and selected-first sorting", async () => {
+  it(
+    "offers catalog name, SKU, price, and selected-first sorting",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -460,9 +473,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     const firstPrice = await browser.page.evaluate('document.querySelector(".product-price")?.textContent ?? ""');
     assert.notEqual(firstName, "");
     assert.notEqual(firstPrice, "");
-  });
+    },
+  );
 
-  it("shows both real Studio download actions for the current layout", async () => {
+  it(
+    "shows both real Studio download actions for the current layout",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -616,9 +633,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.equal(printStatus, true);
     assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
-  });
+    },
+  );
 
-  it("connects Studio attachment controls and keeps manual X/Y placement", async () => {
+  it(
+    "connects Studio attachment controls and keeps manual X/Y placement",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 900,
@@ -747,9 +768,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     await setSelectValue(browser.page, initial.rectangleSelectTestId, childId);
     await waitFor(childPosition, (position) => position.x === 2100, "manual child position survives root resize");
-  });
+    },
+  );
 
-  it("supports one-click Studio presets, basin alignment, zoom, and the mobile estimate bar", async () => {
+  it(
+    "supports one-click Studio presets, basin alignment, zoom, and the mobile estimate bar",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -914,9 +939,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.match(mobileEstimate.total, /฿/);
     assert.equal(mobileEstimate.detailButton, "ดูรายละเอียด");
     assert.equal(mobileEstimate.submitButton, "ส่งขอราคา");
-  });
+    },
+  );
 
-  it("shows and blocks the Studio joint, disconnected-rectangle, and discount validations", async () => {
+  it(
+    "shows and blocks the Studio joint, disconnected-rectangle, and discount validations",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
@@ -1041,9 +1070,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "discount submission block",
     );
-  });
+    },
+  );
 
-  it("blocks overlapping basin placements before a quote request", async () => {
+  it(
+    "blocks overlapping basin placements before a quote request",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
@@ -1096,9 +1129,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "basin overlap submission block",
     );
-  });
+    },
+  );
 
-  it("places a selected basin when dragged from the shortlist on a touch screen", async () => {
+  it(
+    "places a selected basin when dragged from the shortlist on a touch screen",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="button-order-mode-studio"]\') !== null'),
@@ -1197,9 +1234,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(placements.length, 1, JSON.stringify({ dragged, placements }));
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"] .studio-placement\')?.textContent?.includes("KF001") ?? false'), true);
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF001"]\')?.getAttribute("aria-pressed")'), "true");
-  });
+    },
+  );
 
-  it("blocks invalid Studio upstand heights and phone numbers", async () => {
+  it(
+    "blocks invalid Studio upstand heights and phone numbers",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -1275,9 +1316,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "Studio email format submission block",
     );
-  });
+    },
+  );
 
-  it("shows email format guidance in quick quote and trims blank hand-sketch contact names", async () => {
+  it(
+    "shows email format guidance in quick quote and trims blank hand-sketch contact names",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/quote` });
     await waitFor(
@@ -1327,9 +1372,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       Boolean,
       "hand-sketch blank-name validation",
     );
-  });
+    },
+  );
 
-  it("creates a formal quote when customer details are still incomplete", async () => {
+  it(
+    "creates a formal quote when customer details are still incomplete",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -1356,9 +1405,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       await browser.page.evaluate('document.querySelector(\'[data-testid="formal-quote-sheet"]\')?.textContent?.includes("@partial-quote")'),
       true,
     );
-  });
+    },
+  );
 
-  it("shows a non-blocking warning for rectangle dimensions under 400 mm", async () => {
+  it(
+    "shows a non-blocking warning for rectangle dimensions under 400 mm",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -1451,9 +1504,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.match(submitResult, /\/quote\/view\?token=/);
     assert.match(warning, /ขนาด 10 มม/);
-  });
+    },
+  );
 
-  it("keeps Studio export actions on a saved quote snapshot", async () => {
+  it(
+    "keeps Studio export actions on a saved quote snapshot",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -1550,9 +1607,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'), true);
     assert.equal(await browser.page.evaluate('document.querySelectorAll(".studio-placement").length > 0'), true);
-  });
+    },
+  );
 
-  it("saves a named multi-piece draft and prints every piece on the saved quote", async () => {
+  it(
+    "saves a named multi-piece draft and prints every piece on the saved quote",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
@@ -1696,9 +1757,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "multi-piece saved Studio print action",
     ), true);
     assert.match(await browser.page.evaluate("document.title"), /^KF-Basins-.+-2ชิ้น$/);
-  });
+    },
+  );
 
-  it("guides shared Studio drafts through basin catalog changes", async () => {
+  it(
+    "guides shared Studio drafts through basin catalog changes",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/studio` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'[data-testid="studio-canvas"]\') !== null'),
@@ -1860,9 +1925,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     );
     assert.match(unchangedSelectionNotice, /มีรายการอื่นในแคตตาล็อกอัปเดตแล้ว/);
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="studio-hidden-basins"]\') === null'), true);
-  });
+    },
+  );
 
-  it("keeps Studio controls within the viewport on mobile", async () => {
+  it(
+    "keeps Studio controls within the viewport on mobile",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -1928,9 +1997,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(tablet.sideStatusColumns.split(" ").length, 4);
     assert.equal(tablet.pricingColumns.split(" ").length, 3);
     assert.equal(tablet.comparisonColumns.split(" ").length, 3);
-  });
+    },
+  );
 
-  it("previews the latest hand sketch file without widening the mobile page", async () => {
+  it(
+    "previews the latest hand sketch file without widening the mobile page",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     const fixtureDirectory = await mkdtemp(path.join(os.tmpdir(), "knight-basins-sketch-preview-"));
     const pngBytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
     const firstFile = path.join(fixtureDirectory, "first-sketch.png");
@@ -2054,9 +2127,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     } finally {
       await rm(fixtureDirectory, { force: true, recursive: true });
     }
-  });
+    },
+  );
 
-  it("shows the Studio basin shortlist as a responsive two-or-three card grid", async () => {
+  it(
+    "shows the Studio basin shortlist as a responsive two-or-three card grid",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -2139,9 +2216,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "filtered basin shortlist",
     );
     assert.equal(await browser.page.evaluate('document.querySelector(\'[data-testid="button-studio-basin-KF002"]\')?.getAttribute("aria-pressed")'), "true");
-  });
+    },
+  );
 
-  it("shows Studio measurement guidance, swaps deep dimensions, and cleans phone input", async () => {
+  it(
+    "shows Studio measurement guidance, swaps deep dimensions, and cleans phone input",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
     await browser.page.command("Page.navigate", { url: `${baseUrl}/` });
     await waitFor(
@@ -2178,9 +2259,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       (value) => value === "0812345678",
       "cleaned Studio phone",
     );
-  });
+    },
+  );
 
-  it("keeps an explicitly removed Studio stone removed after reopening the quote", async () => {
+  it(
+    "keeps an explicitly removed Studio stone removed after reopening the quote",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -2247,9 +2332,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(reopened.activeStoneButtons, 0);
     assert.deepEqual(reopened.storedStoneColors, []);
     await browser.page.evaluate("localStorage.clear(); sessionStorage.clear()");
-  });
+    },
+  );
 
-  it("autosaves Studio drafts and resumes them from a self-contained link", async () => {
+  it(
+    "autosaves Studio drafts and resumes them from a self-contained link",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -2359,9 +2448,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       return input instanceof HTMLInputElement ? input.value : "";
     })()`), "2100");
     await browser.page.evaluate("localStorage.clear()");
-  });
+    },
+  );
 
-  it("restores a named U-shaped draft and prints its three-panel geometry", async () => {
+  it(
+    "restores a named U-shaped draft and prints its three-panel geometry",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -2497,9 +2590,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       "U-shaped Studio print action",
     ), true);
     assert.equal(await browser.page.evaluate("document.title"), "KF-Basins-studio-layout-1ชิ้น");
-  });
+    },
+  );
 
-  it("saves named Studio drafts in My Drafts and restores each card", async () => {
+  it(
+    "saves named Studio drafts in My Drafts and restores each card",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
@@ -2735,9 +2832,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.match(reopenedNotice.resolved, new RegExp(removedSku));
     assert.equal(reopenedNotice.activeWarning, false);
     await browser.page.evaluate("localStorage.clear()");
-  });
+    },
+  );
 
-  it("keeps KnightSupport readable and above mobile floating controls", async () => {
+  it(
+    "keeps KnightSupport readable and above mobile floating controls",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setEmulatedMedia", { media: "screen" });
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 375,
@@ -2815,9 +2916,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       (value) => value === null,
       "reset KnightSupport position",
     );
-  });
+    },
+  );
 
-  it("flows authenticated profile defaults into a quote and toggles the condo floor field", async () => {
+  it(
+    "flows authenticated profile defaults into a quote and toggles the condo floor field",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 900,
@@ -2983,9 +3088,13 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       taxId: "0105559012345",
       taxAddress: "99 ถนนสุขุมวิท กรุงเทพฯ 10110",
     });
-  });
+    },
+  );
 
-  it("defaults a custom Studio counter to the selected basin color until the customer chooses a stone", async () => {
+  it(
+    "defaults a custom Studio counter to the selected basin color until the customer chooses a stone",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for browser test" },
+    async () => {
     await browser.page.command("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 900,
@@ -3033,5 +3142,6 @@ describe("long formal quote print flow", { concurrency: false }, () => {
       await browser.page.evaluate('document.querySelector(\'.studio-estimate-panel .studio-panel-heading > span\')?.textContent ?? ""'),
       "SO423",
     );
-  });
+    },
+  );
 });
