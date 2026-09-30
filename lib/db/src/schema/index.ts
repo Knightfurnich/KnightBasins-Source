@@ -303,6 +303,10 @@ export const customerLeads = pgTable(
     siteMapsUrl: varchar("site_maps_url", { length: 512 }),
     trackingViewCount: integer("tracking_view_count").default(0),
     trackingViewedAt: timestamp("tracking_viewed_at", { withTimezone: true }),
+    handoverDate: varchar("handover_date", { length: 10 }),
+    warrantyNo: varchar("warranty_no", { length: 64 }),
+    warrantyPeriodMonths: integer("warranty_period_months").default(12).notNull(),
+    handoverNotes: text("handover_notes"),
     ...auditColumns,
   },
   (table) => [

@@ -2343,6 +2343,69 @@ export function createAdminRouter(
     }
   });
 
+  const HANDOVER_DATE_PATTERN = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+
+  /**
+   * Records the digital handover/warranty record for a lead once installation
+   * is complete (job-159): handover date, warranty number, warranty period
+   * (months), and handover notes. All fields optional -- only the ones
+   * present in the body are updated. `handoverDate` must match YYYY-MM-DD
+   * when provided.
+   */
+  router.patch("/admin/leads/:id/handover", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const hasHandoverDate = Object.prototype.hasOwnProperty.call(body, "handoverDate");
+    const hasWarrantyNo = Object.prototype.hasOwnProperty.call(body, "warrantyNo");
+    const hasWarrantyPeriodMonths = Object.prototype.hasOwnProperty.call(body, "warrantyPeriodMonths");
+    const hasHandoverNotes = Object.prototype.hasOwnProperty.call(body, "handoverNotes");
+
+    const handoverDate = body.handoverDate;
+    if (hasHandoverDate && handoverDate !== null && !(typeof handoverDate === "string" && HANDOVER_DATE_PATTERN.test(handoverDate))) {
+      return invalid(res, "handoverDate must match YYYY-MM-DD, or null");
+    }
+
+    const warrantyNo = body.warrantyNo;
+    if (hasWarrantyNo && warrantyNo !== null && typeof warrantyNo !== "string") {
+      return invalid(res, "warrantyNo must be a string or null");
+    }
+
+    const warrantyPeriodMonths = body.warrantyPeriodMonths;
+    if (hasWarrantyPeriodMonths && !(typeof warrantyPeriodMonths === "number" && Number.isInteger(warrantyPeriodMonths) && warrantyPeriodMonths > 0)) {
+      return invalid(res, "warrantyPeriodMonths must be a positive integer");
+    }
+
+    const handoverNotes = body.handoverNotes;
+    if (hasHandoverNotes && handoverNotes !== null && typeof handoverNotes !== "string") {
+      return invalid(res, "handoverNotes must be a string or null");
+    }
+
+    const changes: {
+      handoverDate?: string | null;
+      warrantyNo?: string | null;
+      warrantyPeriodMonths?: number;
+      handoverNotes?: string | null;
+      updatedAt: Date;
+    } = { updatedAt: new Date() };
+    if (hasHandoverDate) changes.handoverDate = handoverDate;
+    if (hasWarrantyNo) changes.warrantyNo = warrantyNo;
+    if (hasWarrantyPeriodMonths) changes.warrantyPeriodMonths = warrantyPeriodMonths;
+    if (hasHandoverNotes) changes.handoverNotes = handoverNotes;
+
+    try {
+      const [updated] = await database
+        .update(customerLeads)
+        .set(changes)
+        .where(eq(customerLeads.id, id))
+        .returning();
+      return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   const TECHNICIAN_TEAM_CODE_PATTERN = /^[A-Z]{2,8}$/;
 
   /** Admin-managed roster shown in the technician dispatch calendar/dashboard. No DELETE by design -- retiring a team must not orphan its historical jobs, so "removing" a team is PATCH { active: false }. */
