@@ -68,6 +68,12 @@ function objectRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function customerTrackingUrl(token: string, origin = window.location.origin): string {
+  const url = new URL("/track", origin);
+  url.searchParams.set("token", token);
+  return url.toString();
+}
+
 function hasWarningSignal(value: unknown): boolean {
   if (typeof value === "string") return value.trim().length > 0;
   if (typeof value === "number") return value > 0;
@@ -918,6 +924,8 @@ function LeadsTableView({
   quickStatusPending,
   copyQuoteLink,
   copiedQuote,
+  copyTrackLink,
+  copiedTrackLinkId,
   copySalesMessage,
   copiedSalesMsg,
   editingNotes,
@@ -944,6 +952,8 @@ function LeadsTableView({
   quickStatusPending: boolean;
   copyQuoteLink: (quoteNumber: string, publicQuoteToken: string) => Promise<void>;
   copiedQuote: string | null;
+  copyTrackLink: (leadId: number, publicQuoteToken: string) => Promise<void>;
+  copiedTrackLinkId: number | null;
   copySalesMessage: (lead: CustomerLead) => Promise<void>;
   copiedSalesMsg: number | null;
   editingNotes: Record<number, string>;
@@ -1092,6 +1102,22 @@ function LeadsTableView({
                           data-testid={`button-copy-sales-message-${lead.id}`}
                         >
                           {copiedSalesMsg === lead.id ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</> : <><MessageSquare className="w-3 h-3 mr-1" /> ข้อความส่งลูกค้า</>}
+                        </Button>
+                      </div>
+                    )}
+                    {lead.publicQuoteToken && (
+                      <div className="mt-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 text-[14px] rounded-none font-semibold text-[var(--brand-blue)]"
+                          onClick={() => void copyTrackLink(lead.id, lead.publicQuoteToken!)}
+                          data-testid={`button-copy-track-link-${lead.id}`}
+                        >
+                          {copiedTrackLinkId === lead.id
+                            ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</>
+                            : <><Clipboard className="w-3 h-3 mr-1" /> ลิงก์ติดตามงาน</>}
                         </Button>
                       </div>
                     )}
@@ -1678,6 +1704,7 @@ export function LeadsManager() {
   const [editingDimensions, setEditingDimensions] = useState<Record<number, { widthMm: string; lengthMm: string; depthMm: string }>>({});
   const [savedDimensions, setSavedDimensions] = useState<number | null>(null);
   const [copiedQuote, setCopiedQuote] = useState<string | null>(null);
+  const [copiedTrackLinkId, setCopiedTrackLinkId] = useState<number | null>(null);
   const [copiedSalesMsg, setCopiedSalesMsg] = useState<number | null>(null);
   const [copyError, setCopyError] = useState("");
   const [quickStatusPending, setQuickStatusPending] = useState(false);
@@ -1894,6 +1921,18 @@ export function LeadsManager() {
     }
   };
 
+  const copyTrackLink = async (leadId: number, publicQuoteToken: string) => {
+    setCopyError("");
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard-unavailable");
+      await navigator.clipboard.writeText(customerTrackingUrl(publicQuoteToken));
+      setCopiedTrackLinkId(leadId);
+      window.setTimeout(() => setCopiedTrackLinkId((current) => current === leadId ? null : current), 1800);
+    } catch {
+      setCopyError("คัดลอกลิงก์ติดตามงานไม่ได้ กรุณาเปิดหน้าเว็บผ่าน HTTPS");
+    }
+  };
+
   const copySalesMessage = async (lead: CustomerLead) => {
     setCopyError("");
     try {
@@ -2096,6 +2135,8 @@ export function LeadsManager() {
           quickStatusPending={quickStatusPending}
           copyQuoteLink={copyQuoteLink}
           copiedQuote={copiedQuote}
+          copyTrackLink={copyTrackLink}
+          copiedTrackLinkId={copiedTrackLinkId}
           copySalesMessage={copySalesMessage}
           copiedSalesMsg={copiedSalesMsg}
           editingNotes={editingNotes}
@@ -2144,6 +2185,7 @@ export function LeadsManager() {
                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                      <span>สร้างเมื่อ {formatLeadDate(lead.createdAt)}</span>
                     {lead.quoteNumber && <><span className="font-mono text-[var(--brand-blue)]">{lead.quoteNumber}</span>{lead.publicQuoteToken ? <><a className="text-[var(--brand-blue)] underline" href={adminQuoteUrl(lead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา</a><Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyQuoteLink(lead.quoteNumber!, lead.publicQuoteToken!)} data-testid={`button-copy-quote-link-${lead.id}`}>{copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> คัดลอกลิงก์</>}</Button></> : <span className="text-[var(--ink-soft)]">กำลังสร้างลิงก์ปลอดภัย...</span>}</>}
+                    {lead.publicQuoteToken && <Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyTrackLink(lead.id, lead.publicQuoteToken!)} data-testid={`button-copy-track-link-${lead.id}`}>{copiedTrackLinkId === lead.id ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> ลิงก์ติดตามงาน</>}</Button>}
                    </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <span className="border border-[var(--line)] px-2 py-1 text-[var(--brand-blue)]">{modeLabels[lead.orderMode ?? "quick-purchase"] ?? lead.orderMode ?? "quick-purchase"}</span>
