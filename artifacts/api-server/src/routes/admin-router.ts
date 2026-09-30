@@ -1947,8 +1947,51 @@ export function createAdminRouter(
           publicQuoteToken: publicQuoteTokenForLead(lead),
           hasMatchedSlip: paymentSlipCount > 0,
           paymentSlipCount,
+          trackingViewCount: lead.trackingViewCount ?? 0,
+          trackingViewedAt: lead.trackingViewedAt ?? null,
         };
       }));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/leads/:id/tracking-link", requireAdminPermission("leads"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+    try {
+      const [lead] = await database
+        .select()
+        .from(customerLeads)
+        .where(eq(customerLeads.id, id))
+        .limit(1);
+      if (!lead) return res.status(404).json({ message: "Lead not found" });
+
+      if (!lead.quoteNumber) {
+        return res.json({ available: false, reason: "ยังไม่มีเลขที่ใบเสนอราคา" });
+      }
+
+      let current = lead;
+      if (!current.quoteAccessSecret) {
+        const quoteAccessSecret = createQuoteAccessSecret();
+        const [updated] = await database
+          .update(customerLeads)
+          .set({ quoteAccessSecret, updatedAt: new Date() })
+          .where(eq(customerLeads.id, id))
+          .returning();
+        current = updated ?? { ...current, quoteAccessSecret };
+      }
+
+      const token = publicQuoteTokenForLead(current);
+      if (!token) return res.json({ available: false, reason: "ยังไม่มีเลขที่ใบเสนอราคา" });
+
+      return res.json({
+        available: true,
+        path: `/track?token=${encodeURIComponent(token)}`,
+        token,
+        quoteNumber: current.quoteNumber,
+        createdAt: current.createdAt,
+      });
     } catch (error) {
       return next(error);
     }
