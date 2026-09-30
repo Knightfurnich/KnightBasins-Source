@@ -65,7 +65,7 @@
 
 ### 📦 กล่องที่ 6: Customer Portal Polish & Insights (เก็บงานพอร์ทัลลูกค้าให้ครบวง) — 🟡 เริ่มแล้ว 30 ก.ย. 69
 * [ ] **Task 152 (Chai):** Customer Tracking Link & View Log API (สร้างลิงก์อัตโนมัติ + นับยอดเปิดดูของลูกค้า)
-* [ ] **Task 153 (Replit):** Lead Tracking Link Panel UI (แสดงสถานะลิงก์ + ยอดเปิดดู + คัดลอก/ส่ง LINE จากหน้าจัดการ Lead)
+* [ ] **Task 153 (Replit):** Customer Tracking Insights & Quick Share UI (แผงแสดงสถิติเปิดดู + ส่ง LINE ลูกค้า) — จิ๊กซอว์ปิดกล่องที่ 6
 * 👉 **เป้าหมายตัดรอบ:** เมื่องานพอร์ทัลลูกค้าครบวง (สร้างลิงก์ + รู้ว่าลูกค้าเปิดดู) และ Deploy Live ➔ ปิดกล่องที่ 6
 
 ---
@@ -251,6 +251,7 @@
 | **Task 150 (Admin AI Assistant Widget UI)** | Replit | วิดเจ็ตผู้ช่วย AI ลอยมุมล่างขวาในระบบหลังบ้าน 3 โหมด พร้อมปุ่มส่งต่อเจ้าหน้าที่ | `feat/replit-admin-ops-assistant` | ✅ **Merged & Live (PR #108)** `a481c9c` · typecheck 0 errors · เทสต์ผ่าน 5/5 · deploy VPS สำเร็จ |
 | **Task 151 (Enriched Leads CSV Export)** | Replit | เพิ่มคอลัมน์พิกัด Maps (siteMapsUrl) และสถานะสลิปการเงินในไฟล์ส่งออก Excel/CSV | `feat/replit-enriched-leads-csv` | ✅ **Merged & Live (PR #109)** `83d50a6` · typecheck 0 errors · เทสต์ผ่าน 11/11 · deploy VPS สำเร็จ |
 | **Task 152 (Customer Tracking Link & View Log API)** | ชัย | API สร้างลิงก์ติดตามงานลูกค้าอัตโนมัติ + บันทึกยอดเปิดดู และส่งข้อมูลกลับในหน้าจัดการ Lead | `feat/chai-tracking-link` | 🟡 **มอบหมายแล้ว** (`qa/job-152-chai-tracking-link.md`) |
+| **Task 153 (Customer Tracking Insights & Quick Share UI)** | Replit | แผงแสดงสถิติการเปิดดูลิงก์ของลูกค้า + ปุ่มส่ง LINE และคัดลอกลิงก์ในหน้าจัดการ Lead | `feat/replit-tracking-insights` | 🟡 **มอบหมายแล้ว** (`qa/job-153-replit-tracking-insights.md`) |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
