@@ -14,12 +14,13 @@ import {
   useVoidAdminPaymentSlip,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, MessageSquare, RefreshCw, Search, X } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Check, ChevronDown, ChevronRight, Clipboard, Download, LayoutGrid, List, Loader2, MapPin, MessageSquare, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, findDuplicateLeads, leadStatusLabels as statusLabels } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import {
@@ -55,6 +56,10 @@ const FABRICATION_CLEARANCE_WARNING = `ระยะขอบเจาะอ่�
 const FABRICATION_JOINT_WARNING = "ตำแหน่งอ่างทับแนวรอยต่อแผ่นหิน";
 
 type FabricationFilter = "all" | "normal" | "risk";
+type FinancialSafetyLead = CustomerLead & {
+  hasMatchedSlip?: boolean | null;
+  paymentSlipCount?: number | null;
+};
 type LeadWithFabricationWarnings = CustomerLead & { fabricationWarnings?: unknown };
 
 function objectRecord(value: unknown): Record<string, unknown> | null {
@@ -858,12 +863,53 @@ function LeadSiteLocationEditor({ lead }: { lead: CustomerLead }) {
   );
 }
 
+function LeadDeleteAction({
+  lead,
+  onRequestDelete,
+}: {
+  lead: FinancialSafetyLead;
+  onRequestDelete: (lead: FinancialSafetyLead) => void;
+}) {
+  const paymentSlipCount = Math.max(0, lead.paymentSlipCount ?? 0);
+  const hasFinancialLock = lead.hasMatchedSlip === true || paymentSlipCount > 0;
+  const lockTooltip = "มีรายการเงินผูกอยู่ ไม่สามารถลบได้";
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      {hasFinancialLock && (
+        <span
+          className="whitespace-nowrap border border-[#b78320]/40 bg-[#b78320]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#8a6318]"
+          data-testid={`badge-financial-lock-${lead.id}`}
+        >
+          🔒 มีสลิป {paymentSlipCount} ใบ
+        </span>
+      )}
+      <span className="inline-flex" title={hasFinancialLock ? lockTooltip : undefined}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-7 whitespace-nowrap rounded-none border-[#a24439]/40 px-2 text-[14px] text-[#a24439]"
+          disabled={hasFinancialLock}
+          title={hasFinancialLock ? lockTooltip : undefined}
+          onClick={() => onRequestDelete(lead)}
+          data-testid={`button-delete-lead-${lead.id}`}
+        >
+          <Trash2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+          ลบงาน
+        </Button>
+      </span>
+    </div>
+  );
+}
+
 function LeadsTableView({
   leads,
   fabricationWarningsByLeadId,
   duplicateLeadsById,
   expandedLeadId,
   setExpandedLeadId,
+  onRequestDeleteLead,
   highlightedLeadId,
   onNavigateToLead,
   updateStatus,
@@ -889,6 +935,7 @@ function LeadsTableView({
   duplicateLeadsById: ReadonlyMap<number, CustomerLead[]>;
   expandedLeadId: number | null;
   setExpandedLeadId: (id: number | null) => void;
+  onRequestDeleteLead: (lead: FinancialSafetyLead) => void;
   highlightedLeadId: number | null;
   onNavigateToLead: (id: number) => void;
   updateStatus: (id: number, status: string, notes?: string | null) => void;
@@ -1116,16 +1163,19 @@ function LeadsTableView({
                     <LeadPaymentSlipsBadge leadId={lead.id} />
                   </TableCell>
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-[14px] rounded-none"
-                      onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
-                    >
-                      {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                      {isExpanded ? "ย่อ" : "ดู"}
-                    </Button>
+                    <div className="flex flex-col items-center gap-1.5">
+                      <LeadDeleteAction lead={lead} onRequestDelete={onRequestDeleteLead} />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-[14px] rounded-none"
+                        onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                      >
+                        {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                        {isExpanded ? "ย่อ" : "ดู"}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
 
@@ -1607,6 +1657,9 @@ export function LeadsManager() {
   const { data: leads, isLoading, refetch } = useListAdminLeads();
   const updateLead = useUpdateAdminLead();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [leadToDelete, setLeadToDelete] = useState<FinancialSafetyLead | null>(null);
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
   const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
   const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
@@ -1692,6 +1745,7 @@ export function LeadsManager() {
       return sortDirection === "desc" ? -cmp : cmp;
     });
   }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly, sortField, sortDirection, fabricationFilter, fabricationWarningsByLeadId]);
+  const visibleFinancialLeads = visibleLeads as FinancialSafetyLead[];
   const duplicateLeadsById = useMemo(
     () => new Map(visibleLeads.map((lead) => [lead.id, findDuplicateLeads(lead, leads ?? [])])),
     [leads, visibleLeads],
@@ -1738,6 +1792,51 @@ export function LeadsManager() {
       { id, data: { status: status as any, notes: notes ?? null } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] }) },
     );
+  };
+
+  const confirmLeadDeletion = async () => {
+    const lead = leadToDelete;
+    if (!lead || isDeletingLead) return;
+    if (lead.hasMatchedSlip === true || (lead.paymentSlipCount ?? 0) > 0) {
+      toast({
+        description: "มีรายการเงินผูกอยู่ ไม่สามารถลบได้",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeletingLead(true);
+    try {
+      const response = await fetch(`/api/admin/leads/${lead.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        let errorMessage = "ลบงานไม่สำเร็จ กรุณาลองใหม่";
+        try {
+          const payload = objectRecord(await response.json());
+          const responseMessage = payload
+            && [payload.message, payload.error, payload.reason].find(
+              (value): value is string => typeof value === "string" && value.trim().length > 0,
+            );
+          if (responseMessage) errorMessage = responseMessage;
+        } catch {
+          // Use the local message when the server does not return a JSON error.
+        }
+        throw new Error(errorMessage);
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+      setLeadToDelete(null);
+      toast({ description: "ลบ Lead เรียบร้อยแล้ว" });
+    } catch (error) {
+      toast({
+        description: error instanceof Error ? error.message : "ลบงานไม่สำเร็จ กรุณาลองใหม่",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingLead(false);
+    }
   };
 
   const quickUpdateStatus = async (id: number, status: string) => {
@@ -1983,11 +2082,12 @@ export function LeadsManager() {
         <div className="border border-[var(--line)] bg-[var(--card-paper)] p-10 text-center text-sm text-[var(--ink-soft)]">ยังไม่มี lead ในสถานะนี้</div>
       ) : displayMode === "table" ? (
         <LeadsTableView
-          leads={visibleLeads}
+          leads={visibleFinancialLeads}
           fabricationWarningsByLeadId={fabricationWarningsByLeadId}
           duplicateLeadsById={duplicateLeadsById}
           expandedLeadId={expandedLeadId}
           setExpandedLeadId={setExpandedLeadId}
+          onRequestDeleteLead={setLeadToDelete}
           highlightedLeadId={highlightedLeadId}
           onNavigateToLead={navigateToRelatedLead}
           updateStatus={updateStatus}
@@ -2010,7 +2110,7 @@ export function LeadsManager() {
         />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {visibleLeads.map((lead) => {
+          {visibleFinancialLeads.map((lead) => {
             const duplicateLeads = duplicateLeadsById.get(lead.id) ?? [];
             const isExpanded = expandedLeadId === lead.id;
             const isHighlighted = highlightedLeadId === lead.id;
@@ -2026,6 +2126,7 @@ export function LeadsManager() {
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-lg">{lead.name || "ยังไม่ระบุชื่อ"}</strong>
                     <span className="text-xs border border-[var(--line)] px-2 py-1">{statusLabels[lead.status]}</span>
+                      <LeadDeleteAction lead={lead} onRequestDelete={setLeadToDelete} />
                     <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
                     <DuplicateLeadBadge
                       lead={lead}
@@ -2150,6 +2251,42 @@ export function LeadsManager() {
       )}
         </>
       )}
+      <Dialog
+        open={leadToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingLead) setLeadToDelete(null);
+        }}
+      >
+        <DialogContent className="max-w-md rounded-none" data-testid="dialog-confirm-delete-lead">
+          <DialogTitle>ยืนยันการลบงาน</DialogTitle>
+          <div className="space-y-2 text-sm">
+            <p>ชื่อลูกค้า: <strong>{leadToDelete?.name || "ยังไม่ระบุชื่อ"}</strong></p>
+            <p>รหัสงาน: <span className="font-mono">{leadToDelete?.leadKey || "ไม่ระบุรหัสงาน"}</span></p>
+            <p className="text-[#a24439]">การลบนี้ไม่สามารถเรียกคืนได้</p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-none"
+              disabled={isDeletingLead}
+              onClick={() => setLeadToDelete(null)}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="rounded-none"
+              disabled={isDeletingLead}
+              onClick={() => void confirmLeadDeletion()}
+              data-testid="button-confirm-delete-lead"
+            >
+              {isDeletingLead ? "กำลังลบ..." : "ยืนยันลบ"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
