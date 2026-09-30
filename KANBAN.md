@@ -51,7 +51,7 @@
 
 ### 📦 กล่องที่ 4: Customer Tracking Portal (หน้าพอร์ทัลลูกค้าติดตามงาน 24 ชม.) — 🟡 เริ่มแล้ว 30 ก.ย. 69
 * [ ] **Task 147 (Chai):** Public Customer Job Tracking API (GET /api/public/track ไทม์ไลน์ 5 ขั้นตอน + ภาพส่งมอบ)
-* [ ] **Task 148 (Replit):** Customer Tracking Portal UI (หน้าเว็บหรูหราสำหรับลูกค้า /track พร้อมปุ่มคัดลอกส่ง LINE)
+* [ ] **Task 148 (Replit):** Customer Tracking Portal UI (หน้าเว็บหรูหราสำหรับลูกค้า /track พร้อมปุ่มคัดลอกส่ง LINE) — จิ๊กซอว์ปิดกล่องที่ 4
 * 👉 **เป้าหมายตัดรอบ:** เมื่องานพอร์ทัลลูกค้าเสร็จครบและ Deploy Live ➔ ปิดกล่องที่ 4
 
 ---
@@ -232,6 +232,7 @@
 | **Task 145 (Updates Page v1.1.0 Changelog)** | Replit | บันทึกประวัติรุ่น Version 1.1.0 (Logistics & Financial Safety Suite) บนหน้า /updates | `feat/replit-updates-v110` | ✅ **Merged & Live (PR #106)** `6756858` · typecheck 0 errors · เทสต์ผ่าน 5/5 · deploy VPS สำเร็จ |
 | **Task 146 (Calendar API Maps URL Optimization)** | ชัย | ปรับ API /admin/technician-calendar ให้ส่ง siteMapsUrl/พิกัดโดยตรง ประหยัดแบนด์วิดท์หน้าจอ | `feat/chai-calendar-maps-url` | ✅ **Merged & Live** `bd3928a` · typecheck 0 errors · เทสต์ผ่าน 3/3 · security-audit 18/18 · deploy VPS สำเร็จ |
 | **Task 147 (Public Customer Job Tracking API)** | ชัย | API ติดตามสถานะงานสำหรับลูกค้า GET /api/public/track ไทม์ไลน์ 5 ขั้นตอน + รูปส่งมอบ ปลอดภัยไร้ข้อมูลลับ | `feat/chai-public-job-tracking` | 🟡 **มอบหมายแล้ว** (`qa/job-147-chai-public-job-tracking.md`) |
+| **Task 148 (Customer Tracking Portal UI)** | Replit | หน้าพอร์ทัลลูกค้า /track ติดตามสถานะงาน 24 ชม. ไทม์ไลน์ 5 ขั้นตอน + แกลเลอรีรูปส่งมอบ | `feat/replit-customer-tracking-portal` | 🟡 **มอบหมายแล้ว** (`qa/job-148-replit-customer-tracking-portal.md`) |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
