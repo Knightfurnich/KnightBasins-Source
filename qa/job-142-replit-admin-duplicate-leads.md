@@ -1,4 +1,4 @@
-# ใบงาน 141 (Replit) — ระบบตรวจจับลูกค้าและเบอร์โทรซ้ำซ้อนในหน้าจัดการ Lead (Smart Duplicate Lead & Customer Detection UI)
+# ใบงาน 142 (Replit) — ระบบตรวจจับลูกค้าและเบอร์โทรซ้ำซ้อนในหน้าจัดการ Lead (Smart Duplicate Lead & Customer Detection UI)
 
 **วันที่:** 30 ก.ย. 69 · **ออกโดย:** เดวิด (หัวหน้าทีม)
 **สถานะ:** มอบหมายให้ Replit (Frontend / Sales Management UI) — เริ่มได้ทันที
