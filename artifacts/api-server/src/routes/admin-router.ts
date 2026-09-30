@@ -88,6 +88,7 @@ import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "../lib/google-service-account";
 import { resolveMapsLink } from "../lib/maps-location";
+import { askOpsAssistant, OPS_ASSISTANT_MODES, type OpsAssistantMode } from "../lib/ops-assistant";
 
 export type AdminDatabase = {
   select: (...args: any[]) => any;
@@ -1577,6 +1578,9 @@ export function createAdminRouter(
   // only bounds an already-authenticated admin session, not an anonymous attacker.
   const uploadRateLimit = createRateLimiter({ name: "admin-upload", max: 150, windowMs: 10 * 60 * 1000 });
   const uploadConcurrency = createConcurrencyLimiter("Upload service", 4);
+  // Ops assistant calls out to Vertex AI per request, so it's rate-limited independently
+  // of the generic upload/login limiters above.
+  const opsAssistantRateLimit = createRateLimiter({ name: "admin-assistant-ask", max: 20, windowMs: 60 * 1000 });
 
   async function loadTechnicianTeamRows(includeInactive = false) {
     return database
@@ -2078,6 +2082,34 @@ export function createAdminRouter(
 
       const teams = await loadTechnicianTeams();
       return res.json(computeTechnicianCalendar(leadRows, month, teams));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  // Internal AI ops assistant (KRAKEN ERP manual item 15): read-only Q&A over
+  // a hand-picked data summary, never allowed to write to the database.
+  router.post("/admin/assistant/ask", opsAssistantRateLimit, requireAdminPermission("leads"), async (req, res, next) => {
+    try {
+      const rawQuestion = req.body?.question;
+      const question = typeof rawQuestion === "string" ? rawQuestion.trim() : "";
+      if (!question || question.length > 500) {
+        return invalid(res, "question must be 1-500 characters");
+      }
+
+      const rawMode = req.body?.mode;
+      const mode: OpsAssistantMode = (OPS_ASSISTANT_MODES as string[]).includes(rawMode)
+        ? rawMode as OpsAssistantMode
+        : "dashboard";
+
+      const result = await askOpsAssistant(question, mode);
+      if (!result.ok) {
+        // Never surface the upstream Vertex AI error detail to the client -- always
+        // the same fixed Thai message, whether the cause is missing config, a
+        // timeout, or an API error.
+        return res.json({ ok: false, message: "ผู้ช่วย AI ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง" });
+      }
+      return res.json({ ok: true, reply: result.reply, mode });
     } catch (error) {
       return next(error);
     }
