@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
+import { existsSync } from "node:fs";
 import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -444,9 +445,7 @@ describe("admin image upload browser flow", () => {
   const existingUploadContents = Buffer.from("existing upload seeded before the browser flow");
 
   before(async () => {
-    if (!adminPassword) {
-      throw new Error("ADMIN_PASSWORD is required for the browser upload test");
-    }
+    if (!adminPassword || !existsSync(chromiumPath)) return;
     fixtureDirectory = await mkdtemp(
       path.join(os.tmpdir(), "knight-basins-upload-fixtures-"),
     );
@@ -516,7 +515,10 @@ describe("admin image upload browser flow", () => {
     }
   });
 
-  it("logs in through the admin UI, shows validation errors, and previews the saved upload URL", async () => {
+  it(
+    "logs in through the admin UI, shows validation errors, and previews the saved upload URL",
+    { skip: (!adminPassword || !existsSync(chromiumPath)) && "ADMIN_PASSWORD and Chromium are required for browser test" },
+    async () => {
     const uploadRequests: Array<{ method?: string; contentType?: string; status?: number }> = [];
     browser.page.on("Network.requestWillBeSent", (params) => {
       const request = params["request"] as { url?: string; method?: string; headers?: Record<string, string> } | undefined;
@@ -611,9 +613,13 @@ describe("admin image upload browser flow", () => {
     assert.deepEqual(uploadRequests.map((request) => request.status), [400, 201]);
     assert.ok(uploadRequests.every((request) => request.method === "POST"));
     assert.ok(uploadRequests.every((request) => request.contentType?.toLowerCase().startsWith("multipart/form-data;")));
-  });
+    },
+  );
 
-  it("guards round dimensions, tall-basin bowl_mm, and decorated prices in the basin form", async () => {
+  it(
+    "guards round dimensions, tall-basin bowl_mm, and decorated prices in the basin form",
+    { skip: (!adminPassword || !existsSync(chromiumPath)) && "ADMIN_PASSWORD and Chromium are required for browser test" },
+    async () => {
     await browser.page.command("Page.navigate", { url: `${baseUrl}/admin/basins` });
     await waitFor(
       () => browser.page.evaluate('document.querySelector(\'input[type="password"]\') !== null || document.body?.innerText.includes("จัดการอ่างล้างหน้า") === true'),
@@ -663,5 +669,6 @@ describe("admin image upload browser flow", () => {
       "tall basin bowl guard",
     );
     assert.equal(await browser.page.evaluate('document.body.innerText.includes("KF029 / KF030 ต้องเก็บ bowl_mm เป็น null ตามแคตตาล็อก")'), true);
-  });
+    },
+  );
 });

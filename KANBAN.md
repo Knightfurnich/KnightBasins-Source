@@ -72,6 +72,7 @@
 
 ### 📦 กล่องที่ 7: Quality & Governance Hardening (ปิดงานคุณภาพและความปลอดภัยที่ค้างคา) — 🟡 เริ่มแล้ว 30 ก.ย. 69
 * [ ] **Task 154 (Chai):** Browser Test Graceful Skip (ยกเลิกตัวเลขแดงหลอกตา — ผล npm test เขียว 100%)
+* [ ] **Task 155 (Replit):** Factory Stone Cut-List Modal & Print UI (ตารางตัดหินโรงงาน + พิมพ์ใบสั่งตัด)
 * 👉 **เป้าหมายตัดรอบ:** ผลทดสอบทั้ง suite เขียวสมบูรณ์ ไร้ failure ปลอม และรายงานบอส
 
 ---
@@ -259,6 +260,7 @@
 | **Task 152 (Customer Tracking Link & View Log API)** | ชัย | API สร้างลิงก์ติดตามงานลูกค้าอัตโนมัติ + บันทึกยอดเปิดดู และส่งข้อมูลกลับในหน้าจัดการ Lead | `feat/chai-tracking-link` | ✅ **Merged & Live** `a7597ce` · typecheck 0 errors · เทสต์ผ่าน 6/6 + baseline 13/13 · migration 017 applied · deploy VPS สำเร็จ |
 | **Task 153 (Customer Tracking Insights & Quick Share UI)** | Replit | แผงแสดงสถิติการเปิดดูลิงก์ของลูกค้า + ปุ่มส่ง LINE และคัดลอกลิงก์ในหน้าจัดการ Lead | `feat/replit-tracking-insights` | ✅ **Merged & Live (PR #110)** `953f7c4` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 | **Task 154 (Browser Test Graceful Skip)** | ชัย | ปรับ Browser E2E 4 ไฟล์ให้ขึ้น skipped แทน fail เมื่อไม่มี Chromium/ADMIN_PASSWORD (ผล npm test เขียว 100%) | `feat/chai-browser-test-skip` | 🟡 **มอบหมายแล้ว** (`qa/job-154-chai-browser-test-skip.md`) |
+| **Task 155 (Factory Stone Cut-List Modal & Print UI)** | Replit | หน้าต่างตารางตัดหินโรงงาน (กว้างxยาว, ขอบ 4 ด้าน, หลุมเจาะ >=100มม.) พร้อมปุ่มพิมพ์ใบสั่งตัด | `feat/replit-factory-cutlist` | 🟡 **มอบหมายแล้ว** (`qa/job-155-replit-factory-cutlist.md`) |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
