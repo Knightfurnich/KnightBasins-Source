@@ -159,9 +159,9 @@ describe("recordAiUsage / getUnifiedAiCostSummary aggregation", () => {
     assert.equal(vertexGemini.status, "active");
   });
 
-  it("always returns all 4 services in the fixed order, even with zero events", () => {
+  it("always returns all 5 services in the fixed order, even with zero events", () => {
     const summary = getUnifiedAiCostSummary("all");
-    assert.deepEqual(summary.services.map((service) => service.id), ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini"]);
+    assert.deepEqual(summary.services.map((service) => service.id), ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini", "google_tts"]);
     assert.ok(summary.services.every((service) => service.requests === 0 && service.status === "no-data"));
     assert.equal(summary.totalCostThb, 0);
   });
@@ -219,8 +219,8 @@ describe("GET /admin/ai-cost-center", () => {
       assert.equal(typeof body.totalCostThb, "number");
       assert.equal(typeof body.totalRequests, "number");
       assert.equal(typeof body.totalTokens, "number");
-      assert.equal(body.services.length, 4);
-      assert.deepEqual(body.services.map((service) => service.id), ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini"]);
+      assert.equal(body.services.length, 5);
+      assert.deepEqual(body.services.map((service) => service.id), ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini", "google_tts"]);
       assert.equal(body.services.find((service) => service.id === "sales_bot")?.name, "น้องไนท์ (LINE Bot ผู้ช่วยขาย)");
       assert.equal(body.services.find((service) => service.id === "sketch_vision")?.name, "AI Blueprint Reader (อ่านแบบร่าง)");
       assert.equal(body.services.find((service) => service.id === "hermes_ops")?.name, "เฮอร์มีส (งานบริหารระบบ & งานช่าง)");

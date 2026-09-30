@@ -383,7 +383,7 @@ describe("Final sign-off: GET /admin/ai-cost-center", () => {
       assert.equal(response.status, 200);
       const body = (await response.json()) as { period?: string; services?: unknown[]; modelBreakdown?: unknown[] };
       assert.equal(body.period, "all");
-      assert.equal(body.services?.length, 4);
+      assert.equal(body.services?.length, 5);
       assert.ok(Array.isArray(body.modelBreakdown));
     } finally {
       await server.close();
