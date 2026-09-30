@@ -26,6 +26,7 @@ import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
 import AiCostCenterPage from "./AiCostCenterPage";
 import { knightFurnichLogo } from "@/data/assets";
 import { AdminThemeToggle, useAdminTheme } from "./admin-theme";
+import { OpsAssistantWidget } from "./OpsAssistantWidget";
 
 const loginSchema = z.object({
   password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
@@ -166,6 +167,7 @@ export default function AdminApp() {
           </main>
         </div>
       </div>
+      <OpsAssistantWidget />
     </AdminAccessContext.Provider>
   );
 }
