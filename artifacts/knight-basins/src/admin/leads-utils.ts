@@ -121,6 +121,11 @@ const LEAD_CSV_COLUMNS = [
   "ช่องทาง",
   "รหัสสินค้า",
   "หมายเหตุ",
+  "ลิงก์ Google Maps หน้างาน",
+  "ละติจูด (Latitude)",
+  "ลองจิจูด (Longitude)",
+  "มีสลิปการเงินผูกอยู่",
+  "จำนวนสลิป (ใบ)",
 ];
 
 function csvEscape(value: unknown): string {
@@ -134,6 +139,13 @@ function leadCreatedAtForCsv(value: string) {
 }
 
 function leadToCsvRow(lead: CustomerLead): string[] {
+  const enrichedLead = lead as CustomerLead & {
+    siteMapsUrl?: string | null;
+    siteLat?: number | null;
+    siteLng?: number | null;
+    hasMatchedSlip?: boolean | null;
+    paymentSlipCount?: number | null;
+  };
   return [
     leadCreatedAtForCsv(lead.createdAt),
     lead.quoteNumber ?? "",
@@ -148,6 +160,11 @@ function leadToCsvRow(lead: CustomerLead): string[] {
     lead.source,
     lead.productSkus.join("; "),
     lead.notes ?? "",
+    enrichedLead.siteMapsUrl ?? "",
+    String(enrichedLead.siteLat ?? ""),
+    String(enrichedLead.siteLng ?? ""),
+    enrichedLead.hasMatchedSlip ? "มี" : "ไม่มี",
+    String(enrichedLead.paymentSlipCount ?? 0),
   ];
 }
 
