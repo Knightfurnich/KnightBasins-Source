@@ -43,8 +43,8 @@
 * [x] **Task 139 (Replit):** One-Click Navigate UI ในหน้า Lead และปฏิทินช่าง
 * [x] **Task 142 (Replit):** Smart Duplicate Lead & Customer Detection UI (ระบบตรวจจับลูกค้าซ้ำ)
 * [x] **Task 140 (Chai):** Financial Safety Lock API (ล็อกการลบงานที่มีสลิปผูกอยู่)
-* [ ] **Task 143 (Replit):** Technician LINE Job Dispatch Card UI (ปุ่มการ์ดงานช่างส่ง LINE)
-* [ ] **Task 144 (Replit):** Lead Financial Safety Lock UI (ปุ่มลบ Lead พร้อมระบบล็อกสลิปการเงิน) — จิ๊กซอว์ปิดกล่องที่ 3
+* [x] **Task 144 (Replit):** Lead Financial Safety Lock UI (ปุ่มลบ Lead พร้อมระบบล็อกสลิปการเงิน)
+* [ ] **Task 143 (Replit):** Technician LINE Job Dispatch Card UI (ปุ่มการ์ดงานช่างส่ง LINE) — ชิ้นสุดท้ายของกล่องที่ 3
 * 👉 **เป้าหมายตัดรอบ:** เมื่องานในกล่องนี้เสร็จครบและ Deploy Live ➔ ปิดกล่องที่ 3
 
 ---
@@ -221,7 +221,7 @@
 | **Task 142 (Smart Duplicate Lead Detection UI)** | Replit | ตรวจจับลูกค้า/เบอร์โทรซ้ำซ้อนในหน้าจัดการ Lead พร้อม Badge เตือนและกล่องประวัติเดิม | `feat/replit-admin-duplicate-leads` | ✅ **Merged & Live (PR #103)** `46c65d6` · typecheck 0 errors · เทสต์ผ่าน 6/6 · deploy VPS สำเร็จ |
 | **Task 143 (Technician LINE Job Dispatch Card UI)** | Replit | ปุ่ม [ 📲 การ์ดงานช่าง ] บนการ์ดงานติดตั้งในปฏิทิน คัดลอกสรุปส่ง LINE พร้อมพิกัด Maps | `feat/replit-technician-line-job-card` | 🟡 **มอบหมายแล้ว** (`qa/job-143-replit-technician-line-job-card.md`) |
 | **Task 140 (Financial Safety Lock API)** | ชัย | API ล็อกความปลอดภัยทางการเงิน: DELETE /api/admin/leads/:id บล็อกการลบถ้ามีสลิปโอนเงินผูกอยู่ (409 Conflict) | `feat/chai-financial-safety-lock` | ✅ **Merged & Live** `ba45e8e` · typecheck 0 errors · เทสต์ผ่าน 7/7 · security-audit 18/18 · deploy VPS สำเร็จ |
-| **Task 144 (Lead Financial Safety Lock UI)** | Replit | ปุ่มลบ Lead พร้อมระบบล็อกความปลอดภัยทางการเงิน (ปิดปุ่มลบเมื่อมีสลิปโอนเงินผูกอยู่) | `feat/replit-admin-financial-safety-lock-ui` | 🟡 **มอบหมายแล้ว** (`qa/job-144-replit-admin-financial-safety-lock-ui.md`) |
+| **Task 144 (Lead Financial Safety Lock UI)** | Replit | ปุ่มลบ Lead พร้อมระบบล็อกความปลอดภัยทางการเงิน (ปิดปุ่มลบเมื่อมีสลิปโอนเงินผูกอยู่) | `feat/replit-admin-financial-safety-lock-ui` | ✅ **Merged & Live (PR #104)** `795ca12` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
