@@ -449,6 +449,18 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
         return res.status(404).json({ message: "Job not found" });
       }
 
+      try {
+        await database
+          .update(customerLeads)
+          .set({
+            trackingViewCount: (lead.trackingViewCount ?? 0) + 1,
+            trackingViewedAt: new Date(),
+          })
+          .where(eq(customerLeads.id, lead.id));
+      } catch (trackingError) {
+        console.warn("Failed to record tracking view", { leadId: lead.id, error: trackingError });
+      }
+
       const photoRows = await database
         .select({
           id: sitePhotos.id,

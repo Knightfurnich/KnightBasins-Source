@@ -301,6 +301,8 @@ export const customerLeads = pgTable(
     siteLat: doublePrecision("site_lat"),
     siteLng: doublePrecision("site_lng"),
     siteMapsUrl: varchar("site_maps_url", { length: 512 }),
+    trackingViewCount: integer("tracking_view_count").default(0),
+    trackingViewedAt: timestamp("tracking_viewed_at", { withTimezone: true }),
     ...auditColumns,
   },
   (table) => [
