@@ -44,6 +44,28 @@ describe("customer job tracking portal", () => {
     assert.match(trackingPageSource, /data-testid="button-close-completed-photo"/);
   });
 
+  it("maps the live API photo and studio fields and keeps the legacy photo fallback", () => {
+    assert.match(
+      trackingPageSource,
+      /Array\.isArray\(envelope\.sitePhotos\)\s*\?\s*envelope\.sitePhotos\s*:\s*Array\.isArray\(envelope\.photos\)\s*\?\s*envelope\.photos/,
+    );
+    assert.match(trackingPageSource, /shape: optionalString\(rawStudio\.shape\)/);
+    assert.match(trackingPageSource, /dimensionsMm: isRecord\(rawStudio\.dimensionsMm\)/);
+    for (const dimension of ["depth", "runA", "runB", "runC"]) {
+      assert.match(
+        trackingPageSource,
+        new RegExp(`${dimension}: optionalNumber\\(rawStudio\\.dimensionsMm\\.${dimension}\\)`),
+      );
+    }
+    assert.match(trackingPageSource, /stoneColor: optionalString\(rawStudio\.stoneColor\)/);
+    assert.match(trackingPageSource, /basinSkus: Array\.isArray\(rawStudio\.basinSkus\)/);
+    assert.match(trackingPageSource, /formatDimensionsMm\(studio\?\.dimensionsMm\)/);
+    assert.match(trackingPageSource, /studio\?\.basinSkus\?\.join\(", "\)/);
+    assert.match(trackingPageSource, /data-testid="gallery-completed-photos"/);
+    assert.match(trackingPageSource, /onClick=\{\(\) => setSelected\(photo\)\}/);
+    assert.match(trackingPageSource, /role="dialog"/);
+  });
+
   it("provides the requested LINE contact and excludes internal-only fields", () => {
     assert.match(trackingPageSource, /789gcnhq/);
     assert.match(trackingPageSource, /line\.me/);

@@ -19,11 +19,21 @@ type PublicPhoto = {
   takenAt?: string | null;
 };
 
+type PublicStudioDimensions = {
+  depth?: number;
+  runA?: number;
+  runB?: number;
+  runC?: number;
+};
+
 type PublicStudioSummary = {
   basinModel?: string;
   stoneType?: string;
   stoneColor?: string;
   slabSize?: string;
+  shape?: string;
+  dimensionsMm?: PublicStudioDimensions;
+  basinSkus?: string[];
 };
 
 type PublicTrackingJob = {
@@ -67,9 +77,24 @@ function optionalIdentifier(value: unknown): string | undefined {
   return optionalString(value);
 }
 
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
 function validDate(value: unknown): string | null {
   if (typeof value !== "string" || !value.trim() || Number.isNaN(Date.parse(value))) return null;
   return value;
+}
+
+function formatDimensionsMm(dimensions?: PublicStudioDimensions): string | undefined {
+  if (!dimensions) return undefined;
+  const parts = [
+    dimensions.runA === undefined ? undefined : `A ${dimensions.runA}`,
+    dimensions.runB === undefined ? undefined : `B ${dimensions.runB}`,
+    dimensions.runC === undefined ? undefined : `C ${dimensions.runC}`,
+    dimensions.depth === undefined ? undefined : `ลึก ${dimensions.depth}`,
+  ].filter((part): part is string => Boolean(part));
+  return parts.length ? `${parts.join(" × ")} มม.` : undefined;
 }
 
 function safeImageUrl(value: unknown): string | undefined {
@@ -106,10 +131,26 @@ function parseTrackingPayload(payload: unknown): PublicTrackingJob | null {
         stoneType: optionalString(rawStudio.stoneType),
         stoneColor: optionalString(rawStudio.stoneColor),
         slabSize: optionalString(rawStudio.slabSize),
+        shape: optionalString(rawStudio.shape),
+        dimensionsMm: isRecord(rawStudio.dimensionsMm)
+          ? {
+              depth: optionalNumber(rawStudio.dimensionsMm.depth),
+              runA: optionalNumber(rawStudio.dimensionsMm.runA),
+              runB: optionalNumber(rawStudio.dimensionsMm.runB),
+              runC: optionalNumber(rawStudio.dimensionsMm.runC),
+            }
+          : undefined,
+        basinSkus: Array.isArray(rawStudio.basinSkus)
+          ? rawStudio.basinSkus.map(optionalString).filter((value): value is string => Boolean(value))
+          : undefined,
       }
     : null;
 
-  const rawPhotos = Array.isArray(envelope.photos) ? envelope.photos : [];
+  const rawPhotos = Array.isArray(envelope.sitePhotos)
+    ? envelope.sitePhotos
+    : Array.isArray(envelope.photos)
+      ? envelope.photos
+      : [];
   const photos = rawPhotos.reduce<PublicPhoto[]>((items, item) => {
     if (!isRecord(item) || item.stage !== "completed") return items;
     const imageUrl = safeImageUrl(item.imageUrl);
@@ -283,7 +324,10 @@ function Timeline({ items }: { items: PublicTimelineItem[] }) {
 
 function StudioSummary({ studio }: { studio?: PublicStudioSummary | null }) {
   const details = [
+    { label: "รูปทรงเคาน์เตอร์", value: studio?.shape },
+    { label: "ขนาดเคาน์เตอร์", value: formatDimensionsMm(studio?.dimensionsMm) },
     { label: "รุ่นอ่าง", value: studio?.basinModel },
+    { label: "รหัสอ่าง", value: studio?.basinSkus?.join(", ") },
     { label: "ประเภทหิน", value: studio?.stoneType },
     { label: "สีหิน", value: studio?.stoneColor },
     { label: "ขนาดแผ่น", value: studio?.slabSize },
