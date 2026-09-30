@@ -73,7 +73,9 @@
 ### 📦 กล่องที่ 7: Production Engineering & Quality Suite — 🟢 ปิดกล่องสำเร็จ 100% (Certified)
 * [x] **Task 154 (Chai):** Browser Test Graceful Skip (ยกเลิกตัวเลขแดงหลอกตา — ผล npm test เขียว 100%)
 * [x] **Task 155 (Replit):** Factory Stone Cut-List Modal & Print UI (ตารางตัดหินโรงงาน + พิมพ์ใบสั่งตัด)
-* 👉 **สถานะ:** ปิดกล่องสมบูรณ์ 100% · ผ่านการรับรองครบทุกใบงาน · Release Tag v1.5.0 · เข้าสู่ช่วงพักระบบ 48 ชม. (เปิดเฉพาะ Fast-track แก้บั๊ก)
+* [x] **Task 156 (Replit):** Digital Handover & Warranty Sheet UI (/handover) — ปิดรอบความสำเร็จข้อ 1
+* [x] **Task 157 (Chai):** Google TTS Cost Center Tracking (เสาหลักที่ 5) — ปิดรอบความสำเร็จข้อ 2
+* 👉 **สถานะ:** ปิดกล่องสำเร็จ 100% · ผ่านการรับรองครบทุกใบงาน · Release Tag v1.6.0 · เข้าสู่ช่วงพักระบบ 48 ชม. (เปิดเฉพาะ Fast-track แก้บั๊ก)
 
 ---
 
