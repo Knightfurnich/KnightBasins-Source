@@ -41,6 +41,16 @@ type CalendarStatus = "available" | "moderate" | "busy";
 
 type TechnicianTeamCode = NonNullable<AdminLeadTechnicianUpdateInput["technicianTeamCode"]>;
 
+export interface CalendarJobItem {
+  id: number;
+  leadKey: string;
+  name: string;
+  project: string | null;
+  address: string | null;
+  phone?: string | null;
+  siteMapsUrl?: string | null;
+}
+
 export interface CalendarDay {
   date: string;
   dayStatus: CalendarStatus;
@@ -50,13 +60,7 @@ export interface CalendarDay {
     teamName: string;
     status: CalendarStatus;
     jobCount: number;
-    jobs: Array<{
-      id: number;
-      name: string;
-      project: string | null;
-      address: string | null;
-      siteMapsUrl?: string | null;
-    }>;
+    jobs: CalendarJobItem[];
   }>;
 }
 
@@ -297,6 +301,24 @@ function detectJobStage(text: string | null | undefined): JobStage {
   return "other";
 }
 
+export function formatTechnicianJobCard(job: CalendarJobItem, dateIso: string): string {
+  const address = job.address?.trim() || "";
+  const phone = job.phone?.trim() || "";
+  const mapsUrl = job.siteMapsUrl?.trim() || (address ? googleMapsUrl(address) : "");
+  const stage = JOB_STAGE_PRESENTATION[detectJobStage(job.project)].label;
+  return [
+    "📲 การ์ดงานช่าง",
+    `📅 วันที่: ${dateFormatter.format(dateFromBangkokDateKey(dateIso))}`,
+    `📌 รหัสงาน: ${job.leadKey.trim() || "ไม่ระบุรหัสงาน"}`,
+    `🗂️ โครงการ: ${job.project?.trim() || "ไม่ระบุโครงการ"}`,
+    `👤 ลูกค้า: ${job.name.trim() || "ไม่ระบุชื่อลูกค้า"}`,
+    `🛠️ ขั้นตอน: ${stage}`,
+    `📍 ที่อยู่: ${address || "ยังไม่ได้ระบุที่อยู่"}`,
+    ...(phone ? [`📞 เบอร์ติดต่อ: ${phone}`] : []),
+    ...(mapsUrl ? [`🧭 Google Maps: ${mapsUrl}`] : []),
+  ].join("\n");
+}
+
 function StageBadge({ stage, className = "" }: { stage: JobStage; className?: string }) {
   const p = JOB_STAGE_PRESENTATION[stage];
   return (
@@ -331,7 +353,7 @@ function JobCard({
   onTeamChange,
   onReschedule,
 }: {
-  job: CalendarDay["teams"][number]["jobs"][number];
+  job: CalendarJobItem;
   teamCode: TechnicianTeamCode;
   technicianTeams: TechnicianTeam[];
   installationDate: string;
@@ -342,10 +364,23 @@ function JobCard({
   onReschedule: (jobId: number, date: string) => Promise<void>;
 }) {
   const [dateValue, setDateValue] = useState(installationDate);
+  const { toast } = useToast();
 
   useEffect(() => {
     setDateValue(installationDate);
   }, [installationDate]);
+
+  const handleCopyTechnicianCard = async () => {
+    try {
+      await navigator.clipboard.writeText(formatTechnicianJobCard(job, installationDate));
+      toast({ description: "คัดลอกการ์ดงานสำหรับส่ง LINE ช่างเรียบร้อย" });
+    } catch {
+      toast({
+        description: "คัดลอกการ์ดงานสำหรับส่ง LINE ช่างไม่สำเร็จ",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDateChange = (date: string) => {
     if (!date) {
@@ -381,6 +416,19 @@ function JobCard({
           </a>
         )}
         <SavedJobMapLink url={job.siteMapsUrl} />
+      </div>
+      <div className="mt-2 flex justify-end">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-9 rounded-none"
+          onClick={() => void handleCopyTechnicianCard()}
+          data-testid={`button-copy-technician-card-${job.id}`}
+        >
+          <Copy className="h-4 w-4" aria-hidden="true" />
+          📲 การ์ดงานช่าง
+        </Button>
       </div>
       {isLive && (
         <div className="mt-3 grid gap-2 border-t border-[var(--line)] pt-3 sm:grid-cols-2">
@@ -542,20 +590,24 @@ export function TechnicianCalendarPage() {
   const isLive = Boolean(calendarData?.days);
   const rawMonthDays = calendarData?.days as unknown as CalendarDay[] | undefined;
   const needsLeadMaps = Boolean(rawMonthDays?.some((day) =>
-    day.teams.some((team) => team.jobs.some((job) => !job.siteMapsUrl?.trim())),
+    day.teams.some((team) => team.jobs.some((job) => !job.siteMapsUrl?.trim() || !job.phone?.trim())),
   ));
   const { data: leadsForMaps } = useListAdminLeads(undefined, {
     query: { enabled: needsLeadMaps },
   });
-  const siteMapsUrlByLeadId = useMemo(() => {
-    const map = new Map<number, string>();
-    const leads = (leadsForMaps ?? []) as Array<{ id: number; siteMapsUrl?: string | null }>;
+  const { siteMapsUrlByLeadId, phoneByLeadId } = useMemo(() => {
+    const siteMapsUrlByLeadId = new Map<number, string>();
+    const phoneByLeadId = new Map<number, string>();
+    const leads = (leadsForMaps ?? []) as Array<{ id: number; siteMapsUrl?: string | null; phone?: string | null }>;
     for (const lead of leads) {
       if (typeof lead.siteMapsUrl === "string" && lead.siteMapsUrl.trim()) {
-        map.set(lead.id, lead.siteMapsUrl);
+        siteMapsUrlByLeadId.set(lead.id, lead.siteMapsUrl.trim());
+      }
+      if (typeof lead.phone === "string" && lead.phone.trim()) {
+        phoneByLeadId.set(lead.id, lead.phone.trim());
       }
     }
-    return map;
+    return { siteMapsUrlByLeadId, phoneByLeadId };
   }, [leadsForMaps]);
   const monthDays = useMemo<CalendarDay[]>(
     () => (rawMonthDays ?? []).map((day) => ({
@@ -565,10 +617,11 @@ export function TechnicianCalendarPage() {
         jobs: team.jobs.map((job) => ({
           ...job,
           siteMapsUrl: job.siteMapsUrl?.trim() || siteMapsUrlByLeadId.get(job.id) || null,
+          phone: job.phone?.trim() || phoneByLeadId.get(job.id) || null,
         })),
       })),
     })),
-    [rawMonthDays, siteMapsUrlByLeadId],
+    [rawMonthDays, siteMapsUrlByLeadId, phoneByLeadId],
   );
   const monthOffset = (new Date(Date.UTC(visibleYear, visibleMonthIndex, 1, 12)).getUTCDay() + 6) % 7;
   const calendarCells = useMemo<(CalendarDay | null)[]>(() => {
