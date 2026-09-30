@@ -22,6 +22,30 @@ function normalized(value: unknown) {
   return String(value ?? "").trim().toLocaleLowerCase();
 }
 
+function normalizedLeadPhone(value: string | null | undefined) {
+  return String(value ?? "").replace(/[\s-]/g, "");
+}
+
+export function findDuplicateLeads(currentLead: CustomerLead, allLeads: CustomerLead[]): CustomerLead[] {
+  const currentPhone = normalizedLeadPhone(currentLead.phone);
+  const currentName = normalized(currentLead.name);
+  const hasMatchablePhone = currentPhone.length >= 8;
+  const hasMatchableName = currentName.length > 3;
+
+  if (!hasMatchablePhone && !hasMatchableName) return [];
+
+  return allLeads.filter((lead) => {
+    if (lead.id === currentLead.id) return false;
+
+    const candidatePhone = normalizedLeadPhone(lead.phone);
+    const candidateName = normalized(lead.name);
+    const samePhone = hasMatchablePhone && candidatePhone.length >= 8 && candidatePhone === currentPhone;
+    const sameName = hasMatchableName && candidateName.length > 3 && candidateName === currentName;
+
+    return samePhone || sameName;
+  });
+}
+
 export function leadSearchText(lead: CustomerLead) {
   return [
     lead.quoteNumber,

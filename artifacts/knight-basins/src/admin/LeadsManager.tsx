@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { Fragment, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { Link } from "wouter";
 import {
   CustomerLeadStatus,
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, leadStatusLabels as statusLabels } from "./leads-utils";
+import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, findDuplicateLeads, leadStatusLabels as statusLabels } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import {
   basinPlacementsViolatingEdgeClearance,
@@ -861,8 +861,11 @@ function LeadSiteLocationEditor({ lead }: { lead: CustomerLead }) {
 function LeadsTableView({
   leads,
   fabricationWarningsByLeadId,
+  duplicateLeadsById,
   expandedLeadId,
   setExpandedLeadId,
+  highlightedLeadId,
+  onNavigateToLead,
   updateStatus,
   updateLeadPending,
   quickUpdateStatus,
@@ -883,8 +886,11 @@ function LeadsTableView({
 }: {
   leads: CustomerLead[];
   fabricationWarningsByLeadId: ReadonlyMap<number, readonly string[]>;
+  duplicateLeadsById: ReadonlyMap<number, CustomerLead[]>;
   expandedLeadId: number | null;
   setExpandedLeadId: (id: number | null) => void;
+  highlightedLeadId: number | null;
+  onNavigateToLead: (id: number) => void;
   updateStatus: (id: number, status: string, notes?: string | null) => void;
   updateLeadPending: boolean;
   quickUpdateStatus: (id: number, status: string) => void;
@@ -947,10 +953,14 @@ function LeadsTableView({
         <TableBody>
           {leads.map((lead) => {
             const isExpanded = expandedLeadId === lead.id;
+            const duplicateLeads = duplicateLeadsById.get(lead.id) ?? [];
+            const isHighlighted = highlightedLeadId === lead.id;
             return (
               <Fragment key={lead.id}>
                 <TableRow
-                  className={`hover:bg-[var(--line)]/20 transition-colors cursor-pointer ${isExpanded ? "bg-[var(--line)]/15 font-medium" : ""}`}
+                  id={`lead-row-${lead.id}`}
+                  data-testid={`row-admin-lead-${lead.id}`}
+                  className={`hover:bg-[var(--line)]/20 transition-colors cursor-pointer ${isExpanded ? "bg-[var(--line)]/15 font-medium" : ""} ${isHighlighted ? "bg-[#fff4e3] outline outline-2 outline-[#e5a354] outline-offset-[-2px]" : ""}`}
                   onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
                 >
                   <TableCell className="font-mono text-center text-[var(--ink-soft)] font-semibold">
@@ -965,6 +975,14 @@ function LeadsTableView({
                       <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
                     </div>
                     {lead.company && <div className="text-[14px] text-[var(--ink-soft)] truncate max-w-[170px]">{lead.company}</div>}
+                    <div className="mt-1">
+                      <DuplicateLeadBadge
+                        lead={lead}
+                        count={duplicateLeads.length}
+                        isExpanded={isExpanded}
+                        onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                      />
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-[var(--ink)] font-medium truncate max-w-[180px]">{lead.project || "-"}</div>
@@ -1184,6 +1202,11 @@ function LeadsTableView({
                           <LeadSitePhotos leadId={lead.id} />
                         </div>
                       </div>
+                    <DuplicateLeadHistory
+                      leadId={lead.id}
+                      duplicateLeads={duplicateLeads}
+                      onNavigateToLead={onNavigateToLead}
+                    />
                     </TableCell>
                   </TableRow>
                 )}
@@ -1449,6 +1472,94 @@ function formatLeadDate(value: string) {
     : formatThaiDateTime(date);
 }
 
+function DuplicateLeadBadge({
+  lead,
+  count,
+  isExpanded,
+  onClick,
+}: {
+  lead: Pick<CustomerLead, "id">;
+  count: number;
+  isExpanded: boolean;
+  onClick: () => void;
+}) {
+  if (count === 0) return null;
+  return (
+    <button
+      type="button"
+      aria-expanded={isExpanded}
+      aria-controls={`panel-duplicate-leads-${lead.id}`}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+      className="inline-flex rounded-none text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a85b13]"
+      data-testid={`button-toggle-duplicate-lead-${lead.id}`}
+    >
+      <span
+        className="inline-flex items-center border border-[#e5a354] bg-[#fff4e3] px-2 py-1 text-[11px] font-semibold leading-tight text-[#8a421d]"
+        data-testid={`badge-duplicate-lead-${lead.id}`}
+      >
+        ⚠️ มีประวัติเดิม {count} รายการ
+      </span>
+    </button>
+  );
+}
+
+function DuplicateLeadHistory({
+  leadId,
+  duplicateLeads,
+  onNavigateToLead,
+}: {
+  leadId: number;
+  duplicateLeads: CustomerLead[];
+  onNavigateToLead: (id: number) => void;
+}) {
+  if (duplicateLeads.length === 0) return null;
+  return (
+    <section
+      id={`panel-duplicate-leads-${leadId}`}
+      className="border border-[#e5a354] bg-[#fffaf1] p-3"
+      aria-labelledby={`title-duplicate-leads-${leadId}`}
+      data-testid="panel-duplicate-leads"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 id={`title-duplicate-leads-${leadId}`} className="text-sm font-semibold text-[#8a421d]">
+          ประวัติที่เกี่ยวข้องของลูกค้ารายนี้
+        </h3>
+        <span className="text-xs text-[var(--ink-soft)]">{duplicateLeads.length} รายการที่อาจเกี่ยวข้อง</span>
+      </div>
+      <ul className="mt-2 divide-y divide-[#e5a354]/40">
+        {duplicateLeads.map((relatedLead) => (
+          <li key={relatedLead.id} className="flex flex-wrap items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-xs font-semibold text-[var(--brand-blue)]">
+                {relatedLead.leadKey || relatedLead.quoteNumber || `#${relatedLead.id}`}
+              </p>
+              <p className="mt-0.5 text-xs text-[var(--ink)]">
+                วันที่ {formatLeadDate(relatedLead.createdAt)} · สถานะ {statusLabels[relatedLead.status] ?? relatedLead.status}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-[var(--ink-soft)]">
+                {[relatedLead.name, relatedLead.project].filter(Boolean).join(" · ") || "ไม่ระบุชื่อลูกค้า"}
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 shrink-0 rounded-none border-[#d49a5b] px-2 text-xs text-[#8a421d]"
+              onClick={() => onNavigateToLead(relatedLead.id)}
+              data-testid={`button-open-duplicate-lead-${relatedLead.id}`}
+            >
+              ไปยัง Lead
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function LeadPageGuide() {
   return (
     <details open className="border border-[var(--brand-blue)]/25 bg-[#eef7fb] text-sm" data-testid="admin-leads-guide">
@@ -1499,6 +1610,7 @@ export function LeadsManager() {
   const [activeView, setActiveView] = useState<"leads" | "unassigned">("leads");
   const [displayMode, setDisplayMode] = useState<"table" | "cards">("table");
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
+  const [highlightedLeadId, setHighlightedLeadId] = useState<number | null>(null);
   const [fabricationFilter, setFabricationFilter] = useState<FabricationFilter>("all");
   const initialStatusParam = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("status");
   const [filter, setFilter] = useState<string>(
@@ -1580,6 +1692,20 @@ export function LeadsManager() {
       return sortDirection === "desc" ? -cmp : cmp;
     });
   }, [filter, fromDate, leads, search, toDate, quoteTypeFilter, awaitingContactOnly, sortField, sortDirection, fabricationFilter, fabricationWarningsByLeadId]);
+  const duplicateLeadsById = useMemo(
+    () => new Map(visibleLeads.map((lead) => [lead.id, findDuplicateLeads(lead, leads ?? [])])),
+    [leads, visibleLeads],
+  );
+  useEffect(() => {
+    if (highlightedLeadId === null || displayMode !== "table") return;
+    const row = document.getElementById(`lead-row-${highlightedLeadId}`);
+    if (!row || typeof row.scrollIntoView !== "function") return;
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedLeadId((current) => current === highlightedLeadId ? null : current);
+    }, 2200);
+    return () => window.clearTimeout(timeoutId);
+  }, [displayMode, highlightedLeadId, visibleLeads]);
   const hasSearchFilters = Boolean(search || fromDate || toDate || quoteTypeFilter !== "all");
   const fabricationRiskCount = fabricationWarningsByLeadId.size;
   const fabricationNormalCount = Math.max(0, (leads?.length ?? 0) - fabricationRiskCount);
@@ -1591,6 +1717,20 @@ export function LeadsManager() {
       url.searchParams.delete("status");
       window.history.replaceState(null, "", url.toString());
     }
+  };
+
+  const navigateToRelatedLead = (leadId: number) => {
+    setActiveView("leads");
+    setDisplayMode("table");
+    setFilter("all");
+    clearAwaitingContactOnly();
+    setQuoteTypeFilter("all");
+    setSearch("");
+    setFromDate("");
+    setToDate("");
+    setFabricationFilter("all");
+    setExpandedLeadId(leadId);
+    setHighlightedLeadId(leadId);
   };
 
   const updateStatus = (id: number, status: string, notes?: string | null) => {
@@ -1845,8 +1985,11 @@ export function LeadsManager() {
         <LeadsTableView
           leads={visibleLeads}
           fabricationWarningsByLeadId={fabricationWarningsByLeadId}
+          duplicateLeadsById={duplicateLeadsById}
           expandedLeadId={expandedLeadId}
           setExpandedLeadId={setExpandedLeadId}
+          highlightedLeadId={highlightedLeadId}
+          onNavigateToLead={navigateToRelatedLead}
           updateStatus={updateStatus}
           updateLeadPending={updateLead.isPending}
           quickUpdateStatus={(id, status) => void quickUpdateStatus(id, status)}
@@ -1867,14 +2010,29 @@ export function LeadsManager() {
         />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {visibleLeads.map((lead) => (
-            <article key={lead.id} className="border border-[var(--line)] bg-[var(--card-paper)] p-5">
+          {visibleLeads.map((lead) => {
+            const duplicateLeads = duplicateLeadsById.get(lead.id) ?? [];
+            const isExpanded = expandedLeadId === lead.id;
+            const isHighlighted = highlightedLeadId === lead.id;
+            return (
+            <article
+              key={lead.id}
+              id={`lead-row-${lead.id}`}
+              data-testid={`row-admin-lead-${lead.id}`}
+              className={`border border-[var(--line)] bg-[var(--card-paper)] p-5 ${isHighlighted ? "outline outline-2 outline-[#e5a354]" : ""}`}
+            >
               <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-lg">{lead.name || "ยังไม่ระบุชื่อ"}</strong>
                     <span className="text-xs border border-[var(--line)] px-2 py-1">{statusLabels[lead.status]}</span>
                     <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
+                    <DuplicateLeadBadge
+                      lead={lead}
+                      count={duplicateLeads.length}
+                      isExpanded={isExpanded}
+                      onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                    />
                   </div>
                   <p className="text-sm text-[var(--ink-soft)] mt-1">{lead.project || "ยังไม่ระบุโครงการ"} · แหล่งที่มา {lead.source}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-1">หน้างาน: {lead.site || "ยังไม่ระบุ"}</p>
@@ -1928,6 +2086,15 @@ export function LeadsManager() {
                   ))}
                 </div>
               </div>
+              {isExpanded && (
+                <div className="mt-4">
+                  <DuplicateLeadHistory
+                    leadId={lead.id}
+                    duplicateLeads={duplicateLeads}
+                    onNavigateToLead={navigateToRelatedLead}
+                  />
+                </div>
+              )}
               <div className="mt-4 max-w-2xl">
                 <label className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">บันทึกทีมงาน</label>
                 <Textarea
@@ -1977,7 +2144,8 @@ export function LeadsManager() {
               <LeadPaymentSlips leadId={lead.id} />
               <LeadSitePhotos leadId={lead.id} />
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
         </>
