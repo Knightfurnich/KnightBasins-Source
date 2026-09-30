@@ -699,6 +699,165 @@ function buildSalesLineMessage(lead: CustomerLead): string {
 
 export type LeadSortField = "id" | "createdAt" | "name" | "project" | "contact" | "quoteNumber" | "mode" | "status";
 
+type LeadSiteLocationFields = {
+  siteLat?: number | null;
+  siteLng?: number | null;
+  siteMapsUrl?: string | null;
+};
+
+function leadAddressMapsSearchUrl(address: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+function LeadSiteLocationEditor({ lead }: { lead: CustomerLead }) {
+  const leadLocation = lead as CustomerLead & LeadSiteLocationFields;
+  const queryClient = useQueryClient();
+  const [mapsLink, setMapsLink] = useState(leadLocation.siteMapsUrl ?? "");
+  const [siteLocation, setSiteLocation] = useState<LeadSiteLocationFields>({
+    siteLat: leadLocation.siteLat ?? null,
+    siteLng: leadLocation.siteLng ?? null,
+    siteMapsUrl: leadLocation.siteMapsUrl ?? null,
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const hasCoordinates =
+    typeof siteLocation.siteLat === "number" &&
+    Number.isFinite(siteLocation.siteLat) &&
+    typeof siteLocation.siteLng === "number" &&
+    Number.isFinite(siteLocation.siteLng);
+
+  const saveMapsLink = async () => {
+    const normalizedLink = mapsLink.trim();
+    if (!normalizedLink) {
+      setFeedback({ kind: "error", text: "กรุณาวางลิงก์ Google Maps ก่อนบันทึก" });
+      return;
+    }
+
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      const response = await fetch(`/api/admin/leads/${lead.id}/site-location`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ mapsLink: normalizedLink }),
+      });
+      const payload: unknown = await response.json().catch(() => null);
+      const payloadRecord = payload && typeof payload === "object"
+        ? payload as Record<string, unknown>
+        : null;
+
+      if (!response.ok) {
+        const apiMessage = typeof payloadRecord?.message === "string" ? payloadRecord.message.trim() : "";
+        const text = response.status === 400 && apiMessage
+          ? apiMessage
+          : response.status === 404
+            ? "ไม่พบ Lead นี้ กรุณารีเฟรชหน้าแล้วลองอีกครั้ง"
+            : "บันทึกลิงก์ Google Maps ไม่สำเร็จ กรุณาตรวจสอบลิงก์แล้วลองอีกครั้ง";
+        setFeedback({ kind: "error", text });
+        return;
+      }
+
+      if (!payloadRecord || typeof payloadRecord.siteMapsUrl !== "string") {
+        setFeedback({ kind: "error", text: "บันทึกพิกัดไม่สำเร็จ กรุณาลองอีกครั้ง" });
+        return;
+      }
+
+      const nextLocation: LeadSiteLocationFields = {
+        siteLat: typeof payloadRecord.siteLat === "number" && Number.isFinite(payloadRecord.siteLat)
+          ? payloadRecord.siteLat
+          : null,
+        siteLng: typeof payloadRecord.siteLng === "number" && Number.isFinite(payloadRecord.siteLng)
+          ? payloadRecord.siteLng
+          : null,
+        siteMapsUrl: payloadRecord.siteMapsUrl,
+      };
+      setSiteLocation(nextLocation);
+      setFeedback({ kind: "success", text: "บันทึกลิงก์และพิกัดหน้างานแล้ว" });
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/leads"] });
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/technician-calendar"] });
+    } catch {
+      setFeedback({ kind: "error", text: "เชื่อมต่อเพื่อบันทึกลิงก์ Google Maps ไม่ได้ กรุณาลองอีกครั้ง" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <section className="space-y-2 border border-[var(--line)] bg-[var(--paper)] p-3" aria-label="พิกัดและการนำทางหน้างาน">
+      <label htmlFor={`lead-maps-link-${lead.id}`} className="block text-[12px] font-medium text-[var(--ink-soft)]">
+        ลิงก์ Google Maps หน้างาน
+      </label>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          id={`lead-maps-link-${lead.id}`}
+          type="text"
+          inputMode="url"
+          value={mapsLink}
+          onChange={(event) => {
+            setMapsLink(event.target.value);
+            setFeedback(null);
+          }}
+          placeholder="วางลิงก์ Google Maps"
+          className="min-w-0 rounded-none bg-white"
+          data-testid="input-lead-maps-link"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-10 rounded-none"
+          disabled={isSaving || !mapsLink.trim()}
+          onClick={() => void saveMapsLink()}
+          data-testid="button-save-lead-maps-link"
+        >
+          {isSaving ? <><RefreshCw className="mr-1 h-3.5 w-3.5 animate-spin" /> กำลังบันทึก</> : "บันทึกลิงก์"}
+        </Button>
+      </div>
+
+      {hasCoordinates && (
+        <p className="text-[12px] text-[var(--ink-soft)]" data-testid="lead-maps-coords">
+          พิกัดหน้างาน: {siteLocation.siteLat!.toFixed(5)}, {siteLocation.siteLng!.toFixed(5)}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        {siteLocation.siteMapsUrl && (
+          <a
+            href={siteLocation.siteMapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-10 items-center gap-2 border border-[var(--brand-blue)] bg-[var(--brand-blue)] px-3 text-xs font-semibold text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]"
+            data-testid="button-navigate-lead"
+          >
+            <MapPin className="h-4 w-4" aria-hidden="true" />
+            นำทาง Google Maps
+          </a>
+        )}
+        {!hasCoordinates && lead.address?.trim() && (
+          <a
+            href={leadAddressMapsSearchUrl(lead.address.trim())}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-10 items-center gap-2 border border-[var(--line)] bg-white px-3 text-xs font-semibold text-[var(--ink)] transition-colors hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]"
+            data-testid="button-search-lead-address"
+          >
+            ค้นหาที่อยู่ใน Google Maps
+          </a>
+        )}
+      </div>
+      {feedback && (
+        <p
+          role={feedback.kind === "error" ? "alert" : "status"}
+          className={feedback.kind === "error" ? "text-[12px] text-[#a24439]" : "text-[12px] text-[#17816d]"}
+          data-testid="status-lead-maps-save"
+        >
+          {feedback.text}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function LeadsTableView({
   leads,
   fabricationWarningsByLeadId,
@@ -1020,6 +1179,7 @@ function LeadsTableView({
                         </div>
 
                         <div className="space-y-3">
+                          <LeadSiteLocationEditor key={lead.id} lead={lead} />
                           <LeadPaymentSlips leadId={lead.id} />
                           <LeadSitePhotos leadId={lead.id} />
                         </div>
@@ -1718,7 +1878,8 @@ export function LeadsManager() {
                   </div>
                   <p className="text-sm text-[var(--ink-soft)] mt-1">{lead.project || "ยังไม่ระบุโครงการ"} · แหล่งที่มา {lead.source}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-1">หน้างาน: {lead.site || "ยังไม่ระบุ"}</p>
-                   <div className="mt-1"><WorksiteDirectionsLink lead={lead} /></div>
+                    <div className="mt-1"><WorksiteDirectionsLink lead={lead} /></div>
+                    <div className="mt-3"><LeadSiteLocationEditor key={lead.id} lead={lead} /></div>
                    <p className="text-sm mt-3">{[lead.phone, lead.lineContact && `LINE: ${lead.lineContact}`, lead.email, lead.company].filter(Boolean).join(" · ") || "ยังไม่มีข้อมูลติดต่อ"}</p>
                    <p className="text-xs text-[var(--ink-soft)] mt-2">สินค้า: {lead.productSkus.join(", ") || "ยังไม่ได้เลือก"}</p>
                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">

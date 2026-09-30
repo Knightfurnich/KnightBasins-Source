@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetAdminDashboardStatsQueryKey,
   getGetAdminTechnicianCalendarQueryKey,
+  useListAdminLeads,
   useListAdminTechnicianTeams,
   useGetAdminTechnicianCalendar,
   useUpdateAdminLeadTechnician,
@@ -54,6 +55,7 @@ export interface CalendarDay {
       name: string;
       project: string | null;
       address: string | null;
+      siteMapsUrl?: string | null;
     }>;
   }>;
 }
@@ -258,6 +260,23 @@ function googleMapsUrl(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
+function SavedJobMapLink({ url }: { url?: string | null }) {
+  if (!url?.trim()) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      className="inline-flex h-10 min-h-10 shrink-0 items-center gap-1.5 border border-[var(--brand-blue)] bg-[var(--brand-blue)] px-3 text-[12px] font-semibold text-white transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]"
+      data-testid="button-navigate-job"
+    >
+      <MapPinned className="h-4 w-4" aria-hidden="true" />
+      นำทาง Google Maps
+    </a>
+  );
+}
+
 /** Job stage read straight off the stored project string (e.g. "งาน วัดงาน JB26/0507"). */
 type JobStage = "survey" | "install" | "service" | "deliver" | "other";
 
@@ -361,6 +380,7 @@ function JobCard({
             แผนที่
           </a>
         )}
+        <SavedJobMapLink url={job.siteMapsUrl} />
       </div>
       {isLive && (
         <div className="mt-3 grid gap-2 border-t border-[var(--line)] pt-3 sm:grid-cols-2">
@@ -520,9 +540,35 @@ export function TechnicianCalendarPage() {
   } = useGetAdminTechnicianCalendar({ month: currentMonthKey });
 
   const isLive = Boolean(calendarData?.days);
+  const rawMonthDays = calendarData?.days as unknown as CalendarDay[] | undefined;
+  const needsLeadMaps = Boolean(rawMonthDays?.some((day) =>
+    day.teams.some((team) => team.jobs.some((job) => !job.siteMapsUrl?.trim())),
+  ));
+  const { data: leadsForMaps } = useListAdminLeads(undefined, {
+    query: { enabled: needsLeadMaps },
+  });
+  const siteMapsUrlByLeadId = useMemo(() => {
+    const map = new Map<number, string>();
+    const leads = (leadsForMaps ?? []) as Array<{ id: number; siteMapsUrl?: string | null }>;
+    for (const lead of leads) {
+      if (typeof lead.siteMapsUrl === "string" && lead.siteMapsUrl.trim()) {
+        map.set(lead.id, lead.siteMapsUrl);
+      }
+    }
+    return map;
+  }, [leadsForMaps]);
   const monthDays = useMemo<CalendarDay[]>(
-    () => (calendarData?.days as unknown as CalendarDay[] | undefined) ?? [],
-    [calendarData],
+    () => (rawMonthDays ?? []).map((day) => ({
+      ...day,
+      teams: day.teams.map((team) => ({
+        ...team,
+        jobs: team.jobs.map((job) => ({
+          ...job,
+          siteMapsUrl: job.siteMapsUrl?.trim() || siteMapsUrlByLeadId.get(job.id) || null,
+        })),
+      })),
+    })),
+    [rawMonthDays, siteMapsUrlByLeadId],
   );
   const monthOffset = (new Date(Date.UTC(visibleYear, visibleMonthIndex, 1, 12)).getUTCDay() + 6) % 7;
   const calendarCells = useMemo<(CalendarDay | null)[]>(() => {
@@ -1130,6 +1176,7 @@ export function TechnicianCalendarPage() {
                                 นำทาง
                               </a>
                             )}
+                            <SavedJobMapLink url={j.siteMapsUrl} />
                           </div>
                           {j.project && (
                             <p className="text-[11px] text-[var(--ink-soft)] truncate">
