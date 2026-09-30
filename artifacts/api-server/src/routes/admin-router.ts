@@ -86,6 +86,7 @@ import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./lead
 import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "../lib/google-service-account";
+import { resolveMapsLink } from "../lib/maps-location";
 
 export type AdminDatabase = {
   select: (...args: any[]) => any;
@@ -2159,6 +2160,52 @@ export function createAdminRouter(
         .where(eq(customerLeads.id, id))
         .returning();
       return updated ? res.json(updated) : res.status(404).json({ message: "Lead not found" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  /**
+   * Resolves whatever Google Maps link (or raw coordinates) the sales team
+   * pasted into `mapsLink` and stores the verified lat/lng + a standard
+   * navigation URL on the lead. Never guesses -- resolveMapsLink() throws on
+   * anything it can't verify, which this turns into a 400.
+   */
+  router.patch("/admin/leads/:id/site-location", requireAdminPermission("leads"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+
+    const mapsLink = typeof req.body?.mapsLink === "string" ? req.body.mapsLink : undefined;
+    if (!mapsLink || !mapsLink.trim()) {
+      return invalid(res, "ลิงก์ Google Maps ไม่ถูกต้อง กรุณาวางลิงก์จากแอป Google Maps อีกครั้ง");
+    }
+
+    let resolved;
+    try {
+      resolved = await resolveMapsLink(mapsLink);
+    } catch {
+      return invalid(res, "ลิงก์ Google Maps ไม่ถูกต้อง กรุณาวางลิงก์จากแอป Google Maps อีกครั้ง");
+    }
+
+    try {
+      const [updated] = await database
+        .update(customerLeads)
+        .set({
+          siteLat: resolved.lat,
+          siteLng: resolved.lng,
+          siteMapsUrl: resolved.navUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(customerLeads.id, id))
+        .returning();
+      if (!updated) return res.status(404).json({ message: "Lead not found" });
+      return res.json({
+        id: updated.id,
+        siteLat: updated.siteLat,
+        siteLng: updated.siteLng,
+        siteMapsUrl: updated.siteMapsUrl,
+        resolvedFrom: resolved.resolvedFrom,
+      });
     } catch (error) {
       return next(error);
     }

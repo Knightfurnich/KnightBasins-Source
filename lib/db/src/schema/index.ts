@@ -1,5 +1,6 @@
 import {
   boolean,
+  doublePrecision,
   foreignKey,
   integer,
   index,
@@ -297,6 +298,9 @@ export const customerLeads = pgTable(
     nextFollowUpDate: varchar("next_follow_up_date", { length: 10 }),
     assignedTo: varchar("assigned_to", { length: 160 }),
     technicianTeamCode: varchar("technician_team_code", { length: 8 }),
+    siteLat: doublePrecision("site_lat"),
+    siteLng: doublePrecision("site_lng"),
+    siteMapsUrl: varchar("site_maps_url", { length: 512 }),
     ...auditColumns,
   },
   (table) => [
