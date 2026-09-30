@@ -12,6 +12,7 @@
 // cloud-platform scope instead of spreadsheets.readonly.
 
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "./google-service-account.ts";
+import { recordAiUsage } from "./ai-cost-tracker.ts";
 
 const TTS_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -147,6 +148,7 @@ export async function synthesizeSpeech(text: string, voiceNameOverride?: string)
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const startedAt = Date.now();
   try {
     const accessToken = await fetchGoogleAccessToken(credentials, TTS_SCOPE);
     const response = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
@@ -167,9 +169,23 @@ export async function synthesizeSpeech(text: string, voiceNameOverride?: string)
       { audioContent?: string; error?: { message?: string } } | null;
 
     if (!response.ok || !payload?.audioContent) {
+      recordAiUsage({
+        service: "google_tts",
+        model: voice.voiceName,
+        durationMs: Date.now() - startedAt,
+        success: false,
+        promptTokens: trimmed.length,
+      });
       return { ok: false, message: payload?.error?.message ?? `Google TTS ตอบกลับผิดพลาด (${response.status})` };
     }
 
+    recordAiUsage({
+      service: "google_tts",
+      model: voice.voiceName,
+      durationMs: Date.now() - startedAt,
+      success: true,
+      promptTokens: trimmed.length,
+    });
     return {
       ok: true,
       audio: Buffer.from(payload.audioContent, "base64"),
@@ -179,6 +195,13 @@ export async function synthesizeSpeech(text: string, voiceNameOverride?: string)
     const message = error instanceof Error
       ? (error.name === "AbortError" ? "เรียก Google TTS หมดเวลา (timeout)" : `เรียก Google TTS ไม่สำเร็จ: ${error.message}`)
       : "เรียก Google TTS ไม่สำเร็จ";
+    recordAiUsage({
+      service: "google_tts",
+      model: voice.voiceName,
+      durationMs: Date.now() - startedAt,
+      success: false,
+      promptTokens: trimmed.length,
+    });
     return { ok: false, message };
   } finally {
     clearTimeout(timeout);

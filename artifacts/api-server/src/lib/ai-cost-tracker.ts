@@ -13,7 +13,7 @@
 // not this module.
 import { readFileSync } from "node:fs";
 
-export type AiUsageService = "sales_bot" | "sketch_vision" | "hermes_ops" | "vertex_gemini";
+export type AiUsageService = "sales_bot" | "sketch_vision" | "hermes_ops" | "vertex_gemini" | "google_tts";
 
 export type AiUsageEvent = {
   service: AiUsageService;
@@ -77,6 +77,29 @@ const GEMINI_FLASH_PRICING: ModelPricing = {
   imageThb: 0.0005 * USD_TO_THB, // 0.0175 บ./ภาพ
 };
 
+// Google Cloud Text-to-Speech (Chirp3-HD / Neural2) bills per character, not
+// per token -- google-tts.ts's synthesizeSpeech() reports the character count
+// via the event's promptTokens field (there is no separate "output" side to
+// a TTS call), so outputThbPerThousandTokens stays 0 here.
+const GOOGLE_TTS_PRICING: ModelPricing = {
+  inputThbPerThousandTokens: (16 / 1_000_000) * 1000 * USD_TO_THB, // $16/1M characters ~= 0.56 บ./1,000 ตัวอักษร
+  outputThbPerThousandTokens: 0,
+};
+
+// All th-TH Chirp3-HD voices an admin can select (SUPPORT_VOICE_OPTIONS in
+// google-tts.ts) plus the generic labels this ticket calls out, so any of
+// them price as google_tts instead of silently falling through to
+// DEFAULT_PRICING's much cheaper per-token rate.
+const GOOGLE_TTS_MODELS = [
+  "th-TH-Chirp3-HD-Kore",
+  "th-TH-Chirp3-HD-Zephyr",
+  "th-TH-Chirp3-HD-Autonoe",
+  "th-TH-Chirp3-HD-Leda",
+  "th-TH-Chirp3-HD-Despina",
+  "google-tts",
+  "text-to-speech",
+] as const;
+
 const MODEL_PRICING: Record<string, ModelPricing> = {
   "gemini-3.8-flash": GEMINI_FLASH_PRICING,
   "gemini-2.5-flash": GEMINI_FLASH_PRICING,
@@ -85,6 +108,7 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     inputThbPerThousandTokens: (0.14 / 1000) * USD_TO_THB, // 0.0049 บ./1k tokens
     outputThbPerThousandTokens: (0.28 / 1000) * USD_TO_THB, // 0.0098 บ./1k tokens
   },
+  ...Object.fromEntries(GOOGLE_TTS_MODELS.map((model) => [model, GOOGLE_TTS_PRICING])),
 };
 
 /**
@@ -162,12 +186,13 @@ function readHermesAuditEvents(): RecordedAiUsageEvent[] {
   return events;
 }
 
-const SERVICE_ORDER: readonly AiUsageService[] = ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini"];
+const SERVICE_ORDER: readonly AiUsageService[] = ["sales_bot", "sketch_vision", "hermes_ops", "vertex_gemini", "google_tts"];
 const SERVICE_NAMES: Record<AiUsageService, string> = {
   sales_bot: "น้องไนท์ (LINE Bot ผู้ช่วยขาย)",
   sketch_vision: "AI Blueprint Reader (อ่านแบบร่าง)",
   hermes_ops: "เฮอร์มีส (งานบริหารระบบ & งานช่าง)",
   vertex_gemini: "ผู้ช่วย AI (Vertex AI Gemini)",
+  google_tts: "เสียงผู้ช่วยขาย (Google Cloud TTS)",
 };
 
 function periodStartMs(period: AiCostPeriod, now: Date): number {
