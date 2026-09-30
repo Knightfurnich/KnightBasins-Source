@@ -41,7 +41,7 @@ import {
   CreateAdminSitePhotoBody,
   UpdateAdminSitePhotoBody,
 } from "@workspace/api-zod";
-import { and, asc, desc, eq, gte, ilike, isNull, lt, lte, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, lte, ne, or } from "drizzle-orm";
 import { Router, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
@@ -62,6 +62,7 @@ import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-inv
 import { ADMIN_API_KEY_SCOPE, createAdminApiKeySecret } from "../lib/admin-api-keys";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
 import { findAutoMatchLead } from "../lib/slip-matching";
+import { checkLeadFinancialLock } from "../lib/financial-safety";
 import {
   createQuoteAccessSecret,
   publicQuoteTokenForLead,
@@ -1909,10 +1910,54 @@ export function createAdminRouter(
           .returning();
         return updated ?? { ...lead, quoteAccessSecret };
       }));
-      return res.json(hydrated.map((lead: any) => ({
-        ...lead,
-        publicQuoteToken: publicQuoteTokenForLead(lead),
-      })));
+
+      const leadIds = hydrated.map((lead: any) => lead.id);
+      const paymentSlipCounts = new Map<number, number>();
+      if (leadIds.length > 0) {
+        const slipRows = await database
+          .select({ leadId: paymentSlips.leadId })
+          .from(paymentSlips)
+          .where(and(inArray(paymentSlips.leadId, leadIds), ne(paymentSlips.status, "voided")));
+        for (const row of slipRows as Array<{ leadId: number | null }>) {
+          if (row.leadId === null) continue;
+          paymentSlipCounts.set(row.leadId, (paymentSlipCounts.get(row.leadId) ?? 0) + 1);
+        }
+      }
+
+      return res.json(hydrated.map((lead: any) => {
+        const paymentSlipCount = paymentSlipCounts.get(lead.id) ?? 0;
+        return {
+          ...lead,
+          publicQuoteToken: publicQuoteTokenForLead(lead),
+          hasMatchedSlip: paymentSlipCount > 0,
+          paymentSlipCount,
+        };
+      }));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.delete("/admin/leads/:id", requireAdminPermission("leads", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid lead id");
+    try {
+      const lock = await checkLeadFinancialLock(database, id);
+      if (lock.isLocked) {
+        return res.status(409).json({
+          message: lock.reason,
+          slipCount: lock.slipCount,
+          totalAmountThb: lock.totalAmountThb,
+        });
+      }
+
+      const [deleted] = await database
+        .delete(customerLeads)
+        .where(eq(customerLeads.id, id))
+        .returning();
+      if (!deleted) return res.status(404).json({ message: "Lead not found" });
+
+      return res.json({ success: true, deletedId: id });
     } catch (error) {
       return next(error);
     }
