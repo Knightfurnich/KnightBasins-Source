@@ -1,16 +1,19 @@
-import { customerLeads, paymentSlips } from "@workspace/db/schema";
+import { customerLeads, paymentSlips, sitePhotos } from "@workspace/db/schema";
 import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Response } from "express";
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
 import { checkCutoutJointClash, MIN_BASIN_CLEARANCE_MM, validateBasinClearance } from "../lib/fabrication-geometry";
-import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
+import { readMultipartForm, removeUploadedMedia, saveUploadedMedia, UPLOAD_DIR } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
 import { validateNumericDimensions, verifyAndSanitizeQuoteTotal } from "../lib/price-integrity";
 import { analyzeSketchImage } from "../lib/sketch-vision";
 import {
   createQuoteAccessSecret,
+  maskPhone,
   publicQuoteResponse,
   publicQuoteTokenForLead,
   quoteAccessSecretMatches,
@@ -112,6 +115,147 @@ function invalid(res: Response, message: string, details?: unknown) {
   return res.status(400).json({ message, details });
 }
 
+/** id -> isVisible. Mirrors admin-router.ts's own (unexported) site-photo
+ * visibility map -- job-147's SCOPE is this file only, so that logic can't be
+ * imported and is duplicated here read-only. A photo with no entry is visible
+ * by default, matching admin-router.ts's semantics exactly. */
+type SitePhotoVisibilityMap = Record<string, boolean>;
+
+async function loadSitePhotoVisibilityMap(): Promise<SitePhotoVisibilityMap> {
+  try {
+    const raw = await readFile(join(UPLOAD_DIR, "site_photos_visibility.json"), "utf8");
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const map: SitePhotoVisibilityMap = {};
+    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value === "boolean") map[id] = value;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+function isSitePhotoVisible(map: SitePhotoVisibilityMap, id: number): boolean {
+  return map[String(id)] !== false;
+}
+
+type PublicTrackStageKey = "quote_accepted" | "in_production" | "ready_to_install" | "installing" | "completed";
+
+const PUBLIC_TRACK_STAGE_LABELS_TH: Record<PublicTrackStageKey, string> = {
+  quote_accepted: "รับออเดอร์/ยืนยันแบบ",
+  in_production: "โรงงานกำลังตัดประกอบหิน",
+  ready_to_install: "งานผลิตเสร็จ นัดหมายช่าง",
+  installing: "ช่างเข้าติดตั้งหน้างาน",
+  completed: "ส่งมอบงานเรียบร้อย",
+};
+
+const PUBLIC_TRACK_STAGE_ORDER: readonly PublicTrackStageKey[] = [
+  "quote_accepted",
+  "in_production",
+  "ready_to_install",
+  "installing",
+  "completed",
+];
+
+export type PublicTrackStage = {
+  stage: PublicTrackStageKey;
+  label: string;
+  date: string | null;
+  done: boolean;
+  active: boolean;
+};
+
+type PublicTrackPhotoRow = {
+  id: number;
+  stage: string;
+  takenAt: Date | null;
+};
+
+/**
+ * Maps the internal `lead.status` value (new_lead / selecting /
+ * quote_requested / quote_sent / waiting_deposit / team_reported_paid /
+ * deposit_paid / ready_for_production / closed -- see admin-router.ts's
+ * LEAD_STATUS_VALUES) onto the 5-step public tracking timeline the KRAKEN
+ * customer portal spec calls for. The lead table has no dedicated
+ * in_production/ready_to_install/installing state of its own, so those three
+ * steps are inferred from whether a site_photos row for this lead has
+ * reached the "installation"/"service" or "completed" stage -- the closest
+ * real signal available for "a crew is physically on site" without adding a
+ * new column (out of this job's SCOPE). Any deposit-confirmed status is
+ * treated as the order being accepted; "closed" (this lead table's only
+ * terminal status) is treated as the job being fully completed since there
+ * is no separate "lost/cancelled" status in the current domain.
+ */
+export function buildPublicTrackTimeline(
+  lead: { status: string; updatedAt: Date | null },
+  photos: PublicTrackPhotoRow[],
+): PublicTrackStage[] {
+  const depositConfirmed = ["team_reported_paid", "deposit_paid", "ready_for_production", "closed"].includes(lead.status);
+  const inProduction = ["ready_for_production", "closed"].includes(lead.status);
+  const installPhoto = photos.find((photo) => photo.stage === "installation" || photo.stage === "service");
+  const completedPhoto = photos.find((photo) => photo.stage === "completed");
+  const installDate = installPhoto?.takenAt ?? null;
+  const completedDate = completedPhoto?.takenAt ?? null;
+
+  let reachedIndex = -1;
+  if (depositConfirmed) reachedIndex = 0;
+  if (inProduction) reachedIndex = 1;
+  if (installPhoto) reachedIndex = 3;
+  if (completedPhoto || lead.status === "closed") reachedIndex = 4;
+
+  const fallbackDate = lead.updatedAt ? lead.updatedAt.toISOString() : null;
+
+  return PUBLIC_TRACK_STAGE_ORDER.map((stage, index) => {
+    const done = index <= reachedIndex;
+    if (!done) {
+      return { stage, label: PUBLIC_TRACK_STAGE_LABELS_TH[stage], date: null, done: false, active: index === reachedIndex + 1 };
+    }
+    const date = stage === "installing" ? (installDate?.toISOString() ?? fallbackDate)
+      : stage === "completed" ? (completedDate?.toISOString() ?? fallbackDate)
+      : fallbackDate;
+    return { stage, label: PUBLIC_TRACK_STAGE_LABELS_TH[stage], date, done: true, active: false };
+  });
+}
+
+export type PublicStudioSummary = {
+  shape: string | null;
+  dimensionsMm: { depth: number | null; runA: number | null; runB: number | null; runC: number | null } | null;
+  stoneColor: string | null;
+  basinSkus: string[];
+};
+
+function numberOrNull(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/**
+ * Allow-lists exactly the fields a customer needs to recognize their own
+ * design (shape, panel dimensions, stone color, basin models) out of
+ * `lead.studioData` -- never spreads the raw object, so `estimate` (which
+ * carries cost/profit fields per StudioEstimate in
+ * artifacts/knight-basins/src/data/studio-model.ts) can never leak here even
+ * if its shape changes later. Returns null when studioData has none of these
+ * recognizable fields (e.g. a quick-purchase or sketch lead with no Studio
+ * design attached).
+ */
+export function publicStudioSummary(studioData: unknown): PublicStudioSummary | null {
+  if (!studioData || typeof studioData !== "object") return null;
+  const root = studioData as Record<string, unknown>;
+  const state = (root.state && typeof root.state === "object" ? root.state : root) as Record<string, unknown>;
+
+  const shape = typeof state.shape === "string" ? state.shape : null;
+  const dims = state.dimensions && typeof state.dimensions === "object" ? (state.dimensions as Record<string, unknown>) : null;
+  const dimensionsMm = dims
+    ? { depth: numberOrNull(dims.depthMm), runA: numberOrNull(dims.runAMm), runB: numberOrNull(dims.runBMm), runC: numberOrNull(dims.runCMm) }
+    : null;
+  const stoneColor = typeof state.activeStone === "string" ? state.activeStone : null;
+  const basinSkus = Array.isArray(state.basinSkus) ? state.basinSkus.filter((sku): sku is string => typeof sku === "string") : [];
+
+  if (!shape && !dimensionsMm && !stoneColor && basinSkus.length === 0) return null;
+  return { shape, dimensionsMm, stoneColor, basinSkus };
+}
+
 function dateValue(value: Date | string | null | undefined) {
   if (!value) return null;
   return value instanceof Date ? value.toISOString().slice(0, 10) : value;
@@ -141,6 +285,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   // the same "rl:quotes:get" value rather than adding a second option that
   // does the same thing.
   const quotesGetRateLimit = createRateLimiter({ name: "rl:quotes:get", max: 60, windowMs: 10 * 60 * 1000 });
+  const trackGetRateLimit = createRateLimiter({ name: "rl:public-track:get", max: 60, windowMs: 10 * 60 * 1000 });
 
  router.post("/leads", leadRateLimit, async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
@@ -280,6 +425,63 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
     return next(error);
   }
 });
+
+  /**
+   * Public Customer Job Tracking API (job-147): lets a customer holding a
+   * valid publicQuoteToken see their own job's status without an admin
+   * login. Never exposes cost/profit, internal notes, or which technician is
+   * assigned -- only the fields a customer needs (see the explicit response
+   * shape below), same no-internal-data-on-public-pages principle as
+   * catalog.ts's /site-photos/showcase route.
+   */
+  router.get("/public/track", trackGetRateLimit, async (req, res, next) => {
+    const token = typeof req.query.token === "string" ? req.query.token.trim() : "";
+    const access = verifyPublicQuoteToken(token);
+    if (!access) return res.status(404).json({ message: "Job not found" });
+
+    try {
+      const [lead] = await database
+        .select()
+        .from(customerLeads)
+        .where(eq(customerLeads.quoteNumber, access.quoteNumber))
+        .limit(1);
+      if (!lead || !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      const photoRows = await database
+        .select({
+          id: sitePhotos.id,
+          imageUrl: sitePhotos.imageUrl,
+          caption: sitePhotos.description,
+          stage: sitePhotos.stage,
+          takenAt: sitePhotos.capturedAt,
+        })
+        .from(sitePhotos)
+        .where(eq(sitePhotos.leadId, lead.id))
+        .orderBy(desc(sitePhotos.capturedAt), desc(sitePhotos.id));
+
+      const visibilityMap = await loadSitePhotoVisibilityMap();
+      // Deliberately the single source of truth for both the timeline's
+      // installing/completed signal and the photo list below -- a photo an
+      // admin hid shouldn't move the public status forward either.
+      const visiblePhotos = photoRows.filter((photo) => isSitePhotoVisible(visibilityMap, photo.id));
+
+      return res.json({
+        jobCode: lead.quoteNumber,
+        customerName: lead.name,
+        projectName: lead.project,
+        phone: maskPhone(lead.phone),
+        timeline: buildPublicTrackTimeline(lead, visiblePhotos),
+        studio: publicStudioSummary(lead.studioData),
+        sitePhotos: visiblePhotos
+          .filter((photo) => photo.stage === "completed")
+          .map((photo) => ({ id: photo.id, imageUrl: photo.imageUrl, stage: photo.stage, caption: photo.caption, takenAt: photo.takenAt })),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
 
   router.post("/quotes/notify", notificationRateLimit, async (req, res, next) => {
   const token = typeof req.body?.token === "string" ? req.body.token.trim() : "";
