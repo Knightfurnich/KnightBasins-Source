@@ -9,6 +9,35 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 
 export const UPDATE_RELEASES = [
   {
+    version: "v1.1.0",
+    badge: "Logistics & Financial Safety Suite — รุ่นล่าสุด",
+    date: "30 กันยายน 2569",
+    dateTime: "2026-09-30",
+    title: "ระบบพิกัดหน้างานอัจฉริยะ และล็อกความปลอดภัยทางการเงิน",
+    highlights: [
+      {
+        icon: "🧭",
+        title: "Google Maps Smart Navigation",
+        description: "ถอดรหัสพิกัดหน้างานอัตโนมัติจากทุกลิงก์ Maps พร้อมปุ่มนำทางแตะครั้งเดียวบนมือถือช่าง",
+      },
+      {
+        icon: "👥",
+        title: "Smart Duplicate Detection",
+        description: "ระบบตรวจจับประวัติลูกค้าและเบอร์โทรซ้ำซ้อนอัตโนมัติ พร้อมแสดงประวัติงานเดิมทันที",
+      },
+      {
+        icon: "📲",
+        title: "Technician LINE Job Card",
+        description: "ปุ่มสร้างการ์ดงานช่างส่งเข้า LINE คัดลอกสรุปงานพร้อมลิงก์แผนที่นำทางในคลิกเดียว",
+      },
+      {
+        icon: "🔒",
+        title: "Financial Safety Lock",
+        description: "ถอดแบบกฎเหล็ก KRAKEN ล็อกความปลอดภัยปิดปุ่มลบงานที่มีสลิปการเงินผูกอยู่ 100%",
+      },
+    ],
+  },
+  {
     version: "v1.0.0",
     badge: "Official Launch",
     date: "27 ก.ย. 2569",
