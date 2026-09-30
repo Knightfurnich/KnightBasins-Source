@@ -38,14 +38,14 @@
 
 ---
 
-### 📦 กล่องที่ 3: ระบบพิกัดหน้างาน & ล็อกความปลอดภัยการเงิน (Logistics & Financial Lock) — 🟡 เริ่มแล้ว 29 ก.ย. 69
+### 📦 กล่องที่ 3: ระบบพิกัดหน้างาน & ล็อกความปลอดภัยการเงิน (Logistics & Financial Lock) — 🟢 ปิดกล่องสำเร็จ 100% (Certified)
 * [x] **Task 138 (Chai):** Google Maps Smart Resolver API + พิกัดหน้างานใน Lead
 * [x] **Task 139 (Replit):** One-Click Navigate UI ในหน้า Lead และปฏิทินช่าง
 * [x] **Task 142 (Replit):** Smart Duplicate Lead & Customer Detection UI (ระบบตรวจจับลูกค้าซ้ำ)
 * [x] **Task 140 (Chai):** Financial Safety Lock API (ล็อกการลบงานที่มีสลิปผูกอยู่)
 * [x] **Task 144 (Replit):** Lead Financial Safety Lock UI (ปุ่มลบ Lead พร้อมระบบล็อกสลิปการเงิน)
-* [ ] **Task 143 (Replit):** Technician LINE Job Dispatch Card UI (ปุ่มการ์ดงานช่างส่ง LINE) — ชิ้นสุดท้ายของกล่องที่ 3
-* 👉 **เป้าหมายตัดรอบ:** เมื่องานในกล่องนี้เสร็จครบและ Deploy Live ➔ ปิดกล่องที่ 3
+* [x] **Task 143 (Replit):** Technician LINE Job Dispatch Card UI (ปุ่มการ์ดงานช่างส่ง LINE)
+* 👉 **สถานะ:** ปิดกล่องสมบูรณ์ 100% · ผ่านการรับรองครบทุกใบงาน · Release Tag v1.1.0 · เข้าสู่ช่วงพักระบบ 48 ชม. (เปิดเฉพาะ Fast-track แก้บั๊ก)
 
 ---
 
@@ -219,7 +219,7 @@
 | **Task 138 (Google Maps Smart Resolver API)** | ชัย | ถอดรหัสลิงก์ Google Maps ทุกรูปแบบเป็นพิกัด + ลิงก์นำทางมาตรฐาน เก็บลง Lead (site_lat/site_lng/site_maps_url) | `feat/chai-maps-location-resolver` | ✅ **Merged & Live** `0e785ec` · typecheck 0 errors · เทสต์ผ่าน 18/18 · security-audit 18/18 · migration 016 applied บน VPS |
 | **Task 139 (One-Click Site Navigation UI)** | Replit | ช่องวางลิงก์ Maps ใน Lead + ปุ่ม [ นำทาง Google Maps ] ในหน้า Lead และปฏิทินช่าง | `feat/replit-lead-maps-navigation` | ✅ **Merged & Live (PR #102)** `9ea1df0` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 | **Task 142 (Smart Duplicate Lead Detection UI)** | Replit | ตรวจจับลูกค้า/เบอร์โทรซ้ำซ้อนในหน้าจัดการ Lead พร้อม Badge เตือนและกล่องประวัติเดิม | `feat/replit-admin-duplicate-leads` | ✅ **Merged & Live (PR #103)** `46c65d6` · typecheck 0 errors · เทสต์ผ่าน 6/6 · deploy VPS สำเร็จ |
-| **Task 143 (Technician LINE Job Dispatch Card UI)** | Replit | ปุ่ม [ 📲 การ์ดงานช่าง ] บนการ์ดงานติดตั้งในปฏิทิน คัดลอกสรุปส่ง LINE พร้อมพิกัด Maps | `feat/replit-technician-line-job-card` | 🟡 **มอบหมายแล้ว** (`qa/job-143-replit-technician-line-job-card.md`) |
+| **Task 143 (Technician LINE Job Dispatch Card UI)** | Replit | ปุ่ม [ 📲 การ์ดงานช่าง ] บนการ์ดงานติดตั้งในปฏิทิน คัดลอกสรุปส่ง LINE พร้อมพิกัด Maps | `feat/replit-technician-line-job-card` | ✅ **Merged & Live (PR #105)** `0f9d98a` · typecheck 0 errors · เทสต์ผ่าน 6/6 · deploy VPS สำเร็จ |
 | **Task 140 (Financial Safety Lock API)** | ชัย | API ล็อกความปลอดภัยทางการเงิน: DELETE /api/admin/leads/:id บล็อกการลบถ้ามีสลิปโอนเงินผูกอยู่ (409 Conflict) | `feat/chai-financial-safety-lock` | ✅ **Merged & Live** `ba45e8e` · typecheck 0 errors · เทสต์ผ่าน 7/7 · security-audit 18/18 · deploy VPS สำเร็จ |
 | **Task 144 (Lead Financial Safety Lock UI)** | Replit | ปุ่มลบ Lead พร้อมระบบล็อกความปลอดภัยทางการเงิน (ปิดปุ่มลบเมื่อมีสลิปโอนเงินผูกอยู่) | `feat/replit-admin-financial-safety-lock-ui` | ✅ **Merged & Live (PR #104)** `795ca12` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 
