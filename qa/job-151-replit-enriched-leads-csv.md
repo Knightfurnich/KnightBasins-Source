@@ -35,6 +35,7 @@ GOAL:
 
 SCOPE:
   - artifacts/knight-basins/src/admin/leads-utils.ts
+  - artifacts/knight-basins/test/admin-leads-utils.test.ts
   - artifacts/knight-basins/test/leads-csv-export.test.ts · (ใหม่)
 
 FORBIDDEN:
