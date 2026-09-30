@@ -54,6 +54,7 @@ import { BasinGalleryTrigger } from "@/components/BasinGalleryLightbox";
 import { isValidEmailAddress } from "@/data/validation";
 import { stoneHeroFrame } from "@/data/stone-hero";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
+import { DigitalHandoverPage } from "@/pages/DigitalHandoverPage";
 import { knightFurnichLogo, lineQrCode } from "@/data/assets";
 import { StorefrontThemeProvider, ThemeToggle, useStorefrontTheme } from "@/components/ThemeToggle";
 
@@ -1872,6 +1873,7 @@ function App() {
               <Route path="/readme" component={SalesGuide} />
               <Route path="/site-prep" component={SitePrepPage} />
               <Route path="/track" component={CustomerTrackingPage} />
+              <Route path="/handover" component={DigitalHandoverPage} />
               <Route path="/updates" component={UpdatesPage} />
               <Route path="/studio-guide" component={StudioGuidePage} />
               <Route path="/portfolio" component={PortfolioPage} />
