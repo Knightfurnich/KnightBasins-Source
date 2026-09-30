@@ -57,9 +57,8 @@
 ---
 
 ### 📦 กล่องที่ 5: AI Operations Assistant & Governance (ผู้ช่วย AI ประจำระบบหลังบ้าน) — 🟡 เริ่มแล้ว 30 ก.ย. 69
-* [ ] **Task 149 (Chai):** Internal AI Operations Assistant API (ตอบคำถามจากข้อมูลจริง แบบอ่านอย่างเดียว 100%)
-* [ ] **Task 150 (Replit):** Admin AI Assistant Widget UI (วิดเจ็ตลอย 3 โหมด + ปุ่มส่งต่อเจ้าหน้าที่)
-* 👉 **เป้าหมายตัดรอบ:** เมื่องานผู้ช่วย AI เสร็จครบและ Deploy Live ➔ ปิดกล่องที่ 5
+* [x] **Task 149 (Chai):** Internal AI Operations Assistant API (ตอบคำถามจากข้อมูลจริง แบบอ่านอย่างเดียว 100%)
+* [ ] **Task 150 (Replit):** Admin AI Assistant Widget UI (วิดเจ็ตลอย 3 โหมด + ปุ่มส่งต่อเจ้าหน้าที่) — จิ๊กซอว์ปิดกล่องที่ 5
 
 ---
 
@@ -240,7 +239,7 @@
 | **Task 146 (Calendar API Maps URL Optimization)** | ชัย | ปรับ API /admin/technician-calendar ให้ส่ง siteMapsUrl/พิกัดโดยตรง ประหยัดแบนด์วิดท์หน้าจอ | `feat/chai-calendar-maps-url` | ✅ **Merged & Live** `bd3928a` · typecheck 0 errors · เทสต์ผ่าน 3/3 · security-audit 18/18 · deploy VPS สำเร็จ |
 | **Task 147 (Public Customer Job Tracking API)** | ชัย | API ติดตามสถานะงานสำหรับลูกค้า GET /api/public/track ไทม์ไลน์ 5 ขั้นตอน + รูปส่งมอบ ปลอดภัยไร้ข้อมูลลับ | `feat/chai-public-job-tracking` | ✅ **Merged & Live** `facf3ef` · typecheck 0 errors · เทสต์ผ่าน 13/13 · security-audit 18/18 · deploy VPS สำเร็จ |
 | **Task 148 (Customer Tracking Portal UI)** | Replit | หน้าพอร์ทัลลูกค้า /track ติดตามสถานะงาน 24 ชม. ไทม์ไลน์ 5 ขั้นตอน + แกลเลอรีรูปส่งมอบ | `feat/replit-customer-tracking-portal` | ✅ **Merged & Live (PR #107)** `9871fcb` · typecheck 0 errors · เทสต์ผ่าน 5/5 · deploy VPS สำเร็จ |
-| **Task 149 (Internal AI Ops Assistant API)** | ชัย | API ผู้ช่วย AI ประจำระบบหลังบ้าน POST /api/admin/assistant/ask ตอบจากข้อมูลจริงแบบอ่านเท่านั้น | `feat/chai-ops-assistant` | 🟡 **มอบหมายแล้ว** (`qa/job-149-chai-ops-assistant.md`) |
+| **Task 149 (Internal AI Ops Assistant API)** | ชัย | API ผู้ช่วย AI ประจำระบบหลังบ้าน POST /api/admin/assistant/ask ตอบจากข้อมูลจริงแบบอ่านเท่านั้น | `feat/chai-ops-assistant` | ✅ **Merged & Live** `ba8ef01` · เดวิดช่วย commit/push แทนชัยหลังเทสต์ผ่าน 16/16 · typecheck 0 errors · deploy VPS สำเร็จ |
 | **Task 150 (Admin AI Assistant Widget UI)** | Replit | วิดเจ็ตผู้ช่วย AI ลอยมุมล่างขวาในระบบหลังบ้าน 3 โหมด พร้อมปุ่มส่งต่อเจ้าหน้าที่ | `feat/replit-admin-ops-assistant` | 🟡 **มอบหมายแล้ว** (`qa/job-150-replit-admin-ops-assistant.md`) |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
