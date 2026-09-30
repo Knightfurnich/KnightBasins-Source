@@ -486,6 +486,9 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
         phone: maskPhone(lead.phone),
         timeline: buildPublicTrackTimeline(lead, visiblePhotos),
         studio: publicStudioSummary(lead.studioData),
+        handoverDate: lead.handoverDate ?? null,
+        warrantyNo: lead.warrantyNo ?? null,
+        warrantyPeriodMonths: lead.warrantyPeriodMonths ?? null,
         sitePhotos: visiblePhotos
           .filter((photo) => photo.stage === "completed")
           .map((photo) => ({ id: photo.id, imageUrl: photo.imageUrl, stage: photo.stage, caption: photo.caption, takenAt: photo.takenAt })),
