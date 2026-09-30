@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { adminQuoteUrl, downloadLeadsCsv, filterAdminLeads, findDuplicateLeads, leadStatusLabels as statusLabels } from "./leads-utils";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
+import { FactoryCutListModal } from "./FactoryCutListModal";
 import {
   basinPlacementsViolatingEdgeClearance,
   placementCrossesPanelJoint,
@@ -1334,6 +1335,7 @@ function LeadsTableView({
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col items-center gap-1.5">
                       <LeadDeleteAction lead={lead} onRequestDelete={onRequestDeleteLead} />
+                      <FactoryCutListModal lead={lead} />
                       <Button
                         type="button"
                         variant="ghost"
@@ -2354,7 +2356,10 @@ export function LeadsManager() {
                   )}
                   {lead.studioData ? (
                     <div className="mt-3">
-                      <LeadStudioDraftAction lead={lead} />
+                      <div className="flex flex-wrap gap-2">
+                        <LeadStudioDraftAction lead={lead} />
+                        <FactoryCutListModal lead={lead} />
+                      </div>
                     </div>
                   ) : sketchImageUrls(lead).length > 0 ? (
                     <div className="mt-3">
