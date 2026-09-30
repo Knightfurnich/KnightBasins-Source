@@ -1614,6 +1614,7 @@ import { SitePrepPage } from "./pages/SitePrepPage";
 import UpdatesPage from "./pages/UpdatesPage";
 import { StudioGuidePage } from "./pages/StudioGuidePage";
 import { PortfolioPage } from "./pages/PortfolioPage";
+import { CustomerTrackingPage } from "./pages/CustomerTrackingPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { useGetCatalog, useGetCustomerProfile, useGetLineAuthStatus, useGetSavedQuote, useNotifySavedQuote, useUpsertLead } from "@workspace/api-client-react";
@@ -1870,6 +1871,7 @@ function App() {
               <Route path="/admin/*" component={AdminApp} />
               <Route path="/readme" component={SalesGuide} />
               <Route path="/site-prep" component={SitePrepPage} />
+              <Route path="/track" component={CustomerTrackingPage} />
               <Route path="/updates" component={UpdatesPage} />
               <Route path="/studio-guide" component={StudioGuidePage} />
               <Route path="/portfolio" component={PortfolioPage} />
