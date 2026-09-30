@@ -75,7 +75,9 @@
 * [x] **Task 155 (Replit):** Factory Stone Cut-List Modal & Print UI (ตารางตัดหินโรงงาน + พิมพ์ใบสั่งตัด)
 * [x] **Task 156 (Replit):** Digital Handover & Warranty Sheet UI (/handover) — ปิดรอบความสำเร็จข้อ 1
 * [x] **Task 157 (Chai):** Google TTS Cost Center Tracking (เสาหลักที่ 5) — ปิดรอบความสำเร็จข้อ 2
-* 👉 **สถานะ:** ปิดกล่องสำเร็จ 100% · ผ่านการรับรองครบทุกใบงาน · Release Tag v1.6.0 · เข้าสู่ช่วงพักระบบ 48 ชม. (เปิดเฉพาะ Fast-track แก้บั๊ก)
+* [x] **Task 158 (Replit):** Customer Tracking Field Mapping Polish (ปรับหน้า /track รับ payload.sitePhotos และ Studio)
+* [x] **Task 159 (Chai):** Lead Handover & Warranty Records API (บันทึกวันส่งมอบงาน + เลขที่ใบรับประกันในตาราง Lead)
+* 👉 **สถานะ:** ปิดกล่องสำเร็จ 100% · ผ่านการรับรองครบทุกใบงาน · Release Tag v1.7.0 · เข้าสู่ช่วงพักระบบ 48 ชม. (เปิดเฉพาะ Fast-track แก้บั๊ก)
 
 ---
 
@@ -265,8 +267,8 @@
 | **Task 155 (Factory Stone Cut-List Modal & Print UI)** | Replit | หน้าต่างตารางตัดหินโรงงาน (กว้างxยาว, ขอบ 4 ด้าน, หลุมเจาะ >=100มม.) พร้อมปุ่มพิมพ์ใบสั่งตัด | `feat/replit-factory-cutlist` | ✅ **Merged & Live (PR #111)** `407ec84` · typecheck 0 errors · เทสต์ผ่าน 5/5 · deploy VPS สำเร็จ |
 | **Task 156 (Digital Handover & Warranty Sheet UI)** | Replit | หน้าใบส่งมอบงานและรับประกันเคาน์เตอร์หินสังเคราะห์ดิจิทัล (/handover) พร้อมพิมพ์ A4 และแชร์ LINE | `feat/replit-digital-handover` | ✅ **Merged & Live (PR #112)** `83f5fcc` · typecheck 0 errors · เทสต์ผ่าน 5/5 · deploy VPS สำเร็จ |
 | **Task 157 (Google TTS Cost Center Tracking)** | ชัย | บันทึกต้นทุนการใช้งานเสียง Google TTS ใน AI Cost Center เพิ่มเสาหลักที่ 5 อุดรอยรั่วค่าใช้จ่าย | `feat/chai-tts-cost-tracking` | ✅ **Merged & Live** `32906b2` · ชัยทำเสร็จ 5/5 เดวิดช่วยแก้เทสต์เดิม 2 ไฟล์รับ 5 เสาหลัก · typecheck 0 · deploy VPS สำเร็จ |
-| **Task 158 (Customer Tracking Field Mapping Polish)** | Replit | ปรับปรุงหน้า /track ให้อ่าน payload.sitePhotos และข้อมูล studio (shape/dimensions/stone) ตรงกับ API จริง | `feat/replit-customer-tracking-field-mapping` | 🟡 **มอบหมายแล้ว** (`qa/job-158-replit-customer-tracking-field-mapping.md`) |
-| **Task 159 (Lead Handover & Warranty Records API)** | ชัย | API บันทึกวันส่งมอบงานและใบรับประกัน (handoverDate, warrantyNo) ในตาราง Lead และส่งกลับใน /public/track | `feat/chai-lead-handover` | 🟡 **มอบหมายแล้ว** (`qa/job-159-chai-lead-handover.md`) |
+| **Task 158 (Customer Tracking Field Mapping Polish)** | Replit | ปรับปรุงหน้า /track ให้อ่าน payload.sitePhotos และข้อมูล studio (shape/dimensions/stone) ตรงกับ API จริง | `feat/replit-customer-tracking-field-mapping` | ✅ **Merged & Live (PR #113)** `cc2c792` · typecheck 0 errors · เทสต์ผ่าน 6/6 · deploy VPS สำเร็จ |
+| **Task 159 (Lead Handover & Warranty Records API)** | ชัย | API บันทึกวันส่งมอบงานและใบรับประกัน (handoverDate, warrantyNo) ในตาราง Lead และส่งกลับใน /public/track | `feat/chai-lead-handover` | ✅ **Merged & Live** `3dfa7eb` · ชัยทำเสร็จ 8/8 (เดวิดช่วยจูน regex YYYY-MM-DD + รัน migration 018 บน VPS) · deploy VPS สำเร็จ |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
