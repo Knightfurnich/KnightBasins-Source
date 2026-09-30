@@ -40,7 +40,7 @@
 
 ### 📦 กล่องที่ 3: ระบบพิกัดหน้างาน & ล็อกความปลอดภัยการเงิน (Logistics & Financial Lock) — 🟡 เริ่มแล้ว 29 ก.ย. 69
 * [x] **Task 138 (Chai):** Google Maps Smart Resolver API + พิกัดหน้างานใน Lead
-* [ ] **Task 139 (Replit):** One-Click Navigate UI ในหน้า Lead และปฏิทินช่าง (พร้อมเริ่มแล้ว)
+* [x] **Task 139 (Replit):** One-Click Navigate UI ในหน้า Lead และปฏิทินช่าง
 * [ ] **Task 140 (Chai):** Financial Safety Lock API (ล็อกการลบงานที่มีสลิปผูกอยู่)
 * [ ] **Task 141 (Replit):** Financial Safety Lock UI
 * 👉 **เป้าหมายตัดรอบ:** เมื่องานทั้ง 4 ใบเสร็จและ Deploy Live ➔ ปิดกล่องที่ 3
@@ -215,7 +215,7 @@
 | **Task 136 (AI Cost Vertex Gemini Pillar UI)** | Replit | เพิ่มการแสดงผลบริการ Vertex AI Gemini ในหน้ารายงานต้นทุน AI (/admin/ai-cost) และ Badge บนแดชบอร์ด | `feat/replit-admin-ai-cost-vertex-ui` | ✅ **Merged & Live (PR #100)** `eb8f42a` · typecheck 0 errors · เทสต์ผ่าน 3/3 · deploy VPS สำเร็จ |
 | **Task 137 (Updates & Changelog Page)** | Replit | หน้ารายการอัปเดตรุ่นระบบและประวัติความก้าวหน้า (/updates What's New) พร้อมลิงก์ใน Footer | `feat/replit-updates-changelog-page` | ✅ **Merged & Live (PR #101)** `3db3929` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 | **Task 138 (Google Maps Smart Resolver API)** | ชัย | ถอดรหัสลิงก์ Google Maps ทุกรูปแบบเป็นพิกัด + ลิงก์นำทางมาตรฐาน เก็บลง Lead (site_lat/site_lng/site_maps_url) | `feat/chai-maps-location-resolver` | ✅ **Merged & Live** `0e785ec` · typecheck 0 errors · เทสต์ผ่าน 18/18 · security-audit 18/18 · migration 016 applied บน VPS |
-| **Task 139 (One-Click Site Navigation UI)** | Replit | ช่องวางลิงก์ Maps ใน Lead + ปุ่ม [ นำทาง Google Maps ] ในหน้า Lead และปฏิทินช่าง | `feat/replit-lead-maps-navigation` | 🟡 **มอบหมายแล้ว** (`qa/job-139-replit-lead-maps-navigation.md`) |
+| **Task 139 (One-Click Site Navigation UI)** | Replit | ช่องวางลิงก์ Maps ใน Lead + ปุ่ม [ นำทาง Google Maps ] ในหน้า Lead และปฏิทินช่าง | `feat/replit-lead-maps-navigation` | ✅ **Merged & Live (PR #102)** `9ea1df0` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
