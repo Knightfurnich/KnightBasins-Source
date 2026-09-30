@@ -752,6 +752,9 @@ export type DashboardLeadRow = {
   createdAt: string;
   studioData: unknown;
   technicianTeamCode: string | null;
+  siteMapsUrl: string | null;
+  siteLat: number | null;
+  siteLng: number | null;
 };
 
 /** Shared column list for every query that hydrates DashboardLeadRow, so the set of columns can't drift between call sites. */
@@ -769,6 +772,9 @@ const DASHBOARD_LEAD_COLUMNS = {
   createdAt: customerLeads.createdAt,
   studioData: customerLeads.studioData,
   technicianTeamCode: customerLeads.technicianTeamCode,
+  siteMapsUrl: customerLeads.siteMapsUrl,
+  siteLat: customerLeads.siteLat,
+  siteLng: customerLeads.siteLng,
 } as const;
 
 export type DashboardSlipRow = {
@@ -1351,6 +1357,9 @@ export type TechnicianCalendarJob = {
   address: string | null;
   quoteNumber: string | null;
   confidence: TechnicianTeamMatchConfidence;
+  siteMapsUrl?: string | null;
+  siteLat?: number | null;
+  siteLng?: number | null;
 };
 
 export type TechnicianCalendarTeamDay = {
@@ -1427,6 +1436,9 @@ export function computeTechnicianCalendar(
         address: lead.address ?? null,
         quoteNumber: lead.quoteNumber ?? null,
         confidence: match.confidence,
+        siteMapsUrl: lead.siteMapsUrl ?? null,
+        siteLat: lead.siteLat ?? null,
+        siteLng: lead.siteLng ?? null,
       });
     }
 
