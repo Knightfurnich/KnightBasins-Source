@@ -1263,6 +1263,15 @@ function LeadsTableView({
                             ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</>
                             : <><Clipboard className="w-3 h-3 mr-1" /> ลิงก์ติดตามงาน</>}
                         </Button>
+                        <Link
+                          href={`/handover?token=${encodeURIComponent(lead.publicQuoteToken)}`}
+                          className="ml-1 inline-flex h-6 items-center gap-1 rounded-none px-1.5 text-[14px] font-semibold text-[var(--brand-blue)] hover:bg-[var(--brand-sky)]"
+                          data-testid={`button-open-handover-${lead.id}`}
+                          title="เปิดเอกสารส่งมอบและรับประกันงานติดตั้ง"
+                        >
+                          <Clipboard className="h-3 w-3" aria-hidden="true" />
+                          ใบส่งมอบงาน
+                        </Link>
                       </div>
                     )}
                   </TableCell>
@@ -2340,6 +2349,7 @@ export function LeadsManager() {
                      <span>สร้างเมื่อ {formatLeadDate(lead.createdAt)}</span>
                     {lead.quoteNumber && <><span className="font-mono text-[var(--brand-blue)]">{lead.quoteNumber}</span>{lead.publicQuoteToken ? <><a className="text-[var(--brand-blue)] underline" href={adminQuoteUrl(lead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา</a><Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyQuoteLink(lead.quoteNumber!, lead.publicQuoteToken!)} data-testid={`button-copy-quote-link-${lead.id}`}>{copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> คัดลอกลิงก์</>}</Button></> : <span className="text-[var(--ink-soft)]">กำลังสร้างลิงก์ปลอดภัย...</span>}</>}
                     {lead.publicQuoteToken && <Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyTrackLink(lead.id, lead.publicQuoteToken!)} data-testid={`button-copy-track-link-summary-${lead.id}`}>{copiedTrackLinkId === lead.id ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> ลิงก์ติดตามงาน</>}</Button>}
+                     {lead.publicQuoteToken && <Link href={`/handover?token=${encodeURIComponent(lead.publicQuoteToken)}`} className="inline-flex h-7 items-center gap-1 border border-[var(--line)] px-2 text-xs font-semibold text-[var(--brand-blue)] hover:bg-[var(--brand-sky)]" data-testid={`button-open-handover-${lead.id}`} title="เปิดเอกสารส่งมอบและรับประกันงานติดตั้ง"><Clipboard className="h-3 w-3" aria-hidden="true" /> ใบส่งมอบงาน</Link>}
                    </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <span className="border border-[var(--line)] px-2 py-1 text-[var(--brand-blue)]">{modeLabels[lead.orderMode ?? "quick-purchase"] ?? lead.orderMode ?? "quick-purchase"}</span>
