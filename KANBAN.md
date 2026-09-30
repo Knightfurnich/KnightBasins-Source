@@ -42,6 +42,7 @@
 * [x] **Task 138 (Chai):** Google Maps Smart Resolver API + พิกัดหน้างานใน Lead
 * [x] **Task 139 (Replit):** One-Click Navigate UI ในหน้า Lead และปฏิทินช่าง
 * [x] **Task 142 (Replit):** Smart Duplicate Lead & Customer Detection UI (ระบบตรวจจับลูกค้าซ้ำ)
+* [ ] **Task 143 (Replit):** Technician LINE Job Dispatch Card UI (ปุ่มการ์ดงานช่างส่ง LINE)
 * [ ] **Task 140 (Chai):** Financial Safety Lock API (ล็อกการลบงานที่มีสลิปผูกอยู่) — ชิ้นสุดท้ายของกล่องที่ 3
 * 👉 **เป้าหมายตัดรอบ:** เมื่องานในกล่องนี้เสร็จครบและ Deploy Live ➔ ปิดกล่องที่ 3
 
@@ -217,6 +218,7 @@
 | **Task 138 (Google Maps Smart Resolver API)** | ชัย | ถอดรหัสลิงก์ Google Maps ทุกรูปแบบเป็นพิกัด + ลิงก์นำทางมาตรฐาน เก็บลง Lead (site_lat/site_lng/site_maps_url) | `feat/chai-maps-location-resolver` | ✅ **Merged & Live** `0e785ec` · typecheck 0 errors · เทสต์ผ่าน 18/18 · security-audit 18/18 · migration 016 applied บน VPS |
 | **Task 139 (One-Click Site Navigation UI)** | Replit | ช่องวางลิงก์ Maps ใน Lead + ปุ่ม [ นำทาง Google Maps ] ในหน้า Lead และปฏิทินช่าง | `feat/replit-lead-maps-navigation` | ✅ **Merged & Live (PR #102)** `9ea1df0` · typecheck 0 errors · เทสต์ผ่าน 4/4 · deploy VPS สำเร็จ |
 | **Task 142 (Smart Duplicate Lead Detection UI)** | Replit | ตรวจจับลูกค้า/เบอร์โทรซ้ำซ้อนในหน้าจัดการ Lead พร้อม Badge เตือนและกล่องประวัติเดิม | `feat/replit-admin-duplicate-leads` | ✅ **Merged & Live (PR #103)** `46c65d6` · typecheck 0 errors · เทสต์ผ่าน 6/6 · deploy VPS สำเร็จ |
+| **Task 143 (Technician LINE Job Dispatch Card UI)** | Replit | ปุ่ม [ 📲 การ์ดงานช่าง ] บนการ์ดงานติดตั้งในปฏิทิน คัดลอกสรุปส่ง LINE พร้อมพิกัด Maps | `feat/replit-technician-line-job-card` | 🟡 **มอบหมายแล้ว** (`qa/job-143-replit-technician-line-job-card.md`) |
 
 | **Task 114 (Database Health & Metrics API)** | ชัย | API ตรวจสอบสถานะการเชื่อมต่อ Latency และความสมบูรณ์ของฐานข้อมูล PostgreSQL แบบเรียลไทม์ | `feat/chai-database-health-api` | ✅ **Merged & Live** `16ac48d` · typecheck 0 errors · เทสต์ใหม่ 4/4 ผ่าน · endpoint /admin/database/health พร้อมใช้บน VPS |
 | **Task 115 (Studio Draft Resume API)** | ชัย | API บันทึกและดึงแบบร่าง Studio/Sketch กลับมาทำต่อผ่านลิงก์ชั่วคราว (Resume Draft URL) | `feat/chai-studio-draft-api` | ✅ **Merged & Live** `6b04515` · typecheck 0 errors · เทสต์ใหม่ 7/7 ผ่าน · ทดสอบจริงบน VPS: POST 201 → GET 200 ข้อมูลครบ + 404 ปลอดภัย |
