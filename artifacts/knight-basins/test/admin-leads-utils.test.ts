@@ -86,6 +86,8 @@ test("exportLeadsToCsv starts with a UTF-8 BOM followed by the Thai column heade
     [
       "วันที่สร้าง", "เลขที่ใบเสนอราคา", "รหัสงาน", "ชื่อลูกค้า", "บริษัท", "เบอร์โทร", "อีเมล",
       "ชื่อโครงการ", "ที่อยู่/สถานที่ติดตั้ง", "สถานะ", "ช่องทาง", "รหัสสินค้า", "หมายเหตุ",
+      "ลิงก์ Google Maps หน้างาน", "ละติจูด (Latitude)", "ลองจิจูด (Longitude)",
+      "มีสลิปการเงินผูกอยู่", "จำนวนสลิป (ใบ)",
     ].join(","),
   );
 });
@@ -137,6 +139,11 @@ test("exportLeadsToCsv maps every lead column, translating status and joining SK
       "catalog",
       "KF002; KF010",
       "ลูกค้าพิเศษ",
+      "",
+      "",
+      "",
+      "ไม่มี",
+      "0",
     ].join(","),
   );
 });
