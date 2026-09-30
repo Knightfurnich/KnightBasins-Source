@@ -61,6 +61,10 @@ type FinancialSafetyLead = CustomerLead & {
   paymentSlipCount?: number | null;
 };
 type LeadWithFabricationWarnings = CustomerLead & { fabricationWarnings?: unknown };
+type LeadWithTrackingInsights = CustomerLead & {
+  trackingViewCount?: number | null;
+  trackingViewedAt?: string | null;
+};
 
 function objectRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -72,6 +76,144 @@ function customerTrackingUrl(token: string, origin = window.location.origin): st
   const url = new URL("/track", origin);
   url.searchParams.set("token", token);
   return url.toString();
+}
+
+const CUSTOMER_TRACKING_LINE_MESSAGE =
+  "สวัสดีครับ สามารถติดตามสถานะงานสั่งทำเคาน์เตอร์หินสังเคราะห์ของคุณได้ตลอด 24 ชม. ที่ลิงก์นี้ครับ: ";
+
+function customerTrackingLineUrl(token: string): string {
+  const message = `${CUSTOMER_TRACKING_LINE_MESSAGE}${customerTrackingUrl(token)}`;
+  return `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+}
+
+function leadTrackingViewCount(lead: CustomerLead): number {
+  const count = (lead as LeadWithTrackingInsights).trackingViewCount;
+  return typeof count === "number" && Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
+}
+
+function leadTrackingViewedAt(lead: CustomerLead): Date | null {
+  const value = (lead as LeadWithTrackingInsights).trackingViewedAt;
+  if (typeof value !== "string" || !value.trim()) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function LeadTrackingViewsBadge({ lead }: { lead: CustomerLead }) {
+  const viewCount = leadTrackingViewCount(lead);
+  const viewedAt = leadTrackingViewedAt(lead);
+  const hasViews = viewCount > 0;
+
+  return (
+    <span
+      className={`inline-flex items-center whitespace-nowrap border px-2 py-1 text-[11px] font-semibold ${
+        hasViews
+          ? "border-[#17816d]/35 bg-[#17816d]/10 text-[#116654]"
+          : "border-[var(--line)] bg-[var(--line)]/20 text-[var(--ink-soft)]"
+      }`}
+      title={hasViews ? `เปิดดูล่าสุด: ${viewedAt ? formatThaiDateTime(viewedAt) : "ไม่พบข้อมูลเวลา"}` : undefined}
+      data-testid={`badge-tracking-views-${lead.id}`}
+    >
+      {hasViews ? `👁️ เปิดดูแล้ว ${viewCount} ครั้ง` : "ยังไม่เคยเปิดดู"}
+    </span>
+  );
+}
+
+function CustomerTrackingInsightsPanel({
+  lead,
+  copyTrackLink,
+  copiedTrackLinkId,
+}: {
+  lead: CustomerLead;
+  copyTrackLink: (leadId: number, publicQuoteToken: string) => Promise<void>;
+  copiedTrackLinkId: number | null;
+}) {
+  const viewCount = leadTrackingViewCount(lead);
+  const viewedAt = leadTrackingViewedAt(lead);
+  const publicQuoteToken = lead.quoteNumber ? lead.publicQuoteToken : null;
+  const trackingUrl = publicQuoteToken ? customerTrackingUrl(publicQuoteToken) : null;
+
+  return (
+    <section
+      className="border border-[var(--brand-blue)]/25 bg-[var(--brand-blue)]/5 p-3"
+      data-testid="panel-customer-tracking-insights"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold text-[var(--ink)]">การติดตามงานของลูกค้า</h3>
+          <p className="text-[11px] text-[var(--ink-soft)]">Customer Portal Tracking</p>
+        </div>
+        <span
+          className={`whitespace-nowrap text-xs font-medium ${
+            viewCount > 0 ? "text-[#116654]" : "text-[var(--ink-soft)]"
+          }`}
+        >
+          {viewCount > 0 ? `👁️ เปิดดูแล้ว ${viewCount} ครั้ง` : "ยังไม่เคยเปิดดู"}
+        </span>
+      </div>
+      <div className="mt-3">
+        <p className="text-xs font-medium text-[var(--ink-soft)]">ลิงก์ติดตามงาน</p>
+        {trackingUrl ? (
+          <a
+            href={trackingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            className="mt-1 block break-all text-xs text-[var(--brand-blue)] underline underline-offset-2"
+            data-testid={`link-customer-tracking-${lead.id}`}
+          >
+            {trackingUrl}
+          </a>
+        ) : (
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">
+            {lead.quoteNumber
+              ? "กำลังสร้างลิงก์ติดตามงาน..."
+              : "สร้างใบเสนอราคาเพื่อเปิดใช้งานลิงก์ติดตามงาน"}
+          </p>
+        )}
+      </div>
+      <p className="mt-2 text-xs text-[var(--ink-soft)]">
+        วันเวลาที่ลูกค้าเปิดดูล่าสุด:{" "}
+        {viewedAt ? (
+          <time dateTime={viewedAt.toISOString()} className="font-medium text-[var(--ink)]">
+            {formatThaiDateTime(viewedAt)}
+          </time>
+        ) : (
+          <span>{viewCount > 0 ? "ไม่พบข้อมูลเวลา" : "ยังไม่เคยเปิดดู"}</span>
+        )}
+      </p>
+      {trackingUrl && publicQuoteToken && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            className="rounded-none"
+            onClick={(event) => {
+              event.stopPropagation();
+              window.open(customerTrackingLineUrl(publicQuoteToken), "_blank", "noopener,noreferrer");
+            }}
+            data-testid={`button-share-track-line-${lead.id}`}
+          >
+            📲 ส่งลิงก์เข้า LINE ลูกค้า
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-none"
+            onClick={(event) => {
+              event.stopPropagation();
+              void copyTrackLink(lead.id, publicQuoteToken);
+            }}
+            data-testid={`button-copy-track-link-${lead.id}`}
+          >
+            {copiedTrackLinkId === lead.id
+              ? <><Check className="mr-1 h-3.5 w-3.5" /> คัดลอกแล้ว</>
+              : <><Clipboard className="mr-1 h-3.5 w-3.5" /> 🔗 คัดลอกลิงก์</>}
+          </Button>
+        </div>
+      )}
+    </section>
+  );
 }
 
 function hasWarningSignal(value: unknown): boolean {
@@ -1030,6 +1172,7 @@ function LeadsTableView({
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="font-semibold text-[var(--ink)] leading-snug">{lead.name || "ยังไม่ระบุชื่อ"}</span>
                       <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
+                      <LeadTrackingViewsBadge lead={lead} />
                     </div>
                     {lead.company && <div className="text-[14px] text-[var(--ink-soft)] truncate max-w-[170px]">{lead.company}</div>}
                     <div className="mt-1">
@@ -1113,7 +1256,7 @@ function LeadsTableView({
                           variant="ghost"
                           className="h-6 px-1.5 text-[14px] rounded-none font-semibold text-[var(--brand-blue)]"
                           onClick={() => void copyTrackLink(lead.id, lead.publicQuoteToken!)}
-                          data-testid={`button-copy-track-link-${lead.id}`}
+                            data-testid={`button-copy-track-link-summary-${lead.id}`}
                         >
                           {copiedTrackLinkId === lead.id
                             ? <><Check className="w-3 h-3 mr-1 text-[#17816d]" /> คัดลอกแล้ว</>
@@ -1208,6 +1351,11 @@ function LeadsTableView({
                 {isExpanded && (
                   <TableRow className="bg-[var(--paper)]/60 border-b-2 border-[var(--brand-blue)]/30">
                     <TableCell colSpan={10} className="p-4 space-y-4">
+                      <CustomerTrackingInsightsPanel
+                        lead={lead}
+                        copyTrackLink={copyTrackLink}
+                        copiedTrackLinkId={copiedTrackLinkId}
+                      />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-3">
                           <div>
@@ -1927,9 +2075,12 @@ export function LeadsManager() {
       if (!navigator.clipboard?.writeText) throw new Error("clipboard-unavailable");
       await navigator.clipboard.writeText(customerTrackingUrl(publicQuoteToken));
       setCopiedTrackLinkId(leadId);
+      toast({ description: "คัดลอกลิงก์ติดตามงานแล้ว" });
       window.setTimeout(() => setCopiedTrackLinkId((current) => current === leadId ? null : current), 1800);
     } catch {
-      setCopyError("คัดลอกลิงก์ติดตามงานไม่ได้ กรุณาเปิดหน้าเว็บผ่าน HTTPS");
+      const message = "คัดลอกลิงก์ติดตามงานไม่ได้ กรุณาเปิดหน้าเว็บผ่าน HTTPS";
+      setCopyError(message);
+      toast({ description: message, variant: "destructive" });
     }
   };
 
@@ -2169,6 +2320,7 @@ export function LeadsManager() {
                     <span className="text-xs border border-[var(--line)] px-2 py-1">{statusLabels[lead.status]}</span>
                       <LeadDeleteAction lead={lead} onRequestDelete={setLeadToDelete} />
                     <LeadFabricationSafetyBadge leadId={lead.id} warnings={fabricationWarningsByLeadId.get(lead.id) ?? []} />
+                    <LeadTrackingViewsBadge lead={lead} />
                     <DuplicateLeadBadge
                       lead={lead}
                       count={duplicateLeads.length}
@@ -2185,7 +2337,7 @@ export function LeadsManager() {
                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                      <span>สร้างเมื่อ {formatLeadDate(lead.createdAt)}</span>
                     {lead.quoteNumber && <><span className="font-mono text-[var(--brand-blue)]">{lead.quoteNumber}</span>{lead.publicQuoteToken ? <><a className="text-[var(--brand-blue)] underline" href={adminQuoteUrl(lead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา</a><Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyQuoteLink(lead.quoteNumber!, lead.publicQuoteToken!)} data-testid={`button-copy-quote-link-${lead.id}`}>{copiedQuote === lead.quoteNumber ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> คัดลอกลิงก์</>}</Button></> : <span className="text-[var(--ink-soft)]">กำลังสร้างลิงก์ปลอดภัย...</span>}</>}
-                    {lead.publicQuoteToken && <Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyTrackLink(lead.id, lead.publicQuoteToken!)} data-testid={`button-copy-track-link-${lead.id}`}>{copiedTrackLinkId === lead.id ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> ลิงก์ติดตามงาน</>}</Button>}
+                    {lead.publicQuoteToken && <Button type="button" size="sm" variant="outline" className="h-7 rounded-none px-2" onClick={() => void copyTrackLink(lead.id, lead.publicQuoteToken!)} data-testid={`button-copy-track-link-summary-${lead.id}`}>{copiedTrackLinkId === lead.id ? <><Check className="w-3 h-3 mr-1" /> คัดลอกแล้ว</> : <><Clipboard className="w-3 h-3 mr-1" /> ลิงก์ติดตามงาน</>}</Button>}
                    </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <span className="border border-[var(--line)] px-2 py-1 text-[var(--brand-blue)]">{modeLabels[lead.orderMode ?? "quick-purchase"] ?? lead.orderMode ?? "quick-purchase"}</span>
@@ -2230,7 +2382,12 @@ export function LeadsManager() {
                 </div>
               </div>
               {isExpanded && (
-                <div className="mt-4">
+                <div className="mt-4 space-y-4">
+                  <CustomerTrackingInsightsPanel
+                    lead={lead}
+                    copyTrackLink={copyTrackLink}
+                    copiedTrackLinkId={copiedTrackLinkId}
+                  />
                   <DuplicateLeadHistory
                     leadId={lead.id}
                     duplicateLeads={duplicateLeads}
