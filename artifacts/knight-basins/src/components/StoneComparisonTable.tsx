@@ -79,7 +79,7 @@ function ComparisonMark({ cell }: { cell: ComparisonCell }) {
 
 export function StoneComparisonTable() {
   return (
-    <section data-testid="section-stone-comparison-table" className="page-wrap">
+    <section data-testid="section-stone-comparison-table" className="page-wrap my-8 rounded-xl border border-[var(--line)] bg-[var(--card-paper)] p-4 text-[var(--ink)] shadow-sm sm:p-6">
       <div className="section-heading"><div><p className="eyebrow">MATERIAL DATA</p><h2>ตารางเปรียบเทียบคุณสมบัติ: หินสังเคราะห์อะคริลิก 100% (Staron &amp; Zen Stone) vs หินสังเคราะห์ Modified vs หินธรรมชาติ</h2></div></div>
       <p className="muted" style={{ marginBottom: "1rem" }}>
         ข้อมูลคุณสมบัติทางกายภาพและมาตรฐานความปลอดภัยระดับสากล สำหรับการตัดสินใจเลือกใช้วัสดุเคาน์เตอร์และท็อปโต๊ะ
@@ -96,7 +96,7 @@ export function StoneComparisonTable() {
         <TableBody>
           {COMPARISON_ROWS.map((row) => (
             <TableRow key={row.feature}>
-              <TableCell className="font-medium">{row.feature}</TableCell>
+              <TableCell>{row.feature}</TableCell>
               <TableCell><ComparisonMark cell={row.acrylic} /></TableCell>
               <TableCell><ComparisonMark cell={row.modified} /></TableCell>
               <TableCell><ComparisonMark cell={row.natural} /></TableCell>
