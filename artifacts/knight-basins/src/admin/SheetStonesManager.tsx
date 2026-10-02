@@ -31,7 +31,7 @@ import {
   filterAdminItems,
   toggleAdminItemActive,
 } from "./adminArchive";
-import { ImageUploadField } from "./ImageUploadField";
+import { StoneImageManagerField } from "./StoneImageManagerField";
 import { AdminSortableHeader } from "./AdminSortableHeader";
 import {
   compareAdminBoolean,
@@ -50,10 +50,19 @@ const stoneSchema = z.object({
   price50PlusTHB: z.coerce.number().min(0, "ราคาต้องไม่ติดลบ"),
   tone: z.string().min(1, "กรุณากรอกโทนสีภาพ"),
   imageUrl: z.string().max(2000).optional(),
+  galleryImageUrls: z.array(z.string()).default([]),
+  quoteImageUrl: z.string().max(2000).nullable().optional(),
+  slabImageUrl: z.string().max(2000).nullable().optional(),
   aliases: z.string(), // We will split by comma on submit
   active: z.boolean(),
   sortOrder: z.coerce.number().int().default(0),
 });
+
+type StoneImageRoleFields = {
+  galleryImageUrls?: string[];
+  quoteImageUrl?: string | null;
+  slabImageUrl?: string | null;
+};
 
 export function SheetStonesManager() {
   const { data: stones, isLoading } = useListAdminSheetStones();
@@ -88,10 +97,14 @@ export function SheetStonesManager() {
   const handleArchive = () => {
     const stone = stones?.find((item) => item.id === isArchiveOpen);
     if (stone) {
-      archiveMutation.mutate({ id: stone.id, data: {
+      const imageFields = stone as SheetStonePrice & StoneImageRoleFields;
+      const data = {
         code: stone.code, name: stone.name, basePriceTHB: stone.basePriceTHB, price10PlusTHB: stone.price10PlusTHB,
-        price50PlusTHB: stone.price50PlusTHB, tone: stone.tone, aliases: stone.aliases, imageUrl: stone.imageUrl || null, active: toggleAdminItemActive(stone).active, sortOrder: stone.sortOrder,
-      } }, createAdminArchiveMutationCallbacks({
+        price50PlusTHB: stone.price50PlusTHB, tone: stone.tone, aliases: stone.aliases, imageUrl: stone.imageUrl || null,
+        galleryImageUrls: imageFields.galleryImageUrls ?? [], quoteImageUrl: imageFields.quoteImageUrl ?? null, slabImageUrl: imageFields.slabImageUrl ?? null,
+        active: toggleAdminItemActive(stone).active, sortOrder: stone.sortOrder,
+      };
+      archiveMutation.mutate({ id: stone.id, data }, createAdminArchiveMutationCallbacks({
         invalidate: () => {
           void queryClient.invalidateQueries({ queryKey: ["/api/admin/sheet-stones"] });
           void queryClient.invalidateQueries({ queryKey: getGetCatalogQueryKey() });
@@ -265,6 +278,7 @@ function StoneFormDialog({ open, onOpenChange, initialData }: { open: boolean, o
   const createMutation = useCreateAdminSheetStone();
   const updateMutation = useUpdateAdminSheetStone();
   const { toast } = useToast();
+  const initialImageFields = initialData as (SheetStonePrice & StoneImageRoleFields) | undefined;
 
   const form = useForm<z.infer<typeof stoneSchema>>({
     resolver: zodResolver(stoneSchema),
@@ -276,6 +290,9 @@ function StoneFormDialog({ open, onOpenChange, initialData }: { open: boolean, o
       price50PlusTHB: initialData.price50PlusTHB,
       tone: initialData.tone,
       imageUrl: initialData.imageUrl,
+      galleryImageUrls: initialImageFields?.galleryImageUrls ?? [],
+      quoteImageUrl: initialImageFields?.quoteImageUrl ?? null,
+      slabImageUrl: initialImageFields?.slabImageUrl ?? null,
       aliases: initialData.aliases.join(", "),
       active: initialData.active,
       sortOrder: initialData.sortOrder,
@@ -287,11 +304,17 @@ function StoneFormDialog({ open, onOpenChange, initialData }: { open: boolean, o
       price50PlusTHB: 0,
       tone: "#ffffff",
       imageUrl: "",
+      galleryImageUrls: [],
+      quoteImageUrl: null,
+      slabImageUrl: null,
       aliases: "",
       active: true,
       sortOrder: 0,
     }
   });
+  const galleryImageUrls = form.watch("galleryImageUrls");
+  const quoteImageUrl = form.watch("quoteImageUrl");
+  const slabImageUrl = form.watch("slabImageUrl");
 
   const onSubmit = (values: z.infer<typeof stoneSchema>) => {
     const payload = {
@@ -357,7 +380,17 @@ function StoneFormDialog({ open, onOpenChange, initialData }: { open: boolean, o
 
               <FormField control={form.control} name="imageUrl" render={({ field }) => (
                 <FormItem>
-                  <ImageUploadField label="รูปภาพ HD" value={field.value} onChange={field.onChange} />
+                  <StoneImageManagerField
+                    images={[field.value, ...(galleryImageUrls ?? [])].filter((url): url is string => Boolean(url))}
+                    quoteImageUrl={quoteImageUrl}
+                    slabImageUrl={slabImageUrl}
+                    onImagesChange={(images) => {
+                      form.setValue("imageUrl", images[0] ?? "", { shouldDirty: true, shouldValidate: true });
+                      form.setValue("galleryImageUrls", images.slice(1), { shouldDirty: true, shouldValidate: true });
+                    }}
+                    onQuoteImageChange={(url) => form.setValue("quoteImageUrl", url, { shouldDirty: true, shouldValidate: true })}
+                    onSlabImageChange={(url) => form.setValue("slabImageUrl", url, { shouldDirty: true, shouldValidate: true })}
+                  />
                   <FormMessage className="text-[#a24439] text-xs" />
                 </FormItem>
               )} />
