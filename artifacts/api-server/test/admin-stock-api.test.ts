@@ -340,6 +340,7 @@ describe("GET /admin/stock", () => {
       staronExport?: (url: string) => Response;
       zenExport?: (url: string) => Response;
       token?: () => Response;
+      htmlview?: (url: string, init?: RequestInit) => Response | Promise<Response>;
     };
 
     /** Mocks Google's token endpoint, the Sheets API and the CSV export. The
@@ -347,6 +348,7 @@ describe("GET /admin/stock", () => {
      * that forces the CSV fallback). Records every outbound call. */
     function mockGoogle(behavior: GoogleBehavior = {}) {
       const calls: { url: string; signal: AbortSignal | null | undefined }[] = [];
+      const htmlviewCalls: { url: string; signal: AbortSignal | null | undefined; authorization: string | null }[] = [];
       mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.startsWith("https://oauth2.googleapis.com/token")) {
@@ -355,6 +357,10 @@ describe("GET /admin/stock", () => {
         if (url.startsWith("https://sheets.googleapis.com/")) {
           calls.push({ url, signal: init?.signal });
           return behavior.sheetsApi?.(url) ?? new Response("{}", { status: 403 });
+        }
+        if (url.startsWith("https://docs.google.com/spreadsheets/") && url.endsWith("/htmlview")) {
+          htmlviewCalls.push({ url, signal: init?.signal, authorization: new Headers(init?.headers).get("authorization") });
+          return (await behavior.htmlview?.(url, init)) ?? new Response("Not Found", { status: 404 });
         }
         if (url.startsWith("https://docs.google.com/spreadsheets/")) {
           calls.push({ url, signal: init?.signal });
@@ -365,6 +371,7 @@ describe("GET /admin/stock", () => {
       });
       return {
         calls,
+        htmlviewCalls,
         exports: (id: string) => calls.filter((call) => call.url.startsWith("https://docs.google.com/") && call.url.includes(`/d/${id}/`)),
       };
     }
@@ -517,6 +524,152 @@ describe("GET /admin/stock", () => {
       } finally {
         await server.close();
       }
+    });
+
+    describe("Staron tab id from /htmlview (job-185)", () => {
+      // Same shape as the real page: every tab is `items.push({name: "<tab>", pageUrl: "...", gid: "<id>", ...`
+      const htmlviewWith = (tabs: [string, string][]) =>
+        `<script>var items = [];${tabs.map(([name, gid]) =>
+          `items.push({name: "${name}", pageUrl: "https:\\/\\/docs.google.com\\/spreadsheets\\/d\\/${STARON_ID}\\/htmlview\\/sheet?headers\\x3dtrue\\x26gid\\x3d${gid}", gid: "${gid}", initialSheet: false});`,
+        ).join("")}</script>`;
+      const LIVE_GID = "1328053682";
+      const STALE_ENV_GID = "777";
+      const STARON_TAB = "สต๊อคหินStaron";
+      const liveHtmlview = () => new Response(htmlviewWith([[STARON_TAB, LIVE_GID], ["AA 625", "2087730452"], ["AG 612", "1263622489"]]), { status: 200 });
+
+      it("reads the live Staron tab id from /htmlview and exports that tab first", async () => {
+        const google = mockGoogle({ htmlview: liveHtmlview });
+        const { server, get } = await getStock();
+        try {
+          const response = await get();
+          assert.equal(response.status, 200);
+          const payload = await response.json() as AdminStockResponsePayload;
+          assert.equal(payload.staron.total, 2);
+
+          const staronExports = google.exports(STARON_ID);
+          assert.equal(staronExports.length, 1);
+          assert.ok(staronExports[0]!.url.endsWith(`&gid=${LIVE_GID}`), "the id read from the page is used, not a remembered one");
+
+          assert.equal(google.htmlviewCalls.length, 1, "only Staron needs the lookup");
+          assert.ok(google.htmlviewCalls[0]!.url.endsWith(`/d/${STARON_ID}/htmlview`));
+          assert.ok(google.htmlviewCalls[0]!.signal instanceof AbortSignal, "the lookup is time-boxed too");
+          assert.ok(!google.exports(ZEN_ID)[0]!.url.includes("gid="), "Zen Stone never gets a gid");
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("matches the tab by its name, not by its position in the list", async () => {
+        const google = mockGoogle({ htmlview: () => new Response(htmlviewWith([["AA 625", "111"], [STARON_TAB, "222"]]), { status: 200 }) });
+        const { server, get } = await getStock();
+        try {
+          assert.equal((await get()).status, 200);
+          assert.ok(google.exports(STARON_ID)[0]!.url.endsWith("&gid=222"));
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("falls back to the plain export when /htmlview answers an error", async () => {
+        const google = mockGoogle({ htmlview: () => new Response("Server Error", { status: 500 }) });
+        const { server, get } = await getStock();
+        try {
+          const response = await get();
+          assert.equal(response.status, 200);
+          const payload = await response.json() as AdminStockResponsePayload;
+          assert.equal(payload.staron.total, 2);
+          const staronExports = google.exports(STARON_ID);
+          assert.equal(staronExports.length, 1);
+          assert.ok(!staronExports[0]!.url.includes("gid="));
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("falls back to the plain export when /htmlview times out, instead of taking the endpoint down", async () => {
+        const google = mockGoogle({
+          htmlview: () => {
+            throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+          },
+        });
+        const { server, get } = await getStock();
+        try {
+          const response = await get();
+          assert.equal(response.status, 200);
+          const payload = await response.json() as AdminStockResponsePayload;
+          assert.equal(payload.staron.total, 2);
+          assert.equal(payload.zen.total, 1);
+          assert.equal(google.htmlviewCalls.length, 1, "a timeout is not retried");
+          assert.ok(!google.exports(STARON_ID)[0]!.url.includes("gid="));
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("falls back to the plain export when the page doesn't list the Staron tab", async () => {
+        const google = mockGoogle({ htmlview: () => new Response(htmlviewWith([["AA 625", "111"], ["AG 612", "222"]]), { status: 200 }) });
+        const { server, get } = await getStock();
+        try {
+          assert.equal((await get()).status, 200);
+          assert.ok(!google.exports(STARON_ID)[0]!.url.includes("gid="), "never guesses another tab's id");
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("tries the live id, then STOCK_STARON_SHEET_GID, then the plain export, and forgets a live id that stopped working", async () => {
+        process.env["STOCK_STARON_SHEET_GID"] = STALE_ENV_GID;
+        const google = mockGoogle({
+          htmlview: liveHtmlview,
+          staronExport: (url) => (url.includes("gid=") ? new Response("Bad Request", { status: 400 }) : new Response(STARON_CSV, { status: 200 })),
+        });
+        const { server, get } = await getStock();
+        try {
+          const response = await get();
+          assert.equal(response.status, 200);
+          const staronExports = google.exports(STARON_ID).map((call) => call.url);
+          assert.equal(staronExports.length, 3);
+          assert.ok(staronExports[0]!.endsWith(`&gid=${LIVE_GID}`));
+          assert.ok(staronExports[1]!.endsWith(`&gid=${STALE_ENV_GID}`));
+          assert.ok(!staronExports[2]!.includes("gid="));
+
+          await get("/api/admin/stock?refresh=true");
+          assert.equal(google.htmlviewCalls.length, 2, "the failed live id was dropped, so the page is read again");
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("keeps the live id between refreshes instead of re-reading the page every time", async () => {
+        const google = mockGoogle({ htmlview: liveHtmlview });
+        const { server, get } = await getStock();
+        try {
+          await get();
+          assert.equal((await get("/api/admin/stock?refresh=true")).status, 200);
+          assert.equal(google.htmlviewCalls.length, 1);
+          const staronExports = google.exports(STARON_ID);
+          assert.equal(staronExports.length, 2);
+          assert.ok(staronExports.every((call) => call.url.endsWith(`&gid=${LIVE_GID}`)));
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("sends the service-account token to /htmlview first, and retries without it if the page refuses it", async () => {
+        const google = mockGoogle({
+          htmlview: (_url, init) => (new Headers(init?.headers).get("authorization") ? new Response("Unauthorized", { status: 401 }) : liveHtmlview()),
+        });
+        const { server, get } = await getStock();
+        try {
+          assert.equal((await get()).status, 200);
+          assert.equal(google.htmlviewCalls.length, 2);
+          assert.equal(google.htmlviewCalls[0]!.authorization, "Bearer fake-access-token");
+          assert.equal(google.htmlviewCalls[1]!.authorization, null);
+          assert.ok(google.exports(STARON_ID)[0]!.url.endsWith(`&gid=${LIVE_GID}`));
+        } finally {
+          await server.close();
+        }
+      });
     });
   });
 
