@@ -104,7 +104,11 @@ app.use((req, res, next) => {
 app.use("/api", router);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  logger.error({ error }, "Unhandled API error");
+  logger.error({
+    err: error,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  }, "Unhandled API error");
   const typedError = error as { code?: string; type?: string; status?: number; statusCode?: number };
   // body-parser's own error for a request over express.json()'s `limit`
   // above -- without this, it would otherwise fall through to the generic
