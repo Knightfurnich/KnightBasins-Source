@@ -186,19 +186,36 @@ export const STOREFRONT_THEME_STYLES = `
 }
 
 [data-theme="dark"] .catalog-hero h1 {
-  color: var(--ink);
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .catalog-hero h1 em {
-  color: var(--brand-blue);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .hero-copy {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .eyebrow {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .eyebrow.accent {
+  color: #38bdf8;
 }
 
 [data-theme="dark"] .catalog-toolbar h2 {
-  color: var(--ink);
+  color: #ffffff;
 }
 
 [data-theme="dark"] .catalog-toolbar h2 span {
-  color: var(--ink-soft);
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .catalog-toolbar p.eyebrow {
+  color: #38bdf8;
 }
 
 [data-theme="dark"] .search-field,
