@@ -3,6 +3,8 @@ import { Link, Route, Switch, useLocation } from "wouter";
 import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, FileText, GripVertical, MessageCircle, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, Wrench, X } from "lucide-react";
 import { WorkshopProductionSheet, type ProductionItem } from "@/components/WorkshopProductionSheet";
 import { RouteMeta } from "@/components/RouteMeta";
+import { RouteStructuredData } from "@/components/RouteStructuredData";
+import { buildBasinProductsJsonLd } from "@/data/structured-data";
 import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { TrustBadges } from "@/components/TrustBadges";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
@@ -335,12 +337,24 @@ function Layout({ children, cart, setCart, stones, setStones, stoneColors, catal
 
 function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLine[]; onToggle: (sku: string) => void }) {
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [specCopied, setSpecCopied] = useState(false);
   const closeInquiry = useCallback(() => setInquiryOpen(false), []);
   const product = productBySku(sku)!;
   const isTall = product.category === "tall vertical washbasin";
   const inQuote = cart.find((line) => line.sku === sku);
   const toggle = () => onToggle(sku);
   const galleryImages = [product.imageUrl, ...(product.galleryImageUrls ?? [])].filter((url): url is string => Boolean(url));
+  const copySpec = async (event: { stopPropagation: () => void }) => {
+    event.stopPropagation();
+    const specText = `${product.sku} | ${product.colorName} | ขนาด ${product.dimensions} | ราคา ${formatTHB(product.priceTHB)}`;
+    try {
+      await navigator.clipboard.writeText(specText);
+      setSpecCopied(true);
+      setTimeout(() => setSpecCopied(false), 2000);
+    } catch {
+      // clipboard permission denied or unavailable -- nothing else to show
+    }
+  };
   return <>
     <article
       className={`product-card ${inQuote ? "is-selected" : ""}`}
@@ -391,6 +405,14 @@ function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLin
             data-testid={`button-inquire-basin-${sku}`}
           >
             <MessageCircle size={14} aria-hidden="true" /> สอบถามรุ่นนี้
+          </button>
+          <button
+            type="button"
+            className="product-card-action product-card-action--portfolio"
+            onClick={copySpec}
+            data-testid={`button-copy-spec-${sku}`}
+          >
+            {specCopied ? <><Check size={14} aria-hidden="true" /> คัดลอกแล้ว</> : <><Copy size={14} aria-hidden="true" /> คัดลอกสเปก</>}
           </button>
         </div>
     </article>
@@ -476,6 +498,7 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS }: { cart: Qu
     });
   }, [cart, category, products, query, sort]);
    return <div className="page-wrap">
+       <RouteStructuredData id="basin-products" data={buildBasinProductsJsonLd(products)} />
        <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="catalog-hero-art"><BasinHeroMedia products={products} /><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></div></section>
        <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button><button className={category === "selected" ? "is-active" : ""} onClick={() => setCategory("selected")} data-testid="button-filter-selected">อ่างที่เลือก {selectedProductCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
      {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} cart={cart} onToggle={toggle} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
