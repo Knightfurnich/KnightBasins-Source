@@ -248,18 +248,19 @@ function MobileNavSelect() {
 function AdminDashboardRoute() {
   const access = useAdminAccess();
   const [, setLocation] = useLocation();
+  // Dashboard tiles link with a query string (e.g. /admin/leads?status=awaiting_contact).
+  // Resolve the permission from the pathname against NAV_ITEMS -- the single source
+  // of truth for menu permissions -- so a filter link can never be mistaken for an
+  // unknown, permission-less route. Previously this looked the whole href up in a
+  // hand-written map, so any tile carrying a query string failed the check for
+  // EVERYONE (including the owner) and dumped them on /admin/access-denied.
   const canNavigate = (href: string) => {
-    if (href === "/admin/team") return access.canManageTeam;
-    if (href === "/admin/backup") return canAccessBackupVault(access);
-    const permissionByHref: Record<string, AdminPermission> = {
-      "/admin/basins": "basins",
-      "/admin/installed-stones": "installed-stones",
-      "/admin/sheet-stones": "sheet-stones",
-      "/admin/leads": "leads",
-      "/admin/calendar": "leads",
-    };
-    const permission = permissionByHref[href];
-    return permission ? hasPermission(access, permission) : false;
+    const pathname = href.split("?")[0].split("#")[0];
+    const item = NAV_ITEMS.find((candidate) => candidate.href === pathname);
+    if (!item) return true;
+    if ("adminOnly" in item && item.adminOnly) return canAccessBackupVault(access);
+    if ("team" in item && item.team) return access.canManageTeam;
+    return hasPermission(access, item.permission);
   };
   const onNavigate = (href: string) => {
     setLocation(canNavigate(href) ? href : "/admin/access-denied");
