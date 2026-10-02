@@ -1731,7 +1731,33 @@ export const SubmitSketchLeadResponse = zod.object({
 
 
 /**
- * @summary Upload a bank transfer slip and verify it against the quote total via SlipOK
+ * @summary Generate a dynamic PromptPay QR for a quote
+ */
+export const createPromptPayQrBodyTokenMin = 32;
+export const createPromptPayQrBodyTokenMax = 512;
+
+export const createPromptPayQrBodyPaymentTypeDefault = `full`;
+
+export const CreatePromptPayQrBody = zod.object({
+  "token": zod.string().min(createPromptPayQrBodyTokenMin).max(createPromptPayQrBodyTokenMax).describe('Public quote access token'),
+  "paymentType": zod.enum(['deposit_30', 'deposit_50', 'full']).default(createPromptPayQrBodyPaymentTypeDefault)
+})
+
+export const CreatePromptPayQrResponse = zod.object({
+  "qrPayload": zod.string(),
+  "amountThb": zod.number(),
+  "paymentType": zod.enum(['deposit_30', 'deposit_50', 'full']),
+  "companyAccount": zod.object({
+  "bankName": zod.string().nullable(),
+  "bankAccountName": zod.string(),
+  "bankAccountNumber": zod.string().nullable(),
+  "taxId": zod.string()
+})
+})
+
+
+/**
+ * @summary Upload a bank transfer slip and verify the selected payment amount via SlipOK
  */
 export const submitPaymentSlipBodyTokenMin = 32;
 export const submitPaymentSlipBodyTokenMax = 512;
@@ -1739,9 +1765,10 @@ export const submitPaymentSlipBodyTokenMax = 512;
 
 
 export const SubmitPaymentSlipBody = zod.object({
-  "file": zod.string().describe('Uploaded slip image supplied as multipart content'),
+  "file": zod.instanceof(File).describe('Uploaded slip image supplied as multipart content'),
   "token": zod.string().min(submitPaymentSlipBodyTokenMin).max(submitPaymentSlipBodyTokenMax).describe('Public quote access token'),
-  "kind": zod.enum(['deposit', 'final']).optional()
+  "kind": zod.enum(['deposit', 'final']).optional(),
+  "paymentType": zod.enum(['deposit_30', 'deposit_50', 'full']).optional().describe('Selected payment amount; omitted values retain the full-quote-total behavior for existing callers')
 })
 
 export const SubmitPaymentSlipResponse = zod.object({

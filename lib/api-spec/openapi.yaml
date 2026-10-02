@@ -692,24 +692,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SketchLeadResponse"
+  /public/quotes/promptpay-qr:
+    post:
+      operationId: createPromptPayQr
+      tags: [leads]
+      summary: Generate a dynamic PromptPay QR for a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptPayQrInput"
+      responses:
+        "200":
+          description: Amount-aware PromptPay QR payload and public recipient details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptPayQrResponse"
+        "400":
+          description: Quote has no valid payable total
+        "404":
+          description: Quote not found
   /leads/payment-slip:
     post:
       operationId: submitPaymentSlip
       tags: [leads]
-      summary: Upload a bank transfer slip and verify it against the quote total via SlipOK
+      summary: Upload a bank transfer slip and verify the selected payment amount via SlipOK
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              required: [file, token]
-              properties:
-                file: { type: string, description: Uploaded slip image supplied as multipart content }
-                token: { type: string, description: Public quote access token, minLength: 32, maxLength: 512 }
-                kind:
-                  type: string
-                  enum: [deposit, final]
+              $ref: "#/components/schemas/PaymentSlipUploadInput"
       responses:
         "201":
           description: Payment slip saved and verification result recorded
@@ -1941,6 +1956,49 @@ components:
           type: string
           enum: [notified, saved_not_notified]
         message: { type: string }
+    PromptPayPaymentType:
+      type: string
+      enum: [deposit_30, deposit_50, full]
+    PromptPayQrInput:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, description: Public quote access token, minLength: 32, maxLength: 512 }
+        paymentType:
+          allOf:
+            - $ref: "#/components/schemas/PromptPayPaymentType"
+          default: full
+    PromptPayCompanyAccount:
+      type: object
+      required: [bankName, bankAccountName, bankAccountNumber, taxId]
+      properties:
+        bankName: { type: ["string", "null"] }
+        bankAccountName: { type: string }
+        bankAccountNumber: { type: ["string", "null"] }
+        taxId: { type: string }
+    PromptPayQrResponse:
+      type: object
+      required: [qrPayload, amountThb, paymentType, companyAccount]
+      properties:
+        qrPayload: { type: string }
+        amountThb: { type: number }
+        paymentType:
+          $ref: "#/components/schemas/PromptPayPaymentType"
+        companyAccount:
+          $ref: "#/components/schemas/PromptPayCompanyAccount"
+    PaymentSlipUploadInput:
+      type: object
+      required: [file, token]
+      properties:
+        file: { type: string, format: binary, description: Uploaded slip image supplied as multipart content }
+        token: { type: string, description: Public quote access token, minLength: 32, maxLength: 512 }
+        kind:
+          type: string
+          enum: [deposit, final]
+        paymentType:
+          allOf:
+            - $ref: "#/components/schemas/PromptPayPaymentType"
+          description: Selected payment amount; omitted values retain the full-quote-total behavior for existing callers
     PaymentSlip:
       type: object
       required: [id, leadId, kind, status, sourceType, slipImageUrl, reviewedByAdmin, createdAt, updatedAt]

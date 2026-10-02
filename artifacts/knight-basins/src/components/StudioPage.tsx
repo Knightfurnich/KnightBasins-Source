@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type DragEvent, type FormEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type SetStateAction } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { customFetch, useListAdminLeads } from "@workspace/api-client-react";
+import { customFetch, useListAdminLeads, useUpsertLead } from "@workspace/api-client-react";
 import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, Loader2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
+import StudioCheckoutModal from "./StudioCheckoutModal";
 import {
   INSTALLATION_PRICE,
   PRODUCTS,
@@ -1115,6 +1116,116 @@ function sanitizeStudioContactForPayload(contact: typeof emptyContact): typeof e
     propertyType: PROPERTY_TYPE_OPTIONS.find((option) => option.value === contact.propertyType)?.value ?? "",
     condoFloor: cleanText(contact.condoFloor),
     expectedInstallationDate: cleanText(contact.expectedInstallationDate),
+  };
+}
+
+function buildStudioNotificationSnapshot(
+  state: StudioState,
+  estimate: StudioEstimate,
+  basinProducts: ReadonlyArray<BasinProduct>,
+  stoneColors: ReadonlyArray<StoneColor>,
+): StudioNotificationSnapshot {
+  const basinCounts = new Map<string, number>();
+  state.basinPlacements.forEach((placement) => basinCounts.set(placement.sku, (basinCounts.get(placement.sku) ?? 0) + 1));
+  const items: StudioNotificationItem[] = Array.from(basinCounts.entries()).flatMap(([sku, quantity]) => {
+    const product = basinProducts.find((item) => item.sku === sku);
+    return product ? [{
+      kind: "basin" as const,
+      code: product.sku,
+      description: product.colorName,
+      quantity,
+      unit: "ชุด",
+      unitPriceTHB: product.priceTHB,
+      totalTHB: Math.round(product.priceTHB * quantity),
+      workQuantity: quantity,
+      workUnit: "ชุด",
+      dimensions: product.dimensions,
+      cutoutDimensions: product.basinDimensions,
+    }] : [];
+  });
+  const activeStone = stoneColorByName(state.activeStone, stoneColors);
+  const stoneMaterialPrice = activeStone.sheetPriceTHB;
+  const stoneLaborPrice = estimate.stoneUnitPriceTHB !== null && stoneMaterialPrice !== null
+    ? Math.max(0, estimate.stoneUnitPriceTHB - stoneMaterialPrice)
+    : null;
+  if (estimate.stoneUnitPriceTHB !== null && estimate.stoneAreaSqM > 0) items.push({
+    kind: "stone",
+    code: activeStone.code,
+    description: activeStone.name,
+    quantity: estimate.counterAreaSqM,
+    unit: "ตร.ม.",
+    unitPriceTHB: estimate.stoneUnitPriceTHB,
+    totalTHB: Math.max(0, estimate.stoneTotalTHB - estimate.upstandTotalTHB),
+    areaSqM: estimate.counterAreaSqM,
+    productUnitPriceTHB: stoneMaterialPrice,
+    laborUnitPriceTHB: stoneLaborPrice,
+    workQuantity: estimate.counterAreaSqM,
+    workUnit: "ตร.ม.",
+  });
+  items.push({
+    kind: "service",
+    code: "WORKPIECES",
+    description: `${estimate.pieceCount} ชิ้นงาน · ${estimate.rectangleCount} แผ่น`,
+    quantity: estimate.pieceCount,
+    unit: "ชิ้นงาน",
+    unitPriceTHB: 0,
+    totalTHB: 0,
+    workQuantity: estimate.pieceCount,
+    workUnit: "ชิ้นงาน",
+  });
+  if (estimate.upstandLengthM > 0) items.push({
+    kind: "service",
+    code: "UPSTAND",
+    description: `บัวยาว ${estimate.upstandLengthM.toFixed(2)} ม. · สูง ${state.upstandHeightMm ?? "ไม่ระบุ"} มม.`,
+    quantity: estimate.upstandLengthM,
+    unit: "ม.",
+    unitPriceTHB: estimate.upstandLengthM ? estimate.upstandTotalTHB / estimate.upstandLengthM : 0,
+    totalTHB: estimate.upstandTotalTHB,
+    workQuantity: estimate.upstandLengthM,
+    workUnit: "ม.",
+  });
+  if (estimate.openEdgeLengthM > 0) items.push({
+    kind: "service",
+    code: "OPEN_EDGE",
+    description: `ขอบเปิดยาว ${estimate.openEdgeLengthM.toFixed(2)} ม.`,
+    quantity: estimate.openEdgeLengthM,
+    unit: "ม.",
+    unitPriceTHB: estimate.openEdgeUnitPriceTHB ?? 0,
+    totalTHB: estimate.openEdgeTotalTHB,
+    workQuantity: estimate.openEdgeLengthM,
+    workUnit: "ม.",
+  });
+  if (estimate.installationChargeTHB > 0) items.push({
+    kind: "service",
+    code: "INSTALL",
+    description: "ค่าติดตั้ง / ค่าแรงต่อชุด",
+    quantity: state.basinPlacements.length,
+    unit: "ชุด",
+    unitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0,
+    totalTHB: estimate.installationChargeTHB,
+    laborUnitPriceTHB: state.basinPlacements.length ? estimate.installationChargeTHB / state.basinPlacements.length : 0,
+    workQuantity: state.basinPlacements.length,
+    workUnit: "ชุด",
+  });
+  if (estimate.smallJobFeeTHB > 0) items.push({
+    kind: "service",
+    code: "SMALL-JOB",
+    description: "ค่าดำเนินการงานพื้นที่เล็ก",
+    quantity: 1,
+    unit: "งาน",
+    unitPriceTHB: estimate.smallJobFeeTHB,
+    totalTHB: estimate.smallJobFeeTHB,
+    workQuantity: 1,
+    workUnit: "งาน",
+  });
+  return {
+    items,
+    grossSubtotal: estimate.grossSubtotalTHB,
+    discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB,
+    subtotal: estimate.subtotalTHB,
+    vatAmount: estimate.vatAmountTHB,
+    total: estimate.totalTHB,
+    vat: state.vat,
   };
 }
 
@@ -3394,6 +3505,7 @@ export function StudioPage({
   const linkedLeadId = leadIdParam?.trim() || null;
   const queryClient = useQueryClient();
   const leadsQuery = useListAdminLeads(undefined, { query: { enabled: linkedLeadId !== null } });
+  const upsertLead = useUpsertLead();
   const linkedLead = linkedLeadId
     ? leadsQuery.data?.find((lead) => String(lead.id) === linkedLeadId) ?? null
     : null;
@@ -3553,6 +3665,7 @@ export function StudioPage({
   }, []);
   const [result, setResult] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [checkout, setCheckout] = useState<{ token: string; quoteNumber: string; quoteTotalTHB: number } | null>(null);
   const submissionInFlightRef = useRef(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [pieceZoom, setPieceZoom] = useState<Record<string, number>>({});
@@ -4381,6 +4494,97 @@ export function StudioPage({
       setSubmitting(false);
     }
   };
+  const openPromptPayCheckout = async () => {
+    if (mode !== "studio" || isLeadLinkedMode || submissionInFlightRef.current) return;
+    if (!studioLayoutApplied) {
+      setResult("กรุณากดปุ่มประกอบผังก่อนชำระเงิน");
+      return;
+    }
+    setHasAttemptedSubmit(true);
+    const prepared = prepareStudioSubmissionPayload(state, basinProducts);
+    if (!prepared) {
+      setResult("ข้อมูลขนาดหรือราคาไม่ถูกต้อง กรุณาตรวจสอบก่อนชำระเงิน");
+      return;
+    }
+    const safeState = prepared.state;
+    const safeEstimate = prepared.estimate;
+    const safeContact = sanitizeStudioContactForPayload(contact);
+    const validationMessage = studioSubmissionValidationMessage(safeState, safeEstimate);
+    if (validationMessage) {
+      setResult(validationMessage);
+      return;
+    }
+    if (!safeContact.name || !safeContact.phone || !safeContact.project || !safeContact.address) {
+      setResult("กรุณากรอกชื่อผู้ติดต่อ โทรศัพท์ ชื่อโครงการ และสถานที่ติดตั้ง");
+      return;
+    }
+    if (!isValidPhoneNumber(safeContact.phone)) {
+      setResult("เบอร์โทรศัพท์ต้องเป็นตัวเลข 9–10 หลัก");
+      return;
+    }
+    if (safeContact.taxId && !/^[0-9]{13}$/.test(safeContact.taxId)) {
+      setResult("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+      return;
+    }
+    if (hasPastInstallationDate) {
+      setResult("วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา");
+      return;
+    }
+    if (!isValidEmailAddress(safeContact.email)) {
+      setResult("กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)");
+      return;
+    }
+    submissionInFlightRef.current = true;
+    setSubmitting(true);
+    setResult("");
+    try {
+      const notification = buildStudioNotificationSnapshot(safeState, safeEstimate, basinProducts, stoneColors);
+      const lead = await upsertLead.mutateAsync({
+        data: {
+          leadKey,
+          status: "quote_requested",
+          source: "studio",
+          productSkus: [...new Set(safeState.basinSkus)],
+          name: safeContact.name,
+          company: safeContact.company || null,
+          phone: safeContact.phone,
+          lineContact: safeContact.lineContact || null,
+          email: safeContact.email || null,
+          project: safeContact.project,
+          address: safeContact.address,
+          site: safeContact.site || safeContact.address || null,
+          purchasingDepartment: safeContact.purchasingDepartment || null,
+          notes: safeContact.notes || null,
+          taxName: safeContact.taxName || null,
+          taxId: safeContact.taxId || null,
+          taxBranch: safeContact.taxBranch || null,
+          taxAddress: safeContact.taxAddress || null,
+          preferredContact: safeContact.preferredContact || null,
+          customerRole: safeContact.customerRole || null,
+          propertyType: safeContact.propertyType || null,
+          condoFloor: safeContact.condoFloor || null,
+          expectedInstallationDate: safeContact.expectedInstallationDate || null,
+          orderMode: "studio",
+          studioData: { state: safeState, estimate: safeEstimate, notification, worksitePlaceId },
+        },
+      });
+      if (!lead.quoteNumber || !lead.publicQuoteToken) {
+        throw new Error("Quote access details were not returned");
+      }
+      setCheckout({
+        token: lead.publicQuoteToken,
+        quoteNumber: lead.quoteNumber,
+        quoteTotalTHB: safeEstimate.totalTHB,
+      });
+    } catch (error) {
+      console.error("Studio PromptPay checkout setup failed:", error);
+      setResult("สร้างใบเสนอราคาเพื่อชำระเงินไม่สำเร็จ กรุณาลองอีกครั้ง");
+    } finally {
+      submissionInFlightRef.current = false;
+      setSubmitting(false);
+    }
+  };
+
   const saveStudioToLinkedLead = async () => {
     if (submissionInFlightRef.current) return;
     if (!studioLayoutApplied) {
@@ -4699,6 +4903,16 @@ export function StudioPage({
         : <button type="button" className="button button--dark full-width" disabled={submitting || linkedLeadUnavailable || hasBasinClash} aria-describedby={hasBasinClash ? "status-studio-issues-summary" : undefined} onClick={() => void primarySubmit()} data-testid={isLeadLinkedMode ? "button-save-studio-to-lead" : mode === "studio" ? "button-submit-studio" : "button-submit-sketch"}>
           {submitting ? isLeadLinkedMode ? "กำลังบันทึก..." : "กำลังส่ง..." : isLeadLinkedMode ? "บันทึกผังลง Lead" : "ขอใบเสนอราคาจากแบบนี้"} <ArrowRight size={16} />
         </button>}
+      {mode === "studio" && !isLeadLinkedMode && <button
+        type="button"
+        className="button button--accent full-width"
+        disabled={submitting || linkedLeadUnavailable || hasBasinClash || !studioLayoutApplied}
+        aria-describedby={hasBasinClash ? "status-studio-issues-summary" : undefined}
+        onClick={() => void openPromptPayCheckout()}
+        data-testid="button-open-promptpay-checkout"
+      >
+        {submitting ? "กำลังเตรียมใบเสนอราคา…" : "💳 ชำระเงินด้วย PromptPay"}
+      </button>}
       {result && <p className="studio-result" role="status">{result}</p>}
       {hasUnsavedLinkedLeadChanges && <p className="studio-lead-unsaved" role="status">มีการแก้ไขผังที่ยังไม่ได้บันทึก</p>}
       {isLeadLinkedMode && linkedLeadLayoutIsSaved && linkedLead?.publicQuoteToken && <p className="studio-lead-quote-link" data-testid="link-existing-lead-quote"><a href={adminQuoteUrl(linkedLead.publicQuoteToken)} target="_blank" rel="noreferrer">เปิดใบเสนอราคา{linkedLead.quoteNumber ? ` ${linkedLead.quoteNumber}` : ""}</a></p>}
@@ -5079,5 +5293,11 @@ export function StudioPage({
      {mode === "studio" && draftDrawerOpen && <StudioDraftDrawer drafts={namedDrafts} basinProducts={basinProducts} stoneColors={stoneColors} onClose={() => setDraftDrawerOpen(false)} onOpen={openNamedDraft} onCopy={(draft) => void copyNamedDraftLink(draft)} onDelete={deleteNamedDraft} />}
      {mode === "studio" && saveDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setSaveDraftDialogOpen(false)} /><form className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-save-draft-title" onSubmit={saveNamedDraft} data-testid="studio-save-draft-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">SAVE WORKSPACE</p><h2 id="studio-save-draft-title">บันทึกแบบร่าง</h2></div><button type="button" className="icon-button" onClick={() => setSaveDraftDialogOpen(false)} aria-label="ปิดหน้าต่างบันทึกแบบร่าง"><X size={18} /></button></div><label>ชื่อแบบร่าง<input autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)} data-testid="input-studio-draft-name" /></label><p>เก็บผัง 2D สีหิน ขนาด อ่าง และค่ารายด้านไว้กลับมาทำต่อได้</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setSaveDraftDialogOpen(false)} data-testid="button-cancel-save-studio-draft">ยกเลิก</button><button type="submit" className="button button--accent" data-testid="button-confirm-save-studio-draft">บันทึกแบบร่าง</button></div></form></div>}
      {mode === "studio" && shareableDraftDialogOpen && <div className="studio-save-draft-layer" role="presentation"><div className="studio-save-draft-backdrop" onClick={() => setShareableDraftDialogOpen(false)} /><section className="studio-save-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-draft-resume-title" data-testid="studio-draft-resume-dialog"><div className="studio-save-draft-heading"><div><p className="eyebrow">STUDIO DRAFT LINK</p><h2 id="studio-draft-resume-title">บันทึกแบบร่างแล้ว</h2></div><button type="button" className="icon-button" onClick={() => setShareableDraftDialogOpen(false)} aria-label="ปิดหน้าต่างลิงก์แบบร่าง"><X size={18} /></button></div><label>ลิงก์สำหรับเปิดแบบร่างต่อ<input readOnly value={shareableDraftUrl} onFocus={(event) => event.currentTarget.select()} data-testid="input-studio-draft-resume-url" /></label><p>ลิงก์นี้ใช้เปิดผังเดิมเพื่อกลับมาทำต่อได้ภายใน 30 วัน</p><div className="studio-save-draft-actions"><button type="button" className="button button--outline" onClick={() => setShareableDraftDialogOpen(false)}>ปิด</button><button type="button" className="button button--accent" onClick={() => void copyShareableDraftUrl()} data-testid="button-studio-copy-draft-link"><Copy size={15} /> {shareableDraftCopied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}</button></div></section></div>}
+      {mode === "studio" && checkout && <StudioCheckoutModal
+        token={checkout.token}
+        quoteNumber={checkout.quoteNumber}
+        quoteTotalTHB={checkout.quoteTotalTHB}
+        onClose={() => setCheckout(null)}
+      />}
   </div>;
 }
