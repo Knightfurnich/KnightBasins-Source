@@ -1,7 +1,7 @@
 # ใบงาน 161 (Replit) — ปุ่มสอบถามรุ่นอ่างในหน้าแคตตาล็อก (Catalog Basin Inquiry Button)
 
 **วันที่:** 2 ต.ค. 69 · **ออกโดย:** เดวิด (หัวหน้าทีม) ร่วมกับคุณนพ (บอส)
-**สถานะ:** มอบหมายให้ Replit — **ห้ามเริ่มก่อน PR ของ Task 160 จะ merge เข้า main** (ต้องใช้คอมโพเนนต์ InquiryModal ร่วมกัน)
+**สถานะ:** มอบหมายให้ Replit (Frontend / Catalog Basin Inquiry UI) — **เริ่มได้ทันที!** (Task 160 merge เข้า main เรียบร้อยแล้ว)
 
 **ที่มาและความต้องการ:**
 ต่อจาก Task 160 (ปุ่มสอบถามจากหน้าผลงาน `/portfolio`) บอสต้องการขยายปุ่มเดียวกันนี้เข้า **หน้าแคตตาล็อกขายอ่าง (`/` quick-purchase mode)** ซึ่งเป็นหน้าที่มี "ความตั้งใจซื้อสูงสุด (High-Intent)" เพราะลูกค้าเห็นรุ่น (SKU) และราคาแคตตาล็อกอยู่แล้ว
@@ -42,7 +42,6 @@ SCOPE:
   - artifacts/knight-basins/test/portfolio-inquiry.test.ts
 
 FORBIDDEN:
-  - ห้ามเริ่มงานนี้ก่อน PR ของ Task 160 (feat/replit-portfolio-inquiry) merge เข้า main แล้ว
   - ห้ามแตะต้อง src/components/WorkshopProductionSheet.tsx เด็ดขาด (ไฟล์สงวนโดยบอส)
   - ห้ามแตะต้อง src/index.css, StudioPage.tsx
   - ห้ามลบหรือเปลี่ยนพฤติกรรมปุ่มเดิม 3 ปุ่มบนการ์ดสินค้า (button-quote-basin-, link-basin-studio-, link-portfolio-basin-)
@@ -63,7 +62,6 @@ OUTPUT:
   - EVIDENCE ครบ 4 ข้อ
 
 STOP (หยุดทันทีแล้วรายงาน ถ้าเข้าเงื่อนไขใด):
-  - ถ้า PR ของ Task 160 ยังไม่ merge เข้า main
   - ถ้า typecheck มี error เกิน 0
   - ถ้าเทสต์ non-browser ตกเกิน 0 ข้อ
   - ถ้าต้องแก้ไข src/index.css เพื่อให้ฟีเจอร์ทำงาน
