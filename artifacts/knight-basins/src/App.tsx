@@ -1,7 +1,8 @@
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ErrorInfo, type ReactNode, type SetStateAction } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
-import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, FileText, GripVertical, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, Wrench, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, FileText, GripVertical, MessageCircle, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, Wrench, X } from "lucide-react";
 import { WorkshopProductionSheet, type ProductionItem } from "@/components/WorkshopProductionSheet";
+import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { TrustBadges } from "@/components/TrustBadges";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
 import { QuickFAQ } from "@/components/QuickFAQ";
@@ -332,55 +333,77 @@ function Layout({ children, cart, setCart, stones, setStones, stoneColors, catal
 }
 
 function ProductCard({ sku, cart, onToggle }: { sku: string; cart: QuoteBasinLine[]; onToggle: (sku: string) => void }) {
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const closeInquiry = useCallback(() => setInquiryOpen(false), []);
   const product = productBySku(sku)!;
   const isTall = product.category === "tall vertical washbasin";
   const inQuote = cart.find((line) => line.sku === sku);
   const toggle = () => onToggle(sku);
   const galleryImages = [product.imageUrl, ...(product.galleryImageUrls ?? [])].filter((url): url is string => Boolean(url));
-  return <article
-    className={`product-card ${inQuote ? "is-selected" : ""}`}
-    draggable
-    role="checkbox"
-    aria-checked={Boolean(inQuote)}
-    tabIndex={0}
-    onClick={toggle}
-    onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggle(); } }}
-    onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "basin"); event.dataTransfer.setData("application/x-knight-basin", sku); }}
-    data-testid={`card-product-${sku}`}
-  >
-     {inQuote && <SelectionMarker className="product-selected-badge" />}
-     <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} hoverImageUrl={product.quoteImageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{galleryImages.length > 1 && <BasinGalleryTrigger images={galleryImages} alt={`${product.sku} ${product.colorName}`} />}{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
-     <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3></div></div>
-     <div className="product-specs"><span>{product.dimensions}</span><span>{product.basinDimensions ? `หลุมอ่าง ${product.basinDimensions}` : "งานทรงสูง"}</span></div>
-     <strong className="product-price">{formatTHB(product.priceTHB)}</strong>
-      <div className="product-card-actions" role="group" aria-label={`ตัวเลือกการสั่งซื้อ ${product.sku}`}>
-        <button
-          type="button"
-          className="product-card-action product-card-action--quote"
-          onClick={(event) => { event.stopPropagation(); onToggle(sku); }}
-          aria-pressed={Boolean(inQuote)}
-          data-testid={`button-quote-basin-${sku}`}
-        >
-          🛒 ซื้อเฉพาะอ่าง
-        </button>
-        <Link
-          href={`/studio?basin=${encodeURIComponent(sku)}`}
-          className="product-card-action product-card-action--studio"
-          onClick={(event) => event.stopPropagation()}
-          data-testid={`link-basin-studio-${sku}`}
-        >
-          ✨ สั่งผลิตพร้อมท็อปเคาน์เตอร์
-        </Link>
-        <Link
-          href="/portfolio?category=bathroom"
-          className="product-card-action product-card-action--portfolio"
-          onClick={(event) => event.stopPropagation()}
-          data-testid={`link-portfolio-basin-${sku}`}
-        >
-          📸 ดูภาพงานจริง
-        </Link>
-      </div>
-  </article>;
+  return <>
+    <article
+      className={`product-card ${inQuote ? "is-selected" : ""}`}
+      draggable
+      role="checkbox"
+      aria-checked={Boolean(inQuote)}
+      tabIndex={0}
+      onClick={toggle}
+      onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggle(); } }}
+      onDragStart={(event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "basin"); event.dataTransfer.setData("application/x-knight-basin", sku); }}
+      data-testid={`card-product-${sku}`}
+    >
+       {inQuote && <SelectionMarker className="product-selected-badge" />}
+       <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} hoverImageUrl={product.quoteImageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{galleryImages.length > 1 && <BasinGalleryTrigger images={galleryImages} alt={`${product.sku} ${product.colorName}`} />}{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
+       <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3></div></div>
+       <div className="product-specs"><span>{product.dimensions}</span><span>{product.basinDimensions ? `หลุมอ่าง ${product.basinDimensions}` : "งานทรงสูง"}</span></div>
+       <strong className="product-price">{formatTHB(product.priceTHB)}</strong>
+        <div className="product-card-actions" role="group" aria-label={`ตัวเลือกการสั่งซื้อ ${product.sku}`}>
+          <button
+            type="button"
+            className="product-card-action product-card-action--quote"
+            onClick={(event) => { event.stopPropagation(); onToggle(sku); }}
+            aria-pressed={Boolean(inQuote)}
+            data-testid={`button-quote-basin-${sku}`}
+          >
+            🛒 ซื้อเฉพาะอ่าง
+          </button>
+          <Link
+            href={`/studio?basin=${encodeURIComponent(sku)}`}
+            className="product-card-action product-card-action--studio"
+            onClick={(event) => event.stopPropagation()}
+            data-testid={`link-basin-studio-${sku}`}
+          >
+            ✨ สั่งผลิตพร้อมท็อปเคาน์เตอร์
+          </Link>
+          <Link
+            href="/portfolio?category=bathroom"
+            className="product-card-action product-card-action--portfolio"
+            onClick={(event) => event.stopPropagation()}
+            data-testid={`link-portfolio-basin-${sku}`}
+          >
+            📸 ดูภาพงานจริง
+          </Link>
+          <button
+            type="button"
+            className="product-card-action product-card-action--portfolio"
+            onClick={(event) => { event.stopPropagation(); setInquiryOpen(true); }}
+            data-testid={`button-inquire-basin-${sku}`}
+          >
+            <MessageCircle size={14} aria-hidden="true" /> สอบถามรุ่นนี้
+          </button>
+        </div>
+    </article>
+    {inquiryOpen && (
+      <PortfolioInquiryModal
+        source="catalog"
+        sku={product.sku}
+        title={`${product.sku} · ${product.colorName}`}
+        imageUrl={product.imageUrl}
+        priceTHB={product.priceTHB}
+        onClose={closeInquiry}
+      />
+    )}
+  </>;
 }
 
 function SelectionMarker({ className = "" }: { className?: string }) {
@@ -1345,11 +1368,13 @@ function SavedQuotePage() {
 
 function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, setCustomer, vat, setVat, onSubmitQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; stones: StoneConfig[]; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColors: ReadonlyArray<StoneColor>; customer: CustomerDetails; setCustomer: Dispatch<SetStateAction<CustomerDetails>>; vat: boolean; setVat: Dispatch<SetStateAction<boolean>>; onSubmitQuote: (snapshot: QuickQuoteSnapshot, notify?: boolean, worksitePlaceId?: string | null) => Promise<void> }) {
   const [submitted, setSubmitted] = useState(false);
+  const [fastLaneInquiryOpen, setFastLaneInquiryOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [historyNotice, setHistoryNotice] = useState("");
   const [worksitePlaceId, setWorksitePlaceId] = useState<string | null>(null);
+  const closeFastLaneInquiry = useCallback(() => setFastLaneInquiryOpen(false), []);
   const [sitePhotos, setSitePhotos] = useStored<string[]>("knight-site-photos", []);
   const [sheetMode, setSheetMode] = useState<"formal" | "workshop">("formal");
   const { data: lineAuth } = useGetLineAuthStatus();
@@ -1430,6 +1455,10 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     `เอกสารมีอายุ 30 วันนับจากวันที่ออกเอกสาร (${formatDate(expiryDate)})`,
     "ขอให้ทีมงานยืนยันแบบและติดต่อกลับเพื่อสรุปหน้างาน",
   ].join("\n");
+  const fastLaneProduct = cart[0] ? productBySku(cart[0].sku) : undefined;
+  const fastLaneContextNotes = cart.length
+    ? `รายการในใบเสนอราคา: ${cart.map((line) => `${line.sku} × ${line.quantity}`).join(", ")}`
+    : "";
   const copyLineSummary = async () => {
     await navigator.clipboard?.writeText(lineSummary);
     setCopied(true);
@@ -1572,7 +1601,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
         <button className="button button--accent" onClick={() => void saveQuote(true)} disabled={saving || !canGenerate} data-testid="button-send-quote-notification">{saving ? "กำลังบันทึก..." : "บันทึกและส่งเข้า Telegram"}</button>
         {saveError && <span className="summary-warning" role="alert" data-testid="status-quote-save-error">{saveError}</span>}
       </div>
-      <section className="quote-heading"><div><p className="eyebrow accent">QUOTE BUILDER / {quoteNumber}</p><h1>จากรายการ<br /><em>สู่ตัวเลขที่ชัดเจน</em></h1><p className="hero-copy">ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทางการสำหรับโปรเจกต์ของคุณ</p></div><div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={printQuote} data-testid="button-print-quote"><Printer size={15} /> พิมพ์ใบเสนอราคา</button><button onClick={printWorkshop} className="button--secondary" style={{ marginLeft: 6 }} data-testid="button-print-workshop"><Wrench size={15} /> พิมพ์ใบสั่งผลิตช่าง</button><button type="button" className="text-link" onClick={viewQuoteHistory} data-testid="button-view-quote-history">ดูใบเสนอราคาก่อนหน้า</button>{historyNotice && <span className="summary-warning" role="alert" data-testid="status-quote-history-login-required">{historyNotice}</span>}</div></section>
+      <section className="quote-heading"><div><p className="eyebrow accent">QUOTE BUILDER / {quoteNumber}</p><h1>จากรายการ<br /><em>สู่ตัวเลขที่ชัดเจน</em></h1><p className="hero-copy">ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทางการสำหรับโปรเจกต์ของคุณ</p><button type="button" className="button button--accent" onClick={() => setFastLaneInquiryOpen(true)} data-testid="button-inquire-fast-lane"><MessageCircle size={15} aria-hidden="true" /> 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว</button></div><div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={printQuote} data-testid="button-print-quote"><Printer size={15} /> พิมพ์ใบเสนอราคา</button><button onClick={printWorkshop} className="button--secondary" style={{ marginLeft: 6 }} data-testid="button-print-workshop"><Wrench size={15} /> พิมพ์ใบสั่งผลิตช่าง</button><button type="button" className="text-link" onClick={viewQuoteHistory} data-testid="button-view-quote-history">ดูใบเสนอราคาก่อนหน้า</button>{historyNotice && <span className="summary-warning" role="alert" data-testid="status-quote-history-login-required">{historyNotice}</span>}</div></section>
         <section className="quote-format-panel"><div><p className="eyebrow">รูปแบบเอกสาร</p><strong>เลือกรูปแบบใบเสนอราคา</strong><small>US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จุดติดตั้ง</small></div><div className="quote-format-switch"><button className={quoteFormat === "US" ? "is-active" : ""} onClick={() => setQuoteFormat("US")} data-testid="button-quote-format-us"><span>US</span><small>พื้นที่ / แผ่น</small></button><button className={quoteFormat === "OF" ? "is-active" : ""} onClick={() => setQuoteFormat("OF")} data-testid="button-quote-format-of"><span>OF</span><small>รายห้อง / จุด</small></button></div></section>
       <div className="quote-layout"><section className="quote-main"><div className="quote-block"><div className="block-header"><div><p className="eyebrow">01 / BASINS</p><h2>รายการอ่างล้างหน้า</h2></div><Link href="/" className="text-link" data-testid="link-add-more">เพิ่มรายการ <Plus size={15} /></Link></div>{cart.length ? cart.map((line) => { const product = productBySku(line.sku)!; return <div className="quote-line" key={line.sku} data-testid={`row-quote-${line.sku}`}><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={product.category === "tall vertical washbasin"} /><div className="quote-line-name"><span className="eyebrow">{product.sku} / {product.colorCode}</span><strong>{product.colorName}</strong><small>{product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง"} · {product.dimensions}</small></div><div className="line-quantity"><button onClick={() => updateLine(line.sku, { quantity: line.quantity - 1 })} aria-label={`ลดจำนวน ${line.sku}`} data-testid={`button-quantity-minus-${line.sku}`}><Minus size={13} /></button><span data-testid={`text-quantity-${line.sku}`}>{line.quantity}</span><button onClick={() => updateLine(line.sku, { quantity: line.quantity + 1 })} aria-label={`เพิ่มจำนวน ${line.sku}`} data-testid={`button-quantity-plus-${line.sku}`}><Plus size={13} /></button></div><label className="install-toggle"><input type="checkbox" checked={line.installationSelected} onChange={(event) => updateLine(line.sku, { installationSelected: event.target.checked })} data-testid={`input-installation-${line.sku}`} /><span />ติดตั้ง</label><strong className="line-price">{formatTHB(product.priceTHB * line.quantity)}</strong><button className="icon-button" onClick={() => setCart((lines) => lines.filter((item) => item.sku !== line.sku))} aria-label={`ลบ ${line.sku}`} data-testid={`button-remove-${line.sku}`}><Trash2 size={15} /></button></div>; }) : <div className="quote-empty" data-testid="status-quote-empty"><ShoppingBag size={22} /><p>ยังไม่มีสินค้าในใบเสนอราคา</p><Link href="/" className="text-link" data-testid="link-empty-catalog">เลือกจากแคตตาล็อก <ArrowRight size={15} /></Link></div>}<div className="install-note">ค่าติดตั้งอ่าง <strong>5,000 บาท/ชุด</strong> · ฟรีค่าดำเนินการติดตั้งเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</div></div>
            <div className="quote-block"><div className="block-header"><div><p className="eyebrow">02 / STONE</p><h2>หินสังเคราะห์</h2></div><Link href="/stone" className="text-link" data-testid="link-edit-stone">{stoneActive ? "แก้ไขการกำหนดค่า" : "เพิ่มหินสังเคราะห์"} <ArrowRight size={15} /></Link></div>{stoneActive ? stones.map((stone) => <QuoteStoneRow key={stone.color} stone={stone} stoneColors={stoneColors} onRemove={removeStone} />) : <div className="quote-empty quote-empty--compact" data-testid="status-stone-empty"><p>ยังไม่ได้เลือกหินสังเคราะห์</p><Link href="/stone" className="text-link" data-testid="link-empty-stone">เลือกสีและรูปแบบการสั่งซื้อ <ArrowRight size={15} /></Link></div>}</div>
@@ -1606,6 +1635,17 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
        )}
      </>}
     {sheetMode === "formal" && <div className="source-note">ข้อมูลสินค้าจาก Knight Basins Catalogue Part 1–2 · ราคาหินอ้างอิงจากเอกสารราคาขายแผ่นและราคารวมติดตั้งของ Knight Furnich</div>}
+     {fastLaneInquiryOpen && (
+       <PortfolioInquiryModal
+         source="catalog"
+         sku={fastLaneProduct?.sku}
+         title={fastLaneProduct ? `${fastLaneProduct.sku} · ${fastLaneProduct.colorName}` : "ขอคำแนะนำเรื่องอ่างล้างหน้า"}
+         imageUrl={fastLaneProduct?.imageUrl}
+         priceTHB={fastLaneProduct?.priceTHB}
+         contextNotes={fastLaneContextNotes}
+         onClose={closeFastLaneInquiry}
+       />
+     )}
   </div>;
 }
 
