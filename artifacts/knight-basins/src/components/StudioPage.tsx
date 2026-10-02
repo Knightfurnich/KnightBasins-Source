@@ -159,6 +159,8 @@ export type StudioNotificationItem = {
   workUnit?: string;
   dimensions?: string;
   cutoutDimensions?: string;
+  /** Stone rows only: the photo the sales team opens from the LINE/Telegram alert. */
+  imageUrl?: string;
 };
 
 export type StudioNotificationSnapshot = {
@@ -4509,6 +4511,7 @@ export function StudioPage({
         laborUnitPriceTHB: stoneLaborPrice,
         workQuantity: safeEstimate.counterAreaSqM,
         workUnit: "ตร.ม.",
+        imageUrl: safeActiveStone.quoteImageUrl ?? safeActiveStone.imageUrl,
       });
       notificationItems.push({ kind: "service", code: "WORKPIECES", description: `${safeEstimate.pieceCount} ชิ้นงาน · ${safeEstimate.rectangleCount} แผ่น`, quantity: safeEstimate.pieceCount, unit: "ชิ้นงาน", unitPriceTHB: 0, totalTHB: 0, workQuantity: safeEstimate.pieceCount, workUnit: "ชิ้นงาน" });
       if (safeEstimate.upstandLengthM > 0) notificationItems.push({ kind: "service", code: "UPSTAND", description: `บัวยาว ${safeEstimate.upstandLengthM.toFixed(2)} ม. · สูง ${safeState.upstandHeightMm ?? "ไม่ระบุ"} มม.`, quantity: safeEstimate.upstandLengthM, unit: "ม.", unitPriceTHB: safeEstimate.upstandLengthM ? safeEstimate.upstandTotalTHB / safeEstimate.upstandLengthM : 0, totalTHB: safeEstimate.upstandTotalTHB, workQuantity: safeEstimate.upstandLengthM, workUnit: "ม." });
