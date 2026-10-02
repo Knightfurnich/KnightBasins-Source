@@ -49,9 +49,24 @@ type PublicTrackingJob = {
 type TrackingState =
   | { kind: "loading" }
   | { kind: "no-token" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; notFound: boolean }
   | { kind: "empty" }
   | { kind: "ready"; job: PublicTrackingJob };
+
+/**
+ * Carries whether a failed fetch was a 404 (bad/expired token -- retrying
+ * won't help) vs a real transient error (server hiccup -- retrying might).
+ * StatePanel uses this to label the error correctly instead of always
+ * saying "TEMPORARY ISSUE", which is misleading for a link that will never
+ * resolve.
+ */
+class TrackingFetchError extends Error {
+  notFound: boolean;
+  constructor(message: string, notFound: boolean) {
+    super(message);
+    this.notFound = notFound;
+  }
+}
 
 const STAGES: ReadonlyArray<{ key: StageKey; label: string; shortLabel: string; description: string }> = [
   { key: "quote_accepted", label: "รับออเดอร์/ยืนยันแบบ", shortLabel: "ยืนยันงาน", description: "รับคำสั่งซื้อและยืนยันแบบเรียบร้อย" },
@@ -212,7 +227,10 @@ function useTrackingJob() {
       signal: controller.signal,
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error(response.status === 404 ? "ไม่พบข้อมูลงานสำหรับลิงก์นี้" : "ระบบติดตามงานไม่พร้อมใช้งานชั่วคราว");
+        if (!response.ok) {
+          const notFound = response.status === 404;
+          throw new TrackingFetchError(notFound ? "ไม่พบข้อมูลงานสำหรับลิงก์นี้" : "ระบบติดตามงานไม่พร้อมใช้งานชั่วคราว", notFound);
+        }
         return response.json() as Promise<unknown>;
       })
       .then((payload) => {
@@ -221,7 +239,11 @@ function useTrackingJob() {
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setState({ kind: "error", message: error instanceof Error ? error.message : "ไม่สามารถโหลดข้อมูลงานได้" });
+        if (error instanceof TrackingFetchError) {
+          setState({ kind: "error", message: error.message, notFound: error.notFound });
+          return;
+        }
+        setState({ kind: "error", message: error instanceof Error ? error.message : "ไม่สามารถโหลดข้อมูลงานได้", notFound: false });
       });
 
     return () => controller.abort();
@@ -263,12 +285,13 @@ function StatePanel({ state, retry }: { state: Exclude<TrackingState, { kind: "r
 
   const noToken = state.kind === "no-token";
   const empty = state.kind === "empty";
+  const notFound = state.kind === "error" && state.notFound;
   return (
     <section className="customer-track-state" data-testid={noToken ? "status-customer-tracking-no-token" : empty ? "status-customer-tracking-empty" : "status-customer-tracking-error"}>
       <div className="customer-track-state-icon" aria-hidden="true">
         {state.kind === "error" ? <CircleAlert size={22} /> : <MessageCircle size={21} />}
       </div>
-      <p className="customer-track-kicker">{noToken ? "PRIVATE JOB PORTAL" : empty ? "NO JOB DETAILS" : "TEMPORARY ISSUE"}</p>
+      <p className="customer-track-kicker">{noToken ? "PRIVATE JOB PORTAL" : empty ? "NO JOB DETAILS" : notFound ? "LINK NOT FOUND" : "TEMPORARY ISSUE"}</p>
       <h1>{noToken ? "เปิดลิงก์ติดตามงานจาก Knight Furnich" : empty ? "ยังไม่มีรายละเอียดงานให้แสดง" : "ไม่สามารถโหลดข้อมูลงานได้"}</h1>
       <p>
         {noToken
@@ -277,7 +300,9 @@ function StatePanel({ state, retry }: { state: Exclude<TrackingState, { kind: "r
             ? "ตรวจสอบลิงก์อีกครั้ง หรือติดต่อทีมงานผ่าน LINE เพื่อขอความช่วยเหลือ"
             : state.message}
       </p>
-      {!noToken && (
+      {/* A 404 means this token will never resolve -- retrying just reproduces
+          the same error, so the button would be misleading busywork. */}
+      {!noToken && !notFound && (
         <button type="button" className="customer-track-button customer-track-button--dark" onClick={retry} data-testid="button-retry-customer-tracking">
           ลองโหลดอีกครั้ง
         </button>

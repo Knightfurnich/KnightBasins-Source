@@ -86,4 +86,14 @@ describe("customer job tracking portal", () => {
     );
     assert.match(leadsManagerSource, /lead\.publicQuoteToken &&/);
   });
+
+  it("labels a bad/expired token as LINK NOT FOUND instead of a misleading TEMPORARY ISSUE, and hides the no-op retry button", () => {
+    // A 404 means this token will never resolve, so the copy must say so
+    // plainly and must not offer a "retry" action that just reproduces the
+    // same error.
+    assert.match(trackingPageSource, /class TrackingFetchError extends Error/);
+    assert.match(trackingPageSource, /new TrackingFetchError\(notFound \? "ไม่พบข้อมูลงานสำหรับลิงก์นี้" : "ระบบติดตามงานไม่พร้อมใช้งานชั่วคราว", notFound\)/);
+    assert.match(trackingPageSource, /notFound \? "LINK NOT FOUND" : "TEMPORARY ISSUE"/);
+    assert.match(trackingPageSource, /\{!noToken && !notFound && \(/);
+  });
 });
