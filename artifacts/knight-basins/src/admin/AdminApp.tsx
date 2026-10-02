@@ -25,7 +25,7 @@ import { SitePhotosPage } from "./SitePhotosPage";
 import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
 import AiCostCenterPage from "./AiCostCenterPage";
 import { knightFurnichLogo } from "@/data/assets";
-import { AdminThemeToggle, useAdminTheme } from "./admin-theme";
+import { AdminThemeStyles, AdminThemeToggle, useAdminTheme } from "./admin-theme";
 import { OpsAssistantWidget } from "./OpsAssistantWidget";
 
 const loginSchema = z.object({
@@ -336,6 +336,7 @@ function TeamRoute() {
 export function AdminLogin() {
   const login = useCreateAdminSession();
   const queryClient = useQueryClient();
+  const { theme: loginTheme } = useAdminTheme();
   const [location, setLocation] = useLocation();
   const lineLoginDenied = location.includes("adminLogin=not-approved");
   const inviteInvalid = location.includes("adminLogin=invite-invalid");
@@ -361,7 +362,8 @@ export function AdminLogin() {
   };
 
   return (
-    <div className="admin-login min-h-screen bg-[var(--paper)] flex flex-col items-center justify-center p-6 text-[var(--ink)]">
+    <div className="admin-login min-h-screen bg-[var(--paper)] flex flex-col items-center justify-center p-6 text-[var(--ink)]" data-admin-theme={loginTheme}>
+      <AdminThemeStyles />
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
           <img className="admin-login-logo" src={knightFurnichLogo} alt="Knight Furnich" />

@@ -49,7 +49,8 @@ describe("admin theme toggle", () => {
   it("scopes dark colors to the admin app and covers common admin controls", () => {
     const styleBlock = adminThemeSource.match(/const ADMIN_THEME_STYLES = `([\s\S]*?)`;/)?.[1];
     assert.ok(styleBlock, "The admin theme style block should exist");
-    const selectors = [...styleBlock.matchAll(/([^{}]+)\{/g)]
+    const withoutComments = styleBlock.replace(/\/\*[\s\S]*?\*\//g, "");
+    const selectors = [...withoutComments.matchAll(/([^{}]+)\{/g)]
       .map((match) => match[1].trim())
       .filter((selector) => !selector.startsWith("@"));
     assert.ok(selectors.length > 0, "The scoped style block should contain CSS rules");
@@ -69,10 +70,13 @@ describe("admin theme toggle", () => {
       }
       individualSelectors.push(currentSelector);
       for (const selector of individualSelectors) {
-        assert.ok(
-          selector.trim().startsWith('.admin-app[data-admin-theme="dark"]'),
-          `Theme selector escaped the admin app: ${selector.trim()}`,
-        );
+        const trimmed = selector.trim();
+        const scoped =
+          trimmed.startsWith('.admin-app[data-admin-theme="dark"]')
+          // The login screen renders outside .admin-app (no header/sidebar yet),
+          // so it carries its own data-admin-theme scope.
+          || trimmed.startsWith('.admin-login[data-admin-theme="dark"]');
+        assert.ok(scoped, `Theme selector escaped the admin app: ${trimmed}`);
       }
     }
     assert.match(styleBlock, /--paper:\s*#0d1726/);

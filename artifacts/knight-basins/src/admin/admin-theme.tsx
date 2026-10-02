@@ -120,40 +120,45 @@ const ADMIN_THEME_STYLES = `
   border-color: var(--line);
 }
 
-/* Admin Login & Forms in Dark Mode */
-.admin-login,
-[data-theme="dark"] .admin-login {
+/* Admin Login & Forms in Dark Mode (index.css ถูก freeze — override ด้วย specificity สูง) */
+.admin-login[data-admin-theme="dark"] {
   background-color: #0d1726 !important;
+  background-image: none !important;
   color: #eef4fa !important;
 }
 
-[data-theme="dark"] .admin-login .bg-\[var\(--card-paper\)\] {
+.admin-login[data-admin-theme="dark"] > div > div:last-child,
+.admin-login[data-admin-theme="dark"] div[class*="card-paper"] {
   background-color: #142235 !important;
+  background-image: none !important;
   border-color: #2d4056 !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45) !important;
 }
 
-[data-theme="dark"] .admin-login h1 {
+.admin-login[data-admin-theme="dark"] h1,
+.admin-login[data-admin-theme="dark"] h2,
+.admin-login[data-admin-theme="dark"] h3 {
   color: #ffffff !important;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="dark"] .admin-login p,
-[data-theme="dark"] .admin-login label {
+.admin-login[data-admin-theme="dark"] p,
+.admin-login[data-admin-theme="dark"] label,
+.admin-login[data-admin-theme="dark"] small {
   color: #cbd5e1 !important;
 }
 
-[data-theme="dark"] .admin-login input {
-  background-color: #0d1726 !important;
+.admin-login[data-admin-theme="dark"] input,
+.admin-login[data-admin-theme="dark"] select,
+.admin-login[data-admin-theme="dark"] textarea {
+  background: #0d1726 !important;
   border-color: #2d4056 !important;
   color: #ffffff !important;
 }
 
-[data-theme="dark"] .admin-login button:not([class*="bg-"]) {
-  background-color: #1a2c42 !important;
-  border-color: #2d4056 !important;
-  color: #ffffff !important;
+.admin-login[data-admin-theme="dark"] input::placeholder {
+  color: #94a3b8 !important;
 }
+
 `;
 
 function readStoredAdminTheme(): AdminTheme {
@@ -186,6 +191,10 @@ export function useAdminTheme() {
   return { theme, toggleTheme };
 }
 
+export function AdminThemeStyles() {
+  return <style data-admin-theme-styles="">{ADMIN_THEME_STYLES}</style>;
+}
+
 export function AdminThemeToggle({
   theme,
   onToggle,
@@ -198,7 +207,7 @@ export function AdminThemeToggle({
 
   return (
     <>
-      <style data-admin-theme-styles="">{ADMIN_THEME_STYLES}</style>
+      <AdminThemeStyles />
       <Button
         type="button"
         variant="outline"
