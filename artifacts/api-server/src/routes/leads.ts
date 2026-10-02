@@ -20,6 +20,7 @@ import {
   verifyPublicQuoteToken,
 } from "../lib/quote-access";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
+import { amountForPaymentType, generatePromptPayPayload, type PromptPayPaymentType } from "../lib/promptpay";
 import { notifyPaymentSlip, notifyQuote, notifySketch } from "../lib/sales-notifications";
 import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
 import { formatQuoteMonth } from "../lib/date-time";
@@ -37,6 +38,59 @@ const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 /** Delegates to price-integrity.ts's tamper-aware check; a negative, non-finite, or out-of-range total is treated the same as "no total present" here, never trusted through as-is. */
 export function quoteTotalTHB(studioData: unknown): number | null {
   return verifyAndSanitizeQuoteTotal(studioData).verifiedTotal;
+}
+
+// Knight Furnich Co., Ltd.'s own tax ID, used as the PromptPay QR target
+// (job-163's spec gives this exact number -- it's not a secret, it's the
+// company's public PromptPay registration). Bank account display details
+// are read from env vars rather than hardcoded, since this codebase has no
+// access to the real values -- GET /public/quotes/promptpay-qr returns
+// `null` for whichever of these isn't configured.
+const KNIGHT_FURNICH_PROMPTPAY_TAX_ID = "0135553014114";
+const KNIGHT_FURNICH_ACCOUNT_NAME = "บริษัท ไนท์ เฟอร์นิช จำกัด";
+
+export function knightFurnichCompanyAccount() {
+  return {
+    bankName: process.env["KNIGHT_FURNICH_BANK_NAME"] ?? null,
+    bankAccountName: KNIGHT_FURNICH_ACCOUNT_NAME,
+    bankAccountNumber: process.env["KNIGHT_FURNICH_BANK_ACCOUNT_NUMBER"] ?? null,
+    taxId: KNIGHT_FURNICH_PROMPTPAY_TAX_ID,
+  };
+}
+
+/**
+ * The job-163 auto-confirm alert needs an exact literal tag
+ * ("✅ [ชำระเงินมัดจำสำเร็จ - เริ่มเปิดคิวผลิตอัตโนมัติ]") that the existing
+ * notifyPaymentSlip (sales-notifications.ts, out of this job's SCOPE)
+ * doesn't produce -- sent as a second, best-effort Telegram message rather
+ * than replacing that call. Never throws: a Telegram outage must not turn
+ * an already-saved, already-verified payment into a 500.
+ */
+async function sendAutoConfirmTelegramAlert(
+  lead: { quoteNumber: string | null; name: string | null; phone: string | null },
+  verifiedAmountThb: number,
+): Promise<void> {
+  const token = process.env["TELEGRAM_BOT_TOKEN"];
+  const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
+  if (!token || !chatId) return;
+  const text = [
+    "✅ [ชำระเงินมัดจำสำเร็จ - เริ่มเปิดคิวผลิตอัตโนมัติ]",
+    `เลขที่: ${lead.quoteNumber || "-"}`,
+    `ผู้ติดต่อ: ${lead.name || "-"} · โทร: ${lead.phone || "-"}`,
+    `ยอดที่ได้รับ: ${verifiedAmountThb.toLocaleString("th-TH")} บาท`,
+  ].join("\n");
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+    if (!response.ok) {
+      console.warn("Auto-confirm Telegram alert failed", { status: response.status });
+    }
+  } catch (error) {
+    console.warn("Auto-confirm Telegram alert failed", error instanceof Error ? error.message : "unknown");
+  }
 }
 
 export type FabricationAudit = {
@@ -286,6 +340,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   // does the same thing.
   const quotesGetRateLimit = createRateLimiter({ name: "rl:quotes:get", max: 60, windowMs: 10 * 60 * 1000 });
   const trackGetRateLimit = createRateLimiter({ name: "rl:public-track:get", max: 60, windowMs: 10 * 60 * 1000 });
+  const promptpayQrRateLimit = createRateLimiter({ name: "rl:public-quotes-promptpay-qr", max: 30, windowMs: 60 * 1000 });
 
  router.post("/leads", leadRateLimit, async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
@@ -421,6 +476,58 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
       return res.status(404).json({ message: "Quote not found" });
     }
     return res.json(publicQuoteResponse(lead));
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * POST /api/public/quotes/promptpay-qr
+ * Builds a dynamic PromptPay QR payload (job-163) for a customer holding a
+ * valid quote token -- lets Studio/the quote page move from "wait for a
+ * salesperson to send bank details" to "scan and pay". Never exposes
+ * anything beyond what GET /quotes already allows this same token to see.
+ */
+router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res, next) => {
+  const body = (req.body ?? {}) as { token?: unknown; paymentType?: unknown };
+  const token = typeof body.token === "string" ? body.token.trim() : "";
+  const access = verifyPublicQuoteToken(token);
+  if (!access) return res.status(404).json({ message: "Quote not found" });
+
+  const paymentType: PromptPayPaymentType =
+    body.paymentType === "deposit_50" || body.paymentType === "deposit_30" || body.paymentType === "full"
+      ? body.paymentType
+      : "full";
+
+  try {
+    const [lead] = await database
+      .select()
+      .from(customerLeads)
+      .where(eq(customerLeads.quoteNumber, access.quoteNumber))
+      .limit(1);
+    if (
+      !lead ||
+      !["studio", "quick-purchase"].includes(lead.orderMode) ||
+      !lead.studioData ||
+      !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
+    ) {
+      return res.status(404).json({ message: "Quote not found" });
+    }
+
+    const total = quoteTotalTHB(lead.studioData);
+    if (total === null || total <= 0) {
+      return res.status(400).json({ message: "ไม่พบยอดเงินที่ถูกต้องสำหรับใบเสนอราคานี้" });
+    }
+
+    const amountThb = amountForPaymentType(total, paymentType);
+    const qrPayload = generatePromptPayPayload({ target: KNIGHT_FURNICH_PROMPTPAY_TAX_ID, amountThb });
+
+    return res.json({
+      qrPayload,
+      amountThb,
+      paymentType,
+      companyAccount: knightFurnichCompanyAccount(),
+    });
   } catch (error) {
     return next(error);
   }
@@ -678,6 +785,30 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
           )
           .returning();
         if (!slip) throw new Error("Payment slip was not saved");
+
+        // Auto-Close (job-163): a SlipOK-verified slip against a lead still
+        // waiting on payment closes the sale immediately, no admin click
+        // needed. Scoped tightly: only fires on a genuine SlipOK pass
+        // (never on "needs_review"/"rejected" -- the FORBIDDEN clause this
+        // job was issued under), and only moves a lead out of "new"/"quoted"
+        // -- a lead already confirmed/closed/etc. is left exactly as-is.
+        if (result.ok && ["new", "quoted"].includes(lead.status)) {
+          try {
+            await database
+              .update(customerLeads)
+              .set({
+                status: "confirmed",
+                notes: [lead.notes, `[ระบบอัตโนมัติ]: ชำระเงินมัดจำเรียบร้อยแล้วผ่าน SlipOK (ยอด ${result.amount} บาท)`]
+                  .filter((part) => part && part.trim())
+                  .join("\n"),
+                updatedAt: new Date(),
+              })
+              .where(eq(customerLeads.id, lead.id));
+            await sendAutoConfirmTelegramAlert(lead, result.amount);
+          } catch (confirmError) {
+            console.warn("Failed to auto-confirm lead after a verified payment slip", { leadId: lead.id, error: confirmError });
+          }
+        }
 
         await notifyPaymentSlip(
           lead,
