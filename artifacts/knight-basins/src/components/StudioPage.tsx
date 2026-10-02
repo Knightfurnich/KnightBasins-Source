@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { customFetch, useListAdminLeads, useUpsertLead } from "@workspace/api-client-react";
-import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Link2, Loader2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Download, FolderOpen, GripVertical, Image as ImageIcon, Link2, Loader2, MapPin, Minus, Palette, Pencil, Plus, Redo2, RotateCw, Save, Trash2, Undo2, Upload, X } from "lucide-react";
 import { adminQuoteUrl } from "@/admin/leads-utils";
 import StudioCheckoutModal from "./StudioCheckoutModal";
 import {
@@ -97,6 +97,7 @@ import {
 } from "@/data/studio-model";
 import { StudioFootprint } from "./StudioFootprint";
 import { BasinVisual } from "./BasinVisual";
+import { StoneSlabViewer } from "./StoneSlabViewer";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { clearStoredStudioDraft, createStudioDraftLink, createStudioShareLink, decodeStudioDraftRecord, readStoredShortStudioDraft, readStoredStudioDraft, readStoredStudioDrafts, removeStoredStudioDraft, upsertStoredStudioDraft, writeStoredStudioDraft, type NamedStudioDraftRecord, type StudioDraftRecord } from "@/data/studio-draft";
 import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
@@ -172,6 +173,15 @@ export type StudioNotificationSnapshot = {
 
 const MAX_SKETCH_FILES = 3;
 const MAX_SKETCH_IMAGE_EDGE = 1920;
+
+function stoneSlabViewerImages(stone: Pick<StoneColor, "slabImageUrl" | "galleryImageUrls">): string[] {
+  const slabImageUrl = stone.slabImageUrl?.trim();
+  if (!slabImageUrl) return [];
+  return Array.from(new Set([
+    slabImageUrl,
+    ...(stone.galleryImageUrls ?? []).map((url) => url.trim()).filter(Boolean),
+  ]));
+}
 
 export function getRotatedSketchDimensions(width: number, height: number, maxEdge = MAX_SKETCH_IMAGE_EDGE) {
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
@@ -2052,6 +2062,7 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
     event.preventDefault();
     event.stopPropagation();
   };
+  const activeStoneSlabImages = stoneSlabViewerImages(activeStone);
   const stoneSelector = <section className={`studio-panel studio-selector-panel ${mode === "studio" ? "studio-stone-popover-panel" : ""}`}>
     <div className="studio-panel-heading"><div><p className="eyebrow">01 / MATERIAL SHORTLIST</p><h3>เลือกสีหิน</h3></div><span>{state.stoneColors.length} สี</span></div>
     <p className="studio-helper">เลือกสีเพื่อเปรียบเทียบ แล้วเลือกสีที่ใช้คำนวณจากรายการด้านล่าง</p>
@@ -2060,7 +2071,20 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
     </div>
     <div className="studio-stone-list">{visibleStoneColors.map((stone) => {
       const selected = state.stoneColors.includes(stone.code);
-      return <button type="button" key={stone.code} className={`studio-stone-choice ${selected ? "is-selected" : ""} ${state.activeStone === stone.code ? "is-active" : ""}`} onClick={() => { toggleStone(stone.code); if (mode === "studio") setOpenCatalog(null); }} aria-pressed={selected} data-testid={`button-studio-stone-${stone.code}`}><span className="studio-stone-swatch" style={{ background: stone.tone }} /> <strong>{stone.code}</strong><small>{stone.name}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>;
+      const slabImages = stoneSlabViewerImages(stone);
+      return <div key={stone.code} style={{ display: "grid", gap: 4, minWidth: 0 }}>
+        <button type="button" className={`studio-stone-choice ${selected ? "is-selected" : ""} ${state.activeStone === stone.code ? "is-active" : ""}`} onClick={() => { toggleStone(stone.code); if (mode === "studio") setOpenCatalog(null); }} aria-pressed={selected} data-testid={`button-studio-stone-${stone.code}`}><span className="studio-stone-swatch" style={{ background: stone.tone }} /> <strong>{stone.code}</strong><small>{stone.name}</small>{selected && <span className="studio-selection-check" aria-hidden="true"><Check size={12} /></span>}</button>
+        {mode === "studio" && stone.slabImageUrl && slabImages.length > 0 && <div onClick={(event) => event.stopPropagation()} style={{ display: "grid", minWidth: 0 }}>
+          <StoneSlabViewer
+            images={slabImages}
+            alt={`${stone.name} (${stone.code})`}
+            buttonLabel="ดูลายแผ่นจริง"
+            buttonTestId={`button-studio-stone-slab-${stone.code}`}
+            buttonClassName="button button--outline"
+            buttonIcon={<ImageIcon size={14} />}
+          />
+        </div>}
+      </div>;
     })}</div>
     <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => { setState((current) => ({ ...current, activeStone: code })); if (mode === "studio") setOpenCatalog(null); }} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / m²</button>)}</div>
   </section>;
@@ -2098,10 +2122,20 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
   if (mode === "sketch") return <div className="studio-shortlists">{stoneSelector}{basinSelector}</div>;
   return <div className="studio-shortlists studio-selector-toolbar" ref={catalogToolbarRef} data-testid="studio-selector-toolbar">
     <div className="studio-selector-actions">
-      <div className="studio-selector-anchor">
-        <button type="button" className="studio-selector-trigger" aria-expanded={openCatalog === "stone"} aria-controls="studio-stone-popover" onClick={() => setOpenCatalog((current) => current === "stone" ? null : "stone")} data-testid="button-open-studio-stone-popover">
+      <div className="studio-selector-anchor" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: 8 }}>
+        <button type="button" className="studio-selector-trigger" style={{ width: "auto", minWidth: 0 }} aria-expanded={openCatalog === "stone"} aria-controls="studio-stone-popover" onClick={() => setOpenCatalog((current) => current === "stone" ? null : "stone")} data-testid="button-open-studio-stone-popover">
           <Palette size={17} /><span><small>สีหิน</small><strong>{activeStone.name} ({activeStone.code})</strong><span>{formatTHB(activeStone.installedPriceTHB ?? 0)} บ./ตร.ม.</span></span><ChevronDown size={16} />
         </button>
+        {activeStone.slabImageUrl && activeStoneSlabImages.length > 0 && <div onClick={(event) => event.stopPropagation()} style={{ display: "grid", minWidth: 0 }}>
+          <StoneSlabViewer
+            images={activeStoneSlabImages}
+            alt={`${activeStone.name} (${activeStone.code})`}
+            buttonLabel="ดูลายแผ่นจริง"
+            buttonTestId="button-studio-active-stone-slab-open"
+            buttonClassName="button button--outline"
+            buttonIcon={<ImageIcon size={14} />}
+          />
+        </div>}
         <div className="studio-selector-popover" id="studio-stone-popover" role="dialog" aria-label="เลือกสีหิน" data-testid="studio-stone-popover" hidden={openCatalog !== "stone"}>{stoneSelector}</div>
       </div>
       <div className="studio-selector-anchor">
