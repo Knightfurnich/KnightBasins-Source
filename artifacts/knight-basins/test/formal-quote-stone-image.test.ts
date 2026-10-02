@@ -17,6 +17,20 @@ const here = dirname(fileURLToPath(import.meta.url));
 const appSource = readFileSync(join(here, "..", "src", "App.tsx"), "utf8");
 
 describe("formal quotation stone image source", () => {
+  it("adds the quote image fallback to the 2D Studio stone item", () => {
+    assert.match(
+      appSource,
+      /formalItems\.push\(\{\s*code:\s*activeStone\.code,[\s\S]*?imageUrl:\s*activeStone\.quoteImageUrl\s*\?\?\s*activeStone\.imageUrl,/,
+    );
+  });
+
+  it("adds the quote image fallback to the storefront stone item", () => {
+    assert.match(
+      appSource,
+      /formalItems\.push\(\{\s*code:\s*selectedStone\.code,[\s\S]*?imageUrl:\s*selectedStone\.quoteImageUrl\s*\?\?\s*selectedStone\.imageUrl,/,
+    );
+  });
+
   it("attaches the quote photo (falling back to the storefront photo) on studio stone rows", () => {
     assert.match(
       appSource,
