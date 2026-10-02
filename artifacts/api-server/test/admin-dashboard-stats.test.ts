@@ -688,8 +688,10 @@ describe("GET /admin/dashboard-stats", () => {
   });
 
   it("returns the full dashboard payload for an authenticated admin", async () => {
+    // Install date is dynamically set to 2 days from now so the test never goes stale across calendar days
+    const installDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const leads = [
-      lead({ id: 1, status: "ready_for_production", quoteNumber: "Sep 26 / US / 1", expectedInstallationDate: "2026-09-25", productSkus: ["KF001"], createdAt: "2026-09-24T01:00:00.000Z" }),
+      lead({ id: 1, status: "ready_for_production", quoteNumber: "Sep 26 / US / 1", expectedInstallationDate: installDate, productSkus: ["KF001"], createdAt: "2026-09-24T01:00:00.000Z" }),
       lead({ id: 2, status: "closed", quoteNumber: "Sep 26 / OF / 2", productSkus: ["KF001"], createdAt: "2026-09-23T01:00:00.000Z" }),
       lead({ id: 3, status: "new_lead", createdAt: "2026-09-22T01:00:00.000Z" }),
     ];

@@ -307,6 +307,9 @@ describe("computeTechnicianCalendar", () => {
       address: "123 ถ.สุขุมวิท",
       quoteNumber: "Sep 26 / US / 42",
       confidence: "manual",
+      siteLat: null,
+      siteLng: null,
+      siteMapsUrl: null,
     });
   });
 });
@@ -558,13 +561,21 @@ describe("GET /admin/leads?technicianTeamCode", () => {
 
   function createFakeLeadsListDatabase(leads: FakeListLead[]) {
     let capturedWhere: unknown = "not-called";
+    let isFirstCall = true;
     return {
       capturedWhere: () => capturedWhere,
       select: () => ({
         from: () => ({
           where: (condition: unknown) => {
-            capturedWhere = condition;
-            return { orderBy: async () => leads };
+            if (isFirstCall) {
+              capturedWhere = condition;
+              isFirstCall = false;
+            }
+            return {
+              orderBy: async () => leads,
+              // When admin-router queries paymentSlips for leadIds, it awaits .where(...) directly
+              then: (resolve: (v: unknown[]) => void) => resolve([]),
+            };
           },
         }),
       }),
