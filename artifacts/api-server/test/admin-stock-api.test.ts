@@ -550,10 +550,11 @@ describe("GET /admin/stock", () => {
           assert.equal(staronExports.length, 1);
           assert.ok(staronExports[0]!.url.endsWith(`&gid=${LIVE_GID}`), "the id read from the page is used, not a remembered one");
 
-          assert.equal(google.htmlviewCalls.length, 1, "only Staron needs the lookup");
-          assert.ok(google.htmlviewCalls[0]!.url.endsWith(`/d/${STARON_ID}/htmlview`));
-          assert.ok(google.htmlviewCalls[0]!.signal instanceof AbortSignal, "the lookup is time-boxed too");
-          assert.ok(!google.exports(ZEN_ID)[0]!.url.includes("gid="), "Zen Stone never gets a gid");
+          const staronHtmlviews = google.htmlviewCalls.filter((c) => c.url.includes(STARON_ID));
+          assert.equal(staronHtmlviews.length, 1, "Staron lookup happens once");
+          assert.ok(staronHtmlviews[0]!.url.endsWith(`/d/${STARON_ID}/htmlview`));
+          assert.ok(staronHtmlviews[0]!.signal instanceof AbortSignal, "the lookup is time-boxed too");
+          assert.ok(google.htmlviewCalls.some((c) => c.url.includes(ZEN_ID)), "Zen also performs htmlview lookup");
         } finally {
           await server.close();
         }
@@ -599,7 +600,8 @@ describe("GET /admin/stock", () => {
           const payload = await response.json() as AdminStockResponsePayload;
           assert.equal(payload.staron.total, 2);
           assert.equal(payload.zen.total, 1);
-          assert.equal(google.htmlviewCalls.length, 1, "a timeout is not retried");
+          const staronHtmlviews = google.htmlviewCalls.filter((c) => c.url.includes(STARON_ID));
+          assert.equal(staronHtmlviews.length, 1, "a timeout is not retried");
           assert.ok(!google.exports(STARON_ID)[0]!.url.includes("gid="));
         } finally {
           await server.close();
@@ -634,7 +636,8 @@ describe("GET /admin/stock", () => {
           assert.ok(!staronExports[2]!.includes("gid="));
 
           await get("/api/admin/stock?refresh=true");
-          assert.equal(google.htmlviewCalls.length, 2, "the failed live id was dropped, so the page is read again");
+          const staronHtmlviews = google.htmlviewCalls.filter((c) => c.url.includes(STARON_ID));
+          assert.equal(staronHtmlviews.length, 2, "the failed live id was dropped, so the page is read again");
         } finally {
           await server.close();
         }
@@ -646,7 +649,7 @@ describe("GET /admin/stock", () => {
         try {
           await get();
           assert.equal((await get("/api/admin/stock?refresh=true")).status, 200);
-          assert.equal(google.htmlviewCalls.length, 1);
+          assert.equal(google.htmlviewCalls.length, 2, "1 for staron + 1 for zen on initial fetch, both cached on refresh");
           const staronExports = google.exports(STARON_ID);
           assert.equal(staronExports.length, 2);
           assert.ok(staronExports.every((call) => call.url.endsWith(`&gid=${LIVE_GID}`)));
@@ -662,10 +665,36 @@ describe("GET /admin/stock", () => {
         const { server, get } = await getStock();
         try {
           assert.equal((await get()).status, 200);
-          assert.equal(google.htmlviewCalls.length, 2);
-          assert.equal(google.htmlviewCalls[0]!.authorization, "Bearer fake-access-token");
-          assert.equal(google.htmlviewCalls[1]!.authorization, null);
+          const staronHtmlviews = google.htmlviewCalls.filter((c) => c.url.includes(STARON_ID));
+          assert.equal(staronHtmlviews.length, 2);
+          assert.equal(staronHtmlviews[0]!.authorization, "Bearer fake-access-token");
+          assert.equal(staronHtmlviews[1]!.authorization, null);
           assert.ok(google.exports(STARON_ID)[0]!.url.endsWith(`&gid=${LIVE_GID}`));
+        } finally {
+          await server.close();
+        }
+      });
+
+      it("resolves Zen Stone live tab id from htmlview when present", async () => {
+        const ZEN_LIVE_GID = "656201551";
+        const google = mockGoogle({
+          htmlview: (url) => {
+            if (url.includes(ZEN_ID)) {
+              return new Response(
+                htmlviewWith([["หน้าโชว์สต๊อคหิน Zen Stone", ZEN_LIVE_GID], ["AP 100", "857804783"]]),
+                { status: 200 },
+              );
+            }
+            return liveHtmlview();
+          },
+        });
+        const { server, get } = await getStock();
+        try {
+          const response = await get();
+          assert.equal(response.status, 200);
+          const zenExports = google.exports(ZEN_ID);
+          assert.ok(zenExports.length > 0);
+          assert.ok(zenExports[0]!.url.endsWith(`&gid=${ZEN_LIVE_GID}`), "Zen Stone CSV export uses live gid");
         } finally {
           await server.close();
         }
