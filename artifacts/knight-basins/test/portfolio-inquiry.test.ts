@@ -10,6 +10,10 @@ const inquiryModalSource = readFileSync(
   new URL("../src/components/PortfolioInquiryModal.tsx", import.meta.url),
   "utf8",
 );
+const appSource = readFileSync(
+  new URL("../src/App.tsx", import.meta.url),
+  "utf8",
+);
 
 describe("public portfolio direct inquiry", () => {
   it("offers a direct inquiry button on each portfolio card and in the lightbox", () => {
@@ -28,6 +32,16 @@ describe("public portfolio direct inquiry", () => {
     assert.match(inquiryModalSource, /photo\.categoryName/);
   });
 
+  it("shows the selected catalog basin SKU and price in the shared inquiry modal", () => {
+    assert.match(inquiryModalSource, /source\?: "portfolio"/);
+    assert.match(inquiryModalSource, /source: "catalog"/);
+    assert.match(inquiryModalSource, /sku\?: string/);
+    assert.match(inquiryModalSource, /priceTHB\?: number/);
+    assert.match(inquiryModalSource, /data-testid="text-inquiry-catalog-sku"/);
+    assert.match(inquiryModalSource, /data-testid="text-inquiry-catalog-price"/);
+    assert.match(inquiryModalSource, /new Intl\.NumberFormat\("th-TH"/);
+  });
+
   it("provides the required phone field and optional contact name and notes", () => {
     assert.match(inquiryModalSource, /data-testid="input-inquiry-phone"/);
     assert.match(inquiryModalSource, /type="tel"/);
@@ -41,9 +55,10 @@ describe("public portfolio direct inquiry", () => {
   it("posts the selected photo and contact details and accepts only 200 or 201", () => {
     assert.match(inquiryModalSource, /fetch\("\/api\/public\/portfolio\/inquiry"/);
     assert.match(inquiryModalSource, /method: "POST"/);
-    for (const field of ["photoId", "photoTitle", "photoUrl", "phone", "name", "notes"]) {
+    for (const field of ["photoId", "photoTitle", "photoUrl", "source", "sku", "phone", "name", "notes"]) {
       assert.match(inquiryModalSource, new RegExp(`${field}:`));
     }
+    assert.match(inquiryModalSource, /sku: sku \?\? null/);
     assert.match(inquiryModalSource, /response\.status !== 200 && response\.status !== 201/);
     assert.match(inquiryModalSource, /data-testid="button-submit-inquiry"/);
     assert.match(inquiryModalSource, /isSubmitting \? \(/);
@@ -58,8 +73,38 @@ describe("public portfolio direct inquiry", () => {
     assert.match(inquiryModalSource, /photo\.url/);
   });
 
+  it("adds the fourth basin-card inquiry action without changing the three existing actions", () => {
+    const productCardStart = appSource.indexOf("function ProductCard");
+    const productCardEnd = appSource.indexOf("function SelectionMarker", productCardStart);
+    assert.ok(productCardStart >= 0 && productCardEnd > productCardStart);
+    const productCardSource = appSource.slice(productCardStart, productCardEnd);
+    const actionPositions = [
+      "button-quote-basin-",
+      "link-basin-studio-",
+      "link-portfolio-basin-",
+      "button-inquire-basin-",
+    ].map((testId) => productCardSource.indexOf(testId));
+    assert.ok(actionPositions.every((position) => position >= 0));
+    assert.deepEqual([...actionPositions].sort((left, right) => left - right), actionPositions);
+    assert.match(productCardSource, /onClick=\{\(event\) => \{ event\.stopPropagation\(\); setInquiryOpen\(true\); \}\}/);
+    assert.match(productCardSource, /<PortfolioInquiryModal\s+source="catalog"\s+sku=\{product\.sku\}/);
+  });
+
+  it("adds the fast-lane inquiry action to QuotePage and includes selected catalog context", () => {
+    const quotePageStart = appSource.indexOf("function QuotePage");
+    const quotePageEnd = appSource.indexOf("\nimport AdminApp", quotePageStart);
+    assert.ok(quotePageStart >= 0 && quotePageEnd > quotePageStart);
+    const quotePageSource = appSource.slice(quotePageStart, quotePageEnd);
+    assert.match(quotePageSource, /data-testid="button-inquire-fast-lane"/);
+    assert.match(quotePageSource, /💬 ให้ทีมโทรกลับ \/ ขอราคาเร็ว/);
+    assert.match(quotePageSource, /sku=\{fastLaneProduct\?\.sku\}/);
+    assert.match(quotePageSource, /priceTHB=\{fastLaneProduct\?\.priceTHB\}/);
+    assert.match(quotePageSource, /cart\.map\(\(line\) => `\$\{line\.sku\} × \$\{line\.quantity\}`\)/);
+  });
+
   it("uses static source inspection without dynamically importing the component", () => {
     assert.doesNotMatch(inquiryModalSource, /import\s*\(/);
     assert.doesNotMatch(portfolioPageSource, /import\s*\(/);
+    assert.doesNotMatch(appSource, /import\s*\(/);
   });
 });

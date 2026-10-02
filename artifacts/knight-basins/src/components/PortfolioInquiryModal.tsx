@@ -15,10 +15,22 @@ type PortfolioInquiryPhoto = {
   captionTh?: string;
 };
 
-type PortfolioInquiryModalProps = {
-  photo: PortfolioInquiryPhoto;
-  onClose: () => void;
-};
+type PortfolioInquiryModalProps =
+  | {
+      source?: "portfolio";
+      photo: PortfolioInquiryPhoto;
+      onClose: () => void;
+      contextNotes?: string;
+    }
+  | {
+      source: "catalog";
+      sku?: string;
+      title?: string;
+      imageUrl?: string;
+      priceTHB?: number;
+      onClose: () => void;
+      contextNotes?: string;
+    };
 
 const inquirySchema = z.object({
   phone: z.string().trim().min(1, "กรุณากรอกเบอร์โทรศัพท์"),
@@ -28,13 +40,30 @@ const inquirySchema = z.object({
 
 type InquiryFormValues = z.infer<typeof inquirySchema>;
 
-export function PortfolioInquiryModal({ photo, onClose }: PortfolioInquiryModalProps) {
+export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
+  const { onClose } = props;
+  const source = props.source ?? "portfolio";
+  const isCatalogInquiry = source === "catalog";
+  const photo = props.source === "catalog"
+    ? {
+        id: props.sku ? `catalog:${props.sku}` : "catalog",
+        title: props.title ?? "สอบถามราคาอ่างล้างหน้า",
+        url: props.imageUrl ?? "",
+        categoryName: "แคตตาล็อกอ่างล้างหน้า",
+      }
+    : props.photo;
+  const sku = props.source === "catalog" ? props.sku : undefined;
+  const priceTHB = props.source === "catalog" ? props.priceTHB : undefined;
+  const displayTitle = props.source === "catalog" ? photo.title : photo.captionTh?.trim() || photo.title;
+  const formattedPrice = priceTHB === undefined
+    ? ""
+    : new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(priceTHB);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const form = useForm<InquiryFormValues>({
     resolver: zodResolver(inquirySchema),
-    defaultValues: { phone: "", name: "", notes: "" },
+    defaultValues: { phone: "", name: "", notes: props.contextNotes ?? "" },
   });
 
   useEffect(() => {
@@ -61,6 +90,8 @@ export function PortfolioInquiryModal({ photo, onClose }: PortfolioInquiryModalP
           photoId: photo.id,
           photoTitle: photo.title,
           photoUrl: photo.url,
+          source: source,
+          sku: sku ?? null,
           phone: values.phone,
           name: values.name,
           notes: values.notes,
@@ -77,9 +108,16 @@ export function PortfolioInquiryModal({ photo, onClose }: PortfolioInquiryModalP
     }
   };
 
-  const lineMessage = `สวัสดีครับ สนใจสั่งผลิตหรือขอราคาจากผลงาน ${photo.title}\n${photo.url}`;
+  const lineMessage = isCatalogInquiry
+    ? [
+        "สวัสดีครับ สนใจขอราคาอ่างล้างหน้า",
+        sku ? `รุ่น ${sku}` : "",
+        photo.title,
+        formattedPrice ? `ราคาแคตตาล็อก ${formattedPrice} บาท` : "",
+        photo.url,
+      ].filter(Boolean).join("\n")
+    : `สวัสดีครับ สนใจสั่งผลิตหรือขอราคาจากผลงาน ${photo.title}\n${photo.url}`;
   const lineHref = `https://line.me/R/oaMessage/%40789gcnhq/?text=${encodeURIComponent(lineMessage)}`;
-  const displayTitle = photo.captionTh?.trim() || photo.title;
 
   return (
     <div
@@ -97,9 +135,11 @@ export function PortfolioInquiryModal({ photo, onClose }: PortfolioInquiryModalP
       >
         <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-7">
           <div>
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#c48638]">Portfolio inquiry</p>
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#c48638]">
+              {isCatalogInquiry ? "Catalog inquiry" : "Portfolio inquiry"}
+            </p>
             <h2 id="portfolio-inquiry-title" className="text-xl font-bold text-[#003366] sm:text-2xl">
-              สั่งผลิตแบบนี้ / ขอราคา
+              {isCatalogInquiry ? "ให้ทีมโทรกลับ / ขอราคาเร็ว" : "สั่งผลิตแบบนี้ / ขอราคา"}
             </h2>
           </div>
           <button
@@ -116,17 +156,36 @@ export function PortfolioInquiryModal({ photo, onClose }: PortfolioInquiryModalP
 
         <div className="space-y-5 px-5 py-5 sm:px-7 sm:py-6">
           <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <img
-              src={photo.url}
-              alt={displayTitle}
-              className="h-20 w-24 shrink-0 rounded-lg object-cover sm:h-24 sm:w-32"
-              data-testid="img-inquiry-portfolio-photo"
-            />
+            {photo.url ? (
+              <img
+                src={photo.url}
+                alt={displayTitle}
+                className="h-20 w-24 shrink-0 rounded-lg object-cover sm:h-24 sm:w-32"
+                data-testid="img-inquiry-portfolio-photo"
+              />
+            ) : (
+              <div
+                role="img"
+                aria-label={displayTitle}
+                className="grid h-20 w-24 shrink-0 place-items-center rounded-lg bg-[#e8f0f6] text-[#003366] sm:h-24 sm:w-32"
+                data-testid="img-inquiry-portfolio-photo"
+              >
+                <MessageCircle size={24} aria-hidden="true" />
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-xs font-semibold text-[#006b55]">{photo.categoryName}</p>
               <p className="mt-1 line-clamp-2 text-sm font-bold text-slate-900" data-testid="text-inquiry-portfolio-title">
                 {displayTitle}
               </p>
+              {isCatalogInquiry && (
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                  {sku && <p data-testid="text-inquiry-catalog-sku">รุ่น {sku}</p>}
+                  {formattedPrice && (
+                    <p data-testid="text-inquiry-catalog-price">ราคาแคตตาล็อก {formattedPrice} บาท</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -263,7 +322,7 @@ export function PortfolioInquiryModal({ photo, onClose }: PortfolioInquiryModalP
                 data-testid="button-inquiry-line"
               >
                 <MessageCircle size={17} aria-hidden="true" />
-                🟢 ทักคุยผ่าน LINE พร้อมส่งรูปนี้ทันที
+                {isCatalogInquiry ? "🟢 ทักคุยผ่าน LINE พร้อมส่งรุ่นนี้ทันที" : "🟢 ทักคุยผ่าน LINE พร้อมส่งรูปนี้ทันที"}
               </a>
             </>
           )}
