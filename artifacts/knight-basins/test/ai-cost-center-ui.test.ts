@@ -198,7 +198,7 @@ describe("AI cost center UI contract", () => {
 
   it("registers the admin route and enforces the existing leads permission", () => {
     assert.match(appSource, /<Route path="\/admin\/ai-cost" component=\{AdminApp\} \/>/);
-    assert.match(adminSource, /\{ href: "\/admin\/ai-cost", label: "ต้นทุน AI", exact: false, permission: "leads" \}/);
+    assert.match(adminSource, /\{ href: "\/admin\/ai-cost", label: "ต้นทุน AI", exact: false, permission: "leads", group: "sales" \}/);
     assert.match(adminSource, /<Route path="\/admin\/ai-cost" component=\{AiCostCenterRoute\} \/>/);
     assert.match(adminSource, /<AdminPermissionGate permission="leads" resource="ต้นทุน AI">/);
     assert.match(adminSource, /ไม่มีสิทธิ์เข้าถึงเมนูนี้/);

@@ -61,21 +61,30 @@ const roleLabels: Record<AdminRole, string> = {
   viewer: "ดูข้อมูล",
 };
 
+const NAV_GROUPS = [
+  { key: "overview", label: "ภาพรวม" },
+  { key: "catalog", label: "แคตตาล็อก & สต็อก" },
+  { key: "sales", label: "ลูกค้า & การขาย" },
+  { key: "system", label: "ระบบ & ทีมงาน" },
+] as const;
+
+type NavGroupKey = (typeof NAV_GROUPS)[number]["key"];
+
 const NAV_ITEMS = [
-  { href: "/admin", label: "หน้าแรก", exact: true, permission: null },
-  { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false, permission: "basins" },
-  { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones" },
-  { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones" },
-  { href: "/admin/stock", label: "สต็อกหิน", exact: false, permission: "basins" },
-  { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads" },
-  { href: "/admin/ai-cost", label: "ต้นทุน AI", exact: false, permission: "leads" },
-  { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads" },
-  { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads" },
-  { href: "/admin/voice-settings", label: "เสียงผู้ช่วยขาย (น้องไนท์)", exact: false, permission: "leads" },
-  { href: "/admin/site-photos", label: "ภาพหน้างาน", exact: false, permission: "leads" },
-  { href: "/admin/portfolio", label: "คลังภาพผลงานขาย", exact: false, permission: "leads" },
-  { href: "/admin/backup", label: "สำรองข้อมูล", exact: false, permission: null, adminOnly: true },
-  { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true },
+  { href: "/admin", label: "หน้าแรก", exact: true, permission: null, group: "overview" },
+  { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false, permission: "basins", group: "catalog" },
+  { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones", group: "catalog" },
+  { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones", group: "catalog" },
+  { href: "/admin/stock", label: "สต็อกหิน", exact: false, permission: "basins", group: "catalog" },
+  { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/technician-teams", label: "ทีมช่างติดตั้ง", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/portfolio", label: "คลังภาพผลงานขาย", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/site-photos", label: "ภาพหน้างาน", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/voice-settings", label: "เสียงผู้ช่วยขาย (น้องไนท์)", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/ai-cost", label: "ต้นทุน AI", exact: false, permission: "leads", group: "sales" },
+  { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true, group: "system" },
+  { href: "/admin/backup", label: "สำรองข้อมูล", exact: false, permission: null, adminOnly: true, group: "system" },
 ] as const;
 
 const AdminAccessContext = createContext<AdminAccess>(defaultAdminAccess);
@@ -141,9 +150,20 @@ export default function AdminApp() {
            <aside className="admin-sidebar w-full md:w-44 border-b md:border-b-0 md:border-r border-[var(--line)] p-2.5 md:p-3 shrink-0">
             <MobileNavSelect />
             <nav className="hidden md:flex md:flex-col gap-1">
-               {NAV_ITEMS.filter((item) => canShowNavItem(item, access)).map((item) => (
-                 <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team} adminOnly={"adminOnly" in item && item.adminOnly}>{item.label}</NavButton>
-              ))}
+              {NAV_GROUPS.map((group) => {
+                const groupItems = NAV_ITEMS.filter((item) => item.group === group.key && canShowNavItem(item, access));
+                if (groupItems.length === 0) return null;
+                return (
+                  <div key={group.key} className="flex flex-col gap-1" data-testid={`nav-group-${group.key}`}>
+                    <p className="mt-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--ink-soft)] opacity-70">
+                      {group.label}
+                    </p>
+                    {groupItems.map((item) => (
+                      <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team} adminOnly={"adminOnly" in item && item.adminOnly}>{item.label}</NavButton>
+                    ))}
+                  </div>
+                );
+              })}
             </nav>
           </aside>
           <main className="admin-main flex-1 p-4 md:p-10 overflow-x-hidden">
@@ -209,9 +229,17 @@ function MobileNavSelect() {
       aria-label="เมนูจัดการ"
       data-testid="select-admin-mobile-nav"
     >
-       {visibleItems.map((item) => {
-         const allowed = canShowNavItem(item, access) && (("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission));
-        return <option key={item.href} value={item.href}>{!allowed ? `🔒 ${item.label}` : item.label}</option>;
+       {NAV_GROUPS.map((group) => {
+         const groupItems = visibleItems.filter((item) => item.group === group.key);
+         if (groupItems.length === 0) return null;
+         return (
+           <optgroup key={group.key} label={group.label}>
+             {groupItems.map((item) => {
+               const allowed = canShowNavItem(item, access) && (("team" in item && item.team) ? access.canManageTeam : hasPermission(access, item.permission));
+               return <option key={item.href} value={item.href}>{!allowed ? `🔒 ${item.label}` : item.label}</option>;
+             })}
+           </optgroup>
+         );
        })}
     </select>
   );
