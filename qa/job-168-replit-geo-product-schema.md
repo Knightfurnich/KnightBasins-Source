@@ -1,7 +1,10 @@
-# ใบงาน 168 (Replit) — ระบบ Generative Engine Optimization (GEO) สำหรับหน้าแสดงผลและโครงสร้างข้อมูลสินค้า (Product Schema & Clean Specs)
+# ใบงาน 168 (Replit) — [ยกเลิก / Superseded by PR #121] ระบบ Generative Engine Optimization (GEO) สำหรับหน้าแสดงผลและโครงสร้างข้อมูลสินค้า (Product Schema & Clean Specs)
+
+> ⚠️ **สถานะ: ยกเลิก / ปิดงานเรียบร้อย (Superseded by PR #121 commit `33fce8d`)**
+> ฟีเจอร์นี้ได้รับการพัฒนา ตรวจสอบ และ Deploy ขึ้น Production Live แล้วผ่าน PR #121 (Job 169 โดย บอส / ชัย)
+> Replit ตรวจพบการ Merge เรียบร้อยและหยุดการเปิด PR ซ้ำอย่างถูกต้อง 100%
 
 **วันที่:** 2 ต.ค. 69 · **ออกโดย:** เดวิด (หัวหน้าทีม)
-**สถานะ:** มอบหมายให้ Replit (Frontend / UI / SEO & AEO Maintenance) — เริ่มได้ทันที
 
 **ที่มาและความต้องการ:**
 เพื่อยกระดับการค้นหาผ่าน AI Search Engines (ChatGPT Search, Claude, Google Gemini, Perplexity) ให้สามารถแนะนำสินค้าของ Knight Basins ได้แม่นยำระดับรายชิ้น (SKU) และหยิบข้อมูลสเปก/ราคาไปตอบลูกค้าได้ทันที
