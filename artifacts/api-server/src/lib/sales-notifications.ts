@@ -40,6 +40,7 @@ type NotificationItem = {
   unit?: string;
   unitPriceTHB?: number;
   totalTHB?: number;
+  imageUrl?: string | null;
 };
 
 type NotificationSnapshot = {
@@ -161,6 +162,50 @@ function estimateBreakdown(studio: unknown): string[] {
   return lines.length ? ["วิธีคำนวณ:", ...lines] : [];
 }
 
+const MAX_STONE_PHOTO_LINES = 3;
+const MAX_STONE_PHOTO_URL_LENGTH = 500;
+
+/**
+ * `imageUrl` arrives inside the customer-submitted studioData, so it is not
+ * trusted: a crafted request could otherwise put any link into the message the
+ * sales team reads. Only http(s) links on this site's own host, or on a sibling
+ * host of the same domain (the catalog photos are served from the API host next
+ * to the web host), are passed on; a relative path is resolved against `origin`.
+ */
+function trustedPhotoUrl(raw: unknown, origin: string | undefined): string | null {
+  if (typeof raw !== "string" || !origin) return null;
+  const value = raw.trim();
+  if (!value || value.length > MAX_STONE_PHOTO_URL_LENGTH) return null;
+  try {
+    const site = new URL(origin);
+    const url = new URL(value, site);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.username || url.password) return null;
+    const labels = site.hostname.split(".");
+    const siteDomain = labels.length >= 3 ? labels.slice(1).join(".") : null;
+    const sameSite = url.hostname === site.hostname || (siteDomain !== null && url.hostname.endsWith(`.${siteDomain}`));
+    return sameSite ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** บรรทัดลิงก์รูปหิน (ข้อความล้วน ไม่เกิน 3 บรรทัด) — รายการที่ไม่ใช่หินและรายการไม่มีรูปไม่ถูกนับ */
+function stonePhotoLines(items: NotificationItem[], origin: string | undefined) {
+  const lines: string[] = [];
+  const seen = new Set<string>();
+  for (const item of items) {
+    if (lines.length >= MAX_STONE_PHOTO_LINES) break;
+    const code = item.code?.trim();
+    if (!code || itemKind(item) !== "stone" || seen.has(code)) continue;
+    const url = trustedPhotoUrl(item.imageUrl, origin);
+    if (!url) continue;
+    seen.add(code);
+    lines.push(`รูปหิน ${code}: ${url}`);
+  }
+  return lines;
+}
+
 function formatNotificationItems(items: NotificationItem[], fallbackSkus: string[]) {
   const lines = items.flatMap((item) => {
     const code = item.code?.trim();
@@ -181,7 +226,7 @@ function formatNotificationItems(items: NotificationItem[], fallbackSkus: string
   return fallbackSkus.map((sku) => `- ${sku} ×1 ชุด`);
 }
 
-function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใบเสนอราคาใหม่") {
+function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใบเสนอราคาใหม่", origin?: string) {
   const studio = lead.studioData as {
     notification?: NotificationSnapshot;
     subtotal?: number;
@@ -250,6 +295,7 @@ function quoteSummary(lead: LeadNotificationData, quoteUrl: string, title = "ใ
     ...(items.length
       ? [rawItems.length > 0 ? "รายการ:" : "อ่างที่ลูกค้าสนใจ (ยังไม่ได้เลือกเข้าออเดอร์):", ...items]
       : []),
+    ...stonePhotoLines(rawItems, origin),
     ...(has9500StoneRate ? ["*(ยอดรวมสุทธินี้ยังไม่รวมราคาหินลายหินอ่อน — ทีมขายจะประเมินราคาเพิ่ม)*"] : []),
     ...estimateBreakdown(studio),
     ...(vat
@@ -368,7 +414,7 @@ async function sendLineText(text: string): Promise<NotificationResult> {
 
 export async function notifyQuote(lead: LeadNotificationData, origin: string, quotePath: string) {
   const quoteUrl = publicUrl(origin, quotePath);
-  const text = quoteSummary(lead, quoteUrl);
+  const text = quoteSummary(lead, quoteUrl, undefined, origin);
   const button = { text: "เปิดใบเสนอราคา", url: quoteUrl };
   return configuredChannel() === "telegram" ? sendTelegramText(text, button) : sendLineText(text);
 }
@@ -393,7 +439,7 @@ export async function notifySketch(
   const quoteUrl = quotePath
     ? publicUrl(origin, quotePath)
     : "";
-  const caption = quoteSummary(lead, quoteUrl, "มีแบบร่างใหม่");
+  const caption = quoteSummary(lead, quoteUrl, "มีแบบร่างใหม่", origin);
   if (configuredChannel() === "telegram") {
     const button = quoteUrl
       ? { text: "เปิดใบเสนอราคา", url: quoteUrl }
