@@ -56,6 +56,7 @@ import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDi
 import { StudioFootprint } from "@/components/StudioFootprint";
 import { BasinVisual } from "@/components/BasinVisual";
 import { BasinGalleryTrigger } from "@/components/BasinGalleryLightbox";
+import { StoneSlabViewer } from "@/components/StoneSlabViewer";
 import { isValidEmailAddress } from "@/data/validation";
 import { stoneHeroFrame } from "@/data/stone-hero";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
@@ -723,22 +724,27 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
             {visibleColors.length
               ? visibleColors.map((color) => {
                 const selected = stones.some((stone) => stone.color === color.code);
+                const slabImages = color.slabImageUrl
+                  ? Array.from(new Set([color.slabImageUrl, ...(color.galleryImageUrls ?? [])]))
+                  : [];
                 return (
-                  <button
-                    key={color.code}
-                    className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`}
-                    onClick={() => toggleColor(color.code)}
-                    aria-pressed={selected}
-                    data-testid={`button-stone-color-${color.code}`}
-                  >
-                    <span className="stone-card-image-wrap" style={{ background: color.tone }}>
-                      {color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
-                    </span>
-                    <strong title={color.name}>{color.name}</strong>
-                    <small>{color.code}</small>
-                    <small className="stone-card-prices">{isWhole ? `แผ่น ${formatStonePrice(color.sheetPriceTHB)}` : `ติดตั้ง ${formatStonePrice(color.installedPriceTHB)}`}</small>
-                    {selected && <Check size={14} />}
-                  </button>
+                  <div key={color.code} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button
+                      className={`${selected ? "is-active" : ""} ${activeColor === color.code ? "is-editing" : ""}`}
+                      onClick={() => toggleColor(color.code)}
+                      aria-pressed={selected}
+                      data-testid={`button-stone-color-${color.code}`}
+                    >
+                      <span className="stone-card-image-wrap" style={{ background: color.tone }}>
+                        {color.imageUrl && <img className="stone-card-image" src={color.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                      </span>
+                      <strong title={color.name}>{color.name}</strong>
+                      <small>{color.code}</small>
+                      <small className="stone-card-prices">{isWhole ? `แผ่น ${formatStonePrice(color.sheetPriceTHB)}` : `ติดตั้ง ${formatStonePrice(color.installedPriceTHB)}`}</small>
+                      {selected && <Check size={14} />}
+                    </button>
+                    {slabImages.length > 0 && <StoneSlabViewer images={slabImages} alt={`${color.name} ${color.code}`} />}
+                  </div>
                 );
               })
               : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}
@@ -751,8 +757,9 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
 function QuoteStoneRow({ stone, onRemove, stoneColors }: { stone: StoneConfig; onRemove: (color: string) => void; stoneColors: ReadonlyArray<StoneColor> }) {
   const selectedStone = stoneColorByName(stone.color, stoneColors);
   const currentStoneUnitPrice = stoneUnitPrice(stone, stoneColors);
+  const quoteImageUrl = selectedStone.quoteImageUrl ?? selectedStone.imageUrl;
   return <div className="stone-line" data-testid={`row-quote-stone-${selectedStone.code}`}>
-    <span className="stone-chip" style={{ background: selectedStone.tone }}>{selectedStone.imageUrl && <img src={selectedStone.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span>
+    <span className="stone-chip" style={{ background: selectedStone.tone }}>{quoteImageUrl && <img src={quoteImageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span>
     <div><strong>{selectedStone.name} · {selectedStone.code}</strong><small>รูปแบบ: {stoneOrderModeLabel(stone.mode)} · {stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น · ราคาขายแผ่น` : `พื้นที่ ${stoneAreaSqM(stone).toFixed(2)} m² · ราคารวมติดตั้ง`}</small></div>
     <strong className="line-price">{currentStoneUnitPrice === null ? "ไม่มีราคา" : formatTHB(stoneTotal(stone, stoneColors))}</strong>
     <button type="button" className="icon-button stone-remove-button" onClick={() => onRemove(stone.color)} aria-label={`ลบหิน ${selectedStone.name} ออกจากใบเสนอราคา`} title={`ลบ ${selectedStone.name}`} data-testid={`button-remove-quote-stone-${selectedStone.code}`}><Trash2 size={15} /></button>
