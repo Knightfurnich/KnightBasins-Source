@@ -296,6 +296,230 @@ describe("GET /admin/stock", () => {
     }
   });
 
+  it("keeps serving the last good snapshot when a later refresh fails, instead of blanking the page", async () => {
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    let sheetsDown = false;
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
+      if (sheetsDown && (url.startsWith("https://sheets.googleapis.com/") || url.startsWith("https://docs.google.com/"))) {
+        return new Response("Server Error", { status: 500 });
+      }
+      if (url.includes(`/spreadsheets/${STARON_ID}/values/`)) return new Response(JSON.stringify({ values: STARON_VALUES }), { status: 200 });
+      if (url.includes(`/spreadsheets/${ZEN_ID}/values/`)) return new Response(JSON.stringify({ values: ZEN_VALUES }), { status: 200 });
+      return realFetch(input as never, init);
+    });
+    const server = await startAdminRoute({});
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const first = await fetch(`${server.url}/api/admin/stock`, { headers: { cookie } });
+      assert.equal(first.status, 200);
+      const firstPayload = await first.json() as AdminStockResponsePayload;
+
+      sheetsDown = true;
+      const refreshed = await fetch(`${server.url}/api/admin/stock?refresh=true`, { headers: { cookie } });
+      assert.equal(refreshed.status, 200, "a failed refresh falls back to the cached snapshot");
+      const refreshedPayload = await refreshed.json() as AdminStockResponsePayload;
+      assert.equal(refreshedPayload.updatedAt, firstPayload.updatedAt, "still the old snapshot, so its age stays visible");
+      assert.equal(refreshedPayload.staron.total, 2);
+    } finally {
+      await server.close();
+    }
+  });
+
+  describe("source failures (job-184)", () => {
+    const HEADER = ["no", "name", "qty", "scrap", "lots", "note"];
+    const csv = (rows: string[][]) => rows.map((row) => row.map((cell) => (/[",]/.test(cell) ? `"${cell}"` : cell)).join(",")).join("\r\n");
+    const STARON_CSV = csv([HEADER, ["1", "AA 625 (Aspen Alder)", "21", "", "", ""], ["2", "BW 010 (Bianco White)", "0", "", "", ""]]);
+    const ZEN_CSV = csv([HEADER, ["1", "AP 100 (Apex)", "3", "", "", ""]]);
+
+    type GoogleBehavior = {
+      sheetsApi?: (url: string) => Response;
+      staronExport?: (url: string) => Response;
+      zenExport?: (url: string) => Response;
+      token?: () => Response;
+    };
+
+    /** Mocks Google's token endpoint, the Sheets API and the CSV export. The
+     * Sheets API answers 403 by default (the API-not-enabled / Office-file case
+     * that forces the CSV fallback). Records every outbound call. */
+    function mockGoogle(behavior: GoogleBehavior = {}) {
+      const calls: { url: string; signal: AbortSignal | null | undefined }[] = [];
+      mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) {
+          return behavior.token?.() ?? new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+        }
+        if (url.startsWith("https://sheets.googleapis.com/")) {
+          calls.push({ url, signal: init?.signal });
+          return behavior.sheetsApi?.(url) ?? new Response("{}", { status: 403 });
+        }
+        if (url.startsWith("https://docs.google.com/spreadsheets/")) {
+          calls.push({ url, signal: init?.signal });
+          if (url.includes(`/d/${STARON_ID}/`)) return behavior.staronExport?.(url) ?? new Response(STARON_CSV, { status: 200 });
+          if (url.includes(`/d/${ZEN_ID}/`)) return behavior.zenExport?.(url) ?? new Response(ZEN_CSV, { status: 200 });
+        }
+        return realFetch(input as never, init);
+      });
+      return {
+        calls,
+        exports: (id: string) => calls.filter((call) => call.url.startsWith("https://docs.google.com/") && call.url.includes(`/d/${id}/`)),
+      };
+    }
+
+    async function getStock(path = "/api/admin/stock") {
+      process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+      const server = await startAdminRoute({});
+      const cookie = `knight_admin_session=${createAdminToken()}`;
+      return {
+        server,
+        cookie,
+        get: (requestPath = path) => fetch(`${server.url}${requestPath}`, { headers: { cookie } }),
+      };
+    }
+
+    afterEach(() => {
+      delete process.env["STOCK_STARON_SHEET_GID"];
+    });
+
+    it("builds the Staron CSV export URL without any gid when STOCK_STARON_SHEET_GID is not set", async () => {
+      delete process.env["STOCK_STARON_SHEET_GID"];
+      const google = mockGoogle();
+      const { server, get } = await getStock();
+      try {
+        const response = await get();
+        assert.equal(response.status, 200);
+        const payload = await response.json() as AdminStockResponsePayload;
+        assert.equal(payload.staron.total, 2);
+        assert.equal(payload.zen.total, 1);
+
+        const staronExports = google.exports(STARON_ID);
+        assert.equal(staronExports.length, 1, "no gid configured -> a single plain export, no retry");
+        assert.ok(!staronExports[0]!.url.includes("gid="), "the URL must not carry a gid");
+        assert.ok(!google.exports(ZEN_ID)[0]!.url.includes("gid="));
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("uses STOCK_STARON_SHEET_GID when set, and retries without it if Google rejects that tab id", async () => {
+      process.env["STOCK_STARON_SHEET_GID"] = "424242";
+      const google = mockGoogle({
+        staronExport: (url) => (url.includes("gid=424242") ? new Response("Bad Request", { status: 400 }) : new Response(STARON_CSV, { status: 200 })),
+      });
+      const { server, get } = await getStock();
+      try {
+        const response = await get();
+        assert.equal(response.status, 200);
+        const payload = await response.json() as AdminStockResponsePayload;
+        assert.equal(payload.staron.items[0]!.name, "AA 625 (Aspen Alder)");
+
+        const staronExports = google.exports(STARON_ID);
+        assert.equal(staronExports.length, 2);
+        assert.ok(staronExports[0]!.url.endsWith("&gid=424242"), "the configured gid is tried first");
+        assert.ok(!staronExports[1]!.url.includes("gid="), "then the plain export");
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("keeps Zen Stone available when Staron fails, returning Staron empty with its own reason", async () => {
+      const google = mockGoogle({ staronExport: () => new Response("Server Error", { status: 500 }) });
+      const { server, get } = await getStock();
+      try {
+        const response = await get();
+        assert.equal(response.status, 200);
+        const payload = await response.json() as AdminStockResponsePayload & { staron: { unavailableReason?: string }; zen: { unavailableReason?: string } };
+        assert.equal(payload.zen.total, 1);
+        assert.equal(payload.zen.items[0]!.name, "AP 100 (Apex)");
+        assert.equal(payload.zen.unavailableReason, undefined);
+        assert.equal(payload.staron.total, 0);
+        assert.deepEqual(payload.staron.items, []);
+        assert.match(payload.staron.unavailableReason ?? "", /Staron/);
+        assert.match(payload.staron.unavailableReason ?? "", /500/);
+
+        const firstRoundExports = google.exports(STARON_ID).length;
+        await get();
+        assert.ok(google.exports(STARON_ID).length > firstRoundExports, "a partial answer is not cached, so the next request retries Staron");
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("answers 503 (not 500) naming the real cause of both sources when both fail", async () => {
+      mockGoogle({
+        staronExport: () => new Response("Server Error", { status: 500 }),
+        zenExport: () => new Response("Bad Request", { status: 400 }),
+      });
+      const { server, get } = await getStock();
+      try {
+        const response = await get();
+        assert.equal(response.status, 503);
+        const body = await response.json() as { message: string };
+        assert.match(body.message, /Staron: .*CSV export: 500/);
+        assert.match(body.message, /Zen Stone: .*CSV export: 400/);
+        assert.match(body.message, /Sheets API: 403/);
+
+        const exportResponse = await get("/api/admin/stock/export");
+        assert.equal(exportResponse.status, 503, "the CSV download reports the same condition");
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("answers 503 with the token-exchange status when Google rejects the service account", async () => {
+      mockGoogle({ token: () => new Response("{}", { status: 400 }) });
+      const { server, get } = await getStock();
+      try {
+        const response = await get();
+        assert.equal(response.status, 503);
+        const body = await response.json() as { message: string };
+        assert.match(body.message, /token exchange failed with 400/);
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("serves the last good copy of just the failing source on refresh, instead of blanking it", async () => {
+      let staronDown = false;
+      mockGoogle({
+        staronExport: () => (staronDown ? new Response("Server Error", { status: 500 }) : new Response(STARON_CSV, { status: 200 })),
+      });
+      const { server, get } = await getStock();
+      try {
+        const first = await (await get()).json() as AdminStockResponsePayload;
+        assert.equal(first.staron.total, 2);
+
+        staronDown = true;
+        const refreshed = await get("/api/admin/stock?refresh=true");
+        assert.equal(refreshed.status, 200);
+        const payload = await refreshed.json() as AdminStockResponsePayload & { staron: { unavailableReason?: string } };
+        assert.equal(payload.staron.total, 2, "Staron falls back to its last good copy");
+        assert.equal(payload.staron.unavailableReason, undefined);
+        assert.equal(payload.zen.total, 1);
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("caps every Google call with an abort signal so a hung export cannot hold the request open", async () => {
+      const google = mockGoogle();
+      const { server, get } = await getStock();
+      try {
+        const response = await get();
+        assert.equal(response.status, 200);
+        assert.ok(google.calls.length >= 4, "Sheets API + CSV export for both sources");
+        for (const call of google.calls) {
+          assert.ok(call.signal instanceof AbortSignal, `no timeout signal on ${call.url}`);
+        }
+      } finally {
+        await server.close();
+      }
+    });
+  });
+
   it("?refresh=true bypasses the cache and fetches fresh data", async () => {
     process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
     const { sheetsCalls } = mockGoogleFetch();

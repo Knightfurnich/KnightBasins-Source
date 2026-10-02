@@ -474,7 +474,7 @@ const ZEN_TITLE = "สต๊อคแผ่นหินสังเคราะ�
 let stockCache: { data: AdminStockResponse; fetchedAt: number } | null = null;
 
 type AdminStockItem = { no: number; name: string; qty: number; scrap: string; lots: string[]; note: string };
-type AdminStockSheet = { title: string; total: number; inStockCount: number; totalSheets: number; items: AdminStockItem[] };
+type AdminStockSheet = { title: string; total: number; inStockCount: number; totalSheets: number; items: AdminStockItem[]; unavailableReason?: string };
 type AdminStockResponse = { updatedAt: string; staron: AdminStockSheet; zen: AdminStockSheet };
 
 function parseCsvRows(text: string): string[][] {
@@ -498,13 +498,25 @@ function parseCsvRows(text: string): string[][] {
   }).filter((row) => row.some((cell) => cell.length > 0));
 }
 
+// Every outbound Google call is capped so a hung export can't hold the
+// request open indefinitely.
+const STOCK_FETCH_TIMEOUT_MS = 10_000;
+
+class StockSourceUnavailableError extends Error {}
+
 async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, accessToken: string): Promise<unknown[][]> {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}`;
+  let sheetsStatus = "network error";
   try {
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(STOCK_FETCH_TIMEOUT_MS),
+    });
+    sheetsStatus = String(response.status);
     if (response.ok) {
       const payload = await response.json() as { values?: unknown[][] };
       if (Array.isArray(payload.values)) return payload.values;
+      sheetsStatus = "200 without values";
     }
   } catch {
     // fall through to CSV export fallback
@@ -512,18 +524,33 @@ async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, ac
 
   // Fallback for Office (.xlsx) documents stored in Google Drive:
   // Google Sheets API returns 400 "The document must not be an Office file."
-  // For Office files, use Google Sheets CSV export:
-  const gidParam = spreadsheetId === STARON_SPREADSHEET_ID ? "&gid=1852331911" : "";
-  const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv${gidParam}`;
-  const csvRes = await fetch(exportUrl, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (csvRes.ok) {
-    const csvText = await csvRes.text();
-    return parseCsvRows(csvText);
+  // For Office files, use Google Sheets CSV export.
+  //
+  // The Staron tab id (gid) is deployment config (STOCK_STARON_SHEET_GID), not
+  // code: the factory re-uploads that file and a stale gid makes Google answer
+  // 400. With no gid set, the export reads the file's first tab; with one set,
+  // it's tried first and the gid-less export is the retry if it stops resolving.
+  const exportBase = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
+  const staronGid = spreadsheetId === STARON_SPREADSHEET_ID ? process.env["STOCK_STARON_SHEET_GID"]?.trim() : undefined;
+  const exportUrls = staronGid ? [`${exportBase}&gid=${encodeURIComponent(staronGid)}`, exportBase] : [exportBase];
+  const csvStatuses: string[] = [];
+  for (const exportUrl of exportUrls) {
+    try {
+      const csvRes = await fetch(exportUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: AbortSignal.timeout(STOCK_FETCH_TIMEOUT_MS),
+      });
+      csvStatuses.push(String(csvRes.status));
+      if (csvRes.ok) {
+        const csvText = await csvRes.text();
+        return parseCsvRows(csvText);
+      }
+    } catch {
+      csvStatuses.push("network error or timeout");
+    }
   }
 
-  throw new Error(`Google Sheets API failed for "${sheetName}"`);
+  throw new Error(`Google Sheets API failed for "${sheetName}" (Sheets API: ${sheetsStatus}; CSV export: ${csvStatuses.join(", ")})`);
 }
 
 /** Row layout supports both 6-column test fixtures and 10-column real Google Sheets
@@ -3624,7 +3651,17 @@ export function createAdminRouter(
     } catch (error) { return next(error); }
   });
 
-  async function resolveStockData(forceRefresh: boolean): Promise<AdminStockResponse | { unconfigured: true }> {
+  /** Logs through pino-http's per-request logger when it's mounted (it always
+   * is in the real server; the bare test harness has none). */
+  function warnStockSourceFailure(req: unknown, source: string, error: unknown, servedFrom: "cache" | "empty") {
+    (req as { log?: { warn: (bindings: object, message: string) => void } }).log
+      ?.warn({ err: error, source, servedFrom }, "Stock sheet source failed to refresh");
+  }
+
+  async function resolveStockData(
+    forceRefresh: boolean,
+    onSourceFailure?: (source: string, error: unknown, servedFrom: "cache" | "empty") => void,
+  ): Promise<AdminStockResponse | { unconfigured: true }> {
     if (!forceRefresh && stockCache && Date.now() - stockCache.fetchedAt < STOCK_CACHE_TTL_MS) {
       return stockCache.data;
     }
@@ -3632,30 +3669,73 @@ export function createAdminRouter(
     const credentials = loadGoogleServiceAccountCredentials();
     if (!credentials) return { unconfigured: true };
 
-    const accessToken = await fetchGoogleAccessToken(credentials, STOCK_SHEETS_SCOPE);
-    const [staronRows, zenRows] = await Promise.all([
-      fetchGoogleSheetRows(STARON_SPREADSHEET_ID, STARON_SHEET_NAME, accessToken),
-      fetchGoogleSheetRows(ZEN_SPREADSHEET_ID, ZEN_SHEET_NAME, accessToken),
+    // Each source settles on its own, so one dead sheet doesn't take the other
+    // down. A token failure rejects both, which lands in the same handling.
+    const accessToken = fetchGoogleAccessToken(credentials, STOCK_SHEETS_SCOPE);
+    const [staronResult, zenResult] = await Promise.allSettled([
+      accessToken.then((token) => fetchGoogleSheetRows(STARON_SPREADSHEET_ID, STARON_SHEET_NAME, token)),
+      accessToken.then((token) => fetchGoogleSheetRows(ZEN_SPREADSHEET_ID, ZEN_SHEET_NAME, token)),
     ]);
 
-    const data: AdminStockResponse = {
-      updatedAt: new Date().toISOString(),
-      staron: buildStockSheet(STARON_TITLE, staronRows),
-      zen: buildStockSheet(ZEN_TITLE, zenRows),
+    const failures: string[] = [];
+    let usedStaleCopy = false;
+    const resolveSheet = (
+      source: string,
+      result: PromiseSettledResult<unknown[][]>,
+      title: string,
+      previous: AdminStockSheet | undefined,
+    ): AdminStockSheet | null => {
+      if (result.status === "fulfilled") return buildStockSheet(title, result.value);
+      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      failures.push(`${source}: ${reason}`);
+      // Prefer the last good copy of just this source over an empty table.
+      if (previous && !previous.unavailableReason) {
+        onSourceFailure?.(source, result.reason, "cache");
+        usedStaleCopy = true;
+        return previous;
+      }
+      onSourceFailure?.(source, result.reason, "empty");
+      return null;
     };
-    stockCache = { data, fetchedAt: Date.now() };
+
+    const staron = resolveSheet("Staron", staronResult, STARON_TITLE, stockCache?.data.staron);
+    const zen = resolveSheet("Zen Stone", zenResult, ZEN_TITLE, stockCache?.data.zen);
+    if (!staron && !zen) {
+      throw new StockSourceUnavailableError(`เชื่อมต่อแหล่งข้อมูลสต็อกต้นทางไม่ได้ (${failures.join(" | ")})`);
+    }
+
+    const unavailableSheet = (source: string, title: string): AdminStockSheet => ({
+      title,
+      total: 0,
+      inStockCount: 0,
+      totalSheets: 0,
+      items: [],
+      unavailableReason: failures.find((failure) => failure.startsWith(`${source}:`)) ?? `${source}: unavailable`,
+    });
+    const data: AdminStockResponse = {
+      // A snapshot containing any cached copy keeps that copy's age visible.
+      updatedAt: usedStaleCopy && stockCache ? stockCache.data.updatedAt : new Date().toISOString(),
+      staron: staron ?? unavailableSheet("Staron", STARON_TITLE),
+      zen: zen ?? unavailableSheet("Zen Stone", ZEN_TITLE),
+    };
+    // Only a fully fresh snapshot is cached, so a partial/stale answer is
+    // retried on the next request instead of being pinned for 5 minutes.
+    if (failures.length === 0) stockCache = { data, fetchedAt: Date.now() };
     return data;
   }
 
   router.get("/admin/stock", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
     try {
       const forceRefresh = req.query["refresh"] === "true" || req.query["refresh"] === "1";
-      const data = await resolveStockData(forceRefresh);
+      const data = await resolveStockData(forceRefresh, (source, error, servedFrom) => warnStockSourceFailure(req, source, error, servedFrom));
       if ("unconfigured" in data) {
         return res.status(503).json({ message: "ยังไม่ได้ตั้งค่า Google service account สำหรับดึงสต๊อค" });
       }
       return res.json(data);
-    } catch (error) { return next(error); }
+    } catch (error) {
+      if (error instanceof StockSourceUnavailableError) return res.status(503).json({ message: error.message });
+      return next(error);
+    }
   });
 
   /** Splits a stock row's "code (name)" convention (e.g. "AA 625 (Aspen
@@ -3673,7 +3753,7 @@ export function createAdminRouter(
   router.get("/admin/stock/export", requireAnyAdminPermission(["leads", "basins"]), async (req, res, next) => {
     try {
       const forceRefresh = req.query["refresh"] === "true" || req.query["refresh"] === "1";
-      const data = await resolveStockData(forceRefresh);
+      const data = await resolveStockData(forceRefresh, (source, error, servedFrom) => warnStockSourceFailure(req, source, error, servedFrom));
       if ("unconfigured" in data) {
         return res.status(503).json({ message: "ยังไม่ได้ตั้งค่า Google service account สำหรับดึงสต๊อค" });
       }
@@ -3694,7 +3774,10 @@ export function createAdminRouter(
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
       res.setHeader("Content-Disposition", `attachment; filename="knight_stone_stock_${dateStamp}.csv"`);
       return res.send(csv);
-    } catch (error) { return next(error); }
+    } catch (error) {
+      if (error instanceof StockSourceUnavailableError) return res.status(503).json({ message: error.message });
+      return next(error);
+    }
   });
 
   return router;
