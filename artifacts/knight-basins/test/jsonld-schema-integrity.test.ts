@@ -13,8 +13,10 @@ import {
   buildSitePrepStructuredData,
   buildStudioGuideStructuredData,
   buildBasinProductsJsonLd,
+  buildFaqPageJsonLd,
 } from "../src/data/structured-data.ts";
 import { PRODUCTS } from "../src/data/catalog.ts";
+import { KNIGHT_FAQ_ITEMS } from "../src/data/faq-data.ts";
 
 const indexHtml = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
@@ -120,5 +122,61 @@ describe("buildBasinProductsJsonLd integrity", () => {
   it("round-trips through JSON cleanly", () => {
     const data = buildBasinProductsJsonLd(PRODUCTS);
     assert.doesNotThrow(() => JSON.parse(JSON.stringify(data)));
+  });
+});
+
+describe("KNIGHT_FAQ_ITEMS (job-174 single source of truth)", () => {
+  it("has exactly 10 items, each with a non-empty question and answer", () => {
+    assert.equal(KNIGHT_FAQ_ITEMS.length, 10);
+    for (const item of KNIGHT_FAQ_ITEMS) {
+      assert.ok(item.question.trim().length > 0, "empty question");
+      assert.ok(item.answer.trim().length > 0, "empty answer");
+    }
+  });
+
+  it("matches index.html's FAQPage word-for-word, proving there is no content drift", () => {
+    const scripts = extractLdJsonScripts(indexHtml);
+    const data = JSON.parse(scripts[0]!);
+    const graph = Array.isArray(data["@graph"]) ? data["@graph"] : [data];
+    const faqPage = graph.find((node: Record<string, unknown>) => node["@type"] === "FAQPage");
+    const htmlQuestions = (faqPage.mainEntity as Array<Record<string, unknown>>).map((q) => ({
+      question: q.name,
+      answer: (q.acceptedAnswer as Record<string, unknown>).text,
+    }));
+    assert.deepEqual(KNIGHT_FAQ_ITEMS, htmlQuestions);
+  });
+});
+
+describe("buildFaqPageJsonLd integrity", () => {
+  it("defaults to KNIGHT_FAQ_ITEMS and emits a valid FAQPage entity", () => {
+    const data = buildFaqPageJsonLd();
+    assert.equal(data["@context"], "https://schema.org");
+    assert.equal(data["@type"], "FAQPage");
+    const mainEntity = data.mainEntity as Array<Record<string, unknown>>;
+    assert.equal(mainEntity.length, KNIGHT_FAQ_ITEMS.length);
+  });
+
+  it("maps every FAQItem to a Question/Answer pair with the right text", () => {
+    const mainEntity = buildFaqPageJsonLd().mainEntity as Array<Record<string, unknown>>;
+    mainEntity.forEach((question, index) => {
+      const source = KNIGHT_FAQ_ITEMS[index]!;
+      assert.equal(question["@type"], "Question");
+      assert.equal(question.name, source.question);
+      const answer = question.acceptedAnswer as Record<string, unknown>;
+      assert.equal(answer["@type"], "Answer");
+      assert.equal(answer.text, source.answer);
+    });
+  });
+
+  it("accepts a custom item list (e.g. a test fixture or a subset)", () => {
+    const custom = [{ question: "ทดสอบ?", answer: "คำตอบทดสอบ" }];
+    const data = buildFaqPageJsonLd(custom);
+    const mainEntity = data.mainEntity as Array<Record<string, unknown>>;
+    assert.equal(mainEntity.length, 1);
+    assert.equal(mainEntity[0]?.name, "ทดสอบ?");
+  });
+
+  it("round-trips through JSON cleanly", () => {
+    assert.doesNotThrow(() => JSON.parse(JSON.stringify(buildFaqPageJsonLd())));
   });
 });

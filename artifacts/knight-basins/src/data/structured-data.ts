@@ -1,5 +1,6 @@
 import type { PortfolioCategory } from "@/pages/PortfolioPage";
 import type { BasinProduct } from "@/data/catalog";
+import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
 const SITE = "https://knightbasins.srv1964473.hstgr.cloud";
 
@@ -175,6 +176,28 @@ export function buildBasinProductsJsonLd(products: ReadonlyArray<BasinProduct>):
         price: product.priceTHB,
         priceCurrency: "THB",
         availability: "https://schema.org/InStock",
+      },
+    })),
+  };
+}
+
+/**
+ * Builds the FAQPage JSON-LD document from the single FAQ source of truth
+ * (job-174). Defaults to KNIGHT_FAQ_ITEMS so a caller can pass a subset or a
+ * test fixture, but production call sites should rely on the default so the
+ * schema and the on-page QuickFAQ accordion (job-175) never drift apart
+ * again.
+ */
+export function buildFaqPageJsonLd(items: ReadonlyArray<FAQItem> = KNIGHT_FAQ_ITEMS): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
       },
     })),
   };
