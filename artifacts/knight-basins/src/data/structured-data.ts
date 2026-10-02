@@ -1,6 +1,12 @@
 import type { PortfolioCategory } from "@/pages/PortfolioPage";
+import type { BasinProduct } from "@/data/catalog";
 
 const SITE = "https://knightbasins.srv1964473.hstgr.cloud";
+
+function absoluteImageUrl(imageUrl: string): string {
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+  return `${SITE}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
+}
 
 /**
  * Builds the JSON-LD document for the public /portfolio gallery.
@@ -139,5 +145,37 @@ export function buildStudioGuideStructuredData(): Record<string, unknown> {
         url: `${SITE}/studio-guide`,
       },
     ],
+  };
+}
+
+/**
+ * Builds the JSON-LD @graph of Product+Offer nodes for every basin SKU, so
+ * an AI shopping assistant can cite a specific model's price/size directly
+ * instead of only the category-level OfferCatalog on the Organization node.
+ *
+ * Takes the live product list as a parameter (same shape as
+ * buildPortfolioStructuredData's categories/total) rather than importing
+ * PRODUCTS directly, so it always reflects whatever catalog data the caller
+ * is actually showing (static fallback or the remote-admin-edited one) and
+ * never drifts into hardcoded prices. `image` is only included when the
+ * product actually has one -- never a fabricated placeholder URL.
+ */
+export function buildBasinProductsJsonLd(products: ReadonlyArray<BasinProduct>): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@graph": products.map((product) => ({
+      "@type": "Product",
+      "@id": `${SITE}/#product-${product.sku}`,
+      name: `Knight Basins ${product.sku}`,
+      sku: product.sku,
+      description: `อ่างล้างหน้าหินสังเคราะห์ Knight Basins รุ่น ${product.sku} สี ${product.colorName} (${product.colorCode}) ขนาดเคาน์เตอร์ ${product.dimensions}${product.basinDimensions ? ` หลุมอ่าง ${product.basinDimensions}` : ""}`,
+      ...(product.imageUrl ? { image: absoluteImageUrl(product.imageUrl) } : {}),
+      offers: {
+        "@type": "Offer",
+        price: product.priceTHB,
+        priceCurrency: "THB",
+        availability: "https://schema.org/InStock",
+      },
+    })),
   };
 }
