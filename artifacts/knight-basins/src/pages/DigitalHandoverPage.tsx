@@ -58,9 +58,24 @@ type HandoverJob = {
 type HandoverState =
   | { kind: "loading" }
   | { kind: "no-token" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; notFound: boolean }
   | { kind: "empty" }
   | { kind: "ready"; job: HandoverJob };
+
+/**
+ * Carries whether a failed fetch was a 404 (bad/expired token -- retrying
+ * won't help) vs a real transient error (server hiccup -- retrying might).
+ * The error panel below uses this to label the error correctly instead of
+ * always saying "TEMPORARY ISSUE", which is misleading for a link that will
+ * never resolve.
+ */
+class HandoverFetchError extends Error {
+  notFound: boolean;
+  constructor(message: string, notFound: boolean) {
+    super(message);
+    this.notFound = notFound;
+  }
+}
 
 const STAGES: ReadonlyArray<StageKey> = [
   "quote_accepted",
@@ -237,7 +252,8 @@ function useHandoverJob() {
     })
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error(response.status === 404 ? "ไม่พบข้อมูลงานสำหรับลิงก์นี้" : "ระบบส่งมอบงานไม่พร้อมใช้งานชั่วคราว");
+          const notFound = response.status === 404;
+          throw new HandoverFetchError(notFound ? "ไม่พบข้อมูลงานสำหรับลิงก์นี้" : "ระบบส่งมอบงานไม่พร้อมใช้งานชั่วคราว", notFound);
         }
         return response.json() as Promise<unknown>;
       })
@@ -247,9 +263,14 @@ function useHandoverJob() {
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof HandoverFetchError) {
+          setState({ kind: "error", message: error.message, notFound: error.notFound });
+          return;
+        }
         setState({
           kind: "error",
           message: error instanceof Error ? error.message : "ไม่สามารถโหลดเอกสารส่งมอบงานได้",
+          notFound: false,
         });
       });
 
@@ -471,6 +492,7 @@ function HandoverStatePanel({
 
   const noToken = state.kind === "no-token";
   const empty = state.kind === "empty";
+  const notFound = state.kind === "error" && state.notFound;
   return (
     <section
       className={`handover-state ${state.kind === "error" ? "handover-state--error" : ""}`}
@@ -485,7 +507,7 @@ function HandoverStatePanel({
       <div className="handover-state-icon" aria-hidden="true">
         {state.kind === "error" ? <CircleAlert size={23} /> : <FileCheck2 size={22} />}
       </div>
-      <p className="handover-state-kicker">{noToken ? "PRIVATE HANDOVER RECORD" : empty ? "NO HANDOVER DETAILS" : "TEMPORARY ISSUE"}</p>
+      <p className="handover-state-kicker">{noToken ? "PRIVATE HANDOVER RECORD" : empty ? "NO HANDOVER DETAILS" : notFound ? "LINK NOT FOUND" : "TEMPORARY ISSUE"}</p>
       <h1>
         {noToken
           ? "เปิดเอกสารส่งมอบจาก Knight Furnich"
@@ -500,7 +522,9 @@ function HandoverStatePanel({
             ? "ตรวจสอบลิงก์อีกครั้ง หรือติดต่อทีมงานเพื่อขอเอกสารฉบับที่ถูกต้อง"
             : state.message}
       </p>
-      {!noToken && (
+      {/* A 404 means this token will never resolve -- retrying just reproduces
+          the same error, so the button would be misleading busywork. */}
+      {!noToken && !notFound && (
         <button type="button" className="handover-action" onClick={retry} data-testid="button-retry-digital-handover">
           ลองโหลดอีกครั้ง
         </button>

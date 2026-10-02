@@ -87,4 +87,14 @@ describe("digital handover page", () => {
     assert.match(leadsManagerSource, /data-testid=\{`button-open-handover-\$\{lead\.id\}`\}/);
     assert.match(leadsManagerSource, /ใบส่งมอบงาน/);
   });
+
+  it("labels a bad/expired token as LINK NOT FOUND instead of a misleading TEMPORARY ISSUE, and hides the no-op retry button", () => {
+    // A 404 means this token will never resolve, so the copy must say so
+    // plainly and must not offer a "retry" action that just reproduces the
+    // same error.
+    assert.match(handoverPageSource, /class HandoverFetchError extends Error/);
+    assert.match(handoverPageSource, /new HandoverFetchError\(notFound \? "ไม่พบข้อมูลงานสำหรับลิงก์นี้" : "ระบบส่งมอบงานไม่พร้อมใช้งานชั่วคราว", notFound\)/);
+    assert.match(handoverPageSource, /notFound \? "LINK NOT FOUND" : "TEMPORARY ISSUE"/);
+    assert.match(handoverPageSource, /\{!noToken && !notFound && \(/);
+  });
 });
