@@ -271,6 +271,67 @@ export const STOREFRONT_THEME_STYLES = `
   color: var(--brand-blue);
 }
 
+/* Updates Page Dark Mode Improvements */
+[data-theme="dark"] .space-y-6 article {
+  background-color: var(--card-paper) !important;
+  border-color: var(--line) !important;
+  color: var(--ink) !important;
+}
+
+[data-theme="dark"] .space-y-6 article h2 {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .space-y-6 article strong {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .space-y-6 article p,
+[data-theme="dark"] .space-y-6 article li {
+  color: #cbd5e1 !important;
+}
+
+/* Customer Tracking & Digital Handover Gate / Cards Dark Mode */
+[data-theme="dark"] :is(.customer-track-page, .digital-handover-page) {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}
+
+[data-theme="dark"] :is(.customer-track-panel, .handover-panel, .empty-state, .customer-track-gate, .handover-gate) {
+  background-color: var(--card-paper) !important;
+  border-color: var(--line) !important;
+  color: var(--ink) !important;
+}
+
+[data-theme="dark"] :is(.digital-handover-page, .customer-track-page) :is(h1, h2, h3, strong) {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] :is(.digital-handover-page, .customer-track-page) :is(p, span, small, time) {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] :is(.customer-track-gate, .handover-gate) {
+  background-color: #162238 !important;
+  border: 1px solid #34445b !important;
+}
+
+[data-theme="dark"] :is(.customer-track-gate, .handover-gate) h1 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] :is(.customer-track-gate, .handover-gate) p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .handover-action,
+[data-theme="dark"] .customer-track-button {
+  background-color: var(--card-paper) !important;
+  border-color: var(--line) !important;
+  color: #ffffff !important;
+}
+
 [data-theme="dark"] :is(.studio-canvas, .studio-stone-choice, .studio-basin-choice, .studio-basin-choice-art, .studio-canvas-quickbar) {
   --ink: #173f6b;
   --ink-soft: #55718a;
