@@ -245,7 +245,11 @@ export function buildPublicTrackTimeline(
   lead: { status: string; updatedAt: Date | null },
   photos: PublicTrackPhotoRow[],
 ): PublicTrackStage[] {
-  const depositConfirmed = ["team_reported_paid", "deposit_paid", "ready_for_production", "closed"].includes(lead.status);
+  // "confirmed" is the status job-163's SlipOK Auto-Close sets on a
+  // PromptPay-paid lead -- without it here, a customer who pays via the new
+  // QR checkout flow sees zero progress on their own tracking page despite
+  // having genuinely paid.
+  const depositConfirmed = ["team_reported_paid", "deposit_paid", "confirmed", "ready_for_production", "closed"].includes(lead.status);
   const inProduction = ["ready_for_production", "closed"].includes(lead.status);
   const installPhoto = photos.find((photo) => photo.stage === "installation" || photo.stage === "service");
   const completedPhoto = photos.find((photo) => photo.stage === "completed");
@@ -838,7 +842,14 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
             ? `/quote/view?token=${encodeURIComponent(publicQuoteTokenForLead(lead)!)}`
             : undefined,
         );
-        return res.status(201).json(slip);
+        // Lets the frontend show "track your order" right after a successful
+        // payment, instead of the customer having to message sales to ask --
+        // same token GET /public/track already accepts.
+        const trackToken = publicQuoteTokenForLead(lead);
+        return res.status(201).json({
+          ...slip,
+          trackUrl: trackToken ? `/track?token=${encodeURIComponent(trackToken)}` : null,
+        });
       } catch (error) {
         await removeUploadedMedia(upload.filename).catch(() => undefined);
         throw error;

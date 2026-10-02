@@ -167,6 +167,7 @@ describe("payment slip upload", () => {
       assert.equal(body.senderName, "นาย ทดสอบ");
       assert.equal(body.transRef, "REF123");
       assert.equal(database.slips[0]?.claimedAmountThb, 20000);
+      assert.match(body.trackUrl as string, /^\/track\?token=/); // lets the customer see progress without messaging sales
     } finally {
       await server.close();
     }
