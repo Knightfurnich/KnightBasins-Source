@@ -399,6 +399,67 @@ export const STOREFRONT_THEME_STYLES = `
     box-shadow: none !important;
   }
 }
+
+/* Fix StonePage dark mode contrast */
+.storefront-theme-root[data-theme="dark"],
+[data-theme="dark"] .storefront-theme-root {
+  background-color: var(--paper) !important;
+}
+
+[data-theme="dark"] :is(.stone-hero, .stone-page, .config-layout) {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-hero h1 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .mode-switch button {
+  background: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .mode-switch button.is-active {
+  background: var(--card-paper);
+  border-color: var(--brand-blue);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-colors button {
+  background: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-colors button:hover {
+  border-color: var(--brand-blue);
+}
+
+[data-theme="dark"] .stone-colors button.is-active {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 2px var(--brand-blue);
+}
+
+[data-theme="dark"] .config-summary {
+  background: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-price-filters {
+  background: var(--card-paper);
+  border: 1px solid var(--line);
+}
+
+[data-theme="dark"] .stone-price-filters button {
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .stone-price-filters button.is-active {
+  background: var(--brand-blue);
+  color: #ffffff;
+}
 `;
 
 export type StorefrontThemeValue = {
