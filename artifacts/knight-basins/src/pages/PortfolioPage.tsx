@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, Search, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, MessageCircle, Search, X } from "lucide-react";
 import { knightFurnichLogo } from "@/data/assets";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
+import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { buildPortfolioStructuredData } from "@/data/structured-data";
 
 export type PortfolioPhoto = {
@@ -90,8 +91,10 @@ function useDebouncedValue<T>(value: T, delayMs = 350): T {
 export function PortfolioPage() {
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
   const [zoomId, setZoomId] = useState<string | null>(null);
+  const [inquiryPhoto, setInquiryPhoto] = useState<PortfolioPhoto | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebouncedValue(searchQuery);
+  const closeInquiry = useCallback(() => setInquiryPhoto(null), []);
 
   const query = useInfiniteQuery({
     queryKey: ["/api/portfolio", activeCategory, debouncedSearch.trim()],
@@ -127,6 +130,11 @@ export function PortfolioPage() {
     if (zoomIndex < 0 || photos.length === 0) return;
     const next = (zoomIndex + delta + photos.length) % photos.length;
     setZoomId(photos[next].id);
+  };
+
+  const openPortfolioInquiry = (photo: PortfolioPhoto) => {
+    setInquiryPhoto(photo);
+    setZoomId(null);
   };
 
   const structuredData = useMemo(
@@ -251,24 +259,35 @@ export function PortfolioPage() {
         {photos.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="portfolio-grid">
             {photos.map((photo) => (
-              <button
-                key={photo.id}
-                type="button"
-                onClick={() => setZoomId(photo.id)}
-                className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-[var(--line)] bg-slate-100 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
-                aria-label={`ดูภาพขยาย: ${photo.categoryName}`}
-                data-testid={`portfolio-photo-${photo.id}`}
-              >
-                <img
-                  src={photo.url}
-                  alt={photo.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-2.5 py-2 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
-                  {photo.icon} {photo.categoryName}
-                </span>
-              </button>
+              <article key={photo.id} className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setZoomId(photo.id)}
+                  className="group relative block aspect-[4/3] w-full overflow-hidden bg-slate-100 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+                  aria-label={`ดูภาพขยาย: ${photo.categoryName}`}
+                  data-testid={`portfolio-photo-${photo.id}`}
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-2.5 py-2 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {photo.icon} {photo.categoryName}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openPortfolioInquiry(photo)}
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 border-t border-[var(--line)] px-2 py-2 text-center text-[11px] font-bold text-[#003366] transition hover:bg-[#003366]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366] sm:text-xs"
+                  aria-label={`สั่งผลิตแบบนี้หรือขอราคาจาก ${photo.categoryName}`}
+                  data-testid={`button-inquire-portfolio-${photo.id}`}
+                >
+                  <MessageCircle size={14} aria-hidden="true" />
+                  สั่งผลิตแบบนี้ / ขอราคา
+                </button>
+              </article>
             ))}
           </div>
         )}
@@ -352,6 +371,15 @@ export function PortfolioPage() {
               </p>
             </div>
             <div className="portfolio-lightbox-actionbar" data-testid="portfolio-lightbox-actions">
+              <button
+                type="button"
+                className="inline-flex min-h-[46px] items-center justify-center gap-2 border-0 bg-[#003366] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#002244] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#83c7ff]"
+                onClick={() => openPortfolioInquiry(zoomItem)}
+                data-testid={`button-inquire-portfolio-${zoomItem.id}`}
+              >
+                <MessageCircle size={17} aria-hidden="true" />
+                💬 สั่งผลิตแบบนี้ / ขอราคา
+              </button>
               <a
                 className="portfolio-line-action"
                 href={portfolioInquiryUrl()}
@@ -372,6 +400,8 @@ export function PortfolioPage() {
           </div>
         </div>
       )}
+
+      {inquiryPhoto && <PortfolioInquiryModal photo={inquiryPhoto} onClose={closeInquiry} />}
     </div>
   );
 }
