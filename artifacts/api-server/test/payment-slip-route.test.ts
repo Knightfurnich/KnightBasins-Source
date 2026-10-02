@@ -112,11 +112,12 @@ async function tokenFor(quoteNumber: string, accessSecret: string) {
   return quoteAccess.createPublicQuoteToken(quoteNumber, accessSecret);
 }
 
-function slipForm(token: string, kind?: string) {
+function slipForm(token: string, kind?: string, paymentType?: string) {
   const form = new FormData();
   form.append("file", new Blob([Buffer.from("89504e470d0a1a0a", "hex")], { type: "image/png" }), "slip.png");
   form.append("token", token);
   if (kind) form.append("kind", kind);
+  if (paymentType) form.append("paymentType", paymentType);
   return form;
 }
 
@@ -166,6 +167,36 @@ describe("payment slip upload", () => {
       assert.equal(body.senderName, "นาย ทดสอบ");
       assert.equal(body.transRef, "REF123");
       assert.equal(database.slips[0]?.claimedAmountThb, 20000);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("expects the deposit share when the client sends paymentType", async () => {
+    const accessSecret = "d".repeat(64);
+    const database = createFakeDatabase({
+      id: 44,
+      name: "คุณทดสอบ",
+      phone: "0812345678",
+      quoteNumber: QUOTE_NUMBER,
+      quoteAccessSecret: accessSecret,
+      orderMode: "quick-purchase",
+      studioData: { total: 20000 },
+    });
+    mockSlipOkFetch(() => new Response(JSON.stringify({
+      success: true,
+      data: { transRef: "REF-DEP", transDate: "20261002", transTime: "09:00:00", amount: 10000, sender: { name: "นาย ทดสอบ" } },
+    }), { status: 200 }));
+    const server = await startLeadsRoute(database);
+    try {
+      const token = await tokenFor(QUOTE_NUMBER, accessSecret);
+      const response = await fetch(`${server.url}/api/leads/payment-slip`, {
+        method: "POST",
+        body: slipForm(token, "deposit", "deposit_50"),
+      });
+      assert.equal(response.status, 201);
+      // Half of the 20,000 quote total -- not the full amount.
+      assert.equal(database.slips[0]?.claimedAmountThb, 10000);
     } finally {
       await server.close();
     }

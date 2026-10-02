@@ -751,7 +751,19 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       const item = media[0]!;
       const upload = await saveUploadedMedia(item, "slip");
       try {
-        const claimedAmountThb = quoteTotalTHB(lead.studioData);
+        const fullTotalThb = quoteTotalTHB(lead.studioData);
+        const paymentType = (fields.paymentType ?? "").trim();
+        // Default stays the full quote total so existing deposits/final
+        // uploads keep their historical behaviour; only an explicit
+        // paymentType narrows the expected amount to a deposit share.
+        let claimedAmountThb: number | null = fullTotalThb;
+        if (typeof fullTotalThb === "number") {
+          if (paymentType === "deposit_30") {
+            claimedAmountThb = Math.round(fullTotalThb * 0.3);
+          } else if (paymentType === "deposit_50") {
+            claimedAmountThb = Math.round(fullTotalThb * 0.5);
+          }
+        }
         const result = await verifySlip(item, claimedAmountThb);
         // A slip SlipOK can't read as a QR-verifiable image at all (no QR
         // present, corrupt image, unsupported format) isn't the same as a
