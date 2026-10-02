@@ -1,8 +1,9 @@
 name: Deploy to Hostinger VPS
 
+# Disabled per owner instruction (automated deploy via David's internal tooling).
+# To re-enable, restore the 'push' trigger below.
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
