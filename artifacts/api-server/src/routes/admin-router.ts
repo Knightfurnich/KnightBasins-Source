@@ -574,14 +574,15 @@ async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, ac
   // Google Sheets API returns 400 "The document must not be an Office file."
   // For Office files, use Google Sheets CSV export.
   //
-  // Staron's export is pinned to its stock tab. Tab ids change whenever the
-  // factory re-uploads the file, so the live id (from /htmlview) goes first;
-  // STOCK_STARON_SHEET_GID is the manual override behind it; the plain export
-  // (the file's first tab) is the last resort.
+  // Export is pinned to the target stock tab for both workbooks (Staron & Zen).
+  // Tab ids change whenever the factory re-uploads either file, so the live id
+  // (from /htmlview matching sheetName) goes first; manual env override behind it;
+  // plain export (the file's first tab) is the last resort.
   const exportBase = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
+  const autoGid = await resolveSheetGidFromHtmlView(spreadsheetId, sheetName, accessToken);
   const isStaron = spreadsheetId === STARON_SPREADSHEET_ID;
-  const autoGid = isStaron ? await resolveSheetGidFromHtmlView(spreadsheetId, sheetName, accessToken) : null;
-  const envGid = isStaron ? process.env["STOCK_STARON_SHEET_GID"]?.trim() || null : null;
+  const isZen = spreadsheetId === ZEN_SPREADSHEET_ID;
+  const envGid = (isStaron ? process.env["STOCK_STARON_SHEET_GID"]?.trim() : isZen ? process.env["STOCK_ZEN_SHEET_GID"]?.trim() : null) || null;
   const gids = [...new Set([autoGid, envGid].filter((gid): gid is string => Boolean(gid)))];
   const exportUrls = [...gids.map((gid) => `${exportBase}&gid=${encodeURIComponent(gid)}`), exportBase];
   const csvStatuses: string[] = [];
