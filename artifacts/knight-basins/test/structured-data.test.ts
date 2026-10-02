@@ -56,6 +56,41 @@ describe("buildPortfolioStructuredData", () => {
     const parsed = JSON.parse(JSON.stringify(data));
     assert.deepEqual(parsed, data);
   });
+
+  it("omits associatedMedia entirely when no photos are loaded yet", () => {
+    const data = buildPortfolioStructuredData(categories, 124);
+    assert.equal("associatedMedia" in data, false);
+  });
+
+  it("maps each loaded photo to an ImageObject with contentUrl/name/caption/about and Knight Furnich credit", () => {
+    const photos = [
+      { id: "bathroom_001", category: "bathroom", categoryName: "งานห้องน้ำ", icon: "🛁", url: "/api/uploads/portfolio/bathroom/bathroom_001.webp", width: 1600, height: 1200, title: "เคาน์เตอร์อ่างคู่ Knight Furnich", captionTh: "เคาน์เตอร์อ่างคู่ลายหินอ่อน" },
+      { id: "kitchen_001", category: "kitchen", categoryName: "งานครัว", icon: "🍳", url: "https://cdn.example.com/kitchen_001.webp", width: 1600, height: 1200, title: "เคาน์เตอร์ครัว Knight Furnich" },
+    ];
+    const data = buildPortfolioStructuredData(categories, 124, photos);
+    const media = data.associatedMedia as Array<Record<string, unknown>>;
+    assert.equal(media.length, 2);
+
+    assert.equal(media[0]?.["@type"], "ImageObject");
+    assert.equal(media[0]?.contentUrl, "https://knightbasins.srv1964473.hstgr.cloud/api/uploads/portfolio/bathroom/bathroom_001.webp");
+    assert.equal(media[0]?.name, "เคาน์เตอร์อ่างคู่ลายหินอ่อน");
+    assert.equal(media[0]?.caption, "เคาน์เตอร์อ่างคู่ลายหินอ่อน");
+    assert.equal(media[0]?.about, "งานห้องน้ำ");
+    assert.equal(media[0]?.width, "1600px");
+    assert.deepEqual(media[0]?.creator, { "@type": "Organization", name: "Knight Furnich" });
+    assert.equal(media[0]?.creditText, "Knight Furnich");
+
+    // Falls back to the title when a photo has no captionTh, and leaves an
+    // already-absolute URL (e.g. a CDN) untouched.
+    assert.equal(media[1]?.name, "เคาน์เตอร์ครัว Knight Furnich");
+    assert.equal(media[1]?.contentUrl, "https://cdn.example.com/kitchen_001.webp");
+  });
+
+  it("associatedMedia round-trips through JSON cleanly", () => {
+    const photos = [{ id: "p1", category: "bathroom", categoryName: "งานห้องน้ำ", icon: "🛁", url: "/p1.webp", width: 100, height: 100, title: "ทดสอบ" }];
+    const data = buildPortfolioStructuredData(categories, 124, photos);
+    assert.doesNotThrow(() => JSON.parse(JSON.stringify(data)));
+  });
 });
 
 describe("buildSitePrepStructuredData", () => {

@@ -1,4 +1,4 @@
-import type { PortfolioCategory } from "@/pages/PortfolioPage";
+import type { PortfolioCategory, PortfolioPhoto } from "@/pages/PortfolioPage";
 import type { BasinProduct } from "@/data/catalog";
 import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
@@ -14,15 +14,22 @@ function absoluteImageUrl(imageUrl: string): string {
  *
  * Search engines and AI assistants cite an ImageGallery as the canonical
  * evidence that a contractor really does this kind of work. The gallery is
- * deliberately described at the collection level (categories + counts) rather
- * than listing hundreds of individual ImageObject entries: the grid pages in
- * progressively and the counts change as photos are hidden or published from
- * /admin/portfolio, so a collection description stays accurate where a static
- * per-photo list would immediately drift.
+ * described at the collection level (categories + counts) rather than a
+ * hardcoded per-photo list: the grid pages in progressively and the counts
+ * change as photos are hidden or published from /admin/portfolio, so a
+ * static list would immediately drift.
+ *
+ * `photos`, when given, adds per-image ImageObject entries (associatedMedia)
+ * for exactly the photos currently loaded in the grid -- not a fixed list,
+ * so it stays in sync the same way the category counts already do (the
+ * caller recomputes this from a useMemo keyed on the live photo array).
+ * This lets Google Images / AI visual search cite a specific installation
+ * photo by name and category instead of only a generic <img> tag.
  */
 export function buildPortfolioStructuredData(
   categories: ReadonlyArray<PortfolioCategory>,
   total: number,
+  photos: ReadonlyArray<PortfolioPhoto> = [],
 ): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
@@ -47,6 +54,22 @@ export function buildPortfolioStructuredData(
             name: category.name,
             url: `${SITE}/portfolio?category=${encodeURIComponent(category.slug)}`,
             numberOfItems: category.count,
+          })),
+        }
+      : {}),
+    ...(photos.length
+      ? {
+          associatedMedia: photos.map((photo) => ({
+            "@type": "ImageObject",
+            "@id": `${SITE}/portfolio#photo-${photo.id}`,
+            contentUrl: absoluteImageUrl(photo.url),
+            name: photo.captionTh?.trim() || photo.title,
+            caption: photo.captionTh?.trim() || photo.title,
+            about: photo.categoryName,
+            width: `${photo.width}px`,
+            height: `${photo.height}px`,
+            creator: { "@type": "Organization", name: "Knight Furnich" },
+            creditText: "Knight Furnich",
           })),
         }
       : {}),
