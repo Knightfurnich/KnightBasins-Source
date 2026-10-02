@@ -784,6 +784,35 @@ function memberValues(input: {
   };
 }
 
+// The three image roles a stone has beyond its main storefront `imageUrl`:
+// extra gallery shots, the photo used on the formal quotation, and the
+// full-slab photo. They reuse the basin contract's field schemas (up to 4
+// gallery URLs, each <= 2000 chars; the single URLs are nullable) so stones and
+// basins accept exactly the same shape. The generated stone bodies predate
+// these columns and zod drops unknown keys, so without this the fields would
+// be silently discarded before they reach the database.
+const stoneImageRoleFields = {
+  galleryImageUrls: CreateAdminBasinBody.shape.galleryImageUrls,
+  quoteImageUrl: CreateAdminBasinBody.shape.quoteImageUrl,
+  slabImageUrl: CreateAdminBasinBody.shape.quoteImageUrl,
+};
+const installedStonePriceSchema = CreateAdminInstalledStoneBody.extend(stoneImageRoleFields);
+const updateInstalledStonePriceSchema = UpdateAdminInstalledStoneBody.extend(stoneImageRoleFields);
+const sheetStonePriceSchema = CreateAdminSheetStoneBody.extend(stoneImageRoleFields);
+const updateSheetStonePriceSchema = UpdateAdminSheetStoneBody.extend(stoneImageRoleFields);
+
+type StoneImageRow = { imageUrl?: unknown; galleryImageUrls?: unknown; quoteImageUrl?: unknown; slabImageUrl?: unknown };
+
+/** Every URL a stone row keeps alive: main, gallery, quotation and slab photos. */
+function stoneImageUrls(row: StoneImageRow) {
+  return [
+    row.imageUrl,
+    ...(Array.isArray(row.galleryImageUrls) ? row.galleryImageUrls : []),
+    row.quoteImageUrl,
+    row.slabImageUrl,
+  ];
+}
+
 async function catalogImageUrls(database: AdminDatabase) {
   const [basins, installedStones, sheetStones, leads] = await Promise.all([
     database.select({
@@ -792,8 +821,18 @@ async function catalogImageUrls(database: AdminDatabase) {
       quoteImageUrl: basinPrices.quoteImageUrl,
       videoUrl: basinPrices.videoUrl,
     }).from(basinPrices),
-    database.select({ imageUrl: installedStonePrices.imageUrl }).from(installedStonePrices),
-    database.select({ imageUrl: sheetStonePrices.imageUrl }).from(sheetStonePrices),
+    database.select({
+      imageUrl: installedStonePrices.imageUrl,
+      galleryImageUrls: installedStonePrices.galleryImageUrls,
+      quoteImageUrl: installedStonePrices.quoteImageUrl,
+      slabImageUrl: installedStonePrices.slabImageUrl,
+    }).from(installedStonePrices),
+    database.select({
+      imageUrl: sheetStonePrices.imageUrl,
+      galleryImageUrls: sheetStonePrices.galleryImageUrls,
+      quoteImageUrl: sheetStonePrices.quoteImageUrl,
+      slabImageUrl: sheetStonePrices.slabImageUrl,
+    }).from(sheetStonePrices),
     database.select({ sketchUrl: customerLeads.sketchUrl }).from(customerLeads),
   ]);
 
@@ -804,8 +843,8 @@ async function catalogImageUrls(database: AdminDatabase) {
       row.quoteImageUrl,
       row.videoUrl,
     ]),
-    ...installedStones.map((row: { imageUrl?: unknown }) => row.imageUrl),
-    ...sheetStones.map((row: { imageUrl?: unknown }) => row.imageUrl),
+    ...installedStones.flatMap((row: StoneImageRow) => stoneImageUrls(row)),
+    ...sheetStones.flatMap((row: StoneImageRow) => stoneImageUrls(row)),
     ...leads.map((row: { sketchUrl?: unknown }) => row.sketchUrl),
   ];
 }
@@ -3480,7 +3519,7 @@ export function createAdminRouter(
   });
 
   router.post("/admin/installed-stones", requireAdminPermission("installed-stones", "edit"), async (req, res, next) => {
-    const parsed = CreateAdminInstalledStoneBody.safeParse(req.body);
+    const parsed = installedStonePriceSchema.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid installed stone data", parsed.error.flatten());
     try {
       const [created] = await database.insert(installedStonePrices).values(parsed.data).returning();
@@ -3490,7 +3529,7 @@ export function createAdminRouter(
 
   router.put("/admin/installed-stones/:id", requireAdminPermission("installed-stones", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
-    const parsed = UpdateAdminInstalledStoneBody.safeParse(req.body);
+    const parsed = updateInstalledStonePriceSchema.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid installed stone data");
     try {
       const [updated] = await database.update(installedStonePrices).set({ ...parsed.data, updatedAt: new Date() }).where(eq(installedStonePrices.id, id)).returning();
@@ -3515,7 +3554,7 @@ export function createAdminRouter(
   });
 
   router.post("/admin/sheet-stones", requireAdminPermission("sheet-stones", "edit"), async (req, res, next) => {
-    const parsed = CreateAdminSheetStoneBody.safeParse(req.body);
+    const parsed = sheetStonePriceSchema.safeParse(req.body);
     if (!parsed.success) return invalid(res, "Invalid sheet stone data", parsed.error.flatten());
     try {
       const [created] = await database.insert(sheetStonePrices).values(parsed.data).returning();
@@ -3525,7 +3564,7 @@ export function createAdminRouter(
 
   router.put("/admin/sheet-stones/:id", requireAdminPermission("sheet-stones", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
-    const parsed = UpdateAdminSheetStoneBody.safeParse(req.body);
+    const parsed = updateSheetStonePriceSchema.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid sheet stone data");
     try {
       const [updated] = await database.update(sheetStonePrices).set({ ...parsed.data, updatedAt: new Date() }).where(eq(sheetStonePrices.id, id)).returning();
