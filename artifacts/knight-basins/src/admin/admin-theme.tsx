@@ -119,6 +119,41 @@ const ADMIN_THEME_STYLES = `
 .admin-app[data-admin-theme="dark"] :is(table, th, td) {
   border-color: var(--line);
 }
+
+/* Admin Login & Forms in Dark Mode */
+.admin-login,
+[data-theme="dark"] .admin-login {
+  background-color: #0d1726 !important;
+  color: #eef4fa !important;
+}
+
+[data-theme="dark"] .admin-login .bg-\[var\(--card-paper\)\] {
+  background-color: #142235 !important;
+  border-color: #2d4056 !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .admin-login h1 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .admin-login p,
+[data-theme="dark"] .admin-login label {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .admin-login input {
+  background-color: #0d1726 !important;
+  border-color: #2d4056 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .admin-login button:not([class*="bg-"]) {
+  background-color: #1a2c42 !important;
+  border-color: #2d4056 !important;
+  color: #ffffff !important;
+}
 `;
 
 function readStoredAdminTheme(): AdminTheme {
