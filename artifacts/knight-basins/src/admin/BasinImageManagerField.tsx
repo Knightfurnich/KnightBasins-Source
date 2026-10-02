@@ -89,56 +89,98 @@ export function BasinImageManagerField({
           const isQuoteImage = quoteImageUrl ? quoteImageUrl === url : isPrimary;
           const isTopViewImage = topViewImageUrl === url;
           return (
-            <div key={`${url}-${index}`} className="admin-gallery-upload-tile relative h-24 w-32 shrink-0 overflow-hidden border border-[var(--line)] bg-[var(--paper)]">
-              <img src={url} alt={`รูปสินค้า ${index + 1}`} className="h-full w-full object-cover" />
-              <button
-                type="button"
-                onClick={() => removeAt(index)}
-                aria-label={`ลบภาพที่ ${index + 1}`}
-                className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white"
-              >
-                <X className="h-3 w-3" />
-              </button>
-              {isPrimary && (
-                <span className="absolute left-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-amber-500 text-white" title="ภาพหลัก">
-                  <Star className="h-3 w-3" fill="currentColor" />
+            <div
+              key={`${url}-${index}`}
+              className="admin-gallery-upload-tile flex w-40 shrink-0 flex-col overflow-hidden border border-[var(--line)] bg-[var(--paper)]"
+              data-testid={`basin-image-tile-${index}`}
+            >
+              <div className="relative h-28 w-full overflow-hidden bg-[rgba(0,0,0,0.04)]">
+                <img
+                  src={url}
+                  alt={`รูปสินค้า ${index + 1}`}
+                  className="h-full w-full object-contain"
+                  loading="lazy"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeAt(index)}
+                  aria-label={`ลบภาพที่ ${index + 1}`}
+                  className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+                {isPrimary && (
+                  <span className="absolute left-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-amber-500 text-white" title="ภาพหลัก">
+                    <Star className="h-3 w-3" fill="currentColor" />
+                  </span>
+                )}
+                {isTopViewImage && (
+                  <span className="absolute bottom-1 left-1 rounded-sm bg-blue-600 px-1 py-0.5 text-[10px] font-medium leading-none text-white" title="ภาพ Top View">
+                    ✓ Top View
+                  </span>
+                )}
+                <span className="absolute bottom-1 right-1 rounded-sm bg-black/65 px-1 py-0.5 text-[10px] font-medium leading-none text-white">
+                  {isPrimary ? "ภาพหลัก" : `ภาพที่ ${index + 1}`}
                 </span>
-              )}
-              {isTopViewImage && (
-                <span className="absolute right-1 top-8 rounded-sm bg-blue-600 px-1 py-0.5 text-[11px] font-medium text-white" title="ภาพ Top View">
-                  ✓ Top View
-                </span>
-              )}
-              <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 bg-black/50 p-1">
-                <div className="flex items-center justify-between">
-                  <button type="button" onClick={() => moveTo(index, -1)} disabled={index === 0} aria-label="เลื่อนไปทางซ้าย" className="text-white disabled:opacity-30">
+              </div>
+              <div className="flex flex-col gap-1 border-t border-[var(--line)] p-1">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveTo(index, -1)}
+                    disabled={index === 0}
+                    aria-label="เลื่อนไปทางซ้าย"
+                    className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] text-[var(--ink-soft)] disabled:opacity-30"
+                  >
                     <ChevronLeft className="h-3 w-3" />
                   </button>
-                  {!isPrimary && (
-                    <button type="button" onClick={() => setAsPrimary(index)} className="text-[14px] text-white underline decoration-dotted" data-testid={`button-basin-image-primary-${index}`}>
+                  {isPrimary ? (
+                    <span className="flex-1 truncate text-center text-[10px] leading-tight text-[var(--ink-soft)]">ภาพหลักแคตตาล็อก</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setAsPrimary(index)}
+                      className="flex-1 truncate rounded-sm border border-[var(--line)] px-1 py-1 text-[10px] leading-tight text-[var(--ink)] underline decoration-dotted"
+                      data-testid={`button-basin-image-primary-${index}`}
+                    >
                       ตั้งเป็นภาพหลัก
                     </button>
                   )}
-                  <button type="button" onClick={() => moveTo(index, 1)} disabled={index === images.length - 1} aria-label="เลื่อนไปทางขวา" className="text-white disabled:opacity-30">
+                  <button
+                    type="button"
+                    onClick={() => moveTo(index, 1)}
+                    disabled={index === images.length - 1}
+                    aria-label="เลื่อนไปทางขวา"
+                    className="grid h-6 w-6 shrink-0 place-items-center border border-[var(--line)] text-[var(--ink-soft)] disabled:opacity-30"
+                  >
                     <ChevronRight className="h-3 w-3" />
                   </button>
                 </div>
                 <button
                   type="button"
                   onClick={() => toggleQuoteImage(url)}
-                  className={`flex items-center justify-center gap-1 rounded-sm px-1 py-0.5 text-[14px] ${isQuoteImage ? "bg-emerald-600 text-white" : "text-white/80 hover:text-white"}`}
+                  className={`flex items-center justify-center gap-1 rounded-sm border px-1 py-1 text-[10px] leading-tight ${
+                    isQuoteImage
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-[var(--line)] text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                  }`}
                   data-testid={`button-basin-image-quote-${index}`}
                 >
-                  <FileText className="h-3 w-3" /> {isQuoteImage ? "ใช้ในใบเสนอราคา" : "ใช้ภาพนี้ในใบเสนอราคา"}
+                  <FileText className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{isQuoteImage ? "✓ ภาพใบเสนอราคา" : "ตั้งเป็นภาพใบเสนอราคา"}</span>
                 </button>
                 {onTopViewImageChange && (
                   <button
                     type="button"
                     onClick={() => toggleTopViewImage(url)}
-                    className={`flex items-center justify-center gap-1 rounded-sm px-1 py-0.5 text-[14px] ${isTopViewImage ? "bg-blue-600 text-white" : "text-white/80 hover:text-white"}`}
+                    className={`flex items-center justify-center gap-1 rounded-sm border px-1 py-1 text-[10px] leading-tight ${
+                      isTopViewImage
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-[var(--line)] text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                    }`}
                     data-testid={`button-basin-image-topview-${index}`}
                   >
-                    {isTopViewImage ? "✓ Top View" : "🔝 Top View"}
+                    <span className="truncate">{isTopViewImage ? "✓ Top View" : "ตั้งเป็น Top View"}</span>
                   </button>
                 )}
               </div>
@@ -150,10 +192,10 @@ export function BasinImageManagerField({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={isUploading}
-            className="admin-gallery-upload-add flex h-24 w-32 shrink-0 flex-col items-center justify-center gap-1 border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] text-[var(--ink-soft)]"
+            className="admin-gallery-upload-add flex h-[9.75rem] w-40 shrink-0 flex-col items-center justify-center gap-1 border border-dashed border-[var(--line)] bg-[rgba(255,255,255,0.72)] text-[var(--ink-soft)]"
           >
             {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
-            <span className="text-[14px]">{isUploading ? "กำลังอัปโหลด..." : "เพิ่มภาพ"}</span>
+            <span className="text-[11px]">{isUploading ? "กำลังอัปโหลด..." : "เพิ่มภาพ"}</span>
           </button>
         )}
       </div>
