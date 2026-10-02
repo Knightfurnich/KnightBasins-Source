@@ -138,8 +138,8 @@ export function PortfolioPage() {
   };
 
   const structuredData = useMemo(
-    () => buildPortfolioStructuredData(categories, categories.reduce((sum, c) => sum + c.count, 0)),
-    [categories],
+    () => buildPortfolioStructuredData(categories, categories.reduce((sum, c) => sum + c.count, 0), photos),
+    [categories, photos],
   );
 
   return (
