@@ -320,6 +320,16 @@ describe("buildPublicTrackTimeline", () => {
     assert.deepEqual(timeline.map((step) => step.active), [false, true, false, false, false]);
   });
 
+  it("marks quote_accepted as done for status 'confirmed' (job-163's SlipOK Auto-Close)", async () => {
+    const routeModule = await importTypeScriptModule<LeadRouteModule>("src/routes/leads.ts");
+    const timeline = routeModule.buildPublicTrackTimeline(
+      { status: "confirmed", updatedAt: new Date("2026-10-02T00:00:00.000Z") },
+      [],
+    );
+    assert.deepEqual(timeline.map((step) => step.done), [true, false, false, false, false]);
+    assert.deepEqual(timeline.map((step) => step.active), [false, true, false, false, false]);
+  });
+
   it("infers 'installing' from an installation-stage photo even before status catches up", async () => {
     const routeModule = await importTypeScriptModule<LeadRouteModule>("src/routes/leads.ts");
     const timeline = routeModule.buildPublicTrackTimeline(
