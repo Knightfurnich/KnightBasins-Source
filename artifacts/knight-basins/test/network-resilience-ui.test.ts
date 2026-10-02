@@ -80,7 +80,7 @@ test("Error Boundary switches to a Thai fallback with reload and support contact
 test("the Error Boundary and network status banner wrap every app route", () => {
   assert.match(
     appComponent,
-    /<AppErrorBoundary>\s*<NetworkStatusBanner\s*\/>\s*<QueryClientProvider[\s\S]*?<Switch>/,
+    /<AppErrorBoundary>\s*(?:<RouteMeta[\s\S]*?\/>\s*)?<NetworkStatusBanner\s*\/>\s*<QueryClientProvider[\s\S]*?<Switch>/,
   );
   assert.match(appComponent, /<Toaster\s*\/>\s*<\/QueryClientProvider>\s*<\/AppErrorBoundary>/);
 });
