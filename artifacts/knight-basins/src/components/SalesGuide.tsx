@@ -79,17 +79,17 @@ export default function SalesGuide() {
             <div className="rounded-lg border border-[var(--line)] bg-[var(--card-paper)] p-3.5 space-y-1.5 shadow-sm">
               <Sparkles className="h-5 w-5 text-[#003366]" />
               <strong className="block text-xs font-semibold text-[var(--ink)]">ไร้รอยต่อ 100%</strong>
-              <p className="text-[11px] leading-relaxed text-[var(--ink-soft)]">Seamless Joint แนบเนียนเป็นเนื้อเดียว ไม่มีคราบสะสมตามร่อง</p>
+              <p className="text-[11px] leading-relaxed text-[var(--ink-soft)]">Seamless Joint ผิวเนียนสนิท ผ่านมาตรฐาน UBC CLASS 1 ไม่ลามไฟ</p>
             </div>
             <div className="rounded-lg border border-[var(--line)] bg-[var(--card-paper)] p-3.5 space-y-1.5 shadow-sm">
               <ShieldCheck className="h-5 w-5 text-emerald-700" />
               <strong className="block text-xs font-semibold text-[var(--ink)]">กันน้ำ ไม่บวม</strong>
-              <p className="text-[11px] leading-relaxed text-[var(--ink-soft)]">เนื้อหินตัน Non-Porous 100% ป้องกันน้ำซึม ไม่บวม ไม่เปื่อยยุ่ย</p>
+              <p className="text-[11px] leading-relaxed text-[var(--ink-soft)]">เนื้อหินตัน ผ่านมาตรฐาน ASTM G22 ป้องกันน้ำซึมและเชื้อโรค 100%</p>
             </div>
             <div className="rounded-lg border border-[var(--line)] bg-[var(--card-paper)] p-3.5 space-y-1.5 shadow-sm">
               <Award className="h-5 w-5 text-amber-700" />
               <strong className="block text-xs font-semibold text-[var(--ink)]">ไร้เชื้อรา ปลอดภัย</strong>
-              <p className="text-[11px] leading-relaxed text-[var(--ink-soft)]">Food Grade ผิวสัมผัสสะอาด ป้องกันการสะสมของแบคทีเรีย</p>
+              <p className="text-[11px] leading-relaxed text-[var(--ink-soft)]">ผ่านมาตรฐาน LC 50 ปลอดภัยต่ออาหาร และ NEMA LD3 สีไม่เปลี่ยนแปลง</p>
             </div>
             <div className="rounded-lg border border-[var(--line)] bg-[var(--card-paper)] p-3.5 space-y-1.5 shadow-sm">
               <Wrench className="h-5 w-5 text-[#003366]" />
@@ -268,7 +268,7 @@ export default function SalesGuide() {
           <h2 className="font-semibold text-[#003366] flex items-center gap-2.5" style={{ fontSize: "var(--type-size-heading-lg)", lineHeight: "var(--type-line-heading-lg)" }}>
             <span>📚</span> 5. ศูนย์ข้อมูลและการออกแบบเฉพาะทาง
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <Link href="/portfolio" className="group block focus:outline-none" data-testid="link-guide-hub-portfolio">
               <div className="p-4 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] hover:border-[#003366] hover:shadow-sm transition space-y-2 h-full flex flex-col justify-between">
                 <div>
@@ -276,7 +276,7 @@ export default function SalesGuide() {
                     <Images size={16} /> คลังผลงานจริง
                   </div>
                   <p className="text-xs text-[var(--ink-soft)] mt-1.5 leading-relaxed">
-                    ชมภาพถ่ายงานติดตั้งจริง 670+ ภาพ แยกหมวดห้องน้ำ ครัว และเคาน์เตอร์
+                    ชมภาพถ่ายงานติดตั้งจริง 180+ ภาพคัดสรร แยกหมวดห้องน้ำ ครัว และเคาน์เตอร์
                   </p>
                 </div>
                 <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
@@ -311,6 +311,21 @@ export default function SalesGuide() {
                 </div>
                 <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
                   เปิดดูขั้นตอน <ArrowRight size={12} />
+                </span>
+              </div>
+            </Link>
+            <Link href="/updates" className="group block focus:outline-none" data-testid="link-guide-hub-updates">
+              <div className="p-4 rounded-lg border border-[var(--line)] bg-[var(--card-paper)] hover:border-[#003366] hover:shadow-sm transition space-y-2 h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[#003366] font-semibold text-sm">
+                    <Sparkles size={16} /> อัปเดตระบบ
+                  </div>
+                  <p className="text-xs text-[var(--ink-soft)] mt-1.5 leading-relaxed">
+                    ประวัติเวอร์ชันและฟีเจอร์ใหม่ ติดตามความเคลื่อนไหวระบบ Knight Basins
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
+                  ดูประวัติรุ่น <ArrowRight size={12} />
                 </span>
               </div>
             </Link>
