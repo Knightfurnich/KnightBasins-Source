@@ -1,27 +1,60 @@
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, ImageOff, X } from "lucide-react";
 
 type StoneSlabViewerProps = {
   images: string[];
   alt: string;
+  buttonLabel?: string;
+  buttonTestId?: string;
+  buttonClassName?: string;
+  buttonIcon?: ReactNode;
 };
 
-export function StoneSlabViewer({ images, alt }: StoneSlabViewerProps) {
+export function StoneSlabViewer({
+  images,
+  alt,
+  buttonLabel = "ดูภาพเต็มแผ่น",
+  buttonTestId,
+  buttonClassName,
+  buttonIcon,
+}: StoneSlabViewerProps) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
 
   if (images.length === 0) return null;
 
+  const buttonContents = (
+    <>
+      {buttonIcon && <span aria-hidden="true">{buttonIcon}</span>}
+      {buttonLabel}
+    </>
+  );
+  const openButton = buttonTestId ? (
+    <button
+      type="button"
+      className={buttonClassName}
+      onClick={() => setOpen(true)}
+      aria-label={buttonLabel}
+      data-testid={buttonTestId}
+    >
+      {buttonContents}
+    </button>
+  ) : (
+    <button
+      type="button"
+      className={buttonClassName}
+      onClick={() => setOpen(true)}
+      aria-label={buttonLabel}
+      data-testid="button-stone-slab-open"
+    >
+      {buttonContents}
+    </button>
+  );
+
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        data-testid="button-stone-slab-open"
-      >
-        ดูภาพเต็มแผ่น
-      </button>
+      {openButton}
       {open && <StoneSlabModal images={images} alt={alt} onClose={close} />}
     </>
   );
