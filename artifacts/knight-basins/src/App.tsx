@@ -1921,7 +1921,17 @@ function Storefront() {
     setCustomer((current) => ({ ...current, ...contact }));
     const lead = await syncLead("quote_requested", "studio", { ...contact, site: contact.site || contact.address || undefined, productSkus: state.basinSkus, orderMode: "studio", studioData: { state, estimate, notification, worksitePlaceId } });
     if (!lead.quoteNumber || !lead.publicQuoteToken) throw new Error("ระบบยังไม่ได้สร้างลิงก์ใบเสนอราคา");
-    setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}`);
+    // The lead is already saved at this point, so a failed alert must never stop the
+    // customer from reaching their quotation: report the outcome and navigate regardless.
+    let notificationMessage = "";
+    try {
+      const result = await notifyQuoteMutation.mutateAsync({ data: { token: lead.publicQuoteToken } });
+      notificationMessage = result.message;
+    } catch (error) {
+      notificationMessage = error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่";
+    }
+    const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
+    setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}${notificationQuery}`);
   };
   const initialBasinSkus = useMemo(() => [...new Set(cart.map((line) => line.sku))].slice(0, 2), [cart]);
   const initialStoneColors = useMemo(() => [...new Set(stones.filter((stone) => stone.enabled).map((stone) => stone.color))].slice(0, 3), [stones]);
