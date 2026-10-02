@@ -1237,6 +1237,7 @@ function SavedQuotePage() {
           laborUnitPrice: materialUnitPrice === null ? null : Math.max(0, estimate.stoneUnitPriceTHB - materialUnitPrice),
           workQuantity: estimate.counterAreaSqM ?? estimate.stoneAreaSqM,
           workUnit: "ตร.ม.",
+         imageUrl: activeStone.quoteImageUrl ?? activeStone.imageUrl,
          notificationKind: "stone",
        });
        if ((estimate.upstandLengthM ?? 0) > 0) {
@@ -1472,6 +1473,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
        laborUnitPrice: stone.mode === "whole-sheet" || materialUnitPrice === null ? 0 : Math.max(0, currentStoneUnitPrice - materialUnitPrice),
        workQuantity: stone.mode === "whole-sheet" ? stone.quantity : stoneAreaSqM(stone),
        workUnit: stone.mode === "whole-sheet" ? "แผ่น" : "ตร.ม.",
+       imageUrl: selectedStone.quoteImageUrl ?? selectedStone.imageUrl,
        notificationKind: "stone",
     });
   });
