@@ -5,8 +5,8 @@
 
 **ที่มาและความต้องการ:**
 เพื่อเปลี่ยน 2D Studio และหน้าใบเสนอราคา (`/quote/view`) ให้ลูกค้าสามารถ "กดจ่ายมัดจำจบในตัว" ได้ทันที ไม่ต้องรอฝ่ายขายทักมาส่งเลขบัญชี:
-1. **เพิ่มปุ่มชำระเงินมัดจำใน 2D Studio (`StudioPage.tsx`) และหน้าใบเสนอราคา (`SavedQuotePage`):**
-   * บนแถบ Action สรุปราคาของ Studio และหน้าใบเสนอราคา:
+1. **เพิ่มปุ่มชำระเงินมัดจำใน 2D Studio (`StudioPage.tsx`):**
+   * บนแถบ Action สรุปราคาของ Studio:
      - เพิ่มปุ่มเด่นชัด: `[ 💳 ชำระเงินมัดจำ / ยืนยันการสั่งผลิต ]` (`data-testid="button-open-promptpay-checkout"`)
 2. **หน้าต่างป๊อปอัปชำระเงิน (`StudioCheckoutModal.tsx` ใหม่):**
    * หัวข้อ: *"ชำระเงินมัดจำเพื่อเริ่มสั่งตัดหินทันที"* (`data-testid="modal-studio-checkout"`)
@@ -24,7 +24,7 @@
    * **กล่องอัปโหลดสลิปโอนเงิน (Slip Upload Box):**
      - ช่องอัปโหลดรูปภาพสลิป (`data-testid="input-checkout-slip"`)
      - ปุ่มกดส่งสลิป: `[ 🚀 ยืนยันการชำระเงิน ]` (`data-testid="button-submit-checkout-slip"`)
-     - เรียก `POST /api/leads/slips` โดยระบบหลังบ้านจะส่งตรวจกับ SlipOK ทันที
+     - เรียก `POST /api/leads/payment-slip` (ส่ง multipart fields: file, token, kind="deposit") ที่มีอยู่แล้วในระบบจริง
    * **สถานะความสำเร็จ (Real-time Success State):**
      - เมื่อสลิปผ่านการตรวจสอบ (verified):
        * แสดงอนิเมชั่นติ๊กถูกสีเขียวขนาดใหญ่
@@ -43,8 +43,8 @@ GOAL:
   1. สร้างคอมโพเนนต์ artifacts/knight-basins/src/components/StudioCheckoutModal.tsx:
      - modal-studio-checkout, button-open-promptpay-checkout, input-checkout-slip, button-submit-checkout-slip
      - รองรับตัวเลือกมัดจำ 50%, 30%, เต็มจำนวน และแสดง QR PromptPay ฝังยอดเงิน
-     - เชื่อมต่อการอัปโหลดสลิปเข้า POST /api/leads/slips
-  2. เพิ่มปุ่มใน StudioPage.tsx หรือ SavedQuotePage: button-open-promptpay-checkout
+     - เชื่อมต่อการอัปโหลดสลิปเข้า POST /api/leads/payment-slip (multipart: file, token, kind="deposit")
+  2. เพิ่มปุ่มใน StudioPage.tsx: button-open-promptpay-checkout
   3. เขียนเทสต์ใน artifacts/knight-basins/test/studio-checkout-modal.test.ts (ใหม่)
 
 SCOPE:
