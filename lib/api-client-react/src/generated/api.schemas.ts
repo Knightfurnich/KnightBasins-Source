@@ -516,6 +516,20 @@ export interface InstalledStonePriceInput {
      * @nullable
      */
   imageUrl?: string | null;
+  /**
+     * @maxItems 4
+     */
+  galleryImageUrls?: string[];
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  quoteImageUrl?: string | null;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  slabImageUrl?: string | null;
   aliases: string[];
   active: boolean;
   sortOrder: number;
@@ -564,6 +578,20 @@ export interface SheetStonePriceInput {
      * @nullable
      */
   imageUrl?: string | null;
+  /**
+     * @maxItems 4
+     */
+  galleryImageUrls?: string[];
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  quoteImageUrl?: string | null;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  slabImageUrl?: string | null;
   aliases: string[];
   active: boolean;
   sortOrder: number;

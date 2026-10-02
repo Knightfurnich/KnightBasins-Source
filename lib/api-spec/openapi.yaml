@@ -1660,6 +1660,13 @@ components:
         categoryId: { type: [integer, "null"], minimum: 1 }
         tone: { type: string, minLength: 1, maxLength: 24 }
         imageUrl: { type: [string, "null"], maxLength: 2000 }
+        galleryImageUrls:
+          type: array
+          items: { type: string, maxLength: 2000 }
+          maxItems: 4
+          default: []
+        quoteImageUrl: { type: [string, "null"], maxLength: 2000 }
+        slabImageUrl: { type: [string, "null"], maxLength: 2000 }
         aliases:
           type: array
           items: { type: string }
@@ -1695,6 +1702,13 @@ components:
         price50PlusTHB: { type: integer, minimum: 0 }
         tone: { type: string, minLength: 1, maxLength: 24 }
         imageUrl: { type: [string, "null"], maxLength: 2000 }
+        galleryImageUrls:
+          type: array
+          items: { type: string, maxLength: 2000 }
+          maxItems: 4
+          default: []
+        quoteImageUrl: { type: [string, "null"], maxLength: 2000 }
+        slabImageUrl: { type: [string, "null"], maxLength: 2000 }
         aliases:
           type: array
           items: { type: string }
