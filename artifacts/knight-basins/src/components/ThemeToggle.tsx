@@ -391,6 +391,56 @@ export const STOREFRONT_THEME_STYLES = `
   color: #173f6b;
 }
 
+[data-theme="dark"] .storefront-theme-root {
+  background-color: var(--paper);
+}
+
+[data-theme="dark"] :is(.stone-hero, .stone-page, .config-layout) {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-hero h1 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .mode-switch button {
+  background-color: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .mode-switch button.is-active {
+  border-color: var(--brand-blue);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-colors button {
+  background-color: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .stone-colors button:hover,
+[data-theme="dark"] .stone-colors button.is-active {
+  border-color: var(--brand-blue);
+}
+
+[data-theme="dark"] .stone-price-filters {
+  background-color: var(--card-paper);
+  border: 1px solid var(--line);
+}
+
+[data-theme="dark"] .stone-price-filters button.is-active {
+  background-color: var(--brand-blue);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .config-summary {
+  background-color: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
 @media print {
   [data-theme="dark"] .formal-quote-sheet,
   [data-theme="dark"] .formal-quote-sheet * {
