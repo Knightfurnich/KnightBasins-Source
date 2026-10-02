@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
 
 # ---------------------------------------------------------------------------
 # Comprehensive Generative Engine Optimization (GEO) & AI Crawlers Policy
@@ -9,118 +10,151 @@ Allow: /
 # OpenAI (ChatGPT, SearchGPT, GPT-4, GPT-5)
 User-agent: GPTBot
 Allow: /
+Disallow: /admin
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /admin
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /admin
 
 # Anthropic (Claude 3.5, Claude 3.7, Claude Sonnet, Claude Opus)
 User-agent: ClaudeBot
 Allow: /
+Disallow: /admin
 
 User-agent: Claude-Web
 Allow: /
+Disallow: /admin
 
 User-agent: anthropic-ai
 Allow: /
+Disallow: /admin
 
 # Google (Gemini, Google AI Overviews, Bard, Vertex AI)
 User-agent: Google-Extended
 Allow: /
+Disallow: /admin
 
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
 
 User-agent: GoogleOther
 Allow: /
+Disallow: /admin
 
 # Perplexity AI (Perplexity Search & Copilot)
 User-agent: PerplexityBot
 Allow: /
+Disallow: /admin
 
 User-agent: Perplexity-Search
 Allow: /
+Disallow: /admin
 
 # Apple (Apple Intelligence, Siri AI, Safari AI)
 User-agent: Applebot
 Allow: /
+Disallow: /admin
 
 User-agent: Applebot-Extended
 Allow: /
+Disallow: /admin
 
 # xAI (Grok on X/Twitter)
 User-agent: GrokBot
 Allow: /
+Disallow: /admin
 
 User-agent: xAI-Bot
 Allow: /
+Disallow: /admin
 
 # Microsoft (Copilot, Bing AI, Azure OpenAI)
 User-agent: Bingbot
 Allow: /
+Disallow: /admin
 
 User-agent: MicrosoftCopilot
 Allow: /
+Disallow: /admin
 
 # Meta (Meta AI, LLaMA Knowledge Datasets)
 User-agent: Meta-ExternalAgent
 Allow: /
+Disallow: /admin
 
 User-agent: FacebookBot
 Allow: /
+Disallow: /admin
 
 # Amazon (Amazon Bedrock, Alexa AI, Titan)
 User-agent: Amazonbot
 Allow: /
+Disallow: /admin
 
 # Cohere (Command R+, Enterprise AI)
 User-agent: cohere-ai
 Allow: /
+Disallow: /admin
 
 # Mistral AI (Le Chat, Mistral Large)
 User-agent: MistralAI
 Allow: /
+Disallow: /admin
 
 # DuckDuckGo AI (DuckAssist)
 User-agent: DuckAssistBot
 Allow: /
+Disallow: /admin
 
 # You.com (AI Search Engine)
 User-agent: YouBot
 Allow: /
+Disallow: /admin
 
 # ByteDance (Doubao, TikTok AI Search)
 User-agent: Bytespider
 Allow: /
+Disallow: /admin
 
 # Common Crawl (Foundation training corpus for open models: LLaMA, DeepSeek, Qwen)
 User-agent: CCBot
 Allow: /
+Disallow: /admin
 
 # Diffbot (Structured Knowledge Graph for AI)
 User-agent: Diffbot
 Allow: /
+Disallow: /admin
 
 # Additional AI / LLM agents (assistants, datasets, enterprise copilots)
 User-agent: Google-CloudVertexBot
 Allow: /
+Disallow: /admin
 
 User-agent: PetalBot
 Allow: /
+Disallow: /admin
 
 User-agent: Timpibot
 Allow: /
+Disallow: /admin
 
 User-agent: ImagesiftBot
 Allow: /
+Disallow: /admin
 
 User-agent: Omgilibot
 Allow: /
+Disallow: /admin
 
 User-agent: Webzio-Extended
 Allow: /
+Disallow: /admin
 
 # ---------------------------------------------------------------------------
 # Machine-readable knowledge base for LLMs (llms.txt standard):

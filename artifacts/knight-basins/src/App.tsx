@@ -2,6 +2,7 @@ import { Component, useCallback, useEffect, useMemo, useRef, useState, type Disp
 import { Link, Route, Switch, useLocation } from "wouter";
 import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, FileText, GripVertical, MessageCircle, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, Wrench, X } from "lucide-react";
 import { WorkshopProductionSheet, type ProductionItem } from "@/components/WorkshopProductionSheet";
+import { RouteMeta } from "@/components/RouteMeta";
 import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { TrustBadges } from "@/components/TrustBadges";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
@@ -1902,6 +1903,7 @@ function App() {
 
   return (
     <AppErrorBoundary>
+      <RouteMeta pathname={location} />
       <NetworkStatusBanner />
       <QueryClientProvider client={queryClient}>
         <div className="storefront-theme-root" data-theme={isAdminRoute ? "light" : themeValue.theme}>
