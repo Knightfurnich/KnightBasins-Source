@@ -1,7 +1,13 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { Router, type IRouter } from "express";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+// Type-only -- erased at compile time, so merely importing this route module
+// (as every existing portfolio test already does, none of them setting
+// DATABASE_URL) never triggers @workspace/db's "DATABASE_URL must be set"
+// throw. The real `db` is loaded lazily inside the request handler instead.
+import type { db as Db } from "@workspace/db";
+import { customerLeads } from "@workspace/db/schema";
 import { readMultipartForm, UPLOAD_DIR } from "../lib/image-upload";
 import { createAdminAuthMiddleware, requireAnyAdminPermission } from "../middlewares/admin-auth";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
@@ -187,6 +193,115 @@ function orderWithinCategoryOrder(items: PortfolioItem[]): PortfolioItem[] {
 /** Portfolio has 647 real items as of this writing; 2000 comfortably covers "give me everything" without an unbounded response. `limit=all` is shorthand for this same ceiling. */
 const PORTFOLIO_MAX_LIMIT = 2000;
 const PORTFOLIO_DEFAULT_LIMIT = 60;
+
+const portfolioInquiryRateLimit = createRateLimiter({ name: "portfolio-inquiry", max: 30, windowMs: 60 * 1000 });
+
+type PortfolioInquiryBody = {
+  photoId?: unknown;
+  photoTitle?: unknown;
+  photoUrl?: unknown;
+  phone?: unknown;
+  name?: unknown;
+  notes?: unknown;
+};
+
+function stringField(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/** Sends the KnightTeam alert card and never throws -- a Telegram outage must not turn a saved lead into a 500. */
+async function sendPortfolioInquiryTelegramAlert(text: string): Promise<void> {
+  const token = process.env["TELEGRAM_BOT_TOKEN"];
+  const chatId = process.env["TELEGRAM_SALES_CHAT_ID"];
+  if (!token || !chatId) return;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+    if (!response.ok) {
+      console.warn("Portfolio inquiry Telegram alert failed", { status: response.status });
+    }
+  } catch (error) {
+    console.warn("Portfolio inquiry Telegram alert failed", error instanceof Error ? error.message : "unknown");
+  }
+}
+
+/**
+ * POST /api/public/portfolio/inquiry
+ * Public endpoint behind the storefront's "สั่งผลิตแบบนี้ / ขอราคา" button on a
+ * portfolio photo -- saves a new sales lead referencing that photo and alerts
+ * the KnightTeam Telegram group immediately. A tiny sub-router (rather than
+ * folding into the big `router` below) so a test can inject a fake database
+ * via `createPortfolioInquiryRouter`, mirroring createLeadsRouter's pattern,
+ * without having to touch every other route in this file.
+ */
+export function createPortfolioInquiryRouter(database?: typeof Db): IRouter {
+  const inquiryRouter: IRouter = Router();
+
+  inquiryRouter.post("/public/portfolio/inquiry", portfolioInquiryRateLimit, async (req, res, next) => {
+    try {
+      const body = (req.body ?? {}) as PortfolioInquiryBody;
+      const photoId = stringField(body.photoId);
+      const photoTitle = stringField(body.photoTitle);
+      const photoUrl = stringField(body.photoUrl);
+      const phone = stringField(body.phone);
+      const name = stringField(body.name);
+      const notes = stringField(body.notes);
+
+      if (!phone || phone.length < 9) {
+        return res.status(400).json({ message: "กรุณาระบุเบอร์โทรศัพท์ที่ติดต่อได้" });
+      }
+      if (!photoId) {
+        return res.status(400).json({ message: "กรุณาระบุรหัสภาพผลงาน" });
+      }
+
+      // Loaded lazily (not at module import time) so this route's own
+      // production dependency on DATABASE_URL never leaks onto every other
+      // test in this file that imports the module but never calls this route.
+      const activeDb = database ?? (await import("@workspace/db")).db;
+      const [lead] = await activeDb
+        .insert(customerLeads)
+        .values({
+          leadKey: randomUUID(),
+          name: name || "ลูกค้าสนใจสั่งผลิตจากภาพผลงาน",
+          phone,
+          source: "portfolio",
+          orderMode: "quick-purchase",
+          status: "new",
+          notes: `[สนใจผลงาน]: ${photoTitle} (รหัสภาพ: ${photoId}) · บันทึกเพิ่มเติม: ${notes || "-"}`,
+          sketchUrl: photoUrl || null,
+        })
+        .returning();
+
+      const divider = "━━━━━━━━━━━━━━━━━━━";
+      await sendPortfolioInquiryTelegramAlert([
+        "🎯 มีลูกค้าสนใจสั่งผลิตจากภาพผลงานจริง!",
+        divider,
+        `📸 ผลงาน: ${photoTitle} (รหัส ${photoId})`,
+        `👤 ชื่อผู้ติดต่อ: ${name || "ไม่ได้ระบุ"}`,
+        `📞 เบอร์โทรศัพท์: ${phone}`,
+        `📝 รายละเอียด/สถานที่: ${notes || "-"}`,
+        `🔗 ดูภาพผลงาน: ${photoUrl}`,
+        divider,
+        "⚙️ ระบบ Knight Basins Portfolio Lead Engine",
+      ].join("\n"));
+
+      return res.status(201).json({
+        success: true,
+        leadId: (lead as { id?: number } | undefined)?.id,
+        message: "บันทึกข้อมูลและส่งแจ้งเตือนเรียบร้อยแล้ว",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  return inquiryRouter;
+}
+
+router.use(createPortfolioInquiryRouter());
 
 /**
  * GET /api/portfolio
