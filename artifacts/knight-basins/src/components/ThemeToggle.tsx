@@ -144,6 +144,91 @@ export const STOREFRONT_THEME_STYLES = `
   opacity: 0.85;
 }
 
+[data-theme="dark"] .order-mode-tabs button {
+  background-color: var(--card-paper);
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .order-mode-tabs button:hover {
+  border-color: var(--brand-blue);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .order-mode-tabs button.is-active {
+  background-color: var(--brand-blue);
+  color: #0b1324;
+  border-color: var(--brand-blue);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .filter-tabs {
+  background-color: var(--card-paper);
+  border: 1px solid var(--line);
+}
+
+[data-theme="dark"] .filter-tabs button {
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .filter-tabs button:hover {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .filter-tabs button.is-active {
+  background-color: var(--brand-blue);
+  color: #0b1324;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .catalog-basin-hero {
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .catalog-hero h1 {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .catalog-hero h1 em {
+  color: var(--brand-blue);
+}
+
+[data-theme="dark"] .catalog-toolbar h2 {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .catalog-toolbar h2 span {
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .search-field,
+[data-theme="dark"] .sort-field {
+  border-bottom-color: var(--line);
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .search-field input,
+[data-theme="dark"] .sort-field select {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .sort-field-help {
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .product-art {
+  background-color: #1e293b;
+}
+
+[data-theme="dark"] .product-index,
+[data-theme="dark"] .art-note {
+  color: var(--ink-soft);
+}
+
+[data-theme="dark"] .product-price {
+  color: var(--brand-blue);
+}
+
 [data-theme="dark"] :is(.studio-canvas, .studio-stone-choice, .studio-basin-choice, .studio-basin-choice-art, .studio-canvas-quickbar) {
   --ink: #173f6b;
   --ink-soft: #55718a;
