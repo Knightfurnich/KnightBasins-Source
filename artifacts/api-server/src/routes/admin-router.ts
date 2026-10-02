@@ -504,6 +504,54 @@ const STOCK_FETCH_TIMEOUT_MS = 10_000;
 
 class StockSourceUnavailableError extends Error {}
 
+// The Staron file is a many-tab workbook whose tab ids are re-rolled on every
+// upload, so the tab id is looked up at runtime from the file's public
+// /htmlview page instead of being remembered. Hits are kept briefly so a
+// refresh doesn't re-fetch the page every time; a miss is remembered even
+// more briefly so a dead htmlview can't add its timeout to every request.
+const SHEET_GID_CACHE_TTL_MS = 10 * 60 * 1000;
+const SHEET_GID_MISS_TTL_MS = 60 * 1000;
+const sheetGidCache = new Map<string, { gid: string | null; expiresAt: number }>();
+
+function parseSheetGidFromHtmlView(html: string, targetSheetName: string): string | null {
+  // htmlview lists every tab as: items.push({name: "<tab>", pageUrl: "...", gid: "<id>", ...
+  const tabPattern = /name:\s*"((?:[^"\\]|\\.)*)",\s*pageUrl:[^,]+,\s*gid:\s*"([0-9]+)"/g;
+  for (const match of html.matchAll(tabPattern)) {
+    if (match[1] === targetSheetName) return match[2] ?? null;
+  }
+  return null;
+}
+
+/** Looks up the current tab id (gid) of `targetSheetName` from the
+ * spreadsheet's /htmlview page. Returns null when the page can't be read or
+ * the tab isn't listed, so callers fall back to their other export URLs. */
+async function resolveSheetGidFromHtmlView(spreadsheetId: string, targetSheetName: string, accessToken?: string): Promise<string | null> {
+  const cacheKey = `${spreadsheetId}:${targetSheetName}`;
+  const cached = sheetGidCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.gid;
+
+  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/htmlview`;
+  let gid: string | null = null;
+  // Google serves this page to anyone with the link; the bearer token is only
+  // there for a file that isn't link-shared. If the authorized request is
+  // refused, one plain retry covers a token the page doesn't accept.
+  const attempts: Record<string, string>[] = accessToken ? [{ Authorization: `Bearer ${accessToken}` }, {}] : [{}];
+  for (const headers of attempts) {
+    try {
+      const response = await fetch(url, { headers, signal: AbortSignal.timeout(STOCK_FETCH_TIMEOUT_MS) });
+      if (!response.ok) continue;
+      gid = parseSheetGidFromHtmlView(await response.text(), targetSheetName);
+      break;
+    } catch {
+      // timeout or network error: don't spend another full timeout on a retry
+      break;
+    }
+  }
+
+  sheetGidCache.set(cacheKey, { gid, expiresAt: Date.now() + (gid ? SHEET_GID_CACHE_TTL_MS : SHEET_GID_MISS_TTL_MS) });
+  return gid;
+}
+
 async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, accessToken: string): Promise<unknown[][]> {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}`;
   let sheetsStatus = "network error";
@@ -526,13 +574,16 @@ async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, ac
   // Google Sheets API returns 400 "The document must not be an Office file."
   // For Office files, use Google Sheets CSV export.
   //
-  // The Staron tab id (gid) is deployment config (STOCK_STARON_SHEET_GID), not
-  // code: the factory re-uploads that file and a stale gid makes Google answer
-  // 400. With no gid set, the export reads the file's first tab; with one set,
-  // it's tried first and the gid-less export is the retry if it stops resolving.
+  // Staron's export is pinned to its stock tab. Tab ids change whenever the
+  // factory re-uploads the file, so the live id (from /htmlview) goes first;
+  // STOCK_STARON_SHEET_GID is the manual override behind it; the plain export
+  // (the file's first tab) is the last resort.
   const exportBase = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
-  const staronGid = spreadsheetId === STARON_SPREADSHEET_ID ? process.env["STOCK_STARON_SHEET_GID"]?.trim() : undefined;
-  const exportUrls = staronGid ? [`${exportBase}&gid=${encodeURIComponent(staronGid)}`, exportBase] : [exportBase];
+  const isStaron = spreadsheetId === STARON_SPREADSHEET_ID;
+  const autoGid = isStaron ? await resolveSheetGidFromHtmlView(spreadsheetId, sheetName, accessToken) : null;
+  const envGid = isStaron ? process.env["STOCK_STARON_SHEET_GID"]?.trim() || null : null;
+  const gids = [...new Set([autoGid, envGid].filter((gid): gid is string => Boolean(gid)))];
+  const exportUrls = [...gids.map((gid) => `${exportBase}&gid=${encodeURIComponent(gid)}`), exportBase];
   const csvStatuses: string[] = [];
   for (const exportUrl of exportUrls) {
     try {
@@ -547,6 +598,9 @@ async function fetchGoogleSheetRows(spreadsheetId: string, sheetName: string, ac
       }
     } catch {
       csvStatuses.push("network error or timeout");
+    }
+    if (autoGid && exportUrl.endsWith(`&gid=${encodeURIComponent(autoGid)}`)) {
+      sheetGidCache.delete(`${spreadsheetId}:${sheetName}`);
     }
   }
 
