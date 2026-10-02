@@ -70,6 +70,9 @@ import type {
   PaymentSlip,
   PaymentSlipAssignInput,
   PaymentSlipIntakeInput,
+  PaymentSlipUploadInput,
+  PromptPayQrInput,
+  PromptPayQrResponse,
   QuoteNotificationResponse,
   SendAdminDashboardBriefingToLine200,
   SheetStonePrice,
@@ -78,7 +81,6 @@ import type {
   SitePhotoCreateInput,
   SitePhotoUpdateInput,
   SketchLeadResponse,
-  SubmitPaymentSlipBody,
   SubmitSketchLeadBody,
   SubmitSupportPaymentSlipBody,
   SupportChatInput,
@@ -3562,6 +3564,77 @@ export const useSubmitSketchLead = <TError = ErrorType<unknown>,
       return useMutation(getSubmitSketchLeadMutationOptions(options), queryClient);
     }
 
+export const getCreatePromptPayQrUrl = () => {
+
+
+
+
+  return `/api/public/quotes/promptpay-qr`
+}
+
+/**
+ * @summary Generate a dynamic PromptPay QR for a quote
+ */
+export const createPromptPayQr = async (promptPayQrInput: PromptPayQrInput, options?: RequestInit): Promise<PromptPayQrResponse> => {
+
+  return customFetch<PromptPayQrResponse>(getCreatePromptPayQrUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(promptPayQrInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePromptPayQrMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPromptPayQr>>, TError,{data: BodyType<PromptPayQrInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPromptPayQr>>, TError,{data: BodyType<PromptPayQrInput>}, TContext> => {
+
+const mutationKey = ['createPromptPayQr'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPromptPayQr>>, {data: BodyType<PromptPayQrInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPromptPayQr(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePromptPayQrMutationResult = NonNullable<Awaited<ReturnType<typeof createPromptPayQr>>>
+    export type CreatePromptPayQrMutationBody = BodyType<PromptPayQrInput>
+    export type CreatePromptPayQrMutationError = ErrorType<void>
+
+    /**
+ * @summary Generate a dynamic PromptPay QR for a quote
+ */
+export const useCreatePromptPayQr = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPromptPayQr>>, TError,{data: BodyType<PromptPayQrInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPromptPayQr>>,
+        TError,
+        {data: BodyType<PromptPayQrInput>},
+        TContext
+      > => {
+      return useMutation(getCreatePromptPayQrMutationOptions(options), queryClient);
+    }
+
 export const getSubmitPaymentSlipUrl = () => {
 
 
@@ -3571,14 +3644,17 @@ export const getSubmitPaymentSlipUrl = () => {
 }
 
 /**
- * @summary Upload a bank transfer slip and verify it against the quote total via SlipOK
+ * @summary Upload a bank transfer slip and verify the selected payment amount via SlipOK
  */
-export const submitPaymentSlip = async (submitPaymentSlipBody: SubmitPaymentSlipBody, options?: RequestInit): Promise<PaymentSlip> => {
+export const submitPaymentSlip = async (paymentSlipUploadInput: PaymentSlipUploadInput, options?: RequestInit): Promise<PaymentSlip> => {
     const formData = new FormData();
-formData.append(`file`, submitPaymentSlipBody.file);
-formData.append(`token`, submitPaymentSlipBody.token);
-if(submitPaymentSlipBody.kind !== undefined) {
- formData.append(`kind`, submitPaymentSlipBody.kind);
+formData.append(`file`, paymentSlipUploadInput.file);
+formData.append(`token`, paymentSlipUploadInput.token);
+if(paymentSlipUploadInput.kind !== undefined) {
+ formData.append(`kind`, paymentSlipUploadInput.kind);
+ }
+if(paymentSlipUploadInput.paymentType !== undefined) {
+ formData.append(`paymentType`, paymentSlipUploadInput.paymentType);
  }
 
   return customFetch<PaymentSlip>(getSubmitPaymentSlipUrl(),
@@ -3595,8 +3671,8 @@ if(submitPaymentSlipBody.kind !== undefined) {
 
 
 export const getSubmitPaymentSlipMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<SubmitPaymentSlipBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<SubmitPaymentSlipBody>}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<PaymentSlipUploadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<PaymentSlipUploadInput>}, TContext> => {
 
 const mutationKey = ['submitPaymentSlip'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -3608,7 +3684,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitPaymentSlip>>, {data: BodyType<SubmitPaymentSlipBody>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitPaymentSlip>>, {data: BodyType<PaymentSlipUploadInput>}> = (props) => {
           const {data} = props ?? {};
 
           return  submitPaymentSlip(data,requestOptions)
@@ -3622,18 +3698,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SubmitPaymentSlipMutationResult = NonNullable<Awaited<ReturnType<typeof submitPaymentSlip>>>
-    export type SubmitPaymentSlipMutationBody = BodyType<SubmitPaymentSlipBody>
+    export type SubmitPaymentSlipMutationBody = BodyType<PaymentSlipUploadInput>
     export type SubmitPaymentSlipMutationError = ErrorType<void>
 
     /**
- * @summary Upload a bank transfer slip and verify it against the quote total via SlipOK
+ * @summary Upload a bank transfer slip and verify the selected payment amount via SlipOK
  */
 export const useSubmitPaymentSlip = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<SubmitPaymentSlipBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitPaymentSlip>>, TError,{data: BodyType<PaymentSlipUploadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof submitPaymentSlip>>,
         TError,
-        {data: BodyType<SubmitPaymentSlipBody>},
+        {data: BodyType<PaymentSlipUploadInput>},
         TContext
       > => {
       return useMutation(getSubmitPaymentSlipMutationOptions(options), queryClient);

@@ -1012,6 +1012,63 @@ export interface SketchLeadResponse {
   message?: string;
 }
 
+export type PromptPayPaymentType = typeof PromptPayPaymentType[keyof typeof PromptPayPaymentType];
+
+
+export const PromptPayPaymentType = {
+  deposit_30: 'deposit_30',
+  deposit_50: 'deposit_50',
+  full: 'full',
+} as const;
+
+export interface PromptPayQrInput {
+  /**
+     * Public quote access token
+     * @minLength 32
+     * @maxLength 512
+     */
+  token: string;
+  paymentType?: PromptPayPaymentType;
+}
+
+export interface PromptPayCompanyAccount {
+  /** @nullable */
+  bankName: string | null;
+  bankAccountName: string;
+  /** @nullable */
+  bankAccountNumber: string | null;
+  taxId: string;
+}
+
+export interface PromptPayQrResponse {
+  qrPayload: string;
+  amountThb: number;
+  paymentType: PromptPayPaymentType;
+  companyAccount: PromptPayCompanyAccount;
+}
+
+export type PaymentSlipUploadInputKind = typeof PaymentSlipUploadInputKind[keyof typeof PaymentSlipUploadInputKind];
+
+
+export const PaymentSlipUploadInputKind = {
+  deposit: 'deposit',
+  final: 'final',
+} as const;
+
+export interface PaymentSlipUploadInput {
+  /** Uploaded slip image supplied as multipart content */
+  file: Blob;
+  /**
+     * Public quote access token
+     * @minLength 32
+     * @maxLength 512
+     */
+  token: string;
+  kind?: PaymentSlipUploadInputKind;
+  /** Selected payment amount; omitted values retain the full-quote-total behavior for existing callers */
+  paymentType?: PromptPayPaymentType;
+}
+
 export type PaymentSlipKind = typeof PaymentSlipKind[keyof typeof PaymentSlipKind];
 
 
@@ -1752,26 +1809,6 @@ export type SubmitSketchLeadBody = {
   file: string;
   /** JSON-encoded LeadInput metadata */
   metadata: string;
-};
-
-export type SubmitPaymentSlipBodyKind = typeof SubmitPaymentSlipBodyKind[keyof typeof SubmitPaymentSlipBodyKind];
-
-
-export const SubmitPaymentSlipBodyKind = {
-  deposit: 'deposit',
-  final: 'final',
-} as const;
-
-export type SubmitPaymentSlipBody = {
-  /** Uploaded slip image supplied as multipart content */
-  file: string;
-  /**
-     * Public quote access token
-     * @minLength 32
-     * @maxLength 512
-     */
-  token: string;
-  kind?: SubmitPaymentSlipBodyKind;
 };
 
 export type ListAdminLeadsParams = {
