@@ -92,6 +92,9 @@ export type StoneColor = {
   installedPriceTHB: number | null;
   documentCodes: string[];
   imageUrl?: string;
+  galleryImageUrls?: string[];
+  quoteImageUrl?: string;
+  slabImageUrl?: string;
 };
 
 /**
@@ -201,6 +204,9 @@ export type CatalogStoneRecord = {
   tone: string;
   aliases?: string[] | null;
   imageUrl?: string | null;
+  galleryImageUrls?: string[] | null;
+  quoteImageUrl?: string | null;
+  slabImageUrl?: string | null;
   pricePerSqmTHB?: number | null;
   basePriceTHB?: number | null;
 };
@@ -217,6 +223,15 @@ export function stoneColorsFromCatalog(
     const installed = installedByCode.get(code);
     const sheet = sheetByCode.get(code);
     const source = installed ?? sheet!;
+    const installedGalleryImageUrls = installed?.galleryImageUrls?.map((url) => url.trim()).filter(Boolean);
+    const sheetGalleryImageUrls = sheet?.galleryImageUrls?.map((url) => url.trim()).filter(Boolean);
+    const galleryImageUrls = installedGalleryImageUrls?.length
+      ? installedGalleryImageUrls
+      : sheetGalleryImageUrls?.length
+        ? sheetGalleryImageUrls
+        : undefined;
+    const quoteImageUrl = installed?.quoteImageUrl?.trim() || sheet?.quoteImageUrl?.trim() || undefined;
+    const slabImageUrl = installed?.slabImageUrl?.trim() || sheet?.slabImageUrl?.trim() || undefined;
     return {
       code,
       name: source.name,
@@ -225,6 +240,9 @@ export function stoneColorsFromCatalog(
       installedPriceTHB: installed?.pricePerSqmTHB ?? null,
       documentCodes: [...new Set([...(installed?.aliases ?? []), ...(sheet?.aliases ?? [])])],
       imageUrl: installed?.imageUrl?.trim() || sheet?.imageUrl?.trim() || undefined,
+      ...(galleryImageUrls ? { galleryImageUrls } : {}),
+      ...(quoteImageUrl ? { quoteImageUrl } : {}),
+      ...(slabImageUrl ? { slabImageUrl } : {}),
     };
   });
 }
