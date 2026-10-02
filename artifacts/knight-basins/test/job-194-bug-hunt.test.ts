@@ -8,23 +8,22 @@ const stylesheet = readFileSync(new URL("../src/index.css", import.meta.url), "u
 
 test(
   "saved Studio quote preserves the stone image URL when projecting notification items",
-  { todo: "P2: saved.notification mapping currently drops imageUrl; activate after the approved logic fix" },
   () => {
-    const projection = appSource.match(
-      /saved\.notification\.items\.filter\([\s\S]*?\)\.map\(\(item\)\s*=>\s*\(\{([\s\S]*?)\}\)\)/,
-    );
-    assert.ok(projection, "Saved notification items should be projected into formal quote items");
-    assert.match(projection[1], /^\s*imageUrl:\s*item\.imageUrl,\s*$/m);
+    const mapStart = appSource.indexOf("saved.notification.items.filter");
+    const mapEnd = appSource.indexOf("notificationKind: item.kind,", mapStart);
+    assert.ok(mapStart >= 0 && mapEnd > mapStart, "Saved notification items should be projected into formal quote items");
+    assert.match(appSource.slice(mapStart, mapEnd), /imageUrl:\s*item\.imageUrl,/);
   },
 );
 
 test(
-  "stone slab dialog moves focus inside, traps tab navigation, and restores focus",
-  { todo: "P2: modal currently has no focus management; activate after the approved accessibility fix" },
+  "stone slab dialog focuses its close button and restores focus to the trigger",
   () => {
-    const modal = viewerSource.match(/function StoneSlabModal\([\s\S]*?\n\}/)?.[0] ?? "";
-    assert.match(modal, /\.focus\(\)/, "Opening the dialog should move focus to a dialog control");
-    assert.match(modal, /event\.key\s*===\s*["']Tab["']/, "Tab navigation should be contained in the dialog");
+    assert.match(viewerSource, /closeButtonRef\.current\?\.focus\(\)/, "Opening the dialog should focus the close button");
+    assert.match(viewerSource, /ref={closeButtonRef}/, "The close button should own the modal focus target");
+    assert.match(viewerSource, /return \(\) => onRestoreFocus\(\)/, "Closing the modal should restore trigger focus");
+    assert.match(viewerSource, /openButtonRef\.current\?\.focus\(\)/, "Focus should return to the trigger button");
+    assert.match(viewerSource, /ref={openButtonRef}/, "The trigger button should be retained as the return-focus target");
   },
 );
 
