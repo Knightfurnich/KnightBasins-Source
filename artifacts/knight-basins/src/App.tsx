@@ -1067,10 +1067,13 @@ function StudioLayoutSnapshot({ state, quoteNumber, stoneColors }: { state: Stud
   </section>;
 }
 
+/** Shown when the server refuses a slip because the saved quote's 45-day link has run out (HTTP 410 quote_expired). */
+const PAYMENT_SLIP_EXPIRED_MESSAGE = "ลิงก์ใบเสนอราคานี้หมดอายุแล้ว (เกิน 45 วัน) ไม่สามารถแนบสลิปได้ กรุณาติดต่อทีมขายเพื่อประเมินราคาใหม่";
+
 function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<{ status: "verified" | "needs_review" | "rejected"; message: string } | null>(null);
+  const [result, setResult] = useState<{ status: "verified" | "needs_review" | "rejected"; message: string; expired?: boolean } | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const upload = async () => {
@@ -1083,7 +1086,11 @@ function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
     form.append("kind", "deposit");
     try {
       const response = await fetch("/api/leads/payment-slip", { method: "POST", body: form });
-      const payload = await response.json() as { status?: "pending" | "verified" | "needs_review" | "rejected"; verifiedAmountThb?: number | null; senderName?: string | null; message?: string };
+      const payload = await response.json().catch(() => ({})) as { status?: "pending" | "verified" | "needs_review" | "rejected"; verifiedAmountThb?: number | null; senderName?: string | null; message?: string; error?: string };
+      if (response.status === 410 || payload.error === "quote_expired") {
+        setResult({ status: "rejected", message: PAYMENT_SLIP_EXPIRED_MESSAGE, expired: true });
+        return;
+      }
       if (!response.ok) throw new Error(payload.message || "ตรวจสอบสลิปไม่สำเร็จ");
       setResult(
         payload.status === "verified"
@@ -1115,7 +1122,7 @@ function PaymentSlipUpload({ publicQuoteToken }: { publicQuoteToken: string }) {
         {uploading ? "กำลังตรวจสอบ..." : "อัปโหลดและตรวจสอบสลิป"}
       </button>
     </div>
-    {result && <p className={`saved-quote-payment-result ${result.status === "verified" ? "is-verified" : result.status === "needs_review" ? "is-review" : "is-rejected"}`} role="status" data-testid="status-payment-slip-result">
+    {result && <p className={`saved-quote-payment-result ${result.status === "verified" ? "is-verified" : result.status === "needs_review" ? "is-review" : "is-rejected"}`} role={result.expired ? "alert" : "status"} data-expired={result.expired ? "true" : undefined} data-testid="status-payment-slip-result">
       {result.status === "verified" ? <CheckCircle2 size={15} /> : result.status === "needs_review" ? <Clock size={15} /> : <AlertTriangle size={15} />} {result.message}
     </p>}
   </div>;

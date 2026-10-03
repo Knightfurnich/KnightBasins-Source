@@ -640,6 +640,10 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       if (!lead || !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)) {
         return res.status(404).json({ message: "Job not found" });
       }
+      // Same 45-day lifetime as the saved quote itself; an expired link does not count as a view either.
+      if (isPublicQuoteTokenExpired(lead.createdAt)) {
+        return res.status(410).json({ error: PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR, message: PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE });
+      }
 
       try {
         await database
@@ -845,6 +849,12 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       ) {
         audit(req, { action: "slip.upload", status: "warning", errorCode: "QUOTE_NOT_FOUND", targetId: auditTargetId, details: { reason: "quote not found or not eligible for a payment slip" } });
         return res.status(404).json({ message: "Quote not found" });
+      }
+      // The 45-day link lifetime applies here too: an old link must not be able to put a payment on a quote.
+      // Checked before the file is stored or SlipOK is called, so nothing is saved for a refused upload.
+      if (isPublicQuoteTokenExpired(lead.createdAt)) {
+        audit(req, { action: "slip.upload", status: "warning", errorCode: "QUOTE_EXPIRED", targetId: access.quoteNumber, details: { reason: "payment slip rejected because quote link expired (>45 days)" } });
+        return res.status(410).json({ error: PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR, message: PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE });
       }
 
       const item = media[0]!;
