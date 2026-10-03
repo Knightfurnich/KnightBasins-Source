@@ -41,7 +41,7 @@ import {
   CreateAdminSitePhotoBody,
   UpdateAdminSitePhotoBody,
 } from "@workspace/api-zod";
-import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, lte, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
 import { Router, type Request, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
@@ -105,6 +105,7 @@ export type AdminDatabase = {
   insert: (...args: any[]) => any;
   update: (...args: any[]) => any;
   delete: (...args: any[]) => any;
+  execute?: (...args: any[]) => any;
   transaction?: <T>(callback: (transaction: AdminDatabase) => Promise<T>) => Promise<T>;
 };
 
@@ -1697,6 +1698,88 @@ async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult
   }
 }
 
+type AuditInsightCategory = "ux" | "slip" | "form";
+
+const AUDIT_INSIGHT_CATEGORY_LABELS: Record<AuditInsightCategory, string> = {
+  ux: "UX/ผังเคาน์เตอร์",
+  slip: "สลิปการเงิน",
+  form: "ข้อมูลฟอร์ม",
+};
+
+const AUDIT_INSIGHT_CATEGORY_SQL = sql`
+  CASE
+    WHEN lower(action) = 'slip.upload'
+      OR lower(coalesce(error_code, '')) LIKE '%slip%'
+      OR lower(coalesce(error_code, '')) LIKE '%payment%'
+      OR lower(coalesce(error_code, '')) LIKE '%promptpay%'
+    THEN 'slip'
+    WHEN lower(action) LIKE 'studio.%'
+      OR lower(coalesce(error_code, '')) LIKE '%studio%'
+      OR lower(coalesce(error_code, '')) LIKE '%basin%'
+      OR lower(coalesce(error_code, '')) LIKE '%counter%'
+      OR lower(coalesce(error_code, '')) LIKE '%layout%'
+      OR lower(coalesce(error_code, '')) LIKE '%geometry%'
+      OR lower(coalesce(error_code, '')) LIKE '%position%'
+    THEN 'ux'
+    ELSE 'form'
+  END
+`;
+
+function auditQueryRows(result: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(result)) return result.filter((row): row is Record<string, unknown> => Boolean(row && typeof row === "object"));
+  if (!result || typeof result !== "object") return [];
+  const rows = (result as { rows?: unknown }).rows;
+  return Array.isArray(rows) ? rows.filter((row): row is Record<string, unknown> => Boolean(row && typeof row === "object")) : [];
+}
+
+function auditCount(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function auditPainPointCopy(key: string, category: AuditInsightCategory) {
+  switch (key.toUpperCase()) {
+    case "INVALID_LEAD_PAYLOAD":
+      return {
+        description: "ข้อมูลที่กรอกไม่ครบหรือไม่ตรงกับรูปแบบที่ระบบรับได้",
+        recommendation: "ระบุช่องที่ต้องแก้ให้ชัด พร้อมตัวอย่างรูปแบบข้อมูลก่อนส่ง",
+      };
+    case "TAMPERED_QUOTE_TOTAL":
+      return {
+        description: "ยอดรวมที่ส่งมากับใบเสนอราคาไม่ตรงกับข้อมูลสินค้า",
+        recommendation: "ตรวจขั้นตอนคำนวณราคาและแสดงรายการราคาให้ลูกค้าตรวจทานก่อนส่ง",
+      };
+    case "QUOTE_NOT_FOUND":
+      return {
+        description: "ระบบไม่พบใบเสนอราคาที่ลูกค้าใช้อ้างอิง",
+        recommendation: "ตรวจอายุลิงก์และขั้นตอนส่งใบเสนอราคา พร้อมเพิ่มทางขอความช่วยเหลือ",
+      };
+    case "LEAD_SAVE_FAILED":
+      return {
+        description: "ระบบบันทึกคำขอของลูกค้าไม่สำเร็จ",
+        recommendation: "ตรวจความเสถียรของการบันทึก และแจ้งลูกค้าให้ลองส่งใหม่โดยไม่กรอกซ้ำ",
+      };
+    default:
+      if (category === "ux") {
+        return {
+          description: "ลูกค้าติดขัดระหว่างเลือกอ่างหรือจัดวางผังเคาน์เตอร์",
+          recommendation: "ตรวจขั้นตอนเลือกแบบ ขนาด และตำแหน่งอ่าง แล้วเพิ่มคำแนะนำในหน้าผัง",
+        };
+      }
+      if (category === "slip") {
+        return {
+          description: "ลูกค้าติดขัดระหว่างอัปโหลดหรือตรวจสอบสลิปการเงิน",
+          recommendation: "ตรวจคำแนะนำชนิดไฟล์และสถานะการรับสลิป พร้อมแจ้งวิธีส่งใหม่ให้ชัดเจน",
+        };
+      }
+      return {
+        description: "ลูกค้าพบปัญหาในการกรอกหรือส่งข้อมูลแบบฟอร์ม",
+        recommendation: "ตรวจช่องที่ลูกค้าต้องกรอก ลดข้อมูลที่ไม่จำเป็น และอธิบายวิธีแก้ข้อผิดพลาด",
+      };
+  }
+}
+
+
 export function createAdminRouter(
   database: AdminDatabase,
   checkDbHealth: () => Promise<DatabaseHealthMetrics> = checkDatabaseHealth,
@@ -2185,6 +2268,128 @@ export function createAdminRouter(
       return res.json({ success: true, deletedId: id });
     } catch (error) {
       auditAdmin(req, { action: "admin.lead.delete", status: "error", errorCode: "LEAD_DELETE_FAILED", targetId: String(id), details: { leadId: id, ...auditErrorDetails(error) } });
+      return next(error);
+    }
+  });
+
+  router.get("/admin/audit-logs/insights", requireAdminOwner, async (_req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit insights are unavailable" });
+    }
+
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const [totalsResult, painPointsResult] = await Promise.all([
+        database.execute(sql`
+          SELECT
+            COUNT(*)::int AS "total",
+            COUNT(*) FILTER (WHERE status = 'success')::int AS "success",
+            COUNT(*) FILTER (WHERE status = 'warning')::int AS "warning",
+            COUNT(*) FILTER (WHERE status = 'error')::int AS "error"
+          FROM system_audit_logs
+          WHERE created_at >= ${thirtyDaysAgo}
+        `),
+        database.execute(sql`
+          SELECT
+            COALESCE(NULLIF(error_code, ''), action) AS "key",
+            ${AUDIT_INSIGHT_CATEGORY_SQL} AS "category",
+            COUNT(*)::int AS "count"
+          FROM system_audit_logs
+          WHERE actor_type = 'customer'
+            AND status IN ('warning', 'error')
+            AND created_at >= ${thirtyDaysAgo}
+          GROUP BY 1, 2
+          ORDER BY COUNT(*) DESC, 1 ASC
+        `),
+      ]);
+
+      const totals = auditQueryRows(totalsResult)[0] ?? {};
+      const categoryCounts: Record<AuditInsightCategory, number> = { ux: 0, slip: 0, form: 0 };
+      const groupedPainPoints = new Map<string, {
+        key: string;
+        count: number;
+        categoryCounts: Record<AuditInsightCategory, number>;
+      }>();
+
+      for (const row of auditQueryRows(painPointsResult)) {
+        const key = typeof row["key"] === "string" && row["key"].trim() ? row["key"].trim() : "unknown";
+        const rawCategory = row["category"];
+        const category: AuditInsightCategory = rawCategory === "ux" || rawCategory === "slip" ? rawCategory : "form";
+        const count = auditCount(row["count"]);
+        categoryCounts[category] += count;
+
+        const current = groupedPainPoints.get(key) ?? {
+          key,
+          count: 0,
+          categoryCounts: { ux: 0, slip: 0, form: 0 },
+        };
+        current.count += count;
+        current.categoryCounts[category] += count;
+        groupedPainPoints.set(key, current);
+      }
+
+      const painPoints = [...groupedPainPoints.values()]
+        .sort((left, right) => right.count - left.count || left.key.localeCompare(right.key))
+        .slice(0, 5)
+        .map((point) => {
+          const category = (Object.entries(point.categoryCounts) as Array<[AuditInsightCategory, number]>)
+            .sort((left, right) => right[1] - left[1])[0]![0];
+          return {
+            key: point.key,
+            count: point.count,
+            category,
+            categoryLabel: AUDIT_INSIGHT_CATEGORY_LABELS[category],
+            ...auditPainPointCopy(point.key, category),
+          };
+        });
+
+      return res.json({
+        periodDays: 30,
+        totals: {
+          total: auditCount(totals["total"]),
+          success: auditCount(totals["success"]),
+          warning: auditCount(totals["warning"]),
+          error: auditCount(totals["error"]),
+        },
+        customerIssues: categoryCounts.ux + categoryCounts.slip + categoryCounts.form,
+        categories: (Object.keys(AUDIT_INSIGHT_CATEGORY_LABELS) as AuditInsightCategory[]).map((category) => ({
+          category,
+          label: AUDIT_INSIGHT_CATEGORY_LABELS[category],
+          count: categoryCounts[category],
+        })),
+        painPoints,
+        generatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/audit-logs/prune", requireAdminOwner, async (_req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit log pruning is unavailable" });
+    }
+
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const result = await database.execute(sql`
+        WITH deleted_logs AS (
+          DELETE FROM system_audit_logs
+          WHERE actor_type IS DISTINCT FROM 'admin'
+            AND action NOT LIKE 'admin.%'
+            AND action IS DISTINCT FROM 'slip.upload'
+            AND (
+              (status = 'success' AND created_at < NOW() - INTERVAL '30 days')
+              OR (status IN ('warning', 'error') AND created_at < NOW() - INTERVAL '90 days')
+            )
+          RETURNING id
+        )
+        SELECT COUNT(*)::int AS "prunedCount" FROM deleted_logs
+      `);
+      const prunedCount = auditCount(auditQueryRows(result)[0]?.["prunedCount"]);
+      return res.json({ prunedCount, prunedAt: new Date().toISOString() });
+    } catch (error) {
       return next(error);
     }
   });
