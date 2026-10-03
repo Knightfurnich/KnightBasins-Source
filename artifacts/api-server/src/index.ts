@@ -2,6 +2,9 @@ import app from "./app";
 import { execFileSync } from "node:child_process";
 import { logger } from "./lib/logger";
 import { seedCatalogIfEmpty } from "./routes/catalog";
+import { cleanupExpiredStudioDrafts } from "./routes/studio-draft";
+
+const STUDIO_DRAFT_CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 const rawPort = process.env["PORT"];
 
@@ -15,6 +18,13 @@ const port = Number(rawPort);
 
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
+}
+
+function runStudioDraftCleanup() {
+  void cleanupExpiredStudioDrafts().then(
+    (result) => logger.info(result, "Expired Studio drafts cleanup completed"),
+    (error: unknown) => logger.error({ error }, "Expired Studio drafts cleanup failed"),
+  );
 }
 
 async function start() {
@@ -35,6 +45,9 @@ async function start() {
     }
 
     logger.info({ port }, "Server listening");
+    runStudioDraftCleanup();
+    const cleanupInterval = setInterval(runStudioDraftCleanup, STUDIO_DRAFT_CLEANUP_INTERVAL_MS);
+    cleanupInterval.unref();
   });
   server.requestTimeout = 30_000;
   server.headersTimeout = 35_000;
