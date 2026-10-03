@@ -50,6 +50,27 @@ const MAX_SKETCH_VISION_FILES = 3;
 // keep this literal in sync if that model ever changes.
 const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 
+export const STUDIO_DATA_REQUIRED_ERROR = "STUDIO_DATA_REQUIRED";
+export const STUDIO_DATA_REQUIRED_MESSAGE = "คำขอใบเสนอราคาต้องแนบข้อมูลผังเคาน์เตอร์หรือรายการสินค้าที่เลือก";
+
+/**
+ * True when the request asks for a quotation, or brings a quote number of its own. The route stores a quote number exactly as
+ * sent (blanks included) and any non-empty one gets a quote link, so this must not trim before it looks.
+ */
+function isQuoteRequest(lead: { status: string; quoteNumber?: string | null }): boolean {
+  return lead.status === "quote_requested" || (typeof lead.quoteNumber === "string" && lead.quoteNumber.length > 0);
+}
+
+/** studioData counts only when it is an object with something in it; the server's own `serverPricing` key is not the customer's data. */
+function hasStudioData(studioData: unknown): boolean {
+  const data = stripServerPricing(studioData);
+  return typeof data === "object" && data !== null && !Array.isArray(data) && Object.keys(data).length > 0;
+}
+
+function isSketchWithPicture(lead: { orderMode?: string | null; sketchUrl?: string | null }): boolean {
+  return lead.orderMode === "sketch" && typeof lead.sketchUrl === "string" && lead.sketchUrl.trim().length > 0;
+}
+
 /** Delegates to price-integrity.ts's tamper-aware check; a negative, non-finite, or out-of-range total is treated the same as "no total present" here, never trusted through as-is. */
 export function quoteTotalTHB(studioData: unknown): number | null {
   return verifyAndSanitizeQuoteTotal(studioData).verifiedTotal;
@@ -379,6 +400,23 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       details: { invalidFields: Object.keys(flattened.fieldErrors), formErrors: flattened.formErrors },
     });
     return invalid(res, "Invalid lead data", flattened);
+  }
+
+  // Lead spam guard (job-231). A request for a quotation -- or any request that names a quote number of its own -- must say
+  // what is being quoted. Without this a bot could post bare `quote_requested` rows and be given a quote number each time.
+  // This is deliberately not keyed on orderMode alone: the storefront's own autosave (new_lead / selecting) goes out with
+  // orderMode "quick-purchase" and no studioData, and that has to keep working. A hand-drawn sketch is described by its
+  // picture rather than by studioData, so a sketch request that carries a sketchUrl is let through.
+  if (isQuoteRequest(parsed.data) && !hasStudioData(parsed.data.studioData) && !isSketchWithPicture(parsed.data)) {
+    audit(req, {
+      action: "lead.upsert",
+      status: "error",
+      errorCode: STUDIO_DATA_REQUIRED_ERROR,
+      targetId: parsed.data.leadKey,
+      // No contact details: this is the path an anonymous bot takes, and none of it is needed to see what was refused.
+      details: { leadKey: parsed.data.leadKey, status: parsed.data.status, orderMode: parsed.data.orderMode ?? null, source: parsed.data.source },
+    });
+    return res.status(400).json({ error: STUDIO_DATA_REQUIRED_ERROR, message: STUDIO_DATA_REQUIRED_MESSAGE });
   }
 
   // Zero-Trust guard: studioData's `total` (and, if present, `widthMm`/`depthMm`)
