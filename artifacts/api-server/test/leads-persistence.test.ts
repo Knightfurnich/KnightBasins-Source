@@ -18,8 +18,10 @@ type StoredLead = Record<string, unknown> & {
 
 function createFakeDatabase() {
   const records: StoredLead[] = [];
+  let quoteCounter = 0;
 
   const database = {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: () => {
       const builder = {
         from: () => builder,

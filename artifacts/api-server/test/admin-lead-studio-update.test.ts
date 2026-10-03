@@ -27,26 +27,20 @@ type FakeLeadRecord = {
 
 function createFakeLeadDatabase(initialRecord: FakeLeadRecord) {
   let record = initialRecord;
+  let quoteCounter = 0;
   return {
-    // Two different lookups share this chain: the admin route reads the lead's
-    // existing studioData/quote fields, while createUniqueQuoteNumber asks only
-    // for `{ id }` to check whether a freshly generated quote number is free.
-    // The latter must come back empty (a free number), or saving would retry
-    // every candidate and fail.
-    select: (fields?: Record<string, unknown>) => ({
+    select: () => ({
       from: () => ({
         where: () => ({
-          limit: async () => {
-            if (fields && Object.keys(fields).length === 1 && "id" in fields) return [];
-            return [{
-              studioData: record.studioData,
-              quoteNumber: record.quoteNumber ?? null,
-              quoteAccessSecret: record.quoteAccessSecret ?? null,
-            }];
-          },
+          limit: async () => [{
+            studioData: record.studioData,
+            quoteNumber: record.quoteNumber ?? null,
+            quoteAccessSecret: record.quoteAccessSecret ?? null,
+          }],
         }),
       }),
     }),
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     update: () => {
       let changes: Record<string, unknown> = {};
       const builder = {
@@ -206,8 +200,8 @@ describe("PATCH /api/admin/leads/:id quote generation (Task 34)", () => {
 
       assert.match(
         String(updated.quoteNumber),
-        /^[A-Za-z]{3} \d{2} \/ US \/ \d{6}$/,
-        `expected a "Mmm YY / US / NNNNNN" quoteNumber, got ${updated.quoteNumber}`,
+        /^QT-\d{6}-US-\d{4,}$/,
+        `expected a "QT-YYYYMM-US-NNNN+" quoteNumber, got ${updated.quoteNumber}`,
       );
       assert.equal(typeof updated.quoteAccessSecret, "string");
       assert.ok((updated.quoteAccessSecret as string).length > 0);

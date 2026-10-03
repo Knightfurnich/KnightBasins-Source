@@ -1,13 +1,5 @@
-// Quote-number allocation (job-232 follow-up).
-//
-// The serial used to be `String(now.getTime()).slice(-6)` -- the epoch
-// millisecond count modulo 1,000,000, which repeats every 16 minutes and 40
-// seconds. Two quotations requested in the same position of that cycle shared a
-// number, and both `GET /quotes` and `POST /public/quotes/promptpay-qr` resolve
-// a lead *by* quote number, so the later customer could be served the earlier
-// customer's quotation. These tests pin the two properties that fix it: the
-// serial is no longer a function of the clock, and allocation retries (then
-// refuses) rather than returning a number the database already holds.
+// Quote-number allocation uses the monthly database counter and must ignore
+// client-supplied values while preserving numbers already assigned to a lead.
 
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
@@ -20,17 +12,13 @@ import { importTypeScriptModule } from "./route-harness.ts";
 
 type LeadsModule = typeof import("../src/routes/leads.ts");
 
-// `@workspace/db` refuses to load without a connection string; the harness keeps
-// it external, so the route module only needs *a* value here. Nothing in these
-// tests reaches a real database -- `createUniqueQuoteNumber` is given a fake.
+// `@workspace/db` refuses to load without a connection string; the route tests
+// use a fake database, including an atomic-counter result from execute().
 const originalEnv = { DATABASE_URL: process.env["DATABASE_URL"], SESSION_SECRET: process.env["SESSION_SECRET"] };
 
-let leads: LeadsModule;
-
-before(async () => {
+before(() => {
   process.env["DATABASE_URL"] = "postgres://quote-number-allocation-test";
   process.env["SESSION_SECRET"] = "quote-number-allocation-test-secret";
-  leads = await importTypeScriptModule<LeadsModule>("src/routes/leads.ts");
 });
 
 after(() => {
@@ -40,110 +28,15 @@ after(() => {
   }
 });
 
-/**
- * Stand-in for the single `db.select(...).from(...).where(...).limit(...)` chain
- * the helper uses. It reports the next entry of `results` per call (the last
- * entry repeats), and counts lookups so a test can prove a retry happened. It
- * deliberately exposes only `.select()`, mirroring `financial-safety.ts`'s
- * database convention.
- */
-function fakeDatabase(results: boolean[]) {
-  let calls = 0;
-  return {
-    lookups: () => calls,
-    select: () => ({
-      from: () => ({
-        where: () => ({
-          limit: async () => {
-            const taken = results[Math.min(calls, results.length - 1)] ?? false;
-            calls += 1;
-            return taken ? [{ id: 1 }] : [];
-          },
-        }),
-      }),
-    }),
-  };
-}
-
-const QUOTE_NUMBER_SHAPE = /^[A-Za-z]{3} \d{2} \/ US \/ \d{6}$/;
-
-describe("createQuoteNumber serial is not a clock cycle", () => {
-  it("produces more than one distinct serial across a full epoch-millisecond cycle", () => {
-    // Every quote number produced 16m40s apart used to be byte-identical.
-    const base = 1_700_000_000_000;
-    const serials = new Set<string>();
-    for (let offset = 0; offset < 1_000_000; offset += 100_000) {
-      serials.add(leads.createQuoteNumber(new Date(base + offset)));
-    }
-    assert.ok(
-      serials.size > 1,
-      `expected distinct serials across one cycle, got ${serials.size}`,
-    );
-  });
-
-  it("keeps the documented MMM YY / US / NNNNNN shape", () => {
-    assert.match(leads.createQuoteNumber(new Date("2026-10-03T00:00:00.000Z")), QUOTE_NUMBER_SHAPE);
-  });
-
-  it("always pads the serial to exactly six digits", () => {
-    for (let i = 0; i < 200; i += 1) {
-      const serial = leads.createQuoteNumber().split(" / ")[2]!;
-      assert.equal(serial.length, 6, `serial "${serial}" is not six digits`);
-    }
-  });
-
-  it("carries the month and year of the date it is given", () => {
-    assert.match(leads.createQuoteNumber(new Date("2026-09-15T00:00:00.000Z")), /^Sep 26 \/ US \//);
-    assert.match(leads.createQuoteNumber(new Date("2026-10-15T00:00:00.000Z")), /^Oct 26 \/ US \//);
-  });
-});
-
-describe("createUniqueQuoteNumber refuses to hand back a number already in use", () => {
-  it("returns a valid number when the database holds none of its candidates", async () => {
-    const database = fakeDatabase([false]);
-    assert.match(await leads.createUniqueQuoteNumber(database), QUOTE_NUMBER_SHAPE);
-    assert.equal(database.lookups(), 1, "a free candidate should need exactly one lookup");
-  });
-
-  it("retries past a candidate that is already taken", async () => {
-    const database = fakeDatabase([true, true, false]);
-    assert.match(await leads.createUniqueQuoteNumber(database), QUOTE_NUMBER_SHAPE);
-    assert.equal(database.lookups(), 3, "the third lookup should have found a free serial");
-  });
-
-  it("throws instead of looping forever when every candidate collides", async () => {
-    const database = fakeDatabase([true]);
-    await assert.rejects(
-      () => leads.createUniqueQuoteNumber(database),
-      /Could not allocate a unique quote number/,
-    );
-    assert.equal(
-      database.lookups(),
-      leads.QUOTE_NUMBER_ATTEMPTS,
-      "it should stop after exactly QUOTE_NUMBER_ATTEMPTS lookups",
-    );
-  });
-
-  it("needs only a database that exposes .select()", async () => {
-    // This is what lets admin-router.ts pass its narrower `AdminDatabase` type.
-    const database = fakeDatabase([false]);
-    assert.equal(typeof database.select, "function");
-    await leads.createUniqueQuoteNumber(database);
-  });
-
-  it("documents a retry budget greater than one", () => {
-    assert.ok(Number.isInteger(leads.QUOTE_NUMBER_ATTEMPTS) && leads.QUOTE_NUMBER_ATTEMPTS > 1);
-  });
-});
+const QUOTE_NUMBER_SHAPE = /^QT-\d{6}-(?:US|OF)-\d{4,}$/;
 
 // ================================================================================================================
-// job-233: the quote number is the server's alone -- whatever the client sends as `quoteNumber` is ignored
+// Server-issued quote numbers are authoritative -- client-supplied values are ignored
 // ================================================================================================================
 //
-// Before this, `quoteNumber: "HACKED / 999999"` in the body of POST /api/leads was stored as sent: it skipped
-// createUniqueQuoteNumber, got a quote link, could duplicate another customer's number (that customer's link then
-// answers 404, because the lookup by number finds the wrong row and the access secret does not match), and was written
-// to the audit trail as the target of the event. POST /api/leads/sketch spread the body into the insert the same way.
+// A submitted quote number must never control the number stored on a new lead,
+// the customer-facing quote link, or the audit target. Sketch uploads do not
+// receive quote numbers from client metadata either.
 
 type Row = Record<string, unknown>;
 
@@ -156,25 +49,24 @@ function tableNameOf(table: unknown): string {
 }
 
 /**
- * Fake database. `existing` is what the route's "is there already a lead with this key" lookup finds; the uniqueness
- * lookup of createUniqueQuoteNumber (it selects only `id`) finds a clash for its first `takenFirst` calls and nothing after; the pricing tables come from
- * withPricingCatalog. `saved` holds the values of each insert, `updates` the `set` of each conflict clause.
+ * Route-level fake database: select() can return a saved lead and execute()
+ * simulates the atomic monthly counter. Pricing-table reads come from the shared
+ * fixture helper; saved holds inserts and updates holds conflict-clause values.
  */
-function createRouteDatabase(options: { existing?: Row | null; failLookup?: boolean; takenFirst?: number } = {}) {
-  let uniquenessLookups = 0;
+function createRouteDatabase(options: { existing?: Row | null; failLookup?: boolean } = {}) {
+  let quoteCounter = 0;
   const saved: Row[] = [];
   const updates: Row[] = [];
   const audits: Row[] = [];
   const base = {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: (fields?: Record<string, unknown>) => {
       const builder = {
         from: () => builder,
         where: () => builder,
         limit: async () => {
           if (options.failLookup) throw new Error("database unavailable");
-          if (fields && "quoteAccessSecret" in fields) return options.existing ? [{ ...options.existing }] : [];
-          uniquenessLookups += 1;
-          return uniquenessLookups <= (options.takenFirst ?? 0) ? [{ id: 99 }] : [];
+          return fields && "quoteAccessSecret" in fields && options.existing ? [{ ...options.existing }] : [];
         },
       };
       return builder;
@@ -203,7 +95,7 @@ function createRouteDatabase(options: { existing?: Row | null; failLookup?: bool
       return builder;
     },
   };
-  return { database: withPricingCatalog(base), saved, updates, audits, lookups: () => uniquenessLookups };
+  return { database: withPricingCatalog(base), saved, updates, audits };
 }
 
 async function waitForAudit(audits: Row[]) {
@@ -285,30 +177,23 @@ describe("job-233: POST /api/leads ignores a quote number from the client", () =
     }
   });
 
-  it("checks the number it issues against the database, and issues another when it is taken", async () => {
-    const { database, saved, lookups } = createRouteDatabase({ takenFirst: 2 });
+  it("allocates consecutive sequential numbers for successive new quotations", async () => {
+    const { database, saved } = createRouteDatabase();
     const server = await startRoute(database);
     try {
-      const { status, body } = await post(server.url, leadBody());
-      assert.equal(status, 200);
-      assert.equal(lookups(), 3, "two candidates were taken, the third was free");
-      assert.equal(saved[0]!["quoteNumber"], body["quoteNumber"]);
-    } finally {
-      await server.close();
-    }
-  });
-
-  it("saves nothing, and gives no quote link, when every candidate number is taken", async () => {
-    const { database, saved, audits, lookups } = createRouteDatabase({ takenFirst: Number.POSITIVE_INFINITY });
-    const server = await startRoute(database);
-    try {
-      const { status, body } = await post(server.url, leadBody());
-      assert.equal(status, 500);
-      assert.equal(lookups(), 5, "it gave up after its five attempts");
-      assert.equal(saved.length, 0);
-      assert.equal("publicQuoteToken" in body, false);
-      await waitForAudit(audits);
-      assert.equal(audits[0]!["errorCode"], "LEAD_SAVE_FAILED");
+      const first = await post(server.url, leadBody({ leadKey: "lead-sequential-quote-0001" }));
+      const second = await post(server.url, leadBody({ leadKey: "lead-sequential-quote-0002" }));
+      assert.equal(first.status, 200);
+      assert.equal(second.status, 200);
+      const firstNumber = String(first.body["quoteNumber"]);
+      const secondNumber = String(second.body["quoteNumber"]);
+      assert.match(firstNumber, QUOTE_NUMBER_SHAPE);
+      assert.match(secondNumber, QUOTE_NUMBER_SHAPE);
+      assert.equal(firstNumber.replace(/-\d+$/, ""), secondNumber.replace(/-\d+$/, ""));
+      assert.equal(Number(secondNumber.match(/-(\d+)$/)?.[1]), Number(firstNumber.match(/-(\d+)$/)?.[1]) + 1);
+      assert.equal(saved.length, 2);
+      assert.equal(saved[0]!["quoteNumber"], firstNumber);
+      assert.equal(saved[1]!["quoteNumber"], secondNumber);
     } finally {
       await server.close();
     }

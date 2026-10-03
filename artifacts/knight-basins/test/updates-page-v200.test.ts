@@ -1,4 +1,4 @@
-// The newest entry on /updates (v2.1.0 as of this change) plus the corrections
+// The latest /updates entry is v2.2.0; the v2.1.0 and older tags remain accurate.
 // that keep the page honest about older tags: the v2.0.0 tag was cut before the
 // server price guard shipped, so that claim must not sit under v2.0.0.
 
@@ -18,10 +18,36 @@ function releaseBlock(version: string, nextVersion: string): string {
   )?.[0] ?? "";
 }
 
-describe("the newest release entry (v2.1.0)", () => {
-  it("is first in the timeline, ahead of v2.0.0 and v1.2.0", () => {
+describe("the newest release entry (v2.2.0)", () => {
+  it("is first in the timeline, ahead of v2.1.0 and v2.0.0", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(versions.slice(0, 3), ["v2.1.0", "v2.0.0", "v1.2.0"]);
+    assert.deepEqual(versions.slice(0, 3), ["v2.2.0", "v2.1.0", "v2.0.0"]);
+  });
+
+  it("records the sequential numbering and support-safety highlights", () => {
+    const block = releaseBlock("v2.2.0", "v2.1.0");
+    for (const expected of [
+      "Sequential Quote Number Format",
+      "QT-YYYYMM-TYPE-NNNN",
+      "5 ครั้งต่อ IP",
+      "5 ครั้งต่อเลขหรือเบอร์โทรใน 1 ชั่วโมง",
+      "45 วัน",
+      "ตรวจราคาจริงจากเซิร์ฟเวอร์ก่อนรับสลิป",
+    ]) {
+      assert.ok(block.includes(expected), `missing v2.2.0 highlight: ${expected}`);
+    }
+  });
+
+  it("is the only entry badged as the latest release", () => {
+    const latestBadges = updatesSource.match(/— รุ่นล่าสุด/g) ?? [];
+    assert.equal(latestBadges.length, 1, `expected exactly one "รุ่นล่าสุด" badge, found ${latestBadges.length}`);
+    assert.match(updatesSource, /version: "v2\.2\.0",\s*badge: "[^"]+— รุ่นล่าสุด"/);
+  });
+});
+describe("the v2.1.0 release entry", () => {
+  it("remains directly below v2.2.0 and ahead of v2.0.0", () => {
+    const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
+    assert.deepEqual(versions.slice(0, 3), ["v2.2.0", "v2.1.0", "v2.0.0"]);
   });
 
   it("records the required highlights", () => {
@@ -39,14 +65,6 @@ describe("the newest release entry (v2.1.0)", () => {
     ]) {
       assert.ok(block.includes(expected), `missing v2.1.0 highlight: ${expected}`);
     }
-  });
-
-  it("is the only entry badged as the latest release", () => {
-    // Chai flagged this: three releases all carried "รุ่นล่าสุด", which makes the
-    // badge meaningless. Exactly one entry may claim it.
-    const latestBadges = updatesSource.match(/— รุ่นล่าสุด/g) ?? [];
-    assert.equal(latestBadges.length, 1, `expected exactly one "รุ่นล่าสุด" badge, found ${latestBadges.length}`);
-    assert.match(updatesSource, /version: "v2\.1\.0",\s*badge: "[^"]+— รุ่นล่าสุด"/);
   });
 
   it("quotes an image saving that was actually measured, not a multiplier", () => {
@@ -84,7 +102,7 @@ describe("the footer link label", () => {
   it("matches the newest release", () => {
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.1\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.2\)<\/Link>/,
     );
   });
 });

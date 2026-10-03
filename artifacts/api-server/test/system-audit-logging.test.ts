@@ -132,7 +132,9 @@ const leadPayload = (overrides: Record<string, unknown> = {}) => ({
 
 /** Fake for POST /leads: select() finds no earlier lead, insert(customer_leads) returns the saved row, the audit table goes to the sink. */
 function createLeadsDatabase(sink: ReturnType<typeof createAuditSink>) {
+  let quoteCounter = 0;
   return {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: () => {
       const builder = { from: () => builder, where: () => builder, limit: async () => [] };
       return builder;

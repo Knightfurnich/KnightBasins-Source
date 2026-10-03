@@ -96,8 +96,15 @@ Run against the full monorepo lockfile on 26 ก.ย. 69. No High/Critical advis
 **ยังไม่ครอบคลุม (รับทราบและยังเปิดอยู่):**
 - `studioData` ที่ไม่ว่างแต่ไม่มีข้อมูลจริง (เช่น `{"x":1}`) ยังผ่าน guard ของ Job 231 ได้ — ควรเพิ่มการตรวจโครงสร้าง/มียอดรวมที่คำนวณได้
 - `sketchUrl` ที่เป็นข้อความใดก็ได้ยังผ่าน guard ได้ — ควรตรวจรูปแบบ URL/แหล่งที่มา
-- การตรวจราคาเกิดที่ `POST /leads` และ `promptpay-qr` แล้ว แต่ **ยังใช้ตัวตรวจเดียวกันกับขั้นตอนบันทึกสลิป (`POST /leads/payment-slip`) ไม่ครบทุกจุด**
 - ยังไม่มี `UNIQUE INDEX` บน `customer_leads.quote_number` (พบข้อมูลซ้ำจริงบน production: 2 แถวที่เป็นค่าว่าง `''` และ 2 แถวที่เป็น `Sep 26 OF 1204` — ต้องให้เจ้าของตัดสินใจเรื่องข้อมูลก่อนเพิ่ม index)
 
 ## Evidence Index
 See `artifacts/api-server/test/security-audit.test.ts` (18 tests as of Task 87) for the executable proof behind every finding above plus the final sign-off's end-to-end sanity pass: route-guard coverage (Finding 6), the closed X-Forwarded-For bypass (Finding 1), error-handler sanitization (Finding 8), and dedicated `describe` blocks for `POST /api/sketch/analyze`, `GET /api/places/autocomplete`, `POST /admin/session`, and `GET /admin/ai-cost-center`. Run via `node --experimental-strip-types --test artifacts/api-server/test/security-audit.test.ts`.
+
+## Addendum — Job 234-R: Sequential Quote Numbers and Support Slip Security (3 ต.ค. 69)
+
+- ใบเสนอราคาใหม่ใช้ตัวนับฐานข้อมูลแบบ atomic แยกตามเดือนปฏิทินเวลา Asia/Bangkok: `QT-YYYYMM-US-NNNN` หรือ `QT-YYYYMM-OF-NNNN`; migration 022 สร้างตารางตัวนับแบบ idempotent.
+- ไม่เปลี่ยนเลขเก่าที่มีอยู่และไม่เพิ่ม unique index บน `customer_leads.quote_number`; เลขใหม่ไม่ใช้ client-supplied value.
+- `/support/payment-slip` คง limit เดิม 5 ครั้งต่อ IP/10 นาที และเพิ่ม limit เมื่อค้นหาไม่พบหรือยืนยันเบอร์ไม่ผ่าน: สูงสุด 5 ครั้งต่อเลขใบเสนอราคาหรือเบอร์โทรที่ normalize แล้วใน 1 ชั่วโมง; target keys ใช้ HMAC ไม่เก็บค่าเบอร์ตรง ๆ ใน bucket.
+- หลังยืนยันเจ้าของ quote แล้ว เส้นทางสลิปคืน HTTP 410 สำหรับ quote ที่เกิน 45 วัน และเรียก `checkQuoteBeforePayment` ก่อนบันทึกไฟล์/แถวสลิป; ยอดที่ส่งตรวจใช้ราคาจริงจาก server check.
+- เพิ่ม regression tests สำหรับตัวนับรายเดือน, การล็อกเป้าหมาย quote/phone, การปฏิเสธ 410, server-verified total, รูปแบบ pipeline และ migration.

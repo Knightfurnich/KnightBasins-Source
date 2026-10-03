@@ -9,6 +9,8 @@ describe("updates changelog page", () => {
   it("declares the page root and release cards", () => {
     assert.match(updatesSource, /data-testid="page-updates"/);
     assert.match(updatesSource, /data-testid=\{`card-update-\$\{release\.version\}`\}/);
+    assert.match(updatesSource, /version: "v2\.2\.0"/);
+    assert.match(updatesSource, /version: "v2\.1\.0"/);
     assert.match(updatesSource, /version: "v2\.0\.0"/);
     assert.match(updatesSource, /version: "v1\.1\.0"/);
     assert.match(updatesSource, /version: "v1\.0\.0"/);
@@ -18,7 +20,7 @@ describe("updates changelog page", () => {
 
   it("keeps every release in the timeline, newest first", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(versions, ["v2.1.0", "v2.0.0", "v1.2.0", "v1.1.0", "v1.0.0", "v0.9.0", "v0.1.0"]);
+    assert.deepEqual(versions, ["v2.2.0", "v2.1.0", "v2.0.0", "v1.2.0", "v1.1.0", "v1.0.0", "v0.9.0", "v0.1.0"]);
     assert.match(
       updatesSource,
       /version: "v1\.1\.0",\s*badge: "Logistics & Financial Safety Suite"/,
@@ -83,7 +85,7 @@ describe("updates changelog page", () => {
     assert.match(appSource, /<Route path="\/updates" component=\{UpdatesPage\} \/>/);
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.1\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.2\)<\/Link>/,
     );
   });
 });

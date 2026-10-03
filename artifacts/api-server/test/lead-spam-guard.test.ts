@@ -31,7 +31,9 @@ function tableNameOf(table: unknown): string {
 function createFakeDatabase() {
   const saved: Row[] = [];
   const audits: Row[] = [];
+  let quoteCounter = 0;
   const base = {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: () => {
       const builder = { from: () => builder, where: () => builder, limit: async () => [] as Row[] };
       return builder;
@@ -273,7 +275,7 @@ describe("job-231: a quotation request with studioData is saved as before", () =
     await withRoute(async ({ url, saved }) => {
       const { status, body } = await postLead(url, leadBody({ quoteNumber: "Oct 26 / US / 222222" }));
       assert.equal(status, 200);
-      assert.match(String(body["quoteNumber"]), /^[A-Za-z]{3} \d{2} \/ US \/ \d{6}$/);
+      assert.match(String(body["quoteNumber"]), /^QT-\d{6}-US-\d{4,}$/);
       assert.notEqual(body["quoteNumber"], "Oct 26 / US / 222222");
       assert.equal(saved.length, 1);
     });
