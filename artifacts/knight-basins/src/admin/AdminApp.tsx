@@ -24,6 +24,7 @@ import { AdminVoiceSettings } from "./AdminVoiceSettings";
 import { SitePhotosPage } from "./SitePhotosPage";
 import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
 import AiCostCenterPage from "./AiCostCenterPage";
+import { AdminLogsManager } from "./AdminLogsManager";
 import { knightFurnichLogo } from "@/data/assets";
 import { AdminThemeStyles, AdminThemeToggle, useAdminTheme } from "./admin-theme";
 import { OpsAssistantWidget } from "./OpsAssistantWidget";
@@ -84,6 +85,8 @@ const NAV_ITEMS = [
   { href: "/admin/voice-settings", label: "เสียงผู้ช่วยขาย (น้องไนท์)", exact: false, permission: "leads", group: "sales" },
   { href: "/admin/ai-cost", label: "ต้นทุน AI", exact: false, permission: "leads", group: "sales" },
   { href: "/admin/team", label: "สมาชิกทีม", exact: false, permission: null, team: true, group: "system" },
+  // Owner only like the team page: the trail lists customer names and phone numbers.
+  { href: "/admin/logs", label: "Logs ตรวจสอบ", exact: false, permission: null, team: true, testId: "nav-admin-logs", group: "system" },
   { href: "/admin/backup", label: "สำรองข้อมูล", exact: false, permission: null, adminOnly: true, group: "system" },
 ] as const;
 
@@ -159,7 +162,7 @@ export default function AdminApp() {
                       {group.label}
                     </p>
                     {groupItems.map((item) => (
-                      <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team} adminOnly={"adminOnly" in item && item.adminOnly}>{item.label}</NavButton>
+                      <NavButton key={item.href} href={item.href} exact={item.exact} permission={item.permission} team={"team" in item && item.team} adminOnly={"adminOnly" in item && item.adminOnly} testId={"testId" in item ? item.testId : undefined}>{item.label}</NavButton>
                     ))}
                   </div>
                 );
@@ -183,6 +186,7 @@ export default function AdminApp() {
               <Route path="/admin/portfolio" component={AdminPortfolioRoute} />
               <Route path="/admin/backup" component={AdminBackupRoute} />
               <Route path="/admin/team" component={TeamRoute} />
+              <Route path="/admin/logs" component={AdminLogsRoute} />
             </Switch>
           </main>
         </div>
@@ -192,7 +196,7 @@ export default function AdminApp() {
   );
 }
 
-function NavButton({ href, children, exact, permission, team, adminOnly }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null, team?: boolean, adminOnly?: boolean }) {
+function NavButton({ href, children, exact, permission, team, adminOnly, testId }: { href: string, children: ReactNode, exact?: boolean, permission: AdminPermission | null, team?: boolean, adminOnly?: boolean, testId?: string }) {
   const [location, setLocation] = useLocation();
   const access = useAdminAccess();
   const isActive = exact ? location === href : location.startsWith(href);
@@ -204,7 +208,7 @@ function NavButton({ href, children, exact, permission, team, adminOnly }: { hre
       onClick={() => setLocation(allowed ? href : "/admin/access-denied")}
       aria-disabled={!allowed}
       title={!allowed ? "คุณไม่มีสิทธิ์เข้าถึงเมนูนี้" : undefined}
-       data-testid={`nav-admin-${adminOnly ? "backup" : team ? "team" : permission ?? "home"}`}
+       data-testid={testId ?? `nav-admin-${adminOnly ? "backup" : team ? "team" : permission ?? "home"}`}
     >
       {!allowed && <LockKeyhole className="mr-2 h-3.5 w-3.5" aria-hidden="true" />}
       {children}
@@ -360,6 +364,11 @@ function AdminBackupRoute() {
 function TeamRoute() {
   const access = useAdminAccess();
   return access.canManageTeam ? <TeamManager /> : <AccessDeniedPage resource="สมาชิกทีม" />;
+}
+
+function AdminLogsRoute() {
+  const access = useAdminAccess();
+  return access.canManageTeam ? <AdminLogsManager /> : <AccessDeniedPage resource="Logs ตรวจสอบ" />;
 }
 
 export function AdminLogin() {

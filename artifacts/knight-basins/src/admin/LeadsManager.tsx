@@ -1856,7 +1856,8 @@ export function LeadsManager() {
   );
   const [awaitingContactOnly, setAwaitingContactOnly] = useState(initialStatusParam === "awaiting_contact");
   const [quoteTypeFilter, setQuoteTypeFilter] = useState<"all" | "US" | "OF">("all");
-  const [search, setSearch] = useState("");
+  // /admin/leads?q=<quote number> (from the audit-log detail drawer) opens the list already filtered to that quotation.
+  const [search, setSearch] = useState(() => (typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? ""));
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [editingNotes, setEditingNotes] = useState<Record<number, string>>({});
