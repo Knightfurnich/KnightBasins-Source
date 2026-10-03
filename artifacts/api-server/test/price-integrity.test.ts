@@ -99,7 +99,9 @@ type StoredLead = Record<string, unknown> & { leadKey: string; quoteNumber: stri
 
 function createFakeDatabase() {
   const records: StoredLead[] = [];
+  let quoteCounter = 0;
   return {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: () => {
       const builder = {
         from: () => builder,

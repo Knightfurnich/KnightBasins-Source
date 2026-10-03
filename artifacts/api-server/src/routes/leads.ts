@@ -3,7 +3,6 @@ import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { desc, eq, sql } from "drizzle-orm";
-import { randomInt } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
@@ -39,7 +38,6 @@ import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
 import { amountForPaymentType, generatePromptPayPayload, type PromptPayPaymentType } from "../lib/promptpay";
 import { notifyPaymentSlip, notifyQuote, notifySketch } from "../lib/sales-notifications";
 import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
-import { formatQuoteMonth } from "../lib/date-time";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
 
 const MAX_SKETCH_FILES = 5;
@@ -348,56 +346,58 @@ function dateValue(value: Date | string | null | undefined) {
   return value instanceof Date ? value.toISOString().slice(0, 10) : value;
 }
 
-/**
- * Quote number: `MMM YY / US / NNNNNN` (6-digit serial).
- *
- * The serial used to be `String(now.getTime()).slice(-6)`, which is the epoch
- * millisecond count modulo 1,000,000: the sequence repeats every 16 minutes and
- * 40 seconds, so two quotations collided only if they were requested in the very
- * same millisecond of that cycle (about 1 in a million for any two of them).
- * A clash does not expose anything: the public quote token carries a per-lead
- * access secret that is checked after the lead is looked up by quote number, so
- * the later customer's link just answers 404. It is still a broken link and an
- * ambiguous number for staff, hence the random serial here and the database check
- * in `createUniqueQuoteNumber` below.
- */
-export function createQuoteNumber(now = new Date()) {
-  const month = formatQuoteMonth(now);
-  const serial = String(randomInt(0, 1_000_000)).padStart(6, "0");
-  return `${month} / US / ${serial}`;
+export type QuoteFormat = "US" | "OF";
+
+export function formatQuotePeriod(now: Date): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+    }).formatToParts(now).map((part) => [part.type, part.value]),
+  ) as Record<string, string>;
+  return `${parts["year"]}${parts["month"]}`;
 }
 
-/** How many times `createUniqueQuoteNumber` will re-roll a serial that is already taken before giving up. */
-export const QUOTE_NUMBER_ATTEMPTS = 5;
+export function quoteFormatFromStudioData(studioData: unknown): QuoteFormat {
+  if (!studioData || typeof studioData !== "object" || Array.isArray(studioData)) return "US";
+  const record = studioData as Record<string, unknown>;
+  const state = record["state"];
+  const stateRecord = state && typeof state === "object" && !Array.isArray(state)
+    ? state as Record<string, unknown>
+    : {};
+  return (stateRecord["quoteFormat"] ?? record["quoteFormat"]) === "OF" ? "OF" : "US";
+}
 
-/** Same shape convention as `financial-safety.ts`'s database type: the helper only needs `.select()`. */
 export type QuoteNumberDatabase = {
-  select: (...args: any[]) => any;
+  execute?: (...args: any[]) => any;
 };
 
-/**
- * A quote number that no row in `customer_leads` uses yet. Collisions are
- * vanishingly unlikely with a random serial, but the number is the lookup key
- * for `GET /quotes` and `POST /public/quotes/promptpay-qr`, so a duplicate makes
- * one of the two quote links resolve to the wrong lead and answer 404 -- it is
- * worth the check. (This is a check-then-insert, not a database constraint.)
- *
- * Throws when every attempt collides; callers treat that as a 500 rather than
- * saving a duplicate. `database` is injected so tests can pass a fake.
- */
-export async function createUniqueQuoteNumber(database: QuoteNumberDatabase = db, now = new Date()) {
-  for (let attempt = 0; attempt < QUOTE_NUMBER_ATTEMPTS; attempt += 1) {
-    const candidate = createQuoteNumber(now);
-    const [clash]: Array<{ id: number }> = await database
-      .select({ id: customerLeads.id })
-      .from(customerLeads)
-      .where(eq(customerLeads.quoteNumber, candidate))
-      .limit(1);
-    if (!clash) return candidate;
+export async function createNextQuoteNumber(
+  database: QuoteNumberDatabase,
+  quoteFormat: QuoteFormat = "US",
+  now = new Date(),
+): Promise<string> {
+  if (typeof database.execute !== "function") {
+    throw new Error("Quote number database does not support execute()");
   }
-  throw new Error("Could not allocate a unique quote number");
-}
 
+  const period = formatQuotePeriod(now);
+  const result = await database.execute(sql`
+    INSERT INTO quote_number_counters (period, last_value)
+    VALUES (${period}, 1)
+    ON CONFLICT (period)
+    DO UPDATE SET
+      last_value = quote_number_counters.last_value + 1,
+      updated_at = now()
+    RETURNING last_value
+  `);
+  const lastValue = Number(result.rows?.[0]?.last_value);
+  if (!Number.isSafeInteger(lastValue) || lastValue < 1) {
+    throw new Error("Quote number counter returned an invalid last_value");
+  }
+  return `QT-${period}-${quoteFormat}-${String(lastValue).padStart(4, "0")}`;
+}
 export function createLeadsRouter(database: typeof db = db): IRouter {
   const router: IRouter = Router();
   /** Customer-side audit event (job-214). Fire and forget: logAuditEvent never throws and never blocks the response. */
@@ -553,7 +553,11 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
 
     // The quote number is the server's alone (job-233): whatever the client sent as `quoteNumber` is ignored. A lead that already has
     // one keeps it (an empty string counts as none); otherwise one is issued, checked against the database, once a quotation is requested.
-    const quoteNumber = existing?.quoteNumber || (parsed.data.status === "quote_requested" ? await createUniqueQuoteNumber(database) : null);
+    // The quote number is the server's alone; reuse an existing one or
+    // atomically allocate it on the server. Any client-supplied value is ignored.
+    const quoteNumber = existing?.quoteNumber || (parsed.data.status === "quote_requested"
+      ? await createNextQuoteNumber(database, quoteFormatFromStudioData(studioDataToSave))
+      : null);
     const quoteAccessSecret = quoteNumber
       ? existing?.quoteAccessSecret ?? createQuoteAccessSecret()
       : existing?.quoteAccessSecret ?? null;

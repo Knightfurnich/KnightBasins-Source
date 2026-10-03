@@ -1,4 +1,5 @@
-import { Router, type IRouter } from "express";
+import { createHmac } from "node:crypto";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db, paymentSlips } from "@workspace/db";
 import { getCatalogData } from "./catalog";
@@ -17,12 +18,22 @@ import {
   type SupportProfileFields,
 } from "../lib/support-profile";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
-import { quoteTotalTHB } from "./leads";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
-import { publicQuoteTokenForLead } from "../lib/quote-access";
+import {
+  isPublicQuoteTokenExpired,
+  PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR,
+  PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE,
+  publicQuoteTokenForLead,
+} from "../lib/quote-access";
 import { notifyPaymentSlip } from "../lib/sales-notifications";
+import {
+  checkQuoteBeforePayment,
+  PRICE_VERIFICATION_FAILED_ERROR,
+  PRICE_VERIFICATION_FAILED_MESSAGE,
+  type PricingDatabase,
+} from "../lib/price-integrity";
 import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
 
 const LEAD_STATUS_LABEL: Record<string, string> = {
@@ -435,8 +446,84 @@ router.post("/support/speech", supportSpeechRateLimit, async (req, res, next) =>
 });
 
 const supportPaymentSlipRateLimit = createRateLimiter({ name: "support-payment-slip", max: 5, windowMs: 10 * 60 * 1000 });
+type SupportSlipFailedAttemptRequest = Request & {
+  supportSlipQuoteFailureKey?: string;
+  supportSlipPhoneFailureKey?: string;
+};
+const supportPaymentSlipFailedQuoteRateLimit = createRateLimiter({
+  name: "support-payment-slip-failed-quote",
+  max: 5,
+  windowMs: 60 * 60 * 1000,
+  key: (req) => (req as SupportSlipFailedAttemptRequest).supportSlipQuoteFailureKey ?? "",
+});
+const supportPaymentSlipFailedPhoneRateLimit = createRateLimiter({
+  name: "support-payment-slip-failed-phone",
+  max: 5,
+  windowMs: 60 * 60 * 1000,
+  key: (req) => (req as SupportSlipFailedAttemptRequest).supportSlipPhoneFailureKey ?? "",
+});
 const supportUploadConcurrency = createConcurrencyLimiter("KnightSupport upload", 4);
 
+
+function supportSlipTargetKey(kind: "quote" | "phone", value: string) {
+  const secret = process.env["SESSION_SECRET"];
+  if (!secret) throw new Error("SESSION_SECRET is required");
+  return createHmac("sha256", secret).update(`${kind}:${value}`).digest("hex");
+}
+
+/** Applies the target-specific limit only after a quote lookup/ownership failure. */
+export function applySupportPaymentSlipFailedAttemptLimits(
+  req: Request,
+  res: Response,
+  quoteNumber: string,
+  phone: string,
+): boolean {
+  const request = req as SupportSlipFailedAttemptRequest;
+  const normalizedQuote = quoteNumber.trim().toUpperCase();
+  const normalizedPhone = normalizePhoneDigits(phone);
+  request.supportSlipQuoteFailureKey = supportSlipTargetKey("quote", normalizedQuote);
+  let quoteAllowed = false;
+  supportPaymentSlipFailedQuoteRateLimit(req, res, () => { quoteAllowed = true; });
+  if (!quoteAllowed) return true;
+
+  if (normalizedPhone) {
+    request.supportSlipPhoneFailureKey = supportSlipTargetKey("phone", normalizedPhone);
+    let phoneAllowed = false;
+    supportPaymentSlipFailedPhoneRateLimit(req, res, () => { phoneAllowed = true; });
+    if (!phoneAllowed) return true;
+  }
+  return false;
+}
+
+export type SupportSlipQuoteValidation =
+  | { ok: true; total: number }
+  | { ok: false; status: 400 | 410; error: string; message: string };
+
+export async function validateSupportSlipQuote(
+  lead: { createdAt: Date | string | null | undefined; orderMode: string; studioData: unknown },
+  database: PricingDatabase = db,
+  now = Date.now(),
+): Promise<SupportSlipQuoteValidation> {
+  if (isPublicQuoteTokenExpired(lead.createdAt, now)) {
+    return {
+      ok: false,
+      status: 410,
+      error: PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR,
+      message: PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE,
+    };
+  }
+
+  const priceCheck = await checkQuoteBeforePayment({ orderMode: lead.orderMode, studioData: lead.studioData }, database);
+  if (!priceCheck.ok || priceCheck.total <= 0) {
+    return {
+      ok: false,
+      status: 400,
+      error: PRICE_VERIFICATION_FAILED_ERROR,
+      message: PRICE_VERIFICATION_FAILED_MESSAGE,
+    };
+  }
+  return { ok: true, total: priceCheck.total };
+}
 function normalizePhoneDigits(value: string) {
   // Thai mobile/landline numbers always start with 0, so a leading +66 or 66
   // country code unambiguously means "this replaces the 0" -- e.g.
@@ -461,7 +548,7 @@ router.post("/support/payment-slip", supportPaymentSlipRateLimit, supportUploadC
     const quoteNumber = cleanMessage(fields.quoteNumber);
     const phone = cleanMessage(fields.phone);
     if (!quoteNumber) {
-      res.status(400).json({ reply: "รบกวนแจ้งเลขที่ใบเสนอราคาด้วยค่ะ เช่น Sep 26 / US / 363533" });
+      res.status(400).json({ reply: "รบกวนแจ้งเลขที่ใบเสนอราคาด้วยค่ะ เช่น QT-202610-US-0001" });
       return;
     }
 
@@ -483,14 +570,25 @@ router.post("/support/payment-slip", supportPaymentSlipRateLimit, supportUploadC
       }
       // Deliberately vague either way (quote not found vs. phone mismatch) --
       // same anti-enumeration principle as the public quote-access route.
+      if (applySupportPaymentSlipFailedAttemptLimits(req, res, quoteNumber, phone)) return;
       res.status(404).json({ reply: "ไม่พบใบเสนอราคานี้ หรือข้อมูลที่แจ้งมาไม่ตรงกันค่ะ รบกวนตรวจสอบเลขที่ใบเสนอราคาและเบอร์โทรอีกครั้งนะคะ" });
+      return;
+    }
+
+    const quoteValidation = await validateSupportSlipQuote(lead, db);
+    if (!quoteValidation.ok) {
+      res.status(quoteValidation.status).json({
+        error: quoteValidation.error,
+        message: quoteValidation.message,
+        reply: quoteValidation.message,
+      });
       return;
     }
 
     const item = media[0]!;
     const upload = await saveUploadedMedia(item, "slip");
     try {
-      const claimedAmountThb = quoteTotalTHB(lead.studioData);
+      const claimedAmountThb = quoteValidation.total;
       const result = await verifySlip(item, claimedAmountThb);
       const needsManualReview = !result.ok && result.errorCode !== null && SLIPOK_UNVERIFIABLE_CODES.has(result.errorCode);
       const [slip] = await db

@@ -94,7 +94,7 @@ import {
   UPLOAD_DIR,
   UploadFileCollisionError,
 } from "../lib/image-upload";
-import { auditStudioFabrication, createUniqueQuoteNumber, quoteTotalTHB } from "./leads";
+import { auditStudioFabrication, createNextQuoteNumber, quoteFormatFromStudioData, quoteTotalTHB } from "./leads";
 import { repriceStudioQuoteAsStaff, staffLeversFromStamp, staffLeversFromState, stripServerPricing, type StaffPricingLevers } from "../lib/price-integrity";
 import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
@@ -1033,8 +1033,8 @@ export function computeUpcomingInstallations(
     }));
 }
 
-/** quoteNumber carries the order type as a substring, e.g. "Sep 26 / US / 296579". */
-function pipelineOrderType(quoteNumber: string | null): "us" | "of" | "other" {
+/** Supports legacy quote numbers and QT-YYYYMM-TYPE-NNNN by reading the order type substring. */
+export function pipelineOrderType(quoteNumber: string | null): "us" | "of" | "other" {
   const value = (quoteNumber ?? "").toUpperCase();
   if (value.includes("US")) return "us";
   if (value.includes("OF")) return "of";
@@ -3006,7 +3006,7 @@ export function createAdminRouter(
         // the first time staff attach studioData to it, so the public quote
         // link becomes usable without a separate "create quote" step.
         if (!existing?.quoteNumber && parsed.data.studioData !== undefined) {
-          newQuoteNumber = await createUniqueQuoteNumber(database);
+          newQuoteNumber = await createNextQuoteNumber(database, quoteFormatFromStudioData(studioData));
           newQuoteAccessSecret = createQuoteAccessSecret();
         }
       }

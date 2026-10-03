@@ -9,8 +9,22 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 
 export const UPDATE_RELEASES = [
   {
+    version: "v2.2.0",
+    badge: "Sequential Quote Numbers & Support Security — รุ่นล่าสุด",
+    date: "3 ตุลาคม 2569",
+    dateTime: "2026-10-03",
+    title: "Release v2.2.0 — เลขที่ใบเสนอราคา QT-YYYYMM-TYPE-NNNN และการป้องกันการสุ่มเดาเลข",
+    highlights: [
+      {
+        icon: "🔢",
+        title: "Sequential Quote Number Format",
+        description: "ระบบออกเลขใบเสนอราคาบนเซิร์ฟเวอร์เรียงตามเดือนในเวลาไทย แยกประเภท US/OF ในรูปแบบ QT-YYYYMM-TYPE-NNNN เช่น QT-202610-US-0001 และป้องกันการสุ่มเดาผ่านหน้าส่งสลิปด้วยการจำกัด 5 ครั้งต่อ IP ใน 10 นาที และ 5 ครั้งต่อเลขหรือเบอร์โทรใน 1 ชั่วโมง พร้อมตรวจอายุ 45 วันและยืนยันราคาจริงก่อนรับสลิป",
+      },
+    ],
+  },
+  {
     version: "v2.1.0",
-    badge: "Security, Price Guard & Studio Polish — รุ่นล่าสุด",
+    badge: "Security, Price Guard & Studio Polish",
     date: "3 ตุลาคม 2569",
     dateTime: "2026-10-03",
     title: "Release v2.1.0 — Server Price Guard, สิทธิ์ส่วนลดพนักงาน และการปิดช่องโหว่รอบตรวจความปลอดภัย",

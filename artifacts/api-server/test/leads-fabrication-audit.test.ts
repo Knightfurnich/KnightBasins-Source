@@ -16,7 +16,9 @@ type StoredLead = Record<string, unknown> & { leadKey: string; quoteNumber: stri
 
 function createFakeLeadsDatabase() {
   const records: StoredLead[] = [];
+  let quoteCounter = 0;
   return {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: () => {
       const builder = {
         from: () => builder,
@@ -209,7 +211,9 @@ type FakeLeadRecord = {
 
 function createFakeAdminLeadDatabase(initialRecord: FakeLeadRecord) {
   let record = initialRecord;
+  let quoteCounter = 0;
   return {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     // Two different lookups share this chain: the admin route reads the lead's
     // existing studioData/quote fields, while createUniqueQuoteNumber asks only
     // for `{ id }` to check whether a freshly generated quote number is free.

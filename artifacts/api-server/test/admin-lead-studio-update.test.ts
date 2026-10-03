@@ -27,26 +27,20 @@ type FakeLeadRecord = {
 
 function createFakeLeadDatabase(initialRecord: FakeLeadRecord) {
   let record = initialRecord;
+  let quoteCounter = 0;
   return {
-    // Two different lookups share this chain: the admin route reads the lead's
-    // existing studioData/quote fields, while createUniqueQuoteNumber asks only
-    // for `{ id }` to check whether a freshly generated quote number is free.
-    // The latter must come back empty (a free number), or saving would retry
-    // every candidate and fail.
-    select: (fields?: Record<string, unknown>) => ({
+    select: () => ({
       from: () => ({
         where: () => ({
-          limit: async () => {
-            if (fields && Object.keys(fields).length === 1 && "id" in fields) return [];
-            return [{
-              studioData: record.studioData,
-              quoteNumber: record.quoteNumber ?? null,
-              quoteAccessSecret: record.quoteAccessSecret ?? null,
-            }];
-          },
+          limit: async () => [{
+            studioData: record.studioData,
+            quoteNumber: record.quoteNumber ?? null,
+            quoteAccessSecret: record.quoteAccessSecret ?? null,
+          }],
         }),
       }),
     }),
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     update: () => {
       let changes: Record<string, unknown> = {};
       const builder = {
