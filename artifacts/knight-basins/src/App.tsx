@@ -279,7 +279,7 @@ function Footer() {
           <span>ราคาสินค้ายังไม่รวม VAT</span>
           <Link href="/portfolio" className="footer-owner-link">คลังผลงานติดตั้งจริง</Link>
           <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
-          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v2.0)</Link>
+          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v2.1)</Link>
         </div>
         <Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link>
       </div>

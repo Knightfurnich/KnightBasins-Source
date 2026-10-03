@@ -6,13 +6,14 @@ const updatesSource = readFileSync(new URL("../src/pages/UpdatesPage.tsx", impor
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 
 describe("v1.2.0 release notes", () => {
-  it("preserves v1.2.0 release metadata beneath the new v2.0.0 entry", () => {
+  it("preserves v1.2.0 release metadata beneath the newer entries", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.equal(versions[0], "v2.0.0");
-    assert.equal(versions[1], "v1.2.0");
+    assert.equal(versions[0], "v2.1.0");
+    assert.equal(versions[1], "v2.0.0");
+    assert.equal(versions[2], "v1.2.0");
     assert.match(
       updatesSource,
-      /version: "v1\.2\.0",\s*badge: "Stone Visual Experience & AI Matcher Suite — รุ่นล่าสุด",\s*date: "3 ตุลาคม 2569",\s*dateTime: "2026-10-03",\s*title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ, Studio Slab Viewer และ AI Visual Matcher"/,
+      /version: "v1\.2\.0",\s*badge: "Stone Visual Experience & AI Matcher Suite",\s*date: "3 ตุลาคม 2569",\s*dateTime: "2026-10-03",\s*title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ, Studio Slab Viewer และ AI Visual Matcher"/,
     );
   });
 
@@ -37,7 +38,7 @@ describe("v1.2.0 release notes", () => {
   it("updates the footer link label to v2.0", () => {
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.0\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.1\)<\/Link>/,
     );
   });
 });

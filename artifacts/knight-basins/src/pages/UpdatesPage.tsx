@@ -9,11 +9,50 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 
 export const UPDATE_RELEASES = [
   {
-    version: "v2.0.0",
-    badge: "Security, Smart Studio & DevOps — รุ่นล่าสุด",
+    version: "v2.1.0",
+    badge: "Security, Price Guard & Studio Polish — รุ่นล่าสุด",
     date: "3 ตุลาคม 2569",
     dateTime: "2026-10-03",
-    title: "Release v2.0.0 — สถาปัตยกรรมความปลอดภัยขั้นสูง, 2D Studio Smart Positioning และ DevOps Auto-Migration",
+    title: "Release v2.1.0 — Server Price Guard, สิทธิ์ส่วนลดพนักงาน และการปิดช่องโหว่รอบตรวจความปลอดภัย",
+    highlights: [
+      {
+        icon: "🔒",
+        title: "Server Price Guard",
+        description: "ระบบคำนวณราคาจริงบนเซิร์ฟเวอร์จากฐานข้อมูลก่อนบันทึกใบเสนอราคาและก่อนออก Dynamic PromptPay QR หากยอดที่ส่งมาไม่ตรงจะถูกปฏิเสธด้วยรหัส PRICE_VERIFICATION_FAILED และบันทึก Audit Log ทันที (ลดความเสี่ยงการดัดแปลงราคาจากฝั่งลูกค้า)",
+      },
+      {
+        icon: "🧾",
+        title: "Staff Discount Authorization",
+        description: "พนักงานที่มีสิทธิ์ (leads:edit) ให้ส่วนลดพิเศษหรือตั้งราคาขอบเปิดให้ลูกค้ารายบุคคลได้ ผ่านหลังบ้าน พร้อมบันทึกผู้ให้ส่วนลดไว้ใน Audit Log ทุกครั้ง ส่วนลูกค้าทั่วไปยังคงได้ส่วนลด 0 บาทเสมอ",
+      },
+      {
+        icon: "🛡️",
+        title: "Rate Limit & LINE Login Hardening",
+        description: "ปิดช่องทางข้ามการจำกัดจำนวนครั้งด้วยการสลับ User-Agent และปิดช่องโหว่ Open Redirect ในขั้นตอน LINE Login พร้อมจัดคิวการ deploy อัตโนมัติให้ทำงานทีละงาน",
+      },
+      {
+        icon: "🚫",
+        title: "Lead Spam Guard",
+        description: "คำขอใบเสนอราคาที่ไม่มีข้อมูลผังเคาน์เตอร์หรือรายการสินค้าจะถูกปฏิเสธก่อนแตะฐานข้อมูล ป้องกันการสร้างรายการขยะและเลขที่ใบเสนอราคาลอย",
+      },
+      {
+        icon: "🧹",
+        title: "Studio Draft Protection",
+        description: "จำกัดการบันทึกแบบร่างจากหน้า 2D Studio และมีระบบกวาดล้างไฟล์แบบร่างที่หมดอายุเกิน 30 วันโดยอัตโนมัติ",
+      },
+      {
+        icon: "📐",
+        title: "Open-Edge Price Fix & Unique Quote Numbers",
+        description: "แก้เงื่อนไขตรวจสอบราคาขอบเปิดที่ทำให้กรอกราคาไม่ได้ตั้งแต่ Studio v2 และทำให้เลขที่ใบเสนอราคาของทุกงานไม่ซ้ำกัน",
+      },
+    ],
+  },
+  {
+    version: "v2.0.0",
+    badge: "Security, Smart Studio & DevOps",
+    date: "3 ตุลาคม 2569",
+    dateTime: "2026-10-03",
+    title: "Release v2.0.0 — 2D Studio Smart Positioning, Asset Optimization และ DevOps Auto-Migration",
     highlights: [
       {
         icon: "📐",
@@ -23,17 +62,17 @@ export const UPDATE_RELEASES = [
       {
         icon: "🖼️",
         title: "Asset WebP Optimization",
-        description: "แปลงไฟล์ภาพอ่าง 30 รุ่นเป็น WebP โปร่งใส ลดขนาดลง 88.4% โหลดเร็วขึ้น 10 เท่า",
-      },
-      {
-        icon: "🔒",
-        title: "Financial Security & Price Guard",
-        description: "ปิดช่องโหว่อายุลิงก์ 45 วันในจุดส่งสลิปและดูสถานะงาน พร้อมระบบคำนวณราคาจริงบนเซิร์ฟเวอร์ก่อนออก Dynamic PromptPay QR",
+        description: "แปลงไฟล์ภาพอ่าง 30 รุ่นเป็น WebP โปร่งใส ขนาดรวมลดลง 88.4% (13.71 MB → 1.60 MB) ลูกค้าโหลดเร็วขึ้นโดยเฉพาะบนมือถือ",
       },
       {
         icon: "🪨",
         title: "Freestanding Pillar Separation",
         description: "แยกเสาวางของตั้งพื้น (KF029/030) ออกจากผังเจาะเคาน์เตอร์ 2D พร้อมป้ายชุดสำเร็จรูป",
+      },
+      {
+        icon: "⏳",
+        title: "Quote Link Lifetime Enforcement",
+        description: "บังคับใช้อายุลิงก์ใบเสนอราคา 45 วันครบทุกจุด รวมถึงขั้นตอนส่งสลิปและติดตามสถานะงาน",
       },
       {
         icon: "⚙️",
@@ -49,7 +88,7 @@ export const UPDATE_RELEASES = [
   },
   {
     version: "v1.2.0",
-    badge: "Stone Visual Experience & AI Matcher Suite — รุ่นล่าสุด",
+    badge: "Stone Visual Experience & AI Matcher Suite",
     date: "3 ตุลาคม 2569",
     dateTime: "2026-10-03",
     title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ, Studio Slab Viewer และ AI Visual Matcher",
@@ -78,7 +117,7 @@ export const UPDATE_RELEASES = [
   },
   {
     version: "v1.1.0",
-    badge: "Logistics & Financial Safety Suite — รุ่นล่าสุด",
+    badge: "Logistics & Financial Safety Suite",
     date: "30 กันยายน 2569",
     dateTime: "2026-09-30",
     title: "ระบบพิกัดหน้างานอัจฉริยะ และล็อกความปลอดภัยทางการเงิน",

@@ -16,12 +16,12 @@ describe("updates changelog page", () => {
     assert.match(updatesSource, /version: "v0\.1\.0"/);
   });
 
-  it("puts v2.0.0 first and keeps the earlier releases in the timeline", () => {
+  it("keeps every release in the timeline, newest first", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(versions, ["v2.0.0", "v1.2.0", "v1.1.0", "v1.0.0", "v0.9.0", "v0.1.0"]);
+    assert.deepEqual(versions, ["v2.1.0", "v2.0.0", "v1.2.0", "v1.1.0", "v1.0.0", "v0.9.0", "v0.1.0"]);
     assert.match(
       updatesSource,
-      /version: "v1\.1\.0",\s*badge: "Logistics & Financial Safety Suite — รุ่นล่าสุด"/,
+      /version: "v1\.1\.0",\s*badge: "Logistics & Financial Safety Suite"/,
     );
   });
 
@@ -83,7 +83,7 @@ describe("updates changelog page", () => {
     assert.match(appSource, /<Route path="\/updates" component=\{UpdatesPage\} \/>/);
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.0\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.1\)<\/Link>/,
     );
   });
 });
