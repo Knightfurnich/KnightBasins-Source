@@ -18,6 +18,7 @@ import {
   type SupportProfileFields,
 } from "../lib/support-profile";
 import { findAuthenticatedAccount, SESSION_COOKIE } from "./line-auth";
+import { quoteTotalTHB } from "./leads";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
@@ -43,8 +44,8 @@ const LEAD_STATUS_LABEL: Record<string, string> = {
   closed: "ปิดงานแล้ว",
 };
 
-async function buildCustomerContextSummary(account: Account): Promise<string> {
-  const leads = await db
+export async function buildCustomerContextSummary(account: Account, database: typeof db = db): Promise<string> {
+  const leads = await database
     .select({
       id: customerLeads.id,
       quoteNumber: customerLeads.quoteNumber,
@@ -61,7 +62,7 @@ async function buildCustomerContextSummary(account: Account): Promise<string> {
 
   const slipsByLead = new Map<number, typeof paymentSlips.$inferSelect[]>();
   const leadIds = leads.map((lead) => lead.id);
-  const slips = await db.select().from(paymentSlips).where(inArray(paymentSlips.leadId, leadIds));
+  const slips = await database.select().from(paymentSlips).where(inArray(paymentSlips.leadId, leadIds));
   for (const slip of slips) {
     if (slip.leadId === null) continue;
     const list = slipsByLead.get(slip.leadId) ?? [];
