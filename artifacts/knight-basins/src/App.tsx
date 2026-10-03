@@ -1131,7 +1131,16 @@ function SavedQuotePage() {
   const [savedSheetMode, setSavedSheetMode] = useState<"formal" | "workshop">("formal");
   const notifyMutation = useNotifySavedQuote();
   const [notificationMessage, setNotificationMessage] = useState(() => new URLSearchParams(window.location.search).get("notification") ?? "");
-  const notificationWasAlreadySent = notificationMessage.startsWith("ส่ง") && notificationMessage.includes("แล้ว");
+  // Structured signal: submitQuote/submitStudio add notified=1 when the API reported notificationStatus "notified".
+  const [notifiedParam] = useState(() => new URLSearchParams(window.location.search).get("notified"));
+  const [notifiedFromThisPage, setNotifiedFromThisPage] = useState(false);
+  // Links sent before the notified parameter existed carry only the Thai message, so the wording check
+  // stays as a fallback for them -- and only when the parameter is absent.
+  const notificationWasAlreadySent =
+    notifiedFromThisPage ||
+    notifiedParam === "1" ||
+    notifiedParam === "true" ||
+    (notifiedParam === null && notificationMessage.startsWith("ส่ง") && notificationMessage.includes("แล้ว"));
   const shouldPrint = new URLSearchParams(window.location.search).get("print") === "1";
   useEffect(() => {
     if (!shouldPrint || !lead) return;
@@ -1354,6 +1363,7 @@ function SavedQuotePage() {
     try {
       const result = await notifyMutation.mutateAsync({ data: { token: publicQuoteToken } });
       setNotificationMessage(result.message);
+      if (result.notificationStatus === "notified") setNotifiedFromThisPage(true);
     } catch (error) {
       setNotificationMessage(error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่");
     }
@@ -1927,15 +1937,17 @@ function Storefront() {
     });
     if (!lead.quoteNumber || !lead.publicQuoteToken) throw new Error("ระบบยังไม่ได้สร้างลิงก์ใบเสนอราคา");
     let notificationMessage = "";
+    let notified = false;
     if (notify) {
       try {
         const result = await notifyQuoteMutation.mutateAsync({ data: { token: lead.publicQuoteToken } });
         notificationMessage = result.message;
+        notified = result.notificationStatus === "notified";
       } catch (error) {
         notificationMessage = error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่";
       }
     }
-    const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
+    const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}${notified ? "&notified=1" : ""}` : "";
     setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}${notificationQuery}`);
   };
   const submitStudio = async ({ state, estimate, contact, worksitePlaceId, notification }: StudioSubmission) => {
@@ -1945,13 +1957,15 @@ function Storefront() {
     // The lead is already saved at this point, so a failed alert must never stop the
     // customer from reaching their quotation: report the outcome and navigate regardless.
     let notificationMessage = "";
+    let notified = false;
     try {
       const result = await notifyQuoteMutation.mutateAsync({ data: { token: lead.publicQuoteToken } });
       notificationMessage = result.message;
+      notified = result.notificationStatus === "notified";
     } catch (error) {
       notificationMessage = error instanceof Error ? error.message : "บันทึกแล้ว แต่ส่งแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่";
     }
-    const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}` : "";
+    const notificationQuery = notificationMessage ? `&notification=${encodeURIComponent(notificationMessage)}${notified ? "&notified=1" : ""}` : "";
     setLocation(`/quote/view?token=${encodeURIComponent(lead.publicQuoteToken)}${notificationQuery}`);
   };
   const initialBasinSkus = useMemo(() => [...new Set(cart.map((line) => line.sku))].slice(0, 2), [cart]);

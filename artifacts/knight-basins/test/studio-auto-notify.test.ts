@@ -51,7 +51,7 @@ describe("studio auto-notify sales (job-196)", () => {
   });
 
   it("passes the outcome to the quotation page as ?notification=, like the storefront quote", () => {
-    assert.match(submitStudio, /notificationQuery\s*=\s*notificationMessage\s*\?\s*`&notification=\$\{encodeURIComponent\(notificationMessage\)\}`\s*:\s*""/);
+    assert.match(submitStudio, /notificationQuery\s*=\s*notificationMessage\s*\?\s*`&notification=\$\{encodeURIComponent\(notificationMessage\)\}\$\{notified \? "&notified=1" : ""\}`\s*:\s*""/);
     assert.match(submitStudio, /setLocation\(`\/quote\/view\?token=\$\{encodeURIComponent\(lead\.publicQuoteToken\)\}\$\{notificationQuery\}`\)/);
   });
 
