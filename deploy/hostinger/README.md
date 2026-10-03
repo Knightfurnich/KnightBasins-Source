@@ -16,7 +16,7 @@ There is no manual rsync/systemd step for a normal release — pushing to `main`
 
 ### `deploy/hostinger/` itself is never auto-synced
 
-`deploy.yml` only ever touches `web-dist/` and `api-dist/`. It does **not** copy this `deploy/hostinger/` folder — `migrate.sh`, `backup.sh`, `restore-check.sh`, `provision-postgres.sh`, the `check-*.sh` gates, or this README — to the VPS. The copy that runs on the VPS (`/docker/knightbasins/deploy/hostinger/`) only changes when an operator copies it there by hand, so it can silently drift out of sync with what is committed here (this happened for real: the VPS copy sat stale from the initial 2026-09-14 setup for a week, including a `migrate.sh` with a dead default path and a tampered `restore-check.sh` that always printed success). After changing any file in this folder, sync it to the VPS yourself:
+`deploy.yml` touches `web-dist/`, `api-dist/` and - since job-224 - the `deploy/hostinger/migrations/*.sql` files (see "Applying schema migrations" below). It still does **not** copy the rest of this `deploy/hostinger/` folder - `migrate.sh`, `backup.sh`, `restore-check.sh`, `provision-postgres.sh`, the `check-*.sh` gates, or this README - to the VPS. The copy that runs on the VPS (`/docker/knightbasins/deploy/hostinger/`) only changes when an operator copies it there by hand, so it can silently drift out of sync with what is committed here (this happened for real: the VPS copy sat stale from the initial 2026-09-14 setup for a week, including a `migrate.sh` with a dead default path and a tampered `restore-check.sh` that always printed success). After changing any file in this folder, sync it to the VPS yourself:
 
 ```bash
 scp deploy/hostinger/<file> root@72.62.79.84:/docker/knightbasins/deploy/hostinger/<file>
@@ -124,6 +124,18 @@ HERMES_API_KEY=your-hermes-api-server-key
 
 ### Applying schema migrations
 
+**Automatic since job-224.** Every push to `main` runs these `deploy.yml` steps, in this order, before the containers are restarted:
+
+1. *Check that migrations are additive* - fails the whole deploy, before anything is built, if a file in `deploy/hostinger/migrations/` contains `DROP` or `TRUNCATE` (SQL comments are ignored). A change that really has to remove something is applied by hand, not by a push.
+2. *Copy Migrations to VPS* - copies `deploy/hostinger/migrations/*.sql` to `/docker/knightbasins/deploy/hostinger/migrations/`.
+3. *Apply Database Migrations* - runs the VPS copy of `migrate.sh` (with `KNIGHT_BASINS_API_CONTAINER=knightbasins-api` and `KNIGHT_BASINS_API_ENV_FILE=/docker/knightbasins/.env`, as in the manual command below).
+
+Running it again is safe: `migrate.sh` records every applied file in `public.knight_basins_schema_migrations` and skips it next time, and applies each pending file in one transaction together with its ledger row, so a deploy with nothing new to apply changes nothing. If step 3 fails, the job stops there: the web/API files are already copied, but the old containers keep running and the restart step is skipped - fix the migration and re-run the workflow. A *new* migration is therefore just a committed `.sql` file; do not copy it or run `migrate.sh` by hand any more. The `migrate.sh` that step 3 runs is still the copy on the VPS (it is not part of the automatic sync), so after changing `migrate.sh` itself, copy it over as described above.
+
+To check the result, `SELECT migration_id FROM public.knight_basins_schema_migrations ORDER BY 1;` lists every applied file, and the *Apply Database Migrations* step log prints `Applying Knight Basins migration <id>` only for files that were actually pending.
+
+The manual route below is the fallback (and how migrations were applied before job-224):
+
 Run the migration helper from the VPS before recreating the API container. It does not require `psql` on the host — when missing, it automatically runs inside a temporary `postgres:16-alpine` container on the API container's network namespace:
 
 ```bash
@@ -135,7 +147,7 @@ unset KNIGHT_BASINS_API_CONTAINER KNIGHT_BASINS_API_ENV_FILE
 
 It applies pending files from `deploy/hostinger/migrations/` in filename order and records completed files in `public.knight_basins_schema_migrations`. Future schema changes must add one new, independently idempotent `.sql` file under `deploy/hostinger/migrations/`; never edit an already-applied migration.
 
-A new migration file must reach both places, and neither happens automatically: `git add` and commit it to this repo (`deploy.yml` does not run migrations or commit anything for you — see "`deploy/hostinger/` itself is never auto-synced" above), and copy it to `/docker/knightbasins/deploy/hostinger/migrations/` on the VPS before running `migrate.sh`. A migration applied on the VPS but never committed is invisible to everyone else and at risk of being lost; a migration committed but never copied to the VPS never runs.
+A new migration file must be committed to this repo, and that is all: `deploy.yml` copies it to `/docker/knightbasins/deploy/hostinger/migrations/` and applies it on the next push to `main` (see "Automatic since job-224" above). A migration applied on the VPS but never committed is still invisible to everyone else and at risk of being lost, so never apply one by hand without committing it. If the automatic steps are ever bypassed, a committed migration that was never copied to the VPS never runs.
 
 The API seeds all current basin, installed-stone, and sheet-stone catalog rows on first start (idempotent — skips rows that already exist). The seed source is `artifacts/knight-basins/src/data/catalog.ts`, so a code change to that file does **not** retroactively update rows already seeded into a live database — fix already-seeded rows through the `/admin` panel (or a migration) instead. After starting the API, `/api/catalog` is the read-only confirmation that the seed completed.
 
