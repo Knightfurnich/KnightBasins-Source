@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, ImageOff, X } from "lucide-react";
 
@@ -21,6 +21,10 @@ export function StoneSlabViewer({
 }: StoneSlabViewerProps) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useCallback(() => {
+    openButtonRef.current?.focus();
+  }, []);
 
   if (images.length === 0) return null;
 
@@ -33,6 +37,7 @@ export function StoneSlabViewer({
   const openButton = buttonTestId ? (
     <button
       type="button"
+      ref={openButtonRef}
       className={buttonClassName}
       onClick={() => setOpen(true)}
       aria-label={buttonLabel}
@@ -43,6 +48,7 @@ export function StoneSlabViewer({
   ) : (
     <button
       type="button"
+      ref={openButtonRef}
       className={buttonClassName}
       onClick={() => setOpen(true)}
       aria-label={buttonLabel}
@@ -55,7 +61,7 @@ export function StoneSlabViewer({
   return (
     <>
       {openButton}
-      {open && <StoneSlabModal images={images} alt={alt} onClose={close} />}
+      {open && <StoneSlabModal images={images} alt={alt} onClose={close} onRestoreFocus={restoreFocus} />}
     </>
   );
 }
@@ -64,13 +70,16 @@ function StoneSlabModal({
   images,
   alt,
   onClose,
+  onRestoreFocus,
 }: {
   images: string[];
   alt: string;
   onClose: () => void;
+  onRestoreFocus: () => void;
 }) {
   const [index, setIndex] = useState(0);
   const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const safeIndex = index % images.length;
   const currentUrl = images[safeIndex];
   const currentFailed = failedUrls.has(currentUrl);
@@ -82,6 +91,11 @@ function StoneSlabModal({
     () => setIndex((current) => (current + 1) % images.length),
     [images.length],
   );
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    return () => onRestoreFocus();
+  }, [onRestoreFocus]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -109,7 +123,7 @@ function StoneSlabModal({
       data-testid="stone-slab-overlay"
       onClick={onClose}
     >
-      <button type="button" className="basin-gallery-close" onClick={onClose} aria-label="ปิด">
+      <button ref={closeButtonRef} type="button" className="basin-gallery-close" onClick={onClose} aria-label="ปิด">
         <X size={20} />
       </button>
       <div className="basin-gallery-stage" onClick={stop}>

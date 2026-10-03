@@ -1274,6 +1274,7 @@ function SavedQuotePage() {
        formalItems = saved.notification.items.filter((item) => item.code !== "WORKPIECES").map((item) => ({
          code: item.code,
          description: item.description,
+         imageUrl: item.imageUrl,
          quantity: item.quantity,
          unit: item.unit,
          unitPrice: item.unitPriceTHB ?? 0,
