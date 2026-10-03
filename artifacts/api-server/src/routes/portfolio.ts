@@ -29,7 +29,18 @@ const PORTFOLIO_VISIBILITY_PATH = join(UPLOAD_DIR, "portfolio", "visibility.json
 // -- overridable so a test run (which has no business reading a real path on
 // whatever machine happens to run it) can point this somewhere guaranteed
 // not to exist, without changing the real production fallback at all.
-const KNIGHT_DESIGN_KB_FEATURED_PATH = process.env["PORTFOLIO_FEATURED_KB_PATH"] ?? "/opt/data/knight-design-kb/portfolio_featured.json";
+const KNIGHT_DESIGN_KB_FEATURED_DEFAULT_PATH = "/opt/data/knight-design-kb/portfolio_featured.json";
+
+/**
+ * PORTFOLIO_FEATURED_KB_PATH wins whenever it is set -- an empty string included,
+ * which makes the legacy copy unreadable on purpose -- otherwise the VPS path above.
+ * GET /portfolio/featured is the only place this file is read.
+ */
+export function resolveKnightDesignKbFeaturedPath(env: NodeJS.ProcessEnv = process.env): string {
+  return env["PORTFOLIO_FEATURED_KB_PATH"] ?? KNIGHT_DESIGN_KB_FEATURED_DEFAULT_PATH;
+}
+
+const KNIGHT_DESIGN_KB_FEATURED_PATH = resolveKnightDesignKbFeaturedPath();
 
 /** Public showcase categories, in the order the storefront should present them.
  * Bathroom work leads (basins are the hero product), the rest back it up as

@@ -134,6 +134,14 @@ export function calculateModelCostThb(model: string, promptTokens = 0, completio
 
 const HERMES_AUDIT_LOG_PATH = "/opt/data/cron/usage_audit.jsonl";
 
+/**
+ * Where Hermes's audit log lives: HERMES_AUDIT_LOG_PATH when set (tests and any
+ * host that is not the VPS), otherwise the VPS path above, unchanged.
+ */
+export function resolveHermesAuditLogPath(env: NodeJS.ProcessEnv = process.env): string {
+  return env["HERMES_AUDIT_LOG_PATH"] || HERMES_AUDIT_LOG_PATH;
+}
+
 function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null {
   let parsed: unknown;
   try {
@@ -169,7 +177,7 @@ function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null {
  * log format.
  */
 function readHermesAuditEvents(): RecordedAiUsageEvent[] {
-  const auditPath = process.env["HERMES_AUDIT_LOG_PATH"] || HERMES_AUDIT_LOG_PATH;
+  const auditPath = resolveHermesAuditLogPath();
   let raw: string;
   try {
     raw = readFileSync(auditPath, "utf8");
