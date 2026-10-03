@@ -10,7 +10,18 @@ import { auditErrorDetails, auditRequestContext, logAuditEvent, type AuditEventI
 import { checkCutoutJointClash, MIN_BASIN_CLEARANCE_MM, validateBasinClearance } from "../lib/fabrication-geometry";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia, UPLOAD_DIR } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
-import { validateNumericDimensions, verifyAndSanitizeQuoteTotal } from "../lib/price-integrity";
+import {
+  canonicalStudioData,
+  checkQuoteBeforePayment,
+  PRICE_TAMPER_AUDIT_ACTION,
+  PRICE_VERIFICATION_FAILED_ERROR,
+  PRICE_VERIFICATION_FAILED_MESSAGE,
+  stripServerPricing,
+  validateNumericDimensions,
+  verifyAndRecalculateQuoteTotal,
+  verifyAndSanitizeQuoteTotal,
+  withServerPricing,
+} from "../lib/price-integrity";
 import { analyzeSketchImage } from "../lib/sketch-vision";
 import {
   createQuoteAccessSecret,
@@ -410,10 +421,12 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   // Fabrication Geometry Guard (job-95/job-97): a risky basin-cutout layout
   // is a warning, not a rejection -- sales still needs to save the lead, but
   // an admin must see this before the job is confirmed for production.
-  const fabricationAudit = auditStudioFabrication(parsed.data.studioData);
+  // serverPricing (the total the server verified, see price-integrity.ts) is the server's alone: whatever the client sent under that key is dropped.
+  const incomingStudioData = stripServerPricing(parsed.data.studioData);
+  const fabricationAudit = auditStudioFabrication(incomingStudioData);
   const studioDataToSave = fabricationAudit.safe
-    ? parsed.data.studioData
-    : { ...(parsed.data.studioData as Record<string, unknown>), fabricationWarnings: fabricationAudit.warnings };
+    ? incomingStudioData
+    : { ...(incomingStudioData as Record<string, unknown>), fabricationWarnings: fabricationAudit.warnings };
   if (!fabricationAudit.safe) {
     console.warn("Lead payload flagged by fabrication geometry guard", { leadKey: parsed.data.leadKey, warnings: fabricationAudit.warnings });
   }
@@ -424,10 +437,45 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       .select({
         quoteNumber: customerLeads.quoteNumber,
         quoteAccessSecret: customerLeads.quoteAccessSecret,
+        orderMode: customerLeads.orderMode,
       })
       .from(customerLeads)
       .where(eq(customerLeads.leadKey, parsed.data.leadKey))
       .limit(1);
+
+    // Server-side price guard (job-226). The quote is priced here, from the database, and every total the browser
+    // claims must agree with it. A customer's own discount or open-edge price is never accepted (always 0 / none).
+    // A payload that does not agree -- or that the server cannot reproduce -- is refused, and nothing is saved:
+    // no quote number, no quote link, no QR. The mode that applies is the one the saved lead will have.
+    const effectiveOrderMode = parsed.data.orderMode ?? existing?.orderMode ?? "quick-purchase";
+    const pricing = await verifyAndRecalculateQuoteTotal(effectiveOrderMode, studioDataToSave, database);
+    if (pricing.isTampered) {
+      console.warn("Rejected lead payload: quote total does not match the server's price", { leadKey: parsed.data.leadKey, reason: pricing.reason });
+      audit(req, {
+        actorName: parsed.data.name,
+        action: PRICE_TAMPER_AUDIT_ACTION,
+        status: "warning",
+        errorCode: PRICE_VERIFICATION_FAILED_ERROR,
+        targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+        details: {
+          stage: "lead.upsert",
+          leadKey: parsed.data.leadKey,
+          orderMode: effectiveOrderMode,
+          reason: pricing.reason,
+          claimedTotals: pricing.claimedTotals,
+          calculatedTotal: pricing.calculatedTotal,
+          discountIgnoredTHB: pricing.discountIgnoredTHB,
+          source: parsed.data.source,
+        },
+      });
+      return res.status(400).json({ error: PRICE_VERIFICATION_FAILED_ERROR, message: PRICE_VERIFICATION_FAILED_MESSAGE });
+    }
+    // A verified quote is stored the way the server priced it (no customer discount / open-edge price) with the total it verified,
+    // so the quote keeps its price for its 45-day life even if the catalog changes afterwards.
+    const savedStudioData = pricing.calculatedTotal !== null && studioDataToSave && typeof studioDataToSave === "object" && !Array.isArray(studioDataToSave)
+      ? withServerPricing(canonicalStudioData(effectiveOrderMode, studioDataToSave as Record<string, unknown>), pricing.calculatedTotal)
+      : studioDataToSave;
+
     const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? createQuoteNumber() : null);
     const quoteAccessSecret = quoteNumber
       ? existing?.quoteAccessSecret ?? createQuoteAccessSecret()
@@ -449,7 +497,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
         quoteNumber,
         quoteAccessSecret,
         customerAccountId: account?.id ?? null,
-        studioData: studioDataToSave,
+        studioData: savedStudioData,
       })
       .onConflictDoUpdate({
         target: customerLeads.leadKey,
@@ -479,7 +527,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
            quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
             quoteAccessSecret: quoteAccessSecret ?? customerLeads.quoteAccessSecret,
            orderMode: parsed.data.orderMode,
-           studioData: studioDataToSave,
+           studioData: savedStudioData,
            sketchUrl: parsed.data.sketchUrl,
            customerAccountId: account?.id ?? customerLeads.customerAccountId,
           updatedAt: new Date(),
@@ -599,8 +647,35 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       return;
     }
 
-    const total = quoteTotalTHB(lead.studioData);
-    if (total === null || total <= 0) {
+    const claimedTotal = quoteTotalTHB(lead.studioData);
+    if (claimedTotal === null || claimedTotal <= 0) {
+      return res.status(400).json({ message: "ไม่พบยอดเงินที่ถูกต้องสำหรับใบเสนอราคานี้" });
+    }
+
+    // Server-side price guard (job-226): a payment QR is only built for a total the server itself priced (or priced when the quote
+    // was saved). A mismatch, a customer-set discount, or a payload the server cannot reproduce gets no QR payload at all.
+    const priceCheck = await checkQuoteBeforePayment({ orderMode: lead.orderMode, studioData: lead.studioData }, database);
+    if (!priceCheck.ok) {
+      audit(req, {
+        actorName: lead.name,
+        action: PRICE_TAMPER_AUDIT_ACTION,
+        status: "warning",
+        errorCode: PRICE_VERIFICATION_FAILED_ERROR,
+        targetId: lead.quoteNumber,
+        details: {
+          stage: "promptpay.qr",
+          leadId: lead.id,
+          orderMode: lead.orderMode,
+          reason: priceCheck.reason,
+          claimedTotals: priceCheck.claimedTotals,
+          calculatedTotal: priceCheck.calculatedTotal,
+          discountIgnoredTHB: priceCheck.discountIgnoredTHB,
+        },
+      });
+      return res.status(400).json({ error: PRICE_VERIFICATION_FAILED_ERROR, message: PRICE_VERIFICATION_FAILED_MESSAGE });
+    }
+    const total = priceCheck.total;
+    if (total <= 0) {
       return res.status(400).json({ message: "ไม่พบยอดเงินที่ถูกต้องสำหรับใบเสนอราคานี้" });
     }
 
