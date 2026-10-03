@@ -29,7 +29,6 @@ test(
 
 test(
   "A4 US grand-total label remains readable without wrapping",
-  { todo: "P3: the current PDF wraps the net-total label; activate after the approved print-layout fix" },
   () => {
     const printStyles = stylesheet.match(/@media print\s*\{([\s\S]*)/)?.[1] ?? "";
     assert.match(

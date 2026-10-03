@@ -3224,7 +3224,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .formal-totals > div > span { padding: 3px 5px; box-sizing: border-box; font-size: 10.5px; color: #173f5f !important; }
   .formal-totals > div > strong { padding: 3px 5px; box-sizing: border-box; border-left: 1px solid #7aa7c5 !important; font-size: 12px; font-weight: 700; color: #173f5f !important; }
   .formal-grand-total { padding: 0 !important; border-top: 1.5px solid #234c7d !important; border-bottom: 0 !important; background: #edf5fa !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .formal-grand-total > span { padding: 4px 5px; box-sizing: border-box; font-size: 12px; color: #0f2c4d !important; font-weight: 800 !important; }
+  .formal-grand-total > span { min-width: 100px; padding: 4px 5px; box-sizing: border-box; font-size: 12px; color: #0f2c4d !important; font-weight: 800 !important; white-space: nowrap; }
   .formal-grand-total > strong { padding: 4px 5px; box-sizing: border-box; border-left: 1px solid #7aa7c5 !important; font-size: 17px; color: #0f2c4d !important; font-weight: 900 !important; }
   .formal-grand-total > small { flex: 0 0 100%; width: 100%; padding: 2px 5px 3px; box-sizing: border-box; border-top: 1px dashed #b5c5d2 !important; color: #405f79 !important; font-size: 10px; font-weight: 600; }
   .formal-bank-details { margin-left: auto; box-sizing: border-box; margin-top: 0; padding: 4px 6px; border: 1px solid #234c7d !important; font-size: 9.5px; line-height: 1.3; }
