@@ -50,6 +50,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Typecheck api-server
+        working-directory: artifacts/api-server
+        run: pnpm exec tsc --noEmit
+
+      - name: Typecheck knight-basins
+        working-directory: artifacts/knight-basins
+        run: pnpm exec tsc --noEmit
+
       # The *.browser.test.ts files drive a real browser against a dev server and are left out here.
       - name: Test api-server
         working-directory: artifacts/api-server
