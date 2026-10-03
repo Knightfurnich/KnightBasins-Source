@@ -97,10 +97,11 @@ for (const sku of SKUS) {
 const share = (alpha: Uint8Array, predicate: (value: number) => boolean) => alpha.reduce((count, value) => count + (predicate(value) ? 1 : 0), 0) / alpha.length;
 
 describe("the 30 transparent top-view PNGs (job-212)", () => {
-  it("has exactly one PNG per catalog model KF001-KF030, plus only the manifest and the contact sheet", () => {
+  it("has exactly one PNG and one WebP per catalog model KF001-KF030, plus only the manifest and the contact sheet", () => {
     assert.ok(existsSync(assetDir), "public/assets/basins-transparent is missing");
     const names = readdirSync(assetDir).sort();
-    assert.deepEqual(names.filter((name) => /^KF\d{3}\./.test(name)), SKUS.map((sku) => `${sku}.png`), "one PNG per model, no other format");
+    assert.deepEqual(names.filter((name) => /^KF\d{3}\.png$/.test(name)), SKUS.map((sku) => `${sku}.png`), "one PNG per model");
+    assert.deepEqual(names.filter((name) => /^KF\d{3}\.webp$/.test(name)), SKUS.map((sku) => `${sku}.webp`), "one WebP per model");
     assert.deepEqual(names.filter((name) => !/^KF\d{3}\./.test(name)), ["contact-sheet-all-30.jpg", "manifest.json"], "anything else in this folder is served publicly - add it here on purpose");
     for (const sku of SKUS) assert.ok(PRODUCTS.some((product) => product.sku === sku), `${sku} is not in the catalog`);
   });

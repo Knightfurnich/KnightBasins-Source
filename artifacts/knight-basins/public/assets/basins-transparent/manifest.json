@@ -182,5 +182,189 @@
       "bytes": 945306,
       "sha256_16": "d306754e9ec3e2d6"
     }
-  ]
+  ],
+  "webpItems": [
+    {
+      "sku": "KF001",
+      "file": "assets/basins-transparent/KF001.webp",
+      "bytes": 13814,
+      "sha256_16": "72ec4d0db218e634"
+    },
+    {
+      "sku": "KF002",
+      "file": "assets/basins-transparent/KF002.webp",
+      "bytes": 23992,
+      "sha256_16": "41dd7f68a9d26519"
+    },
+    {
+      "sku": "KF003",
+      "file": "assets/basins-transparent/KF003.webp",
+      "bytes": 33898,
+      "sha256_16": "1c5071f95c52a861"
+    },
+    {
+      "sku": "KF004",
+      "file": "assets/basins-transparent/KF004.webp",
+      "bytes": 13754,
+      "sha256_16": "01c069424951ab46"
+    },
+    {
+      "sku": "KF005",
+      "file": "assets/basins-transparent/KF005.webp",
+      "bytes": 81992,
+      "sha256_16": "443b9b171bbf6096"
+    },
+    {
+      "sku": "KF006",
+      "file": "assets/basins-transparent/KF006.webp",
+      "bytes": 10872,
+      "sha256_16": "fd09c02e672bf3b8"
+    },
+    {
+      "sku": "KF007",
+      "file": "assets/basins-transparent/KF007.webp",
+      "bytes": 33214,
+      "sha256_16": "0d88f50b0c9e3d98"
+    },
+    {
+      "sku": "KF008",
+      "file": "assets/basins-transparent/KF008.webp",
+      "bytes": 11040,
+      "sha256_16": "da7ba6c7e740f5af"
+    },
+    {
+      "sku": "KF009",
+      "file": "assets/basins-transparent/KF009.webp",
+      "bytes": 49358,
+      "sha256_16": "4dac2719872d8133"
+    },
+    {
+      "sku": "KF010",
+      "file": "assets/basins-transparent/KF010.webp",
+      "bytes": 108418,
+      "sha256_16": "8183814b365f518e"
+    },
+    {
+      "sku": "KF011",
+      "file": "assets/basins-transparent/KF011.webp",
+      "bytes": 31684,
+      "sha256_16": "6fe820609fcba1ab"
+    },
+    {
+      "sku": "KF012",
+      "file": "assets/basins-transparent/KF012.webp",
+      "bytes": 27108,
+      "sha256_16": "0aa4cb50a25a6547"
+    },
+    {
+      "sku": "KF013",
+      "file": "assets/basins-transparent/KF013.webp",
+      "bytes": 20284,
+      "sha256_16": "75fdb15b2e5383e8"
+    },
+    {
+      "sku": "KF014",
+      "file": "assets/basins-transparent/KF014.webp",
+      "bytes": 6550,
+      "sha256_16": "d81024be08a360cb"
+    },
+    {
+      "sku": "KF015",
+      "file": "assets/basins-transparent/KF015.webp",
+      "bytes": 140270,
+      "sha256_16": "5b6ec3926d6c87a2"
+    },
+    {
+      "sku": "KF016",
+      "file": "assets/basins-transparent/KF016.webp",
+      "bytes": 85612,
+      "sha256_16": "ba7f31a270bebe7f"
+    },
+    {
+      "sku": "KF017",
+      "file": "assets/basins-transparent/KF017.webp",
+      "bytes": 137340,
+      "sha256_16": "d5e54691c4de861e"
+    },
+    {
+      "sku": "KF018",
+      "file": "assets/basins-transparent/KF018.webp",
+      "bytes": 44412,
+      "sha256_16": "a78fb7d3ebd188e9"
+    },
+    {
+      "sku": "KF019",
+      "file": "assets/basins-transparent/KF019.webp",
+      "bytes": 92134,
+      "sha256_16": "4d1b2fa56f942a80"
+    },
+    {
+      "sku": "KF020",
+      "file": "assets/basins-transparent/KF020.webp",
+      "bytes": 78356,
+      "sha256_16": "8bf102f98594bfc8"
+    },
+    {
+      "sku": "KF021",
+      "file": "assets/basins-transparent/KF021.webp",
+      "bytes": 39736,
+      "sha256_16": "48d3366adb44ee02"
+    },
+    {
+      "sku": "KF022",
+      "file": "assets/basins-transparent/KF022.webp",
+      "bytes": 11684,
+      "sha256_16": "b90da4499bd81e4e"
+    },
+    {
+      "sku": "KF023",
+      "file": "assets/basins-transparent/KF023.webp",
+      "bytes": 63336,
+      "sha256_16": "0034e1fb297d871b"
+    },
+    {
+      "sku": "KF024",
+      "file": "assets/basins-transparent/KF024.webp",
+      "bytes": 51854,
+      "sha256_16": "560a95a96ec4454e"
+    },
+    {
+      "sku": "KF025",
+      "file": "assets/basins-transparent/KF025.webp",
+      "bytes": 46284,
+      "sha256_16": "5e2a144335b26215"
+    },
+    {
+      "sku": "KF026",
+      "file": "assets/basins-transparent/KF026.webp",
+      "bytes": 25368,
+      "sha256_16": "43b28b87aeba7489"
+    },
+    {
+      "sku": "KF027",
+      "file": "assets/basins-transparent/KF027.webp",
+      "bytes": 20982,
+      "sha256_16": "772f668da7c831a6"
+    },
+    {
+      "sku": "KF028",
+      "file": "assets/basins-transparent/KF028.webp",
+      "bytes": 24818,
+      "sha256_16": "0c2bfc9c4cf5e7da"
+    },
+    {
+      "sku": "KF029",
+      "file": "assets/basins-transparent/KF029.webp",
+      "bytes": 154590,
+      "sha256_16": "8091711d78c314c0"
+    },
+    {
+      "sku": "KF030",
+      "file": "assets/basins-transparent/KF030.webp",
+      "bytes": 191246,
+      "sha256_16": "e41b0fe062a0fb6d"
+    }
+  ],
+  "webpCount": 30,
+  "webpTotalBytes": 1674000
 }
