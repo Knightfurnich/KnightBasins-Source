@@ -55,6 +55,6 @@ describe("admin audit-log UX Insights tab", () => {
     assert.match(logsManager, /data-testid="audit-insights-loading"/);
     assert.match(logsManager, /data-testid="audit-insights-error"/);
     assert.match(logsManager, /activeTab === "history" \? refetch\(\) : insightsQuery\.refetch\(\)/);
-    assert.match(logsManager, /queryKey: \["\/api\/admin\/audit-logs\/insights"\]/);
+    assert.match(logsManager, /queryKey: \["\/api\/admin\/audit-logs\/insights", insightsRange\]/);
   });
 });

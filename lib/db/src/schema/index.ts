@@ -463,6 +463,26 @@ export const systemAuditLogs = pgTable(
   ],
 );
 
+export const auditIssueTrackers = pgTable(
+  "audit_issue_trackers",
+  {
+    id: serial("id").primaryKey(),
+    errorCode: varchar("error_code", { length: 64 }).notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    category: varchar("category", { length: 32 }).notNull(),
+    status: varchar("status", { length: 24 }).default("pending").notNull(),
+    assignee: varchar("assignee", { length: 120 }).default("Owner"),
+    notes: text("notes"),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("audit_issue_trackers_status_updated_at_idx").on(table.status, table.updatedAt),
+    index("audit_issue_trackers_error_code_idx").on(table.errorCode),
+  ],
+);
+
 export type BasinPrice = typeof basinPrices.$inferSelect;
 export type BasinCategory = typeof basinCategories.$inferSelect;
 export type InstalledStoneCategory = typeof installedStoneCategories.$inferSelect;
@@ -483,3 +503,4 @@ export type PaymentSlip = typeof paymentSlips.$inferSelect;
 export type TechnicianTeamRow = typeof technicianTeams.$inferSelect;
 export type SupportVoiceSettingsRow = typeof supportVoiceSettings.$inferSelect;
 export type SitePhoto = typeof sitePhotos.$inferSelect;
+export type AuditIssueTracker = typeof auditIssueTrackers.$inferSelect;
