@@ -86,14 +86,19 @@ async function startLeadsRoute(database: unknown) {
 }
 
 const originalDatabaseUrl = process.env["DATABASE_URL"];
+const originalSessionSecret = process.env["SESSION_SECRET"];
 
 before(() => {
   process.env["DATABASE_URL"] = "postgres://lead-persistence-test";
+  process.env["SESSION_SECRET"] = "lead-persistence-test-secret-32-chars-long";
 });
 
 after(() => {
   if (originalDatabaseUrl === undefined) delete process.env["DATABASE_URL"];
   else process.env["DATABASE_URL"] = originalDatabaseUrl;
+
+  if (originalSessionSecret === undefined) delete process.env["SESSION_SECRET"];
+  else process.env["SESSION_SECRET"] = originalSessionSecret;
 });
 
 describe("lead persistence", () => {
