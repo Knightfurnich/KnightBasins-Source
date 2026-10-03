@@ -23,7 +23,7 @@ describe("admin sidebar grouping", () => {
 
   it("assigns every nav item to a declared group", () => {
     const itemLines = source.match(/\{ href: "\/admin[^\n]*\},?/g) ?? [];
-    assert.equal(itemLines.length, 14, "expected 14 nav items");
+    assert.equal(itemLines.length, 15, "expected 15 nav items (job-215 added /admin/logs)");
     for (const line of itemLines) {
       assert.match(line, /group: "(overview|catalog|sales|system)"/, `nav item without group: ${line}`);
     }
@@ -55,6 +55,7 @@ describe("admin sidebar grouping", () => {
       ["/admin/portfolio", 'permission: "leads"'],
       ["/admin/ai-cost", 'permission: "leads"'],
       ["/admin/team", "team: true"],
+      ["/admin/logs", "team: true"],
       ["/admin/backup", "adminOnly: true"],
     ];
     for (const [href, fragment] of expected) {

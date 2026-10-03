@@ -42,7 +42,7 @@ import {
   UpdateAdminSitePhotoBody,
 } from "@workspace/api-zod";
 import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, lte, ne, or } from "drizzle-orm";
-import { Router, type Response, type IRouter } from "express";
+import { Router, type Request, type Response, type IRouter } from "express";
 import {
   adminCookieOptions,
   adminPasswordMatches,
@@ -58,6 +58,16 @@ import {
 } from "../middlewares/admin-auth";
 import { requestOrigin } from "../lib/public-origin";
 import { AI_COST_PERIODS, getUnifiedAiCostSummary, type AiCostPeriod } from "../lib/ai-cost-tracker";
+import {
+  auditAdminActor,
+  auditErrorDetails,
+  auditFieldChanges,
+  auditRequestContext,
+  listAuditLogs,
+  logAuditEvent,
+  parseAuditLogQuery,
+  type AuditEventInput,
+} from "../lib/audit-logger";
 import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-invites";
 import { ADMIN_API_KEY_SCOPE, createAdminApiKeySecret } from "../lib/admin-api-keys";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
@@ -1703,6 +1713,20 @@ export function createAdminRouter(
   // of the generic upload/login limiters above.
   const opsAssistantRateLimit = createRateLimiter({ name: "admin-assistant-ask", max: 20, windowMs: 60 * 1000 });
 
+  /** Admin-side audit event (job-214), tagged with who acted. Fire and forget: never throws, never blocks the response. */
+  const auditAdmin = (req: Request, event: Omit<AuditEventInput, "actorType" | "actorName">) => {
+    void logAuditEvent(database, { ...auditAdminActor(req), ...auditRequestContext(req), ...event });
+  };
+  /** A row as it is before an edit, for the before/after diff. Null when it cannot be read; the edit itself is unaffected. */
+  async function auditRowBefore(table: any, idColumn: any, id: number): Promise<Record<string, unknown> | null> {
+    try {
+      const [row] = await database.select().from(table).where(eq(idColumn, id)).limit(1);
+      return (row as Record<string, unknown> | undefined) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async function loadTechnicianTeamRows(includeInactive = false) {
     return database
       .select()
@@ -2124,6 +2148,13 @@ export function createAdminRouter(
     try {
       const lock = await checkLeadFinancialLock(database, id);
       if (lock.isLocked) {
+        auditAdmin(req, {
+          action: "admin.lead.delete",
+          status: "warning",
+          errorCode: "FINANCIAL_LOCK",
+          targetId: String(id),
+          details: { leadId: id, slipCount: lock.slipCount, totalAmountThb: lock.totalAmountThb },
+        });
         return res.status(409).json({
           message: lock.reason,
           slipCount: lock.slipCount,
@@ -2135,10 +2166,25 @@ export function createAdminRouter(
         .delete(customerLeads)
         .where(eq(customerLeads.id, id))
         .returning();
-      if (!deleted) return res.status(404).json({ message: "Lead not found" });
+      if (!deleted) {
+        auditAdmin(req, { action: "admin.lead.delete", status: "warning", errorCode: "NOT_FOUND", targetId: String(id), details: { leadId: id } });
+        return res.status(404).json({ message: "Lead not found" });
+      }
 
+      auditAdmin(req, {
+        action: "admin.lead.delete",
+        targetId: deleted.quoteNumber ?? String(id),
+        details: {
+          leadId: id,
+          quoteNumber: deleted.quoteNumber ?? null,
+          customerName: deleted.name,
+          customerPhone: deleted.phone,
+          status: deleted.status,
+        },
+      });
       return res.json({ success: true, deletedId: id });
     } catch (error) {
+      auditAdmin(req, { action: "admin.lead.delete", status: "error", errorCode: "LEAD_DELETE_FAILED", targetId: String(id), details: { leadId: id, ...auditErrorDetails(error) } });
       return next(error);
     }
   });
@@ -2184,6 +2230,18 @@ export function createAdminRouter(
       res.json(getUnifiedAiCostSummary(period));
     } catch (error) {
       next(error);
+    }
+  });
+
+  // Owner only: the trail holds customer names and phone numbers next to what happened to their quotation.
+  router.get("/admin/audit-logs", requireAdminOwner, async (req, res, next) => {
+    const filters = parseAuditLogQuery(req.query);
+    if (!filters.ok) return invalid(res, filters.message);
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      return res.json(await listAuditLogs(database, filters.value));
+    } catch (error) {
+      return next(error);
     }
   });
 
@@ -3379,6 +3437,7 @@ export function createAdminRouter(
     const parsed = UpdateAdminBasinBody.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid basin data");
     try {
+      const basinBefore = await auditRowBefore(basinPrices, basinPrices.id, id);
       const normalized = normalizeBasinFields(parsed.data);
       const data = { ...parsed.data };
       if (typeof parsed.data.categoryId === "number") {
@@ -3398,10 +3457,17 @@ export function createAdminRouter(
         bowlMm: normalized.bowlMm,
         updatedAt: new Date(),
       }).where(eq(basinPrices.id, id)).returning();
-      if (!updated) return res.status(404).json({ message: "Basin not found" });
+      if (!updated) {
+        auditAdmin(req, { action: "admin.basin.update", status: "warning", errorCode: "NOT_FOUND", targetId: String(id), details: { id } });
+        return res.status(404).json({ message: "Basin not found" });
+      }
+      auditAdmin(req, { action: "admin.basin.update", targetId: String(updated.sku ?? id), details: { id, sku: updated.sku, changes: auditFieldChanges(basinBefore, data) } });
       const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
       return res.json(withBasinCategory(withBasinMedia(updated), categories));
-    } catch (error) { return next(error); }
+    } catch (error) {
+      auditAdmin(req, { action: "admin.basin.update", status: "error", errorCode: "BASIN_UPDATE_FAILED", targetId: String(id), details: { id, ...auditErrorDetails(error) } });
+      return next(error);
+    }
   });
 
   router.delete("/admin/basins/:id", requireAdminPermission("basins", "delete"), async (req, res, next) => {
@@ -3532,9 +3598,16 @@ export function createAdminRouter(
     const parsed = updateInstalledStonePriceSchema.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid installed stone data");
     try {
+      const before = await auditRowBefore(installedStonePrices, installedStonePrices.id, id);
       const [updated] = await database.update(installedStonePrices).set({ ...parsed.data, updatedAt: new Date() }).where(eq(installedStonePrices.id, id)).returning();
+      auditAdmin(req, updated
+        ? { action: "admin.stone.update", targetId: String(updated.code ?? id), details: { kind: "installed", id, code: updated.code, changes: auditFieldChanges(before, parsed.data) } }
+        : { action: "admin.stone.update", status: "warning", errorCode: "NOT_FOUND", targetId: String(id), details: { kind: "installed", id } });
       return updated ? res.json(withStoneMedia(updated)) : res.status(404).json({ message: "Installed stone not found" });
-    } catch (error) { return next(error); }
+    } catch (error) {
+      auditAdmin(req, { action: "admin.stone.update", status: "error", errorCode: "STONE_UPDATE_FAILED", targetId: String(id), details: { kind: "installed", id, ...auditErrorDetails(error) } });
+      return next(error);
+    }
   });
 
   router.delete("/admin/installed-stones/:id", requireAdminPermission("installed-stones", "delete"), async (req, res, next) => {
@@ -3567,9 +3640,16 @@ export function createAdminRouter(
     const parsed = updateSheetStonePriceSchema.safeParse(req.body);
     if (!id || !parsed.success) return invalid(res, "Invalid sheet stone data");
     try {
+      const before = await auditRowBefore(sheetStonePrices, sheetStonePrices.id, id);
       const [updated] = await database.update(sheetStonePrices).set({ ...parsed.data, updatedAt: new Date() }).where(eq(sheetStonePrices.id, id)).returning();
+      auditAdmin(req, updated
+        ? { action: "admin.stone.update", targetId: String(updated.code ?? id), details: { kind: "sheet", id, code: updated.code, changes: auditFieldChanges(before, parsed.data) } }
+        : { action: "admin.stone.update", status: "warning", errorCode: "NOT_FOUND", targetId: String(id), details: { kind: "sheet", id } });
       return updated ? res.json(withStoneMedia(updated)) : res.status(404).json({ message: "Sheet stone not found" });
-    } catch (error) { return next(error); }
+    } catch (error) {
+      auditAdmin(req, { action: "admin.stone.update", status: "error", errorCode: "STONE_UPDATE_FAILED", targetId: String(id), details: { kind: "sheet", id, ...auditErrorDetails(error) } });
+      return next(error);
+    }
   });
 
   router.delete("/admin/sheet-stones/:id", requireAdminPermission("sheet-stones", "delete"), async (req, res, next) => {

@@ -435,12 +435,41 @@ export const sitePhotos = pgTable(
   ],
 );
 
+// Append-only operational trail (job-214): customer submissions, slip uploads and
+// admin edits, so staff can trace what happened to a quote without reading server
+// logs. actorType is "customer" | "admin" | "system" and status is "success" |
+// "warning" | "error" (kept as short varchars like the other status columns here).
+// details is already stripped of secrets by audit-logger.ts before it is written.
+export const systemAuditLogs = pgTable(
+  "system_audit_logs",
+  {
+    id: serial("id").primaryKey(),
+    actorType: varchar("actor_type", { length: 16 }).notNull(),
+    actorName: varchar("actor_name", { length: 120 }),
+    action: varchar("action", { length: 80 }).notNull(),
+    targetId: varchar("target_id", { length: 120 }),
+    status: varchar("status", { length: 16 }).notNull().default("success"),
+    errorCode: varchar("error_code", { length: 64 }),
+    details: jsonb("details"),
+    ipAddress: varchar("ip_address", { length: 64 }),
+    userAgent: varchar("user_agent", { length: 255 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("system_audit_logs_created_at_idx").on(table.createdAt),
+    index("system_audit_logs_target_id_idx").on(table.targetId),
+    index("system_audit_logs_actor_type_idx").on(table.actorType, table.createdAt),
+    index("system_audit_logs_status_idx").on(table.status, table.createdAt),
+  ],
+);
+
 export type BasinPrice = typeof basinPrices.$inferSelect;
 export type BasinCategory = typeof basinCategories.$inferSelect;
 export type InstalledStoneCategory = typeof installedStoneCategories.$inferSelect;
 export type InstalledStonePrice = typeof installedStonePrices.$inferSelect;
 export type SheetStonePrice = typeof sheetStonePrices.$inferSelect;
 export type CustomerAccount = typeof customerAccounts.$inferSelect;
+export type SystemAuditLog = typeof systemAuditLogs.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
 export type AdminMember = typeof adminMembers.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;

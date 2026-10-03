@@ -1,11 +1,12 @@
 import { customerLeads, paymentSlips, sitePhotos } from "@workspace/db/schema";
 import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
-import { Router, type IRouter, type Response } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { desc, eq, sql } from "drizzle-orm";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
+import { auditErrorDetails, auditRequestContext, logAuditEvent, type AuditEventInput } from "../lib/audit-logger";
 import { checkCutoutJointClash, MIN_BASIN_CLEARANCE_MM, validateBasinClearance } from "../lib/fabrication-geometry";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia, UPLOAD_DIR } from "../lib/image-upload";
 import { requestOrigin } from "../lib/public-origin";
@@ -327,6 +328,10 @@ export function createQuoteNumber(now = new Date()) {
 
 export function createLeadsRouter(database: typeof db = db): IRouter {
   const router: IRouter = Router();
+  /** Customer-side audit event (job-214). Fire and forget: logAuditEvent never throws and never blocks the response. */
+  const audit = (req: Request, event: Omit<AuditEventInput, "actorType">) => {
+    void logAuditEvent(database, { actorType: "customer", ...auditRequestContext(req), ...event });
+  };
   const leadRateLimit = createRateLimiter({ name: "leads", max: 30, windowMs: 60 * 1000 });
   const sketchRateLimit = createRateLimiter({ name: "sketch-upload", max: 5, windowMs: 10 * 60 * 1000 });
   const sketchVisionRateLimit = createRateLimiter({ name: "sketch-vision-analyze", max: 5, windowMs: 10 * 60 * 1000 });
@@ -348,7 +353,19 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
 
  router.post("/leads", leadRateLimit, async (req, res, next) => {
   const parsed = UpsertLeadBody.safeParse(req.body);
-  if (!parsed.success) return invalid(res, "Invalid lead data", parsed.error.flatten());
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten();
+    const rawLeadKey = (req.body as { leadKey?: unknown } | undefined)?.leadKey;
+    audit(req, {
+      action: "lead.upsert",
+      status: "error",
+      errorCode: "INVALID_LEAD_PAYLOAD",
+      targetId: typeof rawLeadKey === "string" ? rawLeadKey : null,
+      // Field names only: the rejected values may be personal data and are not needed to see what went wrong.
+      details: { invalidFields: Object.keys(flattened.fieldErrors), formErrors: flattened.formErrors },
+    });
+    return invalid(res, "Invalid lead data", flattened);
+  }
 
   // Zero-Trust guard: studioData's `total` (and, if present, `widthMm`/`depthMm`)
   // come straight from the browser-side studio calculator, so a negative,
@@ -358,6 +375,14 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
   const priceCheck = verifyAndSanitizeQuoteTotal(parsed.data.studioData);
   if (priceCheck.isTampered) {
     console.warn("Rejected lead payload: tampered quote total in studioData", { leadKey: parsed.data.leadKey });
+    audit(req, {
+      actorName: parsed.data.name,
+      action: "lead.upsert",
+      status: "error",
+      errorCode: "TAMPERED_QUOTE_TOTAL",
+      targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+      details: { leadKey: parsed.data.leadKey, customerPhone: parsed.data.phone, source: parsed.data.source },
+    });
     return invalid(res, "Invalid quote total");
   }
   const dimensions = parsed.data.studioData as { widthMm?: unknown; depthMm?: unknown } | undefined;
@@ -368,6 +393,14 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
     !validateNumericDimensions(dimensions.widthMm, dimensions.depthMm)
   ) {
     console.warn("Rejected lead payload: tampered dimensions in studioData", { leadKey: parsed.data.leadKey });
+    audit(req, {
+      actorName: parsed.data.name,
+      action: "lead.upsert",
+      status: "error",
+      errorCode: "TAMPERED_DIMENSIONS",
+      targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+      details: { leadKey: parsed.data.leadKey, customerPhone: parsed.data.phone, source: parsed.data.source },
+    });
     return invalid(res, "Invalid dimensions");
   }
 
@@ -451,11 +484,42 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       })
       .returning();
 
+    // Not every autosave is worth a row: the trail records the moment a quotation is requested,
+    // plus any save the fabrication guard flagged, so the table stays readable.
+    if (!fabricationAudit.safe || parsed.data.status === "quote_requested") {
+      audit(req, {
+        actorName: parsed.data.name,
+        action: "lead.upsert",
+        status: fabricationAudit.safe ? "success" : "warning",
+        errorCode: fabricationAudit.safe ? null : "FABRICATION_WARNING",
+        targetId: lead?.quoteNumber ?? quoteNumber ?? parsed.data.leadKey,
+        details: {
+          leadId: lead?.id ?? null,
+          leadKey: parsed.data.leadKey,
+          quoteNumber: lead?.quoteNumber ?? quoteNumber ?? null,
+          status: parsed.data.status,
+          source: parsed.data.source,
+          orderMode: parsed.data.orderMode,
+          customerPhone: parsed.data.phone,
+          productSkus: parsed.data.productSkus,
+          ...(fabricationAudit.safe ? {} : { fabricationWarnings: fabricationAudit.warnings }),
+        },
+      });
+    }
+
     return res.json({
       ...lead,
       publicQuoteToken: publicQuoteTokenForLead(lead),
     });
   } catch (error) {
+    audit(req, {
+      actorName: parsed.data.name,
+      action: "lead.upsert",
+      status: "error",
+      errorCode: "LEAD_SAVE_FAILED",
+      targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+      details: { leadKey: parsed.data.leadKey, status: parsed.data.status, customerPhone: parsed.data.phone, ...auditErrorDetails(error) },
+    });
     return next(error);
   }
 });
@@ -731,11 +795,17 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
 });
 
   router.post("/leads/payment-slip", paymentSlipRateLimit, uploadConcurrency, async (req, res, next) => {
+    let auditTargetId: string | null = null;
     try {
       const { media, fields } = await readMultipartForm(req, "image", { maxFiles: 1 });
       const token = (fields.token ?? "").trim();
       const access = verifyPublicQuoteToken(token);
-      if (!access) return res.status(404).json({ message: "Quote not found" });
+      if (!access) {
+        // The token itself is never logged.
+        audit(req, { action: "slip.upload", status: "warning", errorCode: "QUOTE_NOT_FOUND", details: { reason: "invalid or expired quote token" } });
+        return res.status(404).json({ message: "Quote not found" });
+      }
+      auditTargetId = access.quoteNumber;
       const kind = fields.kind?.trim() === "final" ? "final" : "deposit";
 
       const [lead] = await database
@@ -749,6 +819,7 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
         !lead.studioData ||
         !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
       ) {
+        audit(req, { action: "slip.upload", status: "warning", errorCode: "QUOTE_NOT_FOUND", targetId: auditTargetId, details: { reason: "quote not found or not eligible for a payment slip" } });
         return res.status(404).json({ message: "Quote not found" });
       }
 
@@ -801,6 +872,22 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
           )
           .returning();
         if (!slip) throw new Error("Payment slip was not saved");
+        audit(req, {
+          actorName: lead.name,
+          action: "slip.upload",
+          status: slip.status === "verified" ? "success" : slip.status === "needs_review" ? "warning" : "error",
+          errorCode: slip.status === "verified" ? null : (slip.slipokErrorCode ?? slip.status.toUpperCase()),
+          targetId: lead.quoteNumber,
+          details: {
+            leadId: lead.id,
+            kind,
+            slipId: slip.id,
+            slipStatus: slip.status,
+            claimedAmountThb: slip.claimedAmountThb,
+            verifiedAmountThb: slip.verifiedAmountThb,
+            customerPhone: lead.phone,
+          },
+        });
 
         // Auto-Close (job-163): a SlipOK-verified slip against a lead still
         // waiting on payment closes the sale immediately, no admin click
@@ -855,7 +942,15 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
         throw error;
       }
     } catch (error) {
-      if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) return invalid(res, error.message);
+      const rejected = error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message);
+      audit(req, {
+        action: "slip.upload",
+        status: rejected ? "warning" : "error",
+        errorCode: rejected ? "INVALID_SLIP_UPLOAD" : "SLIP_UPLOAD_FAILED",
+        targetId: auditTargetId,
+        details: auditErrorDetails(error),
+      });
+      if (rejected) return invalid(res, (error as Error).message);
       return next(error);
     }
   });
