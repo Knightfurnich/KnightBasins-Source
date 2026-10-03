@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import type { RequestHandler } from "express";
 
 type RateLimitOptions = {
@@ -76,16 +75,15 @@ function resolvedClientIp(req: Parameters<RequestHandler>[0]): string {
 }
 
 /**
- * Bucket key: the resolved IP above, plus a short hash of User-Agent as a
- * secondary fingerprint (per job-86's GOAL) -- cheap defense-in-depth
- * against a naive script that only rotates one header, on top of the IP
- * resolution above which is what actually closes the bypass.
+ * Bucket key: the resolved client IP and nothing else. Anything the caller
+ * controls must never be part of it -- a User-Agent hash used to be, which
+ * let a caller get a fresh bucket on every request just by changing that one
+ * header (job-225), the same bypass job-86 closed for X-Forwarded-For.
+ * Do not "simplify" this to the raw socket address either: behind nginx that
+ * is the nginx container, so every visitor would share a single bucket.
  */
 export function clientKey(req: Parameters<RequestHandler>[0]) {
-  const ip = resolvedClientIp(req);
-  const userAgent = (req.headers?.["user-agent"] as string | undefined) ?? "";
-  const fingerprint = createHash("sha256").update(userAgent).digest("hex").slice(0, 12);
-  return `${ip}#${fingerprint}`;
+  return resolvedClientIp(req);
 }
 
 /** Removes every bucket whose window has already ended, so keys that stop being reused don't sit in memory forever. */
