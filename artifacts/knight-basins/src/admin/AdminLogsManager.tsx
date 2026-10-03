@@ -50,6 +50,20 @@ type AuditLogInsightsResponse = {
   generatedAt: string;
 };
 type AuditLogPruneResponse = { prunedCount: number; prunedAt: string };
+type WeeklyDigestResponse = {
+  sent?: boolean;
+  dryRun?: boolean;
+  generatedAt: string;
+  stats: {
+    quoteRequests: number;
+    customerEvents: number;
+    successCount: number;
+    successPercent: number;
+    frictionCount: number;
+    frictionPercent: number;
+  };
+  text: string;
+};
 type AuditPrunePreviewResponse = {
   totalCount: number;
   rules: Array<{
@@ -264,6 +278,8 @@ export function AdminLogsManager() {
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<AuditLogRow | null>(null);
   const [confirmPrune, setConfirmPrune] = useState(false);
+  const [showDigestDialog, setShowDigestDialog] = useState(false);
+  const [digestPreview, setDigestPreview] = useState<WeeklyDigestResponse | null>(null);
   const [lastPruneCount, setLastPruneCount] = useState<number | null>(null);
   const [insightsRange, setInsightsRange] = useState<AuditInsightRange>("30d");
   const [insightsCategoryFilter, setInsightsCategoryFilter] = useState<AuditInsightCategoryFilter>("all");
@@ -325,6 +341,20 @@ export function AdminLogsManager() {
       void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit-logs/insights"] });
       void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit-logs/prune-preview"] });
       toast({ title: `ล้าง Log เก่าแล้ว ${result.prunedCount.toLocaleString("th-TH")} รายการ` });
+    },
+  });
+
+  const digestPreviewMutation = useMutation({
+    mutationFn: () => customFetch<WeeklyDigestResponse>("/api/admin/audit-logs/send-weekly-digest?dryRun=1", { method: "POST" }),
+    onSuccess: (result) => setDigestPreview(result),
+  });
+
+  const digestSendMutation = useMutation({
+    mutationFn: () => customFetch<WeeklyDigestResponse>("/api/admin/audit-logs/send-weekly-digest", { method: "POST" }),
+    onSuccess: () => {
+      setShowDigestDialog(false);
+      setDigestPreview(null);
+      toast({ title: "ส่ง Knight UX Digest เข้า Telegram แล้ว" });
     },
   });
 
@@ -395,6 +425,11 @@ export function AdminLogsManager() {
     setBackupDownloaded(false);
     setConfirmPrune(true);
     void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit-logs/prune-preview"] });
+  };
+  const openDigestPreview = () => {
+    setDigestPreview(null);
+    setShowDigestDialog(true);
+    digestPreviewMutation.mutate();
   };
   const startTrackerDraft = (point: AuditLogInsightsResponse["painPoints"][number]) => {
     setTrackerDraft({
@@ -611,6 +646,16 @@ export function AdminLogsManager() {
                 >
                   <Download className="mr-2 h-4 w-4" aria-hidden="true" />
                   📥 ส่งออกรายงานเป็น CSV (Excel)
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={openDigestPreview}
+                  disabled={digestPreviewMutation.isPending || digestSendMutation.isPending}
+                  data-testid="button-audit-weekly-digest"
+                >
+                  📱 ส่งสรุปรายงานเข้า Telegram ตอนนี้
                 </Button>
               </div>
               <div
@@ -865,6 +910,61 @@ export function AdminLogsManager() {
             </>
           )}
         </section>
+      )}
+
+      {showDigestDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="audit-digest-title" data-testid="dialog-audit-weekly-digest">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-4 overflow-y-auto border border-[var(--line)] bg-[var(--card-paper)] p-6 text-[var(--ink)] shadow-xl">
+            <div>
+              <h2 id="audit-digest-title" className="text-lg font-semibold">พรีวิว Knight UX Digest ประจำสัปดาห์</h2>
+              <p className="mt-1 text-sm text-[var(--ink-soft)]">ตรวจข้อความก่อนยืนยันส่งเข้า Telegram บอส</p>
+            </div>
+            {digestPreviewMutation.isPending && (
+              <p className="border border-[var(--line)] p-4 text-sm text-[var(--ink-soft)]" role="status" data-testid="audit-weekly-digest-loading">
+                กำลังสร้างสรุป 7 วันล่าสุด…
+              </p>
+            )}
+            {digestPreviewMutation.isError && (
+              <p className="border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300" role="alert" data-testid="audit-weekly-digest-preview-error">
+                สร้างพรีวิวไม่สำเร็จ — {digestPreviewMutation.error instanceof Error ? digestPreviewMutation.error.message : "ไม่ทราบสาเหตุ"}
+              </p>
+            )}
+            {digestPreview && (
+              <>
+                <pre className="whitespace-pre-wrap break-words border border-[var(--line)] bg-[var(--card-paper)] p-4 text-sm leading-relaxed" data-testid="text-audit-weekly-digest-preview">{digestPreview.text}</pre>
+                <p className="text-xs text-[var(--ink-soft)]">
+                  คำขอใบเสนอราคา {digestPreview.stats.quoteRequests.toLocaleString("th-TH")} ราย ·
+                  สำเร็จ {digestPreview.stats.successCount.toLocaleString("th-TH")} ({digestPreview.stats.successPercent.toFixed(1)}%) ·
+                  ติดขัด {digestPreview.stats.frictionCount.toLocaleString("th-TH")} ({digestPreview.stats.frictionPercent.toFixed(1)}%)
+                </p>
+              </>
+            )}
+            {digestSendMutation.isError && (
+              <p className="border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300" role="alert" data-testid="audit-weekly-digest-send-error">
+                ส่งรายงานไม่สำเร็จ — {digestSendMutation.error instanceof Error ? digestSendMutation.error.message : "ไม่ทราบสาเหตุ"}
+              </p>
+            )}
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDigestDialog(false)}
+                disabled={digestSendMutation.isPending}
+                data-testid="button-audit-weekly-digest-cancel"
+              >
+                ปิด
+              </Button>
+              <Button
+                type="button"
+                onClick={() => digestSendMutation.mutate()}
+                disabled={!digestPreview || digestPreviewMutation.isPending || digestSendMutation.isPending}
+                data-testid="button-audit-weekly-digest-confirm"
+              >
+                {digestSendMutation.isPending ? "กำลังส่ง…" : "ยืนยันส่งเข้า Telegram"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       {confirmPrune && (
