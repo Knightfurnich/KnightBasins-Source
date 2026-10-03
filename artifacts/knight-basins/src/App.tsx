@@ -1131,6 +1131,7 @@ function SavedQuotePage() {
   const [savedSheetMode, setSavedSheetMode] = useState<"formal" | "workshop">("formal");
   const notifyMutation = useNotifySavedQuote();
   const [notificationMessage, setNotificationMessage] = useState(() => new URLSearchParams(window.location.search).get("notification") ?? "");
+  const notificationWasAlreadySent = notificationMessage.startsWith("ส่ง") && notificationMessage.includes("แล้ว");
   const shouldPrint = new URLSearchParams(window.location.search).get("print") === "1";
   useEffect(() => {
     if (!shouldPrint || !lead) return;
@@ -1379,7 +1380,7 @@ function SavedQuotePage() {
     <div className="saved-quote-actions">
       <button className="button button--dark" onClick={copyLink} data-testid="button-copy-saved-quote-link">{copied ? <><Check size={15} /> คัดลอกลิงก์แล้ว</> : "คัดลอกลิงก์ใบเสนอราคา"}</button>
        {state && <button className="button button--accent" onClick={copySavedStudioToEditor} data-testid="button-copy-saved-studio-to-editor"><Copy size={15} /> คัดลอกผังนี้ไปปรับแต่งใหม่</button>}
-      <button className="button button--accent" onClick={sendNotification} disabled={notifyMutation.isPending} data-testid="button-send-saved-quote-notification">{notifyMutation.isPending ? "กำลังส่ง..." : "ส่งเข้า Telegram"}</button>
+      {notificationWasAlreadySent ? <p className="studio-result" role="status" data-testid="status-saved-quote-notification-sent">ส่งข้อมูลถึงทีมขายแล้ว</p> : <button className="button button--accent" onClick={sendNotification} disabled={notifyMutation.isPending} data-testid="button-send-saved-quote-notification">{notifyMutation.isPending ? "กำลังส่ง..." : "ส่งเข้า Telegram"}</button>}
       <button className="button button--outline" onClick={() => setLocation("/")} data-testid="button-saved-quote-home">กลับไปแคตตาล็อก</button>
     </div>
     {notificationMessage && <p className="studio-result" role="status" data-testid="status-saved-quote-notification">{notificationMessage}</p>}
