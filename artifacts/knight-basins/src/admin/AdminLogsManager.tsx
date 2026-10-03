@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { AlertTriangle, CheckCircle2, Copy, RefreshCw, Search, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Copy, Download, RefreshCw, Search, XCircle } from "lucide-react";
 import { customFetch } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +87,9 @@ type AuditTrackerDraft = {
   notes: string;
 };
 
+export type AuditInsightCategoryFilter = "all" | AuditTrackerCategory;
+type AuditPainPointCsvRow = Pick<AuditLogInsightsResponse["painPoints"][number], "key" | "description" | "category" | "count" | "recommendation">;
+
 export const AUDIT_PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 350;
 const AUDIT_INSIGHT_RANGES: ReadonlyArray<{ value: AuditInsightRange; label: string }> = [
@@ -99,6 +102,78 @@ const AUDIT_TRACKER_STATUSES: ReadonlyArray<{ value: AuditTrackerStatus; label: 
   { value: "in_progress", label: "กำลังแก้" },
   { value: "resolved", label: "เสร็จแล้ว" },
 ];
+
+export const AUDIT_INSIGHT_CATEGORIES: ReadonlyArray<{ value: AuditInsightCategoryFilter; label: string }> = [
+  { value: "all", label: "ทั้งหมด" },
+  { value: "ux", label: "🎨 ผังและขนาด (UX)" },
+  { value: "payment", label: "💰 สลิปและการเงิน (Payment)" },
+  { value: "form", label: "📝 ข้อมูลฟอร์ม (Form)" },
+];
+
+export const AUDIT_PAIN_POINT_CSV_HEADERS = [
+  "ลำดับ",
+  "รหัสปัญหา (Error Code)",
+  "ชื่อปัญหาภาษาไทย",
+  "หมวดหมู่ (UX/การเงิน/ฟอร์ม)",
+  "จำนวนครั้งที่พบ",
+  "% สัดส่วน",
+  "คำแนะนำการปรับปรุง",
+];
+
+export function escapeAuditCsvField(value: unknown): string {
+  const text = String(value ?? "").replace(/\r\n|\r|\n/g, "\r\n");
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export function filterAuditPainPointsByCategory<T extends { category: AuditInsightCategory }>(
+  painPoints: readonly T[],
+  category: AuditInsightCategoryFilter,
+): T[] {
+  if (category === "all") return [...painPoints];
+  return painPoints.filter((point) => (point.category === "slip" ? "payment" : point.category) === category);
+}
+
+export function filterAuditTrackersByCategory<T extends { category: AuditTrackerCategory }>(
+  trackers: readonly T[],
+  category: AuditInsightCategoryFilter,
+): T[] {
+  return category === "all" ? [...trackers] : trackers.filter((tracker) => tracker.category === category);
+}
+
+function auditCsvCategoryLabel(category: AuditInsightCategory): string {
+  if (category === "ux") return "UX";
+  if (category === "slip") return "การเงิน";
+  return "ฟอร์ม";
+}
+
+export function buildAuditPainPointsCsv(painPoints: readonly AuditPainPointCsvRow[], totalCustomerIssues: number): string {
+  const rows = [
+    AUDIT_PAIN_POINT_CSV_HEADERS,
+    ...painPoints.map((point, index) => [
+      index + 1,
+      point.key,
+      point.description,
+      auditCsvCategoryLabel(point.category),
+      point.count,
+      `${totalCustomerIssues > 0 ? ((point.count / totalCustomerIssues) * 100).toFixed(1) : "0.0"}%`,
+      point.recommendation,
+    ]),
+  ];
+  return `\uFEFF${rows.map((row) => row.map(escapeAuditCsvField).join(",")).join("\r\n")}`;
+}
+
+export function formatBangkokDateStamp(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")!.value;
+  const month = parts.find((part) => part.type === "month")!.value;
+  const day = parts.find((part) => part.type === "day")!.value;
+  return `${year}-${month}-${day}`;
+}
 
 export const AUDIT_STATUS_FILTERS: ReadonlyArray<{ value: "all" | AuditStatus; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
@@ -189,6 +264,7 @@ export function AdminLogsManager() {
   const [confirmPrune, setConfirmPrune] = useState(false);
   const [lastPruneCount, setLastPruneCount] = useState<number | null>(null);
   const [insightsRange, setInsightsRange] = useState<AuditInsightRange>("30d");
+  const [insightsCategoryFilter, setInsightsCategoryFilter] = useState<AuditInsightCategoryFilter>("all");
   const [trackerDraft, setTrackerDraft] = useState<AuditTrackerDraft | null>(null);
   const [trackerNotes, setTrackerNotes] = useState<Record<number, string>>({});
   const [backupDownloaded, setBackupDownloaded] = useState(false);
@@ -305,7 +381,14 @@ export function AdminLogsManager() {
   const firstShown = total === 0 ? 0 : page * AUDIT_PAGE_SIZE + 1;
   const lastShown = Math.min(total, page * AUDIT_PAGE_SIZE + items.length);
   const hasNext = (page + 1) * AUDIT_PAGE_SIZE < total;
-  const trackedIssues = trackersQuery.data?.items ?? [];
+  const painPoints = useMemo(
+    () => filterAuditPainPointsByCategory(insightsQuery.data?.painPoints ?? [], insightsCategoryFilter),
+    [insightsQuery.data?.painPoints, insightsCategoryFilter],
+  );
+  const filteredTrackers = useMemo(
+    () => filterAuditTrackersByCategory(trackersQuery.data?.items ?? [], insightsCategoryFilter),
+    [trackersQuery.data?.items, insightsCategoryFilter],
+  );
   const openPruneDialog = () => {
     setBackupDownloaded(false);
     setConfirmPrune(true);
@@ -319,6 +402,21 @@ export function AdminLogsManager() {
       assignee: "Owner",
       notes: point.recommendation,
     });
+  };
+  const exportPainPointsCsv = () => {
+    const insights = insightsQuery.data;
+    if (!insights) return;
+    const csv = buildAuditPainPointsCsv(painPoints.slice(0, 5), insights.customerIssues);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const objectUrl = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = `knight-customer-pain-points-${insightsRange}-${formatBangkokDateStamp(new Date())}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 0);
+    toast({ title: "ดาวน์โหลดรายงาน CSV แล้ว" });
   };
 
   return (
@@ -483,21 +581,56 @@ export function AdminLogsManager() {
       </>
       ) : (
         <section className="flex flex-col gap-5" aria-label="สรุปจุดติดขัดลูกค้า" data-testid="audit-logs-insights">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2" role="group" aria-label="ช่วงเวลาสรุป" data-testid="audit-insights-range">
-              {AUDIT_INSIGHT_RANGES.map((option) => (
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap gap-2" role="group" aria-label="ช่วงเวลาสรุป" data-testid="audit-insights-range">
+                  {AUDIT_INSIGHT_RANGES.map((option) => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      size="sm"
+                      variant={insightsRange === option.value ? "secondary" : "outline"}
+                      aria-pressed={insightsRange === option.value}
+                      onClick={() => setInsightsRange(option.value)}
+                      data-testid={`button-audit-insights-range-${option.value}`}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
                 <Button
-                  key={option.value}
                   type="button"
                   size="sm"
-                  variant={insightsRange === option.value ? "secondary" : "outline"}
-                  aria-pressed={insightsRange === option.value}
-                  onClick={() => setInsightsRange(option.value)}
-                  data-testid={`button-audit-insights-range-${option.value}`}
+                  variant="outline"
+                  onClick={exportPainPointsCsv}
+                  disabled={!insightsQuery.data}
+                  data-testid="button-audit-insights-export-csv"
                 >
-                  {option.label}
+                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  📥 ส่งออกรายงานเป็น CSV (Excel)
                 </Button>
-              ))}
+              </div>
+              <div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label="กรองหมวดหมู่ปัญหา"
+                data-testid="audit-insights-category-filter"
+              >
+                {AUDIT_INSIGHT_CATEGORIES.map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    size="sm"
+                    variant={insightsCategoryFilter === option.value ? "secondary" : "outline"}
+                    aria-pressed={insightsCategoryFilter === option.value}
+                    onClick={() => setInsightsCategoryFilter(option.value)}
+                    data-testid={`button-audit-insights-category-${option.value}`}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
             </div>
             {insightsQuery.data && (
               <div
@@ -575,9 +708,9 @@ export function AdminLogsManager() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {insightsQuery.data.painPoints.length === 0 ? (
+                      {painPoints.length === 0 ? (
                         <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--ink-soft)]" data-testid="audit-pain-points-empty">ยังไม่พบจุดติดขัดของลูกค้าในช่วงนี้</TableCell></TableRow>
-                      ) : insightsQuery.data.painPoints.slice(0, 5).map((point, index) => (
+                      ) : painPoints.slice(0, 5).map((point, index) => (
                         <TableRow key={point.key} data-testid={`row-audit-pain-point-${index + 1}`}>
                           <TableCell className="font-mono text-xs">{point.key}</TableCell>
                           <TableCell className="whitespace-nowrap">{point.categoryLabel}</TableCell>
@@ -620,14 +753,18 @@ export function AdminLogsManager() {
                 {!trackersQuery.isLoading && !trackersQuery.isError && (
                   <div className="grid gap-3 xl:grid-cols-3">
                     {AUDIT_TRACKER_STATUSES.map((statusOption) => {
-                      const itemsForStatus = trackedIssues.filter((item) => item.status === statusOption.value);
+                      const itemsForStatus = filteredTrackers.filter((item) => item.status === statusOption.value);
                       return (
                         <section key={statusOption.value} className="flex flex-col gap-3 border border-[var(--line)] bg-[var(--card-paper)] p-3" data-testid={`audit-tracker-column-${statusOption.value}`}>
                           <h3 className="flex items-center justify-between text-sm font-semibold text-[var(--ink)]">
                             <span>{statusOption.label}</span>
                             <span className="text-[var(--ink-soft)]">{itemsForStatus.length.toLocaleString("th-TH")}</span>
                           </h3>
-                          {itemsForStatus.length === 0 && <p className="text-sm text-[var(--ink-soft)]">ยังไม่มีรายการ</p>}
+                          {itemsForStatus.length === 0 && (
+                            <p className="text-sm text-[var(--ink-soft)]">
+                              {insightsCategoryFilter === "all" ? "ยังไม่มีรายการ" : "ไม่มีรายการในหมวดที่เลือก"}
+                            </p>
+                          )}
                           {itemsForStatus.map((item) => (
                             <article key={item.id} className="flex flex-col gap-3 border border-[var(--line)] p-3" data-testid={`audit-tracker-card-${item.id}`}>
                               <div>
