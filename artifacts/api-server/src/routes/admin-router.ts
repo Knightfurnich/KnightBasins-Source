@@ -95,6 +95,7 @@ import {
   UploadFileCollisionError,
 } from "../lib/image-upload";
 import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./leads";
+import { repriceStudioQuoteAsStaff, staffLeversFromStamp, staffLeversFromState, stripServerPricing, type StaffPricingLevers } from "../lib/price-integrity";
 import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "../lib/google-service-account";
@@ -2938,6 +2939,7 @@ export function createAdminRouter(
     const finalStatus = bodyStatus ?? parsed.data.status;
     try {
       let studioData: Record<string, unknown> | undefined;
+      let staffPricing: { levers: StaffPricingLevers | null; previousLevers: StaffPricingLevers | null; previousTotal: number | null; newTotal: number; target: string } | undefined;
       let newQuoteNumber: string | undefined;
       let newQuoteAccessSecret: string | undefined;
       if (parsed.data.staffDimensions !== undefined || parsed.data.studioData !== undefined) {
@@ -2946,13 +2948,15 @@ export function createAdminRouter(
             studioData: customerLeads.studioData,
             quoteNumber: customerLeads.quoteNumber,
             quoteAccessSecret: customerLeads.quoteAccessSecret,
+            orderMode: customerLeads.orderMode,
           })
           .from(customerLeads)
           .where(eq(customerLeads.id, id))
           .limit(1);
         studioData = {
           ...(existing?.studioData as Record<string, unknown> ?? {}),
-          ...(parsed.data.studioData as Record<string, unknown> ?? {}),
+          // serverPricing (the verified total and what staff authorised) is written by the server only, never taken from a request.
+          ...(stripServerPricing(parsed.data.studioData) as Record<string, unknown> ?? {}),
         };
         if (parsed.data.staffDimensions !== undefined) {
           studioData = { ...studioData, staffDimensions: parsed.data.staffDimensions };
@@ -2964,6 +2968,39 @@ export function createAdminRouter(
         const fabricationAudit = auditStudioFabrication(studioData);
         if (!fabricationAudit.safe) {
           studioData = { ...studioData, fabricationWarnings: fabricationAudit.warnings };
+        }
+        // Staff pricing levers (job-229). The studio page lets a signed-in staff member give a discount and set the
+        // open-edge price; public customers get neither (POST /leads forces both to their standard value). This route
+        // already requires leads:edit, so a discount that arrives here is authorised -- by a team member or the owner,
+        // never by an API key. The server prices the quote with exactly those levers and database prices, rewrites every
+        // total the quote carries to match, and stamps it, so the quote page, the payment QR and the balance agree.
+        // Only a studio quote is repriced, and only when the save sets a lever or removes one that was set earlier:
+        // every other edit (notes, staffDimensions, a plain layout save) behaves as it always did.
+        if (parsed.data.studioData !== undefined && existing?.orderMode === "studio") {
+          const levers = staffLeversFromState(studioData);
+          const previousLevers = staffLeversFromStamp(existing?.studioData);
+          if (levers || previousLevers) {
+            const target = existing?.quoteNumber ?? String(id);
+            if (levers && req.adminApiKey) {
+              auditAdmin(req, { action: "lead.discount_rejected", targetId: target, status: "warning", errorCode: "PRICING_REQUIRES_STAFF_LOGIN", details: { leadId: id, discountTHB: levers.staffDiscountTHB, openEdgePricePerMTHB: levers.staffOpenEdgePricePerMTHB } });
+              return res.status(403).json({
+                code: "PRICING_REQUIRES_STAFF_LOGIN",
+                message: "ส่วนลดและราคาขอบเปิดตั้งได้เฉพาะเจ้าหน้าที่ที่ล็อกอินเข้าระบบ ไม่สามารถตั้งผ่าน API key ได้",
+              });
+            }
+            const repriced = await repriceStudioQuoteAsStaff(studioData, database, levers, { memberId: req.adminMember?.id ?? null });
+            if (!repriced.ok) {
+              auditAdmin(req, { action: "lead.discount_rejected", targetId: target, status: "warning", errorCode: "STAFF_PRICING_INVALID", details: { leadId: id, reason: repriced.reason, discountTHB: levers?.staffDiscountTHB ?? 0, openEdgePricePerMTHB: levers?.staffOpenEdgePricePerMTHB ?? null } });
+              return res.status(400).json({
+                error: "STAFF_PRICING_INVALID",
+                message: repriced.reason === "discount-invalid" || repriced.reason === "open-edge-price-invalid"
+                  ? "ส่วนลดหรือราคาขอบเปิดไม่ถูกต้อง (ส่วนลดต้องไม่ติดลบและไม่เกินยอดก่อนส่วนลด, ราคาขอบเปิดต้องไม่ติดลบและมีทศนิยมไม่เกิน 2 ตำแหน่ง)"
+                  : "ระบบคำนวณราคาของแบบนี้ไม่ได้ กรุณาตรวจสอบข้อมูลแบบก่อนบันทึก",
+              });
+            }
+            studioData = repriced.studioData;
+            staffPricing = { levers, previousLevers, previousTotal: quoteTotalTHB(existing?.studioData), newTotal: repriced.total, target };
+          }
         }
         // A lead without a quote number yet (e.g. a hand-sketch lead) gets one
         // the first time staff attach studioData to it, so the public quote
@@ -2985,6 +3022,30 @@ export function createAdminRouter(
         .where(eq(customerLeads.id, id))
         .returning();
       if (!updated) return res.status(404).json({ message: "Lead not found" });
+      if (staffPricing) {
+        const discount = staffPricing.levers?.staffDiscountTHB ?? 0;
+        const previousDiscount = staffPricing.previousLevers?.staffDiscountTHB ?? 0;
+        const openEdge = staffPricing.levers?.staffOpenEdgePricePerMTHB ?? null;
+        const previousOpenEdge = staffPricing.previousLevers?.staffOpenEdgePricePerMTHB ?? null;
+        // One row per change of the levers; saving the same discount again writes nothing.
+        if (discount !== previousDiscount || openEdge !== previousOpenEdge) {
+          auditAdmin(req, {
+            action: discount > 0 ? "lead.discount_applied" : previousDiscount > 0 ? "lead.discount_removed" : "lead.open_edge_price_changed",
+            targetId: staffPricing.target,
+            status: "success",
+            details: {
+              leadId: id,
+              discountTHB: discount,
+              previousDiscountTHB: previousDiscount,
+              openEdgePricePerMTHB: openEdge,
+              previousOpenEdgePricePerMTHB: previousOpenEdge,
+              previousTotal: staffPricing.previousTotal,
+              newTotal: staffPricing.newTotal,
+              memberId: req.adminMember?.id ?? null,
+            },
+          });
+        }
+      }
       return res.json({ ...updated, publicQuoteToken: publicQuoteTokenForLead(updated) });
     } catch (error) {
       return next(error);

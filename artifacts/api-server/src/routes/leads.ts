@@ -527,7 +527,9 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
            quoteNumber: quoteNumber ?? customerLeads.quoteNumber,
             quoteAccessSecret: quoteAccessSecret ?? customerLeads.quoteAccessSecret,
            orderMode: parsed.data.orderMode,
-           studioData: savedStudioData,
+           // An update that carries no studioData (the storefront's autosave when a customer adds another product) must not
+           // wipe the quote already saved -- its layout, its stamp and any staff discount (job-229). A quote is replaced only by a new one.
+           ...(savedStudioData === null || savedStudioData === undefined ? {} : { studioData: savedStudioData }),
            sketchUrl: parsed.data.sketchUrl,
            customerAccountId: account?.id ?? customerLeads.customerAccountId,
           updatedAt: new Date(),
