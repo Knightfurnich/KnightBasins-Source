@@ -23,3 +23,42 @@ jobs:
 
       - name: Test the upload release guard
         run: bash deploy/hostinger/check-upload-files.test.sh
+
+  unit-tests:
+    name: Unit tests (api-server and knight-basins)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the release commit
+        uses: actions/checkout@v4
+
+      # pnpm 10 or newer: this repo keeps its pnpm `overrides` in pnpm-workspace.yaml, and pnpm 9
+      # reports that as a lockfile mismatch (ERR_PNPM_LOCKFILE_CONFIG_MISMATCH) under --frozen-lockfile.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          # node --experimental-strip-types (used by every package's `test` script) needs Node 22.6 or newer.
+          node-version: 24
+          cache: pnpm
+
+      # --frozen-lockfile: fail on lockfile drift instead of silently rewriting it.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The *.browser.test.ts files drive a real browser against a dev server and are left out here.
+      - name: Test api-server
+        working-directory: artifacts/api-server
+        run: |
+          files=$(find test -maxdepth 1 -name '*.test.ts' ! -name '*.browser.test.ts' | sort)
+          node --experimental-strip-types --test $files
+
+      - name: Test knight-basins
+        working-directory: artifacts/knight-basins
+        run: |
+          files=$(find test -maxdepth 1 -name '*.test.ts' ! -name '*.browser.test.ts' | sort)
+          node --experimental-strip-types --test $files
