@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { AlertTriangle, CheckCircle2, Copy, RefreshCw, Search, XCircle } from "lucide-react";
 import { customFetch } from "@workspace/api-client-react";
@@ -28,6 +28,23 @@ export type AuditLogRow = {
 };
 
 type AuditLogsResponse = { items: AuditLogRow[]; total: number; limit: number; offset: number };
+type AuditInsightCategory = "ux" | "slip" | "form";
+type AuditLogInsightsResponse = {
+  periodDays: 30;
+  totals: { total: number; success: number; warning: number; error: number };
+  customerIssues: number;
+  categories: Array<{ category: AuditInsightCategory; label: string; count: number }>;
+  painPoints: Array<{
+    key: string;
+    count: number;
+    category: AuditInsightCategory;
+    categoryLabel: string;
+    description: string;
+    recommendation: string;
+  }>;
+  generatedAt: string;
+};
+type AuditLogPruneResponse = { prunedCount: number; prunedAt: string };
 
 export const AUDIT_PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -111,11 +128,15 @@ function useDebounced<T>(value: T, delayMs: number) {
 
 export function AdminLogsManager() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<"history" | "insights">("history");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | AuditStatus>("all");
   const [actorType, setActorType] = useState<"all" | AuditActorType>("all");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<AuditLogRow | null>(null);
+  const [confirmPrune, setConfirmPrune] = useState(false);
+  const [lastPruneCount, setLastPruneCount] = useState<number | null>(null);
   const debouncedSearch = useDebounced(search.trim(), SEARCH_DEBOUNCE_MS);
 
   // A new filter always starts from the first page.
@@ -133,7 +154,27 @@ export function AdminLogsManager() {
     queryKey: ["/api/admin/audit-logs", queryString],
     queryFn: () => customFetch<AuditLogsResponse>(`/api/admin/audit-logs?${queryString}`),
     placeholderData: (previous) => previous,
+    enabled: activeTab === "history",
     refetchOnWindowFocus: false,
+  });
+
+  const insightsQuery = useQuery<AuditLogInsightsResponse>({
+    queryKey: ["/api/admin/audit-logs/insights"],
+    queryFn: () => customFetch<AuditLogInsightsResponse>("/api/admin/audit-logs/insights"),
+    enabled: activeTab === "insights",
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const pruneMutation = useMutation({
+    mutationFn: () => customFetch<AuditLogPruneResponse>("/api/admin/audit-logs/prune", { method: "POST" }),
+    onSuccess: (result) => {
+      setConfirmPrune(false);
+      setLastPruneCount(result.prunedCount);
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit-logs"] });
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/audit-logs/insights"] });
+      toast({ title: `ล้าง Log เก่าแล้ว ${result.prunedCount.toLocaleString("th-TH")} รายการ` });
+    },
   });
 
   const items = data?.items ?? [];
@@ -152,12 +193,43 @@ export function AdminLogsManager() {
             ประวัติสิ่งที่เกิดขึ้นกับใบเสนอราคา สลิป และการแก้ข้อมูลของทีมงาน ใช้ค้นหาเมื่อลูกค้าแจ้งว่าส่งข้อมูลไม่ได้ ระบบตัดรหัสผ่านและโทเคนออกก่อนบันทึกเสมอ
           </p>
         </div>
-        <Button type="button" variant="outline" onClick={() => void refetch()} disabled={isFetching} data-testid="button-audit-refresh">
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => { void (activeTab === "history" ? refetch() : insightsQuery.refetch()); }}
+          disabled={activeTab === "history" ? isFetching : insightsQuery.isFetching}
+          data-testid="button-audit-refresh"
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${(activeTab === "history" ? isFetching : insightsQuery.isFetching) ? "animate-spin" : ""}`} aria-hidden="true" />
           รีเฟรช
         </Button>
       </header>
 
+      <div className="flex flex-wrap gap-2 border-b border-[var(--line)] pb-3" role="tablist" aria-label="มุมมอง Logs">
+        <Button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "history"}
+          variant={activeTab === "history" ? "secondary" : "outline"}
+          onClick={() => setActiveTab("history")}
+          data-testid="tab-audit-history"
+        >
+          ประวัติ Log ทั้งหมด
+        </Button>
+        <Button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "insights"}
+          variant={activeTab === "insights" ? "secondary" : "outline"}
+          onClick={() => setActiveTab("insights")}
+          data-testid="tab-audit-insights"
+        >
+          📊 สรุปจุดติดขัดลูกค้า (UX Insights)
+        </Button>
+      </div>
+
+      {activeTab === "history" ? (
+      <>
       <section className="flex flex-col gap-3 md:flex-row md:items-center" aria-label="ค้นหาและกรอง Logs">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-soft)]" aria-hidden="true" />
@@ -270,6 +342,135 @@ export function AdminLogsManager() {
           );
         }}
       />
+      </>
+      ) : (
+        <section className="flex flex-col gap-5" aria-label="สรุปจุดติดขัดลูกค้า" data-testid="audit-logs-insights">
+          {insightsQuery.isError && (
+            <div role="alert" className="border border-red-500/50 bg-red-500/10 p-4 text-sm" data-testid="audit-insights-error">
+              โหลดสรุปจุดติดขัดไม่สำเร็จ — {insightsQuery.error instanceof Error ? insightsQuery.error.message : "ไม่ทราบสาเหตุ"}
+            </div>
+          )}
+          {insightsQuery.isLoading && (
+            <div className="border border-[var(--line)] p-8 text-center text-sm text-[var(--ink-soft)]" data-testid="audit-insights-loading">
+              กำลังสรุปข้อมูล 30 วันที่ผ่านมา…
+            </div>
+          )}
+          {!insightsQuery.isLoading && !insightsQuery.isError && insightsQuery.data && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="ตัวเลขสรุป 30 วัน">
+                <InsightSummaryCard label="รายการทั้งหมด" value={insightsQuery.data.totals.total} testId="insights-summary-total" />
+                <InsightSummaryCard label="สำเร็จ" value={insightsQuery.data.totals.success} testId="insights-summary-success" />
+                <InsightSummaryCard label="จุดติดขัดของลูกค้า" value={insightsQuery.data.customerIssues} testId="insights-summary-friction" />
+                <InsightSummaryCard
+                  label="อัตราความราบรื่น"
+                  value={`${insightsQuery.data.totals.total === 0 ? "0.0" : ((insightsQuery.data.totals.success / insightsQuery.data.totals.total) * 100).toFixed(1)}%`}
+                  testId="insights-summary-smooth-rate"
+                />
+              </div>
+
+              <section aria-label="ปัญหาแยกตามหมวด">
+                <h2 className="mb-3 text-sm font-semibold text-[var(--ink)]">ปัญหาลูกค้าแยกตามหมวด</h2>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {insightsQuery.data.categories.map((category) => (
+                    <div key={category.category} className="border border-[var(--line)] bg-[var(--card-paper)] p-4" data-testid={`insights-category-${category.category}`}>
+                      <p className="text-xs text-[var(--ink-soft)]">{category.label}</p>
+                      <p className="mt-1 text-2xl font-semibold text-[var(--ink)]">{category.count.toLocaleString("th-TH")}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section aria-label="ปัญหาที่ลูกค้าพบบ่อยที่สุด">
+                <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">5 ปัญหาที่ลูกค้าพบบ่อยที่สุดในรอบเดือน</h2>
+                <p className="mb-3 text-sm text-[var(--ink-soft)]">เรียงตามจำนวน Warning และ Error ของลูกค้าในช่วง 30 วันที่ผ่านมา</p>
+                <div className="overflow-x-auto border border-[var(--line)]" data-testid="table-audit-pain-points">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ปัญหา</TableHead>
+                        <TableHead>หมวด</TableHead>
+                        <TableHead className="text-right">จำนวน</TableHead>
+                        <TableHead>คำอธิบายและคำแนะนำ</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {insightsQuery.data.painPoints.length === 0 ? (
+                        <TableRow><TableCell colSpan={4} className="py-8 text-center text-[var(--ink-soft)]" data-testid="audit-pain-points-empty">ยังไม่พบจุดติดขัดของลูกค้าในช่วงนี้</TableCell></TableRow>
+                      ) : insightsQuery.data.painPoints.slice(0, 5).map((point, index) => (
+                        <TableRow key={point.key} data-testid={`row-audit-pain-point-${index + 1}`}>
+                          <TableCell className="font-mono text-xs">{point.key}</TableCell>
+                          <TableCell className="whitespace-nowrap">{point.categoryLabel}</TableCell>
+                          <TableCell className="text-right font-semibold">{point.count.toLocaleString("th-TH")}</TableCell>
+                          <TableCell className="min-w-64 text-sm">
+                            <p className="font-medium">{point.description}</p>
+                            <p className="mt-1 text-[var(--ink-soft)]">แนะนำ: {point.recommendation}</p>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </section>
+
+              <section className="border border-[var(--line)] bg-[var(--card-paper)] p-4" aria-label="ล้างประวัติ Logs เก่า">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-[var(--ink)]">ล้างประวัติ Log เก่า</h2>
+                    <p className="mt-1 max-w-3xl text-sm text-[var(--ink-soft)]">
+                      ล้างรายการสำเร็จที่เกิน 30 วัน และ Warning/Error ที่เกิน 90 วัน โดยเก็บรายการสลิปการเงินและรายการของแอดมินไว้ทั้งหมด
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setConfirmPrune(true)}
+                    disabled={pruneMutation.isPending}
+                    data-testid="button-audit-prune"
+                  >
+                    ล้างประวัติ Log เก่าตามเกณฑ์
+                  </Button>
+                </div>
+                {lastPruneCount !== null && (
+                  <p className="mt-3 text-sm font-medium text-[var(--ink)]" role="status" data-testid="text-audit-prune-result">
+                    ล้างล่าสุด {lastPruneCount.toLocaleString("th-TH")} แถว
+                  </p>
+                )}
+                {pruneMutation.isError && (
+                  <p className="mt-3 text-sm text-red-700 dark:text-red-300" role="alert" data-testid="audit-prune-error">
+                    ล้าง Log ไม่สำเร็จ — {pruneMutation.error instanceof Error ? pruneMutation.error.message : "ไม่ทราบสาเหตุ"}
+                  </p>
+                )}
+              </section>
+            </>
+          )}
+        </section>
+      )}
+
+      {confirmPrune && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="alertdialog" aria-modal="true" aria-labelledby="audit-prune-title" data-testid="dialog-audit-prune-confirm">
+          <div className="w-full max-w-lg border border-[var(--line)] bg-[var(--card-paper)] p-6 text-[var(--ink)] shadow-xl">
+            <h2 id="audit-prune-title" className="text-lg font-semibold">ยืนยันการล้าง Log เก่า?</h2>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
+              ระบบจะลบรายการสำเร็จที่เกิน 30 วัน และ Warning/Error ที่เกิน 90 วัน โดยไม่ลบ action slip.upload หรือรายการของแอดมิน
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setConfirmPrune(false)} disabled={pruneMutation.isPending} data-testid="button-audit-prune-cancel">ยกเลิก</Button>
+              <Button type="button" variant="destructive" onClick={() => pruneMutation.mutate()} disabled={pruneMutation.isPending} data-testid="button-audit-prune-confirm">
+                {pruneMutation.isPending ? "กำลังล้าง…" : "ยืนยันและล้าง"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InsightSummaryCard({ label, value, testId }: { label: string; value: number | string; testId: string }) {
+  return (
+    <div className="border border-[var(--line)] bg-[var(--card-paper)] p-4" data-testid={testId}>
+      <p className="text-xs text-[var(--ink-soft)]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-[var(--ink)]">{typeof value === "number" ? value.toLocaleString("th-TH") : value}</p>
     </div>
   );
 }
