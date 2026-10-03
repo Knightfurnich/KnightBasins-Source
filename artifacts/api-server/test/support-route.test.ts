@@ -10,7 +10,28 @@ function sessionCookie(token: string) {
   return `knight_line_session=${payload}.${signature}`;
 }
 
-process.env["DATABASE_URL"] ??= "postgres://support-route-test";
+// Unlike the other route tests, these run against a REAL Postgres: they INSERT customer
+// accounts, sessions and leads through a pg pool and the route reads the catalog from
+// the same database. So they only run when DATABASE_URL points at a disposable local
+// database that already has the app schema. Without one they used to fail with
+// getaddrinfo ENOTFOUND/EAI_AGAIN on the old placeholder host, and with a production
+// URL exported they would have written test rows into production.
+function databaseSkipReason(): string | false {
+  const url = process.env["DATABASE_URL"];
+  if (!url) return "DATABASE_URL is not set: needs a disposable local Postgres with the app schema";
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return "DATABASE_URL is not a valid URL";
+  }
+  const local = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(host);
+  if (!local && process.env["ALLOW_REMOTE_TEST_DB"] !== "1") {
+    return `refusing to write test rows to non-local database host "${host}" (set ALLOW_REMOTE_TEST_DB=1 only for a throwaway test database)`;
+  }
+  return false;
+}
+const databaseSkip = databaseSkipReason();
 
 const realFetch = globalThis.fetch;
 
@@ -22,7 +43,7 @@ function mockHermesFetch(handler: (body: Record<string, unknown>) => Response) {
   });
 }
 
-describe("KnightSupport profile update confirmation", () => {
+describe("KnightSupport profile update confirmation", { skip: databaseSkip }, () => {
   it("writes the authenticated account and open lead only after confirmation", async () => {
     process.env["SESSION_SECRET"] ??= "support-route-test-secret";
     const pool = new pg.Pool({ connectionString: process.env["DATABASE_URL"] });
@@ -210,7 +231,7 @@ describe("KnightSupport profile update confirmation", () => {
   });
 });
 
-describe("KnightSupport Hermes fallback", () => {
+describe("KnightSupport Hermes fallback", { skip: databaseSkip }, () => {
   const originalHermesUrl = process.env["HERMES_API_URL"];
   const originalHermesKey = process.env["HERMES_API_KEY"];
 
