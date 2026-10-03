@@ -665,6 +665,8 @@ export interface SupportChatResponse {
   matchedCode?: string | null;
   compareItems?: SupportCatalogItem[];
   profileUpdate?: SupportProfileUpdate;
+  /** True when the visitor is not signed in with LINE and the question fell outside the product catalog, so only signing in unlocks the full assistant. Omitted otherwise. */
+  loginRequired?: boolean;
 }
 
 export type SupportPaymentSlipResponseStatus = typeof SupportPaymentSlipResponseStatus[keyof typeof SupportPaymentSlipResponseStatus];

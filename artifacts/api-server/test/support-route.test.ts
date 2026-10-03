@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, createHmac, randomBytes } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { afterEach, describe, it, mock } from "node:test";
 import pg from "pg";
 import { serveTypeScriptRoute } from "./route-harness.ts";
@@ -317,11 +318,66 @@ describe("KnightSupport Hermes fallback", { skip: databaseSkip }, () => {
         body: JSON.stringify({ message: "ใบเสนอราคาของฉันสถานะเป็นยังไงบ้าง" }),
       });
       assert.equal(anonymous.status, 200);
-      const anonymousResult = await anonymous.json() as { reply?: string };
-      assert.match(anonymousResult.reply ?? "", /ผมช่วยค้นหา/);
+      const anonymousResult = await anonymous.json() as { reply?: string; loginRequired?: boolean };
+      assert.match(anonymousResult.reply ?? "", /เข้าสู่ระบบด้วย LINE/);
+      assert.equal(anonymousResult.loginRequired, true);
       assert.equal(hermesCalls, 0);
     } finally {
       await route.close();
     }
+  });
+});
+
+describe("KnightSupport guest scope (job-235)", { skip: databaseSkip }, () => {
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
+  it("tells a visitor who is not signed in what the chat can do, and asks them to sign in with LINE", async () => {
+    process.env["SESSION_SECRET"] ??= "support-route-test-secret";
+    const route = await serveTypeScriptRoute("src/routes/support.ts");
+    try {
+      const response = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "โอนเงินที่ไหน" }),
+      });
+      assert.equal(response.status, 200);
+      const result = await response.json() as { reply?: string; matchedType?: string; loginRequired?: boolean };
+      assert.match(result.reply ?? "", /เข้าสู่ระบบด้วย LINE/);
+      assert.match(result.reply ?? "", /094-496-1949/);
+      assert.equal(result.matchedType, "none");
+      assert.equal(result.loginRequired, true);
+    } finally {
+      await route.close();
+    }
+  });
+
+  it("answers a real product code from the catalog without asking the visitor to sign in", async () => {
+    process.env["SESSION_SECRET"] ??= "support-route-test-secret";
+    const route = await serveTypeScriptRoute("src/routes/support.ts");
+    try {
+      const response = await fetch(`${route.url}/api/support/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "KF001" }),
+      });
+      assert.equal(response.status, 200);
+      const result = await response.json() as { reply?: string; matchedType?: string; loginRequired?: boolean };
+      assert.equal(result.matchedType, "basin");
+      assert.notEqual(result.loginRequired, true);
+      assert.doesNotMatch(result.reply ?? "", /โหมดทั่วไป/);
+    } finally {
+      await route.close();
+    }
+  });
+});
+
+// Runs without a database (support-guest-scope.test.ts covers the same ground in more detail).
+describe("support.ts wording (job-235)", () => {
+  it("no longer claims to prevent guessing, and keeps the old catalog-only sentence only for the signed-in fallback", async () => {
+    const source = await readFile(new URL("../src/routes/support.ts", import.meta.url), "utf8");
+    assert.ok(!source.includes("ป้องกันการสุ่ม"));
+    assert.equal(source.split("ดิฉันช่วยค้นหา SKU อ่างล้างหน้า").length - 1, 1);
   });
 });
