@@ -5,7 +5,7 @@ import { WorkshopProductionSheet, type ProductionItem } from "@/components/Works
 import { RouteMeta } from "@/components/RouteMeta";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { StoneComparisonTable } from "@/components/StoneComparisonTable";
-import { buildBasinProductsJsonLd } from "@/data/structured-data";
+import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJsonLd } from "@/data/structured-data";
 import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { TrustBadges } from "@/components/TrustBadges";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
@@ -1973,6 +1973,7 @@ function App() {
       <RouteMeta pathname={location} />
       <NetworkStatusBanner />
       <QueryClientProvider client={queryClient}>
+        {breadcrumbItemsForPath(location) && <RouteStructuredData id="breadcrumbs" data={buildBreadcrumbListJsonLd(breadcrumbItemsForPath(location)!)} />}
         <div className="storefront-theme-root" data-theme={isAdminRoute ? "light" : themeValue.theme}>
           <StorefrontThemeProvider value={themeValue}>
             <Switch>
