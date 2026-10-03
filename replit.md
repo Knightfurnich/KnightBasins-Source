@@ -1,56 +1,50 @@
-# [Project name]
+# Knight Basins
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Knight Basins is a Thai storefront and work-management system for solid-surface basins, stone products, quotations, and countertop projects.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/knight-basins run dev` — run the storefront and Studio.
+- `pnpm --filter @workspace/api-server run dev` — run the API server.
+- `pnpm run typecheck` — typecheck workspace libraries and artifacts.
+- `pnpm --filter @workspace/knight-basins run test` — run the storefront test suite.
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API clients and validation schemas from the OpenAPI contract.
+- `pnpm --filter @workspace/db run push` — synchronize the development database schema only. Use a reviewed, explicit migration process for production schema changes.
 
-## Stack
+## System Overview
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- **Storefront and Studio:** React, TypeScript, and Vite power the customer-facing catalog, stone viewer, 2D countertop designer, and sketch-submission flow.
+- **API:** An Express service provides application endpoints to the storefront and administrative tools.
+- **Data:** PostgreSQL stores application records and Drizzle ORM defines the database schema.
+- **API contracts:** OpenAPI is the source of truth for generated TypeScript clients and Zod validation schemas.
+- **Visual assistance:** AI-powered sketch analysis and catalog-limited stone-color matching support project planning.
 
-## Where things live
+## Product Capabilities
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Browse basin models and synthetic-stone colors, view full-slab imagery, and compare product options.
+- Design countertop layouts in the 2D Studio, add basins and cutouts, and submit sketches for review and estimates.
+- Prepare formal quotations with stone thumbnails and A4/PDF output; share customer-facing quotation links.
+- Browse installed-project photography and site-preparation guidance.
+- Manage sales leads, customer project details, inventory, project tracking, and digital handover through administrative workflows.
+- Share operational updates through configured messaging and map services.
 
-## Architecture decisions
+## Repository Map
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- `artifacts/knight-basins/` — storefront, Studio, administrative screens, and frontend tests.
+- `artifacts/api-server/` — Express API routes, middleware, and server-side application logic.
+- `lib/api-spec/` — OpenAPI contract and code-generation scripts.
+- `lib/api-client-react/` — generated React API client.
+- `lib/api-zod/` — generated Zod request and response schemas.
+- `lib/db/src/schema/` — Drizzle database schema.
 
-## Product
+## Architecture Notes
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Keep API changes contract-first: update the OpenAPI source, regenerate clients and schemas, then update callers.
+- Keep database changes additive and reviewed; the development schema-sync command is not a production migration.
+- Keep customer-facing features in the storefront artifact and server-side integrations in the API service.
+- Use the existing package scripts and tests as the validation path for changes.
 
-## User preferences
+## Data Safety
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## GitHub Release Policy
-
-- Push to `Knightfurnich/KnightBasins-Source` on `main` with the `GITHUB_TOKEN` secret through an ephemeral HTTPS remote; never print or persist the token.
-- Include application code under `artifacts/knight-basins/src/`, `artifacts/api-server/src/`, and `lib/`.
-- Include configuration files: `package.json`, `tsconfig.json`, `vite.config.ts`, `drizzle.config.ts`, and `.env.example`.
-- Include tests and deployment files under `test/`, `deploy/`, and `.github/workflows/`. Workflow files require a token with GitHub workflow permission.
-- Never push storefront/admin runtime uploads from `artifacts/knight-basins/public/uploads/`.
-- Never push `.agents/`, `tmp/`, `screenshots/`, or `node_modules/`.
-- Preserve the remote `main` history and avoid force-pushes. Verify the remote commit SHA after pushing.
-- After a successful push, summarize the commit SHA and changed areas, then end the handoff with: `push ขึ้น GitHub แล้ว` so David can deploy to the production VPS.
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Do not commit credentials, customer records, or runtime-uploaded files.
+- Keep production data changes separate from local development and review them before release.
