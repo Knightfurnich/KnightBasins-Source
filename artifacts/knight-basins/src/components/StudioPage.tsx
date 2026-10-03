@@ -186,6 +186,26 @@ export type StudioNotificationSnapshot = {
 const MAX_SKETCH_FILES = 3;
 const MAX_SKETCH_IMAGE_EDGE = 1920;
 
+/**
+ * The photo of the active stone for the plan (job-211): its slabImageUrl (the small ~42 KB slab picture - never
+ * quoteImageUrl, which is 1-2 MB), fetched only once the stone is the active one. It is handed on only after it
+ * has loaded, so a slow or broken image leaves the flat tone in place instead of an empty plan.
+ */
+function useLoadedStoneTexture(url: string | undefined): string | undefined {
+  const [loaded, setLoaded] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    setLoaded(undefined);
+    if (!url || typeof Image === "undefined") return;
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => { if (!cancelled) setLoaded(url); };
+    image.onerror = () => { if (!cancelled) setLoaded(undefined); };
+    image.src = url;
+    return () => { cancelled = true; image.onload = null; image.onerror = null; };
+  }, [url]);
+  return loaded === url ? loaded : undefined;
+}
+
 function stoneSlabViewerImages(stone: Pick<StoneColor, "slabImageUrl" | "galleryImageUrls">): string[] {
   const slabImageUrl = stone.slabImageUrl?.trim();
   if (!slabImageUrl) return [];
@@ -2433,6 +2453,7 @@ function StudioPieceEditor({
   state,
   setState,
   stoneTone,
+  stoneTexture,
   zoom,
   selectedPlacementId,
   setSelectedPlacementId,
@@ -2448,6 +2469,8 @@ function StudioPieceEditor({
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
   stoneTone: string;
+  /** Loaded photo of the active stone, or undefined (flat tone only). */
+  stoneTexture?: string;
   zoom: number;
   selectedPlacementId: string | null;
   setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
@@ -2806,7 +2829,7 @@ function StudioPieceEditor({
     <div className="studio-piece-workspace">
       <div className="studio-piece-canvas-column">
         <StudioEdgeFinishToolbar pieceId={piece.id} selectedStatus={selectedEdgeStatus} onSelect={setSelectedEdgeStatus} />
-        <StudioFootprint piece={piece} stoneTone={stoneTone} zoom={zoom} edgeStatus={selectedEdgeStatus} onEdgeStatusChange={changeStatus} canvasPieceId={piece.id} highlightRectangleId={highlightRectangleId} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+        <StudioFootprint piece={piece} stoneTone={stoneTone} stoneTexture={stoneTexture} zoom={zoom} edgeStatus={selectedEdgeStatus} onEdgeStatusChange={changeStatus} canvasPieceId={piece.id} highlightRectangleId={highlightRectangleId} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
           {placements.map((placement) => {
             const unknown = placement.widthMm === null || placement.depthMm === null;
             const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
@@ -2819,6 +2842,7 @@ function StudioPieceEditor({
             return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${inactive ? "studio-placement--inactive" : ""} ${crossesJoint || placementWarnings.length > 0 ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((cutSize.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((cutSize.heightMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onPointerDown={(event) => beginPointerDrag(event, "placement", placement.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinTopView product={product} testId={`studio-placement-top-view-${placement.id}`} />}</span><strong>{placement.sku}</strong><small>{inactive ? "ไม่เปิดใช้งานแล้ว · เปลี่ยนรุ่นหรือนำออก" : placementWarnings[0] ?? (unknown ? "ขนาดหลุมไม่ระบุ" : `${cutSize.widthMm} × ${cutSize.heightMm} มม. · ลากเพื่อย้าย`)}</small><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : current); removeBasinPlacementWithUndo(placement, setState); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
           })}
           {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className={`studio-rectangle-drag-target ${rectangle.id === activeRectangle?.id ? "is-selected" : ""}`} draggable onClick={() => { setSelectedRectangleId(rectangle.id); setSelectedPlacementId(null); }} onPointerDown={(event) => beginPointerDrag(event, "rectangle", rectangle.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedRectangleId(rectangle.id); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id); }} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`ลากแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
+          {stoneTexture && <span className="pointer-events-none absolute bottom-1 right-2 z-10 max-w-[42%] rounded bg-black/35 px-2 py-0.5 text-right text-[11px] leading-tight text-white" data-testid="text-studio-stone-texture-note">ลายหินตัวอย่างเพื่อการแสดงผล · หน้างานจริงขึ้นกับลายแร่ธรรมชาติ</span>}
         </StudioFootprint>
         <p className="studio-canvas-hint"><GripVertical size={14} /> คลิกแผ่นหรืออ่างเพื่อเปิดตัวแก้ไข · ลากเพื่อจัดตำแหน่ง · ขอบที่ชนกันจะ snap ต่อกัน</p>
       </div>
@@ -3039,6 +3063,8 @@ function StudioCanvas({
   const pieces = getStudioPieces(state);
   const activeStoneColor = stoneColorByName(state.activeStone, stoneColors);
   const activeStoneTone = activeStoneColor.tone;
+  // Only the stone on the plan has its photo fetched, and only when one was actually chosen.
+  const activeStoneTexture = useLoadedStoneTexture(state.activeStone ? activeStoneColor.slabImageUrl : undefined);
   const activePieceId = state.activePieceId && pieces.some((p) => p.id === state.activePieceId)
     ? state.activePieceId
     : (pieces[0]?.id ?? "");
@@ -3254,6 +3280,7 @@ function StudioCanvas({
           setSelectedRectangleId={setSelectedRectangleId}
           basinProducts={basinProducts}
           stoneTone={activeStoneTone}
+          stoneTexture={activeStoneTexture}
           simpleMode={simpleMode}
           showAddPiece={false}
         />
