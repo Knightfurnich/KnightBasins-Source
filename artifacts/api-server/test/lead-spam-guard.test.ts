@@ -10,6 +10,7 @@ import { importTypeScriptModule } from "./route-harness.ts";
 // job-231: POST /api/leads refuses a request for a quotation that says nothing about what is being quoted. Before the
 // guard, `status: "quote_requested"` with no studioData was saved and given a quote number, so a bot could post bare
 // requests and fill the lead list. The refusal is 400 STUDIO_DATA_REQUIRED and nothing is saved.
+// (job-233: a quote number sent by the client is ignored, so the guard looks at the status alone.)
 //
 // The storefront's own autosave (new_lead / selecting) goes out with orderMode "quick-purchase" and no studioData; the
 // "does not touch ..." tests below pin that it keeps working. A hand-drawn sketch is described by its picture instead.
@@ -207,13 +208,13 @@ describe("job-231: a quotation request without studioData is refused", () => {
     });
   });
 
-  it("refuses a request that supplies a quote number of its own without studioData, whatever its status", async () => {
-    await withRoute(async ({ url, saved }) => {
-      // otherwise the bot only has to say "selecting" and name a quote number to get one stored with a quote link
-      for (const status of ["new_lead", "selecting", "closed"]) {
-        await assertRefused(url, saved, withoutStudioData({ status, quoteNumber: "Oct 26 / US / 111111" }), `status ${status}`);
-      }
-      await assertRefused(url, saved, withoutStudioData({ status: "selecting", quoteNumber: "   " }), "blank quote number");
+  it("still refuses quote_requested when the request also names a quote number of its own", async () => {
+    await withRoute(async ({ url, saved, audits }) => {
+      // the number is ignored (job-233, quote-number-allocation.test.ts), so it cannot stand in for the missing studioData
+      await assertRefused(url, saved, withoutStudioData({ quoteNumber: "Oct 26 / US / 111111" }), "quote number named");
+      await waitForAudit(audits);
+      assert.equal(audits[0]!["targetId"], "lead-spam-guard-0001", "the audit row is about the lead, not the number the sender made up");
+      assert.ok(!JSON.stringify(audits[0]).includes("111111"));
     });
   });
 
@@ -268,11 +269,12 @@ describe("job-231: a quotation request with studioData is saved as before", () =
     });
   });
 
-  it("accepts a quote number the client supplies when the quote itself comes with studioData", async () => {
+  it("answers a quote number the client names with one of the server's own (job-233)", async () => {
     await withRoute(async ({ url, saved }) => {
-      const { status, body } = await postLead(url, leadBody({ status: "selecting", quoteNumber: "Oct 26 / US / 222222" }));
+      const { status, body } = await postLead(url, leadBody({ quoteNumber: "Oct 26 / US / 222222" }));
       assert.equal(status, 200);
-      assert.equal(body["quoteNumber"], "Oct 26 / US / 222222");
+      assert.match(String(body["quoteNumber"]), /^[A-Za-z]{3} \d{2} \/ US \/ \d{6}$/);
+      assert.notEqual(body["quoteNumber"], "Oct 26 / US / 222222");
       assert.equal(saved.length, 1);
     });
   });
