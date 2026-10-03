@@ -37,6 +37,22 @@ import {
 } from "../lib/price-integrity";
 import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
 
+/**
+ * The reply when a question matched no rule and no catalog entry (job-235).
+ *
+ * A visitor who is not signed in with LINE only gets the catalog here, so the reply says so and points to LINE sign-in
+ * (`loginRequired: true` lets the page show the sign-in button). A signed-in customer reaches this only when the
+ * assistant (Hermes) is not configured or did not answer; that path keeps its previous text and gets no flag.
+ */
+export const GUEST_SCOPE_REPLY = "ตอนนี้คุณกำลังใช้โหมดทั่วไป (ยังไม่เข้าสู่ระบบ LINE) ดิฉันตอบได้เฉพาะข้อมูลสินค้าในแคตตาล็อก เช่น \"KF023\" หรือ \"BW010\" ค่ะ\n\nหากต้องการปรึกษาการออกแบบ การชำระเงิน สถานะใบเสนอราคา หรือข้อมูลอื่น ๆ กรุณาเข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบน เพื่อคุยกับน้องไนท์โหมดเต็มแบบเดียวกับใน LINE ค่ะ\n\nหรือติดต่อฝ่ายขาย 094-496-1949 · 089-762-2209";
+export const SIGNED_IN_FALLBACK_REPLY = "ดิฉันช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ค่ะ ลองพิมพ์เช่น KF001, KF023 หรือ BW010";
+
+export function supportFallbackResponse(signedIn: boolean) {
+  return signedIn
+    ? { reply: SIGNED_IN_FALLBACK_REPLY, matchedType: "none" as const }
+    : { reply: GUEST_SCOPE_REPLY, matchedType: "none" as const, loginRequired: true };
+}
+
 const LEAD_STATUS_LABEL: Record<string, string> = {
   new_lead: "ลูกค้าใหม่ ยังไม่ได้ขอใบเสนอราคา",
   quote_requested: "ขอใบเสนอราคาแล้ว รอทีมขายติดต่อกลับ",
@@ -413,10 +429,7 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
       }
     }
 
-    res.json({
-      reply: "ดิฉันช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ค่ะ ลองพิมพ์เช่น KF001, KF023 หรือ BW010",
-      matchedType: "none",
-    });
+    res.json(supportFallbackResponse(Boolean(account)));
   } catch (error) {
     next(error);
   }
