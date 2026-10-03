@@ -50,6 +50,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build and typecheck shared libs
+        run: pnpm run typecheck:libs
+
       - name: Typecheck api-server
         working-directory: artifacts/api-server
         run: pnpm exec tsc --noEmit
