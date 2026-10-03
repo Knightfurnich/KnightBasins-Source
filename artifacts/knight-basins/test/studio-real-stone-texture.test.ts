@@ -1,10 +1,14 @@
 /**
  * Real stone texture on the Studio canvas (job-211).
  *
- * The plan shows the active stone's own photo (its slabImageUrl, the small ~42 KB slab picture) instead of a
- * flat tone; print layout, saved-draft cards and the saved quote stay flat. StudioFootprint is rendered for
- * real (tsx + react-dom/server, like the admin component tests); the loading hook is cut out of StudioPage.tsx
- * and run against a stub React and a stub Image; the rest of the wiring is checked as source text.
+ * The plan shows the active stone's own close-up photo (its catalog imageUrl) instead of a flat tone; print layout,
+ * saved-draft cards and the saved quote stay flat. StudioFootprint is rendered for real (tsx + react-dom/server,
+ * like the admin component tests); the loading hook is cut out of StudioPage.tsx and run against a stub React and a
+ * stub Image; the rest of the wiring is checked as source text.
+ *
+ * Why imageUrl and not slabImageUrl: slabImageUrl is the whole slab photographed on the factory floor (dark concrete
+ * round a trapezoid of stone, caption along the bottom), which cannot be laid over a sheet; imageUrl is a flat
+ * close-up of the stone for 60 of the 64 colours.
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -22,31 +26,55 @@ const modelUrl = pathToFileURL(join(appRoot, "src/data/studio-model.ts")).href;
 const studioPage = readFileSync(join(appRoot, "src/components/StudioPage.tsx"), "utf8");
 const footprintSource = readFileSync(join(appRoot, "src/components/StudioFootprint.tsx"), "utf8");
 
-const SLAB_URL = "https://api.example.test/kb/images/slab/MU010.jpg";
-const QUOTE_URL = "https://api.example.test/kb/images/quote/MU010.png";
+const TEXTURE_URL = "https://knightbasins.example.test/api/uploads/catalog-vd345.png?v=1";
 const TRICKY_URL = 'https://example.test/a b/(x)"y".jpg';
+const ASPECT = 2.78; // a 745 x 268 catalog photo
 
 const HARNESS_SCRIPT = `
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-const { StudioFootprint, stoneTextureScalePercent } = await import(${JSON.stringify(footprintUrl)});
+const { StudioFootprint, stoneTextureScalePercent, STONE_TEXTURE_EDGE_CROP } = await import(${JSON.stringify(footprintUrl)});
 const model = await import(${JSON.stringify(modelUrl)});
 const edges = { top: "normal", right: "normal", bottom: "normal", left: "normal" };
 const piece = { ...model.buildCustomShapePiece("piece-1", "l-left", [
   { widthMm: 1800, depthMm: 600, edges }, { widthMm: 600, depthMm: 1200, edges },
 ]), name: "ชิ้นงาน 1" };
 const render = (props) => renderToStaticMarkup(createElement(StudioFootprint, { piece, testId: "canvas", ...props }));
+const coverViolations = [];
+for (const [w, h] of [[600, 600], [1800, 600], [3200, 600], [600, 1200], [600, 3000], [1000, 1000]]) {
+  for (const aspect of [0.82, 1, 1.4, 2.78, 4.9]) {
+    const photoWidth = (stoneTextureScalePercent(w, h, aspect) / 100) * w;
+    if (photoWidth < w * STONE_TEXTURE_EDGE_CROP - 1e-6) coverViolations.push(w + "x" + h + " @" + aspect + " too narrow");
+    if (photoWidth / aspect < h * STONE_TEXTURE_EDGE_CROP - 1e-6) coverViolations.push(w + "x" + h + " @" + aspect + " too short");
+  }
+}
 process.stdout.write(JSON.stringify({
-  scales: [[1800, 600], [600, 1200], [600, 1800], [600, 2400], [0, 600], [600, 0], [NaN, 600]].map(([w, h]) => stoneTextureScalePercent(w, h)),
-  textured: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(SLAB_URL)} }),
+  coverViolations,
+  edgeCrop: STONE_TEXTURE_EDGE_CROP,
+  scales: [
+    [1800, 600, 2.78], [600, 1200, 2.78], [1800, 600, 1], [600, 1200, 1], [1800, 600, 0.82], [600, 2400, 1],
+    [1800, 600, 0], [1800, 600, NaN], [0, 600, 2], [600, 0, 2],
+  ].map(([w, h, a]) => stoneTextureScalePercent(w, h, a)),
+  textured: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(TEXTURE_URL)}, stoneTextureAspect: ${ASPECT} }),
   flat: render({ stoneTone: "#fbfaf4" }),
-  dark: render({ stoneTone: "#1a1a1a", stoneTexture: ${JSON.stringify(SLAB_URL)} }),
-  tricky: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(TRICKY_URL)} }),
-  withChild: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(SLAB_URL)}, children: createElement("span", { "data-testid": "child-note" }, "note") }),
+  dark: render({ stoneTone: "#1a1a1a", stoneTexture: ${JSON.stringify(TEXTURE_URL)}, stoneTextureAspect: 1 }),
+  tricky: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(TRICKY_URL)}, stoneTextureAspect: 1 }),
+  noAspect: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(TEXTURE_URL)} }),
+  withChild: render({ stoneTone: "#fbfaf4", stoneTexture: ${JSON.stringify(TEXTURE_URL)}, stoneTextureAspect: 1, children: createElement("span", { "data-testid": "child-note" }, "note") }),
 }));
 `;
 
-type Harness = { scales: number[]; textured: string; flat: string; dark: string; tricky: string; withChild: string };
+type Harness = {
+  coverViolations: string[];
+  edgeCrop: number;
+  scales: number[];
+  textured: string;
+  flat: string;
+  dark: string;
+  tricky: string;
+  noAspect: string;
+  withChild: string;
+};
 let harness: Harness;
 let tmpDir: string | undefined;
 
@@ -70,26 +98,33 @@ after(() => {
 });
 
 const rectangleTags = (markup: string) => markup.match(/<div class="studio-piece-rectangle[^"]*"[^>]*>/g) ?? [];
+const sizesOf = (markup: string) => rectangleTags(markup).map((tag) => Number(tag.match(/background-size:(\d+)% auto/)?.[1]));
 
 describe("StudioFootprint paints the stone photo on every sheet", () => {
-  it("every rectangle of an L-shaped piece gets a background-image pointing at the slab photo, centred and not tiled", () => {
+  it("every rectangle of an L-shaped piece gets a background-image pointing at the photo, centred and not tiled", () => {
     const tags = rectangleTags(harness.textured);
     assert.equal(tags.length, 2);
     for (const tag of tags) {
-      assert.match(tag, new RegExp(`background-image:url\\(&quot;${SLAB_URL.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}&quot;\\)`));
+      assert.ok(tag.includes(`background-image:url(&quot;${TEXTURE_URL.replace(/&/g, "&amp;")}&quot;)`), tag);
       assert.match(tag, /background-position:50% 50%/);
       assert.match(tag, /background-repeat:no-repeat/);
     }
   });
 
-  it("shows only the middle of the slab photo: each sheet's photo is enlarged so the factory floor and caption stay out of view", () => {
-    const sizes = rectangleTags(harness.textured).map((tag) => Number(tag.match(/background-size:(\d+)% auto/)?.[1]));
-    assert.deepEqual(sizes, [400, 400], "1800 x 600 and 600 x 1200 both sit on the 400% minimum");
+  it("sizes each sheet's photo to cover that sheet, from the photo's proportions", () => {
+    // 745 x 268 photo (2.78): the 1800 x 600 sheet is covered by width alone; the 600 x 1200 leg needs 1200 x 2.78 = 3336 mm of width
+    assert.deepEqual(sizesOf(harness.textured), [115, 640]);
+    assert.deepEqual(sizesOf(harness.noAspect), [115, 230], "an unknown proportion is treated as square, never as a missing size");
   });
 
-  it("enlarges a tall sheet's photo further so that no more than half of the photo's height is used", () => {
-    // 400% minimum; above it 100 x height / (0.5 x width x 1.3), rounded up: 600 x 1800 -> 462, 600 x 2400 -> 616
-    assert.deepEqual(harness.scales, [400, 400, 462, 616, 400, 400, 400]);
+  it("stoneTextureScalePercent: cover + 15% for every proportion, falling back to 115% on bad input", () => {
+    assert.equal(harness.edgeCrop, 1.15);
+    // [1800x600 @2.78, 600x1200 @2.78, 1800x600 @1, 600x1200 @1, 1800x600 @0.82, 600x2400 @1, then four bad inputs]
+    assert.deepEqual(harness.scales, [115, 640, 115, 230, 115, 460, 115, 115, 115, 115]);
+  });
+
+  it("the enlarged photo always covers the whole sheet with the 15% edge crop to spare (6 sheet shapes x 5 photo shapes)", () => {
+    assert.deepEqual(harness.coverViolations, []);
   });
 
   it("without a texture no rectangle carries an inline background (the stylesheet's flat tone and speckle stay)", () => {
@@ -114,23 +149,29 @@ describe("StudioFootprint paints the stone photo on every sheet", () => {
     assert.match(harness.withChild, /data-testid="child-note"/);
   });
 
-  it("is opt-in: StudioFootprint takes the texture from a prop and fetches nothing itself", () => {
+  it("is opt-in: StudioFootprint takes the texture from props and fetches nothing itself", () => {
     assert.match(footprintSource, /stoneTexture\?: string;/);
-    assert.doesNotMatch(footprintSource, /new Image\(|fetch\(|slabImageUrl|quoteImageUrl/);
+    assert.match(footprintSource, /stoneTextureAspect\?: number;/);
+    assert.doesNotMatch(footprintSource, /new Image\(|fetch\(|slabImageUrl|quoteImageUrl|imageUrl/);
   });
 });
 
-describe("only the active stone's small slab photo is loaded (useLoadedStoneTexture, run for real)", () => {
+describe("only the active stone's close-up photo is loaded (useLoadedStoneTexture, run for real)", () => {
   const start = studioPage.indexOf("function useLoadedStoneTexture(");
   const end = studioPage.indexOf("function stoneSlabViewerImages(", start);
   assert.ok(start >= 0 && end > start, "useLoadedStoneTexture not found");
   const source = stripTypeScriptTypes(studioPage.slice(start, end));
 
+  type FakeImageInstance = { src: string; naturalWidth: number; naturalHeight: number; onload: null | (() => void); onerror: null | (() => void) };
+  type Texture = { url: string; aspect: number } | undefined;
+
   /** A one-component React stand-in: state survives re-renders, effects run when asked and clean up before the next one. */
   const mount = () => {
-    const images: Array<{ src: string; onload: null | (() => void); onerror: null | (() => void) }> = [];
+    const images: FakeImageInstance[] = [];
     class FakeImage {
       src = "";
+      naturalWidth = 0;
+      naturalHeight = 0;
       onload: null | (() => void) = null;
       onerror: null | (() => void) = null;
       constructor() { images.push(this); }
@@ -149,9 +190,9 @@ describe("only the active stone's small slab photo is loaded (useLoadedStoneText
       lastDeps = deps;
       pending = effect;
     };
-    const hook = new Function("useState", "useEffect", "Image", `${source}\nreturn useLoadedStoneTexture;`)(useState, useEffect, FakeImage) as (url: string | undefined) => string | undefined;
+    const hook = new Function("useState", "useEffect", "Image", `${source}\nreturn useLoadedStoneTexture;`)(useState, useEffect, FakeImage) as (url: string | undefined) => Texture;
     let currentUrl: string | undefined;
-    let result: string | undefined;
+    let result: Texture;
     function flushEffects() {
       while (pending) {
         const effect = pending;
@@ -165,6 +206,12 @@ describe("only the active stone's small slab photo is loaded (useLoadedStoneText
       images,
       render(url: string | undefined) { currentUrl = url; rerender(); return result; },
       get value() { return result; },
+      load(index: number, naturalWidth: number, naturalHeight: number) {
+        const image = images[index]!;
+        image.naturalWidth = naturalWidth;
+        image.naturalHeight = naturalHeight;
+        image.onload?.();
+      },
     };
   };
 
@@ -174,50 +221,57 @@ describe("only the active stone's small slab photo is loaded (useLoadedStoneText
     assert.equal(component.images.length, 0);
   });
 
-  it("requests exactly the one slab photo, and shows it only once it has loaded", () => {
+  it("requests exactly the one photo, and shows it, with its proportions, only once it has loaded", () => {
     const component = mount();
-    assert.equal(component.render(SLAB_URL), undefined, "flat tone while the photo is on its way");
-    assert.deepEqual(component.images.map((image) => image.src), [SLAB_URL]);
-    component.images[0]!.onload!();
-    assert.equal(component.value, SLAB_URL);
+    assert.equal(component.render(TEXTURE_URL), undefined, "flat tone while the photo is on its way");
+    assert.deepEqual(component.images.map((image) => image.src), [TEXTURE_URL]);
+    component.load(0, 745, 268);
+    assert.deepEqual(component.value, { url: TEXTURE_URL, aspect: 745 / 268 });
+  });
+
+  it("treats a photo that reports no size as square instead of failing", () => {
+    const component = mount();
+    component.render(TEXTURE_URL);
+    component.load(0, 0, 0);
+    assert.deepEqual(component.value, { url: TEXTURE_URL, aspect: 1 });
   });
 
   it("switching stone drops the old photo at once and ignores a late answer for it", () => {
     const component = mount();
-    component.render(SLAB_URL);
-    component.images[0]!.onload!();
-    assert.equal(component.value, SLAB_URL);
-    const other = "https://api.example.test/kb/images/slab/BW010.jpg";
+    component.render(TEXTURE_URL);
+    component.load(0, 600, 600);
+    assert.equal(component.value?.url, TEXTURE_URL);
+    const other = "https://knightbasins.example.test/api/uploads/catalog-bw010.jpg";
     assert.equal(component.render(other), undefined);
-    assert.deepEqual(component.images.map((image) => image.src), [SLAB_URL, other]);
+    assert.deepEqual(component.images.map((image) => image.src), [TEXTURE_URL, other]);
     component.images[0]!.onload?.();
     assert.equal(component.value, undefined, "the first photo's late load must not show");
-    component.images[1]!.onload!();
-    assert.equal(component.value, other);
+    component.load(1, 744, 269);
+    assert.equal(component.value?.url, other);
   });
 
   it("a photo that fails to load leaves the flat tone", () => {
     const component = mount();
-    component.render(SLAB_URL);
+    component.render(TEXTURE_URL);
     component.images[0]!.onerror!();
     assert.equal(component.value, undefined);
   });
 
-  it("never touches quoteImageUrl", () => {
-    assert.doesNotMatch(source, /quoteImageUrl/);
+  it("never touches slabImageUrl or quoteImageUrl", () => {
+    assert.doesNotMatch(source, /slabImageUrl|quoteImageUrl/);
   });
 });
 
 describe("StudioPage wiring", () => {
-  it("hands the canvas the active stone's slabImageUrl (and nothing larger), only when a stone is chosen", () => {
-    assert.match(studioPage, /const activeStoneTexture = useLoadedStoneTexture\(state\.activeStone \? activeStoneColor\.slabImageUrl : undefined\);/);
-    assert.match(studioPage, /stoneTexture=\{activeStoneTexture\}/);
-    assert.doesNotMatch(studioPage, /useLoadedStoneTexture\([^)]*quoteImageUrl/);
+  it("hands the canvas the active stone's imageUrl (not the slab photo, not the quote image), only when a stone is chosen", () => {
+    assert.match(studioPage, /const activeStoneTexture = useLoadedStoneTexture\(state\.activeStone \? activeStoneColor\.imageUrl : undefined\);/);
+    assert.match(studioPage, /stoneTexture=\{activeStoneTexture\?\.url\}\s+stoneTextureAspect=\{activeStoneTexture\?\.aspect\}/);
+    assert.doesNotMatch(studioPage, /useLoadedStoneTexture\([^)]*(slabImageUrl|quoteImageUrl)/);
   });
 
-  it("the live canvas editor forwards it to its StudioFootprint", () => {
-    assert.match(studioPage, /<StudioFootprint piece=\{piece\} stoneTone=\{stoneTone\} stoneTexture=\{stoneTexture\} zoom=\{zoom\}/);
-    assert.match(studioPage, /\/\*\* Loaded photo of the active stone, or undefined \(flat tone only\)\. \*\/\s+stoneTexture\?: string;/);
+  it("the live canvas editor forwards both to its StudioFootprint", () => {
+    assert.match(studioPage, /<StudioFootprint piece=\{piece\} stoneTone=\{stoneTone\} stoneTexture=\{stoneTexture\} stoneTextureAspect=\{stoneTextureAspect\} zoom=\{zoom\}/);
+    assert.match(studioPage, /\/\*\* Loaded photo of the active stone, or undefined \(flat tone only\)\. \*\/\s+stoneTexture\?: string;\s+stoneTextureAspect\?: number;/);
   });
 
   it("is passed in exactly one place: print layout, saved-draft cards, the legacy editor and the quote stay flat", () => {
@@ -230,8 +284,8 @@ describe("StudioPage wiring", () => {
     assert.doesNotMatch(readFileSync(join(appRoot, "src/App.tsx"), "utf8"), /stoneTexture/);
   });
 
-  it("shows the sample-texture note over the canvas, only while the photo is showing", () => {
-    assert.match(studioPage, /\{stoneTexture && <span className="pointer-events-none absolute bottom-1 right-2[^"]*" data-testid="text-studio-stone-texture-note">ลายหินตัวอย่างเพื่อการแสดงผล · หน้างานจริงขึ้นกับลายแร่ธรรมชาติ<\/span>\}/);
+  it("shows the sample-texture note over the canvas (bottom left, clear of the joint hint on the right), only while the photo is showing", () => {
+    assert.match(studioPage, /\{stoneTexture && <span className="pointer-events-none absolute bottom-1 left-2[^"]*" data-testid="text-studio-stone-texture-note">ลายหินตัวอย่างเพื่อการแสดงผล · หน้างานจริงขึ้นกับลายแร่ธรรมชาติ<\/span>\}/);
   });
 
   it("styles the note with utility classes only (no stylesheet changes)", () => {
@@ -243,6 +297,5 @@ describe("StudioPage wiring", () => {
   it("leaves the price and export code alone", () => {
     const hook = studioPage.slice(studioPage.indexOf("function useLoadedStoneTexture("), studioPage.indexOf("function stoneSlabViewerImages("));
     assert.doesNotMatch(hook, /studioEstimate|createStudioDxf|downloadStudio|printStudioLayout/);
-    assert.ok(QUOTE_URL.includes("quote"), "fixture sanity");
   });
 });
