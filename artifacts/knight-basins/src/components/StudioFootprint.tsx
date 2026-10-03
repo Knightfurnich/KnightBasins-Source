@@ -13,6 +13,8 @@ import {
 type StudioFootprintProps = {
   piece: StudioPiece;
   stoneTone?: string;
+  /** Photo of the stone laid over the flat tone (job-211). Only the live Studio canvas passes it; print and previews stay flat. */
+  stoneTexture?: string;
   className?: string;
   testId?: string;
   ariaLabel?: string;
@@ -48,9 +50,35 @@ function stoneToneStyle(stoneTone?: string): CSSProperties {
   };
 }
 
-function rectangleStyle(piece: StudioPiece, rectangle: StudioPiece["rectangles"][number], bounds: { widthMm: number; heightMm: number }): CSSProperties {
+/**
+ * What the catalog calls a slab photo is the whole slab photographed on the factory floor: a tall trapezoid of
+ * stone (about 25-70% of the width at mid height), dark concrete either side, a caption along the bottom. Laid
+ * over a sheet with `cover` that would paint the floor and the caption on the plan, so only the stone in the
+ * middle of the photo is shown: enlarged to at least 4x the sheet's width (the middle quarter of the photo) and
+ * enough more for a tall sheet that no more than half of the photo's height is used (its lowest aspect, 1.3, is
+ * the safe case). The visible window then stays inside the stone for every sheet shape the Studio allows.
+ */
+const STONE_TEXTURE_MIN_SCALE_PERCENT = 400;
+const STONE_TEXTURE_MAX_HEIGHT_SHARE = 0.5;
+const SLAB_PHOTO_MIN_ASPECT = 1.3;
+export function stoneTextureScalePercent(widthMm: number, heightMm: number): number {
+  if (!(widthMm > 0) || !(heightMm > 0)) return STONE_TEXTURE_MIN_SCALE_PERCENT;
+  return Math.max(
+    STONE_TEXTURE_MIN_SCALE_PERCENT,
+    Math.ceil((100 * heightMm) / (STONE_TEXTURE_MAX_HEIGHT_SHARE * widthMm * SLAB_PHOTO_MIN_ASPECT)),
+  );
+}
+
+function rectangleStyle(piece: StudioPiece, rectangle: StudioPiece["rectangles"][number], bounds: { widthMm: number; heightMm: number }, stoneTexture?: string): CSSProperties {
   const size = studioRectangleSize(rectangle);
   return {
+    // Inline, so it wins over the stylesheet's speckle gradient while the flat tone stays underneath as the fallback.
+    ...(stoneTexture ? {
+      backgroundImage: `url(${JSON.stringify(stoneTexture)})`,
+      backgroundSize: `${stoneTextureScalePercent(size.widthMm, size.heightMm)}% auto`,
+      backgroundPosition: "50% 50%",
+      backgroundRepeat: "no-repeat",
+    } : {}),
     left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`,
     top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`,
     width: `${(size.widthMm / Math.max(1, bounds.widthMm)) * 100}%`,
@@ -63,6 +91,7 @@ function rectangleStyle(piece: StudioPiece, rectangle: StudioPiece["rectangles"]
 export function StudioFootprint({
   piece,
   stoneTone,
+  stoneTexture,
   className = "",
   testId,
   ariaLabel,
@@ -93,7 +122,7 @@ export function StudioFootprint({
           <div
             key={rectangle.id}
             className={`studio-piece-rectangle ${rectangle.id === highlightRectangleId ? "studio-piece-rectangle--highlight" : ""}`}
-            style={rectangleStyle(piece, rectangle, bounds)}
+            style={rectangleStyle(piece, rectangle, bounds, stoneTexture)}
             aria-label={`${rectangle.widthMm} × ${rectangle.lengthMm} mm`}
           >
             <span className="studio-piece-size">{rectangle.widthMm} × {rectangle.lengthMm}</span>
