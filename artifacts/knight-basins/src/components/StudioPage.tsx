@@ -1520,8 +1520,24 @@ function StudioCustomShapePanel({
         shape: preset === "i" ? "I" : preset === "u" ? "U" : "L",
         pieces: currentPieces.map((piece) => piece.id === currentPiece.id ? builtPiece : piece),
         activePieceId: builtPiece.id,
+        // Changing the counter shape must never drop the customer's basin. The basin
+        // is part of the quotation (cut-out, price, workshop plan), so it is
+        // re-anchored into the rebuilt piece instead of being deleted -- otherwise a
+        // customer who switches from a straight run to an L loses their basin
+        // silently and gets a quotation that is cheaper than the real job. A basin
+        // that no longer fits is kept and flagged by the existing warning path
+        // (placementWarnings / .studio-placement--invalid), never removed here.
         basinPlacements: geometryChanged
-          ? current.basinPlacements.filter((placement) => (placement.pieceId ?? currentPiece.id) !== currentPiece.id)
+          ? current.basinPlacements.map((placement) => {
+            if ((placement.pieceId ?? currentPiece.id) !== currentPiece.id) return placement;
+            const clamped = clampPlacementToSheet(placement, builtPiece, placement.xMm, placement.yMm);
+            const sheetStillExists = builtPiece.rectangles.some((rectangle) => rectangle.id === placement.sheetId);
+            return {
+              ...placement,
+              ...clamped,
+              sheetId: sheetStillExists ? placement.sheetId : builtPiece.rectangles[0]?.id ?? placement.sheetId,
+            };
+          })
           : current.basinPlacements,
       };
     });
