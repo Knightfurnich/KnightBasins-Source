@@ -1,9 +1,11 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Router, type IRouter, type Response } from "express";
+import { clientKey, createRateLimiter } from "../lib/rate-limit";
 
 const DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const STUDIO_DRAFT_RETENTION_MS = 24 * 60 * 60 * 1000;
 
 // Alphanumeric plus "_"/"-" only -- no "/" or "." so a draftKey can never
 // escape the drafts directory, whether it was generated here or supplied by
@@ -12,6 +14,53 @@ const DRAFT_KEY_PATTERN = /^[A-Za-z0-9_-]{1,80}$/;
 
 function draftsDir(): string {
   return path.resolve(process.env["STUDIO_DRAFTS_DIR"] ?? path.resolve(process.cwd(), "uploads/studio_drafts"));
+}
+
+function isMissingPathError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}
+
+export async function cleanupExpiredStudioDrafts(
+  retentionDays = 30,
+): Promise<{ scanned: number; deleted: number }> {
+  if (!Number.isFinite(retentionDays) || retentionDays < 0) {
+    throw new RangeError("retentionDays must be a finite, non-negative number");
+  }
+
+  const directory = draftsDir();
+  let entries;
+  try {
+    entries = await readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    if (isMissingPathError(error)) return { scanned: 0, deleted: 0 };
+    throw error;
+  }
+
+  const cutoff = Date.now() - retentionDays * STUDIO_DRAFT_RETENTION_MS;
+  let scanned = 0;
+  let deleted = 0;
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+
+    const filePath = path.join(directory, entry.name);
+    let fileStats;
+    try {
+      fileStats = await stat(filePath);
+    } catch (error) {
+      if (isMissingPathError(error)) continue;
+      throw error;
+    }
+
+    if (!fileStats.isFile()) continue;
+    scanned += 1;
+    if (fileStats.mtimeMs <= cutoff) {
+      await rm(filePath, { force: true });
+      deleted += 1;
+    }
+  }
+
+  return { scanned, deleted };
 }
 
 /** Returns undefined for any draftKey that fails the charset check or would resolve outside draftsDir(). */
@@ -87,7 +136,22 @@ async function readDraftRecord(filePath: string): Promise<StudioDraftRecord | un
 
 const router: IRouter = Router();
 
-router.post("/studio/draft", async (req, res, next) => {
+const studioDraftCreateRateLimit = createRateLimiter({
+  name: "rl:studio-draft-create",
+  max: 20,
+  windowMs: 15 * 60 * 1000,
+  key: (req) => {
+    // clientKey applies the trusted-proxy checks; strip its User-Agent fingerprint
+    // so changing that header cannot create a new bucket for the same IP.
+    const resolvedKey = clientKey(req);
+    const fingerprintSeparator = resolvedKey.lastIndexOf("#");
+    return fingerprintSeparator === -1
+      ? resolvedKey
+      : resolvedKey.slice(0, fingerprintSeparator);
+  },
+});
+
+router.post("/studio/draft", studioDraftCreateRateLimit, async (req, res, next) => {
   const parsed = parseDraftBody(req.body);
   if (!parsed) return invalid(res, "Invalid studio draft payload");
 
