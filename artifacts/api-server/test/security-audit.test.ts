@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { build } from "esbuild";
 import type { Request, Express } from "express";
+import { createHmac } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createAdminToken } from "../src/middlewares/admin-auth.ts";
 import { clearRateLimitStore, clientKey } from "../src/lib/rate-limit.ts";
+import { LINE_LOCAL_CALLBACK_URL } from "../src/lib/line-config.ts";
 
 type AppModule = { default: Express };
 
@@ -209,6 +211,27 @@ describe("Area 1: admin-login rate limiting", () => {
       await server.close();
     }
   });
+
+  it("FIXED (job-225): rotating the User-Agent no longer bypasses the limiter", async () => {
+    // Before job-225 the bucket key included a hash of the User-Agent, so every one of these
+    // requests got a brand new bucket and none was ever limited. (startApp bundles a fresh copy of the
+    // app, with its own empty rate-limit store, so this starts from zero.)
+    const server = await startApp();
+    try {
+      const statuses: number[] = [];
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const response = await fetch(`${server.url}/api/admin/session`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "user-agent": `rotating-agent-${attempt}` },
+          body: JSON.stringify({ password: "wrong-password" }),
+        });
+        statuses.push(response.status);
+      }
+      assert.deepEqual(statuses, [401, 401, 401, 401, 401, 429, 429, 429], `a new User-Agent per request must not reset the limit, got ${statuses.join(",")}`);
+    } finally {
+      await server.close();
+    }
+  });
 });
 
 describe("Area 1: clientKey() IP resolution (unit)", () => {
@@ -218,8 +241,8 @@ describe("Area 1: clientKey() IP resolution (unit)", () => {
   it("ignores X-Forwarded-For entirely when the socket peer is not the trusted nginx hop", () => {
     const directPublicPeer = fakeRequest({ socket: { remoteAddress: "8.8.8.8" }, headers: { "x-forwarded-for": "1.2.3.4, 5.6.7.8" } });
     const directLoopbackPeer = fakeRequest({ socket: { remoteAddress: "127.0.0.1" }, headers: { "x-forwarded-for": "1.2.3.4" } });
-    assert.ok(clientKey(directPublicPeer).startsWith("8.8.8.8#"), "an untrusted public peer must resolve to its own socket address, not the header");
-    assert.ok(clientKey(directLoopbackPeer).startsWith("127.0.0.1#"), "loopback is never the nginx container, so it must fall back to the socket address too");
+    assert.equal(clientKey(directPublicPeer), "8.8.8.8", "an untrusted public peer must resolve to its own socket address, not the header");
+    assert.equal(clientKey(directLoopbackPeer), "127.0.0.1", "loopback is never the nginx container, so it must fall back to the socket address too");
   });
 
   it("reads the real client from X-Forwarded-For only when the socket peer is nginx's own private-network container", () => {
@@ -229,7 +252,7 @@ describe("Area 1: clientKey() IP resolution (unit)", () => {
       socket: { remoteAddress: "172.20.0.5" },
       headers: { "x-forwarded-for": "203.0.113.9, 172.20.0.5" },
     });
-    assert.ok(clientKey(throughNginx).startsWith("203.0.113.9#"), "must extract the entry nginx itself received, not nginx's own appended IP");
+    assert.equal(clientKey(throughNginx), "203.0.113.9", "must extract the entry nginx itself received, not nginx's own appended IP");
   });
 
   it("a rotating X-Forwarded-For value through the trusted nginx peer cannot change the resolved IP on its own", () => {
@@ -251,10 +274,28 @@ describe("Area 1: clientKey() IP resolution (unit)", () => {
     assert.equal(keys.size, 1, `expected every malformed-header attempt to collapse to one bucket, got ${keys.size}`);
   });
 
-  it("folds a User-Agent fingerprint into the key as a secondary defense-in-depth layer", () => {
+  it("job-225: the User-Agent is not part of the key -- the same IP with different User-Agents shares one bucket", () => {
+    // The key used to carry a hash of the User-Agent, so a caller could get a fresh bucket on every
+    // request by changing that one header. Nothing the caller controls may influence the key.
     const chrome = fakeRequest({ headers: { "user-agent": "Mozilla/5.0 Chrome" } });
     const curl = fakeRequest({ headers: { "user-agent": "curl/8.0" } });
-    assert.notEqual(clientKey(chrome), clientKey(curl), "different User-Agents on the same IP should not silently share a bucket");
+    const none = fakeRequest({});
+    assert.equal(clientKey(chrome), clientKey(curl), "different User-Agents on the same IP must land in the same bucket");
+    assert.equal(clientKey(chrome), clientKey(none), "a missing User-Agent must not change the bucket either");
+    const keys = new Set<string>();
+    for (let i = 0; i < 50; i += 1) keys.add(clientKey(fakeRequest({ headers: { "user-agent": `rotating-agent-${i}` } })));
+    assert.equal(keys.size, 1, `50 rotating User-Agents must collapse to one key, got ${keys.size}`);
+  });
+
+  it("job-225: different real clients behind nginx still get different buckets (the key is not collapsed to the proxy address)", () => {
+    // Guards against "fixing" the User-Agent bypass by keying on the raw socket address: behind nginx
+    // that is always the nginx container, so every visitor would share one bucket.
+    const clientA = fakeRequest({ socket: { remoteAddress: "172.20.0.5" }, headers: { "x-forwarded-for": "203.0.113.9, 172.20.0.5" } });
+    const clientB = fakeRequest({ socket: { remoteAddress: "172.20.0.5" }, headers: { "x-forwarded-for": "203.0.113.10, 172.20.0.5" } });
+    assert.equal(clientKey(clientA), "203.0.113.9");
+    assert.equal(clientKey(clientB), "203.0.113.10");
+    assert.notEqual(clientKey(clientA), clientKey(clientB), "two different real clients must not share a bucket");
+    assert.notEqual(clientKey(clientA), "172.20.0.5", "the key must never be the nginx container's own address");
   });
 });
 
@@ -415,6 +456,139 @@ describe("Area 4: global error handler never leaks internals", () => {
       for (const pattern of leakPatterns) {
         assert.ok(!pattern.test(rawBody), `response body must not match ${pattern} (would indicate a leaked internal detail): ${rawBody}`);
       }
+    } finally {
+      await server.close();
+    }
+  });
+});
+
+// ---- job-225: LINE Login returnTo must stay on this site ------------------
+//
+// returnTo() used to accept anything that started with "/" but not "//", which lets "/\evil.example" through:
+// a browser reads that as "//evil.example" and leaves the site after login. Exercised through the real app
+// (login route -> signed state cookie -> callback redirect), the same way a browser meets it.
+
+const OAUTH_STATE_COOKIE = "knight_line_oauth_state";
+const BACKSLASH = String.fromCharCode(92);
+const TAB = String.fromCharCode(9);
+const NEWLINE = String.fromCharCode(10);
+
+const LINE_ENV_KEYS = ["LINE_CHANNEL_ID", "LINE_CHANNEL_SECRET", "LINE_CALLBACK_URL"] as const;
+const SAVED_LINE_ENV: Record<string, string | undefined> = {};
+
+/** What the login route stores as returnTo in the signed state cookie for a given ?returnTo= query value. */
+async function returnToStoredByLogin(serverUrl: string, rawQuery: string): Promise<string> {
+  const response = await fetch(`${serverUrl}/api/auth/line/login${rawQuery}`, { redirect: "manual" });
+  assert.equal(response.status, 302, "the login route should redirect to LINE");
+  const setCookie = response.headers.getSetCookie().find((cookie) => cookie.startsWith(`${OAUTH_STATE_COOKIE}=`));
+  assert.ok(setCookie, "the login route must set the signed state cookie");
+  const cookieValue = decodeURIComponent(setCookie.split(";")[0]!.slice(OAUTH_STATE_COOKIE.length + 1));
+  const payload = cookieValue.split(".")[0]!;
+  return (JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { returnTo: string }).returnTo;
+}
+
+function signedStateCookie(state: string, returnTo: string) {
+  const payload = Buffer.from(JSON.stringify({ state, returnTo })).toString("base64url");
+  const signature = createHmac("sha256", process.env["SESSION_SECRET"]!).update(payload).digest("hex");
+  return `${OAUTH_STATE_COOKIE}=${encodeURIComponent(`${payload}.${signature}`)}`;
+}
+
+describe("job-225: LINE Login returnTo cannot leave the site", () => {
+  before(() => {
+    for (const key of LINE_ENV_KEYS) SAVED_LINE_ENV[key] = process.env[key];
+    process.env["LINE_CHANNEL_ID"] = "1234567890";
+    process.env["LINE_CHANNEL_SECRET"] = "line-channel-secret-for-tests";
+    process.env["LINE_CALLBACK_URL"] = LINE_LOCAL_CALLBACK_URL;
+  });
+  after(() => {
+    for (const key of LINE_ENV_KEYS) {
+      if (SAVED_LINE_ENV[key] === undefined) delete process.env[key];
+      else process.env[key] = SAVED_LINE_ENV[key];
+    }
+  });
+
+  const dangerous: Array<[string, string]> = [
+    ["backslash after the slash (the reported case)", `/${BACKSLASH}evil.example/path`],
+    ["backslash, short host", `/${BACKSLASH}evil.com`],
+    ["backslash later in the path", `/admin${BACKSLASH}evil.com`],
+    ["protocol-relative", "//evil.com"],
+    ["protocol-relative with a path", "//evil.com/login"],
+    ["percent-encoded backslash (upper case)", "/%5Cevil.com"],
+    ["percent-encoded backslash (lower case)", "/%5cevil.com"],
+    ["tab between the slashes", `/${TAB}/evil.com`],
+    ["newline between the slashes", `/${NEWLINE}/evil.com`],
+    ["absolute URL", "https://evil.com/x"],
+    ["javascript: URL", "javascript:alert(1)"],
+    ["bare host", "evil.com"],
+    ["empty string", ""],
+  ];
+
+  for (const [label, value] of dangerous) {
+    it(`falls back to "/" for ${label}`, async () => {
+      const server = await startApp();
+      try {
+        const stored = await returnToStoredByLogin(server.url, `?returnTo=${encodeURIComponent(value)}`);
+        assert.equal(stored, "/", `${JSON.stringify(value)} must not be accepted as a return target`);
+      } finally {
+        await server.close();
+      }
+    });
+  }
+
+  it('falls back to "/" when returnTo is missing or is not a single string', async () => {
+    const server = await startApp();
+    try {
+      assert.equal(await returnToStoredByLogin(server.url, ""), "/");
+      assert.equal(await returnToStoredByLogin(server.url, "?returnTo[]=%2Fadmin"), "/", "an array value is not a path");
+      assert.equal(await returnToStoredByLogin(server.url, "?returnTo[a]=%2Fadmin"), "/", "an object value is not a path");
+    } finally {
+      await server.close();
+    }
+  });
+
+  const legitimate = [
+    "/",
+    "/admin",
+    "/admin?invite=abc123",
+    "/studio?draft=dft_abc-123",
+    "/quote/view?token=eyJhYg.sig-_",
+    "/portfolio#gallery",
+    "/support?topic=quote&page=2",
+    "/" + encodeURIComponent("สตูดิโอ") + "?x=1",
+  ];
+
+  it("keeps every normal internal path exactly as given", async () => {
+    const server = await startApp();
+    try {
+      for (const value of legitimate) {
+        const decoded = decodeURIComponent(value);
+        const stored = await returnToStoredByLogin(server.url, `?returnTo=${encodeURIComponent(decoded)}`);
+        assert.equal(stored, decoded, `the normal path ${decoded} must keep working`);
+      }
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("the callback re-checks the target: a signed state cookie carrying a backslash path still redirects to /", async () => {
+    // The state cookie is signed but lives for 10 minutes, so one issued before this fix could still hold an
+    // unchecked value. Craft exactly that (we know the test SESSION_SECRET) and take the no-network branch
+    // of the callback (LINE reported an error), which redirects straight to the stored target.
+    const server = await startApp();
+    try {
+      const bad = await fetch(`${server.url}/api/auth/line/callback?state=s1&error=access_denied`, {
+        redirect: "manual",
+        headers: { cookie: signedStateCookie("s1", `/${BACKSLASH}evil.example/path`) },
+      });
+      assert.equal(bad.status, 302);
+      assert.equal(bad.headers.get("location"), "/", "a backslash target in an older cookie must not be followed");
+
+      const good = await fetch(`${server.url}/api/auth/line/callback?state=s2&error=access_denied`, {
+        redirect: "manual",
+        headers: { cookie: signedStateCookie("s2", "/admin?invite=abc123") },
+      });
+      assert.equal(good.status, 302);
+      assert.equal(good.headers.get("location"), "/admin?invite=abc123", "a normal internal path keeps redirecting exactly as before");
     } finally {
       await server.close();
     }

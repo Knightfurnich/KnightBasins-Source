@@ -4,6 +4,15 @@ on:
   push:
     branches: [ main ]
 
+# One deploy at a time. Two pushes to main in quick succession used to run side by side (job-225): both copy into
+# the same /docker/knightbasins directories, both run migrate.sh and both restart the containers, so the older
+# run could finish last and put the older build back. A later push now waits for the running deploy; a run that
+# is already waiting is replaced by the newer one, which is fine because every deploy builds the whole of main.
+# cancel-in-progress stays false so a deploy that has started is never cut off in the middle of a copy or a migration.
+concurrency:
+  group: deploy-hostinger-vps
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest

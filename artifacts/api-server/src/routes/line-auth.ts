@@ -74,8 +74,28 @@ function verifyCookie<T>(value: string | undefined) {
   }
 }
 
+// Only used to ask "does this stay on our own origin?" -- never contacted.
+const RETURN_TO_PROBE_ORIGIN = "http://return-to.invalid";
+
+/**
+ * Where to send the browser once LINE Login is done: a path on this site, or "/".
+ * "Starts with / but not //" is not enough: browsers read "/\evil.example" as
+ * "//evil.example" (a link to another host), so a backslash -- literal or
+ * percent-encoded -- is refused outright. Control characters are refused too
+ * (URL parsers drop tabs and newlines, so "/\t/evil.example" collapses the same way),
+ * and the last check parses the value against a dummy origin to make sure it
+ * really stays on that origin.
+ */
 function returnTo(value: unknown) {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "/";
+  if (typeof value !== "string") return "/";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/";
+  if (value.includes("\\") || /%5c/i.test(value) || /[\u0000-\u001f\u007f]/.test(value)) return "/";
+  try {
+    if (new URL(value, RETURN_TO_PROBE_ORIGIN).origin !== RETURN_TO_PROBE_ORIGIN) return "/";
+  } catch {
+    return "/";
+  }
+  return value;
 }
 
 function adminLoginResult(returnPath: string, result: "not-approved" | "invite-invalid") {
@@ -225,6 +245,8 @@ router.get("/auth/line/login", (req, res) => {
 
 router.get("/auth/line/callback", async (req, res, next) => {
   const stateCookie = verifyCookie<{ state: string; returnTo: string }>(req.cookies?.[STATE_COOKIE]);
+  // The cookie is signed, but it is also valid for 10 minutes: check the target again where it is used.
+  if (stateCookie) stateCookie.returnTo = returnTo(stateCookie.returnTo);
   res.clearCookie(STATE_COOKIE, { path: "/" });
   if (!stateCookie || stateCookie.state !== req.query.state) {
     res.status(400).json({ message: "LINE Login state verification failed" });
