@@ -13,6 +13,9 @@ import {
   CUSTOMER_ROLE_OPTIONS,
   PROPERTY_TYPE_OPTIONS,
   filterBasinProducts,
+  isFreestandingPillarProduct,
+  PILLAR_PRODUCT_LABEL,
+  studioCutoutBasinProducts,
   formatTHB,
   productBySku,
   stoneColorByName,
@@ -488,6 +491,7 @@ type StudioPageProps = {
   mode: Extract<StudioOrderMode, "studio" | "sketch">;
   leadKey: string;
   onSubmitStudio: (submission: StudioSubmission) => Promise<void> | void;
+  onRequestPillarQuote?: (sku: string) => void;
   onContactChange?: (contact: typeof emptyContact) => void;
   contactDefaults?: Partial<typeof emptyContact>;
   initialBasinSkus?: string[];
@@ -536,6 +540,7 @@ function createStudioBasinPlacement(
 }
 
 function addQueryBasinToStudioState(state: StudioState, product: BasinProduct): StudioState {
+  if (isFreestandingPillarProduct(product)) return state;
   const basinSkus = state.basinSkus.includes(product.sku)
     ? state.basinSkus
     : [...state.basinSkus, product.sku];
@@ -588,17 +593,18 @@ function createInitialStudioState(
   requestedBasinSku?: string,
 ): StudioState {
   const piece = makePiece(0);
+  const selectableBasinProducts = mode === "studio" ? studioCutoutBasinProducts(basinProducts) : basinProducts;
   const requestedBasinProduct = requestedBasinSku
-    ? basinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
+    ? selectableBasinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
     : undefined;
   const basinSkus = [...new Set([...initialBasinSkus, ...(requestedBasinProduct ? [requestedBasinProduct.sku] : [])])]
-    .filter((sku) => basinProducts.some((product) => product.sku === sku));
+    .filter((sku) => selectableBasinProducts.some((product) => product.sku === sku));
   const selectedBasinSkus = basinSkus;
   const stoneColors = [...new Set(initialStoneColors)]
     .map((code) => stoneColorByName(code, availableStoneColors).code);
   const selectedStoneColors = stoneColors.length
     ? stoneColors
-    : [studioDefaultStoneCode(selectedBasinSkus, basinProducts, availableStoneColors)];
+    : [studioDefaultStoneCode(selectedBasinSkus, selectableBasinProducts, availableStoneColors)];
   const initialStudioState: StudioState = {
     ...initialState,
     mode,
@@ -1935,6 +1941,7 @@ function placeBasinOnCanvas(
   product: BasinProduct,
   target?: StudioBasinTarget,
 ) {
+  if (isFreestandingPillarProduct(product)) return;
   const pieces = getStudioPieces(state);
   const resolvedTarget = target ?? (pieces[0] && pieces[0].rectangles[0] ? { piece: pieces[0], sheet: pieces[0].rectangles[0] } : undefined);
   if (!resolvedTarget) return;
@@ -2056,6 +2063,8 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
     return { ...current, stoneColors: [...current.stoneColors, code], activeStone: code, stoneSelectionSource: "user" };
   });
   const toggleBasin = (sku: string) => setState((current) => {
+    const product = basinProducts.find((item) => item.sku === sku);
+    if (mode === "studio" && !current.basinSkus.includes(sku) && product && isFreestandingPillarProduct(product)) return current;
     if (current.basinSkus.includes(sku)) {
       const next = removeStudioBasin(current, sku);
       if (current.stoneSelectionSource === "default") {
@@ -2083,7 +2092,7 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
   };
   const replaceBasin = (previousSku: string, nextSku: string) => {
     const product = basinProducts.find((item) => item.sku === nextSku);
-    if (!product) return;
+    if (!product || (mode === "studio" && isFreestandingPillarProduct(product))) return;
     setState((current) => {
       const next = replaceStudioBasin(current, previousSku, product);
       if (current.stoneSelectionSource === "default") {
@@ -2182,7 +2191,7 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
       })}
     </div>}
     <div className="studio-basin-toolbar">
-      <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF029 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
+      <label className="studio-basin-search">ค้นหา SKU หรือสี<input type="search" value={basinQuery} onChange={(event) => setBasinQuery(event.target.value)} placeholder="เช่น KF014 หรือ White" aria-label="ค้นหา SKU หรือสีของอ่าง" data-testid="input-studio-basin-search" /></label>
       <div className="studio-basin-filters" role="tablist" aria-label="กรองประเภทอ่าง">
         {studioBasinFilterOptions.map((option) => <button type="button" role="tab" aria-selected={basinFilter === option.value} className={basinFilter === option.value ? "is-active" : ""} onClick={() => setBasinFilter(option.value)} key={option.value} data-testid={`button-studio-basin-filter-${option.value === "all" ? "all" : option.value === "selected" ? "selected" : option.value === "fits" ? "fits" : option.value === "counter basin" ? "counter" : "tall"}`}>{option.label} {basinFilterCounts.get(option.value) ?? 0}</button>)}
       </div>
@@ -2333,7 +2342,7 @@ function StudioPieceEditorLegacy({
     }
     const sku = event.dataTransfer.getData("application/x-studio-basin");
     const product = productBySku(sku);
-    if (!product || !state.basinSkus.includes(sku)) return;
+    if (!product || isFreestandingPillarProduct(product) || !state.basinSkus.includes(sku)) return;
     const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id);
     const xMm = ((event.clientX - rect.left) / rect.width) * bounds.widthMm - (placement.widthMm ?? 0) / 2;
     const yMm = ((event.clientY - rect.top) / rect.height) * bounds.heightMm - (placement.depthMm ?? 0) / 2;
@@ -2700,7 +2709,7 @@ function StudioPieceEditor({
     }
     const sku = event.dataTransfer.getData("application/x-studio-basin");
     const product = basinProducts.find((item) => item.sku === sku);
-    if (!product || !state.basinSkus.includes(sku)) return;
+    if (!product || isFreestandingPillarProduct(product) || !state.basinSkus.includes(sku)) return;
     const { xMm: dropX, yMm: dropY } = dropPoint(event);
     const sheet = resolveBasinSheet(piece, selectedRectangleId, { xMm: dropX, yMm: dropY });
     if (!sheet) return;
@@ -3688,6 +3697,7 @@ export function StudioPage({
   mode,
   leadKey,
   onSubmitStudio,
+  onRequestPillarQuote,
   onContactChange,
   contactDefaults,
   initialBasinSkus = [],
@@ -3702,6 +3712,13 @@ export function StudioPage({
   const [assembledStudioRoute, setAssembledStudioRoute] = useState<string | null>(null);
   const studioLayoutApplied = mode !== "studio" || assembledStudioRoute === studioRouteKey;
   const studioSearchParams = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
+  const studioBasinProducts = useMemo(
+    () => mode === "studio" ? studioCutoutBasinProducts(basinProducts) : basinProducts,
+    [mode, basinProducts],
+  );
+  const studioInitialBasinSkus = mode === "studio"
+    ? initialBasinSkus.filter((sku) => studioBasinProducts.some((product) => product.sku === sku))
+    : initialBasinSkus;
   const leadIdParam = studioSearchParams.get("leadId");
   const isLeadLinkedMode = leadIdParam !== null;
   const linkedLeadId = leadIdParam?.trim() || null;
@@ -3722,8 +3739,14 @@ export function StudioPage({
     ? linkedDraft.token
     : "";
   const requestedBasinSku = (studioSearchParams.get("basinSku") ?? studioSearchParams.get("basin") ?? "").trim();
-  const requestedBasinProduct = requestedBasinSku
+  const requestedCatalogBasinProduct = requestedBasinSku
     ? basinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
+    : undefined;
+  const requestedPillarProduct = mode === "studio" && requestedCatalogBasinProduct && isFreestandingPillarProduct(requestedCatalogBasinProduct)
+    ? requestedCatalogBasinProduct
+    : undefined;
+  const requestedBasinProduct = requestedBasinSku
+    ? studioBasinProducts.find((product) => product.sku.toLowerCase() === requestedBasinSku.toLowerCase())
     : undefined;
   const requestedStoneCode = (studioSearchParams.get("stoneColor") ?? studioSearchParams.get("stone") ?? "").trim();
   const requestedStoneColor = requestedStoneCode
@@ -3741,7 +3764,7 @@ export function StudioPage({
   const [state, setState, studioHistory] = useUndoableStudioState(() => {
     const initialStudioState = linkedDraft.state ?? createInitialStudioState(
       mode,
-      initialBasinSkus,
+      studioInitialBasinSkus,
       initialStoneColors,
       basinProducts,
       stoneColors,
@@ -3855,11 +3878,11 @@ export function StudioPage({
   };
   useEffect(() => {
     if (mode !== "studio" || !requestedBasinSku) return;
-    const product = basinProducts.find((item) => item.sku.toLowerCase() === requestedBasinSku.toLowerCase());
+    const product = studioBasinProducts.find((item) => item.sku.toLowerCase() === requestedBasinSku.toLowerCase());
     if (!product || appliedQueryBasinSkuRef.current === product.sku) return;
     appliedQueryBasinSkuRef.current = product.sku;
     setState((current) => addQueryBasinToStudioState(current, product));
-  }, [mode, requestedBasinSku, basinProducts, setState]);
+  }, [mode, requestedBasinSku, studioBasinProducts, setState]);
   useEffect(() => () => {
     if (studioShareFeedbackTimeoutRef.current !== null) {
       window.clearTimeout(studioShareFeedbackTimeoutRef.current);
@@ -3945,7 +3968,7 @@ export function StudioPage({
     const pieceId = canvas?.dataset.studioPieceId;
     const product = basinProducts.find((item) => item.sku === sku);
     const piece = getStudioPieces(state).find((item) => item.id === pieceId);
-    if (!canvas || !piece || !product) return false;
+    if (!canvas || !piece || !product || isFreestandingPillarProduct(product)) return false;
     const zoomForPiece = pieceZoom[piece.id] ?? 1;
     const point = zoomAwareCanvasPoint(canvas.getBoundingClientRect(), clientX, clientY, zoomForPiece, pieceBounds(piece));
     const sheet = resolveBasinSheet(piece, selectedRectangleId, point);
@@ -4422,7 +4445,7 @@ export function StudioPage({
     clearStoredStudioDraft();
     setEditingNamedDraftId(null);
     skipNextDraftSave.current = true;
-    setState(createInitialStudioState(mode, initialBasinSkus, initialStoneColors, basinProducts, stoneColors));
+    setState(createInitialStudioState(mode, studioInitialBasinSkus, initialStoneColors, basinProducts, stoneColors));
     setLastSavedAt(null);
     setDraftNotice(null);
     setCatalogNotice(null);
@@ -5312,7 +5335,7 @@ export function StudioPage({
     state,
     setState,
     stoneColors,
-    basinProducts,
+    basinProducts: studioBasinProducts,
     selectedRectangleId,
     selectedPlacementId,
     onCatalogChangeResolved: acknowledgeCatalogChange,
@@ -5445,6 +5468,13 @@ export function StudioPage({
       {linkedLead && <span className="studio-linked-lead-status">{linkedLead.status}</span>}
     </section>}
     <section className="studio-hero"><div><p className="eyebrow accent">ORDER MODE / {mode === "studio" ? "LAYOUT STUDIO" : "HAND SKETCH"}</p><h1>{mode === "studio" ? <>ประกอบแผ่นจริง<br /><em>ให้เห็นภาพก่อนขอราคา</em></> : <>ส่งแบบร่าง<br /><em>ให้ทีมขายช่วยต่อยอด</em></>}</h1><p className="hero-copy">{mode === "studio" ? "เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จัดตำแหน่ง และตั้งสถานะรายด้านได้ตามแบบช่างจริง" : "แนบภาพสเก็ตช์ด้วยมือ พร้อมเลือกวัสดุและรุ่นอ่างที่สนใจ ทีมขายจะตรวจสอบแบบและติดต่อกลับ"}</p></div><div className="studio-hero-mark">{mode === "studio" ? "02" : "03"}</div></section>
+    {requestedPillarProduct && <section className="studio-basin-stale" role="status" aria-live="polite" data-testid="studio-pillar-product-notice">
+      <strong>{PILLAR_PRODUCT_LABEL}</strong>
+      <p>สินค้านี้เป็นชุดเสาสำเร็จรูปตั้งพื้น ไม่ต้องเจาะเคาน์เตอร์ สามารถสั่งซื้อเป็นชุดสำเร็จรูปได้ทันที</p>
+      <button type="button" className="button button--accent" onClick={() => onRequestPillarQuote ? onRequestPillarQuote(requestedPillarProduct.sku) : setLocation("/quote")} data-testid="button-request-pillar-quote">
+        ไปหน้าขอใบเสนอราคา <ArrowRight size={15} />
+      </button>
+    </section>}
     {mode === "studio" && <section className="studio-sketch-bridge-banner" aria-label="ส่งภาพแบบร่างด้วยมือ" data-testid="studio-sketch-bridge-banner">
       <p>✍️ ออกแบบเองไม่ถนัด? ส่งภาพแบบร่างด้วยมือ ให้ทีมงาน Knight Furnich ช่วยต่อยอดแบบและคิดราคาให้ฟรี</p>
       <a className="studio-sketch-bridge-cta" href={sketchBridgeHref} data-testid="link-studio-to-sketch">📤 ส่งภาพแบบร่างมือ <ArrowRight size={16} /></a>
