@@ -16,11 +16,52 @@ export type BasinProduct = {
   videoUrl?: string;
 };
 
+export const PILLAR_PRODUCT_SKUS = ["KF029", "KF030"] as const;
+export const PILLAR_PRODUCT_LABEL = "เสาวางของตั้งพื้น (ชุดสำเร็จรูป)";
+export const PILLAR_PRODUCT_PURCHASE_NOTE = "ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์";
+
+const pillarProductSkuSet = new Set<string>(PILLAR_PRODUCT_SKUS);
+
+export function isFreestandingPillarProduct(
+  product: Pick<BasinProduct, "sku" | "category" | "basinDimensions">,
+): boolean {
+  return pillarProductSkuSet.has(product.sku.toUpperCase())
+    || (product.category === "tall vertical washbasin" && !product.basinDimensions?.trim());
+}
+
+export function studioCutoutBasinProducts(products: ReadonlyArray<BasinProduct>): BasinProduct[] {
+  return products.filter((product) => !isFreestandingPillarProduct(product));
+}
+
+export function productCategoryLabel(product: BasinProduct): string {
+  if (isFreestandingPillarProduct(product)) return PILLAR_PRODUCT_LABEL;
+  return product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง";
+}
+
+export function productSpecLabel(product: BasinProduct): string {
+  if (isFreestandingPillarProduct(product)) return PILLAR_PRODUCT_PURCHASE_NOTE;
+  return product.basinDimensions ? `หลุมอ่าง ${product.basinDimensions}` : "งานทรงสูง";
+}
+
+export function productQuoteDescription(product: BasinProduct): string {
+  if (isFreestandingPillarProduct(product)) {
+    return `${product.colorName} · ${PILLAR_PRODUCT_LABEL} · ${PILLAR_PRODUCT_PURCHASE_NOTE} · ${product.dimensions}`;
+  }
+  return `${product.colorName} · ${product.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น"} · ${product.dimensions}${product.basinDimensions ? ` · หลุม ${product.basinDimensions}` : ""}`;
+}
+
 export type QuoteBasinLine = {
   sku: string;
   quantity: number;
   installationSelected: boolean;
 };
+
+export function addBasinToQuote(lines: ReadonlyArray<QuoteBasinLine>, sku: string): QuoteBasinLine[] {
+  const existing = lines.find((line) => line.sku === sku);
+  return existing
+    ? lines.map((line) => line.sku === sku ? { ...line, quantity: line.quantity + 1 } : line)
+    : [...lines, { sku, quantity: 1, installationSelected: false }];
+}
 
 export type StoneConfig = {
   enabled: boolean;
