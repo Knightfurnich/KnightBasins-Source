@@ -3693,6 +3693,33 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
   return [state, setStateRaw, { undo, redo, canUndo: indexRef.current > 0, canRedo: indexRef.current < historyRef.current.length - 1 }];
 }
 
+export function restrictStudioDiscountForMode(state: StudioState, isLeadLinkedMode: boolean): StudioState {
+  return isLeadLinkedMode || state.discountTHB === 0
+    ? state
+    : { ...state, discountTHB: 0 };
+}
+
+type StudioPricingInputsProps = {
+  state: StudioState;
+  setState: Dispatch<SetStateAction<StudioState>>;
+  isLeadLinkedMode: boolean;
+};
+
+export function StudioPricingInputs({ state, setState, isLeadLinkedMode }: StudioPricingInputsProps) {
+  return <>
+    <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} onBlur={(event) => {
+      if (event.currentTarget.value.trim()) return;
+      setState((current) => current.upstandHeightMm === null || current.upstandHeightMm === undefined
+        ? { ...current, upstandHeightMm: 120 }
+        : current);
+    }} data-testid="input-studio-upstand-height" /></label>
+    {isLeadLinkedMode && <>
+      <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
+      <label data-testid="studio-discount-field">ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
+    </>}
+  </>;
+}
+
 export function StudioPage({
   mode,
   leadKey,
@@ -3761,7 +3788,7 @@ export function StudioPage({
   const requestedStudioDepthMm = Number.isSafeInteger(requestedStudioDepthValue) && requestedStudioDepthValue > 0
     ? requestedStudioDepthValue
     : null;
-  const [state, setState, studioHistory] = useUndoableStudioState(() => {
+  const [state, setStateRaw, studioHistory] = useUndoableStudioState(() => {
     const initialStudioState = linkedDraft.state ?? createInitialStudioState(
       mode,
       studioInitialBasinSkus,
@@ -3784,8 +3811,20 @@ export function StudioPage({
     const withRequestedStudioParameters = mode === "studio"
       ? applyStudioShareParameters(withRequestedBasin, requestedStudioPreset, requestedStudioWidthMm, requestedStudioDepthMm)
       : withRequestedBasin;
-    return normalizeStudioState(withRequestedStudioParameters, basinProducts, stoneColors);
+    return restrictStudioDiscountForMode(
+      normalizeStudioState(withRequestedStudioParameters, basinProducts, stoneColors),
+      isLeadLinkedMode,
+    );
   });
+  const setState = useCallback<Dispatch<SetStateAction<StudioState>>>(
+    (nextState) => {
+      setStateRaw((current) => {
+        const updatedState = typeof nextState === "function" ? nextState(current) : nextState;
+        return restrictStudioDiscountForMode(updatedState, isLeadLinkedMode);
+      });
+    },
+    [isLeadLinkedMode, setStateRaw],
+  );
   const [studioUiMode, setStudioUiMode] = useState<"simple" | "detailed">("simple");
   const isSimpleStudioMode = mode === "studio" && studioUiMode === "simple";
   const [studioShareFeedback, setStudioShareFeedback] = useState<"copied" | "failed" | null>(null);
@@ -5098,14 +5137,7 @@ export function StudioPage({
       </div>
       {mode !== "sketch" && <StudioStoneComparison state={state} setState={setState} stoneColors={stoneColors} />}
       {mode !== "sketch" && <div className="studio-pricing-inputs">
-        <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} onBlur={(event) => {
-          if (event.currentTarget.value.trim()) return;
-          setState((current) => current.upstandHeightMm === null || current.upstandHeightMm === undefined
-            ? { ...current, upstandHeightMm: 120 }
-            : current);
-        }} data-testid="input-studio-upstand-height" /></label>
-        <label>ราคาขอบเปิด / ม.<input type="number" min="0" step="0.01" value={state.openEdgePricePerMTHB ?? ""} onChange={(event) => setState((current) => ({ ...current, openEdgePricePerMTHB: event.target.value.trim() ? numericValue(event.target.value) : null }))} data-testid="input-studio-open-edge-price" /></label>
-        <label data-testid="studio-discount-field">ส่วนลด (บาท)<input type="number" min="0" step="1" value={state.discountTHB ?? 0} onChange={(event) => setState((current) => ({ ...current, discountTHB: numericValue(event.target.value) }))} data-testid="input-studio-discount" /></label>
+        <StudioPricingInputs state={state} setState={setState} isLeadLinkedMode={isLeadLinkedMode} />
       </div>}
       <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
       {missingTaxIdForVat && <p className="studio-warning studio-warning--amber" role="status" data-testid="status-studio-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}
