@@ -13,6 +13,8 @@ import {
   buildSitePrepStructuredData,
   buildStudioGuideStructuredData,
   buildBasinProductsJsonLd,
+  buildBreadcrumbListJsonLd,
+  breadcrumbItemsForPath,
   buildFaqPageJsonLd,
 } from "../src/data/structured-data.ts";
 import { PRODUCTS } from "../src/data/catalog.ts";
@@ -178,5 +180,83 @@ describe("buildFaqPageJsonLd integrity", () => {
 
   it("round-trips through JSON cleanly", () => {
     assert.doesNotThrow(() => JSON.parse(JSON.stringify(buildFaqPageJsonLd())));
+  });
+});
+
+describe("buildBreadcrumbListJsonLd (job-202)", () => {
+  const SITE = "https://knightbasins.srv1964473.hstgr.cloud";
+
+  it("emits a schema.org BreadcrumbList with positioned ListItems and absolute URLs", () => {
+    const data = buildBreadcrumbListJsonLd([
+      { name: "หน้าแรก", path: "/" },
+      { name: "ภาพผลงานติดตั้งจริง", path: "/portfolio" },
+    ]);
+    assert.equal(data["@context"], "https://schema.org");
+    assert.equal(data["@type"], "BreadcrumbList");
+    const list = data.itemListElement as Array<Record<string, unknown>>;
+    assert.deepEqual(list, [
+      { "@type": "ListItem", position: 1, name: "หน้าแรก", item: `${SITE}/` },
+      { "@type": "ListItem", position: 2, name: "ภาพผลงานติดตั้งจริง", item: `${SITE}/portfolio` },
+    ]);
+    assert.doesNotThrow(() => JSON.parse(JSON.stringify(data)));
+  });
+
+  it("has a trail for /stone, /portfolio, /studio and /quote, each starting at the home page", () => {
+    for (const path of ["/stone", "/portfolio", "/studio", "/quote"]) {
+      const trail = breadcrumbItemsForPath(path);
+      assert.ok(trail, `no breadcrumb trail for ${path}`);
+      assert.deepEqual(trail[0], { name: "หน้าแรก", path: "/" });
+      assert.equal(trail.length, 2);
+      assert.equal(trail[1]!.path, path, "the last crumb is the page itself");
+      assert.ok(trail[1]!.name.trim().length > 0);
+    }
+  });
+
+  it("gives no trail to the home page, private pages or unknown paths", () => {
+    for (const path of ["/", "/quote/view", "/profile", "/track", "/admin", "/nope"]) {
+      assert.equal(breadcrumbItemsForPath(path), null, `unexpected trail for ${path}`);
+    }
+  });
+
+  it("is mounted once in App.tsx, through RouteStructuredData, without disturbing the error boundary and banner wrapper", () => {
+    const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+    assert.match(app, /breadcrumbItemsForPath\(location\)\s*&&\s*<RouteStructuredData id="breadcrumbs" data=\{buildBreadcrumbListJsonLd\(breadcrumbItemsForPath\(location\)!\)\}/);
+  });
+});
+
+describe("buildPortfolioStructuredData ImageObject quality (job-202)", () => {
+  const photos = [
+    { id: "kitchen_1", category: "kitchen", categoryName: "งานครัวและไอส์แลนด์", icon: "🍳", url: "/api/uploads/portfolio/kitchen/a.webp", width: 1600, height: 1200, title: "ท็อปครัวหินสังเคราะห์", captionTh: "ท็อปครัวไร้รอยต่อ" },
+    { id: "bath_1", category: "bathroom", categoryName: "งานห้องน้ำ", icon: "🛁", url: "/api/uploads/portfolio/bathroom/b.webp", width: 1200, height: 1600, title: "อ่างล้างหน้า", captionTh: "" },
+  ] as unknown as Parameters<typeof buildPortfolioStructuredData>[2];
+
+  const media = (buildPortfolioStructuredData([{ slug: "kitchen", name: "งานครัวและไอส์แลนด์", icon: "🍳", count: 2 }], 2, photos).associatedMedia) as Array<Record<string, unknown>>;
+
+  it("describes only the photos it was given, one ImageObject each", () => {
+    assert.equal(media.length, photos.length);
+    assert.deepEqual(media.map((node) => node["@id"]), ["https://knightbasins.srv1964473.hstgr.cloud/portfolio#photo-kitchen_1", "https://knightbasins.srv1964473.hstgr.cloud/portfolio#photo-bath_1"]);
+    assert.equal(buildPortfolioStructuredData([], 0).associatedMedia, undefined, "no photos, no ImageObjects");
+  });
+
+  it("adds a description and keywords drawn from the photo's own caption and category", () => {
+    const [kitchen, bath] = media as [Record<string, unknown>, Record<string, unknown>];
+    assert.match(String(kitchen.description), /ท็อปครัวไร้รอยต่อ/);
+    assert.match(String(kitchen.description), /งานครัวและไอส์แลนด์/);
+    assert.match(String(bath.description), /อ่างล้างหน้า/, "falls back to the title when there is no caption");
+    for (const node of media) {
+      const keywords = String(node.keywords).split(", ");
+      assert.ok(keywords.includes(String(node.about)), "the category name is a keyword");
+      assert.ok(keywords.includes("Solid Surface"));
+    }
+  });
+
+  it("keeps the existing fields and claims no licence the site has not granted", () => {
+    for (const node of media) {
+      for (const field of ["contentUrl", "name", "caption", "about", "width", "height", "creator", "creditText"]) {
+        assert.ok(node[field] !== undefined, `ImageObject lost ${field}`);
+      }
+      assert.equal(node.license, undefined);
+      assert.equal(node.acquireLicensePage, undefined);
+    }
   });
 });

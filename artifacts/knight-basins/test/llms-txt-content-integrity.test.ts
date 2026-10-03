@@ -48,3 +48,54 @@ describe("llms-full.txt", () => {
     }
   });
 });
+
+describe("llms.txt / llms-full.txt stay in step with the site (job-202)", () => {
+  const updatesSource = readFileSync(new URL("../src/pages/UpdatesPage.tsx", import.meta.url), "utf8");
+  const latestRelease = updatesSource.match(/version:\s*"(v\d+\.\d+\.\d+)"/)?.[1];
+
+  it("names the latest release from the /updates page and links to it", () => {
+    assert.ok(latestRelease, "could not read the latest version from UpdatesPage.tsx");
+    assert.ok(llmsTxt.includes(latestRelease!), `llms.txt does not mention ${latestRelease}`);
+    assert.ok(llmsFullTxt.includes(`**${latestRelease} (`), `llms-full.txt release log does not start with ${latestRelease}`);
+  });
+
+  it("states the published portfolio count as 183 and no longer rounds it to 180+", () => {
+    assert.match(llmsTxt, /183 ภาพ/);
+    assert.match(llmsFullTxt, /183 ภาพ/);
+    assert.doesNotMatch(llmsTxt, /180\+/);
+    assert.doesNotMatch(llmsFullTxt, /180\+/);
+  });
+
+  for (const [name, text] of [["llms.txt", llmsTxt], ["llms-full.txt", llmsFullTxt]] as const) {
+    it(`${name} has the kitchen tops section with the claims the KB already backs`, () => {
+      assert.match(text, /ท็อปเคาน์เตอร์ครัวหินสังเคราะห์ \(Kitchen Tops \/ Worktops\)/);
+      for (const claim of ["ไร้รอยต่อ", "ปลอดภัยต่ออาหาร", "LC 50", "ไม่บวมน้ำ", "ขัดเคลือบผิวใหม่ได้"]) {
+        assert.ok(text.includes(claim), `${name} lost: ${claim}`);
+      }
+    });
+
+    it(`${name} points to the 2D Studio and the quotation page`, () => {
+      assert.match(text, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/studio\b/);
+      assert.match(text, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/quote\b/);
+    });
+
+    it(`${name} answers the four common AI query intents`, () => {
+      for (const intent of ["ท็อปครัวหินสังเคราะห์ราคาเท่าไหร่", "ร้านสั่งตัดท็อปครัวหินสังเคราะห์"]) {
+        assert.ok(text.includes(intent), `${name} is missing the intent: ${intent}`);
+      }
+      assert.match(text, /เคาน์เตอร์ครัวหินสังเคราะห์ (vs|กับ) ?แกรนิต/);
+      assert.match(text, /ร้านทำท็อปครัว[^\n]*กรุงเทพ[^\n]*ปริมณฑล/);
+    });
+
+    it(`${name} only quotes the three KB stone rates`, () => {
+      const rates = new Set([...text.matchAll(/([\d,]+)\s*บาท\s*\/\s*ตร\.ม\./g)].map((match) => match[1]));
+      assert.deepEqual([...rates].sort(), ["7,500", "8,500", "9,500"]);
+    });
+  }
+
+  it("keeps team members and installers out of the public files", () => {
+    for (const text of [llmsTxt, llmsFullTxt]) {
+      assert.doesNotMatch(text, /เดวิด|คุณนพ|Aunnop|Sengmanee/);
+    }
+  });
+});

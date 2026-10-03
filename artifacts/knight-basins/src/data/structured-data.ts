@@ -66,6 +66,8 @@ export function buildPortfolioStructuredData(
             name: photo.captionTh?.trim() || photo.title,
             caption: photo.captionTh?.trim() || photo.title,
             about: photo.categoryName,
+            description: `${photo.captionTh?.trim() || photo.title} — ผลงานติดตั้งจริงหมวด${photo.categoryName} โดย Knight Furnich`,
+            keywords: [photo.categoryName, "เคาน์เตอร์หินสังเคราะห์", "Solid Surface", "ผลงานติดตั้งจริง", "Knight Furnich"].join(", "),
             width: `${photo.width}px`,
             height: `${photo.height}px`,
             creator: { "@type": "Organization", name: "Knight Furnich" },
@@ -74,6 +76,41 @@ export function buildPortfolioStructuredData(
         }
       : {}),
   };
+}
+
+export type BreadcrumbItem = { name: string; path: string };
+
+/**
+ * Builds a schema.org BreadcrumbList. `path` is a site-relative path ("/" for
+ * the home page); it is made absolute here so every `item` is a full URL, as
+ * Google's breadcrumb rich result requires.
+ */
+export function buildBreadcrumbListJsonLd(items: ReadonlyArray<BreadcrumbItem>): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteImageUrl(item.path),
+    })),
+  };
+}
+
+const HOME_CRUMB: BreadcrumbItem = { name: "หน้าแรก", path: "/" };
+
+/** Breadcrumb trails for the indexed content pages; the home page is the top level of each. */
+const BREADCRUMB_TRAILS: Readonly<Record<string, ReadonlyArray<BreadcrumbItem>>> = {
+  "/stone": [HOME_CRUMB, { name: "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์", path: "/stone" }],
+  "/portfolio": [HOME_CRUMB, { name: "ภาพผลงานติดตั้งจริง", path: "/portfolio" }],
+  "/studio": [HOME_CRUMB, { name: "2D Studio ออกแบบเคาน์เตอร์", path: "/studio" }],
+  "/quote": [HOME_CRUMB, { name: "สร้างใบเสนอราคาออนไลน์", path: "/quote" }],
+};
+
+/** The trail for `pathname`, or null for the home page and any page without one. */
+export function breadcrumbItemsForPath(pathname: string): ReadonlyArray<BreadcrumbItem> | null {
+  return BREADCRUMB_TRAILS[pathname] ?? null;
 }
 
 /**
