@@ -4395,33 +4395,19 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   pointer-events: none;
 }
 
+/* The real top-view photos are transparent PNG cut-outs (job-212): no frame, no clipping box, no solid
+   backdrop. The cut-out's own outline carries the shadow, so it is a drop-shadow on the image itself. */
 .studio-basin-top-view--real {
   display: block;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
-}
-
-.studio-basin-top-view--real.is-round {
-  border-radius: 50%;
-}
-
-.studio-basin-top-view--real.is-rectangular {
-  border-radius: 6px;
+  overflow: visible;
 }
 
 .studio-basin-real-topview-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-}
-
-.studio-basin-real-topview-img.is-round {
-  border-radius: 50%;
-}
-
-.studio-basin-real-topview-img.is-rectangular {
-  border-radius: 6px;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.25));
 }
 
 .studio-basin-top-view.is-round {
