@@ -13,9 +13,11 @@ function sliceBetween(source: string, start: string, end: string) {
   return source.slice(from, to);
 }
 
+// SavedQuotePage now takes the live stone list as a prop (job-210), so match its name, not an empty "()".
+const savedQuoteStart = appSource.indexOf("function SavedQuotePage(");
 const savedQuoteSource = appSource.slice(
-  appSource.indexOf("function SavedQuotePage()"),
-  appSource.indexOf("function ", appSource.indexOf("function SavedQuotePage()") + "function SavedQuotePage()".length),
+  savedQuoteStart,
+  appSource.indexOf("function ", savedQuoteStart + "function SavedQuotePage(".length),
 );
 const submitQuote = sliceBetween(appSource, "const submitQuote = async", "const submitStudio = async");
 const submitStudio = sliceBetween(appSource, "const submitStudio = async", "const initialBasinSkus");

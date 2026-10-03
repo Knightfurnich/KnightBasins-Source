@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
-const savedQuoteStart = appSource.indexOf("function SavedQuotePage()");
-const savedQuoteEnd = appSource.indexOf("function ", savedQuoteStart + "function SavedQuotePage()".length);
+// SavedQuotePage takes the live stone list as a prop since job-210, so match its name rather than an empty "()".
+const savedQuoteStart = appSource.indexOf("function SavedQuotePage(");
+const savedQuoteEnd = appSource.indexOf("function ", savedQuoteStart + "function SavedQuotePage(".length);
 const savedQuoteSource = appSource.slice(savedQuoteStart, savedQuoteEnd);
 const quoteBuilderStart = appSource.indexOf("function QuotePage(");
 const quoteBuilderEnd = appSource.indexOf("function ", quoteBuilderStart + "function QuotePage(".length);
