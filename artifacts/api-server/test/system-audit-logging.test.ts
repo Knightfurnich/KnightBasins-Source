@@ -27,6 +27,7 @@ import {
   scrubAuditText,
 } from "../src/lib/audit-logger.ts";
 import { importTypeScriptModule } from "./route-harness.ts";
+import { quickPurchaseData, withPricingCatalog } from "./price-guard-fixtures.ts";
 
 type AuditRow = Record<string, unknown> & { actorType: string; action: string; status: string; details: Record<string, any> | null };
 type RouteModule<T> = T;
@@ -93,7 +94,7 @@ async function startLeads(database: unknown) {
   const routeModule = await importTypeScriptModule<RouteModule<LeadsModule>>("src/routes/leads.ts");
   const app = express();
   app.use(express.json());
-  app.use("/api", routeModule.createLeadsRouter(database));
+  app.use("/api", routeModule.createLeadsRouter(withPricingCatalog(database as Parameters<typeof withPricingCatalog>[0])));
   app.use((_error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(500).json({ message: "Internal server error" });
   });
@@ -125,7 +126,7 @@ const leadPayload = (overrides: Record<string, unknown> = {}) => ({
   taxId: "0105559012345",
   productSkus: ["KF001"],
   orderMode: "quick-purchase",
-  studioData: { kind: "quick-purchase", total: 60990 },
+  studioData: quickPurchaseData(60990),
   ...overrides,
 });
 

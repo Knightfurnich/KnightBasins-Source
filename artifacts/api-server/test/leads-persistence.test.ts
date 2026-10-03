@@ -7,6 +7,7 @@ import express from "express";
 import os from "node:os";
 import path from "node:path";
 import { importTypeScriptModule } from "./route-harness.ts";
+import { quickPurchaseData, withPricingCatalog } from "./price-guard-fixtures.ts";
 
 type LeadRouteModule = typeof import("../src/routes/leads.ts");
 
@@ -58,7 +59,7 @@ async function startLeadsRoute(database: unknown) {
   const app = express();
   const errors: unknown[] = [];
   app.use(express.json());
-  app.use("/api", routeModule.createLeadsRouter(database as never));
+  app.use("/api", routeModule.createLeadsRouter(withPricingCatalog(database as never) as never));
   app.use((
     error: unknown,
     _req: express.Request,
@@ -131,7 +132,7 @@ describe("lead persistence", () => {
       expectedInstallationDate: "2026-10-15",
       productSkus: ["KF001"],
       orderMode: "quick-purchase",
-      studioData: { kind: "quick-purchase", total: 60990 },
+      studioData: quickPurchaseData(60990),
     };
 
     try {

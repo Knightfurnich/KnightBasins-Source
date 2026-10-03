@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import express from "express";
 import { importTypeScriptModule } from "./route-harness.ts";
+import { quickPurchaseData, withPricingCatalog } from "./price-guard-fixtures.ts";
 import { validateNumericDimensions, verifyAndSanitizeQuoteTotal } from "../src/lib/price-integrity.ts";
 
 type LeadRouteModule = typeof import("../src/routes/leads.ts");
@@ -135,7 +136,7 @@ async function startLeadsRoute(database: unknown) {
   const routeModule = await importTypeScriptModule<LeadRouteModule>("src/routes/leads.ts");
   const app = express();
   app.use(express.json());
-  app.use("/api", routeModule.createLeadsRouter(database as never));
+  app.use("/api", routeModule.createLeadsRouter(withPricingCatalog(database as never) as never));
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
   });
@@ -162,7 +163,7 @@ function basePayload(overrides: Record<string, unknown> = {}) {
     name: "คุณทดสอบ",
     orderMode: "quick-purchase",
     productSkus: ["KF001"],
-    studioData: { kind: "quick-purchase", total: 60990 },
+    studioData: quickPurchaseData(60990),
     ...overrides,
   };
 }
@@ -271,7 +272,7 @@ describe("POST /api/leads price-integrity guard", () => {
       const response = await fetch(`${server.url}/api/leads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(basePayload({ studioData: { kind: "studio", total: 60990, widthMm: 1980, depthMm: 600 } })),
+        body: JSON.stringify(basePayload({ studioData: quickPurchaseData(60990, { kind: "studio", widthMm: 1980, depthMm: 600 }) })),
       });
       assert.equal(response.status, 200);
     } finally {

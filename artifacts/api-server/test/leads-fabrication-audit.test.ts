@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { importTypeScriptModule } from "./route-harness.ts";
+import { quickPurchaseData, withPricingCatalog } from "./price-guard-fixtures.ts";
 import { createAdminToken } from "../src/middlewares/admin-auth.ts";
 
 type LeadRouteModule = typeof import("../src/routes/leads.ts");
@@ -52,7 +53,7 @@ async function startLeadsRoute(database: unknown) {
   const routeModule = await importTypeScriptModule<LeadRouteModule>("src/routes/leads.ts");
   const app = express();
   app.use(express.json());
-  app.use("/api", routeModule.createLeadsRouter(database as never));
+  app.use("/api", routeModule.createLeadsRouter(withPricingCatalog(database as never) as never));
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
   });
@@ -77,9 +78,9 @@ function basePayload(overrides: Record<string, unknown> = {}) {
     status: "quote_requested",
     source: "quote_builder",
     name: "คุณทดสอบ",
-    orderMode: "studio",
+    orderMode: "quick-purchase",
     productSkus: ["KF001"],
-    studioData: { kind: "studio", total: 60990 },
+    studioData: quickPurchaseData(60990, { kind: "studio" }),
     ...overrides,
   };
 }
@@ -116,7 +117,7 @@ describe("POST /api/leads fabrication geometry audit", () => {
       const response = await fetch(`${server.url}/api/leads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(basePayload({ studioData: { kind: "studio", total: 60990, shape: "I", basin: SAFE_BASIN } })),
+        body: JSON.stringify(basePayload({ studioData: quickPurchaseData(60990, { kind: "studio", shape: "I", basin: SAFE_BASIN }) })),
       });
       assert.equal(response.status, 200);
       const body = (await response.json()) as { studioData: Record<string, unknown> };
@@ -134,7 +135,7 @@ describe("POST /api/leads fabrication geometry audit", () => {
       const response = await fetch(`${server.url}/api/leads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(basePayload({ studioData: { kind: "studio", total: 60990, shape: "I", basin: UNSAFE_BASIN } })),
+        body: JSON.stringify(basePayload({ studioData: quickPurchaseData(60990, { kind: "studio", shape: "I", basin: UNSAFE_BASIN }) })),
       });
       assert.equal(response.status, 200, "a fabrication warning must not block the lead from saving");
       const body = (await response.json()) as { studioData: Record<string, unknown> };
@@ -159,7 +160,7 @@ describe("POST /api/leads fabrication geometry audit", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           basePayload({
-            studioData: { kind: "studio", total: 60990, shape: "L", basin: SAFE_BASIN, joints: [{ x: 500, y: 300 }] },
+            studioData: quickPurchaseData(60990, { kind: "studio", shape: "L", basin: SAFE_BASIN, joints: [{ x: 500, y: 300 }] }),
           }),
         ),
       });
@@ -182,7 +183,7 @@ describe("POST /api/leads fabrication geometry audit", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           basePayload({
-            studioData: { kind: "studio", total: 60990, shape: "L", basin: SAFE_BASIN, joints: [{ x: 10, y: 10 }] },
+            studioData: quickPurchaseData(60990, { kind: "studio", shape: "L", basin: SAFE_BASIN, joints: [{ x: 10, y: 10 }] }),
           }),
         ),
       });

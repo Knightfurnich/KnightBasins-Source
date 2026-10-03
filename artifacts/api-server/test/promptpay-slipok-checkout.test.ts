@@ -3,6 +3,7 @@ import { after, afterEach, before, describe, it, mock } from "node:test";
 import express from "express";
 import { amountForPaymentType, generatePromptPayPayload } from "../src/lib/promptpay.ts";
 import { importTypeScriptModule } from "./route-harness.ts";
+import { quickPurchaseData, withPricingCatalog } from "./price-guard-fixtures.ts";
 
 type LeadRouteModule = typeof import("../src/routes/leads.ts");
 type QuoteAccessModule = typeof import("../src/lib/quote-access.ts");
@@ -61,7 +62,7 @@ async function startLeadsRoute(database: unknown) {
   const app = express();
   const errors: unknown[] = [];
   app.use(express.json());
-  app.use("/api", routeModule.createLeadsRouter(database as never));
+  app.use("/api", routeModule.createLeadsRouter(withPricingCatalog(database as never) as never));
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     errors.push(error);
     res.status(500).json({ message: "Internal server error" });
@@ -183,7 +184,7 @@ describe("POST /api/public/quotes/promptpay-qr", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: accessSecret,
       orderMode: "quick-purchase",
-      studioData: { total: 20000 },
+      studioData: quickPurchaseData(20000),
       status: "quoted",
       notes: null,
     });
@@ -219,7 +220,7 @@ describe("POST /api/public/quotes/promptpay-qr", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: accessSecret,
       orderMode: "quick-purchase",
-      studioData: { total: 15000 },
+      studioData: quickPurchaseData(15000),
       status: "quoted",
       notes: null,
     });
@@ -249,7 +250,7 @@ describe("POST /api/public/quotes/promptpay-qr", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: "f".repeat(64),
       orderMode: "quick-purchase",
-      studioData: { total: 15000 },
+      studioData: quickPurchaseData(15000),
       status: "quoted",
       notes: null,
     });
@@ -277,7 +278,7 @@ describe("SlipOK auto-confirm (job-163 Auto-Close)", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: accessSecret,
       orderMode: "quick-purchase",
-      studioData: { total: 20000 },
+      studioData: quickPurchaseData(20000),
       status: "quoted",
       notes: "โน้ตเดิม",
     });
@@ -309,7 +310,7 @@ describe("SlipOK auto-confirm (job-163 Auto-Close)", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: accessSecret,
       orderMode: "quick-purchase",
-      studioData: { total: 20000 },
+      studioData: quickPurchaseData(20000),
       status: "quoted",
       notes: null,
     });
@@ -336,7 +337,7 @@ describe("SlipOK auto-confirm (job-163 Auto-Close)", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: accessSecret,
       orderMode: "quick-purchase",
-      studioData: { total: 20000 },
+      studioData: quickPurchaseData(20000),
       status: "closed",
       notes: null,
     });
@@ -366,7 +367,7 @@ describe("SlipOK auto-confirm (job-163 Auto-Close)", () => {
       quoteNumber: QUOTE_NUMBER,
       quoteAccessSecret: accessSecret,
       orderMode: "quick-purchase",
-      studioData: { total: 20000 },
+      studioData: quickPurchaseData(20000),
       status: "new",
       notes: null,
     });
