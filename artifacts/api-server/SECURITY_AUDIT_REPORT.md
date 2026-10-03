@@ -70,5 +70,34 @@ Run against the full monorepo lockfile on 26 ก.ย. 69. No High/Critical advis
 - **CSRF posture** — the admin session cookie is `httpOnly`, `sameSite: "lax"`, and conditionally `secure`; combined with the strict CORS allow-list in `app.ts:33-58` (only configured origins, no wildcard), cross-site state-changing requests cannot carry the session cookie. Acceptable as-is; an explicit CSRF token would be defense-in-depth but is not required given this posture.
 - **Security headers** — `app.ts:59-69` sets a restrictive CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, and HSTS in production.
 
+## Addendum — v2.0.0 Security Round (3 ต.ค. 69)
+
+รอบตรวจนี้ทำหลังจาก Task 87 หลังจากการทบทวนโค้ดของทีม (ชัย + Replit) และการยิงทดสอบจริงบน production หัวข้อด้านล่างคือช่องโหว่/ข้อบกพร่องที่พบ **หลัง** รายงานฉบับ 26 ก.ย. 69 และสถานะการแก้ไข
+
+| # | Severity | Area | Finding | File:Line | Status |
+|---|----------|------|---------|-----------|--------|
+| 10 | **High** | Rate Limit Bypass | `clientKey()` ผสม hash ของ `User-Agent` เข้าใน bucket key ทำให้ผู้โจมตีสลับ `User-Agent` ต่อคำขอเพื่อได้ bucket ใหม่ไม่จำกัด — ปิดได้ทั้ง admin login brute-force และตัวจำกัด endpoint ที่มีค่าใช้จ่าย (พิสูจน์ด้วย PoC: ยิง 20 ครั้งสลับ UA ไม่ถูกบล็อกเลย) | `lib/rate-limit.ts:84-89` | **`[RESOLVED & VERIFIED]`** — Job 225, PR [#226](https://github.com/Knightfurnich/KnightBasins-Source/pull/226), merge `a440343` |
+| 11 | **Medium** | Open Redirect | `returnTo()` ใน LINE Login เช็คแค่ `startsWith("/") && !startsWith("//")` แต่ไม่ปฏิเสธ backslash — `returnTo=/\evil.example/path` ผ่านการตรวจ และเบราว์เซอร์ตีความเป็น `https://evil.example/path` (ใช้ฟิชชิงหลังผ่าน/ยกเลิก LINE Login) | `routes/line-auth.ts:77-79` | **`[RESOLVED & VERIFIED]`** — Job 225, PR [#226](https://github.com/Knightfurnich/KnightBasins-Source/pull/226) |
+| 12 | **High** | Financial Integrity / Price Tampering | ยอดเงินในใบเสนอราคามาจาก payload ฝั่งลูกค้า และถูกนำไปสร้าง Dynamic PromptPay QR โดยตรง เซิร์ฟเวอร์ตรวจแค่ช่วง 0–50 ล้าน — ยิงดัดแปลงยอด (เช่นสินค้า 19,000 → 100 บาท) แล้วได้ QR ยอดต่ำกว่าจริงได้ นอกจากนี้หน้า Studio ยังเปิดช่องกรอก "ส่วนลด" และ "ราคาขอบเปิด/ม." ให้ลูกค้าทุกคนตั้งเองได้ | `routes/leads.ts`, `lib/price-integrity.ts` | **`[RESOLVED & VERIFIED]`** — Job 226, PR [#231](https://github.com/Knightfurnich/KnightBasins-Source/pull/231) — เซิร์ฟเวอร์คิดราคาใหม่จาก DB ก่อนบันทึกและก่อนออก QR, ลูกค้าสาธารณะได้ส่วนลด 0 และราคาขอบเปิดมาตรฐานเสมอ |
+| 13 | **Medium** | Resource Exhaustion | `POST /api/studio/draft` เปิดสาธารณะ ไม่มี rate limit เฉพาะเส้นทาง และไม่มีตัวกวาดไฟล์หมดอายุอัตโนมัติ (ตรวจอายุเฉพาะตอนมีคนเปิดลิงก์) — สะสมไฟล์จนดิสก์เต็มได้ | `routes/studio-draft.ts` | **`[RESOLVED & VERIFIED]`** — Job 227, PR [#228](https://github.com/Knightfurnich/KnightBasins-Source/pull/228) — จำกัด 20 ครั้ง/15 นาที/ไอพี + ตัวกวาดไฟล์เกิน 30 วัน |
+| 14 | **Medium** | Data Spam / Quote Integrity | `POST /api/leads` ออกเลขที่ใบเสนอราคาและลิงก์ให้ทุกคำขอที่ตั้ง `status: quote_requested` แม้ไม่มีข้อมูลผังเลย — ยิงสร้าง lead ขยะได้ไม่จำกัด | `routes/leads.ts` | **`[RESOLVED & VERIFIED]`** — Job 231, PR [#241](https://github.com/Knightfurnich/KnightBasins-Source/pull/241) — ปฏิเสธ `400 STUDIO_DATA_REQUIRED` ก่อนแตะฐานข้อมูล |
+| 15 | **Low** | Auth / Authorization Gap | เส้นทาง `PATCH /admin/leads/:id` ไม่เคยอัปเดตยอดที่ลูกค้าเห็นเลย ทำให้พนักงานให้ส่วนลดแล้วไม่มีผลจริง (ระบบก่อนหน้านี้ "ยืนยัน" ยอดที่ไม่ตรง) | `routes/admin-router.ts` | **`[RESOLVED & VERIFIED]`** — Job 229, PR [#235](https://github.com/Knightfurnich/KnightBasins-Source/pull/235) — พนักงานที่มีสิทธิ์ `leads:edit` ตั้งส่วนลดได้ ระบบคิดราคาใหม่และเขียนยอดทุกฟิลด์ + audit ครบ |
+| 16 | **Low** | Deployment Race | GitHub Actions deploy รันซ้อนกันได้ (ไม่มี `concurrency`) และ `migrate.sh` ไม่มี lock — merge หลาย PR ติดกันทำให้ runner ทำงานทับกันจริง (พบ 3 รอบใน 3 นาที) | `.github/workflows/deploy.yml` | **`[RESOLVED & VERIFIED]`** — Job 225, PR [#226](https://github.com/Knightfurnich/KnightBasins-Source/pull/226) — เพิ่ม `concurrency: deploy-hostinger-vps` / `cancel-in-progress: false` |
+| 17 | **Low** | Config Drift | คอนเทนเนอร์ API ไม่ได้รับตัวแปรจาก `.env` ที่เพิ่มหลังวันที่สร้างคอนเทนเนอร์ เพราะ `docker restart` ไม่อ่าน `env_file` ใหม่ — ส่งผลให้ API ตอบ `bankName: null` (ตรวจพบบน production จริง) | infra (`docker-compose.yml` + deploy script) | **`[RESOLVED & VERIFIED]`** — recreate คอนเทนเนอร์ + เปลี่ยน `bin/deploy_api.py` เป็น `docker compose up -d --force-recreate` · บันทึกใน `CONTRIBUTING.md` ข้อ 3.1 |
+| 18 | **Info** | Dependency Vulnerabilities | `pnpm audit --prod` = **0 ช่องโหว่** (ยืนยันซ้ำ 3 ต.ค. 69) ส่วน advisory ที่เจอใน devDependencies (brace-expansion, braces, fast-uri, markdown-it) อยู่ใน build tooling ไม่ได้รันบน runtime ของ production | n/a | N/A — ไม่อยู่ในเส้นทาง production |
+| 19 | **Info** | Deploy Chain | Deploy ไม่ได้ผูกกับผล unit tests และใช้ `--no-frozen-lockfile` — ยังคงเป็นเช่นนี้โดยเจตนา; ด่านกันจริงคือ CI Gate ของ `bin/github_pr.py` ที่ตรวจ check-runs ก่อน merge ทุกครั้ง | `.github/workflows/deploy.yml` | ยอมรับความเสี่ยง — คุมด้วย CI Gate แทน |
+
+**การทดสอบจริงบน production รอบนี้ (end-to-end, 3 ต.ค. 69):**
+- ยิง `POST /api/leads` ด้วย payload ที่ดัดแปลงยอด (สินค้าราคาจริง 19,000 บาท แจ้งยอด 100 บาท) → **`400 PRICE_VERIFICATION_FAILED`** และมีแถว audit `quote.price_tamper_detected` (status `warning`) ครบ
+- ยิง payload ที่ถูกต้อง → สร้างใบเสนอราคาสำเร็จ และขอ Dynamic PromptPay QR (มัดจำ 50%) ได้ยอด 9,500 บาทผูกกับเลขภาษีบริษัทถูกต้อง
+- ยิงคำขอใบเสนอราคาโดยไม่มี `studioData` → **`400 STUDIO_DATA_REQUIRED`** ไม่มีแถวและไม่มีเลขที่ออก
+- เปิดหน้า Studio บนเว็บสด → ช่อง `input-studio-discount` และ `input-studio-open-edge-price` ไม่ปรากฏใน DOM ของผู้ใช้สาธารณะ แต่ยังแสดงในโหมดผูก lead
+
+**ยังไม่ครอบคลุม (รับทราบและยังเปิดอยู่):**
+- `studioData` ที่ไม่ว่างแต่ไม่มีข้อมูลจริง (เช่น `{"x":1}`) ยังผ่าน guard ของ Job 231 ได้ — ควรเพิ่มการตรวจโครงสร้าง/มียอดรวมที่คำนวณได้
+- `sketchUrl` ที่เป็นข้อความใดก็ได้ยังผ่าน guard ได้ — ควรตรวจรูปแบบ URL/แหล่งที่มา
+- การตรวจราคาเกิดที่ `POST /leads` และ `promptpay-qr` แล้ว แต่ **ยังใช้ตัวตรวจเดียวกันกับขั้นตอนบันทึกสลิป (`POST /leads/payment-slip`) ไม่ครบทุกจุด**
+- ยังไม่มี `UNIQUE INDEX` บน `customer_leads.quote_number` (พบข้อมูลซ้ำจริงบน production: 2 แถวที่เป็นค่าว่าง `''` และ 2 แถวที่เป็น `Sep 26 OF 1204` — ต้องให้เจ้าของตัดสินใจเรื่องข้อมูลก่อนเพิ่ม index)
+
 ## Evidence Index
 See `artifacts/api-server/test/security-audit.test.ts` (18 tests as of Task 87) for the executable proof behind every finding above plus the final sign-off's end-to-end sanity pass: route-guard coverage (Finding 6), the closed X-Forwarded-For bypass (Finding 1), error-handler sanitization (Finding 8), and dedicated `describe` blocks for `POST /api/sketch/analyze`, `GET /api/places/autocomplete`, `POST /admin/session`, and `GET /admin/ai-cost-center`. Run via `node --experimental-strip-types --test artifacts/api-server/test/security-audit.test.ts`.

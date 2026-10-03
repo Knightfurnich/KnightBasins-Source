@@ -3,6 +3,7 @@ import { UpsertLeadBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { desc, eq, sql } from "drizzle-orm";
+import { randomInt } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
@@ -355,10 +356,51 @@ function dateValue(value: Date | string | null | undefined) {
   return value instanceof Date ? value.toISOString().slice(0, 10) : value;
 }
 
+/**
+ * Quote number: `MMM YY / US / NNNNNN` (6-digit serial).
+ *
+ * The serial used to be `String(now.getTime()).slice(-6)`, which is the epoch
+ * millisecond count modulo 1,000,000 -- i.e. it repeats every 16 minutes and 40
+ * seconds. Two quotations requested in the same position of that cycle shared a
+ * number, and since the public quote token resolves a lead *by* quote number,
+ * the second customer could be served the first customer's quotation. The serial
+ * is a random 6-digit value now, and `createUniqueQuoteNumber` below stills
+ * verifies it against the database before it is used.
+ */
 export function createQuoteNumber(now = new Date()) {
   const month = formatQuoteMonth(now);
-  const serial = String(now.getTime()).slice(-6);
+  const serial = String(randomInt(0, 1_000_000)).padStart(6, "0");
   return `${month} / US / ${serial}`;
+}
+
+/** How many times `createUniqueQuoteNumber` will re-roll a serial that is already taken before giving up. */
+export const QUOTE_NUMBER_ATTEMPTS = 5;
+
+/** Same shape convention as `financial-safety.ts`'s database type: the helper only needs `.select()`. */
+export type QuoteNumberDatabase = {
+  select: (...args: any[]) => any;
+};
+
+/**
+ * A quote number that no row in `customer_leads` uses yet. Collisions are
+ * vanishingly unlikely with a random serial, but the number is the lookup key
+ * for `GET /quotes` and `POST /public/quotes/promptpay-qr`, so a duplicate would
+ * hand one customer another customer's quotation -- it is worth the check.
+ *
+ * Throws when every attempt collides; callers treat that as a 500 rather than
+ * saving a duplicate. `database` is injected so tests can pass a fake.
+ */
+export async function createUniqueQuoteNumber(database: QuoteNumberDatabase = db, now = new Date()) {
+  for (let attempt = 0; attempt < QUOTE_NUMBER_ATTEMPTS; attempt += 1) {
+    const candidate = createQuoteNumber(now);
+    const [clash]: Array<{ id: number }> = await database
+      .select({ id: customerLeads.id })
+      .from(customerLeads)
+      .where(eq(customerLeads.quoteNumber, candidate))
+      .limit(1);
+    if (!clash) return candidate;
+  }
+  throw new Error("Could not allocate a unique quote number");
 }
 
 export function createLeadsRouter(database: typeof db = db): IRouter {
@@ -514,7 +556,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       ? withServerPricing(canonicalStudioData(effectiveOrderMode, studioDataToSave as Record<string, unknown>), pricing.calculatedTotal)
       : studioDataToSave;
 
-    const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? createQuoteNumber() : null);
+    const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? await createUniqueQuoteNumber(database) : null);
     const quoteAccessSecret = quoteNumber
       ? existing?.quoteAccessSecret ?? createQuoteAccessSecret()
       : existing?.quoteAccessSecret ?? null;
