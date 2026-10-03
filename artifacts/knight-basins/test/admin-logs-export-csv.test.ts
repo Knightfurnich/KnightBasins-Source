@@ -18,6 +18,7 @@ function loadExportHelpers() {
   new Function("module", "exports", transpiled)(module, module.exports);
   return module.exports as {
     AUDIT_PAIN_POINT_CSV_HEADERS: string[];
+    escapeAuditCsvField: (value: unknown) => string;
     buildAuditPainPointsCsv: (points: Array<{
       key: string;
       description: string;
@@ -75,6 +76,25 @@ describe("Admin Logs CSV export and category filters", () => {
       count: 3,
       recommendation: "ตรวจสอบ",
     }], 0).endsWith(",0.0%,ตรวจสอบ"), true);
+  });
+
+  it("prefixes formula-like values with a quoted tab so Excel treats them as text", () => {
+    const escape = loadExportHelpers().escapeAuditCsvField;
+
+    for (const [value, expected] of [
+      ["=1+1", "\"\t=1+1\""],
+      ["+SUM(1,1)", "\"\t+SUM(1,1)\""],
+      ["-1+1", "\"\t-1+1\""],
+      ["@SUM(1,1)", "\"\t@SUM(1,1)\""],
+      ["＝SUM(1,1)", "\"\t＝SUM(1,1)\""],
+      ["＋1", "\"\t＋1\""],
+      ["－1", "\"\t－1\""],
+      ["＠SUM(1,1)", "\"\t＠SUM(1,1)\""],
+      [" \t=HYPERLINK(\"https://example.invalid\", \"open\")", "\"\t \t=HYPERLINK(\"\"https://example.invalid\"\", \"\"open\"\")\""],
+    ]) {
+      assert.equal(escape(value), expected);
+    }
+    assert.equal(escape("ธรรมดา"), "ธรรมดา");
   });
 
   it("filters pain points and Action Tracker items by UX, payment, and form categories", () => {
