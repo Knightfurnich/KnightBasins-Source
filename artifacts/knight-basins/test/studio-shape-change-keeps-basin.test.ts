@@ -17,16 +17,29 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-import { buildCustomShapePiece, clampPlacementToSheet, placementFitsStudioPiece } from "../src/data/studio-model.ts";
+import { buildCustomShapePiece, clampPlacementToSheet, placementFitsStudioPiece, reanchorPlacementsToPiece } from "../src/data/studio-model.ts";
+const studioModelSource = readFileSync(new URL("../src/data/studio-model.ts", import.meta.url), "utf8");
 
 const studioPageSource = readFileSync(new URL("../src/components/StudioPage.tsx", import.meta.url), "utf8");
+
+/**
+ * applyCustomShapeToState: job-209 moved the shape-change logic out of StudioPage into the model
+ * so it can be tested as a pure function (see studio-smart-placement.test.ts).
+ */
+function applyCustomShapeToStateBody(): string {
+  const start = studioModelSource.indexOf("export function applyCustomShapeToState(");
+  assert.ok(start >= 0, "applyCustomShapeToState should exist in studio-model.ts");
+  const end = studioModelSource.indexOf("export function placementCrossesPanelJoint", start);
+  assert.ok(end > start);
+  return studioModelSource.slice(start, end);
+}
 
 /** The body of applyCustomShape, from its declaration up to the closing of setState. */
 function applyCustomShapeBody(): string {
   const start = studioPageSource.indexOf("const applyCustomShape = () => {");
   assert.ok(start >= 0, "applyCustomShape should still exist in StudioPage.tsx");
-  const end = studioPageSource.indexOf("onApplied();", start);
-  assert.ok(end > start, "applyCustomShape should still call onApplied()");
+  const end = studioPageSource.indexOf("onApplied({", start);
+  assert.ok(end > start, "applyCustomShape should still call onApplied(...)");
   return studioPageSource.slice(start, end);
 }
 
@@ -45,32 +58,27 @@ describe("studio shape change keeps the basin (job-208)", () => {
     );
   });
 
-  it("re-anchors the placements into the rebuilt piece with the sheet-aware clamp", () => {
-    const body = applyCustomShapeBody();
+  it("re-anchors the placements into the rebuilt piece (job-209: smart re-anchor, not a raw clamp)", () => {
+    const body = applyCustomShapeToStateBody();
     assert.match(
       body,
-      /clampPlacementToSheet\(placement,\s*builtPiece,\s*placement\.xMm,\s*placement\.yMm\)/,
-      "placements must be re-clamped against the rebuilt piece",
+      /reanchorPlacementsToPiece\(current\.basinPlacements,\s*currentPiece,\s*builtPiece\)/,
+      "placements must be re-anchored against the rebuilt piece",
     );
-    assert.match(body, /current\.basinPlacements\.map\(/, "placements must be mapped (kept), not filtered away");
+    assert.doesNotMatch(body, /basinPlacements\.filter\(/, "placements must be kept, not filtered away");
   });
 
-  it("keeps a placement whose sheet id no longer exists by pointing it at the first sheet", () => {
-    const body = applyCustomShapeBody();
-    assert.match(
-      body,
-      /sheetStillExists\s*=\s*builtPiece\.rectangles\.some\(/,
-      "the rebuilt piece's sheet ids must be checked",
+  it("falls back to a sheet of the rebuilt piece when the placement's sheet id no longer exists", () => {
+    const reanchor = studioModelSource.slice(
+      studioModelSource.indexOf("export function reanchorPlacementsToPiece"),
+      studioModelSource.indexOf("export function applyCustomShapeToState"),
     );
-    assert.match(
-      body,
-      /sheetId:\s*sheetStillExists\s*\?\s*placement\.sheetId\s*:\s*builtPiece\.rectangles\[0\]\?\.id/,
-      "a stale sheet id must fall back to the piece's first sheet instead of dropping the basin",
-    );
+    assert.match(reanchor, /sheetId:\s*\(sameIdSheet \?\? firstSheet\)\.id/, "unknown-size basins get a valid sheet id");
+    assert.match(reanchor, /candidates\s*=\s*sameIdSheet/, "known-size basins pick a sheet of the new piece");
   });
 
   it("still updates the counter shape and the active piece", () => {
-    const body = applyCustomShapeBody();
+    const body = applyCustomShapeToStateBody();
     assert.match(body, /shape:\s*preset === "i" \? "I" : preset === "u" \? "U" : "L"/, "shape must still be set from the preset");
     assert.match(body, /activePieceId:\s*builtPiece\.id/, "the rebuilt piece must still become active");
   });
@@ -135,6 +143,18 @@ describe("studio shape change keeps the basin — behaviour (job-208)", () => {
     );
     assert.equal(reanchored.id, "basin-1", "the basin itself must be the same placement, not a new one");
     assert.equal(reanchored.sku, "KF003", "the basin SKU must survive the shape change");
+  });
+
+  it("a basin whose sheet id no longer exists is moved onto a sheet of the rebuilt piece, not dropped", () => {
+    const straight = buildCustomShapePiece("piece-1", "i", PANELS_STRAIGHT as never);
+    const lRight = buildCustomShapePiece("piece-1", "l-right", PANELS_L as never);
+    const stale = { ...basin, sheetId: "a-sheet-that-no-longer-exists" };
+    const result = reanchorPlacementsToPiece([stale as never], straight, lRight);
+    assert.equal(result.placements.length, 1, "the basin must not be dropped");
+    assert.ok(
+      lRight.rectangles.some((rectangle) => rectangle.id === result.placements[0]!.sheetId),
+      "a stale sheet id must be replaced by a sheet of the rebuilt piece",
+    );
   });
 
   it("a basin that cannot fit is still kept (flagged, not deleted)", () => {

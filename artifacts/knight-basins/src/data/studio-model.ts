@@ -1149,6 +1149,206 @@ export function distributeBasinPlacementPositions(
   ];
 }
 
+export type PlacementReanchorNotice = {
+  placementId: string;
+  sku: string;
+  /**
+   * moved: kept and repositioned inside the new shape.
+   * overlap: kept, but still touches another basin.
+   * no-fit: too large for any sheet of the new shape (kept, centred on the best sheet).
+   */
+  kind: "moved" | "overlap" | "no-fit";
+};
+
+const REANCHOR_NOTICE_PRIORITY: Record<PlacementReanchorNotice["kind"], number> = { moved: 1, overlap: 2, "no-fit": 3 };
+
+/**
+ * Carries the basins of `oldPiece` over to `newPiece` after the counter shape was rebuilt.
+ *
+ * - A basin is never dropped, whatever the new shape.
+ * - A basin whose current position is still valid on a sheet of the new piece (inside it,
+ *   with STUDIO_BASIN_SAFETY_MARGIN_MM of clearance) is left exactly where it is. So is a basin
+ *   that already broke the clearance before the change, as long as it still sits inside a sheet.
+ * - Otherwise it keeps its relative position (where its centre sat as a fraction of its old
+ *   sheet) on a sheet that can hold it with the clearance, clamped to that clearance.
+ * - Basins that end up touching on the same sheet are spread evenly along its longer side.
+ * - A basin that met the clearance before but cannot on any sheet of the new shape is kept,
+ *   centred on the roomiest sheet, and reported as "no-fit". Notices only describe what the
+ *   shape change did; a basin that was already out of rule is not reported again.
+ *
+ * Footprints always come from placementCutSize (rotation already applied); width, depth,
+ * rotation, orientation, id and sku are never changed. Placements of other pieces are untouched.
+ */
+export function reanchorPlacementsToPiece(
+  placements: ReadonlyArray<BasinPlacement>,
+  oldPiece: StudioPiece,
+  newPiece: StudioPiece,
+  marginMm: number = STUDIO_BASIN_SAFETY_MARGIN_MM,
+): { placements: BasinPlacement[]; notices: PlacementReanchorNotice[] } {
+  const noticeKinds = new Map<string, PlacementReanchorNotice["kind"]>();
+  const notify = (id: string, kind: PlacementReanchorNotice["kind"]) => {
+    const existing = noticeKinds.get(id);
+    if (!existing || REANCHOR_NOTICE_PRIORITY[kind] > REANCHOR_NOTICE_PRIORITY[existing]) noticeKinds.set(id, kind);
+  };
+  const withPosition = (placement: BasinPlacement, sheet: StudioRectangle, xMm: number, yMm: number): BasinPlacement => {
+    const next: BasinPlacement = { ...placement, sheetId: sheet.id, xMm, yMm };
+    if (placement.offsetXMm === undefined || placement.offsetYMm === undefined) return next;
+    return { ...next, ...calculateBasinOffsets(sheet, next, { xMm, yMm }, placement.anchor ?? "top-left") };
+  };
+  const axisPosition = (start: number, length: number, cutLength: number, centreFraction: number) => {
+    const low = start + marginMm;
+    const high = start + length - cutLength - marginMm;
+    if (high < low) return Math.round(start + (length - cutLength) / 2);
+    return Math.round(Math.min(high, Math.max(low, start + centreFraction * length - cutLength / 2)));
+  };
+  const fitsWithMargin = (rectangle: StudioRectangle, cutWidthMm: number, cutHeightMm: number) => {
+    const size = studioRectangleSize(rectangle);
+    return cutWidthMm + 2 * marginMm <= size.widthMm + STUDIO_EPSILON_MM && cutHeightMm + 2 * marginMm <= size.heightMm + STUDIO_EPSILON_MM;
+  };
+
+  const moved = new Map<string, BasinPlacement>();
+  const hosts = new Map<string, StudioRectangle>();
+  for (const placement of placements) {
+    if ((placement.pieceId ?? oldPiece.id) !== oldPiece.id) continue;
+    const firstSheet = newPiece.rectangles[0];
+    if (!firstSheet) continue;
+    const sameIdSheet = newPiece.rectangles.find((rectangle) => rectangle.id === placement.sheetId);
+    const cut = placementCutSize(placement);
+    if (cut.widthMm === null || cut.heightMm === null) {
+      moved.set(placement.id, { ...placement, sheetId: (sameIdSheet ?? firstSheet).id });
+      continue;
+    }
+    const cutWidthMm = cut.widthMm;
+    const cutHeightMm = cut.heightMm;
+
+    const oldSheet = oldPiece.rectangles.find((rectangle) => rectangle.id === placement.sheetId)
+      ?? placementHostRectangle(oldPiece, placement);
+    const oldCoordinates = oldSheet && placement.offsetXMm !== undefined && placement.offsetYMm !== undefined
+      ? calculateBasinCoordinates(oldSheet, placement)
+      : { xMm: placement.xMm, yMm: placement.yMm };
+
+    // 1. Still fine exactly where it is? Then do not touch it. A basin that already broke the
+    //    clearance rule before the change (e.g. a 500 mm deep cut-out on a 600 mm counter) is also
+    //    left alone while it still sits inside a sheet: the validation message already covers it
+    //    and moving it would not make it compliant.
+    const probe = { ...placement, xMm: oldCoordinates.xMm, yMm: oldCoordinates.yMm };
+    const validBefore = oldPiece.rectangles.some((rectangle) => placementMeetsBasinEdgeClearance(probe, rectangle, marginMm));
+    const stillValidOn = newPiece.rectangles.find((rectangle) => placementFitsRectangle(probe, rectangle)
+      && (!validBefore || placementMeetsBasinEdgeClearance(probe, rectangle, marginMm)));
+    if (stillValidOn) {
+      hosts.set(placement.id, stillValidOn);
+      moved.set(placement.id, withPosition(placement, stillValidOn, oldCoordinates.xMm, oldCoordinates.yMm));
+      continue;
+    }
+
+    // 2. Pick the sheet: its own if it can hold the basin with clearance, else the first that can.
+    const candidates = sameIdSheet
+      ? [sameIdSheet, ...newPiece.rectangles.filter((rectangle) => rectangle !== sameIdSheet)]
+      : newPiece.rectangles;
+    const roomy = candidates.find((rectangle) => fitsWithMargin(rectangle, cutWidthMm, cutHeightMm));
+    const target = roomy ?? candidates.reduce((best, rectangle) => {
+      const bestSize = studioRectangleSize(best);
+      const size = studioRectangleSize(rectangle);
+      const bestSlack = Math.min(bestSize.widthMm - cutWidthMm, bestSize.heightMm - cutHeightMm);
+      return Math.min(size.widthMm - cutWidthMm, size.heightMm - cutHeightMm) > bestSlack ? rectangle : best;
+    }, candidates[0]!);
+
+    // 3. Same relative position (centre as a fraction of the old sheet), kept inside the clearance.
+    const oldSize = oldSheet ? studioRectangleSize(oldSheet) : null;
+    const fraction = (value: number, start: number, length: number | undefined) =>
+      length && length > 0 ? Math.min(1, Math.max(0, (value - start) / length)) : 0.5;
+    const centreX = fraction(oldCoordinates.xMm + cutWidthMm / 2, oldSheet?.xMm ?? 0, oldSize?.widthMm);
+    const centreY = fraction(oldCoordinates.yMm + cutHeightMm / 2, oldSheet?.yMm ?? 0, oldSize?.heightMm);
+    const targetSize = studioRectangleSize(target);
+    const xMm = axisPosition(target.xMm, targetSize.widthMm, cutWidthMm, centreX);
+    const yMm = axisPosition(target.yMm, targetSize.heightMm, cutHeightMm, centreY);
+
+    hosts.set(placement.id, target);
+    moved.set(placement.id, withPosition(placement, target, xMm, yMm));
+    if (!roomy && validBefore) notify(placement.id, "no-fit");
+    else if (target.id !== placement.sheetId || Math.abs(xMm - oldCoordinates.xMm) > 1 || Math.abs(yMm - oldCoordinates.yMm) > 1) notify(placement.id, "moved");
+  }
+
+  // 4. Basins that now touch each other on one sheet are spread evenly along the sheet's longer side.
+  const bySheet = new Map<string, BasinPlacement[]>();
+  for (const [id, placement] of moved) {
+    const host = hosts.get(id);
+    if (!host) continue;
+    bySheet.set(host.id, [...(bySheet.get(host.id) ?? []), placement]);
+  }
+  const touching = (members: BasinPlacement[]) => members.filter((first, index) =>
+    members.some((second, otherIndex) => otherIndex !== index && basinPlacementIntersection(first, second) > 0));
+  for (const [sheetId, members] of bySheet) {
+    if (members.length < 2 || touching(members).length === 0) continue;
+    const sheet = newPiece.rectangles.find((rectangle) => rectangle.id === sheetId)!;
+    const size = studioRectangleSize(sheet);
+    const alongX = size.widthMm >= size.heightMm;
+    const ordered = [...members].sort((first, second) => (alongX ? first.xMm - second.xMm : first.yMm - second.yMm));
+    const spread = ordered.map((placement, index) => {
+      const cut = placementCutSize(placement);
+      const fractionAlong = (index + 1) / (ordered.length + 1);
+      return alongX
+        ? withPosition(placement, sheet, axisPosition(sheet.xMm, size.widthMm, cut.widthMm ?? 0, fractionAlong), placement.yMm)
+        : withPosition(placement, sheet, placement.xMm, axisPosition(sheet.yMm, size.heightMm, cut.heightMm ?? 0, fractionAlong));
+    });
+    for (const placement of spread) {
+      moved.set(placement.id, placement);
+      notify(placement.id, "moved");
+    }
+    for (const placement of touching(spread)) notify(placement.id, "overlap");
+  }
+
+  const bySku = new Map(placements.map((placement) => [placement.id, placement.sku]));
+  return {
+    placements: placements.map((placement) => moved.get(placement.id) ?? placement),
+    notices: [...noticeKinds].map(([placementId, kind]) => ({ placementId, sku: bySku.get(placementId) ?? "", kind })),
+  };
+}
+
+/**
+ * The whole "apply the custom shape" step as one pure function: rebuilds the target piece
+ * from the panels and, when its geometry changed, carries the basins over with
+ * reanchorPlacementsToPiece instead of dropping them.
+ */
+export function applyCustomShapeToState(
+  current: StudioState,
+  targetPieceId: string,
+  preset: StudioPreset,
+  panels: StudioCustomShapePanel[],
+): { state: StudioState; notices: PlacementReanchorNotice[] } {
+  const currentPieces = studioPieces(current);
+  const currentPiece = currentPieces.find((piece) => piece.id === targetPieceId);
+  if (!currentPiece) return { state: current, notices: [] };
+
+  const builtPiece: StudioPiece = {
+    ...buildCustomShapePiece(currentPiece.id, preset, panels),
+    name: currentPiece.name,
+  };
+  const geometryChanged = currentPiece.preset !== preset ||
+    currentPiece.rectangles.length !== builtPiece.rectangles.length ||
+    builtPiece.rectangles.some((rectangle, index) => {
+      const previous = currentPiece.rectangles[index];
+      return !previous ||
+        previous.widthMm !== rectangle.widthMm ||
+        previous.lengthMm !== rectangle.lengthMm ||
+        previous.xMm !== rectangle.xMm ||
+        previous.yMm !== rectangle.yMm ||
+        previous.rotation !== rectangle.rotation;
+    });
+  const reanchored = geometryChanged ? reanchorPlacementsToPiece(current.basinPlacements, currentPiece, builtPiece) : null;
+
+  return {
+    state: {
+      ...current,
+      shape: preset === "i" ? "I" : preset === "u" ? "U" : "L",
+      pieces: currentPieces.map((piece) => piece.id === currentPiece.id ? builtPiece : piece),
+      activePieceId: builtPiece.id,
+      basinPlacements: reanchored ? reanchored.placements : current.basinPlacements,
+    },
+    notices: reanchored?.notices ?? [],
+  };
+}
+
 export function placementCrossesPanelJoint(
   piece: StudioPiece,
   placement: Pick<BasinPlacement, "xMm" | "yMm" | "widthMm" | "depthMm" | "rotation" | "orientation">,
