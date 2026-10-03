@@ -50,7 +50,7 @@ import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumb
 import { formatThaiDate, thaiDateInputValue } from "@/data/date-time";
 import { createStudioShareLink } from "@/data/studio-draft";
 import { StudioPage, type StudioNotificationSnapshot, type StudioSubmission } from "@/components/StudioPage";
-import { pieceBounds, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
+import { pieceBounds, placementCutSize, studioPieces, type StudioEstimate, type StudioOrderMode, type StudioState } from "@/data/studio-model";
 import { downloadStudioDxf, downloadStudioPng, printStudioLayout, studioExportDimensionsValid, studioPrintTitle, STUDIO_PRINT_NOTE } from "@/data/studio-export";
 import { StudioFootprint } from "@/components/StudioFootprint";
 import { BasinVisual } from "@/components/BasinVisual";
@@ -1029,13 +1029,13 @@ function readSavedQuotePayload(value: unknown): SavedQuotePayload | null {
   };
 }
 
-function StudioLayoutSnapshot({ state, quoteNumber }: { state: StudioState; quoteNumber: string }) {
+function StudioLayoutSnapshot({ state, quoteNumber, stoneColors }: { state: StudioState; quoteNumber: string; stoneColors: ReadonlyArray<StoneColor> }) {
   const pieces = studioPieces(state);
   const formatPlacementCoordinate = (value: number) => Math.round(value).toLocaleString("th-TH");
   const exportReady = studioExportDimensionsValid(state);
   const exportFile = async (format: "dxf" | "pdf" | "png") => {
     if (format === "dxf") await downloadStudioDxf(state, quoteNumber || "studio-layout");
-    else if (format === "png") await downloadStudioPng(state, quoteNumber || "studio-layout", stoneColorByName(state.activeStone).tone);
+    else if (format === "png") await downloadStudioPng(state, quoteNumber || "studio-layout", stoneColorByName(state.activeStone, stoneColors).tone);
     else printStudioLayout(studioPrintTitle(quoteNumber || "studio-layout", pieces.length));
   };
   return <section className="studio-saved-layout studio-print-layout" data-testid="saved-studio-layout">
@@ -1044,17 +1044,19 @@ function StudioLayoutSnapshot({ state, quoteNumber }: { state: StudioState; quot
         <span>{pieces.length} ชิ้นงาน · {pieces.reduce((sum, piece) => sum + piece.rectangles.length, 0)} แผ่น</span>
     </div>
     <div className="studio-saved-layout-meta">
-       <span>หินที่ใช้คำนวณ: <strong>{stoneColorByName(state.activeStone).name} ({state.activeStone})</strong></span>
+       <span>หินที่ใช้คำนวณ: <strong>{stoneColorByName(state.activeStone, stoneColors).name} ({state.activeStone})</strong></span>
        <span>{state.backsplash.enabled ? `กันน้ำสูง ${state.backsplash.heightMm} มม.` : "ไม่มีกันน้ำ"}</span>
        <span>{state.location === "bangkok-metro" ? "กรุงเทพฯ / ปริมณฑล" : "ต่างจังหวัด"}</span>
     </div>
     <div className="studio-saved-piece-list">{pieces.map((piece) => {
       const bounds = pieceBounds(piece);
       const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? pieces[0]?.id) === piece.id);
-       return <div className="studio-saved-piece" key={piece.id}><h3>{piece.name}</h3><StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} className="studio-canvas--saved" testId={`saved-studio-canvas-${piece.id}`} ariaLabel={`ผัง ${piece.name} ที่บันทึกไว้`}>
+       return <div className="studio-saved-piece" key={piece.id}><h3>{piece.name}</h3><StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone, stoneColors).tone} className="studio-canvas--saved" testId={`saved-studio-canvas-${piece.id}`} ariaLabel={`ผัง ${piece.name} ที่บันทึกไว้`}>
         {placements.map((placement) => {
           const unknown = placement.widthMm === null || placement.depthMm === null;
-           return <div key={placement.id} className={`studio-placement ${unknown ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : `${formatPlacementCoordinate(placement.xMm)}, ${formatPlacementCoordinate(placement.yMm)} มม.`}</small></div>;
+          // Footprint after the basin's own rotation (placementCutSize), so a turned basin is drawn turned.
+          const cutSize = placementCutSize(placement);
+           return <div key={placement.id} className={`studio-placement ${unknown ? "studio-placement--unknown" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((cutSize.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((cutSize.heightMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : `${formatPlacementCoordinate(placement.xMm)}, ${formatPlacementCoordinate(placement.yMm)} มม.`}</small></div>;
         })}
          {!placements.length && <span className="studio-canvas-empty">ไม่มีตำแหน่งอ่างที่บันทึกไว้</span>}
       </StudioFootprint></div>;
@@ -1128,7 +1130,7 @@ function isExpiredPublicQuoteError(error: unknown): boolean {
   return (candidate.data as { error?: unknown }).error === "quote_expired";
 }
 
-function SavedQuotePage() {
+function SavedQuotePage({ stoneColors }: { stoneColors: ReadonlyArray<StoneColor> }) {
   const [location, setLocation] = useLocation();
   const publicQuoteToken = new URLSearchParams(window.location.search).get("token") ?? "";
   const { data: lead, isLoading, error } = useGetSavedQuote(
@@ -1258,7 +1260,7 @@ function SavedQuotePage() {
     const requestedInstallation = placements.length * INSTALLATION_PRICE;
      if (requestedInstallation > 0) formalItems.push({ code: "INSTALL", description: "ค่าติดตั้ง / ค่าแรงต่อชุด", quantity: placements.length, unit: "ชุด", unitPrice: INSTALLATION_PRICE, total: requestedInstallation, notificationKind: "service" });
      if (estimate.stoneUnitPriceTHB !== null) {
-       const activeStone = stoneColorByName(state.activeStone);
+       const activeStone = stoneColorByName(state.activeStone, stoneColors);
        const materialUnitPrice = activeStone.sheetPriceTHB;
        formalItems.push({
          code: activeStone.code,
@@ -1397,7 +1399,7 @@ function SavedQuotePage() {
         <p className="saved-quote-support-hours"><Clock size={13} /> จันทร์-ศุกร์ 08:00–17:00 · เสาร์ 08:00–12:00</p>
       </div>
     </div>
-    {state && <StudioLayoutSnapshot state={state} quoteNumber={savedQuoteNumber} />}
+    {state && <StudioLayoutSnapshot state={state} quoteNumber={savedQuoteNumber} stoneColors={stoneColors} />}
     <FormalQuote format={format} quoteNumber={savedQuoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={discountAmount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} />
     <div className="source-note">แบบและราคา snapshot จากวันที่สร้างเอกสาร · {lineSummary}</div>
   </div>;
@@ -1489,7 +1491,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     `ประเภทสถานที่: ${customer.propertyType || "-"}${customer.condoFloor ? ` · ชั้น ${customer.condoFloor}` : ""} · วันที่คาดว่าจะติดตั้ง: ${customer.expectedInstallationDate || "-"}`,
     `ใบกำกับภาษี: ${customer.taxName || "-"} · ${customer.taxId || "-"} · ${customer.taxBranch || "-"}`,
     `สินค้า: ${cart.map((line) => `${line.sku} x${line.quantity}`).join(", ") || "-"}`,
-    `หินสังเคราะห์: ${stoneActive ? stones.map((stone) => `${stoneColorByName(stone.color).code} · ${stoneOrderModeLabel(stone.mode)} · ${stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น` : `${stoneAreaSqM(stone).toFixed(2)} m²`}`).join(", ") : "ไม่ได้เลือก"}`,
+    `หินสังเคราะห์: ${stoneActive ? stones.map((stone) => `${stoneColorByName(stone.color, stoneColors).code} · ${stoneOrderModeLabel(stone.mode)} · ${stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น` : `${stoneAreaSqM(stone).toFixed(2)} m²`}`).join(", ") : "ไม่ได้เลือก"}`,
     `ยอดสุทธิประมาณการ: ${formatTHB(total)}`,
     `เอกสารมีอายุ 30 วันนับจากวันที่ออกเอกสาร (${formatDate(expiryDate)})`,
     "ขอให้ทีมงานยืนยันแบบและติดต่อกลับเพื่อสรุปหน้างาน",
@@ -1897,7 +1899,7 @@ function Storefront() {
     else if (mode === "sketch") setLocation("/sketch");
     else setLocation("/");
   };
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}<InstallationShowcase /><TrustBadges /><QuickFAQ /></Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/sketch"><StudioPage mode="sketch" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}<InstallationShowcase /><TrustBadges /><QuickFAQ /></Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/sketch"><StudioPage mode="sketch" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage stoneColors={catalogStoneColors.all} /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {

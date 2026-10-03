@@ -27,7 +27,13 @@ import {
   calculateBasinCoordinates,
   calculateBasinOffsets,
   applyCustomShapeToState,
+  carryCustomShapeDimensions,
   clampPlacementToSheet,
+  fitPlacementOrientationToSheet,
+  isBasinPositionLevel,
+  positionPlacementAtLevel,
+  STUDIO_BASIN_POSITION_LEVELS,
+  type BasinPositionLevel,
   type PlacementReanchorNotice,
   centerBasinPlacementPosition,
   compareStudioCatalog,
@@ -489,13 +495,17 @@ function createStudioBasinPlacement(
   index: number,
   pieceId: string,
   sheetId?: string,
+  sheet?: StudioRectangle,
 ): BasinPlacement {
-  const placement = createBasinPlacement(product, index, pieceId, sheetId);
+  const placement = createBasinPlacement(product, index, pieceId, sheetId ?? sheet?.id);
   // A diameter followed by bowl depth describes a circular plan-view cutout;
   // use the diameter on both axes so its canvas footprint remains circular.
-  return isRoundBasinProduct(product) && placement.widthMm !== null
+  const sized = isRoundBasinProduct(product) && placement.widthMm !== null
     ? { ...placement, depthMm: placement.widthMm }
     : placement;
+  // A cut-out deeper than wide (KF003 350 x 500) starts turned 90 degrees on a sheet too shallow to keep
+  // STUDIO_BASIN_SAFETY_MARGIN_MM at the back and front otherwise. Callers that know the sheet pass it.
+  return sheet ? fitPlacementOrientationToSheet(sized, sheet, STUDIO_BASIN_SAFETY_MARGIN_MM) : sized;
 }
 
 function addQueryBasinToStudioState(state: StudioState, product: BasinProduct): StudioState {
@@ -510,7 +520,7 @@ function addQueryBasinToStudioState(state: StudioState, product: BasinProduct): 
     return basinSkus === state.basinSkus ? state : { ...state, basinSkus };
   }
 
-  const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id);
+  const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id, sheet);
   const sheetSize = studioRectangleSize(sheet);
   const cutSize = placementCutSize(placement);
   const xMm = sheet.xMm + Math.max(0, (sheetSize.widthMm - (cutSize.widthMm ?? 0)) / 2);
@@ -1390,9 +1400,11 @@ function studioCustomShapeDefaults(preset: StudioPreset): StudioCustomShapePanel
 
 function studioCustomShapeDraftsForPiece(piece: StudioPiece, preset: StudioPreset): StudioCustomShapePanelDraft[] {
   const defaults = studioCustomShapeDefaults(preset);
-  if (!piece.hasCustomEdges || piece.preset !== preset || piece.rectangles.length !== defaults.length) return defaults;
+  if (studioCustomShapePresetForPiece(piece) !== preset || piece.rectangles.length !== defaults.length) return defaults;
 
-  return piece.rectangles.map((rectangle) => ({
+  // The sheets' real sizes always come through (the customer may have resized the board with the size
+  // chips without touching an edge); the per-side finishes only when they customised them.
+  return piece.rectangles.map((rectangle, index) => piece.hasCustomEdges ? {
     lengthMm: String(rectangle.widthMm),
     depthMm: String(rectangle.lengthMm),
     edges: {
@@ -1401,7 +1413,11 @@ function studioCustomShapeDraftsForPiece(piece: StudioPiece, preset: StudioPrese
       bottom: piece.sideStatuses[`${rectangle.id}:bottom`] ?? "normal",
       left: piece.sideStatuses[`${rectangle.id}:left`] ?? "normal",
     },
-  }));
+  } : {
+    ...defaults[index]!,
+    lengthMm: String(rectangle.widthMm),
+    depthMm: String(rectangle.lengthMm),
+  });
 }
 
 function studioCustomShapePanelLabel(preset: StudioPreset, index: number) {
@@ -1455,9 +1471,13 @@ function StudioCustomShapePanel({
     () => studioCustomShapeDraftsForPiece(targetPiece, preset),
   );
   const [openEdgeSelector, setOpenEdgeSelector] = useState<string | null>(null);
+  // The last valid length / depth typed for each panel position, kept across shape switches so that
+  // I -> L -> I -> L does not lose a leg's run length either.
+  const rememberedPanels = useRef<Array<{ widthMm: number | null; depthMm: number | null }>>([]);
 
   useEffect(() => {
     const nextPreset = studioCustomShapePresetForPiece(targetPiece);
+    rememberedPanels.current = [];
     setPreset(nextPreset);
     setPanelDrafts(studioCustomShapeDraftsForPiece(targetPiece, nextPreset));
     setOpenEdgeSelector(null);
@@ -1465,8 +1485,30 @@ function StudioCustomShapePanel({
 
   const selectDraftPreset = (nextPreset: StudioPreset) => {
     if (nextPreset === preset) return;
+    const validMm = (value: string) => {
+      const parsed = Number(value);
+      return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+    };
+    panelDrafts.forEach((panel, index) => {
+      const earlier = rememberedPanels.current[index];
+      rememberedPanels.current[index] = {
+        widthMm: validMm(panel.lengthMm) ?? earlier?.widthMm ?? null,
+        depthMm: validMm(panel.depthMm) ?? earlier?.depthMm ?? null,
+      };
+    });
+    // The stock sizes only fill in what was never entered; the main panel keeps its length and depth and
+    // every leg takes the main panel's depth (see carryCustomShapeDimensions).
+    const stock = studioCustomShapeDefaults(nextPreset);
+    const carried = carryCustomShapeDimensions(
+      rememberedPanels.current,
+      stock.map((panel) => ({ widthMm: Number(panel.lengthMm), depthMm: Number(panel.depthMm) })),
+    );
     setPreset(nextPreset);
-    setPanelDrafts(studioCustomShapeDefaults(nextPreset));
+    setPanelDrafts(stock.map((panel, index) => ({
+      ...panel,
+      lengthMm: String(carried[index]?.widthMm ?? panel.lengthMm),
+      depthMm: String(carried[index]?.depthMm ?? panel.depthMm),
+    })));
     setOpenEdgeSelector(null);
   };
 
@@ -1812,7 +1854,9 @@ function placementAtCoordinates(
   yMm: number,
   anchor: BasinAnchor = placement.anchor ?? "top-left",
 ): BasinPlacement {
-  const targeted = { ...placement, pieceId: piece.id, sheetId: sheet.id, anchor };
+  // Moving a basin any way other than the 1-7 picker means it no longer sits at the level that was picked.
+  const { positionLevel: _movedOffItsLevel, ...unsnapped } = placement;
+  const targeted = { ...unsnapped, pieceId: piece.id, sheetId: sheet.id, anchor };
   const clamped = clampPlacementToSheet(targeted, piece, xMm, yMm);
   const offsets = calculateBasinOffsets(sheet, targeted, clamped, anchor);
   return { ...targeted, ...clamped, ...offsets };
@@ -1874,7 +1918,7 @@ function placeBasinOnCanvas(
     const sheet = piece?.rectangles.find((rectangle) => rectangle.id === targetIds.sheetId) ?? piece?.rectangles[0];
     if (!piece || !sheet) return current;
     const sheetSize = studioRectangleSize(sheet);
-    const placement = createStudioBasinPlacement(product, current.basinPlacements.length, piece.id, sheet.id);
+    const placement = createStudioBasinPlacement(product, current.basinPlacements.length, piece.id, sheet.id, sheet);
     const cutSize = placementCutSize(placement);
     const widthMm = cutSize.widthMm ?? 0;
     const heightMm = cutSize.heightMm ?? 0;
@@ -1974,14 +2018,15 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
   const hiddenBasins = basinEntries.filter((entry) => !entry.product);
   const toggleStone = (code: string) => setState((current) => {
     if (current.stoneColors.includes(code)) {
+      // Already on the shortlist but not the one showing: clicking it brings it onto the plan.
+      if (current.activeStone !== code) return { ...current, activeStone: code, stoneSelectionSource: "user" };
       const next = current.stoneColors.filter((item) => item !== code);
-      return { ...current, stoneColors: next, activeStone: current.activeStone === code ? (next[0] ?? "") : current.activeStone, stoneSelectionSource: "user" };
+      return { ...current, stoneColors: next, activeStone: next[0] ?? "", stoneSelectionSource: "user" };
     }
-    // Auto-apply the newly shortlisted color to the canvas/estimate only when
-    // nothing is active yet (first pick, or the active color was just removed).
-    // Adding a second/third color to compare must not steal the active slot
-    // from whichever one the customer is already looking at.
-    return { ...current, stoneColors: [...current.stoneColors, code], activeStone: current.activeStone || code, stoneSelectionSource: "user" };
+    // A colour the customer just clicked is the one they want to see: it becomes the active stone at
+    // once (plan colour, estimate and the "สีที่แสดงบนผัง" label follow), and the previous one stays on the
+    // shortlist for comparison.
+    return { ...current, stoneColors: [...current.stoneColors, code], activeStone: code, stoneSelectionSource: "user" };
   });
   const toggleBasin = (sku: string) => setState((current) => {
     if (current.basinSkus.includes(sku)) {
@@ -2212,6 +2257,7 @@ function StudioPieceEditorLegacy({
   piece,
   state,
   setState,
+  stoneColors,
   zoom,
   selectedPlacementId,
   setSelectedPlacementId,
@@ -2219,6 +2265,7 @@ function StudioPieceEditorLegacy({
   piece: StudioPiece;
   state: StudioState;
   setState: Dispatch<SetStateAction<StudioState>>;
+  stoneColors: ReadonlyArray<StoneColor>;
   zoom: number;
   selectedPlacementId: string | null;
   setSelectedPlacementId: Dispatch<SetStateAction<string | null>>;
@@ -2353,7 +2400,7 @@ function StudioPieceEditorLegacy({
          {placements.length === 2 && <button type="button" className="button button--outline" onClick={distributeBasins} disabled={placements.some((placement) => placement.widthMm === null || placement.depthMm === null)} data-testid="button-distribute-studio-basins">↔️ จัดระยะห่างอ่างเท่ากัน</button>}
        </div>}
      </div>}
-     <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone).tone} zoom={zoom} canvasPieceId={piece.id} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+     <StudioFootprint piece={piece} stoneTone={stoneColorByName(state.activeStone, stoneColors).tone} zoom={zoom} canvasPieceId={piece.id} testId={piece.id === state.pieces?.[0]?.id ? "studio-canvas" : `studio-canvas-${piece.id}`} ariaLabel={`ผังชิ้นงาน ${piece.name}`} onDragOver={(event) => event.preventDefault()} onDrop={drop}>
        {placements.map((placement) => {
         const unknown = placement.widthMm === null || placement.depthMm === null;
          const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
@@ -2622,7 +2669,7 @@ function StudioPieceEditor({
     const { xMm: dropX, yMm: dropY } = dropPoint(event);
     const sheet = resolveBasinSheet(piece, selectedRectangleId, { xMm: dropX, yMm: dropY });
     if (!sheet) return;
-    const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id);
+    const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id, sheet);
     const cutSize = placementCutSize(placement);
     const xMm = dropX - (cutSize.widthMm ?? 0) / 2;
     const yMm = dropY - (cutSize.heightMm ?? 0) / 2;
@@ -2715,8 +2762,14 @@ function StudioPieceEditor({
     if (!sheet) return;
     updatePlacement((placement) => {
       const rotated = rotatePlacement(placement, piece);
-      return placementAtCoordinates(rotated, piece, sheet, rotated.xMm, rotated.yMm, rotated.anchor ?? placement.anchor ?? "top-left");
+      const next = placementAtCoordinates(rotated, piece, sheet, rotated.xMm, rotated.yMm, rotated.anchor ?? placement.anchor ?? "top-left");
+      // The turned basin has another width, so a snapped level is worked out again for it.
+      return isBasinPositionLevel(placement.positionLevel) ? positionPlacementAtLevel(next, piece, placement.positionLevel) : next;
     });
+  };
+  const snapSelectedBasinToLevel = (level: BasinPositionLevel) => {
+    if (!selectedPlacement) return;
+    updatePlacement((placement) => positionPlacementAtLevel(placement, piece, level, STUDIO_BASIN_SAFETY_MARGIN_MM));
   };
   const addRectangle = () => {
     const rectangle = makeRectangle(piece.rectangles.length);
@@ -2793,6 +2846,25 @@ function StudioPieceEditor({
             <label>ระยะ Y (มม.)<input type="number" step="1" value={Math.round(selectedPlacement.offsetYMm ?? 0)} onChange={(event) => changeBasinOffset("y", numericValue(event.target.value))} data-testid={`input-placement-offset-y-${selectedPlacement.id}`} /></label>
           </div>
           <button type="button" className="button button--outline studio-rotate-button" onClick={rotateSelectedBasin} data-testid={`button-rotate-studio-basin-${selectedPlacement.id}`}><RotateCw size={14} /> หมุนอ่าง 90°</button>
+          <div className="mt-2 grid gap-1.5" role="group" aria-label="ตำแหน่งอ่างซ้าย–ขวา 7 ระดับ" data-testid={`group-placement-level-${selectedPlacement.id}`}>
+            <strong className="text-sm">ตำแหน่งอ่าง 7 ระดับ (ซ้าย → ขวา)</strong>
+            <div className="grid grid-cols-7 gap-1">
+              {STUDIO_BASIN_POSITION_LEVELS.map((level) => {
+                const active = selectedPlacement.positionLevel === level;
+                return <button
+                  type="button"
+                  key={level}
+                  className={`rounded-md border px-0 py-2 text-sm font-semibold transition-colors disabled:opacity-50 ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-muted"}`}
+                  aria-pressed={active}
+                  aria-label={`ตำแหน่งระดับ ${level}${level === 1 ? " ชิดซ้ายสุด" : level === 4 ? " กึ่งกลาง" : level === 7 ? " ชิดขวาสุด" : ""}`}
+                  disabled={selectedPlacement.widthMm === null || selectedPlacement.depthMm === null}
+                  onClick={() => snapSelectedBasinToLevel(level)}
+                  data-testid={`button-placement-level-${selectedPlacement.id}-${level}`}
+                >{level}</button>;
+              })}
+            </div>
+            <small className="text-muted-foreground">1 = ชิดซ้าย · 4 = กึ่งกลาง · 7 = ชิดขวา · เว้นขอบแผ่น {STUDIO_BASIN_SAFETY_MARGIN_MM} มม. ทุกระดับ</small>
+          </div>
           <p className="studio-helper">ระยะ X / Y วัดจากขอบของแผ่นเป้าหมายตามจุดยึด · กึ่งกลางรองรับค่าติดลบ · ลากบนผังจะอัปเดตระยะให้อัตโนมัติ</p>
           {placementTargetWarnings(selectedPlacement, getStudioPieces(state)).concat(placementSheetWarnings(selectedPlacement, piece)).map((warning) => <p className="studio-warning" key={warning} data-testid={`status-placement-warning-${selectedPlacement.id}`}><AlertTriangle size={15} /> {warning}</p>)}
         </div>}
@@ -2965,7 +3037,8 @@ function StudioCanvas({
   simpleMode?: boolean;
 }) {
   const pieces = getStudioPieces(state);
-  const activeStoneTone = stoneColorByName(state.activeStone, stoneColors).tone;
+  const activeStoneColor = stoneColorByName(state.activeStone, stoneColors);
+  const activeStoneTone = activeStoneColor.tone;
   const activePieceId = state.activePieceId && pieces.some((p) => p.id === state.activePieceId)
     ? state.activePieceId
     : (pieces[0]?.id ?? "");
@@ -3064,7 +3137,7 @@ function StudioCanvas({
     {(state.stoneColors.length > 0 || state.basinSkus.length > 0) && <div className="studio-canvas-quickbar" aria-label="เข้าถึงสีและอ่างที่เลือกไว้อย่างรวดเร็ว">
       {state.stoneColors.length > 0 && <div className="studio-canvas-quickbar-group">
         <span>สี</span>
-        {state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-quickbar-stone-${code}`}><span className="studio-canvas-quickbar-swatch" style={{ background: stoneColorByName(code).tone }} />{code}</button>)}
+        {state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => setState((current) => ({ ...current, activeStone: code }))} data-testid={`button-studio-quickbar-stone-${code}`}><span className="studio-canvas-quickbar-swatch" style={{ background: stoneColorByName(code, stoneColors).tone }} />{code}</button>)}
       </div>}
       {state.basinSkus.length > 0 && <div className="studio-canvas-quickbar-group">
         <span>อ่าง</span>
@@ -3075,6 +3148,11 @@ function StudioCanvas({
         })}
       </div>}
     </div>}
+
+    {state.activeStone && <p className="mb-2 flex items-center gap-2 text-sm" data-testid="text-studio-active-stone-label">
+      <span className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-border" style={{ background: activeStoneColor.tone }} aria-hidden="true" />
+      <span>สีที่แสดงบนผัง: <strong>{activeStoneColor.name} ({activeStoneColor.code})</strong></span>
+    </p>}
 
     {/* Workpiece Tabs */}
     <div className="studio-piece-tabs-bar">
@@ -3193,14 +3271,14 @@ function StudioCanvas({
   </section>;
 }
 
-function StudioStoneComparison({ state, setState }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>> }) {
+function StudioStoneComparison({ state, setState, stoneColors }: { state: StudioState; setState: Dispatch<SetStateAction<StudioState>>; stoneColors: ReadonlyArray<StoneColor> }) {
   const comparisons = useMemo(() => state.stoneColors.map((code) => {
-    const stone = stoneColorByName(code);
+    const stone = stoneColorByName(code, stoneColors);
     const estimate = studioEstimate({ ...state, activeStone: code }, PRODUCTS);
     const priceLabel = estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : estimate.stoneUnitPriceTHB === null ? "ติดต่อฝ่ายขาย" : formatTHB(estimate.stoneUnitPriceTHB);
     const stoneTotalLabel = estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(estimate.stoneTotalTHB);
     return { code, stone, estimate, priceLabel, stoneTotalLabel };
-  }), [state]);
+  }), [state, stoneColors]);
   return <section className="studio-stone-comparison" data-testid="studio-stone-comparison">
     <div className="studio-stone-comparison-heading"><span>เปรียบเทียบสีหิน</span><small>กดการ์ดเพื่อใช้เป็นสีคำนวณหลัก</small></div>
     <div className="studio-stone-comparison-grid">
@@ -3831,7 +3909,7 @@ export function StudioPage({
     const point = zoomAwareCanvasPoint(canvas.getBoundingClientRect(), clientX, clientY, zoomForPiece, pieceBounds(piece));
     const sheet = resolveBasinSheet(piece, selectedRectangleId, point);
     if (!sheet) return false;
-    const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id);
+    const placement = createStudioBasinPlacement(product, state.basinPlacements.length, piece.id, sheet.id, sheet);
     const cutSize = placementCutSize(placement);
     const xMm = point.xMm - (cutSize.widthMm ?? 0) / 2;
     const yMm = point.yMm - (cutSize.heightMm ?? 0) / 2;
@@ -4954,7 +5032,7 @@ export function StudioPage({
         {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
         {mode !== "sketch" && <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>}
       </div>
-      {mode !== "sketch" && <StudioStoneComparison state={state} setState={setState} />}
+      {mode !== "sketch" && <StudioStoneComparison state={state} setState={setState} stoneColors={stoneColors} />}
       {mode !== "sketch" && <div className="studio-pricing-inputs">
         <label>ความสูงบัว (มม.)<input type="number" min="0" max="500" value={state.upstandHeightMm ?? ""} onChange={(event) => setState((current) => ({ ...current, upstandHeightMm: event.target.value.trim() ? numericValue(event.target.value) : null }))} onBlur={(event) => {
           if (event.currentTarget.value.trim()) return;
