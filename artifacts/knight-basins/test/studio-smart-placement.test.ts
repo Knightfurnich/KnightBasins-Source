@@ -83,6 +83,24 @@ describe("reanchorPlacementsToPiece (job-209)", () => {
     assert.deepEqual(violations(after, result.placements), []);
   });
 
+  it("keeps the exact position when the sheet shrank but the basin is still valid on it (no proportional shuffle)", () => {
+    const before = piece("i", [1800, 700]);
+    const after = piece("l-right", [1000, 700], [1000, 700]);
+    const result = reanchorPlacementsToPiece([basin({ xMm: 300 })], before, after);
+    assert.equal(result.placements[0]!.xMm, 300, "300..650 still sits inside the 1000 wide sheet with the clearance");
+    assert.equal(result.placements[0]!.yMm, 100);
+    assert.deepEqual(result.notices, []);
+  });
+
+  it("measures the clearance from the target sheet's own edges, not from the origin", () => {
+    const before = piece("i", [1800, 700]);
+    const shifted = piece("i", [1000, 700]);
+    const after: StudioPiece = { ...shifted, rectangles: shifted.rectangles.map((rectangle) => ({ ...rectangle, xMm: 500 })) };
+    const result = reanchorPlacementsToPiece([basin({ xMm: 100 })], before, after);
+    assert.equal(result.placements[0]!.xMm, 500 + STUDIO_BASIN_SAFETY_MARGIN_MM, "clamped to the sheet's left clearance");
+    assert.deepEqual(violations(after, result.placements), []);
+  });
+
   it("moves a basin whose sheet shrank to the same relative spot, inside the safety clearance, and says so", () => {
     const before = piece("i", [1800, 700]);
     const after = piece("l-right", [1000, 700], [1000, 700]);
