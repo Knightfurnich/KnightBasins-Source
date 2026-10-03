@@ -20,7 +20,8 @@ jobs:
           shopt -s nullglob
           failed=0
           for file in deploy/hostinger/migrations/*.sql; do
-            if sed -E 's/--.*$//' "$file" | grep -qiE '\b(drop|truncate)\b'; then
+            # no `grep -q`: with pipefail it can end the pipe early and turn a match into a SIGPIPE failure
+            if sed -E 's/--.*$//' "$file" | grep -iE '\b(drop|truncate)\b' > /dev/null; then
               echo "::error file=${file}::migrations must be additive (found DROP or TRUNCATE) - apply destructive changes by hand"
               failed=1
             fi
