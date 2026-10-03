@@ -1889,7 +1889,7 @@ export function studioEstimate(state: StudioState, products: ReadonlyArray<Basin
   const unknownDimensions = unknownBasinPlacements(state);
   const upstandHeightMissing = isNewLayout && (state.upstandHeightMm === null || state.upstandHeightMm === undefined);
   const openEdgePriceMissing = isNewLayout && edgeTotals.openEdgeLengthMm > 0 && openEdgePrice === null;
-  const openEdgePriceInvalid = isNewLayout && openEdgePrice !== null && (!Number.isFinite(openEdgePrice) || openEdgePrice < 0 || Math.round(openEdgePrice * 100) !== openEdgePrice);
+  const openEdgePriceInvalid = isNewLayout && openEdgePrice !== null && (!Number.isFinite(openEdgePrice) || openEdgePrice < 0 || Math.round(openEdgePrice * 100) / 100 !== openEdgePrice);
   const sheetWarning = isNewLayout
     ? rectangles.some((rectangle) => Math.min(rectangle.widthMm, rectangle.lengthMm) > 760 || Math.max(rectangle.widthMm, rectangle.lengthMm) > 3680)
     : standardSheetWarning(state.shape, state.dimensions);
