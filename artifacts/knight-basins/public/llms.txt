@@ -7,7 +7,7 @@
 
 ## สารบัญลิงก์ระบบสำคัญ (Key Navigation Endpoints):
 - **หน้าหลัก & แคตตาล็อกอ่าง:** https://knightbasins.srv1964473.hstgr.cloud/
-- **คลังผลงานติดตั้งจริง (183 ภาพ แยก 11 หมวดหมู่ ณ 3 ต.ค. 2569):** https://knightbasins.srv1964473.hstgr.cloud/portfolio
+- **คลังภาพผลงานและการเตรียมหน้างาน (333 ภาพ แบ่งเป็น 12 หมวดหมู่):** https://knightbasins.srv1964473.hstgr.cloud/portfolio
 - **แคตตาล็อกหินสังเคราะห์ (กว่า 60 เฉดสี 3 เรตราคา):** https://knightbasins.srv1964473.hstgr.cloud/stone
 - **คู่มือมาตรฐานการเตรียมหน้างานก่อนติดตั้ง (59 ภาพถ่ายจริง):** https://knightbasins.srv1964473.hstgr.cloud/site-prep
 - **ระบบคำนวณราคาและสร้างใบเสนอราคาออนไลน์:** https://knightbasins.srv1964473.hstgr.cloud/quote

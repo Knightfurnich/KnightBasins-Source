@@ -16,6 +16,16 @@ import { KNIGHT_FAQ_ITEMS } from "../src/data/faq-data.ts";
 const llmsTxt = readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8");
 const llmsFullTxt = readFileSync(new URL("../public/llms-full.txt", import.meta.url), "utf8");
 
+const indexHtml = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const EXPECTED_PUBLIC_PORTFOLIO_IMAGE_COUNT = 333;
+const PORTFOLIO_FAQ_QUESTION = "มีผลงานติดตั้งจริงให้ดูไหม?";
+
+function extractPublicImageCount(text: string, label: string): number {
+  const match = text.match(/(\d+)\s*ภาพ/);
+  assert.ok(match, label + " must state the public portfolio image count");
+  return Number(match[1]);
+}
+
 describe("llms.txt", () => {
   it("lists the /updates release log in the navigation", () => {
     assert.match(llmsTxt, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/updates/);
@@ -59,11 +69,58 @@ describe("llms.txt / llms-full.txt stay in step with the site (job-202)", () => 
     assert.ok(llmsFullTxt.includes(`**${latestRelease} (`), `llms-full.txt release log does not start with ${latestRelease}`);
   });
 
-  it("states the published portfolio count as 183 and no longer rounds it to 180+", () => {
-    assert.match(llmsTxt, /183 ภาพ/);
-    assert.match(llmsFullTxt, /183 ภาพ/);
-    assert.doesNotMatch(llmsTxt, /180\+/);
-    assert.doesNotMatch(llmsFullTxt, /180\+/);
+  it("keeps the verified public image count consistent across FAQ data, homepage JSON-LD, and crawler files", () => {
+    const portfolioFaq = KNIGHT_FAQ_ITEMS.find((item) => item.question === PORTFOLIO_FAQ_QUESTION);
+    assert.ok(portfolioFaq, "portfolio FAQ must exist in faq-data.ts");
+
+    const marker = "<script type=\"application/ld+json\">";
+    const scriptStart = indexHtml.indexOf(marker);
+    assert.ok(scriptStart >= 0, "index.html must contain JSON-LD");
+    const jsonStart = indexHtml.indexOf(">", scriptStart) + 1;
+    const jsonEnd = indexHtml.indexOf("</script>", jsonStart);
+    assert.ok(jsonEnd > jsonStart, "index.html JSON-LD block must close");
+    const root = JSON.parse(indexHtml.slice(jsonStart, jsonEnd));
+    const graph = Array.isArray(root["@graph"]) ? root["@graph"] : [root];
+    const navigation = graph.find((node: Record<string, unknown>) => node["@type"] === "SiteNavigationElement");
+    const navigationLabel = (navigation?.name as string[] | undefined)?.find((name) => name.includes("ภาพ"));
+    assert.ok(navigationLabel, "index.html navigation must state the portfolio image count");
+    const faqPage = graph.find((node: Record<string, unknown>) => node["@type"] === "FAQPage");
+    const pageFaq = (faqPage?.mainEntity as Array<Record<string, unknown>> | undefined)?.find((item) => item.name === PORTFOLIO_FAQ_QUESTION);
+    const pageAnswer = (pageFaq?.acceptedAnswer as Record<string, unknown> | undefined)?.text;
+    assert.equal(typeof pageAnswer, "string", "index.html FAQPage must state the portfolio image count");
+
+    const llmsPortfolioLine = llmsTxt.split(/\r?\n/).find((line) => line.includes("/portfolio") && line.includes("ภาพ"));
+    assert.ok(llmsPortfolioLine, "llms.txt must state the portfolio image count");
+    const portfolioStart = llmsFullTxt.indexOf("## 7.");
+    const portfolioEnd = llmsFullTxt.indexOf("\n## 8.", portfolioStart);
+    assert.ok(portfolioStart >= 0 && portfolioEnd > portfolioStart, "llms-full.txt must contain the portfolio section");
+    const portfolioSection = llmsFullTxt.slice(portfolioStart, portfolioEnd);
+    const llmsFullCountLine = portfolioSection.split(/\r?\n/).find((line) => line.includes("คัดสรรแล้ว") && line.includes("ภาพ"));
+    assert.ok(llmsFullCountLine, "llms-full.txt portfolio section must state the image count");
+
+    const counts = {
+      faqData: extractPublicImageCount(portfolioFaq.answer, "faq-data.ts"),
+      homepageNavigation: extractPublicImageCount(navigationLabel, "index.html navigation"),
+      homepageFaq: extractPublicImageCount(String(pageAnswer), "index.html FAQPage"),
+      llmsTxt: extractPublicImageCount(llmsPortfolioLine, "llms.txt"),
+      llmsFull: extractPublicImageCount(llmsFullCountLine, "llms-full.txt"),
+    };
+    assert.deepEqual(counts, {
+      faqData: EXPECTED_PUBLIC_PORTFOLIO_IMAGE_COUNT,
+      homepageNavigation: EXPECTED_PUBLIC_PORTFOLIO_IMAGE_COUNT,
+      homepageFaq: EXPECTED_PUBLIC_PORTFOLIO_IMAGE_COUNT,
+      llmsTxt: EXPECTED_PUBLIC_PORTFOLIO_IMAGE_COUNT,
+      llmsFull: EXPECTED_PUBLIC_PORTFOLIO_IMAGE_COUNT,
+    });
+    for (const [label, text] of [
+      ["faq-data.ts", portfolioFaq.answer],
+      ["index.html navigation", navigationLabel],
+      ["index.html FAQPage", String(pageAnswer)],
+      ["llms.txt", llmsPortfolioLine],
+      ["llms-full.txt", llmsFullCountLine],
+    ] as const) {
+      assert.doesNotMatch(text, /(?:180\+|180|183)\s*ภาพ/, label + " must not retain a previous count");
+    }
   });
 
   for (const [name, text] of [["llms.txt", llmsTxt], ["llms-full.txt", llmsFullTxt]] as const) {
