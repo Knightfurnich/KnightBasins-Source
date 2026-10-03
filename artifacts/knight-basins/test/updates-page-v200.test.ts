@@ -18,10 +18,22 @@ function releaseBlock(version: string, nextVersion: string): string {
   )?.[0] ?? "";
 }
 
-describe("the newest release entry (v2.2.0)", () => {
-  it("is first in the timeline, ahead of v2.1.0 and v2.0.0", () => {
+describe("the newest release entry (v2.2.1)", () => {
+  it("is first in the timeline, ahead of v2.2.0, v2.1.0 and v2.0.0", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(versions.slice(0, 3), ["v2.2.0", "v2.1.0", "v2.0.0"]);
+    assert.deepEqual(versions.slice(0, 4), ["v2.2.1", "v2.2.0", "v2.1.0", "v2.0.0"]);
+  });
+
+  it("is the only entry badged as the latest release", () => {
+    const latestBadges = updatesSource.match(/— รุ่นล่าสุด/g) ?? [];
+    assert.equal(latestBadges.length, 1, `expected exactly one "รุ่นล่าสุด" badge, found ${latestBadges.length}`);
+    assert.match(updatesSource, /version: "v2\.2\.1",\s*badge: "[^"]+— รุ่นล่าสุด"/);
+  });
+});
+describe("the v2.2.0 release entry", () => {
+  it("remains directly below v2.2.1 and ahead of v2.1.0", () => {
+    const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
+    assert.deepEqual(versions.slice(0, 4), ["v2.2.1", "v2.2.0", "v2.1.0", "v2.0.0"]);
   });
 
   it("records the sequential numbering and support-safety highlights", () => {
@@ -45,16 +57,12 @@ describe("the newest release entry (v2.2.0)", () => {
     assert.ok(block.includes("จำกัดความพยายามค้นหาที่ผิดพลาด"));
   });
 
-  it("is the only entry badged as the latest release", () => {
-    const latestBadges = updatesSource.match(/— รุ่นล่าสุด/g) ?? [];
-    assert.equal(latestBadges.length, 1, `expected exactly one "รุ่นล่าสุด" badge, found ${latestBadges.length}`);
-    assert.match(updatesSource, /version: "v2\.2\.0",\s*badge: "[^"]+— รุ่นล่าสุด"/);
-  });
+
 });
 describe("the v2.1.0 release entry", () => {
   it("remains directly below v2.2.0 and ahead of v2.0.0", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(versions.slice(0, 3), ["v2.2.0", "v2.1.0", "v2.0.0"]);
+    assert.deepEqual(versions.slice(1, 4), ["v2.2.0", "v2.1.0", "v2.0.0"]);
   });
 
   it("records the required highlights", () => {

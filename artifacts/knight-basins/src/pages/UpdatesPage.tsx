@@ -9,8 +9,22 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 
 export const UPDATE_RELEASES = [
   {
+    version: "v2.2.1",
+    badge: "Hotfix & Infrastructure Hardening — รุ่นล่าสุด",
+    date: "4 ตุลาคม 2569",
+    dateTime: "2026-10-04",
+    title: "Release v2.2.1 — คืนค่า quoteTotalTHB ใน Support Chat และระบบ CI Typecheck",
+    highlights: [
+      {
+        icon: "🛠️",
+        title: "Support Chat Hotfix & CI Typecheck",
+        description: "คืนค่าการทำงานของน้องไนท์สำหรับลูกค้าที่มีใบเสนอราคาเปิดอยู่, เพิ่มขั้นตอน typecheck ใน CI ป้องกัน TypeScript ReferenceError, และปรับปรุงไปป์ไลน์ Deploy บน VPS ให้ใช้ force-recreate อัตโนมัติ",
+      },
+    ],
+  },
+  {
     version: "v2.2.0",
-    badge: "Sequential Quote Numbers & Support Security — รุ่นล่าสุด",
+    badge: "Sequential Quote Numbers & Support Security",
     date: "3 ตุลาคม 2569",
     dateTime: "2026-10-03",
     title: "Release v2.2.0 — เลขที่ใบเสนอราคา QT-YYYYMM-TYPE-NNNN และการจำกัดความพยายามค้นหาที่ผิดพลาด",
