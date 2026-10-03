@@ -94,7 +94,7 @@ import {
   UPLOAD_DIR,
   UploadFileCollisionError,
 } from "../lib/image-upload";
-import { auditStudioFabrication, createQuoteNumber, quoteTotalTHB } from "./leads";
+import { auditStudioFabrication, createUniqueQuoteNumber, quoteTotalTHB } from "./leads";
 import { repriceStudioQuoteAsStaff, staffLeversFromStamp, staffLeversFromState, stripServerPricing, type StaffPricingLevers } from "../lib/price-integrity";
 import { formatThaiDateTime } from "../lib/date-time";
 import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
@@ -3006,7 +3006,7 @@ export function createAdminRouter(
         // the first time staff attach studioData to it, so the public quote
         // link becomes usable without a separate "create quote" step.
         if (!existing?.quoteNumber && parsed.data.studioData !== undefined) {
-          newQuoteNumber = createQuoteNumber();
+          newQuoteNumber = await createUniqueQuoteNumber(database);
           newQuoteAccessSecret = createQuoteAccessSecret();
         }
       }
