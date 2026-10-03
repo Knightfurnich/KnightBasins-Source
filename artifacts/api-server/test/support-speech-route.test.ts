@@ -8,6 +8,7 @@ process.env["DATABASE_URL"] ??= "postgres://support-speech-route-test";
 const originalEnv = {
   serviceAccountJson: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   applicationCredentials: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
+  serviceAccountDisabled: process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"],
 };
 
 afterEach(() => {
@@ -16,6 +17,8 @@ afterEach(() => {
   else process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = originalEnv.serviceAccountJson;
   if (originalEnv.applicationCredentials === undefined) delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
   else process.env["GOOGLE_APPLICATION_CREDENTIALS"] = originalEnv.applicationCredentials;
+  if (originalEnv.serviceAccountDisabled === undefined) delete process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"];
+  else process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = originalEnv.serviceAccountDisabled;
 });
 
 const realFetch = globalThis.fetch;
@@ -76,6 +79,8 @@ describe("POST /api/support/speech", () => {
   it("returns 422 with the failure message when Google TTS isn't configured", async () => {
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
+    // The loader also looks for credentials files on the host, which deleting the env vars does not hide.
+    process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = "true";
     const route = await serveTypeScriptRoute("src/routes/support.ts");
     try {
       const response = await fetch(`${route.url}/api/support/speech`, {

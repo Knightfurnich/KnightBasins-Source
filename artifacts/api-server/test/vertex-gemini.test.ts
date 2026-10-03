@@ -10,6 +10,7 @@ const originalEnv = {
   model: process.env["VERTEX_AI_MODEL"],
   serviceAccountJson: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   applicationCredentials: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
+  serviceAccountDisabled: process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"],
 };
 
 afterEach(() => {
@@ -22,6 +23,7 @@ afterEach(() => {
       model: "VERTEX_AI_MODEL",
       serviceAccountJson: "GOOGLE_SERVICE_ACCOUNT_JSON",
       applicationCredentials: "GOOGLE_APPLICATION_CREDENTIALS",
+      serviceAccountDisabled: "GOOGLE_SERVICE_ACCOUNT_DISABLED",
     }[key as keyof typeof originalEnv];
     if (value === undefined) delete process.env[envKey];
     else process.env[envKey] = value;
@@ -75,6 +77,9 @@ describe("vertexGeminiConfigured", () => {
     process.env["VERTEX_AI_PROJECT_ID"] = "knight-basins-voice";
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
+    // The loader also looks for credentials files on the host (/opt/data/..., ./google-credentials.json),
+    // which deleting the env vars does not hide, so switch the service account off explicitly.
+    process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = "true";
     assert.equal(vertexGeminiConfigured(), false);
   });
 
@@ -99,6 +104,9 @@ describe("askGemini", () => {
     process.env["VERTEX_AI_PROJECT_ID"] = "knight-basins-voice";
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
+    // The loader also looks for credentials files on the host (/opt/data/..., ./google-credentials.json),
+    // which deleting the env vars does not hide, so switch the service account off explicitly.
+    process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = "true";
     let called = false;
     mock.method(globalThis, "fetch", async () => { called = true; return new Response("{}"); });
     const result = await askGemini({ message: "hi" });

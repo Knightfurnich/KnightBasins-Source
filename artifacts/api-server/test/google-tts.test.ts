@@ -6,6 +6,7 @@ import { googleTtsConfigured, synthesizeSpeech } from "../src/lib/google-tts.ts"
 const originalEnv = {
   serviceAccountJson: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   applicationCredentials: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
+  serviceAccountDisabled: process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"],
   voiceName: process.env["GOOGLE_TTS_VOICE_NAME"],
   languageCode: process.env["GOOGLE_TTS_LANGUAGE_CODE"],
 };
@@ -16,6 +17,8 @@ afterEach(() => {
   else process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = originalEnv.serviceAccountJson;
   if (originalEnv.applicationCredentials === undefined) delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
   else process.env["GOOGLE_APPLICATION_CREDENTIALS"] = originalEnv.applicationCredentials;
+  if (originalEnv.serviceAccountDisabled === undefined) delete process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"];
+  else process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = originalEnv.serviceAccountDisabled;
   if (originalEnv.voiceName === undefined) delete process.env["GOOGLE_TTS_VOICE_NAME"];
   else process.env["GOOGLE_TTS_VOICE_NAME"] = originalEnv.voiceName;
   if (originalEnv.languageCode === undefined) delete process.env["GOOGLE_TTS_LANGUAGE_CODE"];
@@ -59,6 +62,9 @@ describe("googleTtsConfigured", () => {
   it("is false when no Google service account is configured", () => {
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
+    // The loader also looks for credentials files on the host (/opt/data/..., ./google-credentials.json),
+    // which deleting the env vars does not hide, so switch the service account off explicitly.
+    process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = "true";
     assert.equal(googleTtsConfigured(), false);
   });
 
@@ -72,6 +78,9 @@ describe("synthesizeSpeech", () => {
   it("returns a not-configured failure without calling fetch", async () => {
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
+    // The loader also looks for credentials files on the host (/opt/data/..., ./google-credentials.json),
+    // which deleting the env vars does not hide, so switch the service account off explicitly.
+    process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"] = "true";
     let called = false;
     mock.method(globalThis, "fetch", async () => { called = true; return new Response(""); });
     const result = await synthesizeSpeech("สวัสดีค่ะ");
