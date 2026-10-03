@@ -30,6 +30,7 @@ import {
   carryCustomShapeDimensions,
   clampPlacementToSheet,
   fitPlacementOrientationToSheet,
+  basinPositionAxis,
   isBasinPositionLevel,
   positionPlacementAtLevel,
   STUDIO_BASIN_POSITION_LEVELS,
@@ -2494,6 +2495,9 @@ function StudioPieceEditor({
   const bounds = pieceBounds(piece);
   const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? state.pieces?.[0]?.id) === piece.id);
   const selectedPlacement = placements.find((placement) => placement.id === selectedPlacementId);
+  // The seven levels run left to right on a horizontal sheet and top to bottom on an upright leg (L / U).
+  const selectedSheet = selectedPlacement ? piece.rectangles.find((rectangle) => rectangle.id === selectedPlacement.sheetId) : undefined;
+  const levelAxis = selectedSheet ? basinPositionAxis(selectedSheet) : "x";
   const pointerDrag = useRef<{ kind: "rectangle" | "placement"; id: string; offsetX: number; offsetY: number } | null>(null);
   const [selectedEdgeStatus, setSelectedEdgeStatus] = useState<SideStatus>("upstand");
   const canvasPoint = (event: ReactPointerEvent<HTMLElement>) => {
@@ -2878,8 +2882,9 @@ function StudioPieceEditor({
             <label>ระยะ Y (มม.)<input type="number" step="1" value={Math.round(selectedPlacement.offsetYMm ?? 0)} onChange={(event) => changeBasinOffset("y", numericValue(event.target.value))} data-testid={`input-placement-offset-y-${selectedPlacement.id}`} /></label>
           </div>
           <button type="button" className="button button--outline studio-rotate-button" onClick={rotateSelectedBasin} data-testid={`button-rotate-studio-basin-${selectedPlacement.id}`}><RotateCw size={14} /> หมุนอ่าง 90°</button>
-          <div className="mt-2 grid gap-1.5" role="group" aria-label="ตำแหน่งอ่างซ้าย–ขวา 7 ระดับ" data-testid={`group-placement-level-${selectedPlacement.id}`}>
-            <strong className="text-sm">ตำแหน่งอ่าง 7 ระดับ (ซ้าย → ขวา)</strong>
+          <div className="mt-2 grid gap-1.5" role="group" aria-label={levelAxis === "y" ? "ตำแหน่งอ่างบน–ล่าง 7 ระดับ" : "ตำแหน่งอ่างซ้าย–ขวา 7 ระดับ"} data-axis={levelAxis} data-testid={`group-placement-level-${selectedPlacement.id}`}>
+            <strong className="text-sm">{levelAxis === "y" ? "ตำแหน่งอ่าง 7 ระดับ (บน → ล่าง)" : "ตำแหน่งอ่าง 7 ระดับ (ซ้าย → ขวา)"}</strong>
+            {levelAxis === "y" && <span className="text-xs text-muted-foreground" data-testid={`text-placement-level-direction-${selectedPlacement.id}`}>บนสุด ◄--- กึ่งกลาง ---► ล่างสุด</span>}
             <div className="grid grid-cols-7 gap-1">
               {STUDIO_BASIN_POSITION_LEVELS.map((level) => {
                 const active = selectedPlacement.positionLevel === level;
@@ -2888,14 +2893,14 @@ function StudioPieceEditor({
                   key={level}
                   className={`rounded-md border px-0 py-2 text-sm font-semibold transition-colors disabled:opacity-50 ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-muted"}`}
                   aria-pressed={active}
-                  aria-label={`ตำแหน่งระดับ ${level}${level === 1 ? " ชิดซ้ายสุด" : level === 4 ? " กึ่งกลาง" : level === 7 ? " ชิดขวาสุด" : ""}`}
+                  aria-label={`ตำแหน่งระดับ ${level}${level === 1 ? (levelAxis === "y" ? " ชิดบนสุด" : " ชิดซ้ายสุด") : level === 4 ? " กึ่งกลาง" : level === 7 ? (levelAxis === "y" ? " ชิดล่างสุด" : " ชิดขวาสุด") : ""}`}
                   disabled={selectedPlacement.widthMm === null || selectedPlacement.depthMm === null}
                   onClick={() => snapSelectedBasinToLevel(level)}
                   data-testid={`button-placement-level-${selectedPlacement.id}-${level}`}
                 >{level}</button>;
               })}
             </div>
-            <small className="text-muted-foreground">1 = ชิดซ้าย · 4 = กึ่งกลาง · 7 = ชิดขวา · เว้นขอบแผ่น {STUDIO_BASIN_SAFETY_MARGIN_MM} มม. ทุกระดับ</small>
+            <small className="text-muted-foreground">{levelAxis === "y" ? <>1 = ชิดบน · 4 = กึ่งกลาง · 7 = ชิดล่าง · เว้นขอบแผ่น {STUDIO_BASIN_SAFETY_MARGIN_MM} มม. ทุกระดับ</> : <>1 = ชิดซ้าย · 4 = กึ่งกลาง · 7 = ชิดขวา · เว้นขอบแผ่น {STUDIO_BASIN_SAFETY_MARGIN_MM} มม. ทุกระดับ</>}</small>
           </div>
           <p className="studio-helper">ระยะ X / Y วัดจากขอบของแผ่นเป้าหมายตามจุดยึด · กึ่งกลางรองรับค่าติดลบ · ลากบนผังจะอัปเดตระยะให้อัตโนมัติ</p>
           {placementTargetWarnings(selectedPlacement, getStudioPieces(state)).concat(placementSheetWarnings(selectedPlacement, piece)).map((warning) => <p className="studio-warning" key={warning} data-testid={`status-placement-warning-${selectedPlacement.id}`}><AlertTriangle size={15} /> {warning}</p>)}
