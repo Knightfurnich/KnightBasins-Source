@@ -91,7 +91,7 @@ export type BasinPlacement = {
   /** Optional for backwards compatibility with saved drafts created before basin orientation existed. */
   orientation?: BasinOrientation;
   /**
-   * The 1-7 snap position the customer picked along the sheet's width (see positionPlacementAtLevel).
+   * The 1-7 snap position the customer picked along the sheet's long side (see positionPlacementAtLevel).
    * Set only by that picker and dropped by any other move, so when present it always describes where the
    * basin really is - which is what lets a shape change put it back at the same level.
    */
@@ -1157,7 +1157,10 @@ export function distributeBasinPlacementPositions(
   ];
 }
 
-/** Seven snap positions along a sheet's width: 1 = flush left, 4 = centre, 7 = flush right. */
+/**
+ * Seven snap positions along a sheet's long side: on a horizontal sheet 1 = flush left, 4 = centre,
+ * 7 = flush right; on an upright one (the leg of an L or U) 1 = flush top, 4 = centre, 7 = flush bottom.
+ */
 export const STUDIO_BASIN_POSITION_LEVELS: ReadonlyArray<BasinPositionLevel> = [1, 2, 3, 4, 5, 6, 7];
 export const STUDIO_BASIN_CENTER_POSITION_LEVEL: BasinPositionLevel = 4;
 
@@ -1202,11 +1205,65 @@ export function basinXForPositionLevel(
   return Math.min(range.maxXMm, Math.max(range.minXMm, stepped));
 }
 
+/** The yMm counterpart of basinPositionRangeX: the span of yMm values that keeps `marginMm` at the top and bottom. */
+export function basinPositionRangeY(
+  sheet: StudioRectangle,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation">,
+  marginMm: number = STUDIO_BASIN_SAFETY_MARGIN_MM,
+): { minYMm: number; maxYMm: number } | null {
+  const cutSize = placementCutSize(placement);
+  if (cutSize.heightMm === null) return null;
+  const minYMm = sheet.yMm + marginMm;
+  const maxYMm = sheet.yMm + studioRectangleSize(sheet).heightMm - cutSize.heightMm - marginMm;
+  return maxYMm + STUDIO_EPSILON_MM >= minYMm ? { minYMm, maxYMm: Math.max(minYMm, maxYMm) } : null;
+}
+
+/** yMm of a basin at snap `level` on `sheet`: 1 = exactly `marginMm` from the top edge, 7 = exactly `marginMm` from the bottom edge. */
+export function basinYForPositionLevel(
+  sheet: StudioRectangle,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation">,
+  level: BasinPositionLevel,
+  marginMm: number = STUDIO_BASIN_SAFETY_MARGIN_MM,
+): number | null {
+  const cutSize = placementCutSize(placement);
+  if (cutSize.heightMm === null) return null;
+  const range = basinPositionRangeY(sheet, placement, marginMm);
+  if (!range) return Math.round(sheet.yMm + (studioRectangleSize(sheet).heightMm - cutSize.heightMm) / 2);
+  const stepped = Math.round(range.minYMm + ((range.maxYMm - range.minYMm) * (level - 1)) / (STUDIO_BASIN_POSITION_LEVELS.length - 1));
+  return Math.min(range.maxYMm, Math.max(range.minYMm, stepped));
+}
+
+/**
+ * The axis the seven levels run along on `sheet`: "y" (top to bottom) for an upright sheet - taller than it
+ * is wide, like the leg of an L or U - and "x" (left to right) for everything else, so the main sheet and
+ * any square one behave exactly as they did before.
+ */
+export function basinPositionAxis(sheet: StudioRectangle): "x" | "y" {
+  const size = studioRectangleSize(sheet);
+  return size.heightMm > size.widthMm ? "y" : "x";
+}
+
+/**
+ * The coordinate a basin takes at snap `level` on `sheet`, and which axis it belongs to
+ * (basinPositionAxis). Null only when the cut-out size is unknown.
+ */
+export function basinLevelCoordinate(
+  sheet: StudioRectangle,
+  placement: Pick<BasinPlacement, "widthMm" | "depthMm" | "rotation" | "orientation">,
+  level: BasinPositionLevel,
+  marginMm: number = STUDIO_BASIN_SAFETY_MARGIN_MM,
+): { axis: "x" | "y"; valueMm: number } | null {
+  const axis = basinPositionAxis(sheet);
+  const valueMm = axis === "x" ? basinXForPositionLevel(sheet, placement, level, marginMm) : basinYForPositionLevel(sheet, placement, level, marginMm);
+  return valueMm === null ? null : { axis, valueMm };
+}
+
 /**
  * Snaps a basin to `level` on its own sheet and remembers the level on the placement, so a later shape
- * change can put it back at the same place on the new sheet. x comes from basinXForPositionLevel; y is
- * left where it is unless it is closer than `marginMm` to a sheet edge that has room for the clearance,
- * in which case it is pulled just inside. Offsets are recomputed for the placement's own anchor.
+ * change can put it back at the same place on the new sheet. The level runs along the sheet's long side
+ * (basinPositionAxis): left to right on a horizontal sheet, top to bottom on an upright leg. The other
+ * coordinate is left where it is unless it is closer than `marginMm` to a sheet edge that has room for
+ * the clearance, in which case it is pulled just inside. Offsets are recomputed for the placement's own anchor.
  */
 export function positionPlacementAtLevel(
   placement: BasinPlacement,
@@ -1217,11 +1274,17 @@ export function positionPlacementAtLevel(
   const sheet = piece.rectangles.find((rectangle) => rectangle.id === placement.sheetId)
     ?? placementHostRectangle(piece, placement);
   const cutSize = placementCutSize(placement);
-  const xMm = sheet ? basinXForPositionLevel(sheet, placement, level, marginMm) : null;
-  if (!sheet || xMm === null || cutSize.heightMm === null) return { ...placement, positionLevel: level };
-  const lowY = sheet.yMm + marginMm;
-  const highY = sheet.yMm + studioRectangleSize(sheet).heightMm - cutSize.heightMm - marginMm;
-  const yMm = highY + STUDIO_EPSILON_MM >= lowY ? Math.min(Math.max(highY, lowY), Math.max(lowY, placement.yMm)) : placement.yMm;
+  const snapped = sheet ? basinLevelCoordinate(sheet, placement, level, marginMm) : null;
+  if (!sheet || !snapped || cutSize.widthMm === null || cutSize.heightMm === null) return { ...placement, positionLevel: level };
+  const size = studioRectangleSize(sheet);
+  // The cross axis: keep the basin where it is, but inside the clearance whenever the sheet has room for it.
+  const keepInside = (value: number, start: number, length: number, cutLength: number) => {
+    const low = start + marginMm;
+    const high = start + length - cutLength - marginMm;
+    return high + STUDIO_EPSILON_MM >= low ? Math.min(Math.max(high, low), Math.max(low, value)) : value;
+  };
+  const xMm = snapped.axis === "x" ? snapped.valueMm : keepInside(placement.xMm, sheet.xMm, size.widthMm, cutSize.widthMm);
+  const yMm = snapped.axis === "y" ? snapped.valueMm : keepInside(placement.yMm, sheet.yMm, size.heightMm, cutSize.heightMm);
   const targeted = { ...placement, pieceId: piece.id, sheetId: sheet.id };
   const clamped = clampPlacementToSheet(targeted, piece, xMm, yMm);
   const offsets = calculateBasinOffsets(sheet, targeted, clamped, placement.anchor ?? "top-left");
@@ -1399,17 +1462,21 @@ export function reanchorPlacementsToPiece(
 
   // 3b. A basin the customer snapped to one of the seven levels goes back to the same level on its new
   //     sheet, even when its old position would still have been valid: the sheet may be longer or
-  //     shorter now. (Only x moves; the level is measured along the sheet's width.)
+  //     shorter now. Only the coordinate along the level's axis moves (x on a horizontal sheet, y on an
+  //     upright leg - see basinPositionAxis).
   const originals = new Map(placements.map((placement) => [placement.id, placement]));
   for (const [id, placement] of moved) {
     const level = placement.positionLevel;
     const host = hosts.get(id);
     if (!isBasinPositionLevel(level) || !host) continue;
-    const xMm = basinXForPositionLevel(host, placement, level, marginMm);
-    if (xMm === null) continue;
-    moved.set(id, withPosition(placement, host, xMm, placement.yMm));
+    const snapped = basinLevelCoordinate(host, placement, level, marginMm);
+    if (!snapped) continue;
+    moved.set(id, snapped.axis === "x"
+      ? withPosition(placement, host, snapped.valueMm, placement.yMm)
+      : withPosition(placement, host, placement.xMm, snapped.valueMm));
     const before = originals.get(id);
-    if (!before || host.id !== before.sheetId || Math.abs(xMm - before.xMm) > 1) notify(id, "moved");
+    const beforeValue = before ? (snapped.axis === "x" ? before.xMm : before.yMm) : 0;
+    if (!before || host.id !== before.sheetId || Math.abs(snapped.valueMm - beforeValue) > 1) notify(id, "moved");
   }
 
   // 4. Basins that now touch each other on one sheet are spread evenly along the sheet's longer side.
