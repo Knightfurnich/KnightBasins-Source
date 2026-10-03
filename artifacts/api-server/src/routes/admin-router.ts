@@ -1699,12 +1699,24 @@ async function sendDashboardBriefingToLine(text: string): Promise<LineSendResult
 }
 
 type AuditInsightCategory = "ux" | "slip" | "form";
+type AuditInsightRange = "7d" | "30d" | "90d";
+type AuditIssueStatus = "pending" | "in_progress" | "resolved";
+type AuditIssueCategory = "ux" | "payment" | "form";
 
 const AUDIT_INSIGHT_CATEGORY_LABELS: Record<AuditInsightCategory, string> = {
   ux: "UX/ผังเคาน์เตอร์",
   slip: "สลิปการเงิน",
   form: "ข้อมูลฟอร์ม",
 };
+
+const AUDIT_INSIGHT_RANGE_DAYS: Record<AuditInsightRange, number> = {
+  "7d": 7,
+  "30d": 30,
+  "90d": 90,
+};
+
+const AUDIT_ISSUE_STATUSES = ["pending", "in_progress", "resolved"] as const;
+const AUDIT_ISSUE_CATEGORIES = ["ux", "payment", "form"] as const;
 
 const AUDIT_INSIGHT_CATEGORY_SQL = sql`
   CASE
@@ -1736,6 +1748,28 @@ function auditCount(value: unknown): number {
   const parsed = Number(value ?? 0);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
+
+function auditTrend(current: number, previous: number) {
+  const direction = current === previous ? "flat" : current > previous ? "up" : "down";
+  return {
+    current,
+    previous,
+    direction,
+    changePercent: previous === 0
+      ? current === 0 ? 0 : null
+      : Math.round(((current - previous) / previous) * 100),
+  };
+}
+
+const AUDIT_PRUNE_CANDIDATE_SQL = sql`
+  actor_type IS DISTINCT FROM 'admin'
+  AND action NOT LIKE 'admin.%'
+  AND action IS DISTINCT FROM 'slip.upload'
+  AND (
+    (status = 'success' AND created_at < NOW() - INTERVAL '30 days')
+    OR (status IN ('warning', 'error') AND created_at < NOW() - INTERVAL '90 days')
+  )
+`;
 
 function auditPainPointCopy(key: string, category: AuditInsightCategory) {
   switch (key.toUpperCase()) {
@@ -2272,23 +2306,34 @@ export function createAdminRouter(
     }
   });
 
-  router.get("/admin/audit-logs/insights", requireAdminOwner, async (_req, res, next) => {
+  router.get("/admin/audit-logs/insights", requireAdminOwner, async (req, res, next) => {
     if (typeof database.execute !== "function") {
       return res.status(503).json({ message: "Audit insights are unavailable" });
     }
 
+    const rawRange = req.query["range"];
+    const range: AuditInsightRange = rawRange === undefined ? "30d" : rawRange as AuditInsightRange;
+    if (typeof rawRange !== "undefined" && (typeof rawRange !== "string" || !Object.hasOwn(AUDIT_INSIGHT_RANGE_DAYS, rawRange))) {
+      return invalid(res, "Invalid audit insights range");
+    }
+    const periodDays = AUDIT_INSIGHT_RANGE_DAYS[range];
+
     try {
       res.setHeader("Cache-Control", "no-store");
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      const periodMs = periodDays * 24 * 60 * 60 * 1000;
+      const currentStart = new Date(now.getTime() - periodMs);
+      const previousStart = new Date(currentStart.getTime() - periodMs);
       const [totalsResult, painPointsResult] = await Promise.all([
         database.execute(sql`
           SELECT
-            COUNT(*)::int AS "total",
-            COUNT(*) FILTER (WHERE status = 'success')::int AS "success",
-            COUNT(*) FILTER (WHERE status = 'warning')::int AS "warning",
-            COUNT(*) FILTER (WHERE status = 'error')::int AS "error"
+            COUNT(*) FILTER (WHERE created_at >= ${currentStart})::int AS "total",
+            COUNT(*) FILTER (WHERE status = 'success' AND created_at >= ${currentStart})::int AS "success",
+            COUNT(*) FILTER (WHERE status = 'warning' AND created_at >= ${currentStart})::int AS "warning",
+            COUNT(*) FILTER (WHERE status = 'error' AND created_at >= ${currentStart})::int AS "error",
+            COUNT(*) FILTER (WHERE created_at >= ${previousStart} AND created_at < ${currentStart})::int AS "previousTotal"
           FROM system_audit_logs
-          WHERE created_at >= ${thirtyDaysAgo}
+          WHERE created_at >= ${previousStart} AND created_at < ${now}
         `),
         database.execute(sql`
           SELECT
@@ -2298,13 +2343,16 @@ export function createAdminRouter(
           FROM system_audit_logs
           WHERE actor_type = 'customer'
             AND status IN ('warning', 'error')
-            AND created_at >= ${thirtyDaysAgo}
+            AND created_at >= ${currentStart}
+            AND created_at < ${now}
           GROUP BY 1, 2
           ORDER BY COUNT(*) DESC, 1 ASC
         `),
       ]);
 
       const totals = auditQueryRows(totalsResult)[0] ?? {};
+      const currentTotal = auditCount(totals["total"]);
+      const previousTotal = auditCount(totals["previousTotal"]);
       const categoryCounts: Record<AuditInsightCategory, number> = { ux: 0, slip: 0, form: 0 };
       const groupedPainPoints = new Map<string, {
         key: string;
@@ -2345,13 +2393,15 @@ export function createAdminRouter(
         });
 
       return res.json({
-        periodDays: 30,
+        range,
+        periodDays,
         totals: {
-          total: auditCount(totals["total"]),
+          total: currentTotal,
           success: auditCount(totals["success"]),
           warning: auditCount(totals["warning"]),
           error: auditCount(totals["error"]),
         },
+        trend: auditTrend(currentTotal, previousTotal),
         customerIssues: categoryCounts.ux + categoryCounts.slip + categoryCounts.form,
         categories: (Object.keys(AUDIT_INSIGHT_CATEGORY_LABELS) as AuditInsightCategory[]).map((category) => ({
           category,
@@ -2360,6 +2410,248 @@ export function createAdminRouter(
         })),
         painPoints,
         generatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/audit-issues", requireAdminOwner, async (_req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit issue tracking is unavailable" });
+    }
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const result = await database.execute(sql`
+        SELECT
+          id,
+          error_code AS "errorCode",
+          title,
+          category,
+          status,
+          assignee,
+          notes,
+          resolved_at AS "resolvedAt",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM audit_issue_trackers
+        ORDER BY
+          CASE status WHEN 'pending' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
+          updated_at DESC,
+          id DESC
+      `);
+      return res.json({ items: auditQueryRows(result) });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post("/admin/audit-issues", requireAdminOwner, async (req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit issue tracking is unavailable" });
+    }
+
+    const body = req.body && typeof req.body === "object" ? req.body as Record<string, unknown> : {};
+    const errorCode = typeof body["errorCode"] === "string" ? body["errorCode"].trim() : "";
+    const title = typeof body["title"] === "string" ? body["title"].trim() : "";
+    const category = body["category"];
+    const assignee = body["assignee"] === undefined ? "Owner" : typeof body["assignee"] === "string" ? body["assignee"].trim() : "";
+    const notes = body["notes"] === undefined || body["notes"] === null
+      ? null
+      : typeof body["notes"] === "string" ? body["notes"].trim() || null : undefined;
+
+    if (!errorCode || errorCode.length > 64 || !title || title.length > 200) {
+      return invalid(res, "errorCode and title are required and must fit their limits");
+    }
+    if (typeof category !== "string" || !(AUDIT_ISSUE_CATEGORIES as readonly string[]).includes(category)) {
+      return invalid(res, "Invalid audit issue category");
+    }
+    if (!assignee || assignee.length > 120 || notes === undefined || (typeof body["notes"] === "string" && body["notes"].length > 5000)) {
+      return invalid(res, "Invalid assignee or notes");
+    }
+
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const result = await database.execute(sql`
+        INSERT INTO audit_issue_trackers (error_code, title, category, status, assignee, notes)
+        VALUES (${errorCode}, ${title}, ${category}, 'pending', ${assignee}, ${notes})
+        RETURNING
+          id,
+          error_code AS "errorCode",
+          title,
+          category,
+          status,
+          assignee,
+          notes,
+          resolved_at AS "resolvedAt",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+      `);
+      const [item] = auditQueryRows(result);
+      if (!item) return res.status(500).json({ message: "Audit issue could not be created" });
+      return res.status(201).json({ item });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.patch("/admin/audit-issues/:id", requireAdminOwner, async (req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit issue tracking is unavailable" });
+    }
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid audit issue id");
+
+    const body = req.body && typeof req.body === "object" ? req.body as Record<string, unknown> : {};
+    const hasStatus = Object.hasOwn(body, "status");
+    const hasNotes = Object.hasOwn(body, "notes");
+    const hasAssignee = Object.hasOwn(body, "assignee");
+    const status = body["status"];
+    const notes = body["notes"];
+    const assignee = body["assignee"];
+    if (!hasStatus && !hasNotes && !hasAssignee) return invalid(res, "At least one field is required");
+    if (hasStatus && (typeof status !== "string" || !(AUDIT_ISSUE_STATUSES as readonly string[]).includes(status))) {
+      return invalid(res, "Invalid audit issue status");
+    }
+    if (hasNotes && notes !== null && (typeof notes !== "string" || notes.length > 5000)) {
+      return invalid(res, "Invalid audit issue notes");
+    }
+    if (hasAssignee && assignee !== null && (typeof assignee !== "string" || !assignee.trim() || assignee.trim().length > 120)) {
+      return invalid(res, "Invalid audit issue assignee");
+    }
+
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const result = await database.execute(sql`
+        UPDATE audit_issue_trackers
+        SET
+          status = CASE WHEN ${hasStatus} THEN ${status ?? null}::varchar(24) ELSE status END,
+          notes = CASE WHEN ${hasNotes} THEN ${notes ?? null}::text ELSE notes END,
+          assignee = CASE WHEN ${hasAssignee} THEN ${assignee ?? null}::varchar(120) ELSE assignee END,
+          resolved_at = CASE
+            WHEN NOT ${hasStatus} THEN resolved_at
+            WHEN ${status ?? null}::varchar = 'resolved' THEN COALESCE(resolved_at, NOW())
+            ELSE NULL
+          END,
+          updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING
+          id,
+          error_code AS "errorCode",
+          title,
+          category,
+          status,
+          assignee,
+          notes,
+          resolved_at AS "resolvedAt",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+      `);
+      const [item] = auditQueryRows(result);
+      if (!item) return res.status(404).json({ message: "Audit issue not found" });
+      return res.json({ item });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/audit-logs/prune-preview", requireAdminOwner, async (_req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit log pruning preview is unavailable" });
+    }
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const result = await database.execute(sql`
+        SELECT
+          COUNT(*) FILTER (WHERE status = 'success')::int AS "successCount",
+          MIN(created_at) FILTER (WHERE status = 'success') AS "successOldestAt",
+          MAX(created_at) FILTER (WHERE status = 'success') AS "successNewestAt",
+          COUNT(*) FILTER (WHERE status = 'warning')::int AS "warningCount",
+          COUNT(*) FILTER (WHERE status = 'error')::int AS "errorCount",
+          MIN(created_at) FILTER (WHERE status IN ('warning', 'error')) AS "warningErrorOldestAt",
+          MAX(created_at) FILTER (WHERE status IN ('warning', 'error')) AS "warningErrorNewestAt"
+        FROM system_audit_logs
+        WHERE ${AUDIT_PRUNE_CANDIDATE_SQL}
+      `);
+      const row = auditQueryRows(result)[0] ?? {};
+      const successCount = auditCount(row["successCount"]);
+      const warningCount = auditCount(row["warningCount"]);
+      const errorCount = auditCount(row["errorCount"]);
+      const warningErrorCount = warningCount + errorCount;
+      const toIso = (value: unknown) => {
+        if (value instanceof Date && Number.isFinite(value.getTime())) return value.toISOString();
+        if (typeof value === "string" && Number.isFinite(Date.parse(value))) return new Date(value).toISOString();
+        return null;
+      };
+      return res.json({
+        totalCount: successCount + warningErrorCount,
+        rules: [
+          {
+            key: "success-30d",
+            label: "สำเร็จเกิน 30 วัน",
+            statuses: ["success"],
+            thresholdDays: 30,
+            count: successCount,
+            oldestAt: toIso(row["successOldestAt"]),
+            newestAt: toIso(row["successNewestAt"]),
+          },
+          {
+            key: "warning-error-90d",
+            label: "คำเตือน/ข้อผิดพลาดเกิน 90 วัน",
+            statuses: ["warning", "error"],
+            thresholdDays: 90,
+            count: warningErrorCount,
+            warningCount,
+            errorCount,
+            oldestAt: toIso(row["warningErrorOldestAt"]),
+            newestAt: toIso(row["warningErrorNewestAt"]),
+          },
+        ],
+        generatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get("/admin/audit-logs/export", requireAdminOwner, async (_req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Audit log backup is unavailable" });
+    }
+    try {
+      const generatedAt = new Date();
+      const result = await database.execute(sql`
+        SELECT
+          id,
+          actor_type AS "actorType",
+          actor_name AS "actorName",
+          action,
+          target_id AS "targetId",
+          status,
+          error_code AS "errorCode",
+          details,
+          ip_address AS "ipAddress",
+          user_agent AS "userAgent",
+          created_at AS "createdAt"
+        FROM system_audit_logs
+        WHERE ${AUDIT_PRUNE_CANDIDATE_SQL}
+        ORDER BY created_at ASC, id ASC
+      `);
+      const filenameTimestamp = generatedAt.toISOString().replace(/[:.]/g, "-");
+      const items = auditQueryRows(result);
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="audit-log-backup-${filenameTimestamp}.json"`);
+      return res.json({
+        generatedAt: generatedAt.toISOString(),
+        totalCount: items.length,
+        policy: {
+          successOlderThanDays: 30,
+          warningOrErrorOlderThanDays: 90,
+          preservedAdminActions: true,
+          preservedSlipUploads: true,
+        },
+        items,
       });
     } catch (error) {
       return next(error);
@@ -2376,13 +2668,7 @@ export function createAdminRouter(
       const result = await database.execute(sql`
         WITH deleted_logs AS (
           DELETE FROM system_audit_logs
-          WHERE actor_type IS DISTINCT FROM 'admin'
-            AND action NOT LIKE 'admin.%'
-            AND action IS DISTINCT FROM 'slip.upload'
-            AND (
-              (status = 'success' AND created_at < NOW() - INTERVAL '30 days')
-              OR (status IN ('warning', 'error') AND created_at < NOW() - INTERVAL '90 days')
-            )
+          WHERE ${AUDIT_PRUNE_CANDIDATE_SQL}
           RETURNING id
         )
         SELECT COUNT(*)::int AS "prunedCount" FROM deleted_logs
