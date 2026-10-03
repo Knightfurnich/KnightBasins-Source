@@ -11,6 +11,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Migrations now run on every deploy, so they must stay additive. Fail here - before anything is built,
+      # copied or applied - if a migration file contains DROP or TRUNCATE (comments are ignored). A change that
+      # really has to remove something is applied by hand, not by a push to main.
+      - name: Check that migrations are additive
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          failed=0
+          for file in deploy/hostinger/migrations/*.sql; do
+            if sed -E 's/--.*$//' "$file" | grep -qiE '\b(drop|truncate)\b'; then
+              echo "::error file=${file}::migrations must be additive (found DROP or TRUNCATE) - apply destructive changes by hand"
+              failed=1
+            fi
+          done
+          exit "$failed"
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -59,6 +75,39 @@ jobs:
           source: "artifacts/api-server/dist/*"
           target: "/docker/knightbasins/api-dist/"
           strip_components: 3
+
+      # Only the migration files travel to the VPS (the rest of deploy/hostinger/ is still synced by hand, see
+      # deploy/hostinger/README.md). Copying a file that is already there is harmless: migrate.sh keeps a ledger
+      # (public.knight_basins_schema_migrations) and skips every file it has applied.
+      - name: Copy Migrations to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 72.62.79.84
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "deploy/hostinger/migrations/*.sql"
+          target: "/docker/knightbasins/deploy/hostinger/migrations/"
+          strip_components: 3
+
+      # Runs the VPS copy of migrate.sh BEFORE the containers restart. It applies only the pending files, each in
+      # its own transaction together with its ledger row, so running it again does nothing. If it fails the job
+      # stops here: the old containers keep running and the restart step is skipped.
+      - name: Apply Database Migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 72.62.79.84
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd /docker/knightbasins/deploy/hostinger
+            test -f migrate.sh || { echo "migrate.sh is missing on the VPS - copy deploy/hostinger/migrate.sh to /docker/knightbasins/deploy/hostinger/ first"; exit 1; }
+            echo "Migration files on the VPS: $(ls -1 migrations/*.sql | wc -l)"
+            export KNIGHT_BASINS_API_CONTAINER=knightbasins-api
+            export KNIGHT_BASINS_API_ENV_FILE=/docker/knightbasins/.env
+            bash migrate.sh
+            echo "Database is up to date"
 
       - name: Restart Docker Containers
         uses: appleboy/ssh-action@v1.0.3
