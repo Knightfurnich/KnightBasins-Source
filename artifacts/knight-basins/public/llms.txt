@@ -15,7 +15,7 @@
 - **คู่มือใช้งาน 2D Studio สำหรับลูกค้า (3 ขั้นตอน):** https://knightbasins.srv1964473.hstgr.cloud/studio-guide
 - **ส่งภาพสเก็ตช์มือสั่งทำตามแบบ:** https://knightbasins.srv1964473.hstgr.cloud/sketch
 - **มาตรฐานบริการและสเปกวัสดุ (Whitepaper):** https://knightbasins.srv1964473.hstgr.cloud/readme
-- **ประวัติการอัปเดตและฟีเจอร์ใหม่ (Release Log, ล่าสุด v1.2.0):** https://knightbasins.srv1964473.hstgr.cloud/updates
+- **ประวัติการอัปเดตและฟีเจอร์ใหม่ (Release Log, ล่าสุด v2.0.0):** https://knightbasins.srv1964473.hstgr.cloud/updates
 
 ## ภาพรวมธุรกิจ (Company Overview)
 - **ชื่อบริษัท:** บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH CO., LTD.)
@@ -46,6 +46,7 @@
 - พื้นที่ให้บริการ: กรุงเทพมหานครและปริมณฑล และโครงการทั่วประเทศ (ตามตกลง)
 
 ## รุ่นล่าสุดของระบบ
+- **v2.0.0 (3 ตุลาคม 2569):** สถาปัตยกรรมความปลอดภัยขั้นสูง, 2D Studio Smart Positioning (ปุ่ม 7 ระดับรองรับแผ่นขาแนวตั้ง L/U), WebP Assets ลดขนาด 88%, ระบบคำนวณราคาจริงบนเซิร์ฟเวอร์ก่อนออก Dynamic PromptPay QR, แยกเสาวางของตั้งพื้น KF029/030, และ DevOps Auto-Migration บน VPS — รายละเอียดที่ https://knightbasins.srv1964473.hstgr.cloud/updates
 - **v1.2.0 (3 ตุลาคม 2569):** ระบบภาพหิน 3 บทบาท (ภาพหน้าร้าน / ภาพใบเสนอราคา / ภาพเต็มแผ่น), ปุ่มดูภาพเต็มแผ่นบนหน้า /stone และ "ดูลายแผ่นจริง" ใน 2D Studio, ภาพหินในใบเสนอราคาทางการ, แจ้งเตือนทีมขายอัตโนมัติเมื่อยื่นจาก Studio, AI Visual Matcher จับคู่สีหินจากภาพห้อง — รายละเอียดที่ https://knightbasins.srv1964473.hstgr.cloud/updates
 
 ## คำถามที่ผู้ใช้ถาม AI บ่อย (Quick Answers)
