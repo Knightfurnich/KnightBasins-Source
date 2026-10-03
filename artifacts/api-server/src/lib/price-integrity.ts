@@ -21,7 +21,7 @@ import {
   type BasinProduct,
   type StoneColor,
 } from "../../../knight-basins/src/data/catalog.ts";
-import { studioEstimate, type StudioState } from "../../../knight-basins/src/data/studio-model.ts";
+import { studioEstimate, type StudioEstimate, type StudioState } from "../../../knight-basins/src/data/studio-model.ts";
 
 /** A quote of exactly 0 THB is unusual but not a tamper signal by itself; only a negative total is. */
 const MIN_QUOTE_TOTAL_THB = 0;
@@ -190,11 +190,30 @@ function attemptedDiscountTHB(studioData: Record<string, unknown>): number {
 }
 
 /**
- * The state as the server prices it: no customer discount and no customer-set open-edge price.
- * (The standard open-edge price is none: the studio's own initial state has openEdgePricePerMTHB: null.)
+ * Pricing levers only a signed-in staff member may set (job-229): a discount in baht and an open-edge price per metre.
+ * Public customers never have any: for them both stay at their standard value.
  */
-function canonicalStudioState(state: Record<string, unknown>): StudioState {
-  return { ...state, discountTHB: 0, openEdgePricePerMTHB: null } as unknown as StudioState;
+export type StaffPricingLevers = {
+  staffDiscountTHB: number;
+  staffOpenEdgePricePerMTHB: number | null;
+};
+
+/**
+ * The state as the server prices it. With no staff levers (every public customer): no discount and no open-edge price
+ * (the standard is none: the studio's own initial state has openEdgePricePerMTHB: null). With staff levers, the
+ * discount and open-edge price the signed-in staff member authorised.
+ */
+function canonicalStudioState(state: Record<string, unknown>, staff?: StaffPricingLevers | null): StudioState {
+  return {
+    ...state,
+    discountTHB: staff?.staffDiscountTHB ?? 0,
+    openEdgePricePerMTHB: staff?.staffOpenEdgePricePerMTHB ?? null,
+  } as unknown as StudioState;
+}
+
+/** The shared pricing model's estimate for `state`, with the database's catalog loaded into it. Throws if the state cannot be priced. */
+function studioEstimateWithCatalog(state: Record<string, unknown>, catalog: PricingCatalog, staff?: StaffPricingLevers | null): StudioEstimate {
+  return withStoneCatalog(catalog.stoneColors, () => studioEstimate(canonicalStudioState(state, staff), catalog.products));
 }
 
 type Priced = { total: number } | { reason: string };
@@ -203,7 +222,7 @@ function priceStudioQuote(studioData: Record<string, unknown>, catalog: PricingC
   const state = studioData["state"];
   if (!isRecord(state)) return { reason: "studio-state-missing" };
   try {
-    const estimate = withStoneCatalog(catalog.stoneColors, () => studioEstimate(canonicalStudioState(state), catalog.products));
+    const estimate = studioEstimateWithCatalog(state, catalog);
     return Number.isFinite(estimate.totalTHB) ? { total: estimate.totalTHB } : { reason: "studio-total-not-finite" };
   } catch {
     return { reason: "studio-state-invalid" };
@@ -337,9 +356,12 @@ export function stripServerPricing(studioData: unknown): unknown {
   return rest;
 }
 
-/** Stamps the total the server verified, so the quote keeps its price if the catalog changes later. */
-export function withServerPricing(studioData: Record<string, unknown>, verifiedTotal: number): Record<string, unknown> {
-  return { ...studioData, [SERVER_PRICING_KEY]: { verifiedTotalTHB: Math.round(verifiedTotal), verifiedAt: new Date().toISOString() } };
+/**
+ * Stamps the total the server verified, so the quote keeps its price if the catalog changes later.
+ * `extra` carries what a staff member authorised (see repriceStudioQuoteAsStaff); customers' quotes never have any.
+ */
+export function withServerPricing(studioData: Record<string, unknown>, verifiedTotal: number, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return { ...studioData, [SERVER_PRICING_KEY]: { ...extra, verifiedTotalTHB: Math.round(verifiedTotal), verifiedAt: new Date().toISOString() } };
 }
 
 function serverVerifiedTotal(studioData: Record<string, unknown>): number | null {
@@ -382,4 +404,103 @@ export async function checkQuoteBeforePayment(
     };
   }
   return { ok: true, total: Math.round(result.calculatedTotal) };
+}
+
+// ---- job-229: staff discounts ------------------------------------------------
+//
+// A public customer's discount is always 0 (above). A signed-in staff member may give one, and set the open-edge price,
+// through PATCH /api/admin/leads/:id -- a route that already requires the leads:edit permission. That route calls
+// repriceStudioQuoteAsStaff(): the server prices the quote with exactly the levers the staff member set (and the
+// database's prices for everything else), rewrites every total the quote carries so that the quote page, the QR and the
+// balance all agree, and stamps the result. The stamp is what the payment-QR check trusts, so a discounted quote can be
+// paid by QR. Staff cannot enter an arbitrary total: only the two levers, on top of database prices.
+
+export type StaffAuthorization = {
+  /** Set only for a signed-in team member; null for the owner's password login. Never a name: the quote can be read by the customer. */
+  memberId: number | null;
+};
+
+export type StaffRepriceResult =
+  | { ok: true; studioData: Record<string, unknown>; total: number; levers: StaffPricingLevers | null }
+  | { ok: false; reason: string };
+
+/** The discount and open-edge price a studio payload asks for, or null when it asks for neither. */
+export function staffLeversFromState(studioData: unknown): StaffPricingLevers | null {
+  const state = isRecord(studioData) ? studioData["state"] : undefined;
+  if (!isRecord(state)) return null;
+  const discount = state["discountTHB"];
+  const openEdge = state["openEdgePricePerMTHB"];
+  const staffDiscountTHB = typeof discount === "number" && Number.isFinite(discount) && discount > 0 ? discount : 0;
+  const staffOpenEdgePricePerMTHB = typeof openEdge === "number" && Number.isFinite(openEdge) ? openEdge : null;
+  return staffDiscountTHB > 0 || staffOpenEdgePricePerMTHB !== null ? { staffDiscountTHB, staffOpenEdgePricePerMTHB } : null;
+}
+
+/** The levers a staff member authorised earlier, as recorded in the stamp (null for a quote that never had any). */
+export function staffLeversFromStamp(studioData: unknown): StaffPricingLevers | null {
+  const stamp = isRecord(studioData) ? studioData[SERVER_PRICING_KEY] : undefined;
+  if (!isRecord(stamp)) return null;
+  const discount = stamp["staffDiscountTHB"];
+  const openEdge = stamp["staffOpenEdgePricePerMTHB"];
+  const staffDiscountTHB = typeof discount === "number" && Number.isFinite(discount) && discount > 0 ? discount : 0;
+  const staffOpenEdgePricePerMTHB = typeof openEdge === "number" && Number.isFinite(openEdge) ? openEdge : null;
+  return staffDiscountTHB > 0 || staffOpenEdgePricePerMTHB !== null ? { staffDiscountTHB, staffOpenEdgePricePerMTHB } : null;
+}
+
+/**
+ * Prices a studio quote for a signed-in staff member with the given levers (null = none, i.e. the standard price) and
+ * returns studioData rewritten to match: the state carries the levers as priced, the estimate and the notification's
+ * gross / discount / subtotal / VAT / total are the server's, and the stamp records the total and what was authorised.
+ * Refuses a state it cannot price and levers the pricing model rejects (a discount above the amount it applies to, a
+ * negative or over-precise open-edge price).
+ */
+export async function repriceStudioQuoteAsStaff(
+  studioData: Record<string, unknown>,
+  source: PricingDatabase | PricingCatalog,
+  levers: StaffPricingLevers | null,
+  authorization: StaffAuthorization,
+): Promise<StaffRepriceResult> {
+  const state = studioData["state"];
+  if (!isRecord(state)) return { ok: false, reason: "studio-state-missing" };
+
+  const catalog = isPricingCatalog(source) ? source : await loadPricingCatalog(source);
+  let estimate: StudioEstimate;
+  try {
+    estimate = studioEstimateWithCatalog(state, catalog, levers);
+  } catch {
+    return { ok: false, reason: "studio-state-invalid" };
+  }
+  if (!Number.isFinite(estimate.totalTHB)) return { ok: false, reason: "studio-total-not-finite" };
+  if (estimate.discountInvalid) return { ok: false, reason: "discount-invalid" };
+  if (estimate.openEdgePriceInvalid) return { ok: false, reason: "open-edge-price-invalid" };
+
+  const staffDiscountTHB = levers?.staffDiscountTHB ?? 0;
+  const staffOpenEdgePricePerMTHB = levers?.staffOpenEdgePricePerMTHB ?? null;
+  const discountApplied = estimate.discountTHB;
+  const rewritten: Record<string, unknown> = {
+    ...studioData,
+    state: { ...state, discountTHB: discountApplied, openEdgePricePerMTHB: staffOpenEdgePricePerMTHB },
+    estimate,
+  };
+  // The studio page spreads its state into studioData too: keep those copies in step.
+  if ("discountTHB" in rewritten) rewritten["discountTHB"] = discountApplied;
+  if ("openEdgePricePerMTHB" in rewritten) rewritten["openEdgePricePerMTHB"] = staffOpenEdgePricePerMTHB;
+  if (isRecord(rewritten["notification"])) {
+    rewritten["notification"] = {
+      ...rewritten["notification"],
+      grossSubtotal: estimate.grossSubtotalTHB,
+      discountAmount: estimate.grossSubtotalTHB - estimate.subtotalTHB,
+      subtotal: estimate.subtotalTHB,
+      vatAmount: estimate.vatAmountTHB,
+      total: estimate.totalTHB,
+    };
+  }
+  if (rewritten["total"] != null) rewritten["total"] = estimate.totalTHB;
+  if (isRecord(rewritten["quickQuote"]) && rewritten["quickQuote"]["total"] != null) {
+    rewritten["quickQuote"] = { ...rewritten["quickQuote"], total: estimate.totalTHB };
+  }
+
+  const staffStamp = levers
+    ? { staffDiscountTHB, staffOpenEdgePricePerMTHB, authorizedByMemberId: authorization.memberId, authorizedAt: new Date().toISOString() }
+    : {};
+  return { ok: true, studioData: withServerPricing(rewritten, estimate.totalTHB, staffStamp), total: estimate.totalTHB, levers };
 }
