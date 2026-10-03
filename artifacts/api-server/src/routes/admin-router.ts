@@ -57,6 +57,7 @@ import {
   accessForAdminMember,
 } from "../middlewares/admin-auth";
 import { requestOrigin } from "../lib/public-origin";
+import { sendWeeklyDigestText, startSlipUploadAlertMonitor } from "../lib/incident-alerts";
 import { AI_COST_PERIODS, getUnifiedAiCostSummary, type AiCostPeriod } from "../lib/ai-cost-tracker";
 import {
   auditAdminActor,
@@ -1819,6 +1820,7 @@ export function createAdminRouter(
   checkDbHealth: () => Promise<DatabaseHealthMetrics> = checkDatabaseHealth,
 ): IRouter {
   const router: IRouter = Router();
+  startSlipUploadAlertMonitor(database);
   const adminLoginRateLimit = createRateLimiter({ name: "admin-login", max: 5, windowMs: 60 * 1000 });
   // Each basin can now hold up to 5 photos (primary + 4 gallery), so a bulk photo
   // session across several basins easily exceeds the old single-image-era cap of 20.
@@ -2302,6 +2304,105 @@ export function createAdminRouter(
       return res.json({ success: true, deletedId: id });
     } catch (error) {
       auditAdmin(req, { action: "admin.lead.delete", status: "error", errorCode: "LEAD_DELETE_FAILED", targetId: String(id), details: { leadId: id, ...auditErrorDetails(error) } });
+      return next(error);
+    }
+  });
+
+  router.post("/admin/audit-logs/send-weekly-digest", requireAdminOwner, async (req, res, next) => {
+    if (typeof database.execute !== "function") {
+      return res.status(503).json({ message: "Weekly audit digest is unavailable" });
+    }
+
+    const rawDryRun = req.query["dryRun"];
+    if (rawDryRun !== undefined && rawDryRun !== "0" && rawDryRun !== "1") {
+      return invalid(res, "Invalid weekly digest dryRun value");
+    }
+    const dryRun = rawDryRun === "1";
+
+    try {
+      res.setHeader("Cache-Control", "no-store");
+      const generatedAt = new Date();
+      const periodStart = new Date(generatedAt.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const [summaryResult, painPointsResult] = await Promise.all([
+        database.execute(sql`
+          SELECT
+            COUNT(*) FILTER (
+              WHERE actor_type = 'customer'
+                AND action IN ('quote_requested', 'lead.upsert')
+            )::int AS "quoteRequests",
+            COUNT(*) FILTER (WHERE actor_type = 'customer')::int AS "customerEvents",
+            COUNT(*) FILTER (
+              WHERE actor_type = 'customer' AND status = 'success'
+            )::int AS "successCount",
+            COUNT(*) FILTER (
+              WHERE actor_type = 'customer' AND status IN ('warning', 'error')
+            )::int AS "frictionCount"
+          FROM system_audit_logs
+          WHERE created_at >= ${periodStart}
+            AND created_at < ${generatedAt}
+        `),
+        database.execute(sql`
+          SELECT
+            COALESCE(NULLIF(error_code, ''), action) AS "key",
+            ${AUDIT_INSIGHT_CATEGORY_SQL} AS "category",
+            COUNT(*)::int AS "count"
+          FROM system_audit_logs
+          WHERE actor_type = 'customer'
+            AND status IN ('warning', 'error')
+            AND created_at >= ${periodStart}
+            AND created_at < ${generatedAt}
+          GROUP BY 1, 2
+          ORDER BY COUNT(*) DESC, 1 ASC
+          LIMIT 3
+        `),
+      ]);
+
+      const summary = auditQueryRows(summaryResult)[0] ?? {};
+      const quoteRequests = auditCount(summary["quoteRequests"]);
+      const customerEvents = auditCount(summary["customerEvents"]);
+      const successCount = auditCount(summary["successCount"]);
+      const frictionCount = auditCount(summary["frictionCount"]);
+      const percent = (count: number) => `${customerEvents ? ((count / customerEvents) * 100).toFixed(1) : "0.0"}%`;
+      const painPoints = auditQueryRows(painPointsResult).map((row) => {
+        const key = typeof row["key"] === "string" && row["key"].trim() ? row["key"].trim() : "unknown";
+        const rawCategory = row["category"];
+        const category: AuditInsightCategory = rawCategory === "ux" || rawCategory === "slip" ? rawCategory : "form";
+        return {
+          count: auditCount(row["count"]),
+          ...auditPainPointCopy(key, category),
+        };
+      });
+      const recommendations = [...new Set(painPoints.map((point) => point.recommendation))].slice(0, 3);
+      const text = [
+        "📊 สรุปจุดติดขัดลูกค้า (Knight UX Digest) ประจำสัปดาห์",
+        `👥 สร้างใบเสนอราคา: ${quoteRequests.toLocaleString("th-TH")} ราย`,
+        `✅ รายการสำเร็จ: ${successCount.toLocaleString("th-TH")} ราย (${percent(successCount)})`,
+        `⚠️ จุดติดขัดที่พบ: ${frictionCount.toLocaleString("th-TH")} ราย (${percent(frictionCount)})`,
+        "🔍 3 ปัญหาที่พบบ่อยที่สุด:",
+        ...(painPoints.length
+          ? painPoints.map((point, index) => `${index + 1}. ${point.description} — ${point.count.toLocaleString("th-TH")} ครั้ง`)
+          : ["ยังไม่พบปัญหาในช่วงนี้"]),
+        `💡 ข้อเสนอแนะเพื่อพัฒนา: ${recommendations.length ? recommendations.join(" / ") : "ติดตามสถิติอย่างต่อเนื่อง"}`,
+        "🔗 ดูรายละเอียดทั้งหมดที่: https://knightbasins.srv1964473.hstgr.cloud/admin/logs",
+      ].join("\n");
+      const stats = {
+        quoteRequests,
+        customerEvents,
+        successCount,
+        successPercent: customerEvents ? Number(((successCount / customerEvents) * 100).toFixed(1)) : 0,
+        frictionCount,
+        frictionPercent: customerEvents ? Number(((frictionCount / customerEvents) * 100).toFixed(1)) : 0,
+      };
+
+      if (dryRun) return res.json({ dryRun: true, generatedAt: generatedAt.toISOString(), stats, text });
+
+      const sent = await sendWeeklyDigestText(text, generatedAt);
+      if (!sent.ok) {
+        const status = sent.reason === "not_configured" ? 503 : sent.reason === "cooldown" ? 429 : 502;
+        return res.status(status).json({ message: sent.message });
+      }
+      return res.json({ sent: true, generatedAt: generatedAt.toISOString(), stats, text });
+    } catch (error) {
       return next(error);
     }
   });
