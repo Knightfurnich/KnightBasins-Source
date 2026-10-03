@@ -352,3 +352,4 @@
 | **Route schema** | `/portfolio` → `ImageGallery` (183 ภาพ, 11 sub-gallery) · `/site-prep` → `HowTo` (4 ขั้น) | ✅ Live · ตรวจบนเบราว์เซอร์จริง |
 | **Portfolio allowlist** | เปิดใช้ `public.json` 183 ภาพคัดสรร (เดิมโชว์ของดิบ 671 ภาพ) | ✅ Live · public 183 / admin 651 |
 | **Catalog dedupe** | ตัด id ซ้ำ 20 รายการที่ทำให้ภาพซ้ำและยอดเฟ้อ | ✅ Live · 15/15 tests |
+| **Task 213 (Quote View Security & Token Expiry - ซ่อนใบสั่งผลิตช่าง + อายุลิงก์ 45 วัน)** | **ชัย / Replit** (บอสสั่งทำ 3 ต.ค. 69) | ซ่อนใบสั่งผลิตช่าง Workshop Sheet จากหน้าลูกค้าสาธารณะ และตั้งอายุลิงก์ใบเสนอราคาเป็น 45 วัน (HTTP 410) โดยยังคงการยืนราคาในเอกสาร 30 วันเท่าเดิมตามคำสั่งบอส | `feat/quote-view-security-and-token-expiry` | 🟡 **Ready for Dev** (ใบงาน `qa/job-213-chai-quote-view-security-and-token-expiry.md` ผ่านมาตรฐาน 9/9) |
