@@ -54,14 +54,6 @@ const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 export const STUDIO_DATA_REQUIRED_ERROR = "STUDIO_DATA_REQUIRED";
 export const STUDIO_DATA_REQUIRED_MESSAGE = "คำขอใบเสนอราคาต้องแนบข้อมูลผังเคาน์เตอร์หรือรายการสินค้าที่เลือก";
 
-/**
- * True when the request asks for a quotation, or brings a quote number of its own. The route stores a quote number exactly as
- * sent (blanks included) and any non-empty one gets a quote link, so this must not trim before it looks.
- */
-function isQuoteRequest(lead: { status: string; quoteNumber?: string | null }): boolean {
-  return lead.status === "quote_requested" || (typeof lead.quoteNumber === "string" && lead.quoteNumber.length > 0);
-}
-
 /** studioData counts only when it is an object with something in it; the server's own `serverPricing` key is not the customer's data. */
 function hasStudioData(studioData: unknown): boolean {
   const data = stripServerPricing(studioData);
@@ -360,12 +352,14 @@ function dateValue(value: Date | string | null | undefined) {
  * Quote number: `MMM YY / US / NNNNNN` (6-digit serial).
  *
  * The serial used to be `String(now.getTime()).slice(-6)`, which is the epoch
- * millisecond count modulo 1,000,000 -- i.e. it repeats every 16 minutes and 40
- * seconds. Two quotations requested in the same position of that cycle shared a
- * number, and since the public quote token resolves a lead *by* quote number,
- * the second customer could be served the first customer's quotation. The serial
- * is a random 6-digit value now, and `createUniqueQuoteNumber` below stills
- * verifies it against the database before it is used.
+ * millisecond count modulo 1,000,000: the sequence repeats every 16 minutes and
+ * 40 seconds, so two quotations collided only if they were requested in the very
+ * same millisecond of that cycle (about 1 in a million for any two of them).
+ * A clash does not expose anything: the public quote token carries a per-lead
+ * access secret that is checked after the lead is looked up by quote number, so
+ * the later customer's link just answers 404. It is still a broken link and an
+ * ambiguous number for staff, hence the random serial here and the database check
+ * in `createUniqueQuoteNumber` below.
  */
 export function createQuoteNumber(now = new Date()) {
   const month = formatQuoteMonth(now);
@@ -384,8 +378,9 @@ export type QuoteNumberDatabase = {
 /**
  * A quote number that no row in `customer_leads` uses yet. Collisions are
  * vanishingly unlikely with a random serial, but the number is the lookup key
- * for `GET /quotes` and `POST /public/quotes/promptpay-qr`, so a duplicate would
- * hand one customer another customer's quotation -- it is worth the check.
+ * for `GET /quotes` and `POST /public/quotes/promptpay-qr`, so a duplicate makes
+ * one of the two quote links resolve to the wrong lead and answer 404 -- it is
+ * worth the check. (This is a check-then-insert, not a database constraint.)
  *
  * Throws when every attempt collides; callers treat that as a 500 rather than
  * saving a duplicate. `database` is injected so tests can pass a fake.
@@ -444,12 +439,12 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
     return invalid(res, "Invalid lead data", flattened);
   }
 
-  // Lead spam guard (job-231). A request for a quotation -- or any request that names a quote number of its own -- must say
-  // what is being quoted. Without this a bot could post bare `quote_requested` rows and be given a quote number each time.
+  // Lead spam guard (job-231). A request for a quotation must say what is being quoted. Without this a bot could post bare
+  // `quote_requested` rows and be given a quote number each time. (A quote number the client sends is ignored, job-233.)
   // This is deliberately not keyed on orderMode alone: the storefront's own autosave (new_lead / selecting) goes out with
   // orderMode "quick-purchase" and no studioData, and that has to keep working. A hand-drawn sketch is described by its
   // picture rather than by studioData, so a sketch request that carries a sketchUrl is let through.
-  if (isQuoteRequest(parsed.data) && !hasStudioData(parsed.data.studioData) && !isSketchWithPicture(parsed.data)) {
+  if (parsed.data.status === "quote_requested" && !hasStudioData(parsed.data.studioData) && !isSketchWithPicture(parsed.data)) {
     audit(req, {
       action: "lead.upsert",
       status: "error",
@@ -474,7 +469,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       action: "lead.upsert",
       status: "error",
       errorCode: "TAMPERED_QUOTE_TOTAL",
-      targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+      targetId: parsed.data.leadKey,
       details: { leadKey: parsed.data.leadKey, customerPhone: parsed.data.phone, source: parsed.data.source },
     });
     return invalid(res, "Invalid quote total");
@@ -492,7 +487,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       action: "lead.upsert",
       status: "error",
       errorCode: "TAMPERED_DIMENSIONS",
-      targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+      targetId: parsed.data.leadKey,
       details: { leadKey: parsed.data.leadKey, customerPhone: parsed.data.phone, source: parsed.data.source },
     });
     return invalid(res, "Invalid dimensions");
@@ -536,7 +531,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
         action: PRICE_TAMPER_AUDIT_ACTION,
         status: "warning",
         errorCode: PRICE_VERIFICATION_FAILED_ERROR,
-        targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+        targetId: parsed.data.leadKey,
         details: {
           stage: "lead.upsert",
           leadKey: parsed.data.leadKey,
@@ -556,7 +551,9 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       ? withServerPricing(canonicalStudioData(effectiveOrderMode, studioDataToSave as Record<string, unknown>), pricing.calculatedTotal)
       : studioDataToSave;
 
-    const quoteNumber = parsed.data.quoteNumber ?? existing?.quoteNumber ?? (parsed.data.status === "quote_requested" ? await createUniqueQuoteNumber(database) : null);
+    // The quote number is the server's alone (job-233): whatever the client sent as `quoteNumber` is ignored. A lead that already has
+    // one keeps it (an empty string counts as none); otherwise one is issued, checked against the database, once a quotation is requested.
+    const quoteNumber = existing?.quoteNumber || (parsed.data.status === "quote_requested" ? await createUniqueQuoteNumber(database) : null);
     const quoteAccessSecret = quoteNumber
       ? existing?.quoteAccessSecret ?? createQuoteAccessSecret()
       : existing?.quoteAccessSecret ?? null;
@@ -650,7 +647,7 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       action: "lead.upsert",
       status: "error",
       errorCode: "LEAD_SAVE_FAILED",
-      targetId: parsed.data.quoteNumber ?? parsed.data.leadKey,
+      targetId: parsed.data.leadKey,
       details: { leadKey: parsed.data.leadKey, status: parsed.data.status, customerPhone: parsed.data.phone, ...auditErrorDetails(error) },
     });
     return next(error);
@@ -914,6 +911,7 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
         .insert(customerLeads)
         .values({
           ...parsed.data,
+          quoteNumber: null,
           expectedInstallationDate: dateValue(parsed.data.expectedInstallationDate),
           sketchUrl: sketchUrls[0],
           studioData,
