@@ -18,7 +18,7 @@ export const UPDATE_RELEASES = [
       {
         icon: "🛠️",
         title: "Support Chat Hotfix & CI Typecheck",
-        description: "คืนค่าการทำงานของน้องไนท์สำหรับลูกค้าที่มีใบเสนอราคาเปิดอยู่, เพิ่มขั้นตอน typecheck ใน CI ป้องกัน TypeScript ReferenceError, และปรับปรุงไปป์ไลน์ Deploy บน VPS ให้ใช้ force-recreate อัตโนมัติ",
+        description: "ปรับปรุงระบบผู้ช่วยขาย (Support Chat) ให้ตอบคำถามลูกค้าได้อย่างต่อเนื่องแม้มีใบเสนอราคาเปิดอยู่, เพิ่มขั้นตอน typecheck ใน CI ป้องกันข้อผิดพลาดในการคอมไพล์โค้ด, และปรับปรุงไปป์ไลน์ Deploy บน VPS ให้โหลดการตั้งค่าใหม่อัตโนมัติ",
       },
     ],
   },
