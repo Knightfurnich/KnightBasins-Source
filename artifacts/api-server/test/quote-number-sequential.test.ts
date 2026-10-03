@@ -141,9 +141,11 @@ describe("sequential quote numbers", () => {
     assert.ok(limit, "expected a dedicated payment-slip rate limiter");
     const max = Number(limit[1]?.match(/\bmax:\s*(\d+)/)?.[1]);
     const minutes = Number(limit[1]?.match(/windowMs:\s*(\d+)\s*\*\s*60\s*\*\s*1000/)?.[1]);
-    assert.ok(max > 0 && max <= 10, `expected no more than 10 attempts, got ${max}`);
-    assert.ok(minutes > 0 && minutes <= 15, `expected a window no longer than 15 minutes, got ${minutes}`);
-    assert.ok(max / minutes <= 10 / 15, "expected a limit at least as strict as 10 attempts per 15 minutes");
+    // job-234-r: never looser than 5 attempts per 10 minutes per IP. "Looser" has two directions, more attempts and a shorter
+    // window, so both are pinned (10 per 15 minutes fails the first check, 5 per 5 minutes the second), and so is the rate.
+    assert.ok(max > 0 && max <= 5, `expected no more than 5 attempts, got ${max}`);
+    assert.ok(minutes >= 10, `expected a window of at least 10 minutes, got ${minutes}`);
+    assert.ok(max / minutes <= 5 / 10, `expected a rate no higher than 5 attempts per 10 minutes, got ${max} per ${minutes}`);
     assert.doesNotMatch(limit[1] ?? "", /\bkey\s*:/, "the default rate-limit key must remain IP-based");
     assert.match(source, /router\.post\("\/support\/payment-slip",\s*supportPaymentSlipRateLimit/);
   });

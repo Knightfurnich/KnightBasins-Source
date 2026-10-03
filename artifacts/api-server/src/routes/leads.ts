@@ -552,9 +552,9 @@ export function createLeadsRouter(database: typeof db = db): IRouter {
       : studioDataToSave;
 
     // The quote number is the server's alone (job-233): whatever the client sent as `quoteNumber` is ignored. A lead that already has
-    // one keeps it (an empty string counts as none); otherwise one is issued, checked against the database, once a quotation is requested.
-    // The quote number is the server's alone; reuse an existing one or
-    // atomically allocate it on the server. Any client-supplied value is ignored.
+    // one keeps it (an empty string counts as none); otherwise, once a quotation is requested, the next number of the month comes from
+    // the `quote_number_counters` row through one atomic UPSERT (createNextQuoteNumber). Nothing is looked up, so a failed save can
+    // leave a gap in the sequence, but this code never hands the same number out twice.
     const quoteNumber = existing?.quoteNumber || (parsed.data.status === "quote_requested"
       ? await createNextQuoteNumber(database, quoteFormatFromStudioData(studioDataToSave))
       : null);

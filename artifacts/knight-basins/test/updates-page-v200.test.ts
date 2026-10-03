@@ -30,12 +30,19 @@ describe("the newest release entry (v2.2.0)", () => {
       "Sequential Quote Number Format",
       "QT-YYYYMM-TYPE-NNNN",
       "5 ครั้งต่อ IP",
-      "5 ครั้งต่อเลขหรือเบอร์โทรใน 1 ชั่วโมง",
+      "Failed-attempt Rate Limiting",
+      "5 ครั้งที่ผิดต่อเลขหรือเบอร์โทรใน 1 ชั่วโมง",
       "45 วัน",
       "ตรวจราคาจริงจากเซิร์ฟเวอร์ก่อนรับสลิป",
     ]) {
       assert.ok(block.includes(expected), `missing v2.2.0 highlight: ${expected}`);
     }
+  });
+
+  it("does not claim the support slip page prevents guessing: it limits failed attempts (the lock never refuses correct details)", () => {
+    const block = releaseBlock("v2.2.0", "v2.1.0");
+    assert.ok(!block.includes("ป้องกันการสุ่ม"), "the v2.2.0 entry must not say it prevents guessing");
+    assert.ok(block.includes("จำกัดความพยายามค้นหาที่ผิดพลาด"));
   });
 
   it("is the only entry badged as the latest release", () => {
