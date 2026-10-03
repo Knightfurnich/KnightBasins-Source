@@ -9,6 +9,35 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 
 export const UPDATE_RELEASES = [
   {
+    version: "v1.2.0",
+    badge: "Stone Visual Experience & AI Matcher Suite — รุ่นล่าสุด",
+    date: "3 ตุลาคม 2569",
+    dateTime: "2026-10-03",
+    title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ, Studio Slab Viewer และ AI Visual Matcher",
+    highlights: [
+      {
+        icon: "🪨",
+        title: "Full Slab & Studio Viewer",
+        description: "ปุ่มดูภาพเต็มแผ่นบนหน้าร้าน /stone และปุ่ม “ดูลายแผ่นจริง” ใน 2D Studio (/studio)",
+      },
+      {
+        icon: "🧾",
+        title: "Formal Quotation Stone Thumbnails",
+        description: "ภาพตัวอย่างหินสังเคราะห์แสดงคู่กับรายการสินค้าในใบเสนอราคาทางการ (PDF/A4) ทั้งแบบ US และ OF",
+      },
+      {
+        icon: "📨",
+        title: "Automated Studio Sales Alert",
+        description: "แจ้งเตือนงานขายเข้า Telegram อัตโนมัติทันทีที่ยื่นแบบร่างจาก Studio พร้อมแนบลิงก์รูปหินให้ช่างเปิดดูหน้างานได้ทันที",
+      },
+      {
+        icon: "🎨",
+        title: "AI Visual Matcher (Gemini)",
+        description: "ระบบคลังจับคู่สีหินจากภาพห้องน้ำลูกค้าด้วย Vertex AI Gemini วิเคราะห์เฉพาะหินในแคตตาล็อก",
+      },
+    ],
+  },
+  {
     version: "v1.1.0",
     badge: "Logistics & Financial Safety Suite — รุ่นล่าสุด",
     date: "30 กันยายน 2569",
