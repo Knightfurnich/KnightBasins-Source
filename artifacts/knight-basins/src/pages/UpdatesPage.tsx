@@ -9,6 +9,45 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 
 export const UPDATE_RELEASES = [
   {
+    version: "v2.0.0",
+    badge: "Security, Smart Studio & DevOps — รุ่นล่าสุด",
+    date: "3 ตุลาคม 2569",
+    dateTime: "2026-10-03",
+    title: "Release v2.0.0 — สถาปัตยกรรมความปลอดภัยขั้นสูง, 2D Studio Smart Positioning และ DevOps Auto-Migration",
+    highlights: [
+      {
+        icon: "📐",
+        title: "Smart 7-Level Positioning",
+        description: "ปุ่มตำแหน่งอ่าง 7 ระดับรองรับแผ่นขาแนวตั้งของเคาน์เตอร์ทรง L และ U พร้อมรักษาระยะปลอดภัย 100 มม. ทุกด้าน",
+      },
+      {
+        icon: "🖼️",
+        title: "Asset WebP Optimization",
+        description: "แปลงไฟล์ภาพอ่าง 30 รุ่นเป็น WebP โปร่งใส ลดขนาดลง 88.4% โหลดเร็วขึ้น 10 เท่า",
+      },
+      {
+        icon: "🔒",
+        title: "Financial Security & Price Guard",
+        description: "ปิดช่องโหว่อายุลิงก์ 45 วันในจุดส่งสลิปและดูสถานะงาน พร้อมระบบคำนวณราคาจริงบนเซิร์ฟเวอร์ก่อนออก Dynamic PromptPay QR",
+      },
+      {
+        icon: "🪨",
+        title: "Freestanding Pillar Separation",
+        description: "แยกเสาวางของตั้งพื้น (KF029/030) ออกจากผังเจาะเคาน์เตอร์ 2D พร้อมป้ายชุดสำเร็จรูป",
+      },
+      {
+        icon: "⚙️",
+        title: "DevOps CI/CD",
+        description: "ระบบ Auto-Migration อัตโนมัติบน VPS ผ่าน GitHub Actions deploy workflow",
+      },
+      {
+        icon: "🚨",
+        title: "Proactive Emergency Alert",
+        description: "ระบบเฝ้าระวังข้อผิดพลาดสลิปยิงแจ้งเตือนด่วนเข้า Telegram ทันที พร้อม Knight UX Digest ประจำสัปดาห์",
+      },
+    ],
+  },
+  {
     version: "v1.2.0",
     badge: "Stone Visual Experience & AI Matcher Suite — รุ่นล่าสุด",
     date: "3 ตุลาคม 2569",
