@@ -556,7 +556,9 @@ function tableNameOf(table: unknown): string {
 function createFakeDatabase(leads: Row[] = [], pricingOverride = {}) {
   const saved: Row[] = [];
   const audits: Row[] = [];
+  let quoteCounter = 0;
   const base = {
+    execute: async () => ({ rows: [{ last_value: ++quoteCounter }] }),
     select: () => {
       const builder = { from: () => builder, where: () => builder, limit: async () => leads.map((lead) => ({ ...lead })) };
       return builder;

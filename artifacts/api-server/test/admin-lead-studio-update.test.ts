@@ -200,8 +200,8 @@ describe("PATCH /api/admin/leads/:id quote generation (Task 34)", () => {
 
       assert.match(
         String(updated.quoteNumber),
-        /^[A-Za-z]{3} \d{2} \/ US \/ \d{6}$/,
-        `expected a "Mmm YY / US / NNNNNN" quoteNumber, got ${updated.quoteNumber}`,
+        /^QT-\d{6}-US-\d{4,}$/,
+        `expected a "QT-YYYYMM-US-NNNN+" quoteNumber, got ${updated.quoteNumber}`,
       );
       assert.equal(typeof updated.quoteAccessSecret, "string");
       assert.ok((updated.quoteAccessSecret as string).length > 0);
