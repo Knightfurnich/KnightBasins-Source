@@ -13,7 +13,10 @@ import { validateNumericDimensions, verifyAndSanitizeQuoteTotal } from "../lib/p
 import { analyzeSketchImage } from "../lib/sketch-vision";
 import {
   createQuoteAccessSecret,
+  isPublicQuoteTokenExpired,
   maskPhone,
+  PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR,
+  PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE,
   publicQuoteResponse,
   publicQuoteTokenForLead,
   quoteAccessSecretMatches,
@@ -479,6 +482,13 @@ router.get("/quotes", quotesGetRateLimit, async (req, res, next) => {
     ) {
       return res.status(404).json({ message: "Quote not found" });
     }
+    if (isPublicQuoteTokenExpired(lead.createdAt)) {
+      res.status(410).json({
+        error: PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR,
+        message: PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE,
+      });
+      return;
+    }
     return res.json(publicQuoteResponse(lead));
   } catch (error) {
     return next(error);
@@ -516,6 +526,13 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
     ) {
       return res.status(404).json({ message: "Quote not found" });
+    }
+    if (isPublicQuoteTokenExpired(lead.createdAt)) {
+      res.status(410).json({
+        error: PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR,
+        message: PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE,
+      });
+      return;
     }
 
     const total = quoteTotalTHB(lead.studioData);
@@ -626,6 +643,13 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       !quoteAccessSecretMatches(lead.quoteAccessSecret, access.accessSecret)
     ) {
       return res.status(404).json({ message: "Quote not found" });
+    }
+    if (isPublicQuoteTokenExpired(lead.createdAt)) {
+      res.status(410).json({
+        error: PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR,
+        message: PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE,
+      });
+      return;
     }
     const result = await notifyQuote(lead, requestOrigin(req), `/quote/view?token=${encodeURIComponent(token)}`);
     return res.json(result);

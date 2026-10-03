@@ -5,6 +5,17 @@ type QuoteAccessPayload = {
   accessSecret: string;
 };
 
+export const PUBLIC_QUOTE_TOKEN_TTL_MS = 45 * 24 * 60 * 60 * 1000;
+export const PUBLIC_QUOTE_TOKEN_EXPIRED_ERROR = "quote_expired";
+export const PUBLIC_QUOTE_TOKEN_EXPIRED_MESSAGE =
+  "ลิงก์ใบเสนอราคานี้หมดอายุแล้ว (เกิน 45 วัน) กรุณาติดต่อทีมขายเพื่อประเมินราคาใหม่";
+
+export function isPublicQuoteTokenExpired(createdAt: Date | string | null | undefined, now = Date.now()) {
+  if (createdAt == null) return false;
+  const createdAtMs = createdAt instanceof Date ? createdAt.getTime() : Date.parse(createdAt);
+  return Number.isFinite(createdAtMs) && now - createdAtMs > PUBLIC_QUOTE_TOKEN_TTL_MS;
+}
+
 function sessionSecret() {
   const value = process.env["SESSION_SECRET"];
   if (!value) throw new Error("SESSION_SECRET is required");
