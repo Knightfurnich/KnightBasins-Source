@@ -9,9 +9,10 @@ type ChatMessage = {
   text: string;
   productCodes?: string[];
   profileUpdate?: SupportProfileUpdate;
+  loginRequired?: boolean;
 };
 
-export function LineLoginButton({ compact = false }: { compact?: boolean }) {
+export function LineLoginButton({ compact = false, testId = "button-line-login" }: { compact?: boolean; testId?: string }) {
   const { data } = useGetLineAuthStatus();
   const logoutMutation = useDeleteLineSession();
 
@@ -48,7 +49,7 @@ export function LineLoginButton({ compact = false }: { compact?: boolean }) {
       className={`line-login-button ${compact ? "line-login-button--compact" : ""}`}
       onClick={startLogin}
       title={data?.configured ? "เข้าสู่ระบบด้วย LINE" : "LINE Login ยังไม่ได้ตั้งค่าบนเซิร์ฟเวอร์"}
-      data-testid="button-line-login"
+      data-testid={testId}
     >
       <span className="line-logo-mark">LINE</span>
       เข้าสู่ระบบ
@@ -88,9 +89,10 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
   const dragRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", text: "สวัสดีค่ะ ดิฉันช่วยค้นหา SKU ราคา ขนาด วิดีโอ 3D 360° และอธิบายวิธีใช้งานหน้า Knight Basins ได้ค่ะ" },
+    { role: "assistant", text: "สวัสดีค่ะ น้องไนท์ยินดีให้บริการค่ะ 💬\nโหมดทั่วไป (ยังไม่เข้าสู่ระบบ): ค้นหาราคาอ่างล้างหน้า รหัสสีหิน ขนาด และวิดีโอ 3D 360° เช่น \"KF001\" \"BW010\"\nเข้าสู่ระบบด้วย LINE เพื่อปรึกษาการออกแบบ การชำระเงิน การติดตามใบเสนอราคา และคุยกับน้องไนท์โหมดเต็มแบบเดียวกับใน LINE" },
   ]);
   const chat = useSendSupportChatMessage();
+  const { data: lineAuthStatus } = useGetLineAuthStatus();
   const queryClient = useQueryClient();
   const [pendingSlip, setPendingSlip] = useState<File | null>(null);
   const [slipSending, setSlipSending] = useState(false);
@@ -213,7 +215,8 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
           if (result.profileUpdate?.status === "updated") {
             void queryClient.invalidateQueries({ queryKey: ["customer-profile"] });
           }
-          setMessages((current) => [...current, { role: "assistant", text: result.reply, productCodes, profileUpdate: result.profileUpdate }]);
+          const loginRequired = (result as typeof result & { loginRequired?: boolean }).loginRequired === true;
+          setMessages((current) => [...current, { role: "assistant", text: result.reply, productCodes, profileUpdate: result.profileUpdate, loginRequired }]);
         },
         onError: () => setMessages((current) => [...current, { role: "assistant", text: "ขออภัยค่ะ ระบบค้นหาข้อมูลขัดข้องชั่วคราว กรุณาลองอีกครั้ง" }]),
       },
@@ -255,8 +258,84 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
               <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => setOpen(false)} aria-label="ปิดน้องไนท์"><X size={16} /></button>
             </div>
           </div>
+          <div
+            role="status"
+            className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700"
+            data-testid="knight-support-mode-banner"
+          >
+            <span>{lineAuthStatus?.authenticated ? "โหมดเต็ม (เชื่อมต่อ LINE แล้ว)" : "โหมดทั่วไป · ค้นหาสินค้าได้"}</span>
+            {!lineAuthStatus?.authenticated && <LineLoginButton compact testId="button-line-login-mode-banner" />}
+          </div>
           <div className="knight-support-messages" aria-live="polite">
-             {messages.map((message, index) => <div key={`${message.role}-${index}`} className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}><p className={`knight-support-message knight-support-message--${message.role}`}>{message.text}</p>{message.role === "assistant" && <button type="button" className="knight-support-speak-button" onClick={() => speakMessage(message.text, index)} disabled={speakingIndex !== null} data-testid={`button-speak-message-${index}`}>{speakingIndex === index ? <Loader2 size={14} className="knight-support-speak-spin" aria-hidden="true" /> : <Volume2 size={14} aria-hidden="true" />} ฟังเสียง</button>}{message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && <div className="knight-support-actions"><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); }} disabled={!onAddToQuote}>เพิ่มเข้าใบเสนอราคา</button><button type="button" onClick={() => { message.productCodes?.forEach((sku) => onAddToQuote?.(sku)); onLeadEvent?.("selecting", message.productCodes); onRequestQuote?.(message.productCodes ?? []); }} disabled={!onRequestQuote}>ขอใบเสนอราคา</button></div>}{message.role === "assistant" && message.profileUpdate?.status === "confirmation_required" && <div className="knight-support-actions"><button type="button" onClick={() => send("ยืนยัน")} disabled={busy}>ยืนยันการอัปเดต</button><button type="button" onClick={() => send("ยกเลิก")} disabled={busy}>ยกเลิก</button></div>}</div>)}
+            {messages.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                className={`knight-support-message-wrap knight-support-message-wrap--${message.role}`}
+              >
+                <p
+                  className={`knight-support-message knight-support-message--${message.role}`}
+                  style={{ whiteSpace: "pre-line" }}
+                >
+                  {message.text}
+                </p>
+                {message.role === "assistant" && message.loginRequired && (
+                  <div className="mt-2 flex justify-end">
+                    <LineLoginButton compact testId={`button-line-login-required-${index}`} />
+                  </div>
+                )}
+                {message.role === "assistant" && (
+                  <button
+                    type="button"
+                    className="knight-support-speak-button"
+                    onClick={() => speakMessage(message.text, index)}
+                    disabled={speakingIndex !== null}
+                    data-testid={`button-speak-message-${index}`}
+                  >
+                    {speakingIndex === index ? (
+                      <Loader2 size={14} className="knight-support-speak-spin" aria-hidden="true" />
+                    ) : (
+                      <Volume2 size={14} aria-hidden="true" />
+                    )}{" "}
+                    ฟังเสียง
+                  </button>
+                )}
+                {message.role === "assistant" && message.productCodes && message.productCodes.length > 0 && (
+                  <div className="knight-support-actions">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        message.productCodes?.forEach((sku) => onAddToQuote?.(sku));
+                        onLeadEvent?.("selecting", message.productCodes);
+                      }}
+                      disabled={!onAddToQuote}
+                    >
+                      เพิ่มเข้าใบเสนอราคา
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        message.productCodes?.forEach((sku) => onAddToQuote?.(sku));
+                        onLeadEvent?.("selecting", message.productCodes);
+                        onRequestQuote?.(message.productCodes ?? []);
+                      }}
+                      disabled={!onRequestQuote}
+                    >
+                      ขอใบเสนอราคา
+                    </button>
+                  </div>
+                )}
+                {message.role === "assistant" && message.profileUpdate?.status === "confirmation_required" && (
+                  <div className="knight-support-actions">
+                    <button type="button" onClick={() => send("ยืนยัน")} disabled={busy}>
+                      ยืนยันการอัปเดต
+                    </button>
+                    <button type="button" onClick={() => send("ยกเลิก")} disabled={busy}>
+                      ยกเลิก
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
             {chat.isPending && <p className="knight-support-message knight-support-message--assistant">กำลังค้นข้อมูล...</p>}
             {slipSending && <p className="knight-support-message knight-support-message--assistant">กำลังตรวจสอบสลิป...</p>}
           </div>
