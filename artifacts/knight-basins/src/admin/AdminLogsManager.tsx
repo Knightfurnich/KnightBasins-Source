@@ -122,7 +122,9 @@ export const AUDIT_PAIN_POINT_CSV_HEADERS = [
 
 export function escapeAuditCsvField(value: unknown): string {
   const text = String(value ?? "").replace(/\r\n|\r|\n/g, "\r\n");
-  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  // Keep formula-like values inside a quoted field with an Excel-resistant tab prefix.
+  const excelSafeText = /^[\s\uFEFF]*[=+\-@＝＋－＠]/.test(text) ? `\t${text}` : text;
+  return /[",\r\n\t]/.test(excelSafeText) ? `"${excelSafeText.replace(/"/g, '""')}"` : excelSafeText;
 }
 
 export function filterAuditPainPointsByCategory<T extends { category: AuditInsightCategory }>(
