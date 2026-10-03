@@ -8,6 +8,7 @@
  * the stylesheet picked up that shadow.
  */
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -96,10 +97,24 @@ for (const sku of SKUS) {
 const share = (alpha: Uint8Array, predicate: (value: number) => boolean) => alpha.reduce((count, value) => count + (predicate(value) ? 1 : 0), 0) / alpha.length;
 
 describe("the 30 transparent top-view PNGs (job-212)", () => {
-  it("has exactly one PNG per catalog model KF001-KF030 and nothing else", () => {
+  it("has exactly one PNG per catalog model KF001-KF030, plus only the manifest and the contact sheet", () => {
     assert.ok(existsSync(assetDir), "public/assets/basins-transparent is missing");
-    assert.deepEqual(readdirSync(assetDir).filter((name) => /\.(png|webp|jpe?g)$/i.test(name)).sort(), SKUS.map((sku) => `${sku}.png`));
+    const names = readdirSync(assetDir).sort();
+    assert.deepEqual(names.filter((name) => /^KF\d{3}\./.test(name)), SKUS.map((sku) => `${sku}.png`), "one PNG per model, no other format");
+    assert.deepEqual(names.filter((name) => !/^KF\d{3}\./.test(name)), ["contact-sheet-all-30.jpg", "manifest.json"], "anything else in this folder is served publicly - add it here on purpose");
     for (const sku of SKUS) assert.ok(PRODUCTS.some((product) => product.sku === sku), `${sku} is not in the catalog`);
+  });
+
+  it("manifest.json lists the 30 files with their real size and checksum prefix", () => {
+    const manifest = JSON.parse(readFileSync(join(assetDir, "manifest.json"), "utf8")) as { count: number; items: Array<{ sku: string; file: string; bytes: number; sha256_16: string }> };
+    assert.equal(manifest.count, 30);
+    assert.deepEqual(manifest.items.map((item) => item.sku), SKUS);
+    for (const item of manifest.items) {
+      assert.equal(item.file, `assets/basins-transparent/${item.sku}.png`);
+      const bytes = readFileSync(join(assetDir, `${item.sku}.png`));
+      assert.equal(item.bytes, bytes.length, `${item.sku}: manifest size is out of date`);
+      assert.equal(item.sha256_16, createHash("sha256").update(bytes).digest("hex").slice(0, 16), `${item.sku}: manifest checksum is out of date - the image changed without regenerating manifest.json`);
+    }
   });
 
   it("every file is a real PNG with an alpha channel (RGBA or grey+alpha, 8 bit)", () => {
