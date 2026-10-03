@@ -10,15 +10,15 @@ type UpdateToast = (options: { description: string; variant?: "destructive" }) =
 export const UPDATE_RELEASES = [
   {
     version: "v2.2.1",
-    badge: "Hotfix & Infrastructure Hardening — รุ่นล่าสุด",
+    badge: "ความเสถียรของระบบและการบริการลูกค้า — รุ่นล่าสุด",
     date: "4 ตุลาคม 2569",
     dateTime: "2026-10-04",
-    title: "Release v2.2.1 — คืนค่า quoteTotalTHB ใน Support Chat และระบบ CI Typecheck",
+    title: "Release v2.2.1 — ปรับปรุงความเสถียรของระบบผู้ช่วยขายและการตรวจสอบคุณภาพอัตโนมัติ",
     highlights: [
       {
         icon: "🛠️",
-        title: "Support Chat Hotfix & CI Typecheck",
-        description: "ปรับปรุงระบบผู้ช่วยขาย (Support Chat) ให้ตอบคำถามลูกค้าได้อย่างต่อเนื่องแม้มีใบเสนอราคาเปิดอยู่, เพิ่มขั้นตอน typecheck ใน CI ป้องกันข้อผิดพลาดในการคอมไพล์โค้ด, และปรับปรุงไปป์ไลน์ Deploy บน VPS ให้โหลดการตั้งค่าใหม่อัตโนมัติ",
+        title: "Support Chat & System Stability",
+        description: "ปรับปรุงระบบผู้ช่วยขาย (Support Chat) ให้ตอบคำถามลูกค้าได้อย่างต่อเนื่องแม้มีใบเสนอราคาเปิดอยู่, เพิ่มเกราะป้องกันการตรวจสอบคุณภาพโค้ดก่อนนำขึ้นใช้งานจริง, และปรับปรุงระบบ Deploy บนเซิร์ฟเวอร์ให้โหลดการตั้งค่าใหม่อัตโนมัติ",
       },
     ],
   },
