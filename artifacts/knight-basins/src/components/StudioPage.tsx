@@ -26,7 +26,9 @@ import {
   basinPlacementOverlapWarnings,
   calculateBasinCoordinates,
   calculateBasinOffsets,
+  applyCustomShapeToState,
   clampPlacementToSheet,
+  type PlacementReanchorNotice,
   centerBasinPlacementPosition,
   compareStudioCatalog,
   createBasinPlacement,
@@ -104,6 +106,8 @@ import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput, sanitizeIntegerRange, sanitizeTextInput } from "@/data/input-sanitizers";
 import { WorksiteAddressAutocomplete } from "./WorksiteAddressAutocomplete";
+import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 const emptyContact: Pick<CustomerDetails, "name" | "company" | "phone" | "lineContact" | "email" | "project" | "address" | "site" | "purchasingDepartment" | "notes" | "taxName" | "taxId" | "taxBranch" | "taxAddress" | "preferredContact" | "customerRole" | "propertyType" | "condoFloor" | "expectedInstallationDate"> = {
   name: "",
@@ -1407,6 +1411,32 @@ function studioCustomShapePanelLabel(preset: StudioPreset, index: number) {
   return index === 1 ? "แผ่นขาซ้าย" : "แผ่นขาขวา";
 }
 
+const STUDIO_UNDO_TOAST_MS = 10_000;
+
+type StudioShapeApplied = { before: StudioState; after: StudioState; notices: PlacementReanchorNotice[] };
+
+function shapeChangeNoticeText(notice: PlacementReanchorNotice): string {
+  if (notice.kind === "no-fit") return `อ่าง ${notice.sku} ใหญ่เกินผังใหม่ — ปรับขนาดผัง เปลี่ยนรุ่นอ่าง หรือนำอ่างออกก่อนส่งคำขอ`;
+  if (notice.kind === "overlap") return `อ่าง ${notice.sku} ซ้อนกับอ่างอื่นในผังใหม่ — กรุณาลากย้ายตำแหน่ง`;
+  return `ย้ายอ่าง ${notice.sku} ให้อยู่ในผังใหม่แล้ว — กรุณาตรวจตำแหน่ง`;
+}
+
+/** Takes a basin off the plan and offers a short "undo" instead of a confirmation dialog. */
+function removeBasinPlacementWithUndo(placement: BasinPlacement, setState: Dispatch<SetStateAction<StudioState>>) {
+  setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) }));
+  toast({
+    title: `นำอ่าง ${placement.sku} ออกจากผังแล้ว`,
+    duration: STUDIO_UNDO_TOAST_MS,
+    action: <ToastAction
+      altText={`เลิกทำการนำอ่าง ${placement.sku} ออก`}
+      data-testid="button-studio-basin-remove-undo"
+      onClick={() => setState((current) => current.basinPlacements.some((item) => item.id === placement.id)
+        ? current
+        : { ...current, basinPlacements: [...current.basinPlacements, placement] })}
+    >เลิกทำ</ToastAction>,
+  });
+}
+
 function StudioCustomShapePanel({
   state,
   setState,
@@ -1418,7 +1448,7 @@ function StudioCustomShapePanel({
   setState: Dispatch<SetStateAction<StudioState>>;
   targetPiece: StudioPiece;
   simpleMode?: boolean;
-  onApplied: () => void;
+  onApplied: (result: StudioShapeApplied) => void;
 }) {
   const [preset, setPreset] = useState<StudioPreset>(() => studioCustomShapePresetForPiece(targetPiece));
   const [panelDrafts, setPanelDrafts] = useState<StudioCustomShapePanelDraft[]>(
@@ -1494,55 +1524,13 @@ function StudioCustomShapePanel({
       depthMm: Number(panel.depthMm),
       edges: panel.edges,
     }));
-    setState((current) => {
-      const currentPieces = getStudioPieces(current);
-      const currentPiece = currentPieces.find((piece) => piece.id === targetPiece.id);
-      if (!currentPiece) return current;
-
-      const builtPiece = {
-        ...buildCustomShapePiece(currentPiece.id, preset, shapePanels),
-        name: currentPiece.name,
-      };
-      const geometryChanged = currentPiece.preset !== preset ||
-        currentPiece.rectangles.length !== builtPiece.rectangles.length ||
-        builtPiece.rectangles.some((rectangle, index) => {
-          const previous = currentPiece.rectangles[index];
-          return !previous ||
-            previous.widthMm !== rectangle.widthMm ||
-            previous.lengthMm !== rectangle.lengthMm ||
-            previous.xMm !== rectangle.xMm ||
-            previous.yMm !== rectangle.yMm ||
-            previous.rotation !== rectangle.rotation;
-        });
-
-      return {
-        ...current,
-        shape: preset === "i" ? "I" : preset === "u" ? "U" : "L",
-        pieces: currentPieces.map((piece) => piece.id === currentPiece.id ? builtPiece : piece),
-        activePieceId: builtPiece.id,
-        // Changing the counter shape must never drop the customer's basin. The basin
-        // is part of the quotation (cut-out, price, workshop plan), so it is
-        // re-anchored into the rebuilt piece instead of being deleted -- otherwise a
-        // customer who switches from a straight run to an L loses their basin
-        // silently and gets a quotation that is cheaper than the real job. A basin
-        // that no longer fits is kept and flagged by the existing warning path
-        // (placementWarnings / .studio-placement--invalid), never removed here.
-        basinPlacements: geometryChanged
-          ? current.basinPlacements.map((placement) => {
-            if ((placement.pieceId ?? currentPiece.id) !== currentPiece.id) return placement;
-            const clamped = clampPlacementToSheet(placement, builtPiece, placement.xMm, placement.yMm);
-            const sheetStillExists = builtPiece.rectangles.some((rectangle) => rectangle.id === placement.sheetId);
-            return {
-              ...placement,
-              ...clamped,
-              sheetId: sheetStillExists ? placement.sheetId : builtPiece.rectangles[0]?.id ?? placement.sheetId,
-            };
-          })
-          : current.basinPlacements,
-      };
-    });
+    // The basins are carried over by applyCustomShapeToState (never dropped, kept clear of the
+    // edges, reported when they had to move) -- see reanchorPlacementsToPiece in studio-model.ts.
+    const result = applyCustomShapeToState(state, targetPiece.id, preset, shapePanels);
+    if (result.state === state) return;
+    setState(result.state);
     setOpenEdgeSelector(null);
-    onApplied();
+    onApplied({ before: state, after: result.state, notices: result.notices });
   };
 
   return (
@@ -2369,7 +2357,7 @@ function StudioPieceEditorLegacy({
        {placements.map((placement) => {
         const unknown = placement.widthMm === null || placement.depthMm === null;
          const crossesJoint = !unknown && placementCrossesPanelJoint(piece, placement);
-          return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => setSelectedPlacementId(placement.id)} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); } }}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "แตะเพื่อเลือก · ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : current); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+          return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${crossesJoint ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((placement.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((placement.depthMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => setSelectedPlacementId(placement.id)} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); } }}><strong>{placement.sku}</strong><small>{unknown ? "ขนาดหลุมไม่ระบุ" : crossesJoint ? "อ่างคร่อมรอยต่อแผ่น" : "แตะเพื่อเลือก · ลากเพื่อย้าย"}</small><button type="button" onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : current); removeBasinPlacementWithUndo(placement, setState); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
       })}
       {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className="studio-rectangle-drag-target" draggable onDragStart={(event) => event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id)} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`ลากแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
     </StudioFootprint>
@@ -2775,7 +2763,7 @@ function StudioPieceEditor({
             const targetWarnings = placementTargetWarnings(placement, getStudioPieces(state));
             const sheetWarnings = placementSheetWarnings(placement, piece);
             const placementWarnings = [...targetWarnings, ...sheetWarnings];
-            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${inactive ? "studio-placement--inactive" : ""} ${crossesJoint || placementWarnings.length > 0 ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((cutSize.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((cutSize.heightMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onPointerDown={(event) => beginPointerDrag(event, "placement", placement.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinTopView product={product} testId={`studio-placement-top-view-${placement.id}`} />}</span><strong>{placement.sku}</strong><small>{inactive ? "ไม่เปิดใช้งานแล้ว · เปลี่ยนรุ่นหรือนำออก" : placementWarnings[0] ?? (unknown ? "ขนาดหลุมไม่ระบุ" : `${cutSize.widthMm} × ${cutSize.heightMm} มม. · ลากเพื่อย้าย`)}</small><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : current); setState((current) => ({ ...current, basinPlacements: current.basinPlacements.filter((item) => item.id !== placement.id) })); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
+            return <div key={placement.id} draggable className={`studio-placement ${unknown ? "studio-placement--unknown" : ""} ${inactive ? "studio-placement--inactive" : ""} ${crossesJoint || placementWarnings.length > 0 ? "studio-placement--invalid" : ""} ${placement.id === selectedPlacementId ? "studio-placement--selected" : ""}`} style={{ left: `${(placement.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(placement.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: unknown ? "18%" : `${((cutSize.widthMm ?? 0) / Math.max(1, bounds.widthMm)) * 100}%`, height: unknown ? "18%" : `${((cutSize.heightMm ?? 0) / Math.max(1, bounds.heightMm)) * 100}%` }} onClick={() => { setSelectedPlacementId(placement.id); setSelectedRectangleId(null); }} onPointerDown={(event) => beginPointerDrag(event, "placement", placement.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedPlacementId(placement.id); event.dataTransfer.setData("application/x-studio-placement", placement.id); }} role="button" tabIndex={0} aria-pressed={placement.id === selectedPlacementId} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlacementId(placement.id); setSelectedRectangleId(null); } }}><span className="studio-placement-visual">{product && <BasinTopView product={product} testId={`studio-placement-top-view-${placement.id}`} />}</span><strong>{placement.sku}</strong><small>{inactive ? "ไม่เปิดใช้งานแล้ว · เปลี่ยนรุ่นหรือนำออก" : placementWarnings[0] ?? (unknown ? "ขนาดหลุมไม่ระบุ" : `${cutSize.widthMm} × ${cutSize.heightMm} มม. · ลากเพื่อย้าย`)}</small><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setSelectedPlacementId((current) => current === placement.id ? null : current); removeBasinPlacementWithUndo(placement, setState); }} aria-label={`นำ ${placement.sku} ออกจากผัง`}><X size={12} /></button></div>;
           })}
           {piece.rectangles.map((rectangle) => <div key={`drag-${rectangle.id}`} className={`studio-rectangle-drag-target ${rectangle.id === activeRectangle?.id ? "is-selected" : ""}`} draggable onClick={() => { setSelectedRectangleId(rectangle.id); setSelectedPlacementId(null); }} onPointerDown={(event) => beginPointerDrag(event, "rectangle", rectangle.id)} onPointerMove={movePointerDrag} onPointerUp={endPointerDrag} onPointerCancel={endPointerDrag} onDragStart={(event) => { setSelectedRectangleId(rectangle.id); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-studio-rectangle", rectangle.id); }} style={{ left: `${(rectangle.xMm / Math.max(1, bounds.widthMm)) * 100}%`, top: `${(rectangle.yMm / Math.max(1, bounds.heightMm)) * 100}%`, width: `${(studioRectangleSize(rectangle).widthMm / Math.max(1, bounds.widthMm)) * 100}%`, height: `${(studioRectangleSize(rectangle).heightMm / Math.max(1, bounds.heightMm)) * 100}%` }} aria-label={`ลากแผ่น ${rectangle.widthMm} × ${rectangle.lengthMm} มม.`} />)}
         </StudioFootprint>
@@ -2992,6 +2980,44 @@ function StudioCanvas({
     });
   };
 
+  // After a shape change: the basin notices (shown until the layout is edited again) and a short "undo".
+  const [shapeChange, setShapeChange] = useState<{ after: StudioState; notices: PlacementReanchorNotice[] } | null>(null);
+  const shapeToastDismissRef = useRef<(() => void) | null>(null);
+  // Bumped by "undo" so the shape panel remounts and shows the restored shape instead of the abandoned draft.
+  const [shapePanelVersion, setShapePanelVersion] = useState(0);
+  const announceShapeApplied = ({ before, after, notices }: StudioShapeApplied) => {
+    shapeToastDismissRef.current?.();
+    setShapeChange({ after, notices });
+    const handle = toast({
+      title: "เปลี่ยนทรงแล้ว",
+      duration: STUDIO_UNDO_TOAST_MS,
+      action: <ToastAction
+        altText="ย้อนกลับทรงเดิม"
+        data-testid="button-studio-shape-undo"
+        onClick={() => {
+          setState((current) => ({
+            ...current,
+            shape: before.shape,
+            pieces: before.pieces,
+            activePieceId: before.activePieceId,
+            basinPlacements: before.basinPlacements,
+          }));
+          setSelectedRectangleId(null);
+          setSelectedPlacementId(null);
+          setShapePanelVersion((version) => version + 1);
+        }}
+      >ย้อนกลับ</ToastAction>,
+    });
+    shapeToastDismissRef.current = handle.dismiss;
+  };
+  useEffect(() => {
+    if (!shapeChange) return;
+    if (state.pieces === shapeChange.after.pieces && state.basinPlacements === shapeChange.after.basinPlacements) return;
+    shapeToastDismissRef.current?.();
+    shapeToastDismissRef.current = null;
+    setShapeChange(null);
+  }, [state, shapeChange]);
+
   const addPiece = () => {
     setState((current) => {
       const currentPieces = getStudioPieces(current);
@@ -3109,16 +3135,21 @@ function StudioCanvas({
       <div className="studio-piece-shape-section" id="studio-piece-shape-section">
         <p className="studio-helper">เลือกรูปทรงและกำหนดขนาดกับขอบของแต่ละแผ่น ก่อนประกอบผังลงกระดาน</p>
         <StudioCustomShapePanel
+          key={shapePanelVersion}
           state={state}
           setState={setState}
           targetPiece={activePiece}
           simpleMode={simpleMode}
-          onApplied={() => {
+          onApplied={(result) => {
             setSelectedRectangleId(null);
             setSelectedPlacementId(null);
             onLayoutApplied();
+            announceShapeApplied(result);
           }}
         />
+        {shapeChange && shapeChange.notices.length > 0 && <div role="status" data-testid="status-studio-shape-change-notice">
+          {shapeChange.notices.map((notice) => <p className="studio-warning" key={notice.placementId} data-testid={`status-studio-shape-change-${notice.kind}-${notice.placementId}`}><AlertTriangle size={15} /> {shapeChangeNoticeText(notice)}</p>)}
+        </div>}
       </div>
 
       <div className="studio-zoom-toolbar" aria-label="ควบคุมการซูมผัง 2D">

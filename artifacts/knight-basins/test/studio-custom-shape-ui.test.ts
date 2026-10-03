@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const studioPageSource = readFileSync(new URL("../src/components/StudioPage.tsx", import.meta.url), "utf8");
+const studioModelSource = readFileSync(new URL("../src/data/studio-model.ts", import.meta.url), "utf8");
 
 test("custom shape panel removes the standard counter-size preset UI", () => {
   assert.doesNotMatch(studioPageSource, /studio-size-presets|STUDIO_COUNTER_PRESETS/);
@@ -25,6 +26,8 @@ test("each physical edge has a selector and panel joints are locked", () => {
 
 test("the apply action assembles and commits the selected custom shape", () => {
   assert.ok(studioPageSource.includes('data-testid="button-apply-custom-shape"'));
-  assert.match(studioPageSource, /buildCustomShapePiece\(currentPiece\.id,\s*preset,\s*shapePanels\)/);
+  // job-209 moved the piece rebuild out of StudioPage: the page hands the panels to applyCustomShapeToState.
+  assert.match(studioPageSource, /applyCustomShapeToState\(state,\s*targetPiece\.id,\s*preset,\s*shapePanels\)/);
+  assert.match(studioModelSource, /buildCustomShapePiece\(currentPiece\.id,\s*preset,\s*panels\)/);
   assert.ok(studioPageSource.includes("onClick={applyCustomShape}"));
 });
