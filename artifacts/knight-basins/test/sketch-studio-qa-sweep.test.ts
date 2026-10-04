@@ -12,8 +12,12 @@ const chromiumPath = process.env.CHROMIUM_BIN ?? "/repl/tools/bin/chromium";
 
 test("Sketch and Studio validate dimensions and prevent duplicate sketch actions", () => {
   assert.match(studioPageSource, /function parseBoundedIntegerInput\(value: string, min: number, max: number, step = 1\)/);
-  assert.match(studioPageSource, /parseBoundedIntegerInput\(sketchDimensionDrafts\.length, 100, 10_000, 10\)/);
-  assert.match(studioPageSource, /parseBoundedIntegerInput\(sketchDimensionDrafts\.depth, 100, 3_000, 10\)/);
+  // job-256: sketch sizes are validated per piece by sketch-order.ts (whole positive millimetres); the page only sends a request
+  // when every piece has valid sizes and a stone, and only bridges to Studio when every size is valid.
+  assert.match(studioPageSource, /const sketchSizesValid = resolvedSketchPieces\.every\(\(piece\) => piece\.sizeValid\);/);
+  assert.match(studioPageSource, /const sketchOrderReady = resolvedSketchPieces\.length > 0 && resolvedSketchPieces\.every\(\(piece\) => sketchPieceReady\(piece, sketchOrderType\)\);/);
+  assert.match(studioPageSource, /!sketchOrderReady\} onClick=\{\(\) => void primarySubmit\(\)\} data-testid="button-submit-sketch-lead"/);
+  assert.match(studioPageSource, /!sketchSizesValid\} onClick=\{bridgeToStudio\}/);
   assert.match(studioPageSource, /Number\.isSafeInteger\(panel\.widthMm\)/);
   assert.match(studioPageSource, /Number\.isSafeInteger\(panel\.depthMm\)/);
   assert.match(studioPageSource, /disabled=\{submitting \|\| sketchStatus\?\.busy\}/);

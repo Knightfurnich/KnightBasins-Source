@@ -68,7 +68,7 @@ function findJsxByTestId(root: ts.Node, testId: string): JsxNode | undefined {
 }
 
 describe("Sketch page redesign", () => {
-  it("renders the upload step before the optional stone and basin shortlists", () => {
+  it("renders the steps in order: picture, sizes, stone per piece, basin per cut-out, order type", () => {
     const layout = findVariableDeclaration("studioDesignLayout");
     assert.ok(layout.initializer && ts.isConditionalExpression(layout.initializer));
 
@@ -76,18 +76,23 @@ describe("Sketch page redesign", () => {
     assert.ok(ts.isJsxElement(sketchLayout), "sketch mode should render a dedicated layout");
     assert.equal(jsxAttributeValue(sketchLayout, "data-testid"), "studio-sketch-flow");
 
+    const stepOrder = [
+      "step-studio-sketch-upload",
+      "step-studio-sketch-dimensions",
+      "step-studio-sketch-stone",
+      "step-studio-sketch-basin",
+      "step-studio-sketch-order-type",
+    ];
     const stepIds = collectJsxNodes(sketchLayout)
       .map((element) => jsxAttributeValue(element, "data-testid"))
-      .filter((value) => value === "step-studio-sketch-upload" || value === "step-studio-sketch-shortlists");
-    assert.deepEqual(stepIds, ["step-studio-sketch-upload", "step-studio-sketch-shortlists"]);
+      .filter((value): value is string => typeof value === "string" && stepOrder.includes(value));
+    assert.deepEqual(stepIds, stepOrder);
 
     const uploadStep = findJsxByTestId(sketchLayout, "step-studio-sketch-upload");
-    const shortlistStep = findJsxByTestId(sketchLayout, "step-studio-sketch-shortlists");
     assert.ok(uploadStep);
-    assert.ok(shortlistStep);
     assert.match(uploadStep.getText(studioPageAst), /studioSketchUploadPanel/);
-    assert.match(shortlistStep.getText(studioPageAst), /StudioShortlists/);
-    assert.match(shortlistStep.getText(studioPageAst), /เลือกสเปกที่สนใจเบื้องต้น \(ไม่บังคับ\) เพื่อให้ทีมงานช่วยวางผังให้ตรงรุ่น หรือปล่อยว่างเพื่อให้ทีมงานช่วยแนะนำ/);
+    // The global stone/basin shortlist is gone from the sketch flow: stone and basin are picked per piece, after the sizes.
+    assert.doesNotMatch(sketchLayout.getText(studioPageAst), /StudioShortlists/);
   });
 
   it("keeps the contact form, live estimate, and sketch submission together in step three", () => {
