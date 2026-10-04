@@ -40,6 +40,7 @@ import {
   sortBasinProductsBySku,
   reconcileStoneSelections,
   removeStoneSelection,
+  stoneColorMatchesQuery,
   stoneColorMatchesSelection,
   stoneColorsFromCatalog,
   toggleBasinSelection,
@@ -651,7 +652,7 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
       (activePriceFilter === "all"
          || (activePriceFilter === "selected" && stones.some((stone) => stoneColorMatchesSelection(color, stone.color)))
         || (activePriceFilter !== "selected" && String(stonePriceForMode(color, isWhole)) === activePriceFilter))
-      && (!query || [color.name, color.code, ...color.documentCodes].some((value) => value.toLowerCase().includes(query))),
+      && (!query || stoneColorMatchesQuery(color, query)),
     );
   }, [activePriceFilter, availableColors, isWhole, stoneQuery, stones]);
   const update = (changes: Partial<StoneConfig>) => setStones((current) => {
