@@ -41,6 +41,33 @@ async function resolveOpsDatabase(): Promise<OpsDatabase> {
   return db;
 }
 
+/**
+ * A date read from the database as "YYYY-MM-DD" (the UTC calendar day of an instant, as an ISO string would give), or null.
+ * Drivers hand timestamps back as Date objects but some tests and columns carry ISO strings, so every date the summaries read
+ * goes through here instead of calling string methods on it. Never throws: null, undefined, an invalid Date or text that is
+ * not a date all give null.
+ */
+export function formatOpsDate(value: unknown): string | null {
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10);
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10);
+    const parsed = new Date(trimmed);
+    return trimmed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString().slice(0, 10) : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+/** Milliseconds since the epoch for ordering rows by time; -Infinity when the value is not a usable date. */
+function opsTimeOf(value: unknown): number {
+  const time = value instanceof Date ? value.getTime() : typeof value === "string" || typeof value === "number" ? new Date(value).getTime() : Number.NaN;
+  return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
+}
+
 /** {start, end} ISO dates ("YYYY-MM-DD") spanning the calendar month of `now` in Asia/Bangkok. */
 function bangkokMonthRange(now: Date): { start: string; end: string } {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -75,7 +102,7 @@ async function fetchDashboardSummary(database: OpsDatabase): Promise<string> {
     status: string;
     verifiedAmountThb: number | null;
     claimedAmountThb: number | null;
-    createdAt: string;
+    createdAt: Date | string | null;
   }> = await database
     .select({
       status: paymentSlips.status,
@@ -86,12 +113,12 @@ async function fetchDashboardSummary(database: OpsDatabase): Promise<string> {
     .from(paymentSlips)
     .orderBy(asc(paymentSlips.id));
 
-  let latestPayment: { amount: number; createdAt: string } | null = null;
+  let latestPayment: { amount: number; createdAt: Date | string | null } | null = null;
   for (const slip of slipRows) {
     if (!PAID_SLIP_STATUSES.has(slip.status)) continue;
     const amount = slip.status === "verified" ? slip.verifiedAmountThb : slip.claimedAmountThb;
     if (amount == null) continue;
-    if (!latestPayment || slip.createdAt > latestPayment.createdAt) {
+    if (!latestPayment || opsTimeOf(slip.createdAt) > opsTimeOf(latestPayment.createdAt)) {
       latestPayment = { amount, createdAt: slip.createdAt };
     }
   }
@@ -101,7 +128,7 @@ async function fetchDashboardSummary(database: OpsDatabase): Promise<string> {
     `พร้อมผลิต: ${statusCounts.get(READY_FOR_PRODUCTION_STATUS) ?? 0} งาน`,
     `ปิดการขาย: ${statusCounts.get(CLOSED_STATUS) ?? 0} งาน`,
     latestPayment
-      ? `ยอดเงินที่รับชำระแล้วล่าสุด: ${latestPayment.amount.toLocaleString()} บาท (${latestPayment.createdAt.slice(0, 10)})`
+      ? `ยอดเงินที่รับชำระแล้วล่าสุด: ${latestPayment.amount.toLocaleString()} บาท (${formatOpsDate(latestPayment.createdAt) ?? "ไม่ระบุวันที่"})`
       : "ยอดเงินที่รับชำระแล้วล่าสุด: ไม่พบข้อมูล",
   ].join("\n");
 }
@@ -111,7 +138,7 @@ async function fetchLeadsSummary(database: OpsDatabase): Promise<string> {
     leadKey: string;
     name: string | null;
     status: string;
-    expectedInstallationDate: string | null;
+    expectedInstallationDate: Date | string | null;
   }> = await database
     .select({
       leadKey: customerLeads.leadKey,
@@ -127,13 +154,13 @@ async function fetchLeadsSummary(database: OpsDatabase): Promise<string> {
 
   return rows
     .map((row, index) =>
-      `${index + 1}. รหัสงาน: ${row.leadKey} · ลูกค้า: ${row.name ?? "ไม่ระบุ"} · สถานะ: ${row.status} · วันติดตั้ง: ${row.expectedInstallationDate ?? "ไม่ระบุ"}`)
+      `${index + 1}. รหัสงาน: ${row.leadKey} · ลูกค้า: ${row.name ?? "ไม่ระบุ"} · สถานะ: ${row.status} · วันติดตั้ง: ${formatOpsDate(row.expectedInstallationDate) ?? "ไม่ระบุ"}`)
     .join("\n");
 }
 
 async function fetchCalendarSummary(database: OpsDatabase, now: Date): Promise<string> {
   const { start, end } = bangkokMonthRange(now);
-  const rows: Array<{ technicianTeamCode: string | null; expectedInstallationDate: string | null }> = await database
+  const rows: Array<{ technicianTeamCode: string | null; expectedInstallationDate: Date | string | null }> = await database
     .select({
       technicianTeamCode: customerLeads.technicianTeamCode,
       expectedInstallationDate: customerLeads.expectedInstallationDate,
@@ -141,8 +168,10 @@ async function fetchCalendarSummary(database: OpsDatabase, now: Date): Promise<s
     .from(customerLeads)
     .orderBy(asc(customerLeads.id));
 
-  const inMonth = rows.filter((row) =>
-    row.expectedInstallationDate !== null && row.expectedInstallationDate >= start && row.expectedInstallationDate <= end);
+  const inMonth = rows.filter((row) => {
+    const installationDate = formatOpsDate(row.expectedInstallationDate);
+    return installationDate !== null && installationDate >= start && installationDate <= end;
+  });
 
   if (inMonth.length === 0) return `เดือนนี้ยังไม่มีงานติดตั้งที่กำหนดวันไว้ (${start.slice(0, 7)})`;
 
@@ -185,7 +214,15 @@ export async function askOpsAssistant(question: string, mode: OpsAssistantMode =
   if (!vertexGeminiConfigured()) {
     return { ok: false, message: "ผู้ช่วย AI ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง" };
   }
-  const dataSummary = await buildOpsContextSummary(mode);
+  // The summary is read-only context. If it cannot be built the assistant still answers (and says there is no data) instead of
+  // throwing out of the route as a 500.
+  let dataSummary: string;
+  try {
+    dataSummary = await buildOpsContextSummary(mode);
+  } catch (error) {
+    console.warn("Ops assistant context summary failed", { mode, error: error instanceof Error ? error.message : "unknown" });
+    dataSummary = "ไม่พบข้อมูล (ดึงข้อมูลอ้างอิงจากระบบไม่สำเร็จ)";
+  }
   return askGemini({
     message: question,
     contextSummary: `${SYSTEM_PROMPT}\n\nข้อมูลอ้างอิง:\n${dataSummary}`,
