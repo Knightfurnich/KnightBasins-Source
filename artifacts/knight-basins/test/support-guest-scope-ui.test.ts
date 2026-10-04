@@ -9,9 +9,11 @@ const supportSource = readFileSync(
 
 describe("KnightSupport guest-scope UI", () => {
   it("shows the approved three-line welcome and distinguishes general from LINE mode", () => {
-    assert.match(
-      supportSource,
-      /text: "สวัสดีค่ะ น้องไนท์ยินดีให้บริการค่ะ 💬\\nโหมดทั่วไป \(ยังไม่เข้าสู่ระบบ\): ค้นหาราคาอ่างล้างหน้า รหัสสีหิน ขนาด และวิดีโอ 3D 360° เช่น \\"KF001\\" \\"BW010\\"\\nเข้าสู่ระบบด้วย LINE เพื่อปรึกษาการออกแบบ การชำระเงิน การติดตามใบเสนอราคา และคุยกับน้องไนท์โหมดเต็มแบบเดียวกับใน LINE"/,
+    assert.ok(
+      supportSource.includes(
+        'text: "สวัสดีค่ะ น้องไนท์พร้อมช่วยค่ะ 💬\\n• ดูราคา/สี/ขนาด/วิดีโอ 3D: พิมพ์รหัส เช่น KF001, BW010\\n• ปรึกษาออกแบบ/ชำระเงิน/ติดตามใบเสนอราคา: เข้าสู่ระบบด้วย LINE"',
+      ),
+      "the initial assistant message must match the approved three lines exactly",
     );
   });
 
