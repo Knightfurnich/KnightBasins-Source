@@ -10,7 +10,7 @@ describe("updates changelog page", () => {
     assert.match(updatesSource, /data-testid="page-updates"/);
     assert.match(updatesSource, /data-testid=\{`card-update-\$\{release\.version\}`\}/);
     assert.match(updatesSource, /version: "v2\.2\.1"/);
-    assert.match(updatesSource, /version: "v2\.2\.0"/);
+    assert.doesNotMatch(updatesSource, /version: "v2\.2\.0"/);
     assert.match(updatesSource, /version: "v2\.1\.0"/);
     assert.match(updatesSource, /version: "v2\.0\.0"/);
     assert.match(updatesSource, /version: "v1\.1\.0"/);
@@ -21,7 +21,10 @@ describe("updates changelog page", () => {
 
   it("keeps every release in the timeline, newest first", () => {
     const versions = [...updatesSource.matchAll(/version: "(v[0-9.]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(versions, ["v2.2.1", "v2.2.0", "v2.1.0", "v2.0.0", "v1.2.0", "v1.1.0", "v1.0.0", "v0.9.0", "v0.1.0"]);
+    assert.deepEqual(versions, ["v2.2.1", "v2.1.0", "v2.0.0", "v1.2.0", "v1.1.0", "v1.0.0", "v0.9.0", "v0.1.0"]);
+    assert.ok(!versions.includes("v2.2.0"), "v2.2.0 must not be a separate timeline entry");
+    assert.doesNotMatch(updatesSource, /title: "Release v/);
+    assert.match(updatesSource, /badge: "ระบบเสถียรและเลขใบเสนอราคา — รุ่นล่าสุด"/);
     assert.match(
       updatesSource,
       /version: "v1\.1\.0",\s*badge: "Logistics & Financial Safety Suite"/,
@@ -30,6 +33,11 @@ describe("updates changelog page", () => {
 
   it("contains the release names, dates, and milestone details from the work order", () => {
     for (const expected of [
+      "ผู้ช่วยขายและเสถียรภาพระบบ",
+      "เลขใบเสนอราคาเรียงลำดับ",
+      "QT-YYYYMM-TYPE-NNNN",
+      "atomic",
+      "88.4% (13.71 MB → 1.60 MB)",
       "v1.1.0",
       "Logistics & Financial Safety Suite",
       "รุ่นล่าสุด",

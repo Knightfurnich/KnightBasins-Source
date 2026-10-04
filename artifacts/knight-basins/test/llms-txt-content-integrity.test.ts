@@ -65,6 +65,9 @@ describe("llms.txt / llms-full.txt stay in step with the site (job-202)", () => 
 
   it("names the latest release from the /updates page and links to it", () => {
     assert.ok(latestRelease, "could not read the latest version from UpdatesPage.tsx");
+    assert.equal(latestRelease, "v2.2.1");
+    assert.ok(!updatesSource.includes('version: "v2.2.0"'), "v2.2.0 must be merged into the latest release");
+    assert.doesNotMatch(updatesSource, /title: "Release v/);
     assert.ok(llmsTxt.includes(latestRelease!), `llms.txt does not mention ${latestRelease}`);
     assert.ok(llmsFullTxt.includes(`**${latestRelease} (`), `llms-full.txt release log does not start with ${latestRelease}`);
   });
