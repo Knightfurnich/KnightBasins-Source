@@ -127,9 +127,50 @@ function itemPriceSuffix(item: NotificationItem, quantity: number) {
  * บล็อก "วิธีคำนวณ" สำหรับข้อความแจ้งเตือน — อ่านจาก estimate ที่แนบมากับ studioData
  * ครอบทั้งเส้นทาง Studio (มีรายการ) และ sketch (ไม่มีรายการ แต่มี estimate)
  */
+/**
+ * job-259: how a hand-sketch order was priced, from studioData.sketchOrder: each piece at its own colour's rate, then the job's
+ * service charges once (basin installation free from 3 sets, the small-job fee once per job, none when the customer collects).
+ * Null when the lead has no sketch-order totals, so other leads keep the estimate breakdown below.
+ */
+function sketchOrderBreakdown(value: unknown): string[] | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const order = value as Record<string, unknown>;
+  const totals = order["totals"];
+  if (!totals || typeof totals !== "object") return null;
+  const t = totals as Record<string, unknown>;
+  const num = (input: unknown) => (typeof input === "number" && Number.isFinite(input) ? input : 0);
+  const q = (input: number) => input.toLocaleString("th-TH", { maximumFractionDigits: 3 });
+  const lines: string[] = [];
+  const pieces = Array.isArray(order["pieces"]) ? order["pieces"] : [];
+  for (const pieceValue of pieces) {
+    if (!pieceValue || typeof pieceValue !== "object") continue;
+    const piece = pieceValue as Record<string, unknown>;
+    const quote = piece["quote"] as Record<string, unknown> | null | undefined;
+    if (!quote || quote["status"] !== "ok") continue;
+    const label = typeof piece["label"] === "string" ? piece["label"] : "ชิ้นงาน";
+    const stone = typeof piece["stoneCode"] === "string" ? ` ${piece["stoneCode"]}` : "";
+    lines.push(quote["orderType"] === "sheet"
+      ? `• ${label}: แผ่นหิน${stone} ${num(quote["sheets"])} แผ่น × ฿${formatBaht(num(quote["unitPriceTHB"]))} = ฿${formatBaht(num(quote["stoneTotalTHB"]))}`
+      : `• ${label}: หิน${stone} ${q(num(quote["areaSqM"]))} ตร.ม. × ฿${formatBaht(num(quote["unitPriceTHB"]))} = ฿${formatBaht(num(quote["stoneTotalTHB"]))}`);
+    if (num(quote["basinTotalTHB"]) > 0) lines.push(`  อ่าง ${num(quote["basinSets"])} ชุด = ฿${formatBaht(num(quote["basinTotalTHB"]))}`);
+  }
+  if (num(t["requestedInstallationTHB"]) > 0) {
+    lines.push(num(t["installationDiscountTHB"]) > 0
+      ? `• ค่าติดตั้งอ่าง ${num(t["basinSets"])} ชุด = ฟรี (3 ชุดขึ้นไป)`
+      : `• ค่าติดตั้งอ่าง ${num(t["basinSets"])} ชุด = ฿${formatBaht(num(t["installationTHB"]))}`);
+  }
+  if (num(t["smallJobFeeTHB"]) > 0) {
+    lines.push(`• ค่าดำเนินการงานพื้นที่เล็ก (รวมทั้งงาน ${q(num(t["areaSqM"]))} ตร.ม. · คิดครั้งเดียว) = ฿${formatBaht(num(t["smallJobFeeTHB"]))}`);
+  }
+  if (order["pickup"] === true) lines.push("• ลูกค้ามารับเองที่โรงงาน — ไม่คิดค่าดำเนินการติดตั้ง");
+  return lines.length ? ["วิธีคำนวณ (รวมทั้งงาน):", ...lines] : null;
+}
+
 function estimateBreakdown(studio: unknown): string[] {
   if (!studio || typeof studio !== "object") return [];
   const s = studio as Record<string, unknown>;
+  const sketchLines = sketchOrderBreakdown(s["sketchOrder"]);
+  if (sketchLines) return sketchLines;
   const est = s["estimate"];
   if (!est || typeof est !== "object") return [];
   const e = est as Record<string, unknown>;

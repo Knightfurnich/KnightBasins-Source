@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 // The rules themselves are tested on the pure functions in sketch-order.test.ts.
 
 const source = readFileSync(new URL("../src/components/StudioPage.tsx", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const dataSource = readFileSync(new URL("../src/data/sketch-order.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const sketchLayout = source.slice(source.indexOf('data-testid="studio-sketch-flow"'), source.indexOf("  ) : (\n    <div className={`studio-design-layout ${isSimpleStudioMode"));
 
 describe("sketch page: pictures are shown whole", () => {
@@ -66,13 +67,13 @@ describe("sketch page: prices appear only after a stone is picked, and come from
 
   it("the page does no price arithmetic of its own: quoteSketchOrder (studioEstimate / stoneSheetUnitPrice) is the only source", () => {
     assert.match(source, /const sketchOrderQuoteResult = quoteSketchOrder\(resolvedSketchPieces, sketchQuoteContext\);/);
-    assert.match(source, /totalTHB: sketchOrderQuoteResult\.totalTHB/);
+    assert.match(source, /const sketchNotification = sketchOrderNotification\(resolvedSketchPieces, sketchQuoteContext, sketchOrderQuoteResult\);/);
     assert.doesNotMatch(sketchLayout, /priceTHB \*|installedPriceTHB \*|sheetPriceTHB \*/);
   });
 
   it("a customer's own basin gets no basin line and no installation, and goes to sales as a note", () => {
-    assert.match(source, /A basin the customer buys themselves has no line at all/);
-    assert.match(source, /product = sku && sku !== SKETCH_OWN_BASIN \? basinProducts\.find/);
+    assert.match(dataSource, /A basin the customer buys themselves has no line at all/);
+    assert.match(dataSource, /sku !== null && sku !== SKETCH_OWN_BASIN && products\.some/);
     assert.match(source, /notes: \[safeContact\.notes, sketchOrderNote\]/);
   });
 
@@ -87,5 +88,34 @@ describe("studio mode is unchanged", () => {
     assert.match(source, /<StudioShortlists \{\.\.\.studioShortlistsProps\} \/>\n      \{mode === "studio" \? \(/);
     assert.match(source, /showSketchEstimateLines \? sketchEstimateLines : <div className="studio-estimate-lines">/);
     assert.match(source, /\{mode !== "sketch" && <StudioStoneComparison/);
+  });
+});
+
+describe("job-259: collect at the factory, and the order total is the job's", () => {
+  it("the order-type step offers ให้เราติดตั้ง (default) and ลูกค้ามารับเองที่โรงงาน as real radio choices", () => {
+    assert.match(source, /useState<SketchFulfilment>\(DEFAULT_SKETCH_FULFILMENT\)/);
+    const step = sketchLayout.slice(sketchLayout.indexOf('data-testid="step-studio-sketch-order-type"'));
+    assert.match(step, /role="radiogroup" aria-label="การรับสินค้า" data-testid="group-sketch-fulfilment"/);
+    assert.match(step, /SKETCH_FULFILMENTS\.map/);
+    assert.match(step, /type="radio" name="sketch-fulfilment" checked=\{sketchFulfilment === item\.value\} onChange=\{\(\) => setSketchFulfilment\(item\.value\)\} data-testid=\{`input-sketch-fulfilment-\$\{item\.value\}`\}/);
+  });
+
+  it("the choice reaches the price (pickup: true in the quote context), the notification and the notes", () => {
+    assert.match(source, /const sketchQuoteContext = \{[^}]*pickup: sketchFulfilment === "pickup" \};/);
+    assert.match(source, /`การรับสินค้า: \$\{SKETCH_FULFILMENTS\.find\(\(item\) => item\.value === sketchFulfilment\)/);
+    assert.match(source, /notification: sketchNotification\n/);
+    assert.match(source, /items: sketchNotification\.items,/);
+  });
+
+  it("the notification keys the sales message never read are gone (subtotalTHB / vatTHB / totalTHB under notification)", () => {
+    assert.doesNotMatch(source, /subtotalTHB: sketchOrderQuoteResult/);
+    assert.doesNotMatch(source, /vatTHB: sketchOrderQuoteResult\.vatTHB,/);
+  });
+
+  it("the estimate shows each piece's own line, then the job's charges once; a province job is told travel is not included", () => {
+    assert.match(source, /<strong>\{formatTHB\(quote\.lineTotalTHB\)\}<\/strong>/);
+    for (const id of ["row-sketch-estimate-installation", "row-sketch-estimate-small-job", "row-sketch-estimate-pickup"]) assert.match(source, new RegExp(`data-testid="${id}"`));
+    assert.match(sketchLayout, /data-testid="text-sketch-province-travel">\{SKETCH_PROVINCE_TRAVEL_NOTE\}/);
+    assert.doesNotMatch(source, /pieceQuote\.(installationTHB|smallJobFeeTHB)/);
   });
 });

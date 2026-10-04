@@ -22,6 +22,13 @@ import {
   type StoneColor,
 } from "../../../knight-basins/src/data/catalog.ts";
 import { studioEstimate, type StudioEstimate, type StudioState } from "../../../knight-basins/src/data/studio-model.ts";
+import {
+  quoteSketchOrder,
+  sketchOrderFromSnapshot,
+  sketchOrderNotification,
+  sketchOrderTotals,
+  type SketchOrderQuote,
+} from "../../../knight-basins/src/data/sketch-order.ts";
 
 /** A quote of exactly 0 THB is unusual but not a tamper signal by itself; only a negative total is. */
 const MIN_QUOTE_TOTAL_THB = 0;
@@ -503,4 +510,73 @@ export async function repriceStudioQuoteAsStaff(
     ? { staffDiscountTHB, staffOpenEdgePricePerMTHB, authorizedByMemberId: authorization.memberId, authorizedAt: new Date().toISOString() }
     : {};
   return { ok: true, studioData: withServerPricing(rewritten, estimate.totalTHB, staffStamp), total: estimate.totalTHB, levers };
+}
+
+// ---- hand-sketch orders (job-259) --------------------------------------------------------------------------------------
+
+export type SketchOrderPricing = {
+  quote: SketchOrderQuote;
+  notification: ReturnType<typeof sketchOrderNotification>;
+};
+
+/**
+ * Prices a hand-sketch order again on the server from what the customer confirmed in studioData.sketchOrder (sizes, a stone per
+ * piece, basins per cut-out, order type, collect-at-factory, location, VAT), with the database catalogue and the very function
+ * the page used. Each piece is priced at its own colour's rate and the service charges are the job's, once. Null when there is no
+ * usable sketchOrder or no piece can be priced. A sketch request is not a payable quote (no quote number, no QR), so this does not
+ * refuse anything: it decides the figures every reader of the lead shows.
+ */
+export function priceSketchOrder(studioData: unknown, catalog: PricingCatalog): SketchOrderPricing | null {
+  if (!isRecord(studioData)) return null;
+  const order = sketchOrderFromSnapshot(studioData["sketchOrder"]);
+  if (!order) return null;
+  return withStoneCatalog(catalog.stoneColors, () => {
+    const context = { orderType: order.orderType, stoneColors: catalog.stoneColors, products: catalog.products, location: order.location, vat: order.vat, pickup: order.pickup };
+    const quote = quoteSketchOrder(order.pieces, context);
+    if (quote.pricedCount === 0) return null;
+    return { quote, notification: sketchOrderNotification(order.pieces, context, quote) };
+  });
+}
+
+/**
+ * studioData with the server's sketch-order figures written into every place a reader takes a total from: sketchOrder (job totals
+ * and each piece's quote), notification (the sales message) and estimate (the admin lead card and the LINE message to the
+ * customer). The single-stone estimate the page sends along is replaced, so no reader can show a one-colour figure.
+ */
+export function withSketchOrderPricing(studioData: Record<string, unknown>, pricing: SketchOrderPricing): Record<string, unknown> {
+  const { quote, notification } = pricing;
+  const sketchOrder = isRecord(studioData["sketchOrder"]) ? studioData["sketchOrder"] : {};
+  const clientPieces = Array.isArray(sketchOrder["pieces"]) ? sketchOrder["pieces"] : [];
+  const okRates = [...new Set(quote.pieces.flatMap((entry) => (entry.quote.status === "ok" && entry.quote.orderType === "fabrication" ? [entry.quote.unitPriceTHB] : [])))];
+  const estimate = isRecord(studioData["estimate"]) ? studioData["estimate"] : {};
+  return {
+    ...studioData,
+    sketchOrder: {
+      ...sketchOrder,
+      pricedBy: "server",
+      totalTHB: quote.totalTHB,
+      allPriced: quote.allPriced,
+      totals: sketchOrderTotals(quote),
+      pieces: clientPieces.map((piece, index) => (isRecord(piece) ? { ...piece, quote: quote.pieces[index]?.quote ?? null } : piece)),
+    },
+    items: notification.items,
+    notification,
+    estimate: {
+      ...estimate,
+      counterAreaSqM: quote.areaSqM,
+      stoneAreaSqM: quote.areaSqM,
+      // One rate only when every installed piece shares it; several colours have no single rate.
+      stoneUnitPriceTHB: okRates.length === 1 ? okRates[0] : null,
+      stoneTotalTHB: quote.stoneTotalTHB,
+      basinSubtotalTHB: quote.basinTotalTHB,
+      installationChargeTHB: quote.installationTHB,
+      installationDiscountTHB: quote.installationDiscountTHB,
+      smallJobFeeTHB: quote.smallJobFeeTHB,
+      discountTHB: 0,
+      grossSubtotalTHB: quote.subtotalTHB + quote.installationDiscountTHB,
+      subtotalTHB: quote.subtotalTHB,
+      vatAmountTHB: quote.vatTHB,
+      totalTHB: quote.totalTHB,
+    },
+  };
 }

@@ -1,12 +1,15 @@
 import {
+  INSTALLATION_PRICE,
   PRODUCTS,
   STONE_COLORS,
+  STONE_INSTALLED_MIN_BANGKOK_SQM,
+  STONE_INSTALLED_MIN_PROVINCE_SQM,
+  VAT_RATE,
   stoneColorByName,
   stoneSheetUnitPrice,
   type BasinProduct,
   type StoneColor,
 } from "./catalog.ts";
-import { calculateFormalQuoteTotals } from "./quote-utils.ts";
 import {
   studioEstimate,
   type StudioPiece,
@@ -215,6 +218,22 @@ export function resolveSketchPiece(base: SketchPieceBase, edit: SketchPieceEdit 
 }
 
 // ---- prices ------------------------------------------------------------------------------------------------------------
+//
+// job-259: a piece carries only what belongs to it -- its stone and the basin models on it. The service charges are the
+// job's, decided once over the whole order with Knight Basins' own rules (studioEstimate, the same calculator the studio and
+// the server use): basin installation is charged per set and free from 3 sets counted over all pieces; an installed top below
+// the minimum area pays the small-job fee once per job (Bangkok and vicinity 5 m2 / 5,000, province 10 m2 / 8,000); a
+// customer who collects at the factory pays no service charge at all.
+
+/** Who brings the order to site: we install (the default) or the customer collects at the factory. */
+export type SketchFulfilment = "install" | "pickup";
+export const DEFAULT_SKETCH_FULFILMENT: SketchFulfilment = "install";
+export const SKETCH_FULFILMENTS: ReadonlyArray<{ value: SketchFulfilment; label: string; note: string }> = [
+  { value: "install", label: "ให้เราติดตั้ง", note: "คิดค่าดำเนินการตามเงื่อนไขของ Knight Basins" },
+  { value: "pickup", label: "ลูกค้ามารับเองที่โรงงาน", note: "ไม่คิดค่าดำเนินการติดตั้งทุกประเภท" },
+];
+/** Travel, delivery and allowance for a province job are charged by the place, and the system has no rate for them yet. */
+export const SKETCH_PROVINCE_TRAVEL_NOTE = "งานต่างจังหวัด: ยังไม่รวมค่าจัดส่ง/ค่าเดินทาง และเบี้ยเลี้ยงตามสถานที่ (ทีมขายจะแจ้งเพิ่ม)";
 
 export type SketchPieceQuote =
   | { status: "no-stone"; message: string }
@@ -227,11 +246,11 @@ export type SketchPieceQuote =
     sheets: number | null;
     unitPriceTHB: number;
     stoneTotalTHB: number;
+    /** Catalogue basins on this piece (a basin the customer buys elsewhere is not one). */
+    basinSets: number;
     basinTotalTHB: number;
-    installationTHB: number;
-    smallJobFeeTHB: number;
-    vatTHB: number;
-    totalTHB: number;
+    /** Stone + basins of this piece. Service charges are the job's, see SketchOrderQuote. */
+    lineTotalTHB: number;
   };
 
 function pieceRectangles(piece: SketchResolvedPiece): StudioRectangle[] {
@@ -276,16 +295,22 @@ export type SketchQuoteContext = {
   products?: ReadonlyArray<BasinProduct>;
   location?: StudioState["location"];
   vat?: boolean;
+  /** The customer collects at the factory (field name shared with the sales bot's price calculator). */
+  pickup?: boolean;
 };
 
+/** The catalogue basin models chosen on a piece: never empty slots, never a basin the customer buys elsewhere. */
+function catalogueBasinSkus(piece: SketchResolvedPiece, products: ReadonlyArray<BasinProduct>): string[] {
+  return piece.basinSkus.filter((sku): sku is string => sku !== null && sku !== SKETCH_OWN_BASIN && products.some((product) => product.sku === sku));
+}
+
 /**
- * The price of one piece, or why there is none yet. Nothing is priced until the piece has a valid size AND a stone of its own:
- * "ยังไม่เลือกสีหิน" is never a 0 baht price.
+ * The price of one piece's own stone and basins, or why there is none yet. Nothing is priced until the piece has a valid size
+ * AND a stone of its own: "ยังไม่เลือกสีหิน" is never a 0 baht price.
  */
 export function quoteSketchPiece(piece: SketchResolvedPiece, context: SketchQuoteContext): SketchPieceQuote {
   const colors = context.stoneColors ?? STONE_COLORS;
   const products = context.products ?? PRODUCTS;
-  const vat = context.vat === true;
   if (!piece.stoneCode) return { status: "no-stone", message: SKETCH_NO_STONE_MESSAGE };
   if (!piece.sizeValid || piece.areaSqM === null) return { status: "invalid", message: "ขนาดยังไม่ถูกต้อง จึงยังไม่คำนวณพื้นที่และราคา" };
   const color = stoneColorByName(piece.stoneCode, colors);
@@ -300,26 +325,11 @@ export function quoteSketchPiece(piece: SketchResolvedPiece, context: SketchQuot
     const unitPriceTHB = stoneSheetUnitPrice(color.code, sheets, colors);
     if (unitPriceTHB === null) return { status: "no-price", message: "สีนี้ไม่มีราคาแผ่นในแคตตาล็อก" };
     const stoneTotalTHB = unitPriceTHB * sheets;
-    const totals = calculateFormalQuoteTotals({ basinSubtotal: 0, requestedInstallationCharge: 0, basinSets: 0, stoneTotal: stoneTotalTHB, vat });
-    return {
-      status: "ok",
-      orderType: "sheet",
-      areaSqM: piece.areaSqM,
-      sheets,
-      unitPriceTHB,
-      stoneTotalTHB,
-      basinTotalTHB: 0,
-      installationTHB: 0,
-      smallJobFeeTHB: 0,
-      vatTHB: totals.vatAmount,
-      totalTHB: totals.total,
-    };
+    return { status: "ok", orderType: "sheet", areaSqM: piece.areaSqM, sheets, unitPriceTHB, stoneTotalTHB, basinSets: 0, basinTotalTHB: 0, lineTotalTHB: stoneTotalTHB };
   }
 
-  // A basin the customer buys themselves is never priced: only real catalogue models count.
-  const basinSkus = piece.basinSkus.filter((sku): sku is string => sku !== null && sku !== SKETCH_OWN_BASIN);
-  const state = { ...sketchPieceState(piece, color.code, basinSkus, vat), location: context.location ?? "bangkok-metro" };
-  const estimate = studioEstimate(state, products);
+  const basinSkus = catalogueBasinSkus(piece, products);
+  const estimate = studioEstimate(sketchPieceState(piece, color.code, basinSkus, false), products);
   if (estimate.stoneUnitPriceTHB === null) return { status: "no-price", message: "สีนี้ไม่มีราคารวมติดตั้งในแคตตาล็อก" };
   return {
     status: "ok",
@@ -328,11 +338,9 @@ export function quoteSketchPiece(piece: SketchResolvedPiece, context: SketchQuot
     sheets: null,
     unitPriceTHB: estimate.stoneUnitPriceTHB,
     stoneTotalTHB: estimate.stoneTotalTHB,
+    basinSets: basinSkus.length,
     basinTotalTHB: estimate.basinSubtotalTHB,
-    installationTHB: estimate.installationChargeTHB,
-    smallJobFeeTHB: estimate.smallJobFeeTHB,
-    vatTHB: estimate.vatAmountTHB,
-    totalTHB: estimate.totalTHB,
+    lineTotalTHB: estimate.stoneTotalTHB + estimate.basinSubtotalTHB,
   };
 }
 
@@ -340,25 +348,105 @@ export type SketchOrderQuote = {
   pieces: Array<{ key: string; label: string; quote: SketchPieceQuote }>;
   pricedCount: number;
   allPriced: boolean;
+  orderType: SketchOrderType;
+  pickup: boolean;
+  location: StudioState["location"];
+  vat: boolean;
+  /** Totals over the priced pieces. */
+  areaSqM: number;
+  stoneTotalTHB: number;
+  basinSets: number;
+  basinTotalTHB: number;
+  /** Basin installation before the 3-set waiver, the waiver, and what is left to pay. */
+  requestedInstallationTHB: number;
+  installationDiscountTHB: number;
+  installationTHB: number;
+  /** The small-job fee, once for the whole job. */
+  smallJobFeeTHB: number;
+  subtotalTHB: number;
   vatTHB: number;
   totalTHB: number;
 };
 
+/**
+ * The whole order: each piece's stone and basins at its own colour's rate, then the job's service charges decided once over all
+ * of it by the system estimate run on every priced piece together (area summed, basin sets counted across pieces). Collecting
+ * at the factory removes every service charge. Sheets carry no service charge.
+ */
 export function quoteSketchOrder(pieces: ReadonlyArray<SketchResolvedPiece>, context: SketchQuoteContext): SketchOrderQuote {
-  const quoted = pieces.map((piece) => ({ key: piece.key, label: piece.label, quote: quoteSketchPiece(piece, context) }));
-  const ok = quoted.flatMap((entry) => (entry.quote.status === "ok" ? [entry.quote] : []));
+  const products = context.products ?? PRODUCTS;
+  const location = context.location ?? "bangkok-metro";
+  const vat = context.vat === true;
+  const pickup = context.pickup === true;
+  const quoted = pieces.map((piece) => ({ piece, key: piece.key, label: piece.label, quote: quoteSketchPiece(piece, context) }));
+  const priced = quoted.flatMap((entry) => (entry.quote.status === "ok" ? [{ piece: entry.piece, quote: entry.quote }] : []));
+  const sum = (pick: (quote: Extract<SketchPieceQuote, { status: "ok" }>) => number) => priced.reduce((total, entry) => total + pick(entry.quote), 0);
+  const stoneTotalTHB = sum((quote) => quote.stoneTotalTHB);
+  const basinTotalTHB = sum((quote) => quote.basinTotalTHB);
+  const basinSets = sum((quote) => quote.basinSets);
+
+  let requestedInstallationTHB = 0;
+  let installationDiscountTHB = 0;
+  let smallJobFeeTHB = 0;
+  if (context.orderType === "fabrication" && !pickup && priced.length > 0) {
+    // One studio state holding every priced piece and every catalogue basin of the job. Only its service charges are used:
+    // they depend on the total area, the number of basin sets and the location, not on which colour each piece is.
+    const stoneCode = priced[0]!.piece.stoneCode!;
+    const jobState: StudioState = {
+      ...sketchPieceState(priced[0]!.piece, stoneCode, priced.flatMap((entry) => catalogueBasinSkus(entry.piece, products)), false),
+      pieces: priced.flatMap((entry) => sketchPieceState(entry.piece, stoneCode, [], false).pieces ?? []),
+      location,
+    };
+    const jobEstimate = studioEstimate(jobState, products);
+    requestedInstallationTHB = jobEstimate.installationChargeTHB + jobEstimate.installationDiscountTHB;
+    installationDiscountTHB = jobEstimate.installationDiscountTHB;
+    smallJobFeeTHB = jobEstimate.smallJobFeeTHB;
+  }
+  const installationTHB = requestedInstallationTHB - installationDiscountTHB;
+  const subtotalTHB = stoneTotalTHB + basinTotalTHB + installationTHB + smallJobFeeTHB;
+  const vatTHB = vat ? Math.round(subtotalTHB * VAT_RATE) : 0;
   return {
-    pieces: quoted,
-    pricedCount: ok.length,
-    allPriced: quoted.length > 0 && ok.length === quoted.length,
-    vatTHB: ok.reduce((sum, quote) => sum + quote.vatTHB, 0),
-    totalTHB: ok.reduce((sum, quote) => sum + quote.totalTHB, 0),
+    pieces: quoted.map(({ key, label, quote }) => ({ key, label, quote })),
+    pricedCount: priced.length,
+    allPriced: quoted.length > 0 && priced.length === quoted.length,
+    orderType: context.orderType,
+    pickup,
+    location,
+    vat,
+    areaSqM: priced.reduce((total, entry) => total + entry.quote.areaSqM, 0),
+    stoneTotalTHB,
+    basinSets,
+    basinTotalTHB,
+    requestedInstallationTHB,
+    installationDiscountTHB,
+    installationTHB,
+    smallJobFeeTHB,
+    subtotalTHB,
+    vatTHB,
+    totalTHB: subtotalTHB + vatTHB,
   };
 }
 
 /** A piece is ready to send when its sizes are valid and it has a stone (and, for sheets, a sheet count). */
 export function sketchPieceReady(piece: SketchResolvedPiece, orderType: SketchOrderType): boolean {
   return piece.sizeValid && piece.stoneCode !== null && (orderType !== "sheet" || piece.sheetsWarning === null);
+}
+
+/** The job totals as stored in studioData.sketchOrder.totals. */
+export function sketchOrderTotals(quote: SketchOrderQuote) {
+  return {
+    areaSqM: quote.areaSqM,
+    stoneTotalTHB: quote.stoneTotalTHB,
+    basinSets: quote.basinSets,
+    basinTotalTHB: quote.basinTotalTHB,
+    requestedInstallationTHB: quote.requestedInstallationTHB,
+    installationDiscountTHB: quote.installationDiscountTHB,
+    installationTHB: quote.installationTHB,
+    smallJobFeeTHB: quote.smallJobFeeTHB,
+    subtotalTHB: quote.subtotalTHB,
+    vatTHB: quote.vatTHB,
+    totalTHB: quote.totalTHB,
+  };
 }
 
 /** Everything the sales team needs about the order, as stored under studioData.sketchOrder. Sizes and picks are the customer's confirmed values. */
@@ -370,12 +458,18 @@ export function sketchOrderSnapshot(
   const products = context.products ?? PRODUCTS;
   const quote = quoteSketchOrder(pieces, context);
   const orderType = SKETCH_ORDER_TYPES.find((type) => type.value === context.orderType) ?? SKETCH_ORDER_TYPES[0]!;
+  const fulfilment = SKETCH_FULFILMENTS.find((item) => item.value === (quote.pickup ? "pickup" : "install"))!;
   return {
     orderType: context.orderType,
     orderTypeLabel: orderType.label,
     priceUnit: orderType.unitLabel,
-    vat: context.vat === true,
+    pickup: quote.pickup,
+    fulfilment: fulfilment.value,
+    fulfilmentLabel: fulfilment.label,
+    location: quote.location,
+    vat: quote.vat,
     totalTHB: quote.totalTHB,
+    totals: sketchOrderTotals(quote),
     allPriced: quote.allPriced,
     pieces: pieces.map((piece, index) => {
       const stone = piece.stoneCode ? stoneColorByName(piece.stoneCode, colors) : null;
@@ -407,6 +501,129 @@ export function sketchOrderSnapshot(
       };
     }),
   };
+}
+
+const numberOrNull = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : null);
+
+/**
+ * The pieces and the order settings a saved studioData.sketchOrder describes, so that the server can price the order again from
+ * the customer's confirmed sizes and picks with its own catalogue. Null when there is no usable snapshot. Never throws.
+ */
+export function sketchOrderFromSnapshot(snapshot: unknown): { pieces: SketchResolvedPiece[]; orderType: SketchOrderType; pickup: boolean; location: StudioState["location"]; vat: boolean } | null {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return null;
+  const order = snapshot as Record<string, unknown>;
+  if (!Array.isArray(order["pieces"]) || order["pieces"].length === 0) return null;
+  const orderType: SketchOrderType = order["orderType"] === "sheet" ? "sheet" : "fabrication";
+  const pieces = (order["pieces"] as unknown[]).map((value, index) => {
+    const raw = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+    const panels = Array.isArray(raw["panels"]) ? raw["panels"] as unknown[] : [];
+    const cutouts = Array.isArray(raw["cutouts"]) ? raw["cutouts"] as unknown[] : [];
+    const label = typeof raw["label"] === "string" ? raw["label"] : `ชิ้นงาน ${index + 1}`;
+    const pieceBase: SketchPieceBase = {
+      key: `piece-${index + 1}`,
+      label,
+      lengthMm: numberOrNull(raw["lengthMm"]),
+      depthMm: numberOrNull(raw["depthMm"]),
+      panels: panels.map((panelValue, panelIndex) => {
+        const panel = panelValue && typeof panelValue === "object" ? panelValue as Record<string, unknown> : {};
+        return { index: panelIndex + 1, label: typeof panel["label"] === "string" ? panel["label"] : `แผ่น ${panelIndex + 1}`, lengthMm: numberOrNull(panel["lengthMm"]), depthMm: numberOrNull(panel["depthMm"]) };
+      }),
+      basinCutouts: cutouts.length,
+    };
+    const basinSkus = cutouts.map((cutoutValue) => {
+      const cutout = cutoutValue && typeof cutoutValue === "object" ? cutoutValue as Record<string, unknown> : {};
+      if (cutout["ownBasin"] === true) return SKETCH_OWN_BASIN;
+      return typeof cutout["sku"] === "string" ? cutout["sku"] : null;
+    });
+    const sheets = numberOrNull(raw["sheets"]);
+    return resolveSketchPiece(pieceBase, {
+      stoneCode: typeof raw["stoneCode"] === "string" && raw["stoneCode"] ? raw["stoneCode"] : null,
+      basinSkus,
+      sheetsText: sheets === null ? "" : String(sheets),
+    });
+  });
+  return {
+    pieces,
+    orderType,
+    pickup: order["pickup"] === true,
+    location: order["location"] === "province" ? "province" : "bangkok-metro",
+    vat: order["vat"] === true,
+  };
+}
+
+export type SketchNotificationItem = {
+  kind: "stone" | "basin" | "service";
+  code: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPriceTHB: number;
+  totalTHB: number;
+  workQuantity: number;
+  workUnit: string;
+  dimensions?: string;
+  cutoutDimensions?: string;
+};
+
+/**
+ * The lines and totals the sales notification reads (studioData.notification): one stone line per piece at its own rate, its
+ * basins, then the job's service charges once. The keys are the ones the notification reader expects (subtotal, vatAmount,
+ * total), and the total is the order total, so the screen, the notification and the saved quote show one number.
+ */
+export function sketchOrderNotification(
+  pieces: ReadonlyArray<SketchResolvedPiece>,
+  context: SketchQuoteContext,
+  quote: SketchOrderQuote = quoteSketchOrder(pieces, context),
+): { items: SketchNotificationItem[]; vat: boolean; subtotal: number; vatAmount: number; total: number } {
+  const colors = context.stoneColors ?? STONE_COLORS;
+  const products = context.products ?? PRODUCTS;
+  const items: SketchNotificationItem[] = [];
+  pieces.forEach((piece, index) => {
+    const pieceQuote = quote.pieces[index]?.quote;
+    if (!piece.stoneCode || pieceQuote?.status !== "ok") return;
+    const stone = stoneColorByName(piece.stoneCode, colors);
+    if (pieceQuote.orderType === "sheet") {
+      const sheets = pieceQuote.sheets ?? 0;
+      items.push({ kind: "stone", code: stone.code, description: `แผ่นหินสังเคราะห์มาตรฐาน ${stone.name || stone.code} · ${piece.label}`, quantity: sheets, unit: "แผ่น", unitPriceTHB: pieceQuote.unitPriceTHB, totalTHB: pieceQuote.stoneTotalTHB, workQuantity: sheets, workUnit: "แผ่น" });
+      return;
+    }
+    const area = Number(pieceQuote.areaSqM.toFixed(4));
+    items.push({ kind: "stone", code: stone.code, description: `ท็อปเคาน์เตอร์หินสังเคราะห์ ${stone.name || stone.code} · ${piece.label}`, quantity: area, unit: "ตร.ม.", unitPriceTHB: pieceQuote.unitPriceTHB, totalTHB: pieceQuote.stoneTotalTHB, workQuantity: area, workUnit: "ตร.ม." });
+    // A basin the customer buys themselves has no line at all: no model, no basin price.
+    for (const sku of catalogueBasinSkus(piece, products)) {
+      const product = products.find((item) => item.sku === sku)!;
+      items.push({ kind: "basin", code: product.sku, description: product.colorName, quantity: 1, unit: "ชุด", unitPriceTHB: product.priceTHB, totalTHB: product.priceTHB, workQuantity: 1, workUnit: "ชุด", dimensions: product.dimensions, cutoutDimensions: sketchBasinCutout(product).label });
+    }
+  });
+  if (quote.requestedInstallationTHB > 0) {
+    const free = quote.installationDiscountTHB > 0;
+    items.push({
+      kind: "service",
+      code: "INSTALL-BASIN",
+      description: free ? `ค่าบริการติดตั้งอ่างล้างหน้า (ฟรี — สั่ง ${quote.basinSets} ชุด ตั้งแต่ 3 ชุดขึ้นไป)` : "ค่าบริการติดตั้งอ่างล้างหน้า",
+      quantity: quote.basinSets,
+      unit: "จุด",
+      unitPriceTHB: free ? 0 : INSTALLATION_PRICE,
+      totalTHB: quote.installationTHB,
+      workQuantity: quote.basinSets,
+      workUnit: "จุด",
+    });
+  }
+  if (quote.smallJobFeeTHB > 0) {
+    const minimum = quote.location === "province" ? STONE_INSTALLED_MIN_PROVINCE_SQM : STONE_INSTALLED_MIN_BANGKOK_SQM;
+    items.push({
+      kind: "service",
+      code: "SMALL-JOB-FEE",
+      description: `ค่าดำเนินการงานพื้นที่เล็ก (พื้นที่รวมทั้งงานไม่ถึง ${minimum} ตร.ม. · ${quote.location === "province" ? "ต่างจังหวัด" : "กรุงเทพฯ/ปริมณฑล"} · คิดครั้งเดียวต่องาน)`,
+      quantity: 1,
+      unit: "งาน",
+      unitPriceTHB: quote.smallJobFeeTHB,
+      totalTHB: quote.smallJobFeeTHB,
+      workQuantity: 1,
+      workUnit: "งาน",
+    });
+  }
+  return { items, vat: quote.vat, subtotal: quote.subtotalTHB, vatAmount: quote.vatTHB, total: quote.totalTHB };
 }
 
 /**
