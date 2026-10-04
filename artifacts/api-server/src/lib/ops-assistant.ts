@@ -18,14 +18,16 @@ export const OPS_ASSISTANT_MODES: OpsAssistantMode[] = ["dashboard", "leads", "c
 const MAX_CONTEXT_SUMMARY_LENGTH = 2000;
 
 const SYSTEM_PROMPT =
-  "คุณเป็นผู้ช่วยตอบคำถามข้อมูลภายในของบริษัท ไนท์ เฟอร์นิช " +
-  "ตอบเป็นภาษาไทยทุกครั้ง และลงท้ายทุกคำตอบด้วยคำว่า “ครับ” " +
-  "ตอบตรงคำถามก่อน กระชับไม่เกิน 1–2 ประโยค " +
+  "คุณเป็นผู้ช่วยประจำทีมของบริษัท ไนท์ เฟอร์นิช " +
+  "พูดคุยเป็นกันเอง สุภาพแบบมืออาชีพ เหมือนผู้ช่วยในทีม ไม่ห้วนและไม่เป็นทางการเกินไป " +
+  "ตอบเป็นภาษาไทยทุกครั้ง ใช้ถ้อยคำธรรมชาติ และลงท้ายทุกคำตอบด้วยคำว่า “ครับ” อย่างสม่ำเสมอ ห้ามผสมคำลงท้าย “ครับ” กับ “ค่ะ” " +
+  "ตอบตรงคำถามก่อน ใช้ 1–2 ประโยค แล้วค่อยสรุปสั้น ๆ เมื่อจำเป็น ไม่ต้องขึ้นต้นว่า “อ้างอิงจาก” ทุกครั้ง " +
   "ใช้เฉพาะข้อมูลอ้างอิงที่ให้มา ห้ามเดาตัวเลขหรือแต่งรายละเอียด " +
-  "ห้ามใช้ศัพท์อังกฤษหรือชื่อช่องภายใน ให้ใช้คำไทยแทน " +
-  "ห้ามเปิดเผยรหัสงานหรือรหัสภายใน ให้เรียกรายการตามลำดับว่า “งานที่ 1” หรือเรียกตามชื่อว่า “งานของช่าง <ชื่อ>” " +
-  "วันที่ให้ใช้รูปแบบภาษาไทย เช่น “4 ต.ค. 2569” " +
-  "หากข้อมูลไม่มีหรือไม่พอ ให้บอกว่าไม่พบข้อมูลและเสนอทางเลือกที่ตรวจสอบได้แทน " +
+  "ห้ามใช้คำเทคนิคหรือคำอังกฤษในคำตอบ เช่น Lead, dispatched, status, record, field หรือ ID ให้ใช้คำไทยง่าย ๆ เช่น งาน สถานะงาน รายการ และข้อมูล " +
+  "ห้ามเปิดเผยรหัสงานหรือรหัสภายใน UUID หรือเลขอ้างอิงยาว ให้เรียกรายการตามลำดับว่า “งานที่ 1” หรือเรียกตามชื่อว่า “งานของช่าง <ชื่อ>” " +
+  "วันที่ให้ใช้รูปแบบภาษาไทย เช่น “4 ต.ค. 2569” และจำนวนเงินให้มีตัวคั่นหลักพันพร้อมหน่วย “บาท” " +
+  "หากข้อมูลไม่มีหรือไม่พอ ให้บอกอย่างสุภาพและเสนอทางเลือกที่ตรวจสอบได้แทน โดยเลือกสิ่งที่ทำได้จากข้อมูลที่มี หรือถามกลับเพื่อให้ชัดเจน " +
+  "ถ้าถามถึงงานค้างแต่ข้อมูลมีเพียงจำนวนแยกตามสถานะ ให้สรุปตามสถานะที่มี ห้ามตั้งเกณฑ์หรือช่วงวันขึ้นเอง " +
   "ห้ามแนะนำการแก้ไขข้อมูลในระบบ";
 
 const READY_FOR_PRODUCTION_STATUS = "ready_for_production";
@@ -107,7 +109,7 @@ const LEAD_STATUS_LABELS: Record<string, string> = {
 };
 
 function displayLeadStatus(status: string): string {
-  return LEAD_STATUS_LABELS[status] ?? "ไม่ระบุสถานะ";
+  return LEAD_STATUS_LABELS[status] ?? "ไม่ทราบขั้นตอนงาน";
 }
 
 async function fetchTechnicianTeamNames(database: OpsDatabase): Promise<Map<string, string>> {
@@ -150,6 +152,10 @@ async function fetchDashboardSummary(database: OpsDatabase): Promise<string> {
   for (const row of leadRows) {
     statusCounts.set(row.status, (statusCounts.get(row.status) ?? 0) + 1);
   }
+  const statusSummary = Array.from(statusCounts.entries())
+    .filter(([, count]) => count > 0)
+    .map(([status, count]) => `${displayLeadStatus(status)} ${count} งาน`)
+    .join(" · ") || "ไม่พบข้อมูล";
 
   const slipRows: Array<{
     status: string;
@@ -178,10 +184,11 @@ async function fetchDashboardSummary(database: OpsDatabase): Promise<string> {
 
   return [
     `จำนวนงานทั้งหมด: ${leadRows.length} งาน`,
+    `แยกตามสถานะงาน: ${statusSummary}`,
     `พร้อมผลิต: ${statusCounts.get(READY_FOR_PRODUCTION_STATUS) ?? 0} งาน`,
     `ปิดการขาย: ${statusCounts.get(CLOSED_STATUS) ?? 0} งาน`,
     latestPayment
-      ? `ยอดเงินที่รับชำระแล้วล่าสุด: ${latestPayment.amount.toLocaleString()} บาท (${formatThaiOpsDate(latestPayment.createdAt) ?? "ไม่ระบุวันที่"})`
+      ? `ยอดเงินที่รับชำระแล้วล่าสุด: ${latestPayment.amount.toLocaleString("th-TH")} บาท (${formatThaiOpsDate(latestPayment.createdAt) ?? "ไม่ระบุวันที่"})`
       : "ยอดเงินที่รับชำระแล้วล่าสุด: ไม่พบข้อมูล",
   ].join("\n");
 }
@@ -208,7 +215,7 @@ async function fetchLeadsSummary(database: OpsDatabase, teamNames: Map<string, s
   return rows
     .map((row, index) => {
       const technicianName = row.technicianTeamCode ? teamNames.get(row.technicianTeamCode) : undefined;
-      return `งานที่ ${index + 1} · งานของช่าง ${technicianName ?? "ไม่ระบุชื่อ"} · ลูกค้า: ${row.name ?? "ไม่ระบุ"} · สถานะ: ${displayLeadStatus(row.status)} · วันติดตั้ง: ${formatThaiOpsDate(row.expectedInstallationDate) ?? "ไม่ระบุวันที่"}`;
+      return `งานที่ ${index + 1} · งานของช่าง ${technicianName ?? "ไม่ระบุชื่อ"} · ลูกค้า: ${row.name ?? "ไม่ระบุ"} · สถานะงาน: ${displayLeadStatus(row.status)} · วันติดตั้ง: ${formatThaiOpsDate(row.expectedInstallationDate) ?? "ไม่ระบุวันที่"}`;
     })
     .join("\n");
 }
