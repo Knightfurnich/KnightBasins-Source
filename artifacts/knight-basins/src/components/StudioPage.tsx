@@ -777,20 +777,21 @@ function restoreStudioDraftState(
   const edges = studioDataRecord(draft.edges);
   const savedPieces = studioDraftPiecesFromEdges(edges);
   const existingPieces = getStudioPieces(current);
-  const shape = preset === "u" ? "U" : preset === "i" ? "I" : preset ? "L" : current.shape;
-  let pieces = savedPieces;
-  if (!pieces && preset) {
-    const savedPieceId = placements.find((placement) => placement.pieceId)?.pieceId;
-    const pieceId = savedPieceId ?? existingPieces[0]?.id ?? WIZARD_PIECE_ID;
-    const extension = (runMm: number, fallbackOverallMm: number) =>
-      Math.max(1, (runMm > 0 ? runMm : fallbackOverallMm) - dimensions.depthMm);
-    const legs = preset === "i"
-      ? [dimensions.runAMm]
-      : preset === "u"
-        ? [dimensions.runAMm, extension(dimensions.runBMm, defaults[1] ?? dimensions.depthMm + 600), extension(dimensions.runCMm, defaults[2] ?? dimensions.depthMm + 600)]
-        : [dimensions.runAMm, extension(dimensions.runBMm, defaults[1] ?? dimensions.depthMm + 600)];
-    pieces = [buildWizardPiece(pieceId, preset, legs, dimensions.depthMm)];
-  }
+  const hasSavedPieces = savedPieces !== null;
+  const shape = hasSavedPieces
+    ? preset === "u" ? "U" : preset === "i" ? "I" : preset ? "L" : current.shape
+    : "I";
+  const restoredDimensions = hasSavedPieces
+    ? dimensions
+    : { ...dimensions, runBMm: 0, runCMm: 0 };
+  let pieces = savedPieces ?? [
+    buildWizardPiece(
+      existingPieces[0]?.id ?? WIZARD_PIECE_ID,
+      "i",
+      [dimensions.runAMm],
+      dimensions.depthMm,
+    ),
+  ];
 
   if (pieces) {
     const sideStatusesByPiece = studioDataRecord(edges.sideStatusesByPiece);
@@ -812,9 +813,9 @@ function restoreStudioDraftState(
   }
 
   const edgeActivePieceId = typeof edges.activePieceId === "string" ? edges.activePieceId : undefined;
-  const activePieceId = pieces?.some((piece) => piece.id === edgeActivePieceId)
+  const activePieceId = pieces.some((piece) => piece.id === edgeActivePieceId)
     ? edgeActivePieceId
-    : pieces?.[0]?.id ?? current.activePieceId;
+    : pieces[0]?.id ?? current.activePieceId;
   const savedStone = typeof draft.stoneColor === "string" ? draft.stoneColor.trim() : "";
   const stoneColor = savedStone
     ? availableStoneColors.find((stone) => stone.code.toLowerCase() === savedStone.toLowerCase())?.code ?? savedStone
@@ -824,13 +825,14 @@ function restoreStudioDraftState(
   const next: StudioState = {
     ...current,
     shape,
-    dimensions,
-    ...(pieces ? { pieces, activePieceId } : {}),
+    dimensions: restoredDimensions,
+    pieces,
+    activePieceId,
     stoneColors: stoneColor ? [stoneColor] : current.stoneColors,
     activeStone: stoneColor,
     stoneSelectionSource: savedStone ? "user" : current.stoneSelectionSource,
     basinSkus,
-    basinPlacements: placements,
+    basinPlacements: hasSavedPieces ? placements : [],
   };
   return normalizeStudioState(next, basinProducts, availableStoneColors);
 }
@@ -3164,7 +3166,9 @@ function StudioCanvas({
     if (typeof window !== "undefined" && !window.confirm(`ลบชิ้นงาน “${target.name}” พร้อมแผ่นและอ่างที่อยู่ในชิ้นงานนี้หรือไม่`)) return;
     setState((current) => {
       const remaining = getStudioPieces(current).filter((p) => p.id !== pieceId);
-      const nextActiveId = remaining[0]?.id ?? "";
+      const nextActiveId = remaining.some((remainingPiece) => remainingPiece.id === current.activePieceId)
+        ? current.activePieceId
+        : remaining[0]?.id ?? "";
       return {
         ...current,
         pieces: remaining,
@@ -3651,7 +3655,25 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
   const indexRef = useRef(0);
   const mountedRef = useRef(false);
   const skipSnapshotRef = useRef(false);
+  const pendingSnapshotRef = useRef<StudioState | null>(null);
+  const pendingTimerRef = useRef<number | null>(null);
   const [, bumpHistoryVersion] = useState(0);
+
+  const flushPendingSnapshot = useCallback(() => {
+    const pendingSnapshot = pendingSnapshotRef.current;
+    if (!pendingSnapshot) return;
+    pendingSnapshotRef.current = null;
+    if (pendingTimerRef.current !== null) {
+      window.clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
+    }
+    // Dropping any "future" redo entries once a new edit branches off,
+    // same as any standard undo stack.
+    const truncated = historyRef.current.slice(0, indexRef.current + 1);
+    historyRef.current = [...truncated, pendingSnapshot].slice(-STUDIO_HISTORY_LIMIT);
+    indexRef.current = historyRef.current.length - 1;
+    bumpHistoryVersion((version) => version + 1);
+  }, []);
 
   useEffect(() => {
     if (!mountedRef.current) {
@@ -3664,33 +3686,42 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
       skipSnapshotRef.current = false;
       return;
     }
-    const timer = window.setTimeout(() => {
-      // Dropping any "future" redo entries once a new edit branches off,
-      // same as any standard undo stack.
-      const truncated = historyRef.current.slice(0, indexRef.current + 1);
-      historyRef.current = [...truncated, state].slice(-STUDIO_HISTORY_LIMIT);
-      indexRef.current = historyRef.current.length - 1;
-      bumpHistoryVersion((version) => version + 1);
-    }, STUDIO_HISTORY_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [state]);
+    pendingSnapshotRef.current = state;
+    bumpHistoryVersion((version) => version + 1);
+    if (pendingTimerRef.current !== null) window.clearTimeout(pendingTimerRef.current);
+    pendingTimerRef.current = window.setTimeout(flushPendingSnapshot, STUDIO_HISTORY_DEBOUNCE_MS);
+    return () => {
+      if (pendingTimerRef.current !== null) window.clearTimeout(pendingTimerRef.current);
+    };
+  }, [state, flushPendingSnapshot]);
 
   const undo = useCallback(() => {
+    flushPendingSnapshot();
     if (indexRef.current <= 0) return;
     indexRef.current -= 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [flushPendingSnapshot]);
   const redo = useCallback(() => {
+    flushPendingSnapshot();
     if (indexRef.current >= historyRef.current.length - 1) return;
     indexRef.current += 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [flushPendingSnapshot]);
 
-  return [state, setStateRaw, { undo, redo, canUndo: indexRef.current > 0, canRedo: indexRef.current < historyRef.current.length - 1 }];
+  return [
+    state,
+    setStateRaw,
+    {
+      undo,
+      redo,
+      canUndo: indexRef.current > 0 || pendingSnapshotRef.current !== null,
+      canRedo: pendingSnapshotRef.current === null && indexRef.current < historyRef.current.length - 1,
+    },
+  ];
 }
 
 export function restrictStudioDiscountForMode(state: StudioState, isLeadLinkedMode: boolean): StudioState {
@@ -4418,6 +4449,7 @@ export function StudioPage({
         setState((current) => restoreStudioDraftState(current, remoteDraft, basinProducts, stoneColors));
         const response = studioDataRecord(remoteDraft);
         const savedDraft = studioDataRecord(response.draft ?? response.data ?? remoteDraft);
+        const hasSavedPieces = studioDraftPiecesFromEdges(studioDataRecord(savedDraft.edges)) !== null;
         const savedAt = typeof savedDraft.savedAt === "string" && !Number.isNaN(Date.parse(savedDraft.savedAt))
           ? savedDraft.savedAt
           : new Date().toISOString();
@@ -4428,7 +4460,11 @@ export function StudioPage({
         setPieceZoom({});
         setSelectedPlacementId(null);
         setSelectedRectangleId(null);
-        setDraftResult("เปิดแบบร่างจากลิงก์แล้ว");
+        if (hasSavedPieces) {
+          setDraftResult("เปิดแบบร่างจากลิงก์แล้ว");
+        } else {
+          setDraftResult("แบบร่างเก่าไม่มีข้อมูลชิ้นงาน จึงเริ่มผังใหม่จากแผ่นหลัก กรุณาจัดวางชิ้นงานอีกครั้ง");
+        }
       })
       .catch((error: unknown) => {
         if (!isCurrent) return;
@@ -4624,6 +4660,7 @@ export function StudioPage({
     if (basinSku) url.searchParams.set("basin", basinSku);
     if (state.activeStone) url.searchParams.set("stone", state.activeStone);
     if (firstRectangle) url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+    if (firstRectangle) url.searchParams.set("depth", String(Math.round(firstRectangle.lengthMm)));
     url.searchParams.set("shape", studioPresetForShare(state, firstPiece));
 
     let feedback: "copied" | "failed" = "copied";
@@ -5279,9 +5316,12 @@ export function StudioPage({
             };
             const isRotating = rotatingSketchFile === file;
             const isBusy = isRotating || analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
-            const confidence = analysis.confidence === null
+            const confidencePercent = analysis.confidence === null
+              ? null
+              : Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence);
+            const confidence = confidencePercent === null
               ? "ยังไม่ระบุ"
-              : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
+              : `${confidencePercent >= 80 ? "สูง" : confidencePercent >= 50 ? "ปานกลาง" : "ต่ำ"} (${confidencePercent}%)`;
             const shapeClass = analysis.shape.startsWith("L") ? "L" : analysis.shape;
             return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
               {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
@@ -5444,7 +5484,7 @@ export function StudioPage({
       {mode === "studio" ? (
         <div className="studio-canvas-column">
           <div className="studio-share-actions">
-            <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
+            <button type="button" className="button button--accent" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
             <button
               type="button"
               className="button button--accent studio-share-button"
