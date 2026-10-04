@@ -81,7 +81,8 @@ describe("job-235: a signed-in customer's path is unchanged", () => {
 
 describe("job-235: the route ends with that helper", () => {
   it("answers the last branch with supportFallbackResponse(Boolean(account)) and nothing else", () => {
-    assert.match(source, /res\.json\(supportFallbackResponse\(Boolean\(account\)\)\);\s*\} catch \(error\) \{\s*next\(error\);\s*\}\s*\}\);/);
+    // job-238 added an audit call to the catch block (support-chat-error-audit.test.ts guards it); the reply branch is unchanged
+    assert.match(source, /res\.json\(supportFallbackResponse\(Boolean\(account\)\)\);\s*\} catch \(error\) \{[\s\S]*?next\(error\);\s*\}\s*\}\);/);
   });
 
   it("keeps the Hermes branch ahead of it, for signed-in customers only", () => {
