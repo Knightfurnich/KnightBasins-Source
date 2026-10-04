@@ -402,7 +402,7 @@ describe("AI cost CSV browser behavior", () => {
       assert.equal(report.get("ช่วงเวลา"), "7 วัน");
       assert.equal(report.get("ยอดเงินรวม (บาท)"), "1532.5");
       assert.equal(report.get("จำนวนคำขอรวม"), "4");
-      assert.equal(report.get("โทเค็นรวม"), "35000");
+      assert.equal(report.get("โทเคนรวม"), "35000");
       const reportDate = report.get("วันที่สร้างรายงาน");
       assert.match(reportDate ?? "", /^\d{4}-\d{2}-\d{2}$/);
       assert.ok(downloadedFile.includes(reportDate ?? ""), "Filename date should match the report date");
@@ -413,7 +413,7 @@ describe("AI cost CSV browser behavior", () => {
         "รหัสบริการ",
         "ชื่อบริการ",
         "จำนวนคำขอ",
-        "จำนวนโทเค็น",
+        "จำนวนโทเคน",
         "ต้นทุน (บาท)",
         "สถานะ",
       ]);

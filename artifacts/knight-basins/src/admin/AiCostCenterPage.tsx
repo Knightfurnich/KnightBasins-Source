@@ -4,7 +4,13 @@ import type { LucideIcon } from "lucide-react";
 import { customFetch } from "@workspace/api-client-react";
 import { useState, type ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { formatExactTokenCount, formatTokenCount, formatTokenCountWithExact } from "./token-format";
+import {
+  formatExactTokenCount,
+  formatTokenCount,
+  formatTokenCountHeading,
+  formatTokenCountValue,
+  formatTokenCountWithExact,
+} from "./token-format";
 
 type AiCostPeriod = "today" | "7d" | "30d" | "all";
 
@@ -64,9 +70,9 @@ export function exportAiCostToCsv(data: AiCostCenterResponse, period: AiCostPeri
     ["วันที่สร้างรายงาน", formatReportDate(new Date())],
     ["ยอดเงินรวม (บาท)", data.totalCostThb],
     ["จำนวนคำขอรวม", data.totalRequests],
-    ["โทเค็นรวม", data.totalTokens],
+    ["โทเคนรวม", data.totalTokens],
     [],
-    ["รหัสบริการ", "ชื่อบริการ", "จำนวนคำขอ", "จำนวนโทเค็น", "ต้นทุน (บาท)", "สถานะ"],
+    ["รหัสบริการ", "ชื่อบริการ", "จำนวนคำขอ", "จำนวนโทเคน", "ต้นทุน (บาท)", "สถานะ"],
     ...data.services.map((service) => [
       service.id,
       service.name,
@@ -134,7 +140,7 @@ export function buildAiCostSummaryMessage(data: AiCostCenterResponse, period: Ai
     `ช่วงเวลา: ${selectedPeriod}`,
     `ยอดรวม: ${formatThb(data.totalCostThb)}`,
     `จำนวนคำขอ: ${formatCount(data.totalRequests)}`,
-    `โทเค็นรวม: ${formatTokenCountWithExact(data.totalTokens)}`,
+    `โทเคนรวม: ${formatTokenCountWithExact(data.totalTokens)}`,
     "",
     "แยกตามบริการ:",
     ...serviceLines,
@@ -213,7 +219,7 @@ function MetricCard({
         <span className="ai-cost-metric__label">{title}</span>
       </div>
       <strong
-        className="ai-cost-metric__value"
+        className="ai-cost-metric__value whitespace-nowrap"
         data-testid={`${testId}-value`}
         title={valueTitle}
         aria-label={valueTitle}
@@ -455,10 +461,10 @@ export default function AiCostCenterPage() {
               testId="card-ai-cost-requests"
             />
             <MetricCard
-              title="โทเค็นรวม"
-              value={formatTokenCount(data.totalTokens)}
+              title={formatTokenCountHeading(data.totalTokens)}
+              value={formatTokenCountValue(data.totalTokens)}
               valueTitle={formatExactTokenCount(data.totalTokens)}
-              detail="อินพุตและเอาต์พุตรวม · หน่วยล้านโทเคน"
+              detail="อินพุตและเอาต์พุตรวม"
               icon={Database}
               accent="teal"
               testId="card-ai-cost-tokens"
@@ -489,7 +495,7 @@ export default function AiCostCenterPage() {
                     <tr>
                       <th scope="col">บริการ</th>
                       <th scope="col" className="is-number">จำนวนคำขอ</th>
-                      <th scope="col" className="is-number">โทเค็น</th>
+                      <th scope="col" className="is-number">โทเคน</th>
                       <th scope="col" className="is-number">ต้นทุน (บาท)</th>
                       <th scope="col">สถานะ</th>
                     </tr>
@@ -501,7 +507,7 @@ export default function AiCostCenterPage() {
                           <AiCostServiceName service={service} />
                         </th>
                         <td className="is-number">{formatCount(service.requests)}</td>
-                        <td className="is-number" title={formatExactTokenCount(service.tokens)}>
+                        <td className="is-number whitespace-nowrap" title={formatExactTokenCount(service.tokens)}>
                           {formatTokenCount(service.tokens)}
                         </td>
                         <td className="is-number ai-cost-money">{formatThb(service.costThb)}</td>
