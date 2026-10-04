@@ -116,6 +116,28 @@ import { formatThaiDateTime, thaiDateInputValue } from "@/data/date-time";
 import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput, sanitizeIntegerRange, sanitizeTextInput } from "@/data/input-sanitizers";
 import { WorksiteAddressAutocomplete } from "./WorksiteAddressAutocomplete";
+import {
+  DEFAULT_SKETCH_ORDER_TYPE,
+  SKETCH_BASIN_NOT_IN_CATALOG,
+  SKETCH_NO_STONE_MESSAGE,
+  SKETCH_ORDER_TYPES,
+  SKETCH_OWN_BASIN,
+  SKETCH_OWN_BASIN_LABEL,
+  SKETCH_OWN_BASIN_NO_SIZE_NOTE,
+  SKETCH_OWN_BASIN_WARNING,
+  cleanOwnBasinSize,
+  quoteSketchOrder,
+  resolveSketchPiece,
+  sketchBasinChoices,
+  sketchBasinCutout,
+  sketchOrderSnapshot,
+  sketchPieceReady,
+  sketchStoneChoices,
+  sketchSubmitState,
+  type SketchOrderType,
+  type SketchPieceBase,
+  type SketchPieceEdit,
+} from "@/data/sketch-order";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
@@ -3937,50 +3959,84 @@ export function StudioPage({
   const sketchAnalysisQueueRef = useRef<Promise<void>>(Promise.resolve());
   const sketchDimensionEditVersionRef = useRef(0);
   const activeSketchAnalysisFilesRef = useRef<Set<File>>(new Set());
-  const sketchLengthMm = state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm;
-  const sketchDepthMm = state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm;
-  const [sketchDimensionDrafts, setSketchDimensionDrafts] = useState(() => ({
-    length: String(sketchLengthMm),
-    depth: String(sketchDepthMm),
-  }));
-  const previousSketchDimensionsRef = useRef({ length: sketchLengthMm, depth: sketchDepthMm });
-  const sketchDimensionsValid =
-    parseBoundedIntegerInput(sketchDimensionDrafts.length, 100, 10_000, 10) !== null &&
-    parseBoundedIntegerInput(sketchDimensionDrafts.depth, 100, 3_000, 10) !== null;
-  useEffect(() => {
-    const previous = previousSketchDimensionsRef.current;
-    if (previous.length === sketchLengthMm && previous.depth === sketchDepthMm) return;
-    setSketchDimensionDrafts((current) => ({
-      length: previous.length === sketchLengthMm ? current.length : String(sketchLengthMm),
-      depth: previous.depth === sketchDepthMm ? current.depth : String(sketchDepthMm),
-    }));
-    previousSketchDimensionsRef.current = { length: sketchLengthMm, depth: sketchDepthMm };
-  }, [sketchLengthMm, sketchDepthMm]);
-  const updateSketchDimension = (field: "length" | "depth", value: string) => {
-    setSketchDimensionDrafts((current) => ({ ...current, [field]: value }));
-    sketchDimensionEditVersionRef.current += 1;
-    const parsed = field === "length"
-      ? parseBoundedIntegerInput(value, 100, 10_000, 10)
-      : parseBoundedIntegerInput(value, 100, 3_000, 10);
-    if (parsed === null) return;
-    setState((current) => field === "length"
-      ? {
-          ...current,
-          dimensions: { ...current.dimensions, runAMm: parsed },
-          pieces: current.pieces ? current.pieces.map((piece, pieceIndex) => pieceIndex === 0 ? {
-            ...piece,
-            rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0 ? { ...rectangle, widthMm: parsed } : rectangle),
-          } : piece) : current.pieces,
-        }
-      : {
-          ...current,
-          dimensions: { ...current.dimensions, depthMm: parsed },
-          pieces: current.pieces ? current.pieces.map((piece, pieceIndex) => pieceIndex === 0 ? {
-            ...piece,
-            rectangles: piece.rectangles.map((rectangle, rectangleIndex) => rectangleIndex === 0 ? { ...rectangle, lengthMm: parsed } : rectangle),
-          } : piece) : current.pieces,
-        });
+  const [sketchPieceEdits, setSketchPieceEdits] = useState<Record<string, SketchPieceEdit>>({});
+  const [sketchOrderType, setSketchOrderType] = useState<SketchOrderType>(DEFAULT_SKETCH_ORDER_TYPE);
+  const sketchFileIds = useRef(new WeakMap<File, string>());
+  const sketchFileIdCounter = useRef(0);
+  const sketchFileKey = (file: File) => {
+    let id = sketchFileIds.current.get(file);
+    if (!id) {
+      sketchFileIdCounter.current += 1;
+      id = `f${sketchFileIdCounter.current}`;
+      sketchFileIds.current.set(file, id);
+    }
+    return id;
   };
+  const manualSketchLengthMm = state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm;
+  const manualSketchDepthMm = state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm;
+  // The pieces the customer reviews: what the AI read in each picture (one piece per workpiece), or one piece to fill in by hand.
+  const sketchPieceBases: SketchPieceBase[] = [];
+  sketchFiles.forEach((file, fileIndex) => {
+    const analysis = sketchAnalysisByFile.get(file);
+    if (!analysis) return;
+    const fileKey = sketchFileKey(file);
+    const labelPrefix = sketchFiles.length > 1 ? `ภาพ ${fileIndex + 1} · ` : "";
+    if (analysis.workpieces.length > 0) {
+      analysis.workpieces.forEach((workpiece, workpieceIndex) => {
+        const firstPanel = workpiece.panels[0];
+        sketchPieceBases.push({
+          key: `${fileKey}-w${workpieceIndex}`,
+          label: `${labelPrefix}${workpiece.label}`,
+          lengthMm: firstPanel?.lengthMm ?? (analysis.workpieces.length === 1 ? analysis.runAMm : null),
+          depthMm: firstPanel?.depthMm ?? (analysis.workpieces.length === 1 ? analysis.depthMm : null),
+          panels: workpiece.panels.length > 1 ? workpiece.panels.map((panel) => ({ index: panel.panelIndex, label: panel.label, lengthMm: panel.lengthMm, depthMm: panel.depthMm })) : [],
+          basinCutouts: workpiece.cutouts.reduce((sum, cutout) => sum + (cutout.type === "basin" ? (cutout.count ?? 1) : 0), 0),
+        });
+      });
+    } else if (analysis.runAMm !== null && analysis.depthMm !== null) {
+      sketchPieceBases.push({ key: `${fileKey}-w0`, label: `${labelPrefix}ชิ้นงาน 1`, lengthMm: analysis.runAMm, depthMm: analysis.depthMm, panels: [], basinCutouts: 0 });
+    }
+  });
+  if (sketchPieceBases.length === 0) {
+    sketchPieceBases.push({ key: "manual", label: "ชิ้นงาน 1 (กรอกเอง)", lengthMm: manualSketchLengthMm, depthMm: manualSketchDepthMm, panels: [], basinCutouts: 0 });
+  }
+  const resolvedSketchPieces = sketchPieceBases.map((base) => resolveSketchPiece(base, sketchPieceEdits[base.key]));
+  const sketchQuoteContext = { orderType: sketchOrderType, stoneColors, products: basinProducts, location: state.location, vat: state.vat };
+  const sketchOrderQuoteResult = quoteSketchOrder(resolvedSketchPieces, sketchQuoteContext);
+  const sketchSizesValid = resolvedSketchPieces.every((piece) => piece.sizeValid);
+  const sketchOrderReady = resolvedSketchPieces.length > 0 && resolvedSketchPieces.every((piece) => sketchPieceReady(piece, sketchOrderType));
+  const sketchStoneOptions = sketchStoneChoices(sketchOrderType, stoneColors);
+  const sketchBasinOptions = sketchBasinChoices(basinProducts);
+  const updateSketchPieceEdit = (key: string, change: (edit: SketchPieceEdit) => SketchPieceEdit) => {
+    sketchDimensionEditVersionRef.current += 1;
+    setSketchPieceEdits((current) => ({ ...current, [key]: change(current[key] ?? {}) }));
+  };
+  const changeSketchOrderType = (nextType: SketchOrderType) => {
+    setSketchOrderType(nextType);
+    // A colour that has no price in the new order type cannot stay picked: that piece goes back to "ยังไม่เลือกสีหิน".
+    const allowed = new Set(sketchStoneChoices(nextType, stoneColors).map((color) => color.code));
+    setSketchPieceEdits((current) => Object.fromEntries(Object.entries(current).map(([key, edit]) => [
+      key,
+      edit.stoneCode && !allowed.has(stoneColorByName(edit.stoneCode, stoneColors).code) ? { ...edit, stoneCode: null } : edit,
+    ])));
+  };
+  const sketchPickedStoneCodes = [...new Set(resolvedSketchPieces.flatMap((piece) => (piece.stoneCode ? [piece.stoneCode] : [])))];
+  const sketchPickedBasinSkus = resolvedSketchPieces.flatMap((piece) => piece.basinSkus.filter((sku): sku is string => sku !== null && sku !== SKETCH_OWN_BASIN));
+  const sketchPickedFingerprint = JSON.stringify([sketchPickedStoneCodes, sketchPickedBasinSkus]);
+  useEffect(() => {
+    if (mode !== "sketch") return;
+    // Keep the shared studio state (used by "นำขนาดเข้าสู่ 2D Studio") in line with what the customer picked per piece.
+    setState((current) => {
+      const next = {
+        ...current,
+        stoneColors: sketchPickedStoneCodes.length > 0 ? sketchPickedStoneCodes : current.stoneColors,
+        activeStone: sketchPickedStoneCodes[0] ?? current.activeStone,
+        basinSkus: sketchPickedBasinSkus,
+      };
+      return JSON.stringify([next.stoneColors, next.activeStone, next.basinSkus]) === JSON.stringify([current.stoneColors, current.activeStone, current.basinSkus]) ? current : next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, sketchPickedFingerprint]);
   useEffect(() => {
     if (mode !== "studio" || !requestedBasinSku) return;
     const product = studioBasinProducts.find((item) => item.sku.toLowerCase() === requestedBasinSku.toLowerCase());
@@ -5041,11 +5097,11 @@ export function StudioPage({
       setResult("กรุณารอให้วิเคราะห์ภาพแบบร่างเสร็จก่อนส่ง");
       return;
     }
-    if (!sketchDimensionsValid) {
-      setResult("กรุณากรอกขนาดเป็นจำนวนเต็มในช่วงที่กำหนด");
+    if (!sketchOrderReady) {
+      setResult(sketchSizesValid ? "กรุณาเลือกสีหินให้ครบทุกชิ้นงานก่อนส่ง" : "กรุณาตรวจขนาดให้เป็นจำนวนเต็มบวกก่อนส่ง");
       return;
     }
-    const prepared = prepareStudioSubmissionPayload(state, basinProducts);
+    const prepared = prepareStudioSubmissionPayload(sketchSubmitState(state, resolvedSketchPieces), basinProducts);
     if (!prepared) {
       setResult("ข้อมูลขนาดหรือราคาไม่ถูกต้อง กรุณาตรวจสอบก่อนส่ง");
       return;
@@ -5083,23 +5139,40 @@ export function StudioPage({
     setSubmitting(true);
     setResult("");
     const sketchNotificationItems: StudioNotificationItem[] = [];
-    if (activeStone?.code && safeEstimate.counterAreaSqM > 0) {
-      const stoneUnitPrice = safeEstimate.stoneUnitPriceTHB ?? 0;
+    const sketchSnapshot = sketchOrderSnapshot(resolvedSketchPieces, sketchQuoteContext);
+    resolvedSketchPieces.forEach((piece, pieceIndex) => {
+      const pieceQuote = sketchOrderQuoteResult.pieces[pieceIndex]?.quote;
+      const stone = piece.stoneCode ? stoneColorByName(piece.stoneCode, stoneColors) : null;
+      if (!stone || pieceQuote?.status !== "ok") return;
+      if (pieceQuote.orderType === "sheet") {
+        sketchNotificationItems.push({
+          kind: "stone" as const,
+          code: stone.code,
+          description: `แผ่นหินสังเคราะห์มาตรฐาน ${stone.name || stone.code} · ${piece.label}`,
+          quantity: pieceQuote.sheets ?? 0,
+          unit: "แผ่น",
+          unitPriceTHB: pieceQuote.unitPriceTHB,
+          totalTHB: pieceQuote.stoneTotalTHB,
+          workQuantity: pieceQuote.sheets ?? 0,
+          workUnit: "แผ่น",
+        });
+        return;
+      }
       sketchNotificationItems.push({
         kind: "stone" as const,
-        code: activeStone.code,
-        description: `ท็อปเคาน์เตอร์หินสังเคราะห์ ${activeStone.name || activeStone.code}`,
-        quantity: Number(safeEstimate.counterAreaSqM.toFixed(4)),
+        code: stone.code,
+        description: `ท็อปเคาน์เตอร์หินสังเคราะห์ ${stone.name || stone.code} · ${piece.label}`,
+        quantity: Number(pieceQuote.areaSqM.toFixed(4)),
         unit: "ตร.ม.",
-        unitPriceTHB: stoneUnitPrice,
-        totalTHB: Math.round(safeEstimate.counterAreaSqM * stoneUnitPrice),
-        workQuantity: Number(safeEstimate.counterAreaSqM.toFixed(4)),
+        unitPriceTHB: pieceQuote.unitPriceTHB,
+        totalTHB: pieceQuote.stoneTotalTHB,
+        workQuantity: Number(pieceQuote.areaSqM.toFixed(4)),
         workUnit: "ตร.ม.",
       });
-    }
-    safeState.basinSkus.forEach((sku) => {
-      const product = basinProducts.find((item) => item.sku === sku);
-      if (product) {
+      // A basin the customer buys themselves has no line at all: no model, no basin price.
+      piece.basinSkus.forEach((sku) => {
+        const product = sku && sku !== SKETCH_OWN_BASIN ? basinProducts.find((item) => item.sku === sku) : undefined;
+        if (!product) return;
         sketchNotificationItems.push({
           kind: "basin" as const,
           code: product.sku,
@@ -5111,36 +5184,44 @@ export function StudioPage({
           workQuantity: 1,
           workUnit: "ชุด",
           dimensions: product.dimensions,
-          cutoutDimensions: product.basinDimensions,
+          cutoutDimensions: sketchBasinCutout(product).label,
+        });
+      });
+      if (pieceQuote.installationTHB > 0) {
+        sketchNotificationItems.push({
+          kind: "service" as const,
+          code: "INSTALL-BASIN",
+          description: `ค่าบริการติดตั้งอ่างล้างหน้า · ${piece.label}`,
+          quantity: piece.basinSkus.filter((sku) => sku !== null && sku !== SKETCH_OWN_BASIN).length,
+          unit: "จุด",
+          unitPriceTHB: INSTALLATION_PRICE,
+          totalTHB: pieceQuote.installationTHB,
+          workQuantity: piece.basinSkus.filter((sku) => sku !== null && sku !== SKETCH_OWN_BASIN).length,
+          workUnit: "จุด",
+        });
+      }
+      if (pieceQuote.smallJobFeeTHB > 0) {
+        sketchNotificationItems.push({
+          kind: "service" as const,
+          code: "SMALL-JOB-FEE",
+          description: `ค่าดำเนินการงานพื้นที่เล็ก · ${piece.label}`,
+          quantity: 1,
+          unit: "งาน",
+          unitPriceTHB: pieceQuote.smallJobFeeTHB,
+          totalTHB: pieceQuote.smallJobFeeTHB,
+          workQuantity: 1,
+          workUnit: "งาน",
         });
       }
     });
-    if (safeEstimate.installationChargeTHB > 0) {
-      sketchNotificationItems.push({
-        kind: "service" as const,
-        code: "INSTALL-BASIN",
-        description: `ค่าบริการติดตั้งอ่างล้างหน้า (${safeState.basinSkus.length} จุด)`,
-        quantity: safeState.basinSkus.length,
-        unit: "จุด",
-        unitPriceTHB: INSTALLATION_PRICE,
-        totalTHB: safeEstimate.installationChargeTHB,
-        workQuantity: safeState.basinSkus.length,
-        workUnit: "จุด",
-      });
-    }
-    if (safeEstimate.smallJobFeeTHB > 0) {
-      sketchNotificationItems.push({
-        kind: "service" as const,
-        code: "SMALL-JOB-FEE",
-        description: "ค่าดำเนินการงานพื้นที่เล็ก",
-        quantity: 1,
-        unit: "งาน",
-        unitPriceTHB: safeEstimate.smallJobFeeTHB,
-        totalTHB: safeEstimate.smallJobFeeTHB,
-        workQuantity: 1,
-        workUnit: "งาน",
-      });
-    }
+    const sketchOrderNote = [
+      `ประเภทการสั่งซื้อ: ${SKETCH_ORDER_TYPES.find((type) => type.value === sketchOrderType)?.label ?? sketchOrderType}`,
+      ...resolvedSketchPieces.flatMap((piece) => piece.basinSkus.flatMap((sku, cutoutIndex) => {
+        if (sku !== SKETCH_OWN_BASIN) return [];
+        const size = cleanOwnBasinSize(piece.ownBasinSizes[cutoutIndex]);
+        return [`${piece.label} · ช่องเจาะ ${cutoutIndex + 1}: ลูกค้าซื้ออ่างเอง · ${size ? `ขนาดหลุม ${size} (${SKETCH_OWN_BASIN_WARNING})` : SKETCH_OWN_BASIN_NO_SIZE_NOTE}`];
+      })),
+    ].join("\n");
 
     const form = new FormData();
     sketchFiles.forEach((file) => form.append("file", file));
@@ -5159,7 +5240,7 @@ export function StudioPage({
       address: address || null,
       site: safeContact.site || address || null,
       purchasingDepartment: safeContact.purchasingDepartment || null,
-      notes: safeContact.notes || null,
+      notes: [safeContact.notes, sketchOrderNote].filter(Boolean).join("\n\n") || null,
       taxName: safeContact.taxName || null,
       taxId: safeContact.taxId || null,
       taxBranch: safeContact.taxBranch || null,
@@ -5173,14 +5254,16 @@ export function StudioPage({
         ...safeState,
         state: safeState,
         estimate: safeEstimate,
+        // The customer's confirmed sizes, stone and basin per piece and the order type, with each piece's price from the system calculator.
+        sketchOrder: sketchSnapshot,
         worksitePlaceId,
         items: sketchNotificationItems,
         notification: {
           items: sketchNotificationItems,
           vat: safeState.vat,
-          subtotalTHB: safeEstimate.subtotalTHB,
-          vatTHB: safeEstimate.vatAmountTHB,
-          totalTHB: safeEstimate.totalTHB
+          subtotalTHB: sketchOrderQuoteResult.totalTHB - sketchOrderQuoteResult.vatTHB,
+          vatTHB: sketchOrderQuoteResult.vatTHB,
+          totalTHB: sketchOrderQuoteResult.totalTHB
         }
       }
     }));
@@ -5220,12 +5303,13 @@ export function StudioPage({
           : "i"
     : studioPresetForShare(state);
   const sketchBridgeRectangle = getStudioPieces(state)[0]?.rectangles[0];
-  const sketchBridgeRunAMm = Math.round(sketchBridgeRectangle?.widthMm ?? state.dimensions.runAMm);
-  const sketchBridgeDepthMm = Math.round(sketchBridgeRectangle?.lengthMm ?? state.dimensions.depthMm);
+  const firstSketchPiece = resolvedSketchPieces[0];
+  const sketchBridgeRunAMm = Math.round(Number(firstSketchPiece?.lengthText) || (sketchBridgeRectangle?.widthMm ?? state.dimensions.runAMm));
+  const sketchBridgeDepthMm = Math.round(Number(firstSketchPiece?.depthText) || (sketchBridgeRectangle?.lengthMm ?? state.dimensions.depthMm));
   const bridgeToStudio = () => {
     if (submissionInFlightRef.current || sketchStatus?.busy) return;
-    if (!sketchDimensionsValid) {
-      setResult("กรุณากรอกขนาดเป็นจำนวนเต็มในช่วงที่กำหนด");
+    if (!sketchSizesValid) {
+      setResult("กรุณาตรวจขนาดให้เป็นจำนวนเต็มบวกก่อนนำเข้า 2D Studio");
       return;
     }
     const params = new URLSearchParams();
@@ -5239,6 +5323,20 @@ export function StudioPage({
     setLocation(`/studio?${params.toString()}`);
   };
   const scrollToEstimate = () => document.querySelector(".studio-estimate-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Typed boolean on purpose: it must not narrow `mode` inside the studio-only branch below.
+  const showSketchEstimateLines: boolean = mode === "sketch";
+  const sketchEstimateLines = <div className="studio-estimate-lines" data-testid="list-sketch-estimate">
+    {sketchOrderQuoteResult.pieces.map((entry, entryIndex) => {
+      const piece = resolvedSketchPieces[entryIndex];
+      const quote = entry.quote;
+      return <div key={entry.key} data-testid={`row-sketch-estimate-${entryIndex}`}>
+        <span>{entry.label}{piece?.areaSqM != null && <small> {piece.areaSqM.toFixed(3)} ตร.ม.{quote.status === "ok" && quote.sheets !== null ? ` · ${quote.sheets} แผ่น` : ""}</small>}</span>
+        {quote.status === "ok"
+          ? <strong>{formatTHB(quote.totalTHB)}</strong>
+          : <strong className="studio-sketch-no-price" data-testid={`status-sketch-no-price-${entryIndex}`}>{quote.status === "no-stone" ? SKETCH_NO_STONE_MESSAGE : quote.message}</strong>}
+      </div>;
+    })}
+  </div>;
   const estimatePanel = mode === "studio" && !studioLayoutApplied
     ? <aside className="studio-panel studio-estimate-panel studio-estimate-panel--dock" data-testid="studio-estimate-not-ready">
       <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div></div>
@@ -5246,8 +5344,8 @@ export function StudioPage({
     </aside>
     : (
     <aside className={`studio-panel studio-estimate-panel ${mode === "studio" ? "studio-estimate-panel--dock" : ""}`}>
-      <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div><span>{activeStone.code}</span></div>
-      <div className="studio-estimate-lines">
+      <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div>{mode !== "sketch" && <span>{activeStone.code}</span>}</div>
+      {showSketchEstimateLines ? sketchEstimateLines : <div className="studio-estimate-lines">
         {mode !== "sketch" && <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>}
         {mode !== "sketch" && <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>}
         {!(mode === "sketch" && estimate.upstandLengthM <= 0) && <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>}
@@ -5263,16 +5361,16 @@ export function StudioPage({
         </> : <div><span>อ่าง + ติดตั้ง</span><strong>{formatTHB(estimate.basinSubtotalTHB + estimate.installationChargeTHB)}</strong></div>}
         {estimate.smallJobFeeTHB > 0 && <div><span>ค่าดำเนินการงานพื้นที่เล็ก</span><strong>{formatTHB(estimate.smallJobFeeTHB)}</strong></div>}
         {mode !== "sketch" && <div><span>รวมก่อนส่วนลด</span><strong>{formatTHB(estimate.grossSubtotalTHB)}</strong></div>}
-      </div>
+      </div>}
       {mode !== "sketch" && <StudioStoneComparison state={state} setState={setState} stoneColors={stoneColors} />}
       {mode !== "sketch" && <div className="studio-pricing-inputs">
         <StudioPricingInputs state={state} setState={setState} isLeadLinkedMode={isLeadLinkedMode} />
       </div>}
-      <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(estimate.vatAmountTHB)})</label>
+      <label className="studio-checkbox"><input type="checkbox" checked={state.vat} onChange={(event) => setState((current) => ({ ...current, vat: event.target.checked }))} data-testid="input-studio-vat" /><span />คิด VAT 7% จากยอดหลังหักส่วนลด ({formatTHB(mode === "sketch" ? sketchOrderQuoteResult.vatTHB : estimate.vatAmountTHB)})</label>
       {missingTaxIdForVat && <p className="studio-warning studio-warning--amber" role="status" data-testid="status-studio-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}
-      <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{formatTHB(estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
-      {estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
-      {estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
+      <div className="studio-total"><span>รวมประมาณการ</span><strong data-testid="studio-total-value">{mode === "sketch" && sketchOrderQuoteResult.pricedCount === 0 ? SKETCH_NO_STONE_MESSAGE : formatTHB(mode === "sketch" ? sketchOrderQuoteResult.totalTHB : estimate.totalTHB)}</strong><small>{state.vat ? "รวม VAT 7% แล้ว" : "ยังไม่รวม VAT"} · ปัดเป็นบาทถ้วนทีละบรรทัด</small></div>
+      {mode !== "sketch" && estimate.warnings.map((warning) => <p className="studio-warning studio-warning--amber" key={warning}><AlertTriangle size={16} /> {warning}</p>)}
+      {mode !== "sketch" && estimate.standardSheetWarning && <p className="studio-warning studio-warning--amber"><AlertTriangle size={16} /> {estimate.standardSheetMessage}</p>}
       {mode === "studio" && studioIssues.length > 0 && <div id="status-studio-issues-summary" className="studio-issues-summary" role="status" data-testid="status-studio-issues-summary">
         <strong>{studioIssues.length === 1 ? "มี 1 จุดที่ต้องแก้ไขก่อนส่งคำขอ" : `มี ${studioIssues.length} จุดที่ต้องแก้ไขก่อนส่งคำขอ`}</strong>
         <ul>{studioIssues.map((issue, index) => <li key={index}>{issue}</li>)}</ul>
@@ -5280,10 +5378,10 @@ export function StudioPage({
       {mode === "studio" && <div className="studio-export-actions"><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("dxf")} data-testid="button-download-studio-dxf"><Download size={15} /> ดาวน์โหลดแบบ (DXF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("pdf")} data-testid="button-download-studio-pdf"><Download size={15} /> ดาวน์โหลดแบบ (PDF)</button><button type="button" className="button button--outline" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-download-studio-png"><Download size={15} /> ดาวน์โหลดภาพ (PNG)</button></div>}
       {mode === "sketch" && !isLeadLinkedMode
         ? <div className="studio-sketch-button-pair">
-          <button type="button" className="button button--dark" disabled={submitting || sketchStatus?.busy || !sketchDimensionsValid} onClick={() => void primarySubmit()} data-testid="button-submit-sketch-lead">
+          <button type="button" className="button button--dark" disabled={submitting || sketchStatus?.busy || !sketchOrderReady} onClick={() => void primarySubmit()} data-testid="button-submit-sketch-lead">
             <span data-testid="button-submit-sketch">{submitting ? "กำลังส่ง..." : sketchStatus?.busy ? "กำลังวิเคราะห์ภาพแบบร่าง…" : "🚀 ส่งภาพแบบร่างให้ทีมขายประเมินราคา ➔"}</span>
           </button>
-          <button type="button" className="button button--accent" disabled={submitting || sketchStatus?.busy || !sketchDimensionsValid} onClick={bridgeToStudio} data-testid="button-bridge-to-studio">
+          <button type="button" className="button button--accent" disabled={submitting || sketchStatus?.busy || !sketchSizesValid} onClick={bridgeToStudio} data-testid="button-bridge-to-studio">
             {sketchStatus?.busy ? "กำลังวิเคราะห์ภาพแบบร่าง…" : "🎨 นำขนาดเข้าสู่ 2D Studio ➔"}
           </button>
         </div>
@@ -5368,7 +5466,7 @@ export function StudioPage({
             if (file && previewUrl) {
               return (
                 <div key={index} className="studio-sketch-slot studio-sketch-slot--filled" data-testid={`slot-studio-sketch-${index}`}>
-                  <img className="studio-sketch-slot-preview" src={previewUrl} alt={`ตัวอย่างไฟล์ ${file.name}`} data-testid={`img-studio-sketch-preview-${index}`} />
+                  <img className="studio-sketch-slot-preview" style={{ objectFit: "contain", width: "100%", height: "100%", background: "#f2f7fa" }} src={previewUrl} alt={`ตัวอย่างไฟล์ ${file.name}`} data-testid={`img-studio-sketch-preview-${index}`} />
                   <button type="button" className="studio-sketch-slot-remove" disabled={submitting} onClick={() => removeSketchFile(index)} aria-label={`ลบไฟล์ ${file.name}`} data-testid={`button-remove-studio-sketch-${index}`}><X size={14} /></button>
                 </div>
               );
@@ -5410,8 +5508,8 @@ export function StudioPage({
             const isBusy = isRotating || analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
             const confidence = formatSketchConfidence(analysis.confidence);
             const shapeClass = analysis.shape.startsWith("L") ? "L" : analysis.shape;
-            return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
-              {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
+            return <article className="studio-sketch-analysis-card" style={{ gridTemplateColumns: "minmax(0, 1fr)" }} key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
+              {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" style={{ objectFit: "contain", width: "100%", height: "auto", minHeight: 0, maxHeight: "45vh" }} src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} data-testid={`img-sketch-analysis-${index}`} />}
               <div className="studio-sketch-analysis-copy">
                 <button
                   type="button"
@@ -5509,60 +5607,174 @@ export function StudioPage({
         </div>
         {studioSketchUploadPanel}
       </section>
-      <section className="studio-sketch-step studio-sketch-step--shortlists" data-testid="step-studio-sketch-shortlists">
+      <section className="studio-sketch-step studio-sketch-step--dimensions" data-testid="step-studio-sketch-dimensions">
         <div className="studio-sketch-step-heading">
           <span className="studio-sketch-step-number" aria-label="STEP 2">02</span>
-          <div><p className="eyebrow">OPTIONAL SPECIFICATIONS</p><h2>สเปกที่สนใจ</h2></div>
+          <div><p className="eyebrow">CHECK &amp; EDIT SIZES</p><h2>ตรวจ/แก้ขนาดที่ AI อ่านได้</h2></div>
         </div>
-        <p className="studio-helper studio-sketch-optional-copy">เลือกสเปกที่สนใจเบื้องต้น (ไม่บังคับ) เพื่อให้ทีมงานช่วยวางผังให้ตรงรุ่น หรือปล่อยว่างเพื่อให้ทีมงานช่วยแนะนำ</p>
-        <div className="studio-sketch-dimension-card" data-testid="card-sketch-dimensions">
+        <p className="studio-helper studio-sketch-optional-copy">AI อ่านขนาดจากภาพอาจคลาดเคลื่อน แก้ได้ทุกช่อง (จำนวนเต็มบวก หน่วย มม.) พื้นที่ต่อชิ้นงานจะคำนวณจากค่าที่คุณแก้ และค่านี้คือค่าที่ส่งให้ทีมขายใช้คิดราคา</p>
+        {resolvedSketchPieces.map((piece, pieceIndex) => <div className="studio-sketch-dimension-card" key={piece.key} data-testid={`card-sketch-piece-${pieceIndex}`}>
           <div className="studio-sketch-dim-header">
-            <strong>📐 ขนาดเคาน์เตอร์ตามแบบร่าง (โดยประมาณ)</strong>
-            <span>พื้นที่คำนวณได้: <strong>{estimate.counterAreaSqM.toFixed(3)} ตร.ม.</strong></span>
+            <strong>📐 {piece.label}</strong>
+            <span>พื้นที่ต่อชิ้นงาน: <strong data-testid={`text-sketch-piece-area-${pieceIndex}`}>{piece.areaSqM !== null ? `${piece.areaSqM.toFixed(3)} ตร.ม.` : "—"}</strong></span>
           </div>
           <div className="studio-sketch-dim-row">
             <label className="studio-sketch-dim-field">
-              <span>ความยาวเคาน์เตอร์ (มม.)</span>
+              <span>ความยาว / กว้างรวม (มม.)</span>
               <input
-                type="number"
-                min="100"
-                max="10000"
-                step="10"
-                value={sketchDimensionDrafts.length}
-                aria-invalid={parseBoundedIntegerInput(sketchDimensionDrafts.length, 100, 10_000, 10) === null}
-                onChange={(event) => updateSketchDimension("length", event.target.value)}
-                onBlur={() => {
-                  if (parseBoundedIntegerInput(sketchDimensionDrafts.length, 100, 10_000, 10) !== null) return;
-                  setSketchDimensionDrafts((current) => ({ ...current, length: String(sketchLengthMm) }));
-                }}
-                placeholder="เช่น 1980"
-                data-testid="input-sketch-length"
+                type="text"
+                inputMode="numeric"
+                value={piece.lengthText}
+                aria-invalid={piece.lengthWarning !== null}
+                onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, lengthText: event.target.value }))}
+                placeholder="เช่น 1700"
+                data-testid={`input-sketch-length-${pieceIndex}`}
               />
-              <small>เช่น 1980 มม. (1.98 เมตร)</small>
+              {piece.lengthWarning && <small className="studio-warning" role="alert" data-testid={`warning-sketch-length-${pieceIndex}`}>{piece.lengthWarning}</small>}
             </label>
             <label className="studio-sketch-dim-field">
-              <span>ความลึก / หน้ากว้าง (มม.)</span>
+              <span>ความลึก (มม.)</span>
               <input
-                type="number"
-                min="100"
-                max="3000"
-                step="10"
-                value={sketchDimensionDrafts.depth}
-                aria-invalid={parseBoundedIntegerInput(sketchDimensionDrafts.depth, 100, 3_000, 10) === null}
-                onChange={(event) => updateSketchDimension("depth", event.target.value)}
-                onBlur={() => {
-                  if (parseBoundedIntegerInput(sketchDimensionDrafts.depth, 100, 3_000, 10) !== null) return;
-                  setSketchDimensionDrafts((current) => ({ ...current, depth: String(sketchDepthMm) }));
-                }}
-                placeholder="เช่น 450"
-                data-testid="input-sketch-depth"
+                type="text"
+                inputMode="numeric"
+                value={piece.depthText}
+                aria-invalid={piece.depthWarning !== null}
+                onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, depthText: event.target.value }))}
+                placeholder="เช่น 600"
+                data-testid={`input-sketch-depth-${pieceIndex}`}
               />
-              <small>เช่น 450 มม. (0.45 เมตร)</small>
+              {piece.depthWarning && <small className="studio-warning" role="alert" data-testid={`warning-sketch-depth-${pieceIndex}`}>{piece.depthWarning}</small>}
             </label>
           </div>
-          {!sketchDimensionsValid && <p className="studio-warning" role="alert" data-testid="status-sketch-invalid-dimensions">ขนาดต้องเป็นจำนวนเต็มตั้งแต่ 100 มม. และอยู่ในช่วงที่กำหนด</p>}
+          {piece.panels.length > 0 && <div className="studio-sketch-workpiece-section" data-testid={`list-sketch-panels-${pieceIndex}`}>
+            <strong>แผ่นหิน (Panels) — พื้นที่คิดจากแผ่นทั้งหมดรวมกัน</strong>
+            {piece.panels.map((panel) => <div className="studio-sketch-dim-row" key={panel.index}>
+              <label className="studio-sketch-dim-field">
+                <span>{panel.label} · ยาว (มม.)</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={panel.lengthText}
+                  aria-invalid={panel.lengthWarning !== null}
+                  onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, panels: { ...edit.panels, [panel.index]: { ...edit.panels?.[panel.index], lengthText: event.target.value } } }))}
+                  data-testid={`input-sketch-panel-length-${pieceIndex}-${panel.index}`}
+                />
+                {panel.lengthWarning && <small className="studio-warning" role="alert" data-testid={`warning-sketch-panel-length-${pieceIndex}-${panel.index}`}>{panel.lengthWarning}</small>}
+              </label>
+              <label className="studio-sketch-dim-field">
+                <span>{panel.label} · ลึก (มม.)</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={panel.depthText}
+                  aria-invalid={panel.depthWarning !== null}
+                  onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, panels: { ...edit.panels, [panel.index]: { ...edit.panels?.[panel.index], depthText: event.target.value } } }))}
+                  data-testid={`input-sketch-panel-depth-${pieceIndex}-${panel.index}`}
+                />
+                {panel.depthWarning && <small className="studio-warning" role="alert" data-testid={`warning-sketch-panel-depth-${pieceIndex}-${panel.index}`}>{panel.depthWarning}</small>}
+              </label>
+            </div>)}
+          </div>}
+        </div>)}
+        {!sketchSizesValid && <p className="studio-warning" role="alert" data-testid="status-sketch-invalid-dimensions">มีขนาดที่ยังไม่ถูกต้อง — ยังไม่คำนวณพื้นที่และราคาของชิ้นงานนั้น</p>}
+      </section>
+      <section className="studio-sketch-step studio-sketch-step--stone" data-testid="step-studio-sketch-stone">
+        <div className="studio-sketch-step-heading">
+          <span className="studio-sketch-step-number" aria-label="STEP 3">03</span>
+          <div><p className="eyebrow">STONE PER PIECE</p><h2>เลือกสีหิน “ต่อชิ้นงาน”</h2></div>
         </div>
-        <StudioShortlists {...studioShortlistsProps} />
+        <p className="studio-helper studio-sketch-optional-copy">แต่ละชิ้นงานเลือกสีหินของตัวเองได้ ราคาของชิ้นงานจะแสดงเมื่อเลือกสีหินของชิ้นนั้นแล้วเท่านั้น</p>
+        {resolvedSketchPieces.map((piece, pieceIndex) => <div className="studio-sketch-dimension-card" key={piece.key} data-testid={`card-sketch-stone-${pieceIndex}`}>
+          <label className="studio-sketch-dim-field">
+            <span>{piece.label} · สีหิน</span>
+            <select
+              value={piece.stoneCode ?? ""}
+              onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, stoneCode: event.target.value || null }))}
+              data-testid={`select-sketch-stone-${pieceIndex}`}
+            >
+              <option value="">— {SKETCH_NO_STONE_MESSAGE} —</option>
+              {sketchStoneOptions.map((color) => <option key={color.code} value={color.code}>{color.code} · {color.name} — {formatTHB((sketchOrderType === "sheet" ? color.sheetPriceTHB : color.installedPriceTHB) ?? 0)}/{sketchOrderType === "sheet" ? "แผ่น" : "ตร.ม."}</option>)}
+            </select>
+          </label>
+          {!piece.stoneCode && <small className="studio-sketch-no-price" data-testid={`status-sketch-stone-missing-${pieceIndex}`}>{SKETCH_NO_STONE_MESSAGE}</small>}
+        </div>)}
+      </section>
+      <section className="studio-sketch-step studio-sketch-step--basin" data-testid="step-studio-sketch-basin">
+        <div className="studio-sketch-step-heading">
+          <span className="studio-sketch-step-number" aria-label="STEP 4">04</span>
+          <div><p className="eyebrow">BASIN PER CUT-OUT</p><h2>เลือกอ่างต่อช่องเจาะ</h2></div>
+        </div>
+        <p className="studio-helper studio-sketch-optional-copy">เลือกรุ่นอ่าง KF001–KF030 ต่อช่องเจาะ ระบบใช้ขนาดหลุมจริงของรุ่นนั้น หรือเลือก “ลูกค้าซื้ออ่างเอง” (ไม่คิดค่าอ่าง และไม่บังคับกรอกขนาดหลุม)</p>
+        {sketchOrderType === "sheet" && <p className="studio-warning studio-warning--amber" data-testid="note-sketch-basin-sheet">ราคาแผ่นหินมาตรฐานไม่รวมอ่างและค่าติดตั้ง</p>}
+        {resolvedSketchPieces.map((piece, pieceIndex) => <div className="studio-sketch-dimension-card" key={piece.key} data-testid={`card-sketch-basin-${pieceIndex}`}>
+          <div className="studio-sketch-dim-header"><strong>{piece.label}</strong><span>{piece.basinSkus.length} ช่องเจาะอ่าง</span></div>
+          {piece.basinSkus.length === 0 && <small className="studio-sketch-no-cutouts">ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจาะอ่าง” หากต้องการเลือกอ่าง</small>}
+          {piece.basinSkus.map((sku, cutoutIndex) => {
+            const product = sku && sku !== SKETCH_OWN_BASIN ? sketchBasinOptions.find((item) => item.sku === sku) : undefined;
+            const cutout = product ? sketchBasinCutout(product) : null;
+            const ownSize = cleanOwnBasinSize(piece.ownBasinSizes[cutoutIndex]);
+            return <div className="studio-sketch-workpiece-section" key={cutoutIndex} data-testid={`slot-sketch-basin-${pieceIndex}-${cutoutIndex}`}>
+              <label className="studio-sketch-dim-field">
+                <span>ช่องเจาะที่ {cutoutIndex + 1}</span>
+                <select
+                  value={sku ?? ""}
+                  onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, basinSkus: piece.basinSkus.map((current, slotIndex) => slotIndex === cutoutIndex ? (event.target.value || null) : current) }))}
+                  data-testid={`select-sketch-basin-${pieceIndex}-${cutoutIndex}`}
+                >
+                  <option value="">— ยังไม่ระบุ —</option>
+                  <option value={SKETCH_OWN_BASIN}>{SKETCH_OWN_BASIN_LABEL}</option>
+                  {sketchBasinOptions.map((item) => {
+                    const itemCutout = sketchBasinCutout(item);
+                    return <option key={item.sku} value={item.sku}>{item.sku} · {item.colorName} — {itemCutout.specified ? `หลุม ${itemCutout.label} มม.` : SKETCH_BASIN_NOT_IN_CATALOG}</option>;
+                  })}
+                </select>
+              </label>
+              {cutout && <small data-testid={`text-sketch-cutout-size-${pieceIndex}-${cutoutIndex}`}>ขนาดหลุม: {cutout.specified ? `${cutout.label} มม.` : SKETCH_BASIN_NOT_IN_CATALOG}</small>}
+              {sku === SKETCH_OWN_BASIN && <>
+                <label className="studio-sketch-dim-field">
+                  <span>ขนาดหลุมเจาะ (ไม่บังคับ — กรอกหรือไม่กรอกก็ได้)</span>
+                  <input
+                    type="text"
+                    value={piece.ownBasinSizes[cutoutIndex] ?? ""}
+                    maxLength={60}
+                    onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, ownBasinSizes: { ...edit.ownBasinSizes, [cutoutIndex]: event.target.value } }))}
+                    placeholder="เช่น 350x500"
+                    data-testid={`input-sketch-own-basin-size-${pieceIndex}-${cutoutIndex}`}
+                  />
+                </label>
+                {ownSize
+                  ? <small className="studio-warning studio-warning--amber" data-testid={`note-sketch-own-basin-${pieceIndex}-${cutoutIndex}`}>{SKETCH_OWN_BASIN_WARNING}</small>
+                  : <small data-testid={`note-sketch-own-basin-${pieceIndex}-${cutoutIndex}`}>{SKETCH_OWN_BASIN_NO_SIZE_NOTE}</small>}
+              </>}
+            </div>;
+          })}
+          <button type="button" className="button button--outline" onClick={() => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, basinSkus: [...piece.basinSkus, null] }))} data-testid={`button-add-sketch-cutout-${pieceIndex}`}>+ เพิ่มช่องเจาะอ่าง</button>
+        </div>)}
+      </section>
+      <section className="studio-sketch-step studio-sketch-step--order-type" data-testid="step-studio-sketch-order-type">
+        <div className="studio-sketch-step-heading">
+          <span className="studio-sketch-step-number" aria-label="STEP 5">05</span>
+          <div><p className="eyebrow">ORDER TYPE</p><h2>เลือกประเภทการสั่งซื้อ</h2></div>
+        </div>
+        <div className="studio-sketch-dimension-card" role="radiogroup" aria-label="ประเภทการสั่งซื้อ" data-testid="group-sketch-order-type">
+          {SKETCH_ORDER_TYPES.map((type) => <label className="studio-checkbox" key={type.value}>
+            <input type="radio" name="sketch-order-type" checked={sketchOrderType === type.value} onChange={() => changeSketchOrderType(type.value)} data-testid={`input-sketch-order-type-${type.value}`} />
+            <span />{type.label} · <small>{type.unitLabel}</small>
+          </label>)}
+          <small data-testid="text-sketch-order-type-colours">รายการสีหิน {sketchStoneOptions.length} สี ตรงกับประเภทที่เลือก — ถ้าเปลี่ยนประเภท สีที่ไม่มีราคาในประเภทใหม่จะถูกล้างให้เลือกใหม่</small>
+          {sketchOrderType === "sheet" && resolvedSketchPieces.map((piece, pieceIndex) => <label className="studio-sketch-dim-field" key={piece.key}>
+            <span>{piece.label} · จำนวนแผ่น</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={piece.sheetsText}
+              aria-invalid={piece.sheetsWarning !== null}
+              onChange={(event) => updateSketchPieceEdit(piece.key, (edit) => ({ ...edit, sheetsText: event.target.value }))}
+              data-testid={`input-sketch-sheets-${pieceIndex}`}
+            />
+            {piece.sheetsWarning && <small className="studio-warning" role="alert" data-testid={`warning-sketch-sheets-${pieceIndex}`}>{piece.sheetsWarning}</small>}
+          </label>)}
+        </div>
       </section>
     </div>
   ) : (
@@ -5656,7 +5868,7 @@ export function StudioPage({
         : studioDesignLayout}
     <section className={`studio-layout-bottom ${mode === "studio" ? "studio-layout-bottom--contact" : mode === "sketch" ? "studio-layout-bottom--sketch" : ""}`} data-testid={mode === "sketch" ? "step-studio-sketch-details" : undefined}>
         {mode === "sketch" && <div className="studio-sketch-step-heading studio-sketch-step-heading--wide">
-          <span className="studio-sketch-step-number" aria-label="STEP 3">03</span>
+          <span className="studio-sketch-step-number" aria-label="STEP 6">06</span>
           <div><p className="eyebrow">CONTACT &amp; LIVE ESTIMATE</p><h2>ข้อมูลติดต่อและสรุปส่งแบบร่าง</h2></div>
         </div>}
        <div className="studio-panel studio-contact-panel"><div className="studio-panel-heading"><div><p className="eyebrow">04 / PROJECT DETAILS</p><h3>{isLeadLinkedMode ? "ข้อมูลลูกค้าใน Lead" : "ข้อมูลติดต่อและหน้างาน"}</h3></div></div>

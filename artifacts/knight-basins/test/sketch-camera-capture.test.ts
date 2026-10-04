@@ -46,8 +46,9 @@ describe("Sketch camera capture", () => {
     assert.match(studioPageSource, /runAMm: analysis\.runAMm!/);
     assert.match(studioPageSource, /depthMm: analysis\.depthMm!/);
     assert.match(studioPageSource, /ไม่สามารถอ่านขนาดจากภาพได้ กรุณากรอกด้วยตนเอง/);
-    assert.match(studioPageSource, /data-testid="input-sketch-length"/);
-    assert.match(studioPageSource, /data-testid="input-sketch-depth"/);
+    // job-256: the size boxes are per piece now (every size the AI read can be edited), one set of boxes for each piece.
+    assert.match(studioPageSource, /data-testid=\{`input-sketch-length-\$\{pieceIndex\}`\}/);
+    assert.match(studioPageSource, /data-testid=\{`input-sketch-depth-\$\{pieceIndex\}`\}/);
   });
 
   it("keeps sketch estimates focused and stacks the capture buttons on narrow screens", () => {
