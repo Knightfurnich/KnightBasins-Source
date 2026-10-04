@@ -9,6 +9,7 @@
 import { asc, desc } from "drizzle-orm";
 import { customerLeads, paymentSlips, technicianTeams } from "@workspace/db/schema";
 import { askGemini, vertexGeminiConfigured, type GeminiResult } from "./vertex-gemini.ts";
+import { displayLeadStatus } from "./lead-status-labels.ts";
 
 export type OpsAssistantMode = "dashboard" | "leads" | "calendar";
 export type OpsAssistantResult =
@@ -128,30 +129,6 @@ function formatThaiOpsMonth(isoDate: string): string {
     month: "long",
     year: "numeric",
   }).format(date);
-}
-
-const LEAD_STATUS_LABELS: Record<string, string> = {
-  new_lead: "งานใหม่",
-  selecting: "กำลังเลือกสินค้า",
-  quote_requested: "ขอใบเสนอราคา",
-  quote_sent: "ส่งใบเสนอราคาแล้ว",
-  waiting_deposit: "รอมัดจำ",
-  team_reported_paid: "ทีมรายงานชำระแล้ว",
-  deposit_paid: "มัดจำแล้ว",
-  confirmed: "ชำระเงินแล้ว",
-  in_production: "กำลังผลิต",
-  ready_for_production: "พร้อมผลิต",
-  closed: "ปิดการขาย",
-  // Compatibility labels for legacy lead rows and the SlipOK auto-close state.
-  new: "งานใหม่",
-  contacted: "ติดต่อแล้ว",
-  qualified: "ผ่านการคัดกรอง",
-  quoted: "ส่งใบเสนอราคาแล้ว",
-  lost: "ยุติการติดตาม",
-};
-
-function displayLeadStatus(status: string): string {
-  return LEAD_STATUS_LABELS[status] ?? "ไม่ทราบขั้นตอนงาน";
 }
 
 async function fetchTechnicianTeamNames(database: OpsDatabase): Promise<Map<string, string>> {

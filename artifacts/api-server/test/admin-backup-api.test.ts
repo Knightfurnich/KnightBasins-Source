@@ -237,7 +237,22 @@ describe("GET /admin/backup/leads-export", () => {
       const lines = text.replace(/^﻿/, "").split("\r\n");
       assert.equal(lines.length, 3, "header + 2 leads");
       assert.equal(lines[1], "LEAD-0001,คุณสมชาย,บ้านสมชาย,123 ถ.สุขุมวิท,TP,2026-10-05,ขอใบเสนอราคา,45000,2026-09-01T02:00:00.000Z");
-      assert.equal(lines[2], "LEAD-0002,คุณสมหญิง,,,,,ปิดงาน,,2026-09-05T02:00:00.000Z");
+      assert.equal(lines[2], "LEAD-0002,คุณสมหญิง,,,,,ปิดการขาย,,2026-09-05T02:00:00.000Z");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("exports quote_sent with a readable Thai status label", async () => {
+    const lead = { ...FIXTURE_LEADS[0], leadKey: "LEAD-0003", status: "quote_sent" };
+    const server = await startAdminRoute(createFakeBackupDatabase({ leads: [lead] }));
+    const cookie = `knight_admin_session=${createAdminToken()}`;
+    try {
+      const response = await fetch(`${server.url}/api/admin/backup/leads-export`, { headers: { cookie } });
+      assert.equal(response.status, 200);
+      const lines = (await response.text()).replace(/^﻿/, "").split("\r\n");
+      assert.equal(lines[1], "LEAD-0003,คุณสมชาย,บ้านสมชาย,123 ถ.สุขุมวิท,TP,2026-10-05,ส่งใบเสนอราคาแล้ว,45000,2026-09-01T02:00:00.000Z");
+      assert.ok(!lines[1]?.includes("quote_sent"));
     } finally {
       await server.close();
     }

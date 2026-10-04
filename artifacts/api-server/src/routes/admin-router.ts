@@ -57,6 +57,7 @@ import {
   accessForAdminMember,
 } from "../middlewares/admin-auth";
 import { requestOrigin } from "../lib/public-origin";
+import { displayLeadStatus } from "../lib/lead-status-labels.ts";
 import { sendWeeklyDigestText, startSlipUploadAlertMonitor } from "../lib/incident-alerts";
 import { AI_COST_PERIODS, getUnifiedAiCostSummary, type AiCostPeriod } from "../lib/ai-cost-tracker";
 import {
@@ -431,16 +432,7 @@ async function streamSitePhotosZip(res: Response, photos: Array<{ imageUrl: unkn
   res.end();
 }
 
-const LEAD_STATUS_LABELS_TH: Record<string, string> = {
-  new_lead: "ลูกค้าใหม่",
-  selecting: "กำลังเลือกสินค้า",
-  quote_requested: "ขอใบเสนอราคา",
-  waiting_deposit: "รอมัดจำ",
-  team_reported_paid: "ทีมรายงานชำระแล้ว",
-  deposit_paid: "มัดจำแล้ว",
-  ready_for_production: "พร้อมผลิต",
-  closed: "ปิดงาน",
-};
+
 
 const LEADS_EXPORT_COLUMNS = ["รหัสงาน", "ชื่อลูกค้า", "โครงการ", "ที่อยู่", "ทีมช่าง", "วันที่นัด", "สถานะ", "ยอดเงิน", "วันที่สร้าง"];
 const BASINS_EXPORT_COLUMNS = ["SKU", "ชื่อสี", "รหัสสี", "ราคา", "ขนาด", "ขนาดหลุม", "ลิงก์ภาพหลัก", "ลิงก์ภาพ Top View"];
@@ -4356,7 +4348,7 @@ export function createAdminRouter(
         lead.address ?? "",
         lead.technicianTeamCode ?? "",
         lead.expectedInstallationDate ?? "",
-        LEAD_STATUS_LABELS_TH[lead.status] ?? lead.status,
+        displayLeadStatus(lead.status),
         quoteTotalTHB(lead.studioData) ?? "",
         lead.createdAt instanceof Date ? lead.createdAt.toISOString() : lead.createdAt,
       ]);
