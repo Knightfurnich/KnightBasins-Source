@@ -23,7 +23,7 @@ const BROWSER_COST_RESPONSE = {
   updatedAt: "2026-09-26T03:00:00.000Z",
   totalCostThb: 1532.5,
   totalRequests: 4,
-  totalTokens: 392_500_000,
+  totalTokens: 392_545_335,
   services: [
     {
       id: "sales_bot",
@@ -199,6 +199,7 @@ describe("AI cost center UI contract", () => {
     assert.match(pageSource, /title="ต้นทุนเฉลี่ยต่อคำขอ \(บาท\)"/);
     assert.match(pageSource, /value=\{formatTokenCount\(data\.totalTokens\)\}/);
     assert.match(pageSource, /valueTitle=\{formatExactTokenCount\(data\.totalTokens\)\}/);
+    assert.match(pageSource, /detail="อินพุตและเอาต์พุตรวม · หน่วยล้านโทเคน"/);
     assert.match(pageSource, /title=\{formatExactTokenCount\(service\.tokens\)\}/);
     assert.match(pageSource, /formatTokenCount\(service\.tokens\)/);
     assert.match(pageSource, /formatTokenCountWithExact\(data\.totalTokens\)/);
@@ -397,7 +398,7 @@ describe("AI cost center browser behavior", () => {
       );
       assert.deepEqual(tokenDisplay, {
         kpi: "392.5 ล้านโทเคน",
-        kpiTitle: "392,500,000 โทเคน",
+        kpiTitle: "392,545,335 โทเคน",
         firstService: "1.0 ล้านโทเคน",
         firstServiceTitle: "1,000,000 โทเคน",
         secondService: "999,999 โทเคน",
@@ -430,7 +431,7 @@ describe("AI cost center browser behavior", () => {
       );
       const copiedSummary = await waitForBrowserValue(
         () => page!.evaluate<string>("window.__aiCostClipboardText ?? ''"),
-        (text) => text.includes("392.5 ล้านโทเคน (392,500,000 โทเคน)"),
+        (text) => text.includes("392.5 ล้านโทเคน (392,545,335 โทเคน)"),
         "Copied summary did not preserve the full token count",
       );
       assert.ok(copiedSummary.includes("1.0 ล้านโทเคน (1,000,000 โทเคน)"));

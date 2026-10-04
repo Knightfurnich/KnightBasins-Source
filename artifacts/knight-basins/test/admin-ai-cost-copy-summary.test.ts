@@ -17,7 +17,7 @@ const costResponse = {
   updatedAt: "2026-09-26T03:00:00.000Z",
   totalCostThb: 1532.5,
   totalRequests: 4,
-  totalTokens: 392_500_000,
+  totalTokens: 392_545_335,
   services: [
     {
       id: "sales_bot",
@@ -172,7 +172,7 @@ describe("admin AI cost LINE summary copy", () => {
       "ช่วงเวลา: 30 วัน",
       `ยอดรวม: ${currency.format(1532.5)}`,
       `จำนวนคำขอ: ${count.format(4)}`,
-      "โทเค็นรวม: 392.5 ล้านโทเคน (392,500,000 โทเคน)",
+      "โทเค็นรวม: 392.5 ล้านโทเคน (392,545,335 โทเคน)",
       "",
       "แยกตามบริการ:",
       `• น้องไนท์ (LINE Bot): ${currency.format(845.75)} · ${count.format(2)} คำขอ · 1.0 ล้านโทเคน (1,000,000 โทเคน)`,

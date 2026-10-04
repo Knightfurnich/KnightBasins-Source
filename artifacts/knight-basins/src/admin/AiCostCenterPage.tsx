@@ -458,7 +458,7 @@ export default function AiCostCenterPage() {
               title="โทเค็นรวม"
               value={formatTokenCount(data.totalTokens)}
               valueTitle={formatExactTokenCount(data.totalTokens)}
-              detail="อินพุตและเอาต์พุตรวม"
+              detail="อินพุตและเอาต์พุตรวม · หน่วยล้านโทเคน"
               icon={Database}
               accent="teal"
               testId="card-ai-cost-tokens"
