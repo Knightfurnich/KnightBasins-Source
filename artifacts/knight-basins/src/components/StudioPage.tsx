@@ -308,9 +308,11 @@ type SketchAnalysisWorkpiece = {
   cutouts: SketchWorkpieceCutout[];
   notes: string;
 };
+type SketchConfidenceWord = "high" | "medium" | "low";
+type SketchConfidence = number | SketchConfidenceWord | null;
 type SketchAnalysisCardState = {
   shape: SketchAnalysisShape;
-  confidence: number | null;
+  confidence: SketchConfidence;
   notes: string;
   runAMm: number | null;
   depthMm: number | null;
@@ -327,6 +329,38 @@ type SketchProcessingStatus = {
 
 const SKETCH_ANALYSIS_FALLBACK_MESSAGE = "ไม่สามารถอ่านขนาดจากภาพได้ กรุณากรอกด้วยตนเอง";
 const SKETCH_ANALYSIS_RATE_LIMIT_MESSAGE = "ส่งวิเคราะห์บ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่ หรือกรอกขนาดด้วยตนเอง";
+
+/** The sketch API reports confidence as a word ("high"/"medium"/"low") or as a
+ * number (0-1 or 0-100). Normalise the word form so the card never falls back
+ * to "ยังไม่ระบุ" just because `Number("high")` is NaN. */
+function normalizeSketchConfidenceWord(value: string): SketchConfidenceWord | null {
+  switch (value.trim().toLowerCase()) {
+    case "high":
+    case "สูง":
+      return "high";
+    case "medium":
+    case "mid":
+    case "ปานกลาง":
+      return "medium";
+    case "low":
+    case "ต่ำ":
+      return "low";
+    default:
+      return null;
+  }
+}
+
+function sketchConfidenceLabel(value: SketchConfidenceWord): string {
+  return value === "high" ? "สูง" : value === "medium" ? "ปานกลาง" : "ต่ำ";
+}
+
+/** A pre-"pieces" Studio draft (a state object with no `pieces` array) cannot
+ * be reopened as a usable 2D layout — it would render overlapping legacy
+ * rectangles. Detect it so the caller can start a fresh board instead. */
+function isLegacyStudioDraftState(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return !Array.isArray((value as { pieces?: unknown }).pieces);
+}
 
 function sketchAnalysisRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -434,10 +468,10 @@ function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "p
   const firstPanel = firstWorkpiece?.panels[0];
   const shape = parseSketchShape(result.shape ?? result.shapeType ?? firstWorkpiece?.shape);
   const rawConfidence = result.confidence;
-  const confidence = typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
+  const confidence: SketchConfidence = typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
     ? rawConfidence
-    : typeof rawConfidence === "string" && rawConfidence.trim() && Number.isFinite(Number(rawConfidence))
-      ? Number(rawConfidence)
+    : typeof rawConfidence === "string" && rawConfidence.trim()
+      ? normalizeSketchConfidenceWord(rawConfidence) ?? (Number.isFinite(Number(rawConfidence)) ? Number(rawConfidence) : null)
       : null;
   const rawNotes = result.notes;
   const notes = typeof rawNotes === "string"
@@ -624,15 +658,21 @@ function createInitialStudioState(
 }
 
 function readLinkedDraft() {
-  if (typeof window === "undefined") return { token: "", state: null as StudioState | null };
+  const empty = { token: "", state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined, legacy: false };
+  if (typeof window === "undefined") return empty;
   const token = new URLSearchParams(window.location.search).get("draft") ?? "";
-  if (!token) return { token, state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined };
+  if (!token) return { ...empty, token };
   const linked = decodeStudioDraftRecord(token);
   const shortDraft = linked ? null : readStoredShortStudioDraft(token);
+  const decodedState = linked?.state ?? shortDraft?.state ?? null;
+  // An old draft without the `pieces` model can't be laid out sensibly, so the
+  // caller starts a fresh board and tells the customer it was an old format.
+  const legacy = decodedState !== null && isLegacyStudioDraftState(decodedState);
   return {
     token,
-    state: linked?.state ?? shortDraft?.state ?? null,
+    state: legacy ? null : decodedState,
     catalogContext: linked?.catalogContext ?? shortDraft?.catalogContext,
+    legacy,
   };
 }
 
@@ -3164,7 +3204,11 @@ function StudioCanvas({
     if (typeof window !== "undefined" && !window.confirm(`ลบชิ้นงาน “${target.name}” พร้อมแผ่นและอ่างที่อยู่ในชิ้นงานนี้หรือไม่`)) return;
     setState((current) => {
       const remaining = getStudioPieces(current).filter((p) => p.id !== pieceId);
-      const nextActiveId = remaining[0]?.id ?? "";
+      // Only jump to another workpiece when the deleted one was the active tab;
+      // deleting a background tab must keep the user where they were working.
+      const nextActiveId = current.activePieceId && remaining.some((p) => p.id === current.activePieceId)
+        ? current.activePieceId
+        : remaining[0]?.id ?? "";
       return {
         ...current,
         pieces: remaining,
@@ -3651,46 +3695,90 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
   const indexRef = useRef(0);
   const mountedRef = useRef(false);
   const skipSnapshotRef = useRef(false);
+  // The edit waiting out the debounce window, kept separate from the committed
+  // history so it is never silently dropped when Undo is pressed.
+  const pendingRef = useRef<StudioState | null>(null);
   const [, bumpHistoryVersion] = useState(0);
+
+  const commit = useCallback((next: StudioState) => {
+    // Dropping any "future" redo entries once a new edit branches off,
+    // same as any standard undo stack.
+    const truncated = historyRef.current.slice(0, indexRef.current + 1);
+    historyRef.current = [...truncated, next].slice(-STUDIO_HISTORY_LIMIT);
+    indexRef.current = historyRef.current.length - 1;
+  }, []);
+
+  const flushPending = useCallback(() => {
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (pending !== null && pending !== historyRef.current[indexRef.current]) {
+      commit(pending);
+      return true;
+    }
+    return false;
+  }, [commit]);
 
   useEffect(() => {
     if (!mountedRef.current) {
       mountedRef.current = true;
       historyRef.current = [state];
       indexRef.current = 0;
+      pendingRef.current = null;
       return;
     }
     if (skipSnapshotRef.current) {
       skipSnapshotRef.current = false;
+      pendingRef.current = null;
       return;
     }
-    const timer = window.setTimeout(() => {
-      // Dropping any "future" redo entries once a new edit branches off,
-      // same as any standard undo stack.
-      const truncated = historyRef.current.slice(0, indexRef.current + 1);
-      historyRef.current = [...truncated, state].slice(-STUDIO_HISTORY_LIMIT);
-      indexRef.current = historyRef.current.length - 1;
+    // A fresh edit means the previous waiting edit is settled: record it as its
+    // own step before queueing the new one, so rapid successive edits never
+    // erase the middle step.
+    if (pendingRef.current !== null && pendingRef.current !== historyRef.current[indexRef.current]) {
+      commit(pendingRef.current);
       bumpHistoryVersion((version) => version + 1);
+    }
+    pendingRef.current = state;
+    const timer = window.setTimeout(() => {
+      const settled = pendingRef.current;
+      pendingRef.current = null;
+      if (settled !== null && settled !== historyRef.current[indexRef.current]) {
+        commit(settled);
+        bumpHistoryVersion((version) => version + 1);
+      }
     }, STUDIO_HISTORY_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [state]);
+  }, [state, commit]);
 
   const undo = useCallback(() => {
-    if (indexRef.current <= 0) return;
+    // Save the not-yet-committed edit as its own step first, so one Undo
+    // reverses exactly one edit instead of skipping over it.
+    flushPending();
+    if (indexRef.current <= 0) {
+      bumpHistoryVersion((version) => version + 1);
+      return;
+    }
     indexRef.current -= 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [flushPending]);
   const redo = useCallback(() => {
-    if (indexRef.current >= historyRef.current.length - 1) return;
+    flushPending();
+    if (indexRef.current >= historyRef.current.length - 1) {
+      bumpHistoryVersion((version) => version + 1);
+      return;
+    }
     indexRef.current += 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [flushPending]);
 
-  return [state, setStateRaw, { undo, redo, canUndo: indexRef.current > 0, canRedo: indexRef.current < historyRef.current.length - 1 }];
+  const committedHead = historyRef.current[indexRef.current];
+  const canUndo = indexRef.current > 0 || (pendingRef.current !== null && pendingRef.current !== committedHead);
+  const canRedo = indexRef.current < historyRef.current.length - 1;
+  return [state, setStateRaw, { undo, redo, canUndo, canRedo }];
 }
 
 export function restrictStudioDiscountForMode(state: StudioState, isLeadLinkedMode: boolean): StudioState {
@@ -3758,7 +3846,7 @@ export function StudioPage({
   const linkedSketchUrls = useMemo(() => linkedLeadSketchUrls(linkedLead), [linkedLead]);
   const linkedDraft = useMemo(
     () => isLeadLinkedMode
-      ? { token: "", state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined }
+      ? { token: "", state: null as StudioState | null, catalogContext: undefined as StudioCatalogContext | undefined, legacy: false }
       : readLinkedDraft(),
     [isLeadLinkedMode, studioRouteKey],
   );
@@ -3833,9 +3921,11 @@ export function StudioPage({
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() => linkedDraft.state ? new Date().toISOString() : null);
   const [draftResult, setDraftResult] = useState(() => remoteDraftKey
     ? "กำลังโหลดแบบร่างจากลิงก์…"
-    : linkedDraft.token && !linkedDraft.state
-      ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่"
-      : "");
+    : linkedDraft.token && linkedDraft.legacy
+      ? "แบบร่างนี้เป็นรูปแบบเก่า (ก่อนระบบชิ้นงาน) ระบบเริ่มผังใหม่ให้แล้ว กรุณาออกแบบใหม่"
+      : linkedDraft.token && !linkedDraft.state
+        ? "ลิงก์แบบร่างไม่ถูกต้องหรือหมดอายุ กรุณาเริ่มออกแบบใหม่"
+        : "");
   const [catalogNotice, setCatalogNotice] = useState<StudioCatalogNotice | null>(() => linkedDraft.catalogContext ? studioCatalogNotice(linkedDraft.catalogContext, basinProducts) : null);
   const [namedDrafts, setNamedDrafts] = useState<NamedStudioDraftRecord[]>(() => mode === "studio" ? readStoredStudioDrafts() : []);
   const [editingNamedDraftId, setEditingNamedDraftId] = useState<string | null>(null);
@@ -4623,7 +4713,12 @@ export function StudioPage({
     const firstRectangle = firstPiece?.rectangles[0];
     if (basinSku) url.searchParams.set("basin", basinSku);
     if (state.activeStone) url.searchParams.set("stone", state.activeStone);
-    if (firstRectangle) url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+    if (firstRectangle) {
+      url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+      // Carry the depth too, otherwise the shared link reopens the layout at
+      // the default 600 mm depth instead of the one the user designed.
+      url.searchParams.set("depth", String(Math.round(firstRectangle.lengthMm)));
+    }
     url.searchParams.set("shape", studioPresetForShare(state, firstPiece));
 
     let feedback: "copied" | "failed" = "copied";
@@ -5281,7 +5376,9 @@ export function StudioPage({
             const isBusy = isRotating || analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
             const confidence = analysis.confidence === null
               ? "ยังไม่ระบุ"
-              : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
+              : typeof analysis.confidence === "string"
+                ? sketchConfidenceLabel(analysis.confidence)
+                : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
             const shapeClass = analysis.shape.startsWith("L") ? "L" : analysis.shape;
             return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
               {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
@@ -5444,7 +5541,7 @@ export function StudioPage({
       {mode === "studio" ? (
         <div className="studio-canvas-column">
           <div className="studio-share-actions">
-            <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
+            <button type="button" className="button button--accent" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
             <button
               type="button"
               className="button button--accent studio-share-button"
