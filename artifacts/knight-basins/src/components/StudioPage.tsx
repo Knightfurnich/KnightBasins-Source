@@ -310,7 +310,9 @@ type SketchAnalysisWorkpiece = {
 };
 type SketchAnalysisCardState = {
   shape: SketchAnalysisShape;
-  confidence: number | null;
+  /** The vision API answers "high" | "medium" | "low"; the numeric 0-1 form is
+   * kept for older/mocked payloads. */
+  confidence: number | string | null;
   notes: string;
   runAMm: number | null;
   depthMm: number | null;
@@ -434,10 +436,15 @@ function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "p
   const firstPanel = firstWorkpiece?.panels[0];
   const shape = parseSketchShape(result.shape ?? result.shapeType ?? firstWorkpiece?.shape);
   const rawConfidence = result.confidence;
+  // The server sends the level as a string ("high"/"medium"/"low"); a numeric
+  // 0-1 confidence is still accepted. Coercing the string with Number() (the
+  // old behaviour) produced NaN for every real response, so the card always
+  // read "ยังไม่ระบุ" and the sales team could not tell a confident read from a
+  // guess.
   const confidence = typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
     ? rawConfidence
-    : typeof rawConfidence === "string" && rawConfidence.trim() && Number.isFinite(Number(rawConfidence))
-      ? Number(rawConfidence)
+    : typeof rawConfidence === "string" && rawConfidence.trim()
+      ? rawConfidence.trim()
       : null;
   const rawNotes = result.notes;
   const notes = typeof rawNotes === "string"
@@ -456,6 +463,18 @@ function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "p
       : workpieces.length,
     workpieces,
   };
+}
+
+/** Human label for the vision API's confidence level (or a legacy numeric one). */
+function sketchConfidenceLabel(value: number | string | null): string {
+  if (value === null) return "ยังไม่ระบุ";
+  if (typeof value === "number") return `${Math.round(value <= 1 ? value * 100 : value)}%`;
+  const level = value.trim().toLowerCase();
+  if (level === "high") return "สูง";
+  if (level === "medium") return "ปานกลาง";
+  if (level === "low") return "ต่ำ";
+  const numeric = Number(level);
+  return Number.isFinite(numeric) ? `${Math.round(numeric <= 1 ? numeric * 100 : numeric)}%` : value;
 }
 
 function sketchShapeLabel(shape: SketchAnalysisShape): string {
@@ -3164,11 +3183,14 @@ function StudioCanvas({
     if (typeof window !== "undefined" && !window.confirm(`ลบชิ้นงาน “${target.name}” พร้อมแผ่นและอ่างที่อยู่ในชิ้นงานนี้หรือไม่`)) return;
     setState((current) => {
       const remaining = getStudioPieces(current).filter((p) => p.id !== pieceId);
-      const nextActiveId = remaining[0]?.id ?? "";
+      // Only move the editor to another workpiece when the one being deleted
+      // was the active one; deleting a different tab used to yank the user off
+      // the workpiece they were editing.
+      const wasActive = (current.activePieceId ?? pieceId) === pieceId;
       return {
         ...current,
         pieces: remaining,
-        activePieceId: nextActiveId,
+        activePieceId: wasActive ? (remaining[0]?.id ?? "") : current.activePieceId,
         basinPlacements: current.basinPlacements.filter((placement) => (placement.pieceId ?? pieceId) !== pieceId),
       };
     });
@@ -3652,6 +3674,28 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
   const mountedRef = useRef(false);
   const skipSnapshotRef = useRef(false);
   const [, bumpHistoryVersion] = useState(0);
+  const [pendingSnapshot, setPendingSnapshot] = useState<StudioState | null>(null);
+  const pendingSnapshotRef = useRef<StudioState | null>(null);
+  const commitTimerRef = useRef<number | null>(null);
+
+  /** Records an edit that is still inside the debounce window, so a redo/undo
+   * pressed right after an edit sees it instead of skipping over it. */
+  const commitPendingSnapshot = useCallback(() => {
+    if (commitTimerRef.current !== null) {
+      window.clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+    const pending = pendingSnapshotRef.current;
+    if (pending === null) return;
+    pendingSnapshotRef.current = null;
+    setPendingSnapshot(null);
+    // Dropping any "future" redo entries once a new edit branches off,
+    // same as any standard undo stack.
+    const truncated = historyRef.current.slice(0, indexRef.current + 1);
+    historyRef.current = [...truncated, pending].slice(-STUDIO_HISTORY_LIMIT);
+    indexRef.current = historyRef.current.length - 1;
+    bumpHistoryVersion((version) => version + 1);
+  }, []);
 
   useEffect(() => {
     if (!mountedRef.current) {
@@ -3664,33 +3708,42 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
       skipSnapshotRef.current = false;
       return;
     }
-    const timer = window.setTimeout(() => {
-      // Dropping any "future" redo entries once a new edit branches off,
-      // same as any standard undo stack.
-      const truncated = historyRef.current.slice(0, indexRef.current + 1);
-      historyRef.current = [...truncated, state].slice(-STUDIO_HISTORY_LIMIT);
-      indexRef.current = historyRef.current.length - 1;
-      bumpHistoryVersion((version) => version + 1);
+    // The snapshot is held (not just the timer) so that an undo/redo arriving
+    // inside STUDIO_HISTORY_DEBOUNCE_MS flushes it first; otherwise one undo
+    // after a quick second edit reverts two edits -- the intermediate state
+    // never made it into the history stack.
+    pendingSnapshotRef.current = state;
+    setPendingSnapshot(state);
+    if (commitTimerRef.current !== null) window.clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = window.setTimeout(() => {
+      commitTimerRef.current = null;
+      commitPendingSnapshot();
     }, STUDIO_HISTORY_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [state]);
+  }, [state, commitPendingSnapshot]);
 
   const undo = useCallback(() => {
+    commitPendingSnapshot();
     if (indexRef.current <= 0) return;
     indexRef.current -= 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [commitPendingSnapshot]);
   const redo = useCallback(() => {
+    commitPendingSnapshot();
     if (indexRef.current >= historyRef.current.length - 1) return;
     indexRef.current += 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [commitPendingSnapshot]);
 
-  return [state, setStateRaw, { undo, redo, canUndo: indexRef.current > 0, canRedo: indexRef.current < historyRef.current.length - 1 }];
+  return [state, setStateRaw, {
+    undo,
+    redo,
+    canUndo: indexRef.current > 0 || pendingSnapshot !== null,
+    canRedo: indexRef.current < historyRef.current.length - 1,
+  }];
 }
 
 export function restrictStudioDiscountForMode(state: StudioState, isLeadLinkedMode: boolean): StudioState {
@@ -4623,7 +4676,13 @@ export function StudioPage({
     const firstRectangle = firstPiece?.rectangles[0];
     if (basinSku) url.searchParams.set("basin", basinSku);
     if (state.activeStone) url.searchParams.set("stone", state.activeStone);
-    if (firstRectangle) url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+    if (firstRectangle) {
+      url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+      // The depth has to travel with the width: without it the receiving page
+      // rebuilds the plan at the preset's default 600 mm, so a 2000 x 700
+      // layout opened as 2000 x 600 (different area and price).
+      url.searchParams.set("depth", String(Math.round(firstRectangle.lengthMm)));
+    }
     url.searchParams.set("shape", studioPresetForShare(state, firstPiece));
 
     let feedback: "copied" | "failed" = "copied";
@@ -5279,9 +5338,7 @@ export function StudioPage({
             };
             const isRotating = rotatingSketchFile === file;
             const isBusy = isRotating || analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
-            const confidence = analysis.confidence === null
-              ? "ยังไม่ระบุ"
-              : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
+            const confidence = sketchConfidenceLabel(analysis.confidence);
             const shapeClass = analysis.shape.startsWith("L") ? "L" : analysis.shape;
             return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
               {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
@@ -5444,7 +5501,7 @@ export function StudioPage({
       {mode === "studio" ? (
         <div className="studio-canvas-column">
           <div className="studio-share-actions">
-            <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
+            <button type="button" className="button button--accent" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
             <button
               type="button"
               className="button button--accent studio-share-button"

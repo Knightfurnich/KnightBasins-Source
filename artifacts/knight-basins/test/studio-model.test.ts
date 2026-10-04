@@ -6,6 +6,7 @@ import {
   basinPlacementOrientation,
   basinPlacementOverlapWarnings,
   applyStudioSizePreset,
+  calculateBasinCoordinates,
   centerBasinPlacementPosition,
   compareStudioCatalog,
   createBasinPlacement,
@@ -795,4 +796,35 @@ test("studioEstimate never overrides a stone color the user already picked", () 
   });
   const estimate = studioEstimate(state, PRODUCTS);
   assert.notEqual(estimate.stoneUnitPriceTHB, 8500, "a user-picked stone (BW010) must win over the basin's own color (NB091)");
+});
+
+test("replacing a basin model keeps a turned basin's real cutout footprint", () => {
+  const product = { sku: "KF003", colorName: "Bright White", priceTHB: 19000, category: "counter basin", dimensions: "600 × 800 × 200 mm", basinDimensions: "350 × 500 × 130 mm" };
+  const vertical = {
+    id: "basin-1", sku: "KF003", pieceId: "piece-1", sheetId: "r1", anchor: "top-left" as const,
+    xMm: 100, yMm: 100, widthMm: 350, depthMm: 500, rotation: 90 as const, orientation: "vertical" as const,
+    offsetXMm: 100, offsetYMm: 100,
+  };
+  const before = placementCutSize(vertical);
+  assert.deepEqual(before, { widthMm: 500, heightMm: 350 }, "a turned 350x500 basin cuts 500 wide");
+
+  const state = baseState({ basinSkus: ["KF003"], basinPlacements: [vertical] });
+  const replaced = replaceStudioBasin(state, "KF003", product);
+  const after = placementCutSize(replaced.basinPlacements[0]);
+  assert.deepEqual(after, before, "swapping the model must not silently turn the basin back");
+});
+
+test("applyStudioSizePreset moves a basin's offsets with xMm so the canvas agrees with the stored position", () => {
+  const placed = {
+    id: "basin-1", sku: "KF001", pieceId: "piece-1", sheetId: "r1", anchor: "top-left" as const,
+    xMm: 725, yMm: 100, widthMm: 500, depthMm: 500, rotation: 0 as const, orientation: "horizontal" as const,
+    offsetXMm: 725, offsetYMm: 100,
+  };
+  const resized = applyStudioSizePreset(baseState({ basinPlacements: [placed] }), 400, 600);
+  const basin = resized.basinPlacements[0];
+  assert.ok(basin);
+  const sheet = resized.pieces![0]!.rectangles[0]!;
+  assert.equal(basin.xMm, STUDIO_BASIN_SAFETY_MARGIN_MM, "clamped into the 400mm sheet");
+  const drawn = calculateBasinCoordinates(sheet, basin);
+  assert.deepEqual(drawn, { xMm: basin.xMm, yMm: basin.yMm }, "the renderer draws where xMm says, not at the pre-resize coordinate");
 });
