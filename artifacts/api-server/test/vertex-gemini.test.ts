@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync } from "node:crypto";
 import { afterEach, describe, it, mock } from "node:test";
-import { askGemini, vertexGeminiConfigured } from "../src/lib/vertex-gemini.ts";
+import { askGemini, vertexAiHost, vertexChatCompletionsUrl, vertexGeminiConfigured } from "../src/lib/vertex-gemini.ts";
 import { clearAiUsageEvents, getUnifiedAiCostSummary } from "../src/lib/ai-cost-tracker.ts";
 
 const originalEnv = {
   projectId: process.env["VERTEX_AI_PROJECT_ID"],
   location: process.env["VERTEX_AI_LOCATION"],
   model: process.env["VERTEX_AI_MODEL"],
+  fallbackModels: process.env["VERTEX_AI_FALLBACK_MODELS"],
   serviceAccountJson: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   applicationCredentials: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
   serviceAccountDisabled: process.env["GOOGLE_SERVICE_ACCOUNT_DISABLED"],
@@ -21,6 +22,7 @@ afterEach(() => {
       projectId: "VERTEX_AI_PROJECT_ID",
       location: "VERTEX_AI_LOCATION",
       model: "VERTEX_AI_MODEL",
+      fallbackModels: "VERTEX_AI_FALLBACK_MODELS",
       serviceAccountJson: "GOOGLE_SERVICE_ACCOUNT_JSON",
       applicationCredentials: "GOOGLE_APPLICATION_CREDENTIALS",
       serviceAccountDisabled: "GOOGLE_SERVICE_ACCOUNT_DISABLED",
@@ -266,5 +268,121 @@ describe("askGemini", () => {
     } finally {
       mock.timers.reset();
     }
+  });
+});
+
+// job-257 item 3: location "global" has no regional host prefix, and a 404 on the model id falls back instead of failing.
+describe("vertex host and URL", () => {
+  it("location=global uses aiplatform.googleapis.com with no prefix (global-aiplatform... answers 404)", () => {
+    assert.equal(vertexAiHost("global"), "aiplatform.googleapis.com");
+    assert.equal(
+      vertexChatCompletionsUrl("proj-1", "global"),
+      "https://aiplatform.googleapis.com/v1/projects/proj-1/locations/global/endpoints/openapi/chat/completions",
+    );
+    assert.doesNotMatch(vertexChatCompletionsUrl("proj-1", "global"), /global-aiplatform/);
+  });
+
+  it("a regional location keeps its prefix, host and path", () => {
+    assert.equal(vertexAiHost("asia-southeast1"), "asia-southeast1-aiplatform.googleapis.com");
+    assert.equal(
+      vertexChatCompletionsUrl("proj-1", "asia-southeast1"),
+      "https://asia-southeast1-aiplatform.googleapis.com/v1/projects/proj-1/locations/asia-southeast1/endpoints/openapi/chat/completions",
+    );
+    assert.equal(vertexAiHost("us-central1"), "us-central1-aiplatform.googleapis.com");
+  });
+});
+
+describe("askGemini location and model fallback", () => {
+  function recordCalls(respond: (model: string, call: number) => Response) {
+    const calls: Array<{ url: string; model: string }> = [];
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      if (url.includes("aiplatform.googleapis.com")) {
+        const model = JSON.parse(String(init?.body)).model as string;
+        calls.push({ url, model });
+        return respond(model, calls.length);
+      }
+      return realFetch(input as never, init);
+    });
+    return calls;
+  }
+  const ok = (text = "pong") => new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), { status: 200 });
+  const notFound = () => new Response(JSON.stringify({ error: { message: "Publisher Model was not found" } }), { status: 404 });
+
+  it("VERTEX_AI_LOCATION=global calls https://aiplatform.googleapis.com/... and returns the reply", async () => {
+    setConfigured();
+    process.env["VERTEX_AI_LOCATION"] = "global";
+    process.env["VERTEX_AI_MODEL"] = "google/gemini-3.1-flash-lite";
+    const calls = recordCalls(() => ok());
+    assert.deepEqual(await askGemini({ message: "ping" }), { ok: true, reply: "pong" });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0]?.url, "https://aiplatform.googleapis.com/v1/projects/knight-basins-voice/locations/global/endpoints/openapi/chat/completions");
+    assert.equal(calls[0]?.model, "google/gemini-3.1-flash-lite");
+  });
+
+  it("an explicit regional location still calls its prefixed host", async () => {
+    setConfigured();
+    process.env["VERTEX_AI_LOCATION"] = "asia-southeast1";
+    const calls = recordCalls(() => ok());
+    await askGemini({ message: "ping" });
+    assert.match(calls[0]?.url ?? "", /^https:\/\/asia-southeast1-aiplatform\.googleapis\.com\/v1\/projects\/knight-basins-voice\/locations\/asia-southeast1\//);
+  });
+
+  it("a 404 on the configured model tries the next VERTEX_AI_FALLBACK_MODELS entry, logs a warning, and answers", async () => {
+    setConfigured();
+    process.env["VERTEX_AI_MODEL"] = "google/gemini-3.1-flash-lit"; // one letter short
+    process.env["VERTEX_AI_FALLBACK_MODELS"] = " google/gemini-3.1-flash-lite , google/gemini-2.5-flash ";
+    const warn = mock.method(console, "warn", () => {});
+    const calls = recordCalls((model) => (model === "google/gemini-3.1-flash-lite" ? ok("from the fallback") : notFound()));
+    assert.deepEqual(await askGemini({ message: "ping" }), { ok: true, reply: "from the fallback" });
+    assert.deepEqual(calls.map((call) => call.model), ["google/gemini-3.1-flash-lit", "google/gemini-3.1-flash-lite"]);
+    assert.equal(warn.mock.callCount(), 1);
+    const logged = JSON.stringify(warn.mock.calls[0]?.arguments);
+    assert.match(logged, /gemini-3\.1-flash-lit/);
+    assert.doesNotMatch(logged, /fake-access-token|Bearer|private_key/);
+  });
+
+  it("walks the whole fallback list on repeated 404s and then reports the last error", async () => {
+    setConfigured();
+    process.env["VERTEX_AI_MODEL"] = "model-a";
+    process.env["VERTEX_AI_FALLBACK_MODELS"] = "model-b,model-a,model-c";
+    mock.method(console, "warn", () => {});
+    const calls = recordCalls(() => notFound());
+    const result = await askGemini({ message: "ping" });
+    assert.deepEqual(calls.map((call) => call.model), ["model-a", "model-b", "model-c"], "each model once, in order");
+    assert.deepEqual(result, { ok: false, message: "Publisher Model was not found" });
+  });
+
+  it("without VERTEX_AI_FALLBACK_MODELS a 404 is reported as before (one call, no retry)", async () => {
+    setConfigured();
+    delete process.env["VERTEX_AI_FALLBACK_MODELS"];
+    const calls = recordCalls(() => notFound());
+    const result = await askGemini({ message: "ping" });
+    assert.equal(calls.length, 1);
+    assert.equal(result.ok, false);
+  });
+
+  it("only a 404 falls back: a 500, a 429 or an empty answer does not try another model", async () => {
+    setConfigured();
+    process.env["VERTEX_AI_FALLBACK_MODELS"] = "model-b";
+    for (const response of [() => new Response("{}", { status: 500 }), () => new Response("{}", { status: 429 }), () => new Response(JSON.stringify({ choices: [{ message: { content: "  " } }] }), { status: 200 })]) {
+      mock.restoreAll();
+      const calls = recordCalls(response);
+      assert.equal((await askGemini({ message: "ping" })).ok, false);
+      assert.equal(calls.length, 1);
+    }
+  });
+
+  it("each attempt is recorded for cost tracking under the model it used", async () => {
+    setConfigured();
+    process.env["VERTEX_AI_MODEL"] = "model-a";
+    process.env["VERTEX_AI_FALLBACK_MODELS"] = "model-b";
+    mock.method(console, "warn", () => {});
+    recordCalls((model) => (model === "model-b" ? ok() : notFound()));
+    await askGemini({ message: "ping" });
+    const recorded = JSON.stringify(getUnifiedAiCostSummary({ period: "all" } as never));
+    assert.match(recorded, /model-a/);
+    assert.match(recorded, /model-b/);
   });
 });

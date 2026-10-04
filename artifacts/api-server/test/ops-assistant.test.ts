@@ -9,6 +9,7 @@ import { clearRateLimitStore } from "../src/lib/rate-limit.ts";
 import {
   askOpsAssistant,
   buildOpsContextSummary,
+  formatOpsDate,
   OPS_ASSISTANT_MODES,
   type OpsAssistantMode,
 } from "../src/lib/ops-assistant.ts";
@@ -434,5 +435,90 @@ describe("POST /admin/assistant/ask", () => {
     for (const mode of OPS_ASSISTANT_MODES as OpsAssistantMode[]) {
       assert.ok(["dashboard", "leads", "calendar"].includes(mode));
     }
+  });
+});
+
+// job-257: the database driver hands timestamps back as Date objects. The tests above feed ISO strings, which is why
+// `latestPayment.createdAt.slice is not a function` reached production (dashboard -> HTTP 500). These feed real Date objects.
+describe("dates from the database arrive as Date objects", () => {
+  it("dashboard mode: a payment whose createdAt is a real Date gives YYYY-MM-DD and does not throw", async () => {
+    mockDatabase(
+      [leadRow({ id: 1, status: "closed" })],
+      [slipRow({ id: 1, status: "verified", verifiedAmountThb: 12500, createdAt: new Date("2026-10-03T08:30:00.000Z") })],
+    );
+    const summary = await buildOpsContextSummary("dashboard");
+    assert.match(summary, /12,500 บาท \(2026-10-03\)/);
+  });
+
+  it("dashboard mode: picks the latest payment by time across Date objects, ISO strings and a missing date", async () => {
+    mockDatabase(
+      [],
+      [
+        slipRow({ id: 1, status: "verified", verifiedAmountThb: 1000, createdAt: new Date("2026-09-01T00:00:00.000Z") }),
+        slipRow({ id: 2, status: "verified", verifiedAmountThb: 2000, createdAt: "2026-09-15T00:00:00.000Z" }),
+        slipRow({ id: 3, status: "team_reported_paid", claimedAmountThb: 3000, createdAt: new Date("2026-09-30T23:00:00.000Z") }),
+        slipRow({ id: 4, status: "verified", verifiedAmountThb: 4000, createdAt: null }),
+      ],
+    );
+    assert.match(await buildOpsContextSummary("dashboard"), /3,000 บาท \(2026-09-30\)/);
+  });
+
+  it("dashboard mode: a payment with no usable date is still reported, without a date and without throwing", async () => {
+    mockDatabase([], [slipRow({ id: 1, status: "verified", verifiedAmountThb: 700, createdAt: null })]);
+    assert.match(await buildOpsContextSummary("dashboard"), /700 บาท \(ไม่ระบุวันที่\)/);
+    mock.restoreAll();
+    mockDatabase([], [slipRow({ id: 1, status: "verified", verifiedAmountThb: 700, createdAt: new Date("not a date") })]);
+    assert.match(await buildOpsContextSummary("dashboard"), /700 บาท \(ไม่ระบุวันที่\)/);
+  });
+
+  it("leads mode: an installation date that is a Date prints as YYYY-MM-DD", async () => {
+    mockDatabase([leadRow({ id: 1, expectedInstallationDate: new Date("2026-10-20T00:00:00.000Z") })], []);
+    assert.match(await buildOpsContextSummary("leads"), /วันติดตั้ง: 2026-10-20/);
+  });
+
+  it("calendar mode: installation dates that are Date objects are counted in the right month", async () => {
+    mockDatabase(
+      [
+        leadRow({ id: 1, technicianTeamCode: "TP", expectedInstallationDate: new Date("2026-09-10T00:00:00.000Z") }),
+        leadRow({ id: 2, technicianTeamCode: "TP", expectedInstallationDate: new Date("2026-08-31T00:00:00.000Z") }),
+      ],
+      [],
+    );
+    const summary = await buildOpsContextSummary("calendar", new Date("2026-09-15T03:00:00.000Z"));
+    assert.match(summary, /ทีม TP: 1 งาน/);
+  });
+
+  it("formatOpsDate accepts Date, ISO string, date-only string, null and rubbish, and never throws", () => {
+    assert.equal(formatOpsDate(new Date("2026-10-03T08:30:00.000Z")), "2026-10-03");
+    assert.equal(formatOpsDate("2026-10-03T08:30:00.000Z"), "2026-10-03");
+    assert.equal(formatOpsDate("2026-10-03"), "2026-10-03");
+    assert.equal(formatOpsDate(Date.UTC(2026, 9, 3)), "2026-10-03");
+    for (const bad of [null, undefined, "", "   ", "not a date", new Date("x"), {}, [], true, Number.NaN]) {
+      assert.equal(formatOpsDate(bad), null);
+    }
+  });
+
+  it("askOpsAssistant answers (ok) with Date rows, and still answers when the summary query itself fails", async () => {
+    process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    let context = "";
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      if (url.includes("aiplatform.googleapis.com")) {
+        context = JSON.parse(String(init?.body)).messages[0].content;
+        return new Response(JSON.stringify({ choices: [{ message: { content: "ตอบแล้วครับ" } }] }), { status: 200 });
+      }
+      return realFetch(input as never, init);
+    });
+    mockDatabase([leadRow({ id: 1 })], [slipRow({ id: 1, status: "verified", verifiedAmountThb: 900, createdAt: new Date("2026-10-01T00:00:00.000Z") })]);
+    assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard"), { ok: true, reply: "ตอบแล้วครับ" });
+    assert.match(context, /900 บาท \(2026-10-01\)/);
+
+    mock.method(realDb, "select", () => { throw new Error("db is down"); });
+    const warn = mock.method(console, "warn", () => {});
+    assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard"), { ok: true, reply: "ตอบแล้วครับ" });
+    assert.match(context, /ไม่พบข้อมูล/);
+    assert.equal(warn.mock.callCount(), 1);
   });
 });
