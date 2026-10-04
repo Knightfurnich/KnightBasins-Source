@@ -3,10 +3,19 @@ import { describe, it } from "node:test";
 import {
   formatExactTokenCount,
   formatTokenCount,
+  formatTokenCountHeading,
   formatTokenCountWithExact,
+  formatTokenCountValue,
 } from "../src/admin/token-format.ts";
 
 describe("AI token count formatting", () => {
+  it("formats unit-free metric values with a matching unit heading on both sides of one million", () => {
+    assert.equal(formatTokenCountHeading(392_545_335), "โทเคนรวม (ล้านโทเคน)");
+    assert.equal(formatTokenCountValue(392_545_335), "392.5");
+    assert.equal(formatTokenCountHeading(850_000), "โทเคนรวม (โทเคน)");
+    assert.equal(formatTokenCountValue(850_000), "850,000");
+  });
+
   it("formats 392,545,335 as one-decimal million tokens and preserves the exact count", () => {
     assert.equal(formatTokenCount(392_545_335), "392.5 ล้านโทเคน");
     assert.equal(formatExactTokenCount(392_545_335), "392,545,335 โทเคน");

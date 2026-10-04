@@ -14,9 +14,12 @@ const adminSource = readFileSync(join(knightBasinsRoot, "src/admin/AdminApp.tsx"
 const appSource = readFileSync(join(knightBasinsRoot, "src/App.tsx"), "utf8");
 const browserBaseUrl = process.env["BROWSER_TEST_BASE_URL"] ?? "http://127.0.0.1:80";
 const chromiumPath = process.env["CHROMIUM_BIN"] ?? "/repl/tools/bin/chromium";
+const browserViewportWidth = Number(process.env["AI_COST_CENTER_VIEWPORT_WIDTH"] ?? 1440);
+const browserViewportHeight = Number(process.env["AI_COST_CENTER_VIEWPORT_HEIGHT"] ?? (browserViewportWidth <= 600 ? 844 : 1100));
 const screenshotPath =
   process.env["AI_COST_CENTER_SCREENSHOT_PATH"] ??
   join(knightBasinsRoot, "evidence/ai-cost-center-ui.png");
+const legacyTokenSpelling = String.fromCodePoint(0x0e42, 0x0e17, 0x0e40, 0x0e04, 0x0e47, 0x0e19);
 
 const BROWSER_COST_RESPONSE = {
   period: "30d",
@@ -197,12 +200,19 @@ describe("AI cost center UI contract", () => {
     assert.match(pageSource, /averageBahtPerRequest = averageSatang \/ 100/);
     assert.match(pageSource, /value=\{formatThb\(averageBahtPerRequest\)\}/);
     assert.match(pageSource, /title="ต้นทุนเฉลี่ยต่อคำขอ \(บาท\)"/);
-    assert.match(pageSource, /value=\{formatTokenCount\(data\.totalTokens\)\}/);
+    assert.match(pageSource, /title=\{formatTokenCountHeading\(data\.totalTokens\)\}/);
+    assert.match(pageSource, /value=\{formatTokenCountValue\(data\.totalTokens\)\}/);
     assert.match(pageSource, /valueTitle=\{formatExactTokenCount\(data\.totalTokens\)\}/);
-    assert.match(pageSource, /detail="อินพุตและเอาต์พุตรวม · หน่วยล้านโทเคน"/);
+    assert.match(pageSource, /detail="อินพุตและเอาต์พุตรวม"/);
     assert.match(pageSource, /title=\{formatExactTokenCount\(service\.tokens\)\}/);
     assert.match(pageSource, /formatTokenCount\(service\.tokens\)/);
     assert.match(pageSource, /formatTokenCountWithExact\(data\.totalTokens\)/);
+    assert.match(pageSource, /className="ai-cost-metric__value whitespace-nowrap"/);
+    assert.match(pageSource, /<td className="is-number whitespace-nowrap" title=/);
+    assert.match(pageSource, /\["โทเคนรวม", data\.totalTokens\]/);
+    assert.match(pageSource, /\["รหัสบริการ", "ชื่อบริการ", "จำนวนคำขอ", "จำนวนโทเคน", "ต้นทุน \(บาท\)", "สถานะ"\]/);
+    assert.ok(!pageSource.includes(legacyTokenSpelling), "the page, exported CSV, and copied summary must use one spelling");
+    assert.match(pageSource, /โทเคนรวม: \$\{formatTokenCountWithExact\(data\.totalTokens\)\}/);
   });
 
   it("no longer says satang anywhere on the page, its LINE summary or its CSV", () => {
@@ -265,10 +275,10 @@ describe("AI cost center browser behavior", () => {
     await page.command("Runtime.enable");
     await page.command("Network.enable");
     await page.command("Page.setDeviceMetricsOverride", {
-      width: 1440,
-      height: 1100,
+      width: browserViewportWidth,
+      height: browserViewportHeight,
       deviceScaleFactor: 1,
-      mobile: false,
+      mobile: browserViewportWidth <= 600,
     });
     await page.command("Fetch.enable", {
       patterns: [
@@ -294,6 +304,8 @@ describe("AI cost center browser behavior", () => {
         } else if (period === "today") {
             // a period in which nothing was requested yet: every total is 0
             body = { ...BROWSER_COST_RESPONSE, period, totalCostThb: 0, totalRequests: 0, totalTokens: 0, services: [], modelBreakdown: [] };
+          } else if (period === "7d") {
+            body = { ...BROWSER_COST_RESPONSE, period, totalTokens: 850_000 };
         } else {
           body = { ...BROWSER_COST_RESPONSE, period };
         }
@@ -376,31 +388,57 @@ describe("AI cost center browser behavior", () => {
       assert.ok(!initialText.includes("sk-fixture-secret-must-not-render"));
       assert.ok(!initialText.includes("provider-fixture-token-must-not-render"));
       assert.ok(!initialText.includes("private-fixture@example.test"));
+      assert.ok(!initialText.includes(legacyTokenSpelling));
       const tokenDisplay = await page.evaluate<{
+        heading: string;
+        detail: string;
         kpi: string;
         kpiTitle: string;
+        kpiWhiteSpace: string;
+        kpiLineCount: number;
         firstService: string;
         firstServiceTitle: string;
+        tokenCellWhiteSpace: string;
+        tokenCellLineCount: number;
         secondService: string;
       }>(
         `(() => {
+          const card = document.querySelector('[data-testid="card-ai-cost-tokens"]');
           const kpi = document.querySelector('[data-testid="card-ai-cost-tokens-value"]');
           const first = document.querySelector('[data-testid="table-ai-cost-services"] tbody tr:first-child td:nth-of-type(2)');
           const second = document.querySelector('[data-testid="table-ai-cost-services"] tbody tr:nth-child(2) td:nth-of-type(2)');
+          const lineCount = (element) => {
+            if (!element) return 0;
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            return range.getClientRects().length;
+          };
           return {
+            heading: card?.querySelector('.ai-cost-metric__label')?.textContent?.trim() ?? "",
+            detail: card?.querySelector('.ai-cost-metric__detail')?.textContent?.trim() ?? "",
             kpi: kpi?.textContent?.trim() ?? "",
             kpiTitle: kpi?.getAttribute("title") ?? "",
+            kpiWhiteSpace: kpi ? getComputedStyle(kpi).whiteSpace : "",
+            kpiLineCount: lineCount(kpi),
             firstService: first?.textContent?.trim() ?? "",
             firstServiceTitle: first?.getAttribute("title") ?? "",
+            tokenCellWhiteSpace: first ? getComputedStyle(first).whiteSpace : "",
+            tokenCellLineCount: lineCount(first),
             secondService: second?.textContent?.trim() ?? "",
           };
         })()`,
       );
       assert.deepEqual(tokenDisplay, {
-        kpi: "392.5 ล้านโทเคน",
+        heading: "โทเคนรวม (ล้านโทเคน)",
+        detail: "อินพุตและเอาต์พุตรวม",
+        kpi: "392.5",
         kpiTitle: "392,545,335 โทเคน",
+        kpiWhiteSpace: "nowrap",
+        kpiLineCount: 1,
         firstService: "1.0 ล้านโทเคน",
         firstServiceTitle: "1,000,000 โทเคน",
+        tokenCellWhiteSpace: "nowrap",
+        tokenCellLineCount: 1,
         secondService: "999,999 โทเคน",
       });
       await waitForBrowserValue(
@@ -434,6 +472,8 @@ describe("AI cost center browser behavior", () => {
         (text) => text.includes("392.5 ล้านโทเคน (392,545,335 โทเคน)"),
         "Copied summary did not preserve the full token count",
       );
+      assert.ok(copiedSummary.includes("โทเคนรวม: 392.5 ล้านโทเคน (392,545,335 โทเคน)"));
+      assert.ok(!copiedSummary.includes(legacyTokenSpelling));
       assert.ok(copiedSummary.includes("1.0 ล้านโทเคน (1,000,000 โทเคน)"));
 
       await page.evaluate<boolean>(
@@ -449,6 +489,22 @@ describe("AI cost center browser behavior", () => {
         (text) => text.replace(/\s+/g, " ").includes("ช่วงข้อมูล: 7 วัน"),
         "The selected period label did not update",
       );
+      const lowerTokenDisplay = await waitForBrowserValue(
+        () => page!.evaluate<{ heading: string; value: string; title: string }>(
+          `(() => ({
+            heading: document.querySelector('[data-testid="card-ai-cost-tokens"] .ai-cost-metric__label')?.textContent?.trim() ?? "",
+            value: document.querySelector('[data-testid="card-ai-cost-tokens-value"]')?.textContent?.trim() ?? "",
+            title: document.querySelector('[data-testid="card-ai-cost-tokens-value"]')?.getAttribute("title") ?? "",
+          }))()`,
+        ),
+        (display) => display.heading === "โทเคนรวม (โทเคน)" && display.value === "850,000",
+        "A total below one million should use exact count units in the heading and value",
+      );
+      assert.deepEqual(lowerTokenDisplay, {
+        heading: "โทเคนรวม (โทเคน)",
+        value: "850,000",
+        title: "850,000 โทเคน",
+      });
 
       await page.evaluate<boolean>(
         `(() => { document.querySelector('[data-testid="tab-ai-cost-period-today"]')?.click(); return true; })()`,
