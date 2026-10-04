@@ -97,32 +97,38 @@ export function AdminVoiceSettings() {
       )}
 
       <section
-        className="flex items-start justify-between gap-4 border border-[var(--line)] bg-[var(--card-paper)] p-5 rounded-none"
+        className="flex items-center justify-between gap-4 border border-[var(--line)] bg-[var(--card-paper)] p-5 rounded-none"
         data-testid="panel-voice-enabled"
       >
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="font-display">เปิดใช้งานเสียงน้องไนท์</h2>
           <p className="mt-2 max-w-2xl text-sm text-[var(--ink-soft)]">
             เมื่อปิด ลูกค้าจะไม่เห็นปุ่ม “ฟังเสียง” ในหน้าเว็บ ค่าเริ่มต้นปิดไว้เพราะ Google Cloud TTS มีค่าใช้จ่าย
           </p>
-          <p className="mt-3 text-sm font-medium" data-testid="status-voice-enabled-state">
-            {enabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
-          </p>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-label="เปิดใช้งานเสียงน้องไนท์"
-          aria-checked={enabled}
-          disabled={!current || settingsQuery.isLoading || settingsQuery.isError || updateVoice.isPending}
-          onClick={toggleVoiceEnabled}
-          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-[var(--line)] p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50 ${enabled ? "bg-[var(--ink)]" : "bg-[var(--card-paper)]"}`}
-          data-testid="toggle-voice-enabled"
-        >
+        <div className="flex shrink-0 items-center gap-2">
           <span
-            className={`h-4 w-4 rounded-full bg-[var(--paper)] transition-transform ${enabled ? "translate-x-5" : "translate-x-0"}`}
-          />
-        </button>
+            className={`text-sm font-semibold ${enabled ? "text-[var(--ink)]" : "text-[var(--ink-soft)]"}`}
+            data-testid="status-voice-enabled-state"
+            aria-live="polite"
+          >
+            {enabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-label="เปิดใช้งานเสียงน้องไนท์"
+            aria-checked={enabled}
+            disabled={!current || settingsQuery.isLoading || settingsQuery.isError || updateVoice.isPending}
+            onClick={toggleVoiceEnabled}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50 ${enabled ? "border-[var(--ink)] bg-[var(--ink)]" : "border-slate-700 bg-slate-500"}`}
+            data-testid="toggle-voice-enabled"
+          >
+            <span
+              className={`h-4 w-4 rounded-full bg-white shadow-sm ring-1 ring-black/20 transition-transform ${enabled ? "translate-x-5" : "translate-x-0"}`}
+            />
+          </button>
+        </div>
       </section>
 
       {settingsQuery.isLoading ? (
