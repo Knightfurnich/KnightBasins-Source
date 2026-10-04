@@ -442,3 +442,5 @@ python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะ�
 | 255 | ✅ Merged (ก่อนหน้า) PR #310 `627ae4d` | ตั้ง 1.25 บน production + ยิงค่าผิด 0.5/2.0/1.27 → 400 ทุกค่า |
 
 | 264 (ภาคผนวก) | รีพิต | รวมป้ายสถานะใบส่งออก CSV + ใช้แผนที่ป้ายชุดเดียว (รวม #343 เข้า #342) | 4 ต.ค. 69 | กำลังทำ |
+
+| **Task 266-B (จับคู่สีหินจากภาพ: ต่อเข้าแอป — API แอดมิน + หน้าจอทดสอบ)** | **บอย (Freebuff)** (มอบหมาย 4 ต.ค. 69 ตามคำสั่งบอส) | `suggestStonesForPhoto()` ใน `lib/stone-matcher.ts` ไม่มีใครเรียกใช้ (grep = 0 จุด) ⇒ สร้าง `POST /api/admin/stone-match` (สิทธิ์ `installed-stones` · rate limit 10/นาที · ภาพ ≤ 8 MB · jpeg/png/webp · matcher ปิด → 200 ข้อความไทย ห้าม 500) + หน้าแอดมินใหม่ `/admin/stone-match` (อัปโหลด/ลากภาพ → รหัสสี+ชื่อ+เหตุผล+ความมั่นใจ) · ห้ามเดาสี · ห้ามแตะ `index.css`/หน้าลูกค้า/`stone-matcher.ts` | `fix/freebuff-stone-match-api-and-admin-page` | 🟡 **มอบหมายบอยแล้ว** · ใบงาน `qa/job-266-freebuff-stone-match-api-and-admin-page.md` ผ่านตรวจ 12/12 |
