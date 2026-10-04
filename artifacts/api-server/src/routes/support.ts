@@ -8,6 +8,7 @@ import { getSupportIntentReply } from "../lib/support-intents";
 import { askHermesSupport, hermesSupportConfigured } from "../lib/hermes-support";
 import { detectPromptInjection, sanitizeAiResponse } from "../lib/prompt-guard";
 import { synthesizeSpeech } from "../lib/google-tts";
+import { auditRequestContext, logAuditEvent } from "../lib/audit-logger";
 import {
   extractSupportProfileFields,
   isSupportCancellation,
@@ -218,7 +219,16 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
   });
 }
 
- router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, windowMs: 60 * 1000 }), async (req, res, next) => {
+/**
+ * The class name of a thrown error ("ReferenceError", "DatabaseError", ...) for the audit trail, or "unknown_error" when it
+ * is not an Error or its name is not a plain identifier. Deliberately never reads error.message.
+ */
+export function supportChatErrorClass(error: unknown): string {
+  const name = error instanceof Error ? error.constructor?.name : undefined;
+  return typeof name === "string" && /^[A-Za-z][A-Za-z0-9_$]{0,63}$/.test(name) ? name : "unknown_error";
+}
+
+router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, windowMs: 60 * 1000 }), async (req, res, next) => {
   const message = cleanMessage(req.body?.message);
   if (!message) {
     res.status(400).json({ message: "กรุณาพิมพ์คำถามก่อนส่ง" });
@@ -237,8 +247,11 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
     return;
   }
 
+  // Tags the audit event in the catch below; set as soon as the session resolves (the account is scoped to the try).
+  let auditAccountId: string | null = null;
   try {
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
+    auditAccountId = account ? String(account.id) : null;
     let pending: PendingProfileUpdate | undefined;
     if (account) {
       const [storedPending] = await db
@@ -431,6 +444,17 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
 
     res.json(supportFallbackResponse(Boolean(account)));
   } catch (error) {
+    // Operational trace only (job-238): which class of error, for whom (account id) and how long the question was.
+    // Never the chat text, the request body, or error.message (an exception message can carry SQL, paths or customer data).
+    void logAuditEvent(db, {
+      actorType: "customer",
+      action: "support.chat.error",
+      targetId: auditAccountId,
+      status: "error",
+      errorCode: supportChatErrorClass(error),
+      details: { messageLength: message.length },
+      ...auditRequestContext(req),
+    });
     next(error);
   }
 });
