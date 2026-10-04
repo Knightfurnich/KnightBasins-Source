@@ -6,7 +6,7 @@
 **อ้างอิงงานเดิม:** ใบงาน 256 (PR #316 · merge 0468dec) — ชัยรายงานเองว่า (ก) ยอดต่อชิ้นถูกใน `sketchOrder`/notification แต่ "ประเมินในหน้า" ยังคิดแบบสีเดียว (ข) ค่าดำเนินการงานเล็ก และส่วนลดติดตั้งฟรี (อ่าง ≥3 ชุด) คิดในชิ้นเดียว ไม่รวมข้ามชิ้น
 
 ```
-✅ มาตรฐานการออกใบงาน · 9/9 · 4 ต.ค. 69 · เดวิด
+✅ มาตรฐานการออกใบงาน · 12/12 · 4 ต.ค. 69 · เดวิด
 
 GOAL:
   1. **รวมยอดระดับ "งาน" (ทั้งใบ) ไม่ใช่ต่อชิ้น** ตามมาตรฐาน Knight Basins — ค่าที่ต้องรวมข้ามชิ้น:
@@ -63,8 +63,11 @@ STOP:
 | 5 | มีบล็อก OUTPUT ชัดเจน | ผ่าน | ยอดระดับงาน + PR + ตัวเลขจริง |
 | 6 | มีบล็อก STOP เป็นตัวเลข | ผ่าน | 25 turns |
 | 7 | SCOPE ใช้ absolute path | ผ่าน | /opt/data/cache/kbsrc/... |
-| 8 | อ้างมาตรฐานจาก KB ตรงตัว | ผ่าน | installation.rules (บาท/งาน) · basin_install free_at_qty=3 · discount_tiers |
-| 9 | มี branch name ชัดเจน | ผ่าน | fix/chai-sketch-pricing-per-job-and-server-source |
+| 8 | ไม่มี code fence ซ้อนในบล็อกใบงาน | ผ่าน | ไม่มี |
+| 9 | ห้ามแตะ src/index.css | ผ่าน | 0 diff |
+| 10 | มี branch name ชัดเจน | ผ่าน | fix/chai-sketch-pricing-per-job-and-server-source |
+| 11 | อ้างตัวเลข baseline | ผ่าน | knight-basins 433/431 · api-server 1126/1123 |
+| 12 | ไม่ทับไฟล์กับใบงานอื่น | ผ่าน | 257/258 = ops-assistant/UI · 259 = sketch-order/leads |
 
 ## ข้อความส่งต่อ (บอส copy ส่งให้ชัย)
 
