@@ -24,6 +24,24 @@ const DEFAULT_LANGUAGE_CODE = "th-TH";
 const DEFAULT_VOICE_NAME = "th-TH-Chirp3-HD-Kore";
 const MAX_TEXT_LENGTH = 600;
 
+/** How fast น้องไนท์ may speak, as a multiple of normal speed: 0.8 to 1.5 in steps of 0.05 (job-255). */
+export const SUPPORT_VOICE_RATE_MIN = 0.8;
+export const SUPPORT_VOICE_RATE_MAX = 1.5;
+export const SUPPORT_VOICE_RATE_STEP = 0.05;
+
+/**
+ * A speaking rate the admin may save or preview, or null. Never clamps: a number outside 0.8-1.5, one that is not on the
+ * 0.05 grid (1.27), and anything that is not a finite number ("เร็ว", null, NaN) are all refused, so a typo can never
+ * quietly become a different speed. The value comes back rounded to two decimals so 1.25 is stored as 1.25.
+ */
+export function parseSupportVoiceSpeakingRate(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  const steps = (value - SUPPORT_VOICE_RATE_MIN) / SUPPORT_VOICE_RATE_STEP;
+  if (Math.abs(steps - Math.round(steps)) > 1e-6) return null;
+  const rounded = Math.round(value * 100) / 100;
+  return rounded >= SUPPORT_VOICE_RATE_MIN && rounded <= SUPPORT_VOICE_RATE_MAX ? rounded : null;
+}
+
 // The curated list an admin can choose from (AdminVoiceSettings.tsx). All
 // female th-TH Chirp3-HD voices -- น้องไนท์'s identity is locked female, so
 // no male voice is ever offered here.
@@ -126,7 +144,7 @@ export function googleTtsConfigured() {
  * customers hear. Trusted input: callers must validate it's one of
  * SUPPORT_VOICE_OPTIONS themselves (admin-router.ts does).
  */
-export async function synthesizeSpeech(text: string, voiceNameOverride?: string): Promise<SpeechResult> {
+export async function synthesizeSpeech(text: string, voiceNameOverride?: string, speakingRateOverride?: number): Promise<SpeechResult> {
   const trimmed = text.trim();
   if (!trimmed) return { ok: false, message: "ไม่มีข้อความให้อ่านออกเสียง" };
   if (trimmed.length > MAX_TEXT_LENGTH) {
@@ -138,7 +156,8 @@ export async function synthesizeSpeech(text: string, voiceNameOverride?: string)
 
   let voice: ActiveVoiceConfig;
   if (voiceNameOverride) {
-    voice = { languageCode: DEFAULT_LANGUAGE_CODE, voiceName: voiceNameOverride, speakingRate: 1 };
+    // a preview speaks at the rate it was asked for (an admin trying a speed before saving it), otherwise at normal speed
+    voice = { languageCode: DEFAULT_LANGUAGE_CODE, voiceName: voiceNameOverride, speakingRate: speakingRateOverride ?? 1 };
   } else {
     const cached = cachedActiveVoiceRow();
     voice = resolveVoiceConfig(cached === undefined ? await refreshActiveVoiceRow() : cached);

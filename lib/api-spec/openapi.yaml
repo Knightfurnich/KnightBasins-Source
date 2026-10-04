@@ -2468,6 +2468,11 @@ components:
         enabled:
           type: boolean
           description: Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off)
+        speakingRate:
+          type: number
+          minimum: 0.8
+          maximum: 1.5
+          description: How fast น้องไนท์ speaks, as a multiple of normal speed, from 0.8 to 1.5 in steps of 0.05 (e.g. 1.25); a value outside that range or off the 0.05 grid is rejected with 400; when omitted the saved value is kept
     SitePhoto:
       type: object
       required: [id, imageUrl, stage, createdAt]

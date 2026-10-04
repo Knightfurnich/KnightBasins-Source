@@ -97,7 +97,7 @@ import {
 import { auditStudioFabrication, createNextQuoteNumber, quoteFormatFromStudioData, quoteTotalTHB } from "./leads";
 import { repriceStudioQuoteAsStaff, staffLeversFromStamp, staffLeversFromState, stripServerPricing, type StaffPricingLevers } from "../lib/price-integrity";
 import { formatThaiDateTime } from "../lib/date-time";
-import { SUPPORT_VOICE_OPTIONS, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
+import { SUPPORT_VOICE_OPTIONS, parseSupportVoiceSpeakingRate, resolveVoiceConfig, synthesizeSpeech } from "../lib/google-tts";
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken } from "../lib/google-service-account";
 import { resolveMapsLink } from "../lib/maps-location";
 import { askOpsAssistant, OPS_ASSISTANT_MODES, type OpsAssistantMode } from "../lib/ops-assistant";
@@ -3334,6 +3334,8 @@ export function createAdminRouter(
     };
   }
 
+  const SPEAKING_RATE_MESSAGE = "speakingRate must be a number from 0.8 to 1.5 in steps of 0.05 (for example 1.25)";
+
   router.get("/admin/support-voice", requireAdminPermission("leads", "edit"), async (_req, res, next) => {
     try {
       const [row] = await database.select().from(supportVoiceSettings).orderBy(desc(supportVoiceSettings.id)).limit(1);
@@ -3348,24 +3350,30 @@ export function createAdminRouter(
 
   router.patch("/admin/support-voice", requireAdminPermission("leads", "edit"), async (req, res, next) => {
     const parsed = UpdateAdminSupportVoiceBody.safeParse(req.body);
-    if (!parsed.success) return invalid(res, "voiceName is required", parsed.error.flatten());
+    if (!parsed.success) {
+      const badRate = parsed.error.issues.some((issue) => issue.path[0] === "speakingRate");
+      return invalid(res, badRate ? SPEAKING_RATE_MESSAGE : "voiceName is required", parsed.error.flatten());
+    }
     const option = SUPPORT_VOICE_OPTIONS.find((candidate) => candidate.voiceName === parsed.data.voiceName);
     if (!option) return invalid(res, "voiceName must be one of the curated options");
     const requestedEnabled = parsed.data.enabled;
+    // Omitted keeps the saved speed. A value that is present must be on the 0.05 grid; it is never rounded or clamped for the admin.
+    const requestedRate = parsed.data.speakingRate === undefined ? undefined : parseSupportVoiceSpeakingRate(parsed.data.speakingRate);
+    if (requestedRate === null) return invalid(res, SPEAKING_RATE_MESSAGE);
 
     try {
       const [existing] = await database.select().from(supportVoiceSettings).orderBy(desc(supportVoiceSettings.id)).limit(1);
       if (existing) {
         const [updated] = await database
           .update(supportVoiceSettings)
-          .set({ voiceName: option.voiceName, enabled: requestedEnabled ?? existing.enabled, updatedAt: new Date() })
+          .set({ voiceName: option.voiceName, enabled: requestedEnabled ?? existing.enabled, speakingRate: requestedRate ?? existing.speakingRate, updatedAt: new Date() })
           .where(eq(supportVoiceSettings.id, existing.id))
           .returning();
         return res.json(serializeSupportVoiceSetting(updated));
       }
       const [created] = await database
         .insert(supportVoiceSettings)
-        .values({ voiceName: option.voiceName, enabled: requestedEnabled ?? false })
+        .values({ voiceName: option.voiceName, enabled: requestedEnabled ?? false, ...(requestedRate === undefined ? {} : { speakingRate: requestedRate }) })
         .returning();
       return res.json(serializeSupportVoiceSetting(created));
     } catch (error) {
@@ -3382,9 +3390,12 @@ export function createAdminRouter(
     const voiceName = typeof req.body?.voiceName === "string" ? req.body.voiceName : "";
     const option = SUPPORT_VOICE_OPTIONS.find((candidate) => candidate.voiceName === voiceName);
     if (!option) return invalid(res, "voiceName must be one of the curated options");
+    // Optional: lets the admin hear a speed before saving it. Same range and grid as saving; absent means normal speed.
+    const previewRate = req.body?.speakingRate === undefined ? undefined : parseSupportVoiceSpeakingRate(req.body.speakingRate);
+    if (previewRate === null) return invalid(res, SPEAKING_RATE_MESSAGE);
 
     try {
-      const result = await synthesizeSpeech(SUPPORT_VOICE_PREVIEW_TEXT, option.voiceName);
+      const result = await synthesizeSpeech(SUPPORT_VOICE_PREVIEW_TEXT, option.voiceName, previewRate);
       if (!result.ok) return res.status(422).json({ message: result.message });
       res.setHeader("Content-Type", result.contentType);
       res.setHeader("Cache-Control", "no-store");
