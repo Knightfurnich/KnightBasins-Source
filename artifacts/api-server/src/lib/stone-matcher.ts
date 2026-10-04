@@ -3,7 +3,12 @@ import {
   loadGoogleServiceAccountCredentials,
   type GoogleServiceAccountCredentials,
 } from "./google-service-account.ts";
-import { isVertexModelNotFound, vertexPublisherModels } from "./vertex-model.ts";
+import {
+  isVertexModelNotFound,
+  resolveVertexPublisherLocation,
+  vertexPublisherHost,
+  vertexPublisherModels,
+} from "./vertex-model.ts";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
@@ -54,7 +59,7 @@ function vertexConfig(): VertexConfig | null {
 
   return {
     projectId,
-    location: process.env["VERTEX_AI_LOCATION"] || DEFAULT_VERTEX_AI_LOCATION,
+    location: resolveVertexPublisherLocation(DEFAULT_VERTEX_AI_LOCATION),
     credentials,
   };
 }
@@ -256,7 +261,7 @@ export async function suggestStonesForPhoto(
     const models = vertexPublisherModels();
     for (let candidate = 0; candidate < models.length; candidate += 1) {
       const model = models[candidate]!;
-      const url = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`;
+      const url = `https://${vertexPublisherHost(config.location)}/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`;
       const response = await fetch(url, {
         method: "POST",
         headers: {

@@ -89,6 +89,7 @@ const originalEnv = {
   VERTEX_AI_PROJECT_ID: process.env["VERTEX_AI_PROJECT_ID"],
   VERTEX_AI_LOCATION: process.env["VERTEX_AI_LOCATION"],
   VERTEX_AI_MODEL: process.env["VERTEX_AI_MODEL"],
+  VERTEX_VISION_LOCATION: process.env["VERTEX_VISION_LOCATION"],
   VERTEX_AI_FALLBACK_MODELS: process.env["VERTEX_AI_FALLBACK_MODELS"],
   GOOGLE_SERVICE_ACCOUNT_JSON: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   GOOGLE_APPLICATION_CREDENTIALS: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
@@ -100,6 +101,7 @@ function clearSketchVisionCredentials() {
   delete process.env["VERTEX_AI_PROJECT_ID"];
   delete process.env["VERTEX_AI_LOCATION"];
   delete process.env["VERTEX_AI_MODEL"];
+  delete process.env["VERTEX_VISION_LOCATION"];
   delete process.env["VERTEX_AI_FALLBACK_MODELS"];
   delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
   delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
@@ -446,6 +448,30 @@ describe("analyzeSketchImage", () => {
       assert.ok(Array.isArray(capturedBody["contents"] as Array<unknown>));
       assert.equal(item.shape, "I");
       assert.equal(item.confidence, "high");
+    });
+
+    it("drops the region prefix for the global location, and VERTEX_VISION_LOCATION overrides the shared location", async () => {
+      setVertexConfigured();
+      process.env["VERTEX_VISION_LOCATION"] = "global";
+      // The shared vertex-gemini.ts location must NOT be moved by this:
+      process.env["VERTEX_AI_LOCATION"] = "us-central1";
+      process.env["VERTEX_AI_MODEL"] = "google/gemini-3.8-flash";
+      let capturedUrl = "";
+      mock.method(globalThis, "fetch", async (input: string | URL) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) {
+          return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+        }
+        if (url.includes("aiplatform.googleapis.com")) {
+          capturedUrl = url;
+          return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "{}" }] } }] }), { status: 200 });
+        }
+        return realFetch(input as never);
+      });
+      await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      // "global-aiplatform.googleapis.com" does not exist, and the Gemini 3.x
+      // family is only served from the unprefixed global host.
+      assert.equal(capturedUrl, "https://aiplatform.googleapis.com/v1/projects/knight-basins-voice/locations/global/publishers/google/models/gemini-3.8-flash:generateContent");
     });
 
     it("sends the request as a user turn -- Vertex rejects a content entry with no role", async () => {

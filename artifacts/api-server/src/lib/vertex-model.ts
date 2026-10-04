@@ -73,3 +73,26 @@ export function isVertexModelNotFound(status: number, payload: { error?: { statu
   const message = payload?.error?.message ?? "";
   return /publisher model|was not found|does not have access/i.test(message);
 }
+
+/**
+ * Location for the native publisher path. A dedicated override exists so the
+ * image features can move to the "global" endpoint -- the only place this
+ * project is served the Gemini 3.x family -- without dragging
+ * vertex-gemini.ts (the support bot, whose OpenAI-compatible URL is built
+ * differently) along with it.
+ */
+export function resolveVertexPublisherLocation(fallback = "asia-southeast1"): string {
+  const configured = (process.env["VERTEX_VISION_LOCATION"] || process.env["VERTEX_AI_LOCATION"] || "").trim();
+  return configured || fallback;
+}
+
+/**
+ * Host for the native generateContent endpoint. A regional location is
+ * prefixed ("asia-southeast1-aiplatform.googleapis.com") but "global" is not:
+ * "global-aiplatform.googleapis.com" does not exist, so dropping the prefix is
+ * what makes a location=global migration work at all.
+ */
+export function vertexPublisherHost(location: string): string {
+  return location === "global" ? "aiplatform.googleapis.com" : `${location}-aiplatform.googleapis.com`;
+}
+

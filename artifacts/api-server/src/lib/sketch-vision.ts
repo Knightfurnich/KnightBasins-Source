@@ -13,7 +13,12 @@
 // never include request content.
 
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken, type GoogleServiceAccountCredentials } from "./google-service-account.ts";
-import { isVertexModelNotFound, vertexPublisherModels } from "./vertex-model.ts";
+import {
+  isVertexModelNotFound,
+  resolveVertexPublisherLocation,
+  vertexPublisherHost,
+  vertexPublisherModels,
+} from "./vertex-model.ts";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
@@ -135,7 +140,7 @@ function sketchVisionConfig(): SketchVisionConfig | null {
   if (projectId) {
     const credentials = loadGoogleServiceAccountCredentials();
     if (credentials) {
-      return { mode: "vertex", projectId, location: process.env["VERTEX_AI_LOCATION"] || DEFAULT_VERTEX_AI_LOCATION, credentials };
+      return { mode: "vertex", projectId, location: resolveVertexPublisherLocation(DEFAULT_VERTEX_AI_LOCATION), credentials };
     }
   }
   const apiKey = process.env["GOOGLE_API_KEY"];
@@ -154,7 +159,7 @@ async function buildSketchVisionRequest(config: SketchVisionConfig, model: strin
   if (config.mode === "vertex") {
     const accessToken = await fetchGoogleAccessToken(config.credentials, VERTEX_AI_SCOPE);
     return {
-      url: `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`,
+      url: `https://${vertexPublisherHost(config.location)}/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
     };
   }
