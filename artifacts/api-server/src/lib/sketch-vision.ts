@@ -23,6 +23,7 @@ import {
   orderSketchVisionProviders,
   parseSketchVisionProviderChoice,
   sketchVisionAttemptTimeoutMs,
+  sketchVisionTotalBudgetMs,
   vertexHost,
   vertexModelCandidates,
   vertexVisionLocation,
@@ -128,7 +129,7 @@ const SKETCH_VISION_PROMPT = `คุณคือช่างประเมิ�
 - confidence สะท้อนความมั่นใจโดยรวมของการอ่านภาพนี้`;
 
 /** What the model sent back, reduced to what the reader needs; both providers are mapped onto this. */
-type ModelAnswer = { text: string; promptTokens: number | null; completionTokens: number | null };
+type ModelAnswer = { text: string; promptTokens: number | null; completionTokens: number | null; finishReason?: string };
 
 /** Token usage of one provider call that got an HTTP 200, so the cost center can bill what was really spent. */
 export type SketchVisionUsage = {
@@ -206,10 +207,18 @@ class ProviderFailure extends Error {
   // plain fields, not constructor parameter properties: node's strip-only TypeScript mode (the tests) rejects those
   readonly kind: "timeout" | "network" | "rejected" | "empty";
   readonly modelNotFound: boolean;
-  constructor(kind: "timeout" | "network" | "rejected" | "empty", detail: string, modelNotFound = false) {
+  /** Tokens the provider charged for an answer that came back empty (a thinking model is billed for its thinking). */
+  readonly billed: { promptTokens: number | null; completionTokens: number | null } | null;
+  constructor(
+    kind: "timeout" | "network" | "rejected" | "empty",
+    detail: string,
+    modelNotFound = false,
+    billed: { promptTokens: number | null; completionTokens: number | null } | null = null,
+  ) {
     super(detail);
     this.kind = kind;
     this.modelNotFound = modelNotFound;
+    this.billed = billed;
   }
 }
 
@@ -228,7 +237,27 @@ function asTokenCount(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number, label: string) {
+/**
+ * The time one request may spend on providers (job-247). Every provider call asks it how long it may run: the per-call
+ * limit, or what is left of the whole request if that is less. When too little is left to be worth a call it says so by
+ * throwing, which ends the walk through the providers.
+ */
+class TimeBudget {
+  private readonly deadline: number;
+  private readonly attemptMs: number;
+  constructor(totalMs: number, attemptMs: number) {
+    this.deadline = Date.now() + totalMs;
+    this.attemptMs = attemptMs;
+  }
+  nextAttemptMs(): number {
+    const left = this.deadline - Date.now();
+    if (left < Math.min(2_000, this.attemptMs / 2)) throw new ProviderFailure("timeout", "the time budget for this request is used up");
+    return Math.min(this.attemptMs, left);
+  }
+}
+
+async function postJson(url: string, headers: Record<string, string>, body: unknown, budget: TimeBudget, label: string) {
+  const timeoutMs = budget.nextAttemptMs();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -236,15 +265,85 @@ async function postJson(url: string, headers: Record<string, string>, body: unkn
     const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
     return { response, payload };
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") throw new ProviderFailure("timeout", `${label} timed out after ${timeoutMs} ms`);
+    if (error instanceof Error && error.name === "AbortError") throw new ProviderFailure("timeout", `${label} timed out after ${Math.round(timeoutMs)} ms`);
     throw new ProviderFailure("network", `${label} request failed: ${logSafe(error instanceof Error ? error.message : String(error))}`);
   } finally {
     clearTimeout(timeout);
   }
 }
 
-/** OpenAI-compatible chat completion with the sketch as a data URL (JSON mode). */
-async function askOpenRouter(config: OpenRouterVisionConfig, buffer: Buffer, mimeType: string, timeoutMs: number): Promise<ModelAnswer> {
+/** Removes anything long from a provider's reply before it is logged: strings are clipped, lists and depth are capped. */
+function clipForLog(value: unknown, depth = 0): unknown {
+  if (typeof value === "string") return value.length > 400 ? `${value.slice(0, 400)}...[${value.length} chars]` : value;
+  if (Array.isArray(value)) return value.slice(0, 10).map((entry) => clipForLog(entry, depth + 1));
+  if (value && typeof value === "object") {
+    if (depth >= 6) return "[nested]";
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).slice(0, 40).map(([key, entry]) => [key, clipForLog(entry, depth + 1)]));
+  }
+  return value;
+}
+
+/** The text of a chat message's `content`: a string, or the text parts of a list of content parts. Anything else is "". */
+function messageContentText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => (typeof part === "string" ? part : part && typeof part === "object" && typeof (part as { text?: unknown }).text === "string" ? (part as { text: string }).text : ""))
+    .join("");
+}
+
+/**
+ * The JSON object in `text` that looks like a sketch reading (it parses and has `workpieces` or `shape`), or null: of
+ * all such objects the one that ends last (so the outermost: a reading holds workpieces that themselves have a
+ * `shape`). Every `{` is tried as a start, so a stray brace in the thinking before the answer cannot hide it. Used
+ * only when a thinking model leaves `content` empty and puts its answer in the reasoning field.
+ */
+function sketchReadingFromReasoning(text: string): string | null {
+  const starts: number[] = [];
+  for (let index = text.indexOf("{"); index >= 0 && starts.length < 400; index = text.indexOf("{", index + 1)) starts.push(index);
+
+  let best: { text: string; end: number } | null = null;
+  for (const start of starts) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < text.length; index += 1) {
+      const char = text[index]!;
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (char === "\\") escaped = true;
+        else if (char === "\"") inString = false;
+        continue;
+      }
+      if (char === "\"") inString = true;
+      else if (char === "{") depth += 1;
+      else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          const candidate = text.slice(start, index + 1);
+          if (best && best.end > index) break; // an earlier-starting object that ends later already holds this one
+          try {
+            const parsed = JSON.parse(candidate) as Record<string, unknown>;
+            if (parsed && typeof parsed === "object" && ("workpieces" in parsed || "shape" in parsed)) best = { text: candidate, end: index };
+          } catch {
+            // not JSON: no reading starts here
+          }
+          break;
+        }
+      }
+    }
+  }
+  return best ? best.text : null;
+}
+
+type OpenRouterChoice = {
+  finish_reason?: unknown;
+  native_finish_reason?: unknown;
+  message?: { content?: unknown; reasoning?: unknown; reasoning_content?: unknown };
+};
+
+/** OpenAI-compatible chat completion with the sketch as a data URL. */
+async function askOpenRouter(config: OpenRouterVisionConfig, buffer: Buffer, mimeType: string, budget: TimeBudget): Promise<ModelAnswer> {
   const { response, payload } = await postJson(
     `${config.baseUrl}/chat/completions`,
     { "Content-Type": "application/json", Authorization: `Bearer ${config.apiKey}` },
@@ -257,19 +356,39 @@ async function askOpenRouter(config: OpenRouterVisionConfig, buffer: Buffer, mim
           { type: "image_url", image_url: { url: `data:${mimeType};base64,${buffer.toString("base64")}`, detail: "high" } },
         ],
       }],
-      response_format: { type: "json_object" },
+      max_tokens: config.maxTokens,
+      ...(config.jsonMode ? { response_format: { type: "json_object" } } : {}),
     },
-    timeoutMs,
+    budget,
     `OpenRouter ${config.model}`,
   );
   const providerError = (payload?.["error"] as { message?: string } | undefined)?.message;
   if (!response.ok || providerError) {
     throw new ProviderFailure("rejected", `OpenRouter ${config.model} answered HTTP ${response.status}: ${logSafe(providerError)}`);
   }
-  const text = (payload?.["choices"] as Array<{ message?: { content?: unknown } }> | undefined)?.[0]?.message?.content;
-  if (typeof text !== "string" || !text.trim()) throw new ProviderFailure("empty", `OpenRouter ${config.model} sent no text`);
   const usage = payload?.["usage"] as { prompt_tokens?: unknown; completion_tokens?: unknown } | undefined;
-  return { text, promptTokens: asTokenCount(usage?.prompt_tokens), completionTokens: asTokenCount(usage?.completion_tokens) };
+  const choice = (payload?.["choices"] as OpenRouterChoice[] | undefined)?.[0];
+  const finishReason = typeof choice?.finish_reason === "string" ? choice.finish_reason : undefined;
+  const base = { promptTokens: asTokenCount(usage?.prompt_tokens), completionTokens: asTokenCount(usage?.completion_tokens), finishReason };
+
+  const content = messageContentText(choice?.message?.content);
+  if (content.trim()) return { ...base, text: content };
+
+  // `content` is empty: a thinking model may have left the answer in its reasoning field, or been cut off while thinking.
+  const reasoning = [choice?.message?.reasoning, choice?.message?.reasoning_content].find((value) => typeof value === "string" && value.trim()) as string | undefined;
+  const fromReasoning = reasoning ? sketchReadingFromReasoning(reasoning) : null;
+  if (fromReasoning) {
+    console.warn(`[sketch-vision] OpenRouter ${config.model} left content empty (finish_reason=${finishReason ?? "none"}); using the reading found in its reasoning field`);
+    return { ...base, text: fromReasoning };
+  }
+  // What the next person needs to see why: the whole reply, with long strings clipped (never the image or the key).
+  console.warn(`[sketch-vision] OpenRouter ${config.model} sent no text; finish_reason=${finishReason ?? "none"} completion_tokens=${base.completionTokens ?? "?"}; reply=${JSON.stringify(clipForLog(payload)).slice(0, 4000)}`);
+  throw new ProviderFailure(
+    "empty",
+    `OpenRouter ${config.model} sent no text (finish_reason=${finishReason ?? "none"}, completion_tokens=${base.completionTokens ?? "?"})`,
+    false,
+    { promptTokens: base.promptTokens, completionTokens: base.completionTokens },
+  );
 }
 
 type GeminiPayload = {
@@ -279,7 +398,7 @@ type GeminiPayload = {
 };
 
 /** One generateContent call; the same body is valid on Vertex AI and on the AI Studio (API key) endpoint. */
-async function askGeminiModel(access: VertexAccess, model: string, buffer: Buffer, mimeType: string, timeoutMs: number): Promise<ModelAnswer> {
+async function askGeminiModel(access: VertexAccess, model: string, buffer: Buffer, mimeType: string, budget: TimeBudget): Promise<ModelAnswer> {
   let url: string;
   let headers: Record<string, string>;
   if (access.mode === "vertex") {
@@ -309,7 +428,7 @@ async function askGeminiModel(access: VertexAccess, model: string, buffer: Buffe
       }],
       generationConfig: { responseMimeType: "application/json" },
     },
-    timeoutMs,
+    budget,
     `Gemini ${model}`,
   );
   const payload = raw as GeminiPayload | null;
@@ -321,24 +440,24 @@ async function askGeminiModel(access: VertexAccess, model: string, buffer: Buffe
     );
   }
   const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (typeof text !== "string" || !text.trim()) throw new ProviderFailure("empty", `Gemini ${model} sent no text`);
   const usage = payload?.usageMetadata;
   const thoughts = asTokenCount(usage?.thoughtsTokenCount) ?? 0;
   const completion = asTokenCount(usage?.candidatesTokenCount);
-  return {
-    text,
-    promptTokens: asTokenCount(usage?.promptTokenCount),
-    // reasoning tokens are billed as output
-    completionTokens: completion === null && thoughts === 0 ? null : (completion ?? 0) + thoughts,
-  };
+  const promptTokens = asTokenCount(usage?.promptTokenCount);
+  // reasoning tokens are billed as output
+  const completionTokens = completion === null && thoughts === 0 ? null : (completion ?? 0) + thoughts;
+  if (typeof text !== "string" || !text.trim()) {
+    throw new ProviderFailure("empty", `Gemini ${model} sent no text`, false, { promptTokens, completionTokens });
+  }
+  return { text, promptTokens, completionTokens };
 }
 
 /** Tries each configured Gemini model in turn; only "this project does not serve that model" moves on to the next one. */
-async function askGemini(plan: Extract<ProviderPlan, { provider: "gemini" }>, buffer: Buffer, mimeType: string, timeoutMs: number): Promise<ModelAnswer & { model: string }> {
+async function askGemini(plan: Extract<ProviderPlan, { provider: "gemini" }>, buffer: Buffer, mimeType: string, budget: TimeBudget): Promise<ModelAnswer & { model: string }> {
   for (let index = 0; index < plan.models.length; index += 1) {
     const model = plan.models[index]!;
     try {
-      return { ...(await askGeminiModel(plan.access, model, buffer, mimeType, timeoutMs)), model };
+      return { ...(await askGeminiModel(plan.access, model, buffer, mimeType, budget)), model };
     } catch (error) {
       const next = plan.models[index + 1];
       if (next && error instanceof ProviderFailure && error.modelNotFound) {
@@ -571,6 +690,8 @@ export function parseSketchVisionResponse(rawText: string, index: number): Sketc
 const NOT_CONFIGURED_NOTE = "ตอนนี้ระบบอ่านภาพด้วย AI ยังไม่พร้อมใช้งาน กรุณากรอกขนาดด้วยตนเอง";
 const READ_FAILED_NOTE = "ตอนนี้ระบบอ่านภาพไม่สำเร็จ กรุณากรอกขนาดด้วยตนเอง";
 const TIMEOUT_NOTE = "เรียกวิเคราะห์ภาพหมดเวลา (timeout) กรุณาลองใหม่อีกครั้ง";
+// a little past the budget, so the calls' own timeouts (which end exactly at it) win whenever they can
+const HARD_STOP_GRACE_MS = 500;
 const NETWORK_NOTE = "ไม่สามารถเชื่อมต่อระบบวิเคราะห์ภาพได้ในขณะนี้ กรุณากรอกขนาดด้วยตนเอง";
 
 /** The Thai sentence for the last failure; none of it comes from the provider. */
@@ -604,19 +725,37 @@ export async function analyzeSketchImageWithUsage(buffer: Buffer, mimeType: stri
   const plan = sketchVisionPlan();
   if (plan.length === 0) return { item: unknownItem(index, NOT_CONFIGURED_NOTE), usages: [] };
 
-  const timeoutMs = sketchVisionAttemptTimeoutMs();
+  const totalMs = sketchVisionTotalBudgetMs();
+  const budget = new TimeBudget(totalMs, sketchVisionAttemptTimeoutMs());
   const usages: SketchVisionUsage[] = [];
-  let lastFailure: ProviderFailure | null = null;
 
+  // The provider calls stop themselves at the budget (their own timeouts), but a step that cannot be aborted (the Google
+  // token exchange) must not be able to hold the request past it either, so the whole walk is also raced against a hard stop.
+  let hardStop: ReturnType<typeof setTimeout> | undefined;
+  const stopped = new Promise<SketchVisionAnalysis>((resolve) => {
+    hardStop = setTimeout(() => {
+      console.warn(`[sketch-vision] the ${totalMs} ms budget for one request ran out; answering "could not read"`);
+      resolve({ item: unknownItem(index, TIMEOUT_NOTE), usages: [...usages] });
+    }, totalMs + HARD_STOP_GRACE_MS);
+  });
+  try {
+    return await Promise.race([walkProviders(plan, buffer, mimeType, index, budget, usages), stopped]);
+  } finally {
+    clearTimeout(hardStop);
+  }
+}
+
+async function walkProviders(plan: ProviderPlan[], buffer: Buffer, mimeType: string, index: number, budget: TimeBudget, usages: SketchVisionUsage[]): Promise<SketchVisionAnalysis> {
+  let lastFailure: ProviderFailure | null = null;
   for (const step of plan) {
     const startedAt = Date.now();
     let model: string = step.provider === "openrouter" ? step.config.model : step.models[0]!;
     try {
       let answer: ModelAnswer;
       if (step.provider === "openrouter") {
-        answer = await askOpenRouter(step.config, buffer, mimeType, timeoutMs);
+        answer = await askOpenRouter(step.config, buffer, mimeType, budget);
       } else {
-        const gemini = await askGemini(step, buffer, mimeType, timeoutMs);
+        const gemini = await askGemini(step, buffer, mimeType, budget);
         answer = gemini;
         model = gemini.model;
       }
@@ -631,11 +770,18 @@ export async function analyzeSketchImageWithUsage(buffer: Buffer, mimeType: stri
         success: usable,
       });
       if (usable) return { item: parseSketchVisionResponse(text, index), usages };
-      console.warn(`[sketch-vision] ${step.provider} (${model}) answered with something that is not a JSON object`);
+      // finish_reason "length" here means the answer was cut off by the token limit (raise OPENROUTER_VISION_MAX_TOKENS)
+      console.warn(`[sketch-vision] ${step.provider} (${model}) answered with something that is not a JSON object (${text.length} chars, finish_reason=${answer.finishReason ?? "none"}, completion_tokens=${answer.completionTokens ?? "?"})`);
       lastFailure = new ProviderFailure("empty", "unusable answer");
     } catch (error) {
       lastFailure = error instanceof ProviderFailure ? error : new ProviderFailure("network", "unexpected error");
+      // an empty answer can still have been charged for: it is a call that was billed, so the cost center must see it
+      if (error instanceof ProviderFailure && error.billed && (error.billed.promptTokens !== null || error.billed.completionTokens !== null)) {
+        usages.push({ provider: step.provider, model, promptTokens: error.billed.promptTokens, completionTokens: error.billed.completionTokens, durationMs: Date.now() - startedAt, success: false });
+      }
       console.warn(`[sketch-vision] ${step.provider} failed: ${error instanceof ProviderFailure ? error.message : logSafe(error instanceof Error ? error.message : String(error))}`);
+      // nothing is left of the request's time: the next provider could not be given a fair chance, so stop here
+      if (error instanceof ProviderFailure && error.kind === "timeout" && /budget/.test(error.message)) break;
     }
   }
   return { item: unknownItem(index, noteForFailure(lastFailure)), usages };
