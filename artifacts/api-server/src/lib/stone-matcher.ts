@@ -1,16 +1,36 @@
+// "Match a stone colour from a photo" — Vertex AI / Gemini visual comparison against the official slab catalogue.
+//
+// The model id and the location are configuration, never constants in this file (job 248): Google retires and renames
+// models, and this feature used to be pinned to a model id the project does not serve (HTTP 404 on every request).
+// Everything the request needs therefore comes from the same env helpers the /sketch reader uses
+// (sketch-vision-config.ts), so one .env edit changes both features and no code change ever carries a model id.
+//
+//   VERTEX_AI_MODEL            the primary model (a "google/" vendor prefix is stripped, the publisher path rejects it)
+//   VERTEX_AI_FALLBACK_MODELS  comma separated, tried in order when the configured model is not served (404)
+//   VERTEX_VISION_LOCATION     else VERTEX_AI_LOCATION, else asia-southeast1; "global" uses the unprefixed host
+//
+// Provider error text can name the project, region and model path: it is logged (capped) and never returned. The
+// caller only ever sees the static Thai message below, and suggestStonesForPhoto never throws.
+
 import {
   fetchGoogleAccessToken,
   loadGoogleServiceAccountCredentials,
   type GoogleServiceAccountCredentials,
 } from "./google-service-account.ts";
+import {
+  isVertexModelNotFound,
+  vertexHost,
+  vertexModelCandidates,
+  vertexVisionLocation,
+} from "./sketch-vision-config.ts";
 
 const REQUEST_TIMEOUT_MS = 30_000;
-const GEMINI_MODEL = "gemini-3.8-flash";
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
-const DEFAULT_VERTEX_AI_LOCATION = "asia-southeast1";
 const SLAB_IMAGE_ORIGIN = "https://api.srv1964473.hstgr.cloud";
 const MAX_SLAB_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_CONCURRENT_SLAB_FETCHES = 6;
+/** The only failure text a customer ever sees: static Thai, no provider detail, polite, invites a retry. */
+const MATCH_FAILED_MESSAGE = "ขออภัย ไม่สามารถจับคู่สีหินจากภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
 
 export type StoneMatchCandidate = {
   code: string;
@@ -33,6 +53,8 @@ export type StoneMatchResult =
 type VertexConfig = {
   projectId: string;
   location: string;
+  /** Models to try in order, straight from env; never a constant id. */
+  models: string[];
   credentials: GoogleServiceAccountCredentials;
 };
 
@@ -45,6 +67,28 @@ type SlabImagePart = {
   base64: string;
 };
 
+type GeminiPayload = {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: unknown }> } }>;
+  error?: { message?: string };
+};
+
+const warnedOnce = new Set<string>();
+function warnOnce(key: string, message: string) {
+  if (warnedOnce.has(key)) return;
+  warnedOnce.add(key);
+  console.warn(message);
+}
+
+/** Provider error text can be long and can name the project, region and model path: cap it, and log it only. */
+function logSafe(text: string | undefined): string {
+  return (text ?? "").replace(/\s+/g, " ").slice(0, 300);
+}
+
+/**
+ * Credentials + project + models from env. Returns null (feature off, politely) when the project id or the service
+ * account is missing, or when VERTEX_AI_MODEL is unset: there is deliberately no built-in model id, so a missing or
+ * retired model can never be re-pinned by this file.
+ */
 function vertexConfig(): VertexConfig | null {
   const projectId = process.env["VERTEX_AI_PROJECT_ID"];
   if (!projectId) return null;
@@ -52,11 +96,16 @@ function vertexConfig(): VertexConfig | null {
   const credentials = loadGoogleServiceAccountCredentials();
   if (!credentials) return null;
 
-  return {
-    projectId,
-    location: process.env["VERTEX_AI_LOCATION"] || DEFAULT_VERTEX_AI_LOCATION,
-    credentials,
-  };
+  const models = vertexModelCandidates();
+  if (models.length === 0) {
+    warnOnce(
+      "vertex-model",
+      "[stone-matcher] Google credentials are set but VERTEX_AI_MODEL is empty, so the stone matcher stays disabled. Set VERTEX_AI_MODEL to a model the project serves.",
+    );
+    return null;
+  }
+
+  return { projectId, location: vertexVisionLocation(), models, credentials };
 }
 
 function normalizeImageMimeType(value: string | null | undefined): string | null {
@@ -84,7 +133,7 @@ function cleanCandidates(candidates: readonly StoneMatchCandidate[]): CandidateW
 
 function makePrompt(candidates: readonly CandidateWithCleanText[]): string {
   const allowedList = candidates.map(({ code, name }) => `- ${code} · ${name}`).join("\n");
-  return `Compare the customer's room photo with the supplied official stone-slab reference photos. Rank only the listed stones by visual similarity, from closest to least close. Use the reference-photo label to identify each stone.
+  return `Compare the customer's room photo with the supplied official stone-slab reference photos. Rank only the listed stones by visual similarity, from closest to least close. Use the reference-photo label to identify each stone. If none of the listed stones is close to the photo, return an empty match list instead of a forced match.
 
 Allowed stones (these are the only codes you may return):
 ${allowedList}
@@ -243,7 +292,6 @@ export async function suggestStonesForPhoto(
   const request = async (): Promise<StoneMatchResult> => {
     const slabImages = await fetchSlabImages(candidates, controller.signal);
     const accessToken = await fetchGoogleAccessToken(config.credentials, VERTEX_AI_SCOPE);
-    const url = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${GEMINI_MODEL}:generateContent`;
     const parts: Array<Record<string, unknown>> = [
       { text: prompt },
       { text: "Customer room photo:" },
@@ -254,42 +302,50 @@ export async function suggestStonesForPhoto(
       parts.push({ inline_data: { mime_type: image.mimeType, data: image.base64 } });
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { responseMimeType: "application/json" },
-      }),
-      signal: controller.signal,
-    });
-    const payload = await response.json().catch(() => null) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: unknown }> } }>;
-    } | null;
-    if (!response.ok) {
-      return { status: "failed", message: `Gemini Vision returned HTTP ${response.status}.` };
-    }
+    for (let index = 0; index < config.models.length; index += 1) {
+      const model = config.models[index]!;
+      const url = `https://${vertexHost(config.location)}/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          // Vertex rejects a content entry with no role (HTTP 400 "Please use a valid role: user, model."):
+          // every request is a user turn.
+          contents: [{ role: "user", parts }],
+          generationConfig: { responseMimeType: "application/json" },
+        }),
+        signal: controller.signal,
+      });
+      const payload = await response.json().catch(() => null) as GeminiPayload | null;
+      if (!response.ok) {
+        const providerText = payload?.error?.message;
+        const next = config.models[index + 1];
+        if (next && isVertexModelNotFound(response.status, providerText)) {
+          console.warn(`[stone-matcher] model "${model}" is not served by this project (HTTP ${response.status}); retrying with "${next}". Update VERTEX_AI_MODEL to a model the project serves.`);
+          continue;
+        }
+        console.warn(`[stone-matcher] Gemini ${model} answered HTTP ${response.status}: ${logSafe(providerText)}`);
+        return { status: "failed", message: MATCH_FAILED_MESSAGE };
+      }
 
-    const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (typeof text !== "string" || !text.trim()) return { status: "ok", matches: [] };
-    return { status: "ok", matches: parseMatches(text, allowedCandidates) };
+      const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (typeof text !== "string" || !text.trim()) return { status: "ok", matches: [] };
+      return { status: "ok", matches: parseMatches(text, allowedCandidates) };
+    }
+    // Every configured model came back "not served": configuration, not a customer error.
+    return { status: "failed", message: MATCH_FAILED_MESSAGE };
   };
 
   try {
     return await Promise.race([request(), timeoutPromise]);
   } catch (error) {
     controller.abort();
-    const timedOut = error instanceof Error
-      && (error.name === "AbortError" || error.name === "TimeoutError");
-    return {
-      status: "failed",
-      message: timedOut
-        ? "Gemini Vision request timed out. Please try again."
-        : "Stone image matching could not be completed.",
-    };
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.warn(`[stone-matcher] stone matching failed: ${logSafe(detail)}`);
+    return { status: "failed", message: MATCH_FAILED_MESSAGE };
   } finally {
     if (timeout) clearTimeout(timeout);
   }
