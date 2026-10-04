@@ -22,7 +22,7 @@ import {
   verifyAndSanitizeQuoteTotal,
   withServerPricing,
 } from "../lib/price-integrity";
-import { analyzeSketchImage } from "../lib/sketch-vision";
+import { analyzeSketchImageWithUsage } from "../lib/sketch-vision";
 import {
   createQuoteAccessSecret,
   isPublicQuoteTokenExpired,
@@ -44,10 +44,6 @@ const MAX_SKETCH_FILES = 5;
 // Separate limit from MAX_SKETCH_FILES above (which caps the /leads/sketch lead-submission
 // upload at 5): job-72 calls for a distinct cap of 3 for the AI vision-analysis endpoint.
 const MAX_SKETCH_VISION_FILES = 3;
-// Mirrors sketch-vision.ts's own GEMINI_MODEL constant, for cost-tracking labeling only.
-// job-82's SCOPE excludes sketch-vision.ts, so this can't import that constant directly;
-// keep this literal in sync if that model ever changes.
-const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
 
 export const STUDIO_DATA_REQUIRED_ERROR = "STUDIO_DATA_REQUIRED";
 export const STUDIO_DATA_REQUIRED_MESSAGE = "คำขอใบเสนอราคาต้องแนบข้อมูลผังเคาน์เตอร์หรือรายการสินค้าที่เลือก";
@@ -1148,30 +1144,35 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
     }
   });
 
-  // Reads a hand-drawn sketch and pre-fills the /sketch page's form via Gemini
-  // Vision. Never fails the request over an AI problem (no key, network error,
-  // malformed response): analyzeSketchImage always resolves to an "unknown"
-  // item in that case, so the customer/sales team just fills the form by hand
-  // -- see analyzeSketchImage's docstring for the reasoning.
+  // Reads a hand-drawn sketch and pre-fills the /sketch page's form with the
+  // configured vision model (OpenRouter or Gemini, see sketch-vision-config.ts).
+  // Never fails the request over an AI problem (no key, network error,
+  // malformed response): analyzeSketchImageWithUsage always resolves to an
+  // "unknown" item in that case, so the customer/sales team just fills the form
+  // by hand -- see its docstring for the reasoning.
   router.post("/sketch/analyze", sketchVisionRateLimit, uploadConcurrency, async (req, res, next) => {
     try {
       const { media } = await readMultipartForm(req, "image", { maxFiles: MAX_SKETCH_VISION_FILES });
-      const startedAt = Date.now();
-      const items = await Promise.all(media.map((item, index) => analyzeSketchImage(item.buffer, item.contentType, index)));
-      // analyzeSketchImage never throws (see its own docstring), so reaching this
-      // line means the request completed; it doesn't distinguish a genuine AI
-      // read from its own internal "unknown" fallback, and exact token counts
-      // aren't exposed here either -- both would need sketch-vision.ts itself
-      // (out of SCOPE for job-82) to expose. Cost for this event is computed
-      // from imageCount alone, per the per-image rate job-82's pricing table
-      // defines specifically for that reason.
-      recordAiUsage({
-        service: "sketch_vision",
-        model: SKETCH_VISION_COST_MODEL,
-        imageCount: media.length,
-        durationMs: Date.now() - startedAt,
-        success: true,
-      });
+      const analyses = await Promise.all(media.map((item, index) => analyzeSketchImageWithUsage(item.buffer, item.contentType, index)));
+      const items = analyses.map((analysis) => analysis.item);
+      // analyzeSketchImageWithUsage never throws (see its own docstring). One cost event per provider call that really
+      // got an answer, labelled with the model it asked for and the tokens the provider reported, so the cost center
+      // bills what was spent; a request where nothing was sent (no provider configured, or every call failed) costs
+      // nothing and records nothing. If a provider reports no token counts the call falls back to the per-image rate.
+      for (const analysis of analyses) {
+        for (const usage of analysis.usages) {
+          const hasTokens = usage.promptTokens !== null || usage.completionTokens !== null;
+          recordAiUsage({
+            service: "sketch_vision",
+            model: usage.model,
+            ...(usage.promptTokens !== null ? { promptTokens: usage.promptTokens } : {}),
+            ...(usage.completionTokens !== null ? { completionTokens: usage.completionTokens } : {}),
+            ...(hasTokens ? {} : { imageCount: 1 }),
+            durationMs: usage.durationMs,
+            success: usage.success,
+          });
+        }
+      }
       return res.status(200).json({ items });
     } catch (error) {
       if (error instanceof Error && /required|invalid|choose|allowed|large/i.test(error.message)) return invalid(res, error.message);
