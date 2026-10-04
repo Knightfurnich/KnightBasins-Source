@@ -30,10 +30,11 @@ FORBIDDEN:
 
 EVIDENCE:
   1) `npx tsc -p artifacts/api-server/tsconfig.json --noEmit` → 0 errors
-  2) ชุดเทสต์ api-server → ระบุ tests/pass/fail · ฐาน main ปัจจุบัน **1153/1150/3** (3 ตกเป็นชุด incident-alerts เฉพาะ Windows; เพิ่มขึ้นถ้ามีเทสต์ใหม่ที่ merge ไปแล้ว)
+  2) รันเทสต์ไฟล์นี้โดยตรง: `node --experimental-strip-types --test test/ops-assistant.test.ts` (ในโฟลเดอร์ artifacts/api-server) → ระบุ tests/pass/fail · และรันชุดเต็ม `npm test` → ฐาน main ปัจจุบัน **1153/1150/3** (3 ตกเป็นชุด incident-alerts เฉพาะ Windows; เพิ่มขึ้นถ้ามีเทสต์ใหม่ที่ merge ไปแล้ว)
   3) เทสต์ใหม่: (ก) คำตอบสำเร็จลงท้ายด้วยบรรทัด `ข้อมูล ณ วันที่ … เวลา … น. (เวลาไทย)` และมีเพียงครั้งเดียว (ข) เวลาที่แสดงตรงกับเวลาไทยของเวลาที่อ่านข้อมูล (ทดสอบด้วยเวลาคงที่ + Asia/Bangkok) (ค) กรณีล้มเหลว/ยังไม่พร้อม **ไม่** มีบรรทัดนี้ (ง) response มีฟิลด์ `dataAsOf` เป็น ISO ที่ parse ได้ และฟิลด์เดิม (`message`/`reply`/`ok`) ยังอยู่
   4) **พิสูจน์ว่าจับได้:** ย้อน `ops-assistant.ts` เป็นของ main แล้วเทสต์ใหม่ต้องตก (แนบข้อความ)
-  5) **เดวิดจะยิงจริง 3 คำถามบน production หลัง deploy** และแนบคำตอบจริงให้บอส (ต้องเห็นบรรทัดข้อมูล ณ ท้ายทุกคำตอบ)
+  5) ตรวจว่าไม่แตะไฟล์ต้องห้าม: `git diff origin/main...HEAD --name-only` (ต้องมีแค่ 2 ไฟล์ใน SCOPE) และ `git diff origin/main...HEAD -- artifacts/knight-basins/src/index.css | wc -l` → 0
+  6) **เดวิดจะยิงจริง 3 คำถามบน production หลัง deploy** และแนบคำตอบจริงให้บอส (ต้องเห็นบรรทัดข้อมูล ณ ท้ายทุกคำตอบ)
 
 OUTPUT:
   - บรรทัด “ข้อมูล ณ …” ต่อท้ายคำตอบสำเร็จ + ฟิลด์ `dataAsOf` ใน response + เทสต์ล็อกครบ
