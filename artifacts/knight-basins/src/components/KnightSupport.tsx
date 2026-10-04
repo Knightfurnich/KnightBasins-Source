@@ -100,6 +100,7 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
   const busy = chat.isPending || slipSending;
   const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
   const speechAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
 
   const speakMessage = async (text: string, index: number) => {
     if (speakingIndex !== null) return;
@@ -123,6 +124,26 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
       setSpeakingIndex(null);
     }
   };
+
+  useEffect(() => {
+    let mounted = true;
+    void (async () => {
+      try {
+        const response = await fetch("/api/support/voice-status");
+        if (!response.ok) {
+          if (mounted) setVoiceEnabled(false);
+          return;
+        }
+        const payload = await response.json() as { enabled?: unknown };
+        if (mounted) setVoiceEnabled(payload.enabled === true);
+      } catch {
+        if (mounted) setVoiceEnabled(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (position) window.localStorage.setItem(SUPPORT_POSITION_KEY, JSON.stringify(position));
@@ -283,7 +304,7 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
                     <LineLoginButton compact testId={`button-line-login-required-${index}`} />
                   </div>
                 )}
-                {message.role === "assistant" && (
+                {message.role === "assistant" && voiceEnabled && (
                   <button
                     type="button"
                     className="knight-support-speak-button"
