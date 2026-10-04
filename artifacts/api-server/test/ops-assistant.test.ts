@@ -193,8 +193,9 @@ describe("buildOpsContextSummary", () => {
     assert.match(summary, /จำนวนงานทั้งหมด: 4 งาน/);
     assert.match(summary, /พร้อมผลิต: 2 งาน/);
     assert.match(summary, /ปิดการขาย: 1 งาน/);
+    assert.match(summary, /แยกตามสถานะงาน: พร้อมผลิต 2 งาน · ปิดการขาย 1 งาน · งานใหม่ 1 งาน/);
     assert.match(summary, /5,000 บาท \(20 ก.ย. 2569\)/, "latest paid slip by createdAt, ignoring the newer voided one");
-    assert.doesNotMatch(summary, /\bLead\b/);
+    assert.doesNotMatch(summary, /\b(?:Lead|status|record|field|new_lead|ready_for_production)\b/);
     assert.ok(!summary.includes(SENSITIVE_TAX_ID), "must never include taxId");
     assert.ok(!summary.includes(SENSITIVE_SECRET), "must never include secrets");
     assert.ok(summary.length <= 2000);
@@ -310,23 +311,32 @@ describe("askOpsAssistant", () => {
 });
 
 describe("askOpsAssistant Thai response rules", () => {
-  it("requires direct answers in one or two sentences that end with ครับ", async () => {
+  it("(ก) locks a friendly, professional tone and direct answers that end with ครับ", async () => {
     const context = await captureAssistantContext("dashboard");
     const prompt = context.split("\n\nข้อมูลอ้างอิง:\n")[0] ?? "";
+    assert.match(prompt, /พูดคุยเป็นกันเอง/);
+    assert.match(prompt, /สุภาพแบบมืออาชีพ/);
+    assert.match(prompt, /ไม่ห้วน/);
+    assert.match(prompt, /ห้ามใช้คำเทคนิค/);
+    assert.match(prompt, /ห้ามเปิดเผยรหัสงานหรือรหัสภายใน/);
     assert.match(prompt, /ตอบตรงคำถามก่อน/);
-    assert.match(prompt, /ไม่เกิน 1–2 ประโยค/);
+    assert.match(prompt, /1–2 ประโยค/);
     assert.match(prompt, /ลงท้ายทุกคำตอบด้วยคำว่า “ครับ”/);
   });
 
-  it("requires a no-data answer to offer a verifiable alternative", async () => {
+  it("(ค) keeps answers grounded in provided facts and offers a verifiable next step when data is missing", async () => {
     const context = await captureAssistantContext("leads");
     const prompt = context.split("\n\nข้อมูลอ้างอิง:\n")[0] ?? "";
     assert.match(context, /ไม่พบข้อมูลงานล่าสุด/);
+    assert.match(prompt, /ใช้เฉพาะข้อมูลอ้างอิงที่ให้มา/);
+    assert.match(prompt, /ห้ามเดาตัวเลข/);
+    assert.match(prompt, /แต่งรายละเอียด/);
     assert.match(prompt, /หากข้อมูลไม่มีหรือไม่พอ/);
     assert.match(prompt, /เสนอทางเลือกที่ตรวจสอบได้แทน/);
+    assert.match(prompt, /ห้ามแนะนำการแก้ไขข้อมูลในระบบ/);
   });
 
-  it("uses Thai labels and friendly technician names without exposing internal identifiers", async () => {
+  it("(ข) gives the model readable Thai labels and never exposes internal identifiers", async () => {
     const context = await captureAssistantContext(
       "leads",
       [leadRow({
@@ -341,10 +351,8 @@ describe("askOpsAssistant Thai response rules", () => {
       [{ code: "TP", name: "ทีมช่างสมชาย" }],
     );
     const summary = context.split("\n\nข้อมูลอ้างอิง:\n")[1] ?? "";
-    assert.match(summary, /งานที่ 1 · งานของช่าง ทีมช่างสมชาย/);
-    assert.match(summary, /สถานะ: งานใหม่/);
-    assert.doesNotMatch(context, /lead_dispatch_2048|\b(?:Lead|status|record|field)\b|new_lead|\bTP\b/);
-    assert.match(context, /ห้ามใช้ศัพท์อังกฤษ/);
+    assert.match(summary, /งานที่ 1 · งานของช่าง ทีมช่างสมชาย · ลูกค้า: คุณสมชาย · สถานะงาน: งานใหม่ · วันติดตั้ง: 4 ต\.ค\. 2569/);
+    assert.doesNotMatch(summary, /lead_dispatch_2048|\b(?:Lead|status|record|field)\b|new_lead|\bTP\b/);
     assert.match(context, /ห้ามเปิดเผยรหัสงาน/);
   });
 
@@ -455,7 +463,7 @@ describe("POST /admin/assistant/ask", () => {
     }
   });
 
-  it("answers successfully and never writes to the database (row counts stay unchanged)", async () => {
+  it("(ง) preserves the API success fields while the assistant answers read-only", async () => {
     process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
     process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
     const leads = [leadRow({ id: 1, status: "ready_for_production" }), leadRow({ id: 2, status: "closed" })];
