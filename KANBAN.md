@@ -403,4 +403,4 @@ python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะ�
 | 240-C | ชัย | `artifacts/api-server/src/lib/sketch-vision.ts` · `src/lib/ai-cost-tracker.ts` · `src/routes/leads.ts` · `test/sketch-vision.test.ts` · `test/ai-cost-center.test.ts` |
 | 241-C | ชัย | `artifacts/knight-basins/src/data/studio-model.ts` · `test/studio-model.test.ts` |
 | 242-F | บอย (Freebuff) | `artifacts/knight-basins/src/components/StudioPage.tsx` |
-
+| **Task 245 (คัดลอกชุดเอกสารทีมเข้า repo ให้ worker ที่ต่อผ่าน GitHub อ่านได้)** | **เดวิด** (บอสยืนยัน 4 ต.ค. 69) | สร้าง `docs/team/` = สำเนา `ONBOARDING-freebuff.md` + `TEAM.md` + `README.md` (ดัชนี + กฎห้ามพลาด) พร้อมหมายเหตุว่าต้นฉบับอยู่ที่ KB และห้ามแก้สำเนาตรง ๆ — เพื่อให้บอย (Freebuff) ที่เข้าถึงได้เฉพาะ repo อ่านกฎ/บทบาทได้ครบ | `docs/job-240-chai-deepseek-sketch-vision` | ✅ เสร็จ · อยู่ใน PR #286 |
