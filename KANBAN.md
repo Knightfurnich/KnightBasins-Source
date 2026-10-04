@@ -378,3 +378,31 @@
 | **Task 237-B (Voice Feature Kill-Switch — Admin UI & Widget)** | **Replit** (บอสสั่งทำ 4 ต.ค. 69) | สวิตช์เปิด-ปิดเสียงน้องไนท์ในหน้า /admin/voice-settings (ค่าเริ่มต้นปิด) + ซ่อนปุ่ม 🔊 ฟังเสียงใน KnightSupport เมื่อฟีเจอร์ปิด | `feat/replit-support-voice-toggle-ui` | ✅ **Merged & Live** (PR #277 · merge `b0d813b`) · bundle `index-TlVzruQa.js` มี `toggle-voice-enabled`/`status-voice-enabled-state` · knight-basins 981/974/0/7 (baseline 978/971/0/7 = +3 เทสต์ใหม่) · index.css 0 diff |
 | **Task 238 (Support Chat Error Audit)** | **ชัย** (บอสสั่งทำ 4 ต.ค. 69) | บันทึก audit event เมื่อ `POST /support/chat` เกิดข้อผิดพลาด เพื่อให้ตรวจย้อนหลังได้ (กรณีบั๊ก 3 ต.ค. ที่ตรวจไม่ได้เพราะไม่มีร่องรอย) โดยเก็บเฉพาะชื่อคลาสของ error และไม่เก็บข้อความแชท/ข้อมูลส่วนตัวใด ๆ | `feat/chai-support-chat-error-audit` | ✅ **Merged & Live** (PR #280 · merge `1c27130`) · deploy run 37176829125 success · api-dist มี `support.chat.error` · ลูกค้าเห็นผลเดิม (KF023 → 200, ข้อความว่าง → 400) · api-server 1031/1031/0 (baseline 1016/1016/0 = +15) · index.css 0 diff |
 | **Task 239 (ซ่อม CSS ปุ่ม 🔊 ที่หายไป + การ์ดกันคลาสตกหล่น)** | **เดวิด** (บอสสั่งทำ 4 ต.ค. 69) | เพิ่มนิยาม CSS ของ `.knight-support-speak-button` / `.knight-support-speak-spin` ที่หายไป (ค้างอยู่ใน PR #13 ที่ไม่เคย merge) + เทสต์กันคลาสตกหล่นที่ไล่ทุก className ของ KnightSupport เทียบกับ index.css | `fix/david-support-speak-button-css` | ✅ **Merged & Live** (ดูหลักฐานท้ายแถว) · index.css +5 บรรทัดเท่านั้น · เทสต์ใหม่ 4/4 · พิสูจน์การ์ดจับได้จริง (ลบ CSS → ตก 2 ข้อ) |
+| **Task 240 (Sketch Vision: OpenRouter + DeepSeek 4.1 Flash + เลือกผู้ให้บริการได้)** | **ชัย** (มอบหมาย 4 ต.ค. 69) | ซ่อม: อย่าฝังชื่อโมเดล (อ่านจาก env) · contents ต้องมี `role:"user"` · รองรับ location=global · ถอยโมเดลสำรองอัตโนมัติ · ห้าม error ดิบหลุดถึงลูกค้า — พร้อมเพิ่มผู้ให้บริการ OpenRouter (OpenAI-compatible, โมเดล `deepseek/deepseek-v4.1-flash`, รูปเป็น data URL, JSON mode) + เลือกด้วย `SKETCH_VISION_PROVIDER=openrouter\|gemini\|auto` + ส่ง usage ให้ cost center | `feat/chai-sketch-vision-openrouter-deepseek` | 🟡 **มอบหมายแล้ว** · ใบงาน `qa/job-240-chai-sketch-vision-openrouter-deepseek.md` ผ่านตรวจ **8/8** · ยิงจริงผ่าน OpenRouter สำเร็จ (HTTP 200 · 21.8 วิ · 1,847/5,509 โทเคน · อ่านสเก็ตช์ลูกค้าจริงได้) · รอชัยเปิด PR |
+| **Task 241 (Studio Model: อ่างหมุนกลับ + offsets ไม่ย้ายตามการย่อกระดาน)** | **ชัย** (มอบหมาย 4 ต.ค. 69) | `replaceStudioBasin` สลับ width/depth ซ้ำกับการหมุน (อ่างแนวตั้ง 500x350 กลับเป็น 350x500 = อาจหลุดระยะปลอดภัย 100 มม.) · `applyStudioSizePreset` แก้แค่ `xMm` แต่ตัววาดอ่าน offsets (ย่อ 1800→400 แต่อ่างยังวาดที่ x=725) · ห้ามเรียก `setBasinPlacementOrientation` กลับมา | `fix/chai-studio-model-basin-rotation-and-offsets` | 🟡 **มอบหมายแล้ว** · ใบงาน `qa/job-241-…` ผ่านตรวจ **8/8** · รอชัยเปิด PR |
+| **Task 242 (Studio/Sketch UI 6 จุด + ทิ้งแบบร่างรูปแบบเก่า)** | **รีพิต** (ทำเสร็จ 4 ต.ค. 69 · PR #287) — เดิมโอนไปให้บอย แต่รีพิตส่งงานก่อน จึงถือว่ารีพิตเป็นผู้ทำ · **บอยหยุดงานนี้** (กันทำซ้ำ/ชนไฟล์ StudioPage.tsx) | ลิงก์แชร์ใส่ `depth` · Undo flush ก่อนขยับ index · ความมั่นใจภาษาไทย · ปุ่ม PNG disable · ลบแท็บไม่เด้ง · แบบร่างเก่าเริ่มใหม่ | `fix/replit-studio-ui-share-undo-sketch` | 🟠 **รอแก้ 1 ข้อ** · เดวิดตรวจเอง: ข้อ 3 ยังพัง (API ส่ง `"high"` แล้วแสดง `ต่ำ (NaN%)` เพราะไม่ได้แปลง string · เทสต์เช็คแค่ข้อความในโค้ด) · CI เขียว · 414 เทสต์/ผ่าน 412/ตก 0 · index.css 0 diff |
+| **Task 243 (บันทึกกระบวนการ: ปิด PR #284/#285 โดยไม่ merge)** | **เดวิด** (4 ต.ค. 69) | PR #284 (api/sketch vision) และ #285 (Studio UI/logic) ถูก **ปิดโดยไม่ merge** ตามคำสั่งบอส เพราะงานต้องออกเป็นใบงานให้เจ้าของงานตามบทบาท → ย้ายงานเข้าใบงาน 240-C / 241-C / 242-R แล้ว (โค้ดในสาขาที่ปิดใช้เป็นจุดตั้งต้นได้ แต่ต้องมีเทสต์+หลักฐานของเจ้าของงานเอง) | `-` | ✅ ปิดแล้ว · งานที่เหลืออยู่ในใบงาน 240/241/242 |
+| **Task 244 (บอย (Freebuff) เข้าทีม: เจ้าของ Frontend/UI + ตรวจงานอิสระ)** | **เดวิด** (4 ต.ค. 69) | เขียนชุดความรู้เริ่มงาน `knight-design-kb/ONBOARDING-freebuff.md` (บทบาท/ขอบเขตไฟล์/กฎเหล็ก 10 ข้อ/คำสั่งพื้นฐาน/กระบวนการส่งงาน/โพรโทคอลตรวจงานอิสระ) + เพิ่มบทบาทบอยใน `TEAM.md` + ระบุเจ้าของไฟล์: บอย = `src/components/**`,`src/admin/**` · ชัย = `api-server/**`,`src/data/**` | `docs/job-240-chai-deepseek-sketch-vision` | ✅ เสร็จ · อยู่ใน PR #286 |
+
+---
+
+## 🔒 ทะเบียนไฟล์ที่ถูกถืออยู่ (In-flight file register) — บอสสั่งให้ตรวจเข้มข้น (4 ต.ค. 69)
+
+**กฎ:** ห้าม 2 ใบงานแก้ไฟล์เดียวกันพร้อมกัน · ก่อนออกใบงานใหม่ทุกครั้ง เดวิดต้องรันตัวตรวจนี้ก่อน
+
+```
+python3 /opt/data/bin/job_scope_conflicts.py            # ตรวจใบงานล่าสุดทุกเลขใน qa/ ว่ามีไฟล์ทับกันไหม
+python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะเบียน "ใบงานไหนถือไฟล์อะไร"
+```
+(exit code = 1 ถ้าพบไฟล์ทับกัน · ปิดงานแล้วให้ลบใบงานออกจากทะเบียนด้วยการ merge/ปิด PR)
+
+**สถานะ ณ 4 ต.ค. 69 (ตรวจแล้ว: ✅ ไม่มีไฟล์ทับกัน · ไฟล์ใน SCOPE 8 ไฟล์)**
+
+| ใบงาน | ผู้รับงาน | ไฟล์ที่ถือ |
+|---|---|---|
+| 240-C | ชัย | `artifacts/api-server/src/lib/sketch-vision.ts` · `src/lib/ai-cost-tracker.ts` · `src/routes/leads.ts` · `test/sketch-vision.test.ts` · `test/ai-cost-center.test.ts` |
+| 241-C | ชัย | `artifacts/knight-basins/src/data/studio-model.ts` · `test/studio-model.test.ts` |
+| 242-F | บอย (Freebuff) | `artifacts/knight-basins/src/components/StudioPage.tsx` |
+| **Task 245 (คัดลอกชุดเอกสารทีมเข้า repo ให้ worker ที่ต่อผ่าน GitHub อ่านได้)** | **เดวิด** (บอสยืนยัน 4 ต.ค. 69) | สร้าง `docs/team/` = สำเนา `ONBOARDING-freebuff.md` + `TEAM.md` + `README.md` (ดัชนี + กฎห้ามพลาด) พร้อมหมายเหตุว่าต้นฉบับอยู่ที่ KB และห้ามแก้สำเนาตรง ๆ — เพื่อให้บอย (Freebuff) ที่เข้าถึงได้เฉพาะ repo อ่านกฎ/บทบาทได้ครบ | `docs/job-240-chai-deepseek-sketch-vision` | ✅ เสร็จ · อยู่ใน PR #286 |
+| **Task 246 (Studio UI: ความมั่นใจ + ปลดล็อกราคาเมื่อกู้แบบร่าง + ลดคำขอ/บอกสาเหตุใน /sketch)** | **รีพิต** (มอบหมาย 4 ต.ค. 69) | 3 ข้อในไฟล์เดียว (`StudioPage.tsx`) รวมเป็น 1 สาขา/1 PR ต่อใน PR #287: แปลง confidence จากคำเป็น สูง/ปานกลาง/ต่ำ (ตอนนี้ "high" → "ต่ำ (NaN%)") · กู้แบบร่างแล้วเห็นราคาทันทีไม่ต้องกดประกอบซ้ำ · รวมคำขอวิเคราะห์เป็นชุดเดียว + แยกข้อความผิดพลาดตามสาเหตุ | `fix/replit-studio-ui-share-undo-sketch` | 🟡 **มอบหมายแล้ว** · ใบงาน `qa/job-246-replit-studio-ui-confidence-restore-sketch.md` ผ่านตรวจ **9/9** · ตรวจไฟล์ทับกันแล้วไม่มี |
+
