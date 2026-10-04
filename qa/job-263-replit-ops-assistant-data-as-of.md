@@ -24,7 +24,11 @@ SCOPE:
   - /opt/data/cache/kbsrc/artifacts/api-server/test/ops-assistant.test.ts
 
 FORBIDDEN:
-  - ห้ามแตะ `routes/admin-router.ts` (สัญญาเดิมต้องไม่พัง — เพิ่มได้แค่ฟิลด์ `dataAsOf`) · ห้ามแตะ `vertex-gemini.ts` · `sketch-*` · `routes/leads.ts`
+  - **`routes/admin-router.ts` — ได้รับอนุญาตเป็นกรณีเฉพาะ (เดวิดอนุมัติ 4 ต.ค. 69):** แก้ได้ **เฉพาะบรรทัดที่ส่ง response ของ `POST /admin/assistant/ask`** เพื่อ **เพิ่มฟิลด์ `dataAsOf`** เท่านั้น
+    · คง `ok` · `reply` · `message` · `mode` ให้เหมือนเดิมทุกกรณี (สำเร็จ/ล้มเหลว) · ห้ามเปลี่ยน/ลบฟิลด์เดิม · ห้ามแตะ logic/เส้นทางอื่นของไฟล์
+    · เทสต์ต้องยืนยัน: สำเร็จ → `ok/reply/mode` + `dataAsOf` (parse ได้) · ล้มเหลว → `ok:false` + `message` และ **ไม่มีบรรทัดข้อมูล ณ** · ไม่มีฟิลด์อื่นเพิ่ม
+    · ตรวจแล้วว่าผู้บริโภคเดิม (กล่องผู้ช่วย AI) อ่าน response แบบ JSON ธรรมดา (`await response.json()`) ⇒ ฟิลด์เพิ่มไม่ทำให้พัง
+  - ห้ามแตะ `vertex-gemini.ts` · `sketch-*` · `routes/leads.ts`
   - ห้ามแตะ UI ทุกไฟล์ (รวม `OpsAssistantWidget.tsx` · `AiCostCenterPage.tsx`) · ห้ามแตะ `src/index.css`
   - ห้ามเพิ่มไลบรารี (ใช้ `Intl` ที่มีอยู่) · ห้ามเปลี่ยนรุ่นโมเดล/env · ห้ามแตะ Production
 
