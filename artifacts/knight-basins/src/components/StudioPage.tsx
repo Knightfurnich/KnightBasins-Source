@@ -761,6 +761,17 @@ function studioDraftPiecesFromEdges(edges: Record<string, unknown>): StudioPiece
   return pieces;
 }
 
+/** Old-format drafts (saved before the rectangle-workpiece model) are not
+ * supported any more -- owner decision 4 Oct 2026: discard them and let the
+ * customer start a fresh plan, instead of opening a layout the app can never
+ * validate (it used to show a misleading "rectangles overlap" warning).
+ */
+export function isLegacyStudioDraftState(state: StudioState): boolean {
+  return state.pieces === undefined;
+}
+
+export const LEGACY_DRAFT_DISCARDED_MESSAGE = "แบบร่างนี้เป็นรูปแบบเก่า (ก่อนระบบชิ้นงาน) จึงเริ่มแบบใหม่ให้แล้ว — แบบร่างเก่าไม่รองรับแล้ว";
+
 function restoreStudioDraftState(
   current: StudioState,
   value: unknown,
@@ -4526,6 +4537,11 @@ export function StudioPage({
   };
   const resumeDraft = () => {
     if (!draftNotice) return;
+    if (isLegacyStudioDraftState(draftNotice.state)) {
+      startNewDraft();
+      setDraftResult(LEGACY_DRAFT_DISCARDED_MESSAGE);
+      return;
+    }
     setEditingNamedDraftId(null);
     setState(normalizeStudioState(draftNotice.state, basinProducts, stoneColors));
     setLastSavedAt(draftNotice.savedAt);
@@ -4641,6 +4657,12 @@ export function StudioPage({
     setDraftResult(`${existingDraft ? "อัปเดต" : "บันทึก"}แบบร่าง “${name}” แล้ว`);
   };
   const openNamedDraft = (draft: NamedStudioDraftRecord) => {
+    if (isLegacyStudioDraftState(draft.state)) {
+      setDraftDrawerOpen(false);
+      startNewDraft();
+      setDraftResult(LEGACY_DRAFT_DISCARDED_MESSAGE);
+      return;
+    }
     setEditingNamedDraftId(draft.id);
     setState(normalizeStudioState(draft.state, basinProducts, stoneColors));
     setLastSavedAt(draft.savedAt);

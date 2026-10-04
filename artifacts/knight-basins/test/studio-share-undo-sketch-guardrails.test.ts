@@ -40,3 +40,10 @@ test("deleting a non-active workpiece keeps the editor on the active one", () =>
   assert.match(studioPage, /const wasActive = \(current\.activePieceId \?\? pieceId\) === pieceId;/);
   assert.match(studioPage, /activePieceId: wasActive \? \(remaining\[0\]\?\.id \?\? ""\) : current\.activePieceId/);
 });
+
+test("old-format (pre-workpiece) drafts are discarded with a clear message instead of being opened", () => {
+  assert.match(studioPage, /export function isLegacyStudioDraftState\(state: StudioState\): boolean \{/);
+  assert.match(studioPage, /if \(isLegacyStudioDraftState\(draftNotice\.state\)\) \{/);
+  assert.match(studioPage, /if \(isLegacyStudioDraftState\(draft\.state\)\) \{/);
+  assert.match(studioPage, /LEGACY_DRAFT_DISCARDED_MESSAGE/);
+});
