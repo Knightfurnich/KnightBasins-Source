@@ -88,6 +88,8 @@ const originalEnv = {
   GOOGLE_API_KEY: process.env["GOOGLE_API_KEY"],
   VERTEX_AI_PROJECT_ID: process.env["VERTEX_AI_PROJECT_ID"],
   VERTEX_AI_LOCATION: process.env["VERTEX_AI_LOCATION"],
+  VERTEX_AI_MODEL: process.env["VERTEX_AI_MODEL"],
+  VERTEX_AI_FALLBACK_MODELS: process.env["VERTEX_AI_FALLBACK_MODELS"],
   GOOGLE_SERVICE_ACCOUNT_JSON: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   GOOGLE_APPLICATION_CREDENTIALS: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
 };
@@ -97,6 +99,8 @@ function clearSketchVisionCredentials() {
   delete process.env["GOOGLE_API_KEY"];
   delete process.env["VERTEX_AI_PROJECT_ID"];
   delete process.env["VERTEX_AI_LOCATION"];
+  delete process.env["VERTEX_AI_MODEL"];
+  delete process.env["VERTEX_AI_FALLBACK_MODELS"];
   delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
   delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
 }
@@ -444,6 +448,57 @@ describe("analyzeSketchImage", () => {
       assert.equal(item.confidence, "high");
     });
 
+    it("sends the request as a user turn -- Vertex rejects a content entry with no role", async () => {
+      setVertexConfigured();
+      let capturedBody: Record<string, unknown> = {};
+      mockVertexFetch((init) => {
+        capturedBody = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ shape: "I" }) }] } }] }), { status: 200 });
+      });
+      await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      const contents = capturedBody["contents"] as Array<{ role?: string }>;
+      assert.equal(contents[0]?.role, "user", "Vertex answers 400 'Please use a valid role' without it");
+    });
+
+    it("retries with the next candidate model when the configured model is retired", async () => {
+      setVertexConfigured();
+      process.env["VERTEX_AI_MODEL"] = "gemini-9.9-retired";
+      process.env["VERTEX_AI_FALLBACK_MODELS"] = "gemini-2.5-flash";
+      const attempted: string[] = [];
+      mock.method(globalThis, "fetch", async (input: string | URL) => {
+        const url = String(input);
+        if (url.startsWith("https://oauth2.googleapis.com/token")) {
+          return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+        }
+        if (url.includes("aiplatform.googleapis.com")) {
+          attempted.push(url.split("/models/")[1]!.split(":")[0]!);
+          if (url.includes("gemini-9.9-retired")) {
+            return new Response(JSON.stringify({
+              error: { code: 404, status: "NOT_FOUND", message: "Publisher model `projects/knight-basins-voice/locations/asia-southeast1/publishers/google/models/gemini-9.9-retired` was not found or your project does not have access to it." },
+            }), { status: 404 });
+          }
+          return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ shape: "L-left", confidence: "high" }) }] } }] }), { status: 200 });
+        }
+        return realFetch(input as never);
+      });
+      const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.deepEqual(attempted, ["gemini-9.9-retired", "gemini-2.5-flash"]);
+      assert.equal(item.shape, "L-left");
+      assert.equal(item.confidence, "high");
+    });
+
+    it("never hands the upstream Google error text to the customer-visible notes", async () => {
+      setVertexConfigured();
+      mockVertexFetch(() => new Response(JSON.stringify({
+        error: { code: 404, status: "NOT_FOUND", message: "Publisher model `projects/knight-basins-voice/locations/asia-southeast1/publishers/google/models/gemini-3.8-flash` was not found or your project does not have access to it." },
+      }), { status: 404 }));
+      const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
+      assert.equal(item.shape, "unknown");
+      assert.ok(item.notes, "the customer still needs to be told to fill the form by hand");
+      assert.ok(!String(item.notes).includes("knight-basins-voice"), "must not leak the GCP project id");
+      assert.ok(!String(item.notes).includes("Publisher model"), "must not leak the raw upstream error text");
+    });
+
     it("uses VERTEX_AI_LOCATION override in the request URL", async () => {
       setVertexConfigured();
       process.env["VERTEX_AI_LOCATION"] = "us-central1";
@@ -459,8 +514,12 @@ describe("analyzeSketchImage", () => {
         }
         return realFetch(input as never, init);
       });
+      // The model is configuration, not a literal in the source: VERTEX_AI_MODEL
+      // is written with vertex-gemini.ts's "google/" prefix and must be
+      // stripped for the native publisher path (a prefixed id is a 404).
+      process.env["VERTEX_AI_MODEL"] = "google/gemini-2.5-flash";
       await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
-      assert.equal(capturedUrl, "https://us-central1-aiplatform.googleapis.com/v1/projects/knight-basins-voice/locations/us-central1/publishers/google/models/gemini-3.8-flash:generateContent");
+      assert.equal(capturedUrl, "https://us-central1-aiplatform.googleapis.com/v1/projects/knight-basins-voice/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent");
     });
 
     it("falls back to an unknown item without throwing when the token exchange fails", async () => {
@@ -491,7 +550,9 @@ describe("analyzeSketchImage", () => {
         return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ shape: "L-left" }) }] } }] }), { status: 200 });
       });
       const item = await analyzeSketchImage(Buffer.from("fake-image-bytes"), "image/png", 0);
-      assert.match(capturedUrl, /^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-3\.8-flash:generateContent\?key=fake-api-key$/);
+      // A model the project actually serves (probed against the production
+      // service account); the previous literal here was a retired model.
+      assert.match(capturedUrl, /^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-2\.5-flash:generateContent\?key=fake-api-key$/);
       assert.equal(item.shape, "L-left");
     });
 

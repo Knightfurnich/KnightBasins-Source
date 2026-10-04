@@ -13,9 +13,9 @@
 // never include request content.
 
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken, type GoogleServiceAccountCredentials } from "./google-service-account.ts";
+import { isVertexModelNotFound, vertexPublisherModels } from "./vertex-model.ts";
 
 const REQUEST_TIMEOUT_MS = 30_000;
-const GEMINI_MODEL = "gemini-3.8-flash";
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 const DEFAULT_VERTEX_AI_LOCATION = "asia-southeast1";
 
@@ -71,6 +71,12 @@ export type SketchVisionItem = {
   notes: string | null;
   workpieceCount: number;
   workpieces: SketchWorkpiece[];
+};
+
+/** The subset of Gemini's generateContent response this module reads. */
+type GeminiGenerateContentPayload = {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  error?: { status?: string; message?: string };
 };
 
 const SKETCH_VISION_PROMPT = `คุณคือช่างประเมินหน้างานหินสังเคราะห์มืออาชีพระดับสูง กำลังดูภาพแบบร่าง (สเก็ตช์มือหรือแปลน) ของเคาน์เตอร์ครัว/อ่างล้างหน้าที่ลูกค้าหรือสถาปนิกวาดหรือถ่ายมา
@@ -144,16 +150,16 @@ export function sketchVisionConfigured() {
 /** Builds the request URL/headers for whichever auth mode is configured -- the
  * request body (contents/parts/inline_data) is identical either way since
  * Vertex AI's native generateContent endpoint mirrors the AI Studio API. */
-async function buildSketchVisionRequest(config: SketchVisionConfig): Promise<{ url: string; headers: Record<string, string> }> {
+async function buildSketchVisionRequest(config: SketchVisionConfig, model: string): Promise<{ url: string; headers: Record<string, string> }> {
   if (config.mode === "vertex") {
     const accessToken = await fetchGoogleAccessToken(config.credentials, VERTEX_AI_SCOPE);
     return {
-      url: `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${GEMINI_MODEL}:generateContent`,
+      url: `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
     };
   }
   return {
-    url: `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${config.apiKey}`,
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`,
     headers: { "Content-Type": "application/json" },
   };
 }
@@ -390,27 +396,51 @@ export async function analyzeSketchImage(buffer: Buffer, mimeType: string, index
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const { url, headers } = await buildSketchVisionRequest(config);
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: SKETCH_VISION_PROMPT },
-            { inline_data: { mime_type: mimeType, data: buffer.toString("base64") } },
-          ],
-        }],
-        generationConfig: { responseMimeType: "application/json" },
-      }),
-      signal: controller.signal,
-    });
+    const models = vertexPublisherModels();
+    let response: Response | null = null;
+    let payload: GeminiGenerateContentPayload | null = null;
 
-    const payload = await response.json().catch(() => null) as
-      { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>; error?: { message?: string } } | null;
+    for (let candidate = 0; candidate < models.length; candidate += 1) {
+      const model = models[candidate]!;
+      const { url, headers } = await buildSketchVisionRequest(config, model);
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          // Vertex rejects a content entry that carries no role with
+          // HTTP 400 "Please use a valid role: user, model." -- every request
+          // is a user turn.
+          contents: [{
+            role: "user",
+            parts: [
+              { text: SKETCH_VISION_PROMPT },
+              { inline_data: { mime_type: mimeType, data: buffer.toString("base64") } },
+            ],
+          }],
+          generationConfig: { responseMimeType: "application/json" },
+        }),
+        signal: controller.signal,
+      });
+      payload = await response.json().catch(() => null) as GeminiGenerateContentPayload | null;
 
-    if (!response.ok) {
-      return unknownItem(index, payload?.error?.message ?? `เรียก Gemini Vision ไม่สำเร็จ (${response.status})`);
+      if (response.ok) break;
+      // A retired/renamed model is the one failure another candidate can fix;
+      // anything else (auth, quota, bad request) is reported as-is below.
+      const nextModel = models[candidate + 1];
+      if (nextModel && isVertexModelNotFound(response.status, payload)) {
+        console.warn(`[sketch-vision] model "${model}" is not served by this project (HTTP ${response.status}); retrying with "${nextModel}". Update VERTEX_AI_MODEL to a model the project serves.`);
+        continue;
+      }
+      break;
+    }
+
+    if (!response || !response.ok) {
+      // The upstream text can name the GCP project, region and model path, so
+      // it is logged for operators and never handed to the customer-visible
+      // `notes` field (job-194 error hygiene: a public page must not disclose
+      // internal error text).
+      console.warn(`[sketch-vision] generateContent failed: HTTP ${response?.status ?? "unknown"} ${payload?.error?.message ?? ""}`.trim());
+      return unknownItem(index, "ตอนนี้ระบบอ่านภาพไม่สำเร็จ กรุณากรอกขนาดด้วยตนเอง");
     }
     const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (typeof text !== "string" || !text.trim()) {

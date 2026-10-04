@@ -3,9 +3,9 @@ import {
   loadGoogleServiceAccountCredentials,
   type GoogleServiceAccountCredentials,
 } from "./google-service-account.ts";
+import { isVertexModelNotFound, vertexPublisherModels } from "./vertex-model.ts";
 
 const REQUEST_TIMEOUT_MS = 30_000;
-const GEMINI_MODEL = "gemini-3.8-flash";
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 const DEFAULT_VERTEX_AI_LOCATION = "asia-southeast1";
 const SLAB_IMAGE_ORIGIN = "https://api.srv1964473.hstgr.cloud";
@@ -243,7 +243,6 @@ export async function suggestStonesForPhoto(
   const request = async (): Promise<StoneMatchResult> => {
     const slabImages = await fetchSlabImages(candidates, controller.signal);
     const accessToken = await fetchGoogleAccessToken(config.credentials, VERTEX_AI_SCOPE);
-    const url = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${GEMINI_MODEL}:generateContent`;
     const parts: Array<Record<string, unknown>> = [
       { text: prompt },
       { text: "Customer room photo:" },
@@ -254,28 +253,44 @@ export async function suggestStonesForPhoto(
       parts.push({ inline_data: { mime_type: image.mimeType, data: image.base64 } });
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { responseMimeType: "application/json" },
-      }),
-      signal: controller.signal,
-    });
-    const payload = await response.json().catch(() => null) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: unknown }> } }>;
-    } | null;
-    if (!response.ok) {
-      return { status: "failed", message: `Gemini Vision returned HTTP ${response.status}.` };
-    }
+    const models = vertexPublisherModels();
+    for (let candidate = 0; candidate < models.length; candidate += 1) {
+      const model = models[candidate]!;
+      const url = `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${model}:generateContent`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          // Vertex rejects a content entry that carries no role with
+          // HTTP 400 "Please use a valid role: user, model."
+          contents: [{ role: "user", parts }],
+          generationConfig: { responseMimeType: "application/json" },
+        }),
+        signal: controller.signal,
+      });
+      const payload = await response.json().catch(() => null) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: unknown }> } }>;
+        error?: { status?: string; message?: string };
+      } | null;
+      if (!response.ok) {
+        // A retired/renamed model is the one failure a different candidate can
+        // fix; anything else (auth, quota, bad request) is reported as-is.
+        const nextModel = models[candidate + 1];
+        if (nextModel && isVertexModelNotFound(response.status, payload)) {
+          console.warn(`[stone-matcher] model "${model}" is not served by this project (HTTP ${response.status}); retrying with "${nextModel}". Update VERTEX_AI_MODEL to a model the project serves.`);
+          continue;
+        }
+        return { status: "failed", message: `Gemini Vision returned HTTP ${response.status}.` };
+      }
 
-    const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (typeof text !== "string" || !text.trim()) return { status: "ok", matches: [] };
-    return { status: "ok", matches: parseMatches(text, allowedCandidates) };
+      const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (typeof text !== "string" || !text.trim()) return { status: "ok", matches: [] };
+      return { status: "ok", matches: parseMatches(text, allowedCandidates) };
+    }
+    return { status: "failed", message: "No Gemini model configured for this project is available." };
   };
 
   try {

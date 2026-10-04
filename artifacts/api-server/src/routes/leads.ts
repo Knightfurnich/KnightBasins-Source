@@ -23,6 +23,7 @@ import {
   withServerPricing,
 } from "../lib/price-integrity";
 import { analyzeSketchImage } from "../lib/sketch-vision";
+import { resolveVertexPublisherModel } from "../lib/vertex-model";
 import {
   createQuoteAccessSecret,
   isPublicQuoteTokenExpired,
@@ -44,10 +45,9 @@ const MAX_SKETCH_FILES = 5;
 // Separate limit from MAX_SKETCH_FILES above (which caps the /leads/sketch lead-submission
 // upload at 5): job-72 calls for a distinct cap of 3 for the AI vision-analysis endpoint.
 const MAX_SKETCH_VISION_FILES = 3;
-// Mirrors sketch-vision.ts's own GEMINI_MODEL constant, for cost-tracking labeling only.
-// job-82's SCOPE excludes sketch-vision.ts, so this can't import that constant directly;
-// keep this literal in sync if that model ever changes.
-const SKETCH_VISION_COST_MODEL = "gemini-3.8-flash";
+// Cost records are labelled with the model the request will actually use, so
+// the AI cost centre keeps matching after the model is switched by env.
+const SKETCH_VISION_COST_MODEL = resolveVertexPublisherModel();
 
 export const STUDIO_DATA_REQUIRED_ERROR = "STUDIO_DATA_REQUIRED";
 export const STUDIO_DATA_REQUIRED_MESSAGE = "คำขอใบเสนอราคาต้องแนบข้อมูลผังเคาน์เตอร์หรือรายการสินค้าที่เลือก";
