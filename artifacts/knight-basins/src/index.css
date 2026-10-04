@@ -1152,6 +1152,11 @@ h1, h2, h3 { color: var(--ink); }
 .knight-support-message--user { justify-self: end; color: white; background: var(--brand-blue); }
 .knight-support-message-wrap { display: grid; gap: 6px; }
 .knight-support-message-wrap--user { justify-items: end; }
+.knight-support-speak-button { justify-self: start; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid #8fc5df; border-radius: 7px; background: white; color: var(--brand-blue); font-size: 12px; font-weight: 600; cursor: pointer; }
+.knight-support-speak-button:hover { background: #eaf7fc; }
+.knight-support-speak-button:disabled { opacity: .5; cursor: not-allowed; }
+.knight-support-speak-spin { animation: knight-support-speak-spin 1s linear infinite; }
+@keyframes knight-support-speak-spin { to { transform: rotate(360deg); } }
 .knight-support-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .knight-support-actions button { padding: 6px 8px; border: 1px solid #8fc5df; border-radius: 7px; color: var(--brand-blue); background: white; font-size: 12px; }
 .knight-support-actions button:hover { background: #eaf7fc; }
