@@ -20,6 +20,17 @@ GOAL:
   3. ยิงทดสอบจริงกับผู้ให้บริการจริง (มีคีย์ OpenRouter อยู่ใน /docker/knightbasins/.env แล้ว) อย่างน้อย 1 ภาพ
      และแนบผลจริงว่าได้ข้อความ/JSON กลับมา พร้อมเวลาที่ใช้
 
+ข้อมูลจากเอกสาร OpenRouter (เดวิดตรวจเพิ่มให้ 4 ต.ค. 69) — ใช้หาเหตุ "sent no text":
+  - ปลายทางถูกแล้ว: POST {base}/chat/completions โดย base = https://openrouter.ai/api/v1
+  - header ที่จำเป็นคือ Authorization: Bearer เท่านั้น · HTTP-Referer และ X-OpenRouter-Title เป็นตัวเลือก
+    (โค้ดปัจจุบันส่ง X-Title ซึ่งชื่อตามเอกสารใหม่คือ X-OpenRouter-Title — ไม่กระทบผลลัพธ์ แต่ควรแก้ให้ตรง)
+  - อ่านข้อความจาก choices[0].message.content ถูกต้องแล้ว แต่เมื่อได้ข้อความว่าง ให้เก็บหลักฐานเพิ่ม:
+    finish_reason · usage.completion_tokens · และ message.reasoning (โมเดลแบบ thinking อาจคืนคำตอบไว้ที่นั่น
+    หรือถูกตัดกลางทางเพราะโทเคนไม่พอ)
+  - แนวทางที่ควรลองและวัดผล: กำหนด max_tokens ให้เพียงพอ (เช่น 4096) · ลองไม่ส่ง response_format json_object
+    ในเส้นทาง OpenRouter (prompt บังคับ JSON อยู่แล้ว) เพราะผู้ให้บริการบางรายคืน content ว่างเมื่อเปิด json_object
+  - ต้อง log ก้อนคำตอบเต็มเมื่อข้อความว่าง เพื่อให้รอบต่อไปเห็นสาเหตุได้ทันที
+
 ห้ามทำในใบงานนี้ (แยกใบงานต่างหากถ้าพบ): บั๊กเดียวกันใน stone-matcher.ts (ฝังชื่อโมเดล Gemini เก่า + region ผิด)
   และเรื่องนโยบายความเป็นส่วนตัวของการส่งภาพออกไป OpenRouter (รอเจ้าของตัดสิน)
 
