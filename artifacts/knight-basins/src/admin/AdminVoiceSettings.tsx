@@ -4,6 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useGetAdminSupportVoice, useUpdateAdminSupportVoice } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 
+// Speeds the admin can pick here; the API accepts 0.8 to 1.5 in steps of 0.05 (job-255).
+const SPEED_CHOICES = [1, 1.25, 1.5] as const;
+
+function formatRate(rate: number) {
+  return rate.toFixed(2);
+}
+
 function errorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message;
   return "ไม่สามารถบันทึกเสียงได้ กรุณาลองใหม่";
@@ -14,6 +21,8 @@ export function AdminVoiceSettings() {
   const [previewError, setPreviewError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [notice, setNotice] = useState("");
+  // The speed picked on this page but not necessarily saved yet; null means "the saved speed".
+  const [selectedRate, setSelectedRate] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const settingsQuery = useGetAdminSupportVoice();
@@ -21,6 +30,9 @@ export function AdminVoiceSettings() {
   const current = settingsQuery.data?.current;
   const enabled = (current as { enabled?: unknown } | undefined)?.enabled === true;
   const options = settingsQuery.data?.options ?? [];
+  const savedRate = current?.speakingRate ?? 1;
+  const effectiveRate = selectedRate ?? savedRate;
+  const rateChanged = selectedRate !== null && Math.abs(selectedRate - savedRate) > 1e-9;
 
   const previewVoice = async (voiceName: string) => {
     if (previewingVoice !== null) return;
@@ -30,7 +42,8 @@ export function AdminVoiceSettings() {
       const response = await fetch("/api/admin/support-voice/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voiceName }),
+        // the preview speaks at the speed picked above, saved or not, so the admin hears what they are about to save
+        body: JSON.stringify({ voiceName, speakingRate: effectiveRate }),
       });
       if (!response.ok) throw new Error("เล่นตัวอย่างเสียงไม่สำเร็จ");
       const blob = await response.blob();
@@ -55,6 +68,20 @@ export function AdminVoiceSettings() {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: ["/api/admin/support-voice"] });
         setNotice("บันทึกเสียงน้องไนท์แล้ว");
+      },
+    });
+  };
+
+  const saveSpeakingRate = () => {
+    if (!current || !rateChanged || selectedRate === null || settingsQuery.isLoading || settingsQuery.isError || updateVoice.isPending) return;
+    setSaveError("");
+    setNotice("");
+    const rate = selectedRate;
+    updateVoice.mutate({ data: { voiceName: current.voiceName, speakingRate: rate } }, {
+      onError: (error) => setSaveError(errorMessage(error)),
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/support-voice"] });
+        setNotice(`บันทึกความเร็วเสียงเป็น ${formatRate(rate)} เท่าแล้ว`);
       },
     });
   };
@@ -128,6 +155,59 @@ export function AdminVoiceSettings() {
               className={`h-4 w-4 rounded-full bg-white shadow-sm ring-1 ring-black/20 transition-transform ${enabled ? "translate-x-5" : "translate-x-0"}`}
             />
           </button>
+        </div>
+      </section>
+
+      <section
+        className="space-y-4 border border-[var(--line)] bg-[var(--card-paper)] p-5 rounded-none"
+        data-testid="panel-voice-speed"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display">ความเร็วเสียง</h2>
+            <p className="mt-2 max-w-2xl text-sm text-[var(--ink-soft)]">
+              ปรับความเร็วที่น้องไนท์พูด กด “ฟังตัวอย่าง” ด้านล่างเพื่อฟังที่ความเร็วที่เลือกก่อนบันทึก
+            </p>
+          </div>
+          <p className="shrink-0 text-sm font-semibold text-[var(--ink)]" data-testid="status-voice-speed-current" aria-live="polite">
+            {settingsQuery.isLoading || settingsQuery.isError || !current
+              ? "ความเร็ว —"
+              : `ความเร็ว ${formatRate(savedRate)} เท่า`}
+            {rateChanged && (
+              <span className="ml-2 font-normal text-[var(--ink-soft)]" data-testid="status-voice-speed-pending">
+                (เลือก {formatRate(effectiveRate)} เท่า ยังไม่บันทึก)
+              </span>
+            )}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="เลือกความเร็วเสียง">
+          {SPEED_CHOICES.map((rate) => {
+            const isChosen = Math.abs(effectiveRate - rate) < 1e-9;
+            return (
+              <Button
+                key={rate}
+                type="button"
+                variant="outline"
+                aria-pressed={isChosen}
+                disabled={!current || settingsQuery.isLoading || settingsQuery.isError}
+                onClick={() => setSelectedRate(rate)}
+                className={`rounded-none ${isChosen ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)] hover:bg-[var(--ink)] hover:text-[var(--paper)]" : ""}`}
+                data-testid={`button-voice-speed-${formatRate(rate)}`}
+              >
+                {formatRate(rate)} เท่า
+              </Button>
+            );
+          })}
+          <Button
+            type="button"
+            className="ml-auto rounded-none bg-[var(--ink)] text-[var(--paper)]"
+            disabled={!rateChanged || updateVoice.isPending || !current}
+            onClick={saveSpeakingRate}
+            data-testid="button-save-voice-speed"
+          >
+            {updateVoice.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+            บันทึกความเร็ว
+          </Button>
         </div>
       </section>
 

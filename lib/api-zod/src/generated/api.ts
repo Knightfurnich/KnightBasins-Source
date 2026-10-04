@@ -2451,9 +2451,15 @@ export const GetAdminSupportVoiceResponse = zod.object({
 /**
  * @summary Change the voice น้องไนท์ speaks with
  */
+export const updateAdminSupportVoiceBodySpeakingRateMin = 0.8;
+export const updateAdminSupportVoiceBodySpeakingRateMax = 1.5;
+
+
+
 export const UpdateAdminSupportVoiceBody = zod.object({
   "voiceName": zod.string().describe('Must match one of the voiceName values from GET \/admin\/support-voice\'s options list'),
-  "enabled": zod.boolean().optional().describe('Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off)')
+  "enabled": zod.boolean().optional().describe('Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off)'),
+  "speakingRate": zod.number().min(updateAdminSupportVoiceBodySpeakingRateMin).max(updateAdminSupportVoiceBodySpeakingRateMax).optional().describe('How fast น้องไนท์ speaks, as a multiple of normal speed, from 0.8 to 1.5 in steps of 0.05 (e.g. 1.25); a value outside that range or off the 0.05 grid is rejected with 400; when omitted the saved value is kept')
 })
 
 export const UpdateAdminSupportVoiceResponse = zod.object({

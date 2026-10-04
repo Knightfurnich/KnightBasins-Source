@@ -1697,6 +1697,12 @@ export interface SupportVoiceUpdateInput {
   voiceName: string;
   /** Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off) */
   enabled?: boolean;
+  /**
+     * How fast น้องไนท์ speaks, as a multiple of normal speed, from 0.8 to 1.5 in steps of 0.05 (e.g. 1.25); a value outside that range or off the 0.05 grid is rejected with 400; when omitted the saved value is kept
+     * @minimum 0.8
+     * @maximum 1.5
+     */
+  speakingRate?: number;
 }
 
 export type SitePhotoStage = typeof SitePhotoStage[keyof typeof SitePhotoStage];

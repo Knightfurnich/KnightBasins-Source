@@ -306,7 +306,8 @@ describe("source guards (admin-router.ts)", () => {
 
   it("saves enabled on both the update path (keeping the old value when omitted) and the insert path (default off)", () => {
     assert.match(adminSource, /enabled: requestedEnabled \?\? existing\.enabled/);
-    assert.match(adminSource, /\.values\(\{ voiceName: option\.voiceName, enabled: requestedEnabled \?\? false \}\)/);
+    // job-255 added speakingRate to this insert; the enabled default (off) is what this guards
+    assert.match(adminSource, /\.values\(\{ voiceName: option\.voiceName, enabled: requestedEnabled \?\? false[,}]/);
   });
 });
 
