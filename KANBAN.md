@@ -383,3 +383,24 @@
 | **Task 242 (Studio/Sketch UI 6 จุด + ทิ้งแบบร่างรูปแบบเก่า)** | **บอย (Freebuff)** (โอนจาก Replit 4 ต.ค. 69 ตามที่บอสกำหนดเจ้าของ Frontend/UI) | ลิงก์แชร์ขาด `depth` · Undo ข้ามสเต็ปใน 500 มส. · การ์ด "ความมั่นใจ" ขึ้น "ยังไม่ระบุ" (string ถูกแปลงเป็น Number) · ปุ่ม PNG ไม่มี disabled · ลบแท็บชิ้นงานแล้วเด้งไปชิ้นอื่น · แบบร่างเก่าให้เริ่มใหม่พร้อมข้อความไทย | `fix/freebuff-studio-ui-share-undo-sketch` | 🟡 **มอบหมายแล้ว** · ใบงาน `qa/job-242-freebuff-studio-ui-share-undo-sketch.md` ผ่านตรวจ **9/9** · รอบอยเปิด PR |
 | **Task 243 (บันทึกกระบวนการ: ปิด PR #284/#285 โดยไม่ merge)** | **เดวิด** (4 ต.ค. 69) | PR #284 (api/sketch vision) และ #285 (Studio UI/logic) ถูก **ปิดโดยไม่ merge** ตามคำสั่งบอส เพราะงานต้องออกเป็นใบงานให้เจ้าของงานตามบทบาท → ย้ายงานเข้าใบงาน 240-C / 241-C / 242-R แล้ว (โค้ดในสาขาที่ปิดใช้เป็นจุดตั้งต้นได้ แต่ต้องมีเทสต์+หลักฐานของเจ้าของงานเอง) | `-` | ✅ ปิดแล้ว · งานที่เหลืออยู่ในใบงาน 240/241/242 |
 | **Task 244 (บอย (Freebuff) เข้าทีม: เจ้าของ Frontend/UI + ตรวจงานอิสระ)** | **เดวิด** (4 ต.ค. 69) | เขียนชุดความรู้เริ่มงาน `knight-design-kb/ONBOARDING-freebuff.md` (บทบาท/ขอบเขตไฟล์/กฎเหล็ก 10 ข้อ/คำสั่งพื้นฐาน/กระบวนการส่งงาน/โพรโทคอลตรวจงานอิสระ) + เพิ่มบทบาทบอยใน `TEAM.md` + ระบุเจ้าของไฟล์: บอย = `src/components/**`,`src/admin/**` · ชัย = `api-server/**`,`src/data/**` | `docs/job-240-chai-deepseek-sketch-vision` | ✅ เสร็จ · อยู่ใน PR #286 |
+
+---
+
+## 🔒 ทะเบียนไฟล์ที่ถูกถืออยู่ (In-flight file register) — บอสสั่งให้ตรวจเข้มข้น (4 ต.ค. 69)
+
+**กฎ:** ห้าม 2 ใบงานแก้ไฟล์เดียวกันพร้อมกัน · ก่อนออกใบงานใหม่ทุกครั้ง เดวิดต้องรันตัวตรวจนี้ก่อน
+
+```
+python3 /opt/data/bin/job_scope_conflicts.py            # ตรวจใบงานล่าสุดทุกเลขใน qa/ ว่ามีไฟล์ทับกันไหม
+python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะเบียน "ใบงานไหนถือไฟล์อะไร"
+```
+(exit code = 1 ถ้าพบไฟล์ทับกัน · ปิดงานแล้วให้ลบใบงานออกจากทะเบียนด้วยการ merge/ปิด PR)
+
+**สถานะ ณ 4 ต.ค. 69 (ตรวจแล้ว: ✅ ไม่มีไฟล์ทับกัน · ไฟล์ใน SCOPE 8 ไฟล์)**
+
+| ใบงาน | ผู้รับงาน | ไฟล์ที่ถือ |
+|---|---|---|
+| 240-C | ชัย | `artifacts/api-server/src/lib/sketch-vision.ts` · `src/lib/ai-cost-tracker.ts` · `src/routes/leads.ts` · `test/sketch-vision.test.ts` · `test/ai-cost-center.test.ts` |
+| 241-C | ชัย | `artifacts/knight-basins/src/data/studio-model.ts` · `test/studio-model.test.ts` |
+| 242-F | บอย (Freebuff) | `artifacts/knight-basins/src/components/StudioPage.tsx` |
+
