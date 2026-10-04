@@ -19,6 +19,7 @@ export function AdminVoiceSettings() {
   const settingsQuery = useGetAdminSupportVoice();
   const updateVoice = useUpdateAdminSupportVoice();
   const current = settingsQuery.data?.current;
+  const enabled = (current as { enabled?: unknown } | undefined)?.enabled === true;
   const options = settingsQuery.data?.options ?? [];
 
   const previewVoice = async (voiceName: string) => {
@@ -58,6 +59,20 @@ export function AdminVoiceSettings() {
     });
   };
 
+  const toggleVoiceEnabled = () => {
+    if (!current || settingsQuery.isLoading || settingsQuery.isError || updateVoice.isPending) return;
+    setSaveError("");
+    setNotice("");
+    const updateData = { voiceName: current.voiceName, enabled: !enabled };
+    updateVoice.mutate({ data: updateData }, {
+      onError: (error) => setSaveError(errorMessage(error)),
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["/api/admin/support-voice"] });
+        setNotice(updateData.enabled ? "เปิดใช้งานเสียงน้องไนท์แล้ว" : "ปิดใช้งานเสียงน้องไนท์แล้ว");
+      },
+    });
+  };
+
   return (
     <div className="space-y-8" data-testid="admin-voice-settings">
       <header className="border-b border-[var(--line)] pb-7">
@@ -80,6 +95,35 @@ export function AdminVoiceSettings() {
           <p>{saveError || previewError}</p>
         </div>
       )}
+
+      <section
+        className="flex items-start justify-between gap-4 border border-[var(--line)] bg-[var(--card-paper)] p-5 rounded-none"
+        data-testid="panel-voice-enabled"
+      >
+        <div>
+          <h2 className="font-display">เปิดใช้งานเสียงน้องไนท์</h2>
+          <p className="mt-2 max-w-2xl text-sm text-[var(--ink-soft)]">
+            เมื่อปิด ลูกค้าจะไม่เห็นปุ่ม “ฟังเสียง” ในหน้าเว็บ ค่าเริ่มต้นปิดไว้เพราะ Google Cloud TTS มีค่าใช้จ่าย
+          </p>
+          <p className="mt-3 text-sm font-medium" data-testid="status-voice-enabled-state">
+            {enabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-label="เปิดใช้งานเสียงน้องไนท์"
+          aria-checked={enabled}
+          disabled={!current || settingsQuery.isLoading || settingsQuery.isError || updateVoice.isPending}
+          onClick={toggleVoiceEnabled}
+          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-[var(--line)] p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50 ${enabled ? "bg-[var(--ink)]" : "bg-[var(--card-paper)]"}`}
+          data-testid="toggle-voice-enabled"
+        >
+          <span
+            className={`h-4 w-4 rounded-full bg-[var(--paper)] transition-transform ${enabled ? "translate-x-5" : "translate-x-0"}`}
+          />
+        </button>
+      </section>
 
       {settingsQuery.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2" aria-label="กำลังโหลดรายการเสียง" data-testid="status-voice-settings-loading">
