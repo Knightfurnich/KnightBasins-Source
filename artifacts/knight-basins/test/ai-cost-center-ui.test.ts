@@ -193,7 +193,20 @@ describe("AI cost center UI contract", () => {
     assert.match(pageSource, /credentials: "include"/);
     assert.match(pageSource, /currency: "THB",\s+minimumFractionDigits: 2,\s+maximumFractionDigits: 2/);
     assert.match(pageSource, /\(data\.totalCostThb \* 100\) \/ data\.totalRequests/);
-    assert.match(pageSource, /decimalFormatter\.format\(averageSatang\)/);
+    // job-250: the card shows the same figure in baht, formatted like the other amounts on the page
+    assert.match(pageSource, /averageBahtPerRequest = averageSatang \/ 100/);
+    assert.match(pageSource, /value=\{formatThb\(averageBahtPerRequest\)\}/);
+    assert.match(pageSource, /title="ต้นทุนเฉลี่ยต่อคำขอ \(บาท\)"/);
+  });
+
+  it("no longer says satang anywhere on the page, its LINE summary or its CSV", () => {
+    assert.ok(!pageSource.includes("สตางค์"), "the page must not mention satang");
+    assert.ok(!/decimalFormatter/.test(pageSource), "the satang number formatter should be gone");
+  });
+
+  it("an empty period (no requests) cannot make the average NaN or Infinity: it falls back to 0 and is formatted as baht", () => {
+    assert.match(pageSource, /data && data\.totalRequests > 0\s*\?[\s\S]*?:\s*0;/);
+    assert.match(pageSource, /function formatThb\(value: number\) \{\s*return thbFormatter\.format\(Number\.isFinite\(value\) \? value : 0\);/);
   });
 
   it("registers the admin route and enforces the existing leads permission", () => {
@@ -272,6 +285,9 @@ describe("AI cost center browser behavior", () => {
         if (period === "all" && failAllPeriod) {
           responseCode = 503;
           body = { message: "fixture unavailable" };
+        } else if (period === "today") {
+          // a period in which nothing was requested yet: every total is 0
+          body = { ...BROWSER_COST_RESPONSE, period, totalCostThb: 0, totalRequests: 0, totalTokens: 0, services: [], modelBreakdown: [] };
         } else {
           body = { ...BROWSER_COST_RESPONSE, period };
         }
@@ -346,7 +362,11 @@ describe("AI cost center browser behavior", () => {
       }
 
       const initialText = await page.evaluate<string>("document.body?.innerText ?? ''");
-      assert.ok(initialText.includes("38,312.50"), "Average cost should display satang to two decimal places");
+      // 1,532.50 THB over 4 requests: 383.125 baht, shown to two decimals in baht (it used to read 38,312.50 satang)
+      assert.ok(initialText.includes("ต้นทุนเฉลี่ยต่อคำขอ (บาท)"));
+      assert.ok(initialText.includes("฿383.13"), "Average cost should display baht to two decimal places");
+      assert.ok(!initialText.includes("สตางค์"), "the page must not mention satang");
+      assert.ok(!initialText.includes("38,312.50"));
       assert.ok(!initialText.includes("sk-fixture-secret-must-not-render"));
       assert.ok(!initialText.includes("provider-fixture-token-must-not-render"));
       assert.ok(!initialText.includes("private-fixture@example.test"));
@@ -379,6 +399,17 @@ describe("AI cost center browser behavior", () => {
         (text) => text.replace(/\s+/g, " ").includes("ช่วงข้อมูล: 7 วัน"),
         "The selected period label did not update",
       );
+
+      await page.evaluate<boolean>(
+        `(() => { document.querySelector('[data-testid="tab-ai-cost-period-today"]')?.click(); return true; })()`,
+      );
+      await waitForBrowserValue(
+        () => page!.evaluate<string>(`document.querySelector('[data-testid="card-ai-cost-average"]')?.innerText ?? ''`),
+        (text) => text.includes("฿0.00"),
+        "An empty period should show an average of ฿0.00",
+      );
+      const emptyAverage = await page.evaluate<string>(`document.querySelector('[data-testid="card-ai-cost-average"]')?.innerText ?? ''`);
+      assert.ok(!/NaN|Infinity|สตางค์/.test(emptyAverage), `the empty-period average is not a plain 0.00 baht: ${emptyAverage}`);
 
       await page.evaluate<boolean>(
         `(() => { document.querySelector('[data-testid="tab-ai-cost-period-all"]')?.click(); return true; })()`,

@@ -88,10 +88,6 @@ const thbFormatter = new Intl.NumberFormat("th-TH", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-const decimalFormatter = new Intl.NumberFormat("th-TH", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 function useAiCostCenter(period: AiCostPeriod) {
   return useQuery<AiCostCenterResponse>({
@@ -310,9 +306,11 @@ export default function AiCostCenterPage() {
   const { toast } = useToast();
   const { data, isError, isFetching, isLoading, refetch } = useAiCostCenter(period);
   const selectedPeriod = periods.find((item) => item.value === period) ?? periods[2];
+  // The formula is unchanged (it is worked out in satang); the card shows it in baht like every other amount on the page.
   const averageSatang = data && data.totalRequests > 0
     ? (data.totalCostThb * 100) / data.totalRequests
     : 0;
+  const averageBahtPerRequest = averageSatang / 100;
   const handleExportCsv = () => {
     if (!data) return;
     const csv = exportAiCostToCsv(data, period);
@@ -457,8 +455,8 @@ export default function AiCostCenterPage() {
               testId="card-ai-cost-tokens"
             />
             <MetricCard
-              title="ต้นทุนเฉลี่ยต่อคำขอ"
-              value={`${decimalFormatter.format(averageSatang)} สตางค์`}
+              title="ต้นทุนเฉลี่ยต่อคำขอ (บาท)"
+              value={formatThb(averageBahtPerRequest)}
               detail="คำนวณจากคำขอทั้งหมด"
               icon={BarChart3}
               accent="rose"
