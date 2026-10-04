@@ -409,6 +409,8 @@ export const supportVoiceSettings = pgTable("support_voice_settings", {
   voiceName: varchar("voice_name", { length: 64 }).notNull(),
   languageCode: varchar("language_code", { length: 16 }).notNull().default("th-TH"),
   speakingRate: real("speaking_rate").notNull().default(1.0),
+  // The voice feature costs Google TTS quota per character, so it ships OFF; an admin switches it on.
+  enabled: boolean("enabled").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

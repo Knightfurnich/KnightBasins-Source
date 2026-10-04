@@ -3322,12 +3322,14 @@ export function createAdminRouter(
     }
   });
 
-  function serializeSupportVoiceSetting(row: { voiceName: string; languageCode: string; speakingRate: number; updatedAt: Date } | null) {
+  function serializeSupportVoiceSetting(row: { voiceName: string; languageCode: string; speakingRate: number; enabled?: boolean; updatedAt: Date } | null) {
     const resolved = resolveVoiceConfig(row);
     return {
       voiceName: resolved.voiceName,
       languageCode: resolved.languageCode,
       speakingRate: resolved.speakingRate,
+      // No row yet means the admin never switched voice on: it stays off.
+      enabled: row?.enabled ?? false,
       updatedAt: (row?.updatedAt ?? new Date()).toISOString(),
     };
   }
@@ -3349,20 +3351,21 @@ export function createAdminRouter(
     if (!parsed.success) return invalid(res, "voiceName is required", parsed.error.flatten());
     const option = SUPPORT_VOICE_OPTIONS.find((candidate) => candidate.voiceName === parsed.data.voiceName);
     if (!option) return invalid(res, "voiceName must be one of the curated options");
+    const requestedEnabled = parsed.data.enabled;
 
     try {
       const [existing] = await database.select().from(supportVoiceSettings).orderBy(desc(supportVoiceSettings.id)).limit(1);
       if (existing) {
         const [updated] = await database
           .update(supportVoiceSettings)
-          .set({ voiceName: option.voiceName, updatedAt: new Date() })
+          .set({ voiceName: option.voiceName, enabled: requestedEnabled ?? existing.enabled, updatedAt: new Date() })
           .where(eq(supportVoiceSettings.id, existing.id))
           .returning();
         return res.json(serializeSupportVoiceSetting(updated));
       }
       const [created] = await database
         .insert(supportVoiceSettings)
-        .values({ voiceName: option.voiceName })
+        .values({ voiceName: option.voiceName, enabled: requestedEnabled ?? false })
         .returning();
       return res.json(serializeSupportVoiceSetting(created));
     } catch (error) {

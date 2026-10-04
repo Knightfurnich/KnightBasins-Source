@@ -1486,6 +1486,14 @@ export const SendSupportChatMessageResponse = zod.object({
 
 
 /**
+ * @summary Whether the น้องไนท์ voice feature is switched on (public, never cached)
+ */
+export const GetSupportVoiceStatusResponse = zod.object({
+  "enabled": zod.boolean().describe('Whether POST \/support\/speech currently accepts requests')
+})
+
+
+/**
  * Unlike /leads/payment-slip (which has the quote's signed access token from the saved-quote page URL), this endpoint has no token in context -- KnightSupport is the same floating widget on every page. Ownership is proven either by an authenticated LINE session that owns the quote, or by the phone number on file for that quote.
  * @summary Upload a payment slip through the KnightSupport chat widget
  */
@@ -2430,6 +2438,7 @@ export const GetAdminSupportVoiceResponse = zod.object({
   "voiceName": zod.string().describe('A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore'),
   "languageCode": zod.string(),
   "speakingRate": zod.number(),
+  "enabled": zod.boolean().describe('Whether the voice feature is switched on; false until an admin enables it'),
   "updatedAt": zod.coerce.date()
 }),
   "options": zod.array(zod.object({
@@ -2443,13 +2452,15 @@ export const GetAdminSupportVoiceResponse = zod.object({
  * @summary Change the voice น้องไนท์ speaks with
  */
 export const UpdateAdminSupportVoiceBody = zod.object({
-  "voiceName": zod.string().describe('Must match one of the voiceName values from GET \/admin\/support-voice\'s options list')
+  "voiceName": zod.string().describe('Must match one of the voiceName values from GET \/admin\/support-voice\'s options list'),
+  "enabled": zod.boolean().optional().describe('Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off)')
 })
 
 export const UpdateAdminSupportVoiceResponse = zod.object({
   "voiceName": zod.string().describe('A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore'),
   "languageCode": zod.string(),
   "speakingRate": zod.number(),
+  "enabled": zod.boolean().describe('Whether the voice feature is switched on; false until an admin enables it'),
   "updatedAt": zod.coerce.date()
 })
 

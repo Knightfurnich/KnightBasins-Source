@@ -1670,7 +1670,14 @@ export interface SupportVoiceSetting {
   voiceName: string;
   languageCode: string;
   speakingRate: number;
+  /** Whether the voice feature is switched on; false until an admin enables it */
+  enabled: boolean;
   updatedAt: string;
+}
+
+export interface SupportVoiceStatus {
+  /** Whether POST /support/speech currently accepts requests */
+  enabled: boolean;
 }
 
 export interface SupportVoiceOption {
@@ -1688,6 +1695,8 @@ export interface SupportVoiceSettingsResponse {
 export interface SupportVoiceUpdateInput {
   /** Must match one of the voiceName values from GET /admin/support-voice's options list */
   voiceName: string;
+  /** Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off) */
+  enabled?: boolean;
 }
 
 export type SitePhotoStage = typeof SitePhotoStage[keyof typeof SitePhotoStage];
