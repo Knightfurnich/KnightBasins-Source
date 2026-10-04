@@ -2,8 +2,8 @@
 
 **วันที่:** 4 ต.ค. 69 · **ออกโดย:** เดวิด (หัวหน้าทีม)
 **สถานะ:** มอบหมายให้ชัย · เริ่มได้ทันที
-**Branch:** `feat/chai-sketch-vision-deepseek-provider`
-**ที่มา:** บอสสั่ง "แก้ไขใช้ model deepseek ในการอ่านแบบร่าง" + "เพิ่ม ให้สามารถเลือกได้" และใบงานนี้รวมงานซ่อมจาก PR #284 ที่ **ปิดไปโดยไม่ merge** (ของยังพังอยู่บน main)
+**Branch:** `feat/chai-sketch-vision-openrouter-deepseek`
+**ที่มา:** บอสสั่ง "ใช้ Openrouter เลือก DeepSeek 4.1 Flash" (เดิมสั่งใช้ DeepSeek ตรง) + "เพิ่ม ให้สามารถเลือกได้" และใบงานนี้รวมงานซ่อมจาก PR #284 ที่ **ปิดไปโดยไม่ merge** (ของยังพังอยู่บน main)
 
 ```
 ✅ มาตรฐานการออกใบงาน · 12/12 · 4 ต.ค. 69 · เดวิด
@@ -15,14 +15,14 @@ GOAL:
      - รองรับ location=global ซึ่ง host ไม่มี prefix ของ region (global-aiplatform.googleapis.com ไม่มีอยู่จริง)
      - ถ้าโมเดลที่ตั้งไว้ถูกเลิกใช้ ให้ถอยไปใช้ตัวสำรองใน env อัตโนมัติ + เขียน log เตือน
      - ข้อความ error ของผู้ให้บริการ (มีชื่อโปรเจกต์/region/พาธโมเดล) ต้องอยู่แค่ใน log เท่านั้น ห้ามหลุดถึงลูกค้า
-  2. เพิ่มผู้ให้บริการ "deepseek" สำหรับอ่านแบบร่าง (endpoint แบบ OpenAI-compatible)
-  3. ให้เลือกผู้ให้บริการได้ด้วย env: SKETCH_VISION_PROVIDER = deepseek | gemini | auto (ค่าเริ่มต้น auto)
+  2. เพิ่มผู้ให้บริการ "openrouter" สำหรับอ่านแบบร่าง (endpoint แบบ OpenAI-compatible) โดยตั้งโมเดลเป็น DeepSeek V4.1 Flash
+  3. ให้เลือกผู้ให้บริการได้ด้วย env: SKETCH_VISION_PROVIDER = openrouter | gemini | auto (ค่าเริ่มต้น auto)
      - auto = ใช้ตัวที่มีการตั้งค่าไว้ก่อน แล้วถอยไปอีกตัวอัตโนมัติเมื่อตัวแรกพัง
      - กำหนดเจาะจง = ใช้ตัวนั้นก่อน แล้วจึงถอยไปอีกตัว
-  4. อ่านค่าจาก env: DEEPSEEK_API_KEY · DEEPSEEK_BASE_URL (ดีฟอลต์ https://api.deepseek.com) ·
-     DEEPSEEK_VISION_MODEL (ดีฟอลต์ deepseek-flash) · VERTEX_AI_MODEL · VERTEX_AI_FALLBACK_MODELS · VERTEX_VISION_LOCATION
+  4. อ่านค่าจาก env: OPENROUTER_API_KEY · OPENROUTER_BASE_URL (ดีฟอลต์ https://openrouter.ai/api/v1) ·
+     OPENROUTER_VISION_MODEL (ดีฟอลต์ deepseek/deepseek-v4.1-flash) · VERTEX_AI_MODEL · VERTEX_AI_FALLBACK_MODELS · VERTEX_VISION_LOCATION
   5. ส่ง usage (provider, model, promptTokens, completionTokens) กลับมากับผลลัพธ์ แล้วให้ routes/leads.ts
-     บันทึกต้นทุนตามจริง + เพิ่มเรต deepseek-flash ใน ai-cost-tracker
+     บันทึกต้นทุนตามจริง + เพิ่มเรต deepseek-v4.1-flash ใน ai-cost-tracker (คีย์ที่ OpenRouter ส่งกลับคือ deepseek/deepseek-v4.1-flash)
   6. คงพฤติกรรมเดิม: ห้าม throw ห้าม reject · /api/sketch/analyze ต้องตอบ 200 เสมอ · ไม่มีคีย์ทั้งสองเจ้า = ไม่เรียก fetch
 
 ข้อมูลที่ตรวจสอบมาแล้ว (ใช้ได้เลย ห้ามเดา):
@@ -30,16 +30,19 @@ GOAL:
     ตอบ 200 เฉพาะ location=global · regional (asia-southeast1/us-central1/europe-west1) = 404 ทั้งคู่
     และ gemini-2.5-flash ตอบ 200 ทุก region แต่จะปิดตัว 16 ต.ค. 2026
   - ภาพสเก็ตช์ลูกค้าจริง 1 ใบ: 3.8-flash 8.5 วิ / 3,531 โทเคน · 2.5-flash 36.1 วิ / 9,881 โทเคน (อ่านได้ผลเดียวกัน)
-  - DeepSeek: POST {DEEPSEEK_BASE_URL}/chat/completions · header Authorization: Bearer <key>
-    ชื่อโมเดล deepseek-flash (ชื่อเก่า deepseek-v4-flash / deepseek-v4-flash-vision-exp ถูกยกเลิกแล้ว)
+  - OpenRouter (ใช้คีย์ตัวเดียวกับที่ระบบอื่นของเราใช้อยู่): POST {OPENROUTER_BASE_URL}/chat/completions
+    header Authorization: Bearer <key> · ชื่อโมเดล deepseek/deepseek-v4.1-flash
     รูปส่งเป็น data URL ใน content array รูปแบบนี้:
       messages[0].content = [ { type: "text", text: <prompt เดิม> },
                               { type: "image_url", image_url: { url: "data:<mime>;base64,<base64>", detail: "high" } } ]
     JSON mode: response_format = { type: "json_object" }
     คำตอบ: choices[0].message.content (string JSON) · โทเคน: usage.prompt_tokens / usage.completion_tokens
-  - ราคา DeepSeek V4.1 Flash: $0.15 input / $0.60 output ต่อ 1M (off-peak) · peak = 2 เท่า
+  - ยิงจริงผ่าน OpenRouter ด้วยภาพสเก็ตช์ลูกค้าจริง 1 ใบ (170 KB) แล้วสำเร็จ:
+    HTTP 200 · 21.8 วิ · โทเคนเข้า 1,847 / ออก 5,509 · อ่านได้ shape=I · conf=medium · runA=1980 · depth=600 · 1 ชิ้นงาน · 4 ขอบ
+    (เทียบ Gemini 3.8 Flash ใบเดียวกัน: 8.5 วิ · 3,531 โทเคน · conf=high — ช้ากว่าแต่ต้นทุนต่อรูปใกล้เคียงกัน)
+  - ราคา DeepSeek V4.1 Flash (ฐานจาก OpenRouter): $0.15 input / $0.60 output ต่อ 1M (off-peak) · peak = 2 เท่า
     ให้ตั้งเรตในตารางเป็นราคา peak ($0.30 / $1.20) เพื่อไม่ให้ประเมินต้นทุนต่ำกว่าความจริง
-  - ฝั่งแอปยังไม่มีคีย์ DeepSeek (มีแต่คีย์ Google) โค้ดจึงต้องทำงานได้ด้วย Gemini เมื่อไม่มีคีย์
+  - ฝั่งแอปยังไม่มีคีย์ OpenRouter (มีแต่คีย์ Google) โค้ดจึงต้องทำงานได้ด้วย Gemini เมื่อไม่มีคีย์
   - มีสาขาอ้างอิงที่ปิดไปแล้วซึ่งแก้ฝั่ง Gemini ไว้และผ่านเทสต์ (PR #284 · fix/david-sketch-vision-model-and-hygiene)
     จะใช้เป็นจุดตั้งต้นหรือเขียนใหม่ก็ได้ แต่ต้องมีเทสต์และหลักฐานของตัวเองครบตามข้อ EVIDENCE
 
@@ -60,23 +63,23 @@ FORBIDDEN:
   - ห้าม push ตรงเข้า main — ทำงานผ่าน branch แล้วเปิด PR
 
 EVIDENCE (ต้องแนบผลรันจริงทุกข้อ — ตัวเลข ไม่ใช่คำรับรอง):
-  1) git status และ branch แสดง feat/chai-sketch-vision-deepseek-provider ชัดเจน
+  1) git status และ branch แสดง feat/chai-sketch-vision-openrouter-deepseek ชัดเจน
   2) npx tsc -p artifacts/api-server/tsconfig.json --noEmit → 0 errors
   3) node --experimental-strip-types --test test/*.test.ts ใน artifacts/api-server → 1034 tests / pass 1034 / fail 0 (baseline บน main ณ 4 ต.ค. 69)
   4) เทสต์ใหม่ต้องครอบคลุมและรันผ่าน:
-     - ตั้ง SKETCH_VISION_PROVIDER=deepseek แล้วคำขอวิ่งไป {base}/chat/completions ด้วยโมเดล deepseek-flash
+     - ตั้ง SKETCH_VISION_PROVIDER=openrouter แล้วคำขอวิ่งไป {base}/chat/completions ด้วยโมเดล deepseek/deepseek-v4.1-flash
      - ส่งรูปเป็น data URL + detail "high" และมี response_format แบบ json_object
-     - auto: ใช้ deepseek ก่อนเมื่อมีคีย์ แล้วถอยไป gemini เมื่อ deepseek ตอบ 500 (ต้องได้ผลลัพธ์จาก gemini)
+     - auto: ใช้ openrouter ก่อนเมื่อมีคีย์ แล้วถอยไป gemini เมื่อ openrouter ตอบ 500 (ต้องได้ผลลัพธ์จาก gemini)
      - ตั้ง VERTEX_VISION_LOCATION=global แล้ว URL ต้องเป็น aiplatform.googleapis.com (ไม่มี prefix region)
      - contents ต้องมี role:"user"
      - ไม่มีคีย์ทั้งสองเจ้า → ไม่เรียก fetch เลย และ notes เป็นข้อความไทย
      - ข้อความ error ของผู้ให้บริการต้องไม่ปรากฏใน notes ที่ลูกค้าเห็น
-     - usage (model + โทเคน) ถูกบันทึกเข้า cost center และเรต deepseek-flash คิดเงินมากกว่า 0
+     - usage (model + โทเคน) ถูกบันทึกเข้า cost center และเรต deepseek/deepseek-v4.1-flash คิดเงินมากกว่า 0
   5) git diff main...HEAD -- artifacts/knight-basins/src/index.css ได้ผลลัพธ์ว่าง (0 diff)
 
 OUTPUT:
   - ไฟล์ตาม SCOPE + PR เข้า main พร้อมหลักฐานตามข้อ EVIDENCE
-  - สรุปใน PR: ค่าตั้ง env ที่ต้องใส่บน VPS (SKETCH_VISION_PROVIDER / DEEPSEEK_API_KEY / VERTEX_VISION_LOCATION / VERTEX_AI_MODEL)
+  - สรุปใน PR: ค่าตั้ง env ที่ต้องใส่บน VPS (SKETCH_VISION_PROVIDER / OPENROUTER_API_KEY / OPENROUTER_VISION_MODEL / VERTEX_VISION_LOCATION / VERTEX_AI_MODEL)
 
 STOP:
   - เมื่อ tsc ผ่าน 0 errors, เทสต์ผ่านทั้งหมด (fail 0) และเปิด PR แล้ว
@@ -94,6 +97,6 @@ STOP:
 | 7 | SCOPE ใช้ absolute path | ผ่าน | ใช้ /opt/data/cache/kbsrc/... |
 | 8 | ไม่มี code fence ซ้อนในบล็อกใบงาน | ผ่าน | รูปแบบ JSON แสดงเป็นบรรทัดเยื้อง |
 | 9 | ห้ามแตะ src/index.css | ผ่าน | ระบุ 0 diff |
-| 10 | มี branch name ชัดเจน | ผ่าน | feat/chai-sketch-vision-deepseek-provider |
-| 11 | ระบุค่าตั้ง env ที่ต้องใช้ | ผ่าน | ครบทั้ง DeepSeek และ Vertex |
+| 10 | มี branch name ชัดเจน | ผ่าน | feat/chai-sketch-vision-openrouter-deepseek |
+| 11 | ระบุค่าตั้ง env ที่ต้องใช้ | ผ่าน | ครบทั้ง OpenRouter และ Vertex |
 | 12 | ระบุข้อห้ามเรื่องข้อมูลลูกค้า | ผ่าน | ห้าม error ดิบถึงลูกค้า, ห้ามแตะ Production DB |
