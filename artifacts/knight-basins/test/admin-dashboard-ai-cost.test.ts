@@ -16,6 +16,10 @@ const chromiumPath = process.env["CHROMIUM_BIN"] ?? "/repl/tools/bin/chromium";
 const screenshotPath =
   process.env["ADMIN_DASHBOARD_AI_COST_SCREENSHOT_PATH"] ??
   join(appRoot, "evidence/admin-dashboard-ai-cost.png");
+const typographyEvidenceDir =
+  process.env["ADMIN_TYPE_SCALE_EVIDENCE_DIR"] ??
+  join(appRoot, "evidence/admin-type-scale");
+const captureTypographyEvidence = process.env["ADMIN_TYPE_SCALE_CAPTURE_EVIDENCE"] === "1";
 
 const COST_RESPONSE = {
   period: "30d",
@@ -151,6 +155,96 @@ async function waitForBrowserValue<T>(
   throw new Error(`${message}; last observed value: ${JSON.stringify(lastValue).slice(0, 600)}`);
 }
 
+type TypographyRole =
+  | "page heading"
+  | "section heading"
+  | "card heading"
+  | "KPI / numeric"
+  | "caption"
+  | "body";
+
+type TypographySnapshot = {
+  leafTextNodes: number;
+  under12: number[];
+  numericStyleFailures: number;
+  histogram: Record<string, number>;
+  roles: Record<TypographyRole, {
+    nodes: number;
+    fontSizes: string[];
+    fontFamilies: string[];
+  }>;
+};
+
+const typographyMetricsExpression = `(() => {
+  const root = document.querySelector(".admin-app") ?? document.querySelector(".ai-cost-page") ?? document.body;
+  const roleRows = Object.fromEntries(
+    ["page heading", "section heading", "card heading", "KPI / numeric", "caption", "body"]
+      .map((role) => [role, { nodes: 0, fontSizes: new Set(), fontFamilies: new Set() }])
+  );
+  const histogram = {};
+  const under12 = [];
+  let numericStyleFailures = 0;
+  let leafTextNodes = 0;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let node;
+
+  while ((node = walker.nextNode())) {
+    const text = node.textContent?.trim() ?? "";
+    if (!text) continue;
+    const element = node.parentElement;
+    if (!element) continue;
+    const style = getComputedStyle(element);
+    const size = Number.parseFloat(style.fontSize);
+    if (!Number.isFinite(size)) continue;
+    leafTextNodes += 1;
+    const sizeKey = String(Math.round(size * 100) / 100);
+    histogram[sizeKey] = (histogram[sizeKey] ?? 0) + 1;
+    if (size < 12) under12.push(size);
+
+    const tag = element.tagName.toLowerCase();
+    const classes = typeof element.className === "string" ? element.className : "";
+    const numeric = /^[#฿$€£+\\-\\d][#฿$€£+\\-\\d.,%\\s]*$/.test(text);
+    const isKpi = Boolean(element.closest(
+      ".admin-stat-value, .ai-cost-metric__value, .dashboard-ai-cost-card__total strong, .dashboard-ai-cost-card__index, .ai-cost-panel-index, [data-type='number']"
+    )) || (/text-(?:xl|2xl|3xl)/.test(classes) && (numeric || /tabular-nums/.test(classes)));
+    if (isKpi && (!style.fontFamily.includes("DM Mono") || !style.fontVariantNumeric.includes("tabular"))) {
+      numericStyleFailures += 1;
+    }
+    let role = "body";
+    if (tag === "h1") role = "page heading";
+    else if (tag === "h2") {
+      role = element.closest(".admin-dashboard, .admin-manager, .ai-cost-panel-heading, [data-testid^='panel-']")
+        ? "card heading"
+        : "section heading";
+    } else if (tag === "h3" || tag === "h4") role = "card heading";
+    else if (isKpi) role = "KPI / numeric";
+    else if (tag === "small" || element.closest(".admin-eyebrow") || /(?:text-xs|text-\\[(?:9|10|11|12)px\\])/.test(classes)) {
+      role = "caption";
+    }
+
+    const row = roleRows[role];
+    row.nodes += 1;
+    row.fontSizes.add(sizeKey);
+    row.fontFamilies.add(style.fontFamily.replaceAll('"', ""));
+  }
+
+  const roles = Object.fromEntries(Object.entries(roleRows).map(([role, row]) => [
+    role,
+    {
+      nodes: row.nodes,
+      fontSizes: [...row.fontSizes].sort((a, b) => Number(a) - Number(b)),
+      fontFamilies: [...row.fontFamilies].sort(),
+    },
+  ]));
+  return {
+    leafTextNodes,
+    under12: under12.sort((a, b) => a - b),
+    numericStyleFailures,
+    histogram: Object.fromEntries(Object.entries(histogram).sort((a, b) => Number(a[0]) - Number(b[0]))),
+    roles,
+  };
+})()`;
+
 describe("admin dashboard AI cost widget", () => {
   it("declares the summary panel, API contract, service badges, and deep link", () => {
     for (const id of [
@@ -221,17 +315,16 @@ describe("admin dashboard AI cost browser behavior", () => {
     });
     await page.command("Fetch.enable", {
       patterns: [
-        { urlPattern: "*://*/api/admin/session*" },
-        { urlPattern: "*://*/api/admin/dashboard-stats*" },
-        { urlPattern: "*://*/api/admin/ai-cost-center*" },
+        { urlPattern: "*://*/api/admin/*" },
       ],
     });
     page.on("Fetch.requestPaused", (params) => {
       const requestId = params["requestId"];
       const url = String((params["request"] as { url?: string } | undefined)?.url ?? "");
+      const method = String((params["request"] as { method?: string } | undefined)?.method ?? "GET").toUpperCase();
       if (typeof requestId !== "string") return;
       const parsedUrl = new URL(url);
-      let body: unknown;
+      let body: unknown = method === "GET" ? [] : {};
       let responseCode = 200;
       if (parsedUrl.pathname.startsWith("/api/admin/session")) {
         body = {
@@ -248,12 +341,6 @@ describe("admin dashboard AI cost browser behavior", () => {
         } else {
           body = COST_RESPONSE;
         }
-      }
-      if (body === undefined) {
-        void page?.command("Fetch.continueRequest", { requestId }).catch((error: unknown) => {
-          mockError = error instanceof Error ? error : new Error("Could not continue browser request");
-        });
-        return;
       }
       void page?.command("Fetch.fulfillRequest", {
         requestId,
@@ -350,6 +437,164 @@ describe("admin dashboard AI cost browser behavior", () => {
       assert.equal(typeof screenshotData, "string", "Chromium did not return screenshot data");
       mkdirSync(dirname(screenshotPath), { recursive: true });
       writeFileSync(screenshotPath, Buffer.from(screenshotData, "base64"));
+    },
+  );
+
+  it(
+    "uses the admin type scale at desktop and mobile sizes across the three admin routes",
+    { skip: !existsSync(chromiumPath) && "Chromium is required for the admin typography browser test" },
+    async () => {
+      assert.ok(page, "Chromium page is not ready");
+      const routes = [
+        { id: "dashboard", path: "/admin" },
+        { id: "ai-cost", path: "/admin/ai-cost" },
+        { id: "leads", path: "/admin/leads" },
+      ] as const;
+      const viewports = [
+        { id: "desktop", width: 1440, height: 1000, mobile: false },
+        { id: "mobile", width: 390, height: 844, mobile: true },
+      ] as const;
+      const phases: Array<"before" | "after"> = captureTypographyEvidence ? ["before", "after"] : ["after"];
+      const results: Array<{
+        phase: "before" | "after";
+        route: string;
+        viewport: string;
+        measurement: TypographySnapshot;
+        screenshot?: string;
+      }> = [];
+
+      if (captureTypographyEvidence) mkdirSync(typographyEvidenceDir, { recursive: true });
+
+      for (const route of routes) {
+        for (const viewport of viewports) {
+          await page.command("Page.setDeviceMetricsOverride", {
+            width: viewport.width,
+            height: viewport.height,
+            deviceScaleFactor: 1,
+            mobile: viewport.mobile,
+          });
+
+          for (const phase of phases) {
+            await page.command("Page.navigate", {
+              url: new URL(route.path, browserBaseUrl).toString(),
+            });
+            await waitForBrowserValue(
+              () => page!.evaluate<string>(
+                `document.querySelector(".admin-main h1, .ai-cost-page h1, .admin-manager h1")?.textContent?.trim() ?? ""`,
+              ),
+              (heading) => heading.length > 0,
+              `The ${route.path} page did not render at ${viewport.id} size`,
+            );
+            await page.evaluate<boolean>("document.fonts.ready.then(() => true)");
+
+            if (phase === "before") {
+              const baselineStyleApplied = await page.evaluate<boolean>(
+                `(() => {
+                  const root = document.querySelector(".admin-app") ?? document;
+                  const styleElement = Array.from(document.querySelectorAll("style[data-vite-dev-id]"))
+                    .find((item) => String(item.getAttribute("data-vite-dev-id")).includes("index.css"));
+                  const sheet = styleElement?.sheet;
+                  if (!sheet) return false;
+                  const tokens = [
+                    "--admin-type-page-heading",
+                    "--admin-type-section-heading",
+                    "--admin-type-card-heading",
+                    "--admin-type-kpi-number",
+                    "--admin-type-body",
+                    "--admin-type-caption",
+                  ];
+                  const removeTokens = (rules) => {
+                    for (const rule of Array.from(rules)) {
+                      if (rule.style && String(rule.selectorText ?? "").includes(":root")) {
+                        for (const token of tokens) rule.style.removeProperty(token);
+                      }
+                      if (rule.cssRules) removeTokens(rule.cssRules);
+                    }
+                  };
+                  const removeAdminTypeRules = (container) => {
+                    const rules = container.cssRules;
+                    for (let index = 0; index < rules.length; index += 1) {
+                      const rule = rules[index];
+                      if (rule.style?.getPropertyValue("--admin-font-ui")) {
+                        for (let removeIndex = rules.length - 1; removeIndex >= index; removeIndex -= 1) {
+                          container.deleteRule(removeIndex);
+                        }
+                        return true;
+                      }
+                      if (rule.cssRules && removeAdminTypeRules(rule)) return true;
+                    }
+                    return false;
+                  };
+                  removeTokens(sheet.cssRules);
+                  if (!removeAdminTypeRules(sheet)) return false;
+                  for (const label of root.querySelectorAll(".admin-eyebrow")) {
+                    const copy = label.textContent?.trim() ?? "";
+                    if (copy === "BUSINESS OVERVIEW") label.className = "eyebrow accent";
+                    else if (copy === "06 / AI OPERATIONS") label.className = "dashboard-ai-cost-card__eyebrow";
+                    else if (copy === "Dashboard unavailable") {
+                      label.className = "text-xs font-semibold uppercase tracking-widest text-[#a24439]";
+                    } else {
+                      label.className = "text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]";
+                    }
+                  }
+                  return true;
+                })()`,
+              );
+              assert.ok(baselineStyleApplied, "Could not restore the baseline stylesheet in Chromium");
+              await page.evaluate<boolean>("document.fonts.ready.then(() => true)");
+            }
+
+            const measurement = await page.evaluate<TypographySnapshot>(typographyMetricsExpression);
+            assert.ok(measurement.leafTextNodes > 0, `No text nodes were measured on ${route.path}`);
+            if (phase === "after") {
+              assert.equal(
+                measurement.under12.length,
+                0,
+                `${route.path} at ${viewport.id} has text below 12px: ${measurement.under12.join(", ")}`,
+              );
+              assert.equal(
+                measurement.numericStyleFailures,
+                0,
+                `${route.path} at ${viewport.id} has KPI text without DM Mono tabular numerals`,
+              );
+            }
+
+            let screenshot: string | undefined;
+            if (captureTypographyEvidence) {
+              await new Promise((resolve) => setTimeout(resolve, 120));
+              const captured = await page.command("Page.captureScreenshot", {
+                format: "png",
+                fromSurface: true,
+              });
+              const screenshotData = captured["data"];
+              assert.equal(typeof screenshotData, "string", "Chromium did not return typography screenshot data");
+              screenshot = join(typographyEvidenceDir, `${phase}-${route.id}-${viewport.id}.png`);
+              writeFileSync(screenshot, Buffer.from(screenshotData, "base64"));
+            }
+
+            results.push({
+              phase,
+              route: route.path,
+              viewport: `${viewport.width}x${viewport.height}`,
+              measurement,
+              screenshot,
+            });
+          }
+        }
+      }
+
+      assert.ifError(mockError);
+      if (captureTypographyEvidence) {
+        writeFileSync(
+          join(typographyEvidenceDir, "measurements.json"),
+          JSON.stringify({
+            routes: routes.map(({ path }) => path),
+            viewports: viewports.map(({ id, width, height }) => ({ id, width, height })),
+            baselineRulesRemoved: captureTypographyEvidence,
+            results,
+          }, null, 2),
+        );
+      }
     },
   );
 });

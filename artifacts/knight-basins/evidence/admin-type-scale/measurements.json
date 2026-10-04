@@ -1,0 +1,1011 @@
+{
+  "routes": [
+    "/admin",
+    "/admin/ai-cost",
+    "/admin/leads"
+  ],
+  "viewports": [
+    {
+      "id": "desktop",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "baselineRulesRemoved": true,
+  "results": [
+    {
+      "phase": "before",
+      "route": "/admin",
+      "viewport": "1440x1000",
+      "measurement": {
+        "leafTextNodes": 164,
+        "under12": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11
+        ],
+        "numericStyleFailures": 15,
+        "histogram": {
+          "10": 17,
+          "11": 3,
+          "12": 47,
+          "13": 15,
+          "14": 51,
+          "16": 4,
+          "20": 6,
+          "21": 10,
+          "24": 8,
+          "25": 1,
+          "28": 1,
+          "33.6": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "28"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 14,
+            "fontSizes": [
+              "16",
+              "21"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 16,
+            "fontSizes": [
+              "20",
+              "24",
+              "25",
+              "33.6"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "caption": {
+            "nodes": 62,
+            "fontSizes": [
+              "10",
+              "11",
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 71,
+            "fontSizes": [
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/before-dashboard-desktop.png"
+    },
+    {
+      "phase": "after",
+      "route": "/admin",
+      "viewport": "1440x1000",
+      "measurement": {
+        "leafTextNodes": 164,
+        "under12": [],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "12": 77,
+          "14": 56,
+          "17": 14,
+          "28": 16,
+          "32": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "32"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 14,
+            "fontSizes": [
+              "17"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 16,
+            "fontSizes": [
+              "28"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace"
+            ]
+          },
+          "caption": {
+            "nodes": 64,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 69,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/after-dashboard-desktop.png"
+    },
+    {
+      "phase": "before",
+      "route": "/admin",
+      "viewport": "390x844",
+      "measurement": {
+        "leafTextNodes": 164,
+        "under12": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11
+        ],
+        "numericStyleFailures": 15,
+        "histogram": {
+          "10": 5,
+          "11": 15,
+          "12": 52,
+          "13": 15,
+          "14": 46,
+          "16": 10,
+          "18": 10,
+          "20": 6,
+          "22": 1,
+          "24": 2,
+          "25": 1,
+          "26.4": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "22"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 14,
+            "fontSizes": [
+              "16",
+              "18"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 16,
+            "fontSizes": [
+              "16",
+              "20",
+              "24",
+              "25",
+              "26.4"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "caption": {
+            "nodes": 62,
+            "fontSizes": [
+              "10",
+              "11",
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 71,
+            "fontSizes": [
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/before-dashboard-mobile.png"
+    },
+    {
+      "phase": "after",
+      "route": "/admin",
+      "viewport": "390x844",
+      "measurement": {
+        "leafTextNodes": 164,
+        "under12": [],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "12": 77,
+          "14": 56,
+          "17": 14,
+          "24": 16,
+          "32": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "32"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 14,
+            "fontSizes": [
+              "17"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 16,
+            "fontSizes": [
+              "24"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace"
+            ]
+          },
+          "caption": {
+            "nodes": 64,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 69,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/after-dashboard-mobile.png"
+    },
+    {
+      "phase": "before",
+      "route": "/admin/ai-cost",
+      "viewport": "1440x1000",
+      "measurement": {
+        "leafTextNodes": 103,
+        "under12": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11
+        ],
+        "numericStyleFailures": 6,
+        "histogram": {
+          "10": 7,
+          "11": 10,
+          "12": 14,
+          "13": 20,
+          "14": 43,
+          "21": 2,
+          "24": 2,
+          "28": 1,
+          "24.64": 4
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "28"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 2,
+            "fontSizes": [
+              "21"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 6,
+            "fontSizes": [
+              "24",
+              "24.64"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace"
+            ]
+          },
+          "caption": {
+            "nodes": 11,
+            "fontSizes": [
+              "10",
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 83,
+            "fontSizes": [
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/before-ai-cost-desktop.png"
+    },
+    {
+      "phase": "after",
+      "route": "/admin/ai-cost",
+      "viewport": "1440x1000",
+      "measurement": {
+        "leafTextNodes": 103,
+        "under12": [],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "12": 43,
+          "14": 51,
+          "17": 2,
+          "28": 6,
+          "32": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "32"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 2,
+            "fontSizes": [
+              "17"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 6,
+            "fontSizes": [
+              "28"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace"
+            ]
+          },
+          "caption": {
+            "nodes": 11,
+            "fontSizes": [
+              "12"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 83,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/after-ai-cost-desktop.png"
+    },
+    {
+      "phase": "before",
+      "route": "/admin/ai-cost",
+      "viewport": "390x844",
+      "measurement": {
+        "leafTextNodes": 103,
+        "under12": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11
+        ],
+        "numericStyleFailures": 6,
+        "histogram": {
+          "10": 7,
+          "11": 10,
+          "12": 15,
+          "13": 20,
+          "14": 42,
+          "18": 2,
+          "22": 1,
+          "24": 2,
+          "19.2": 4
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "22"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 2,
+            "fontSizes": [
+              "18"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 6,
+            "fontSizes": [
+              "19.2",
+              "24"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace"
+            ]
+          },
+          "caption": {
+            "nodes": 11,
+            "fontSizes": [
+              "10",
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 83,
+            "fontSizes": [
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/before-ai-cost-mobile.png"
+    },
+    {
+      "phase": "after",
+      "route": "/admin/ai-cost",
+      "viewport": "390x844",
+      "measurement": {
+        "leafTextNodes": 103,
+        "under12": [],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "12": 43,
+          "14": 51,
+          "17": 2,
+          "24": 6,
+          "32": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "32"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 2,
+            "fontSizes": [
+              "17"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "KPI / numeric": {
+            "nodes": 6,
+            "fontSizes": [
+              "24"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace"
+            ]
+          },
+          "caption": {
+            "nodes": 11,
+            "fontSizes": [
+              "12"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 83,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/after-ai-cost-mobile.png"
+    },
+    {
+      "phase": "before",
+      "route": "/admin/leads",
+      "viewport": "1440x1000",
+      "measurement": {
+        "leafTextNodes": 95,
+        "under12": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "10": 4,
+          "12": 33,
+          "13": 15,
+          "14": 42,
+          "28": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "28"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "KPI / numeric": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "caption": {
+            "nodes": 30,
+            "fontSizes": [
+              "10",
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 64,
+            "fontSizes": [
+              "12",
+              "13",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/before-leads-desktop.png"
+    },
+    {
+      "phase": "after",
+      "route": "/admin/leads",
+      "viewport": "1440x1000",
+      "measurement": {
+        "leafTextNodes": 95,
+        "under12": [],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "12": 38,
+          "14": 56,
+          "32": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "32"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "KPI / numeric": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "caption": {
+            "nodes": 30,
+            "fontSizes": [
+              "12"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 64,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/after-leads-desktop.png"
+    },
+    {
+      "phase": "before",
+      "route": "/admin/leads",
+      "viewport": "390x844",
+      "measurement": {
+        "leafTextNodes": 95,
+        "under12": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "10": 4,
+          "12": 34,
+          "13": 15,
+          "14": 41,
+          "22": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "22"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "KPI / numeric": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "caption": {
+            "nodes": 30,
+            "fontSizes": [
+              "10",
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 64,
+            "fontSizes": [
+              "12",
+              "13",
+              "14"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/before-leads-mobile.png"
+    },
+    {
+      "phase": "after",
+      "route": "/admin/leads",
+      "viewport": "390x844",
+      "measurement": {
+        "leafTextNodes": 95,
+        "under12": [],
+        "numericStyleFailures": 0,
+        "histogram": {
+          "12": 38,
+          "14": 56,
+          "32": 1
+        },
+        "roles": {
+          "page heading": {
+            "nodes": 1,
+            "fontSizes": [
+              "32"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "section heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "card heading": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "KPI / numeric": {
+            "nodes": 0,
+            "fontSizes": [],
+            "fontFamilies": []
+          },
+          "caption": {
+            "nodes": 30,
+            "fontSizes": [
+              "12"
+            ],
+            "fontFamilies": [
+              "DM Mono, Noto Sans Thai, Tahoma, Arial, monospace",
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          },
+          "body": {
+            "nodes": 64,
+            "fontSizes": [
+              "12",
+              "14"
+            ],
+            "fontFamilies": [
+              "Manrope, Noto Sans Thai, Tahoma, Arial, sans-serif"
+            ]
+          }
+        }
+      },
+      "screenshot": "/home/runner/workspace/artifacts/knight-basins/evidence/admin-type-scale/after-leads-mobile.png"
+    }
+  ]
+}

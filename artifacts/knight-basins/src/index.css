@@ -171,6 +171,12 @@
   --type-weight-medium: 500;
   --type-weight-semibold: 600;
   --type-weight-bold: 700;
+  --admin-type-page-heading: 2rem;
+  --admin-type-section-heading: 1.375rem;
+  --admin-type-card-heading: 1.0625rem;
+  --admin-type-kpi-number: clamp(1.5rem, 1.25rem + 0.6vw, 1.75rem);
+  --admin-type-body: 0.875rem;
+  --admin-type-caption: 0.75rem;
   --radius: 0.5rem; /* 8px */
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
@@ -6290,4 +6296,181 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .stock-inventory-page .stock-print-table td:nth-child(6) {
     width: 23%;
   }
+}
+
+/* Admin type system: six explicit levels, using only the existing UI and mono roles. */
+.admin-app,
+.admin-login,
+.ai-cost-page {
+  --admin-font-ui: "Manrope", "Noto Sans Thai", Tahoma, Arial, sans-serif;
+  --admin-font-data: "DM Mono", "Noto Sans Thai", Tahoma, Arial, monospace;
+  font-family: var(--admin-font-ui);
+  font-size: var(--admin-type-body);
+  line-height: 1.5;
+}
+
+.admin-app :is(h1, h2, h3, h4),
+.admin-login :is(h1, h2, h3, h4),
+.ai-cost-page :is(h1, h2, h3, h4) {
+  font-family: var(--admin-font-ui) !important;
+}
+
+.admin-app .admin-main :is(h1),
+.admin-app .admin-manager h1,
+.admin-app .admin-manager > div:first-child h1,
+.admin-app .admin-dashboard h1,
+.admin-login h1,
+.ai-cost-hero h1 {
+  font-size: var(--admin-type-page-heading);
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -.04em;
+}
+
+.admin-app .admin-main h2,
+.ai-cost-page h2 {
+  font-size: var(--admin-type-section-heading);
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+.admin-app .admin-dashboard h2,
+.admin-app .admin-manager h2,
+.ai-cost-page .ai-cost-panel-heading h2 {
+  font-size: var(--admin-type-card-heading);
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.admin-app .admin-main h3,
+.admin-login h3,
+.ai-cost-page h3 {
+  font-size: var(--admin-type-card-heading);
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.admin-app .admin-main h4,
+.admin-login h4,
+.ai-cost-page h4 {
+  font-size: var(--admin-type-card-heading);
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.admin-app .admin-main :is(p, span, div, label, button, input, select, textarea, td, th, li),
+.admin-login :is(p, span, div, label, button, input, select, textarea),
+.ai-cost-page :is(p, span, div, label, button, input, select, textarea, td, th) {
+  font-family: var(--admin-font-ui);
+}
+
+.admin-app .admin-main :is(.font-mono, .tabular-nums, code, pre, [data-type="number"], .admin-stat-value, .dashboard-ai-cost-card__total strong, .dashboard-ai-cost-card__index, .ai-cost-table .is-number),
+.admin-login :is(.font-mono, .tabular-nums, code, pre),
+.ai-cost-page :is(.font-mono, .tabular-nums, code, pre, .ai-cost-metric__value, .ai-cost-context-line__updated, .ai-cost-table .is-number, .ai-cost-model-name, .ai-cost-panel-index) {
+  font-family: var(--admin-font-data) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .admin-stat-value,
+.ai-cost-metric__value,
+.dashboard-ai-cost-card__total strong,
+.dashboard-ai-cost-card__index {
+  font-size: var(--admin-type-kpi-number);
+  line-height: 1.15;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app :is(small, [data-type="caption"]),
+.admin-login :is(small, [data-type="caption"]),
+.ai-cost-page small {
+  font-size: var(--admin-type-caption);
+  line-height: 1.45;
+}
+
+/* Dashboard section labels share one treatment, whether their copy carries an index or not. */
+.admin-app .admin-eyebrow {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--brand-blue);
+  font-family: var(--admin-font-data);
+  font-size: var(--admin-type-caption);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+/* Legibility floor for legacy 10–11px utility and bespoke page labels in admin views. */
+.admin-app [class~="text-[10px]"],
+.admin-app [class~="text-[11px]"],
+.admin-app [class~="text-[9px]"],
+.admin-login [class~="text-[10px]"],
+.admin-login [class~="text-[11px]"],
+.admin-login [class~="text-[9px]"],
+.admin-app .stock-sort-indicator,
+.dashboard-ai-cost-card__label,
+.dashboard-ai-badge,
+.ai-cost-hero__aside-label,
+.ai-cost-period small,
+.ai-cost-context-line__updated,
+.ai-cost-metric__detail,
+.ai-cost-panel-heading .ai-cost-kicker,
+.ai-cost-panel-heading p:last-child,
+.ai-cost-table thead th,
+.ai-cost-status {
+  font-size: var(--admin-type-caption);
+}
+
+/* Keep Tailwind and arbitrary pixel utilities on the same six-level scale. */
+.admin-app :is([class*="text-xs"], [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"], [class*="text-[12px]"]),
+.admin-login :is([class*="text-xs"], [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"], [class*="text-[12px]"]) {
+  font-size: var(--admin-type-caption);
+}
+
+.admin-app :is([class*="text-sm"], [class*="text-base"], [class*="text-[13px]"], [class*="text-[14px]"]),
+.admin-login :is([class*="text-sm"], [class*="text-base"], [class*="text-[13px]"], [class*="text-[14px]"]) {
+  font-size: var(--admin-type-body);
+}
+
+.admin-app :is([class*="text-lg"], [class*="text-[15px]"], [class*="text-[16px]"], [class*="text-[17px]"], [class*="text-[18px]"]),
+.admin-login :is([class*="text-lg"], [class*="text-[15px]"], [class*="text-[16px]"], [class*="text-[17px]"], [class*="text-[18px]"]) {
+  font-size: var(--admin-type-card-heading);
+}
+
+.admin-app :is([class*="text-xl"], [class*="text-2xl"], [class*="text-3xl"], [class*="text-4xl"], [class*="text-[20px]"], [class*="text-[22px]"], [class*="text-[24px]"], [class*="text-[28px]"], [class*="text-[30px]"]),
+.admin-login :is([class*="text-xl"], [class*="text-2xl"], [class*="text-3xl"], [class*="text-4xl"], [class*="text-[20px]"], [class*="text-[22px]"], [class*="text-[24px]"], [class*="text-[28px]"], [class*="text-[30px]"]) {
+  font-size: var(--admin-type-kpi-number);
+}
+
+/* AI cost page hand-authored sizes use the same tokens as admin utility classes. */
+.ai-cost-page .ai-cost-hero__eyebrow,
+.ai-cost-page .ai-cost-hero__assurance,
+.ai-cost-page .ai-cost-period small,
+.ai-cost-page .ai-cost-context-line,
+.ai-cost-page .ai-cost-button,
+.ai-cost-page .ai-cost-metric__label,
+.ai-cost-page .ai-cost-model-name,
+.ai-cost-page .ai-cost-table,
+.ai-cost-page .ai-cost-panel-heading .ai-cost-kicker {
+  font-size: var(--admin-type-caption);
+}
+
+.ai-cost-page .ai-cost-hero__lede,
+.ai-cost-page .ai-cost-period span,
+.ai-cost-page .ai-cost-hero__aside strong,
+.ai-cost-page .ai-cost-state p:not(.ai-cost-kicker) {
+  font-size: var(--admin-type-body);
+}
+
+.ai-cost-page .ai-cost-panel-index {
+  font-size: var(--admin-type-kpi-number);
+}
+
+.admin-app .admin-main,
+.admin-login,
+.ai-cost-page {
+  color: var(--ink);
 }
