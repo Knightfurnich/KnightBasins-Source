@@ -6,7 +6,6 @@ import { AlertTriangle, ArrowRight, Bath, Camera, Check, ChevronDown, Copy, Down
 import { adminQuoteUrl } from "@/admin/leads-utils";
 import StudioCheckoutModal from "./StudioCheckoutModal";
 import {
-  INSTALLATION_PRICE,
   PRODUCTS,
   STONE_COLORS,
   CUSTOMER_CONTACT_OPTIONS,
@@ -117,23 +116,28 @@ import { isValidEmailAddress, isValidPhoneNumber } from "@/data/validation";
 import { cleanPhoneInput, normalizeDimensionInput, sanitizeIntegerRange, sanitizeTextInput } from "@/data/input-sanitizers";
 import { WorksiteAddressAutocomplete } from "./WorksiteAddressAutocomplete";
 import {
+  DEFAULT_SKETCH_FULFILMENT,
   DEFAULT_SKETCH_ORDER_TYPE,
   SKETCH_BASIN_NOT_IN_CATALOG,
+  SKETCH_FULFILMENTS,
   SKETCH_NO_STONE_MESSAGE,
   SKETCH_ORDER_TYPES,
   SKETCH_OWN_BASIN,
   SKETCH_OWN_BASIN_LABEL,
   SKETCH_OWN_BASIN_NO_SIZE_NOTE,
   SKETCH_OWN_BASIN_WARNING,
+  SKETCH_PROVINCE_TRAVEL_NOTE,
   cleanOwnBasinSize,
   quoteSketchOrder,
   resolveSketchPiece,
   sketchBasinChoices,
   sketchBasinCutout,
+  sketchOrderNotification,
   sketchOrderSnapshot,
   sketchPieceReady,
   sketchStoneChoices,
   sketchSubmitState,
+  type SketchFulfilment,
   type SketchOrderType,
   type SketchPieceBase,
   type SketchPieceEdit,
@@ -3961,6 +3965,7 @@ export function StudioPage({
   const activeSketchAnalysisFilesRef = useRef<Set<File>>(new Set());
   const [sketchPieceEdits, setSketchPieceEdits] = useState<Record<string, SketchPieceEdit>>({});
   const [sketchOrderType, setSketchOrderType] = useState<SketchOrderType>(DEFAULT_SKETCH_ORDER_TYPE);
+  const [sketchFulfilment, setSketchFulfilment] = useState<SketchFulfilment>(DEFAULT_SKETCH_FULFILMENT);
   const sketchFileIds = useRef(new WeakMap<File, string>());
   const sketchFileIdCounter = useRef(0);
   const sketchFileKey = (file: File) => {
@@ -4001,7 +4006,7 @@ export function StudioPage({
     sketchPieceBases.push({ key: "manual", label: "ชิ้นงาน 1 (กรอกเอง)", lengthMm: manualSketchLengthMm, depthMm: manualSketchDepthMm, panels: [], basinCutouts: 0 });
   }
   const resolvedSketchPieces = sketchPieceBases.map((base) => resolveSketchPiece(base, sketchPieceEdits[base.key]));
-  const sketchQuoteContext = { orderType: sketchOrderType, stoneColors, products: basinProducts, location: state.location, vat: state.vat };
+  const sketchQuoteContext = { orderType: sketchOrderType, stoneColors, products: basinProducts, location: state.location, vat: state.vat, pickup: sketchFulfilment === "pickup" };
   const sketchOrderQuoteResult = quoteSketchOrder(resolvedSketchPieces, sketchQuoteContext);
   const sketchSizesValid = resolvedSketchPieces.every((piece) => piece.sizeValid);
   const sketchOrderReady = resolvedSketchPieces.length > 0 && resolvedSketchPieces.every((piece) => sketchPieceReady(piece, sketchOrderType));
@@ -5138,84 +5143,13 @@ export function StudioPage({
     submissionInFlightRef.current = true;
     setSubmitting(true);
     setResult("");
-    const sketchNotificationItems: StudioNotificationItem[] = [];
     const sketchSnapshot = sketchOrderSnapshot(resolvedSketchPieces, sketchQuoteContext);
-    resolvedSketchPieces.forEach((piece, pieceIndex) => {
-      const pieceQuote = sketchOrderQuoteResult.pieces[pieceIndex]?.quote;
-      const stone = piece.stoneCode ? stoneColorByName(piece.stoneCode, stoneColors) : null;
-      if (!stone || pieceQuote?.status !== "ok") return;
-      if (pieceQuote.orderType === "sheet") {
-        sketchNotificationItems.push({
-          kind: "stone" as const,
-          code: stone.code,
-          description: `แผ่นหินสังเคราะห์มาตรฐาน ${stone.name || stone.code} · ${piece.label}`,
-          quantity: pieceQuote.sheets ?? 0,
-          unit: "แผ่น",
-          unitPriceTHB: pieceQuote.unitPriceTHB,
-          totalTHB: pieceQuote.stoneTotalTHB,
-          workQuantity: pieceQuote.sheets ?? 0,
-          workUnit: "แผ่น",
-        });
-        return;
-      }
-      sketchNotificationItems.push({
-        kind: "stone" as const,
-        code: stone.code,
-        description: `ท็อปเคาน์เตอร์หินสังเคราะห์ ${stone.name || stone.code} · ${piece.label}`,
-        quantity: Number(pieceQuote.areaSqM.toFixed(4)),
-        unit: "ตร.ม.",
-        unitPriceTHB: pieceQuote.unitPriceTHB,
-        totalTHB: pieceQuote.stoneTotalTHB,
-        workQuantity: Number(pieceQuote.areaSqM.toFixed(4)),
-        workUnit: "ตร.ม.",
-      });
-      // A basin the customer buys themselves has no line at all: no model, no basin price.
-      piece.basinSkus.forEach((sku) => {
-        const product = sku && sku !== SKETCH_OWN_BASIN ? basinProducts.find((item) => item.sku === sku) : undefined;
-        if (!product) return;
-        sketchNotificationItems.push({
-          kind: "basin" as const,
-          code: product.sku,
-          description: product.colorName,
-          quantity: 1,
-          unit: "ชุด",
-          unitPriceTHB: product.priceTHB,
-          totalTHB: product.priceTHB,
-          workQuantity: 1,
-          workUnit: "ชุด",
-          dimensions: product.dimensions,
-          cutoutDimensions: sketchBasinCutout(product).label,
-        });
-      });
-      if (pieceQuote.installationTHB > 0) {
-        sketchNotificationItems.push({
-          kind: "service" as const,
-          code: "INSTALL-BASIN",
-          description: `ค่าบริการติดตั้งอ่างล้างหน้า · ${piece.label}`,
-          quantity: piece.basinSkus.filter((sku) => sku !== null && sku !== SKETCH_OWN_BASIN).length,
-          unit: "จุด",
-          unitPriceTHB: INSTALLATION_PRICE,
-          totalTHB: pieceQuote.installationTHB,
-          workQuantity: piece.basinSkus.filter((sku) => sku !== null && sku !== SKETCH_OWN_BASIN).length,
-          workUnit: "จุด",
-        });
-      }
-      if (pieceQuote.smallJobFeeTHB > 0) {
-        sketchNotificationItems.push({
-          kind: "service" as const,
-          code: "SMALL-JOB-FEE",
-          description: `ค่าดำเนินการงานพื้นที่เล็ก · ${piece.label}`,
-          quantity: 1,
-          unit: "งาน",
-          unitPriceTHB: pieceQuote.smallJobFeeTHB,
-          totalTHB: pieceQuote.smallJobFeeTHB,
-          workQuantity: 1,
-          workUnit: "งาน",
-        });
-      }
-    });
+    // Lines and totals come from the same order quote the screen shows: per piece at its own rate, service charges once per job.
+    const sketchNotification = sketchOrderNotification(resolvedSketchPieces, sketchQuoteContext, sketchOrderQuoteResult);
     const sketchOrderNote = [
       `ประเภทการสั่งซื้อ: ${SKETCH_ORDER_TYPES.find((type) => type.value === sketchOrderType)?.label ?? sketchOrderType}`,
+      `การรับสินค้า: ${SKETCH_FULFILMENTS.find((item) => item.value === sketchFulfilment)?.label ?? sketchFulfilment}`,
+      ...(sketchFulfilment === "install" && sketchOrderType === "fabrication" && state.location === "province" ? [SKETCH_PROVINCE_TRAVEL_NOTE] : []),
       ...resolvedSketchPieces.flatMap((piece) => piece.basinSkus.flatMap((sku, cutoutIndex) => {
         if (sku !== SKETCH_OWN_BASIN) return [];
         const size = cleanOwnBasinSize(piece.ownBasinSizes[cutoutIndex]);
@@ -5257,14 +5191,8 @@ export function StudioPage({
         // The customer's confirmed sizes, stone and basin per piece and the order type, with each piece's price from the system calculator.
         sketchOrder: sketchSnapshot,
         worksitePlaceId,
-        items: sketchNotificationItems,
-        notification: {
-          items: sketchNotificationItems,
-          vat: safeState.vat,
-          subtotalTHB: sketchOrderQuoteResult.totalTHB - sketchOrderQuoteResult.vatTHB,
-          vatTHB: sketchOrderQuoteResult.vatTHB,
-          totalTHB: sketchOrderQuoteResult.totalTHB
-        }
+        items: sketchNotification.items,
+        notification: sketchNotification
       }
     }));
     try {
@@ -5332,10 +5260,21 @@ export function StudioPage({
       return <div key={entry.key} data-testid={`row-sketch-estimate-${entryIndex}`}>
         <span>{entry.label}{piece?.areaSqM != null && <small> {piece.areaSqM.toFixed(3)} ตร.ม.{quote.status === "ok" && quote.sheets !== null ? ` · ${quote.sheets} แผ่น` : ""}</small>}</span>
         {quote.status === "ok"
-          ? <strong>{formatTHB(quote.totalTHB)}</strong>
+          ? <strong>{formatTHB(quote.lineTotalTHB)}</strong>
           : <strong className="studio-sketch-no-price" data-testid={`status-sketch-no-price-${entryIndex}`}>{quote.status === "no-stone" ? SKETCH_NO_STONE_MESSAGE : quote.message}</strong>}
       </div>;
     })}
+    {sketchOrderQuoteResult.pricedCount > 0 && sketchOrderQuoteResult.requestedInstallationTHB > 0 && <div data-testid="row-sketch-estimate-installation">
+      <span>ค่าติดตั้งอ่าง <small>{sketchOrderQuoteResult.basinSets} ชุด{sketchOrderQuoteResult.installationDiscountTHB > 0 ? " · ฟรี (3 ชุดขึ้นไป)" : ""}</small></span>
+      <strong>{sketchOrderQuoteResult.installationDiscountTHB > 0 ? "ฟรี" : formatTHB(sketchOrderQuoteResult.installationTHB)}</strong>
+    </div>}
+    {sketchOrderQuoteResult.smallJobFeeTHB > 0 && <div data-testid="row-sketch-estimate-small-job">
+      <span>ค่าดำเนินการงานพื้นที่เล็ก <small>รวมทั้งงาน {sketchOrderQuoteResult.areaSqM.toFixed(3)} ตร.ม. · คิดครั้งเดียว</small></span>
+      <strong>{formatTHB(sketchOrderQuoteResult.smallJobFeeTHB)}</strong>
+    </div>}
+    {sketchOrderQuoteResult.pricedCount > 0 && sketchOrderQuoteResult.pickup && <div data-testid="row-sketch-estimate-pickup">
+      <span>ลูกค้ามารับเองที่โรงงาน</span><strong>ไม่คิดค่าดำเนินการ</strong>
+    </div>}
   </div>;
   const estimatePanel = mode === "studio" && !studioLayoutApplied
     ? <aside className="studio-panel studio-estimate-panel studio-estimate-panel--dock" data-testid="studio-estimate-not-ready">
@@ -5761,6 +5700,13 @@ export function StudioPage({
             <input type="radio" name="sketch-order-type" checked={sketchOrderType === type.value} onChange={() => changeSketchOrderType(type.value)} data-testid={`input-sketch-order-type-${type.value}`} />
             <span />{type.label} · <small>{type.unitLabel}</small>
           </label>)}
+          <div role="radiogroup" aria-label="การรับสินค้า" data-testid="group-sketch-fulfilment">
+            {SKETCH_FULFILMENTS.map((item) => <label className="studio-checkbox" key={item.value}>
+              <input type="radio" name="sketch-fulfilment" checked={sketchFulfilment === item.value} onChange={() => setSketchFulfilment(item.value)} data-testid={`input-sketch-fulfilment-${item.value}`} />
+              <span />{item.label} · <small>{item.note}</small>
+            </label>)}
+            {sketchFulfilment === "install" && sketchOrderType === "fabrication" && state.location === "province" && <small className="studio-warning studio-warning--amber" role="status" data-testid="text-sketch-province-travel">{SKETCH_PROVINCE_TRAVEL_NOTE}</small>}
+          </div>
           <small data-testid="text-sketch-order-type-colours">รายการสีหิน {sketchStoneOptions.length} สี ตรงกับประเภทที่เลือก — ถ้าเปลี่ยนประเภท สีที่ไม่มีราคาในประเภทใหม่จะถูกล้างให้เลือกใหม่</small>
           {sketchOrderType === "sheet" && resolvedSketchPieces.map((piece, pieceIndex) => <label className="studio-sketch-dim-field" key={piece.key}>
             <span>{piece.label} · จำนวนแผ่น</span>

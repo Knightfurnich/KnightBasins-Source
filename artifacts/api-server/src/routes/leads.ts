@@ -13,14 +13,18 @@ import { requestOrigin } from "../lib/public-origin";
 import {
   canonicalStudioData,
   checkQuoteBeforePayment,
+  loadPricingCatalog,
   PRICE_TAMPER_AUDIT_ACTION,
   PRICE_VERIFICATION_FAILED_ERROR,
   PRICE_VERIFICATION_FAILED_MESSAGE,
+  priceSketchOrder,
+  type PricingDatabase,
   stripServerPricing,
   validateNumericDimensions,
   verifyAndRecalculateQuoteTotal,
   verifyAndSanitizeQuoteTotal,
   withServerPricing,
+  withSketchOrderPricing,
 } from "../lib/price-integrity";
 import { analyzeSketchImageWithUsage } from "../lib/sketch-vision";
 import {
@@ -52,6 +56,27 @@ export const STUDIO_DATA_REQUIRED_MESSAGE = "คำขอใบเสนอร�
 function hasStudioData(studioData: unknown): boolean {
   const data = stripServerPricing(studioData);
   return typeof data === "object" && data !== null && !Array.isArray(data) && Object.keys(data).length > 0;
+}
+
+/**
+ * job-259: the figures of a hand-sketch request are the server's. studioData.sketchOrder (each piece's size, stone and basins,
+ * the order type, collect-at-factory) is priced again with the database catalogue by the same function the page used, and the
+ * result is written into sketchOrder, notification and estimate, so the screen, the sales message and the saved lead agree. If
+ * the catalogue cannot be read the request is still saved as the page sent it (the page already sends the same figures).
+ */
+async function withServerSketchPricing(database: PricingDatabase, studioData: Record<string, unknown>, leadKey: string): Promise<Record<string, unknown>> {
+  try {
+    const pricing = priceSketchOrder(studioData, await loadPricingCatalog(database));
+    if (!pricing) return studioData;
+    const claimed = (studioData["sketchOrder"] as { totalTHB?: unknown } | undefined)?.totalTHB;
+    if (claimed !== pricing.quote.totalTHB) {
+      console.warn("Sketch order total differs from the page; the server's figure is kept", { leadKey, claimedTotalTHB: claimed ?? null, serverTotalTHB: pricing.quote.totalTHB });
+    }
+    return withSketchOrderPricing(studioData, pricing);
+  } catch (error) {
+    console.warn("Sketch order could not be priced on the server", { leadKey, error: error instanceof Error ? error.message : "unknown" });
+    return studioData;
+  }
 }
 
 function isSketchWithPicture(lead: { orderMode?: string | null; sketchUrl?: string | null }): boolean {
@@ -904,7 +929,7 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
       throw error;
     }
     const sketchUrls = uploads.map((upload) => upload.url);
-    const studioData = { ...(parsed.data.studioData ?? {}), sketchUrls };
+    const studioData = await withServerSketchPricing(database, { ...(parsed.data.studioData ?? {}), sketchUrls }, parsed.data.leadKey);
     let lead;
     try {
       [lead] = await database
