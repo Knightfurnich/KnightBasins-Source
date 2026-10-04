@@ -93,6 +93,17 @@ describe("calculateModelCostThb", () => {
     assert.equal(Math.round(calculateModelCostThb("deepseek-v4.1-flash", 0, 1_000_000, 0) * 100) / 100, 9.8);
   });
 
+  it("prices deepseek/deepseek-v4.1-flash (the id OpenRouter uses for sketch reading) at the peak rate, $0.30/M in and $1.20/M out", () => {
+    assert.equal(Math.round(calculateModelCostThb("deepseek/deepseek-v4.1-flash", 1_000_000, 0, 0) * 100) / 100, 10.5);
+    assert.equal(Math.round(calculateModelCostThb("deepseek/deepseek-v4.1-flash", 0, 1_000_000, 0) * 100) / 100, 42);
+    // the real reading from the job-240 live test: 1,847 tokens in, 5,509 out
+    assert.equal(Math.round(calculateModelCostThb("deepseek/deepseek-v4.1-flash", 1847, 5509, 0) * 1e4) / 1e4, 0.2508);
+    // a priced model, not the Gemini default it would silently fall back to
+    assert.notEqual(calculateModelCostThb("deepseek/deepseek-v4.1-flash", 1000, 1000, 0), calculateModelCostThb("some/unknown-model", 1000, 1000, 0));
+    // and an image adds nothing on top of tokens for this model
+    assert.equal(calculateModelCostThb("deepseek/deepseek-v4.1-flash", 1000, 1000, 3), calculateModelCostThb("deepseek/deepseek-v4.1-flash", 1000, 1000, 0));
+  });
+
   it("prices google/gemini-2.5-flash (vertex-gemini.ts's model id) the same as gemini-2.5-flash", () => {
     assert.equal(
       calculateModelCostThb("google/gemini-2.5-flash", 1000, 1000, 0),

@@ -4,6 +4,9 @@ import { PRODUCTS } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
   basinPlacementOrientation,
+  calculateBasinCoordinates,
+  calculateBasinOffsets,
+  placementFitsStudioPiece,
   basinPlacementOverlapWarnings,
   applyStudioSizePreset,
   centerBasinPlacementPosition,
@@ -795,4 +798,151 @@ test("studioEstimate never overrides a stone color the user already picked", () 
   });
   const estimate = studioEstimate(state, PRODUCTS);
   assert.notEqual(estimate.stoneUnitPriceTHB, 8500, "a user-picked stone (BW010) must win over the basin's own color (NB091)");
+});
+
+// job-241: replacing a basin model must not undo the rotation, and shrinking the board must move the drawn position.
+
+const basinProducts = PRODUCTS.filter((product) => {
+  const size = basinDimensionsForProduct(product);
+  return size.widthMm !== null && size.depthMm !== null;
+});
+const turned = (overrides: Partial<StudioState["basinPlacements"][number]> = {}): StudioState["basinPlacements"][number] => ({
+  id: "basin-turned",
+  sku: "KF003",
+  pieceId: "piece-1",
+  xMm: 300,
+  yMm: 125,
+  widthMm: 350,
+  depthMm: 500,
+  rotation: 90,
+  orientation: "vertical",
+  ...overrides,
+});
+
+test("replaceStudioBasin keeps a turned (vertical) KF003 at a 500 x 350 cut-out when the model is replaced", () => {
+  const state = baseState({ basinSkus: ["KF003"], basinPlacements: [turned()] });
+  assert.deepEqual(placementCutSize(state.basinPlacements[0]!), { widthMm: 500, heightMm: 350 });
+
+  const replacement = PRODUCTS.find((product) => product.sku === "KF003")!;
+  const replaced = replaceStudioBasin(state, "KF003", replacement).basinPlacements[0]!;
+
+  assert.deepEqual(placementCutSize(replaced), { widthMm: 500, heightMm: 350 }, "the footprint must not flip to 350 x 500");
+  assert.equal(replaced.rotation, 90);
+  assert.equal(basinPlacementOrientation(replaced), "vertical");
+  // the stored size is the basin's own, not a pre-swapped one
+  assert.deepEqual([replaced.widthMm, replaced.depthMm], [350, 500]);
+});
+
+test("replaceStudioBasin: for every model the cut-out of a turned basin is the model's depth x width, and of an unturned one width x depth", () => {
+  assert.ok(basinProducts.length > 3, "the catalog should provide several basin sizes to check");
+  for (const product of basinProducts) {
+    const own = basinDimensionsForProduct(product);
+    for (const turnedBasin of [true, false]) {
+      const placement = turnedBasin
+        ? turned({ sku: "KF001", widthMm: 500, depthMm: 500 })
+        : { id: "basin-flat", sku: "KF001", pieceId: "piece-1", xMm: 300, yMm: 125, widthMm: 500, depthMm: 500, rotation: 0 as const, orientation: "horizontal" as const };
+      const replaced = replaceStudioBasin(baseState({ basinSkus: ["KF001"], basinPlacements: [placement] }), "KF001", product).basinPlacements[0]!;
+      assert.deepEqual(
+        placementCutSize(replaced),
+        turnedBasin ? { widthMm: own.depthMm, heightMm: own.widthMm } : { widthMm: own.widthMm, heightMm: own.depthMm },
+        `${product.sku} ${turnedBasin ? "turned" : "unturned"}`,
+      );
+      assert.equal(replaced.sku, product.sku);
+    }
+  }
+});
+
+test("replaceStudioBasin: swapping to another model and back leaves a turned basin with the same cut-out", () => {
+  const original = baseState({ basinSkus: ["KF003"], basinPlacements: [turned()] });
+  const kf001 = PRODUCTS.find((product) => product.sku === "KF001")!;
+  const kf003 = PRODUCTS.find((product) => product.sku === "KF003")!;
+  const there = replaceStudioBasin(original, "KF003", kf001);
+  const back = replaceStudioBasin(there, "KF001", kf003);
+  assert.deepEqual(placementCutSize(back.basinPlacements[0]!), placementCutSize(original.basinPlacements[0]!));
+  assert.deepEqual(back.basinPlacements[0], original.basinPlacements[0]);
+});
+
+test("replaceStudioBasin: a turned KF003 that fits the 600 mm counter with 100 mm clearance still fits after the model is replaced", () => {
+  const layout = piece([rectangle("r1", { widthMm: 1800, lengthMm: 600 })]);
+  const state = baseState({ pieces: [layout], basinSkus: ["KF003"], basinPlacements: [turned({ yMm: 125 })] });
+  assert.equal(placementFitsStudioPiece(layout, state.basinPlacements[0]!), true);
+  const replaced = replaceStudioBasin(state, "KF003", PRODUCTS.find((product) => product.sku === "KF003")!).basinPlacements[0]!;
+  // 125 + 350 = 475, inside 600 - 100; the flipped 350 x 500 footprint (125 + 500 = 625) would hang off the sheet
+  assert.equal(placementFitsStudioPiece(layout, replaced), true);
+});
+
+test("replaceStudioBasin only touches the placements of the replaced SKU", () => {
+  const other = { id: "basin-other", sku: "KF002", pieceId: "piece-1", xMm: 900, yMm: 60, widthMm: 400, depthMm: 400 };
+  const state = baseState({ basinSkus: ["KF003", "KF002"], basinPlacements: [turned(), other] });
+  const replaced = replaceStudioBasin(state, "KF003", PRODUCTS.find((product) => product.sku === "KF001")!);
+  assert.deepEqual(replaced.basinPlacements[1], other);
+});
+
+const SHEET_1800 = rectangle("r1", { widthMm: 1800, lengthMm: 600 });
+const anchoredBasin = (anchor: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center", xMm: number, yMm: number) => {
+  const placement = { id: `basin-${anchor}`, sku: "KF001", pieceId: "piece-1", sheetId: "r1", xMm, yMm, widthMm: 500, depthMm: 350, rotation: 0 as const, orientation: "horizontal" as const, anchor };
+  return { ...placement, ...calculateBasinOffsets(SHEET_1800, placement, { xMm, yMm }, anchor) };
+};
+
+test("applyStudioSizePreset: shrinking 1800 -> 400 moves the drawn position with xMm (offsetXMm 725 -> 100, drawn at x=100, not x=725)", () => {
+  const basin = anchoredBasin("top-left", 725, 125);
+  assert.equal(basin.offsetXMm, 725);
+  const resized = applyStudioSizePreset(baseState({ pieces: [piece([SHEET_1800])], basinPlacements: [basin] }), 400, 600);
+  const result = resized.basinPlacements[0]!;
+  const newSheet = resized.pieces![0]!.rectangles[0]!;
+
+  assert.equal(result.xMm, 100);
+  assert.equal(result.offsetXMm, 100);
+  assert.deepEqual(calculateBasinCoordinates(newSheet, result), { xMm: 100, yMm: 125 }, "what the canvas draws");
+  assert.notEqual(calculateBasinCoordinates(newSheet, result).xMm, 725);
+});
+
+test("applyStudioSizePreset: for every anchor the position the canvas draws equals xMm/yMm after the board is resized", () => {
+  for (const anchor of ["top-left", "top-right", "bottom-left", "bottom-right", "center"] as const) {
+    for (const [width, depth] of [[1200, 600], [400, 600], [2400, 700], [900, 500]]) {
+      const basin = anchoredBasin(anchor, 725, 125);
+      const resized = applyStudioSizePreset(baseState({ pieces: [piece([SHEET_1800])], basinPlacements: [basin] }), width!, depth);
+      const result = resized.basinPlacements[0]!;
+      const drawn = calculateBasinCoordinates(resized.pieces![0]!.rectangles[0]!, result);
+      assert.deepEqual(drawn, { xMm: result.xMm, yMm: result.yMm }, `${anchor} ${width}x${depth}`);
+      assert.equal(result.yMm, 125, `${anchor} ${width}x${depth}: only X is re-centred`);
+    }
+  }
+});
+
+test("applyStudioSizePreset: enlarging the board also keeps the drawn position equal to xMm", () => {
+  const basin = anchoredBasin("top-left", 100, 125);
+  const resized = applyStudioSizePreset(baseState({ pieces: [piece([SHEET_1800])], basinPlacements: [basin] }), 2400, 600);
+  const result = resized.basinPlacements[0]!;
+  assert.equal(result.xMm, 950, "(2400 - 500) / 2");
+  assert.deepEqual(calculateBasinCoordinates(resized.pieces![0]!.rectangles[0]!, result), { xMm: 950, yMm: 125 });
+});
+
+test("applyStudioSizePreset: a turned basin is re-centred by its turned footprint and its drawn position follows", () => {
+  const base = turned({ sheetId: "r1", xMm: 725, yMm: 125 });
+  const placement = { ...base, anchor: "top-left" as const, ...calculateBasinOffsets(SHEET_1800, base, { xMm: 725, yMm: 125 }, "top-left") };
+  const resized = applyStudioSizePreset(baseState({ pieces: [piece([SHEET_1800])], basinSkus: ["KF003"], basinPlacements: [placement] }), 1200, 600);
+  const result = resized.basinPlacements[0]!;
+  assert.equal(result.xMm, 350, "(1200 - 500) / 2 with the 500 mm turned footprint");
+  assert.deepEqual(calculateBasinCoordinates(resized.pieces![0]!.rectangles[0]!, result), { xMm: 350, yMm: 125 });
+});
+
+test("applyStudioSizePreset leaves a basin that never had offsets without any (nothing to keep in step)", () => {
+  const plain = { id: "basin-plain", sku: "KF001", pieceId: "piece-1", xMm: 725, yMm: 125, widthMm: 500, depthMm: 350 };
+  const resized = applyStudioSizePreset(baseState({ pieces: [piece([SHEET_1800])], basinPlacements: [plain] }), 400, 600);
+  const result = resized.basinPlacements[0]!;
+  assert.equal(result.xMm, 100);
+  assert.equal("offsetXMm" in result, false);
+  assert.equal("offsetYMm" in result, false);
+  assert.equal("anchor" in result, false);
+});
+
+test("applyStudioSizePreset does not move basins on another sheet, and keeps a level-snapped basin consistent with its offsets", () => {
+  const otherSheet = rectangle("r2", { xMm: 0, yMm: 700, widthMm: 1800, lengthMm: 600 });
+  const elsewhere = { ...anchoredBasin("top-left", 725, 125), id: "basin-elsewhere", sheetId: "r2", yMm: 800 };
+  const levelBase = { ...anchoredBasin("top-left", 725, 125), id: "basin-level", positionLevel: 7 as const };
+  const resized = applyStudioSizePreset(baseState({ pieces: [piece([SHEET_1800, otherSheet])], basinPlacements: [elsewhere, levelBase] }), 1200, 600);
+  assert.deepEqual(resized.basinPlacements[0], elsewhere);
+  const level = resized.basinPlacements[1]!;
+  assert.deepEqual(calculateBasinCoordinates(resized.pieces![0]!.rectangles[0]!, level), { xMm: level.xMm, yMm: level.yMm });
 });

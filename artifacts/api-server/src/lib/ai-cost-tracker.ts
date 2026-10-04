@@ -108,6 +108,12 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     inputThbPerThousandTokens: (0.14 / 1000) * USD_TO_THB, // 0.0049 บ./1k tokens
     outputThbPerThousandTokens: (0.28 / 1000) * USD_TO_THB, // 0.0098 บ./1k tokens
   },
+  // DeepSeek V4.1 Flash through OpenRouter (sketch-vision.ts). OpenRouter lists $0.15 in / $0.60 out per 1M off-peak and
+  // twice that at peak; the peak rate is used so spend is never estimated below what it can really be.
+  "deepseek/deepseek-v4.1-flash": {
+    inputThbPerThousandTokens: (0.3 / 1000) * USD_TO_THB, // 0.0105 บ./1k tokens
+    outputThbPerThousandTokens: (1.2 / 1000) * USD_TO_THB, // 0.042 บ./1k tokens
+  },
   ...Object.fromEntries(GOOGLE_TTS_MODELS.map((model) => [model, GOOGLE_TTS_PRICING])),
 };
 

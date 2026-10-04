@@ -1,5 +1,7 @@
 // Reads a customer's hand-drawn counter sketch (photo of a napkin drawing,
-// a rough plan, etc.) with Gemini 2.5 Flash Vision and pulls out the shape
+// a rough plan, etc.) with a vision model -- OpenRouter (DeepSeek by default)
+// or Gemini on Vertex AI, chosen by SKETCH_VISION_PROVIDER, see
+// sketch-vision-config.ts -- and pulls out the shape
 // and dimensions so the /sketch page can pre-fill its form. The sales team
 // or customer always reviews and can correct every field afterwards, so a
 // wrong guess here is an inconvenience, not a pricing risk -- but a guessed
@@ -10,14 +12,25 @@
 //
 // Never logs the image bytes, the OCR'd text, or anything else pulled from
 // the photo -- only this module's own config/HTTP-failure messages, which
-// never include request content.
+// never include request content. A provider's own error text (it can name the
+// GCP project, region and model path) goes to the log only, never into the
+// `notes` a customer sees.
 
 import { loadGoogleServiceAccountCredentials, fetchGoogleAccessToken, type GoogleServiceAccountCredentials } from "./google-service-account.ts";
+import {
+  isVertexModelNotFound,
+  openRouterVisionConfig,
+  orderSketchVisionProviders,
+  parseSketchVisionProviderChoice,
+  sketchVisionAttemptTimeoutMs,
+  vertexHost,
+  vertexModelCandidates,
+  vertexVisionLocation,
+  type OpenRouterVisionConfig,
+  type SketchVisionProvider,
+} from "./sketch-vision-config.ts";
 
-const REQUEST_TIMEOUT_MS = 30_000;
-const GEMINI_MODEL = "gemini-3.8-flash";
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
-const DEFAULT_VERTEX_AI_LOCATION = "asia-southeast1";
 
 export type SketchVisionShape = "I" | "L-left" | "L-right" | "U" | "unknown";
 export type SketchVisionConfidence = "high" | "medium" | "low";
@@ -114,48 +127,228 @@ const SKETCH_VISION_PROMPT = `คุณคือช่างประเมิ�
 - ถ้าอ่านตัวเลข รูปทรง หรือสถานะขอบไม่ได้ชัดเจน ห้ามเดา ให้ตอบ null หรือ "unknown" สำหรับค่านั้น
 - confidence สะท้อนความมั่นใจโดยรวมของการอ่านภาพนี้`;
 
-type SketchVisionConfig =
+/** What the model sent back, reduced to what the reader needs; both providers are mapped onto this. */
+type ModelAnswer = { text: string; promptTokens: number | null; completionTokens: number | null };
+
+/** Token usage of one provider call that got an HTTP 200, so the cost center can bill what was really spent. */
+export type SketchVisionUsage = {
+  provider: SketchVisionProvider;
+  /** The model id the request asked for (the cost table is keyed by it). */
+  model: string;
+  promptTokens: number | null;
+  completionTokens: number | null;
+  durationMs: number;
+  /** True when the answer was usable JSON, false when the call was billed but its output was not. */
+  success: boolean;
+};
+
+export type SketchVisionAnalysis = {
+  item: SketchVisionItem;
+  /** One entry per provider call that got an answer. Empty when no AI call produced one (nothing configured, or every call failed). */
+  usages: SketchVisionUsage[];
+};
+
+type VertexAccess =
   | { mode: "vertex"; projectId: string; location: string; credentials: GoogleServiceAccountCredentials }
   | { mode: "api-key"; apiKey: string };
 
 /**
- * Google Service Account (Vertex AI) is the primary path -- it needs both
- * VERTEX_AI_PROJECT_ID and a loadable service account. GOOGLE_API_KEY is kept
- * as a graceful fallback for environments that haven't migrated yet, so this
- * module still works during a rollout without a hard cutover.
+ * Google Service Account (Vertex AI) is the primary Gemini path -- it needs both VERTEX_AI_PROJECT_ID and a loadable
+ * service account. GOOGLE_API_KEY is kept as a graceful fallback for environments that haven't migrated yet, so this
+ * module still works during a rollout without a hard cutover. The Gemini path also needs a model id (VERTEX_AI_MODEL).
  */
-function sketchVisionConfig(): SketchVisionConfig | null {
+function vertexAccess(): VertexAccess | null {
   const projectId = process.env["VERTEX_AI_PROJECT_ID"];
   if (projectId) {
     const credentials = loadGoogleServiceAccountCredentials();
-    if (credentials) {
-      return { mode: "vertex", projectId, location: process.env["VERTEX_AI_LOCATION"] || DEFAULT_VERTEX_AI_LOCATION, credentials };
-    }
+    if (credentials) return { mode: "vertex", projectId, location: vertexVisionLocation(), credentials };
   }
   const apiKey = process.env["GOOGLE_API_KEY"];
   if (apiKey) return { mode: "api-key", apiKey };
   return null;
 }
 
-export function sketchVisionConfigured() {
-  return sketchVisionConfig() !== null;
+const warnedOnce = new Set<string>();
+function warnOnce(key: string, message: string) {
+  if (warnedOnce.has(key)) return;
+  warnedOnce.add(key);
+  console.warn(`[sketch-vision] ${message}`);
 }
 
-/** Builds the request URL/headers for whichever auth mode is configured -- the
- * request body (contents/parts/inline_data) is identical either way since
- * Vertex AI's native generateContent endpoint mirrors the AI Studio API. */
-async function buildSketchVisionRequest(config: SketchVisionConfig): Promise<{ url: string; headers: Record<string, string> }> {
-  if (config.mode === "vertex") {
-    const accessToken = await fetchGoogleAccessToken(config.credentials, VERTEX_AI_SCOPE);
-    return {
-      url: `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/${GEMINI_MODEL}:generateContent`,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-    };
+type ProviderPlan =
+  | { provider: "openrouter"; config: OpenRouterVisionConfig }
+  | { provider: "gemini"; access: VertexAccess; models: string[] };
+
+/** The configured providers, in the order they will be tried (SKETCH_VISION_PROVIDER decides who goes first). */
+function sketchVisionPlan(): ProviderPlan[] {
+  const { choice, recognised } = parseSketchVisionProviderChoice(process.env["SKETCH_VISION_PROVIDER"]);
+  if (!recognised) warnOnce("provider-choice", `SKETCH_VISION_PROVIDER="${process.env["SKETCH_VISION_PROVIDER"]}" is not openrouter, gemini or auto; using auto.`);
+
+  const openRouter = openRouterVisionConfig();
+  const access = vertexAccess();
+  const models = vertexModelCandidates();
+  if (access && models.length === 0) warnOnce("vertex-model", "Google credentials are set but VERTEX_AI_MODEL is empty, so the Gemini path is disabled. Set VERTEX_AI_MODEL to a model the project serves.");
+
+  const available: SketchVisionProvider[] = [];
+  if (openRouter) available.push("openrouter");
+  if (access && models.length > 0) available.push("gemini");
+  return orderSketchVisionProviders(choice, available).map((provider): ProviderPlan =>
+    provider === "openrouter" ? { provider, config: openRouter! } : { provider, access: access!, models },
+  );
+}
+
+export function sketchVisionConfigured() {
+  return sketchVisionPlan().length > 0;
+}
+
+/** A provider call that did not produce an answer. `kind` only picks the Thai message a customer sees. */
+class ProviderFailure extends Error {
+  // plain fields, not constructor parameter properties: node's strip-only TypeScript mode (the tests) rejects those
+  readonly kind: "timeout" | "network" | "rejected" | "empty";
+  readonly modelNotFound: boolean;
+  constructor(kind: "timeout" | "network" | "rejected" | "empty", detail: string, modelNotFound = false) {
+    super(detail);
+    this.kind = kind;
+    this.modelNotFound = modelNotFound;
   }
+}
+
+/** Provider error text can be long and can name the project, region and model path: cap it, and log it only. */
+function logSafe(text: string | undefined): string {
+  return (text ?? "").replace(/\s+/g, " ").slice(0, 300);
+}
+
+/** Some models wrap JSON in a ```json fence even when asked not to; the fence is removed, nothing else is touched. */
+function stripCodeFence(text: string): string {
+  const match = text.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return match ? match[1]! : text;
+}
+
+function asTokenCount(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number, label: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
+    const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
+    return { response, payload };
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") throw new ProviderFailure("timeout", `${label} timed out after ${timeoutMs} ms`);
+    throw new ProviderFailure("network", `${label} request failed: ${logSafe(error instanceof Error ? error.message : String(error))}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/** OpenAI-compatible chat completion with the sketch as a data URL (JSON mode). */
+async function askOpenRouter(config: OpenRouterVisionConfig, buffer: Buffer, mimeType: string, timeoutMs: number): Promise<ModelAnswer> {
+  const { response, payload } = await postJson(
+    `${config.baseUrl}/chat/completions`,
+    { "Content-Type": "application/json", Authorization: `Bearer ${config.apiKey}` },
+    {
+      model: config.model,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: SKETCH_VISION_PROMPT },
+          { type: "image_url", image_url: { url: `data:${mimeType};base64,${buffer.toString("base64")}`, detail: "high" } },
+        ],
+      }],
+      response_format: { type: "json_object" },
+    },
+    timeoutMs,
+    `OpenRouter ${config.model}`,
+  );
+  const providerError = (payload?.["error"] as { message?: string } | undefined)?.message;
+  if (!response.ok || providerError) {
+    throw new ProviderFailure("rejected", `OpenRouter ${config.model} answered HTTP ${response.status}: ${logSafe(providerError)}`);
+  }
+  const text = (payload?.["choices"] as Array<{ message?: { content?: unknown } }> | undefined)?.[0]?.message?.content;
+  if (typeof text !== "string" || !text.trim()) throw new ProviderFailure("empty", `OpenRouter ${config.model} sent no text`);
+  const usage = payload?.["usage"] as { prompt_tokens?: unknown; completion_tokens?: unknown } | undefined;
+  return { text, promptTokens: asTokenCount(usage?.prompt_tokens), completionTokens: asTokenCount(usage?.completion_tokens) };
+}
+
+type GeminiPayload = {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  usageMetadata?: { promptTokenCount?: unknown; candidatesTokenCount?: unknown; thoughtsTokenCount?: unknown };
+  error?: { message?: string };
+};
+
+/** One generateContent call; the same body is valid on Vertex AI and on the AI Studio (API key) endpoint. */
+async function askGeminiModel(access: VertexAccess, model: string, buffer: Buffer, mimeType: string, timeoutMs: number): Promise<ModelAnswer> {
+  let url: string;
+  let headers: Record<string, string>;
+  if (access.mode === "vertex") {
+    let accessToken: string;
+    try {
+      accessToken = await fetchGoogleAccessToken(access.credentials, VERTEX_AI_SCOPE);
+    } catch (error) {
+      throw new ProviderFailure("network", `Google token exchange failed: ${logSafe(error instanceof Error ? error.message : String(error))}`);
+    }
+    url = `https://${vertexHost(access.location)}/v1/projects/${access.projectId}/locations/${access.location}/publishers/google/models/${model}:generateContent`;
+    headers = { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
+  } else {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${access.apiKey}`;
+    headers = { "Content-Type": "application/json" };
+  }
+  const { response, payload: raw } = await postJson(
+    url,
+    headers,
+    {
+      // Vertex rejects a content entry with no role (HTTP 400 "Please use a valid role: user, model."): every request is a user turn.
+      contents: [{
+        role: "user",
+        parts: [
+          { text: SKETCH_VISION_PROMPT },
+          { inline_data: { mime_type: mimeType, data: buffer.toString("base64") } },
+        ],
+      }],
+      generationConfig: { responseMimeType: "application/json" },
+    },
+    timeoutMs,
+    `Gemini ${model}`,
+  );
+  const payload = raw as GeminiPayload | null;
+  if (!response.ok) {
+    throw new ProviderFailure(
+      "rejected",
+      `Gemini ${model} answered HTTP ${response.status}: ${logSafe(payload?.error?.message)}`,
+      isVertexModelNotFound(response.status, payload?.error?.message),
+    );
+  }
+  const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (typeof text !== "string" || !text.trim()) throw new ProviderFailure("empty", `Gemini ${model} sent no text`);
+  const usage = payload?.usageMetadata;
+  const thoughts = asTokenCount(usage?.thoughtsTokenCount) ?? 0;
+  const completion = asTokenCount(usage?.candidatesTokenCount);
   return {
-    url: `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${config.apiKey}`,
-    headers: { "Content-Type": "application/json" },
+    text,
+    promptTokens: asTokenCount(usage?.promptTokenCount),
+    // reasoning tokens are billed as output
+    completionTokens: completion === null && thoughts === 0 ? null : (completion ?? 0) + thoughts,
   };
+}
+
+/** Tries each configured Gemini model in turn; only "this project does not serve that model" moves on to the next one. */
+async function askGemini(plan: Extract<ProviderPlan, { provider: "gemini" }>, buffer: Buffer, mimeType: string, timeoutMs: number): Promise<ModelAnswer & { model: string }> {
+  for (let index = 0; index < plan.models.length; index += 1) {
+    const model = plan.models[index]!;
+    try {
+      return { ...(await askGeminiModel(plan.access, model, buffer, mimeType, timeoutMs)), model };
+    } catch (error) {
+      const next = plan.models[index + 1];
+      if (next && error instanceof ProviderFailure && error.modelNotFound) {
+        console.warn(`[sketch-vision] model "${model}" is not served by this project; retrying with "${next}". Update VERTEX_AI_MODEL to a model the project serves.`);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new ProviderFailure("empty", "no Gemini model configured");
 }
 
 function unknownItem(index: number, notes: string): SketchVisionItem {
@@ -375,55 +568,80 @@ export function parseSketchVisionResponse(rawText: string, index: number): Sketc
   };
 }
 
-/**
- * Sends one sketch image to Gemini 2.5 Flash Vision and returns a typed
- * result. Never throws and never returns a rejected promise: a missing API
- * key, a network failure, a timeout, or a malformed AI response all produce
- * the same "unknown" shape with every measurement null and a Thai `notes`
- * explanation, so /api/sketch/analyze can always answer 200 (spec: a broken
- * AI call must never break the sketch page).
- */
-export async function analyzeSketchImage(buffer: Buffer, mimeType: string, index = 0): Promise<SketchVisionItem> {
-  const config = sketchVisionConfig();
-  if (!config) return unknownItem(index, "ยังไม่ได้ตั้งค่า Google Service Account หรือ GOOGLE_API_KEY");
+const NOT_CONFIGURED_NOTE = "ตอนนี้ระบบอ่านภาพด้วย AI ยังไม่พร้อมใช้งาน กรุณากรอกขนาดด้วยตนเอง";
+const READ_FAILED_NOTE = "ตอนนี้ระบบอ่านภาพไม่สำเร็จ กรุณากรอกขนาดด้วยตนเอง";
+const TIMEOUT_NOTE = "เรียกวิเคราะห์ภาพหมดเวลา (timeout) กรุณาลองใหม่อีกครั้ง";
+const NETWORK_NOTE = "ไม่สามารถเชื่อมต่อระบบวิเคราะห์ภาพได้ในขณะนี้ กรุณากรอกขนาดด้วยตนเอง";
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+/** The Thai sentence for the last failure; none of it comes from the provider. */
+function noteForFailure(failure: ProviderFailure | null): string {
+  if (failure?.kind === "timeout") return TIMEOUT_NOTE;
+  if (failure?.kind === "network") return NETWORK_NOTE;
+  return READ_FAILED_NOTE;
+}
+
+/** True when the text is a JSON object, i.e. worth showing; otherwise the next provider gets a chance. */
+function isUsableJsonObject(text: string): boolean {
   try {
-    const { url, headers } = await buildSketchVisionRequest(config);
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: SKETCH_VISION_PROMPT },
-            { inline_data: { mime_type: mimeType, data: buffer.toString("base64") } },
-          ],
-        }],
-        generationConfig: { responseMimeType: "application/json" },
-      }),
-      signal: controller.signal,
-    });
-
-    const payload = await response.json().catch(() => null) as
-      { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>; error?: { message?: string } } | null;
-
-    if (!response.ok) {
-      return unknownItem(index, payload?.error?.message ?? `เรียก Gemini Vision ไม่สำเร็จ (${response.status})`);
-    }
-    const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (typeof text !== "string" || !text.trim()) {
-      return unknownItem(index, "Gemini Vision ไม่ได้ตอบข้อความกลับมา");
-    }
-    return parseSketchVisionResponse(text, index);
-  } catch (error) {
-    const isTimeout = error instanceof Error && error.name === "AbortError";
-    const message = isTimeout
-      ? "เรียกวิเคราะห์ภาพหมดเวลา (timeout) กรุณาลองใหม่อีกครั้ง"
-      : "ไม่สามารถเชื่อมต่อระบบวิเคราะห์ภาพได้ในขณะนี้ กรุณากรอกขนาดด้วยตนเอง";
-    return unknownItem(index, message);
-  } finally {
-    clearTimeout(timeout);
+    const parsed: unknown = JSON.parse(text);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
+  } catch {
+    return false;
   }
+}
+
+/**
+ * Reads one sketch image with the configured provider(s) and returns the typed result together with the token usage of
+ * every call that got an answer. Never throws and never returns a rejected promise: nothing configured, a network
+ * failure, a timeout, a rejection or an unusable answer all come back as the "unknown" shape with every measurement null
+ * and a Thai `notes` explanation, so /api/sketch/analyze can always answer 200 (spec: a broken AI call must never break
+ * the sketch page).
+ *
+ * Provider order comes from SKETCH_VISION_PROVIDER (see sketch-vision-config.ts); when the first provider fails for any
+ * reason the next configured one is tried. With nothing configured no request is made at all.
+ */
+export async function analyzeSketchImageWithUsage(buffer: Buffer, mimeType: string, index = 0): Promise<SketchVisionAnalysis> {
+  const plan = sketchVisionPlan();
+  if (plan.length === 0) return { item: unknownItem(index, NOT_CONFIGURED_NOTE), usages: [] };
+
+  const timeoutMs = sketchVisionAttemptTimeoutMs();
+  const usages: SketchVisionUsage[] = [];
+  let lastFailure: ProviderFailure | null = null;
+
+  for (const step of plan) {
+    const startedAt = Date.now();
+    let model: string = step.provider === "openrouter" ? step.config.model : step.models[0]!;
+    try {
+      let answer: ModelAnswer;
+      if (step.provider === "openrouter") {
+        answer = await askOpenRouter(step.config, buffer, mimeType, timeoutMs);
+      } else {
+        const gemini = await askGemini(step, buffer, mimeType, timeoutMs);
+        answer = gemini;
+        model = gemini.model;
+      }
+      const text = stripCodeFence(answer.text);
+      const usable = isUsableJsonObject(text);
+      usages.push({
+        provider: step.provider,
+        model,
+        promptTokens: answer.promptTokens,
+        completionTokens: answer.completionTokens,
+        durationMs: Date.now() - startedAt,
+        success: usable,
+      });
+      if (usable) return { item: parseSketchVisionResponse(text, index), usages };
+      console.warn(`[sketch-vision] ${step.provider} (${model}) answered with something that is not a JSON object`);
+      lastFailure = new ProviderFailure("empty", "unusable answer");
+    } catch (error) {
+      lastFailure = error instanceof ProviderFailure ? error : new ProviderFailure("network", "unexpected error");
+      console.warn(`[sketch-vision] ${step.provider} failed: ${error instanceof ProviderFailure ? error.message : logSafe(error instanceof Error ? error.message : String(error))}`);
+    }
+  }
+  return { item: unknownItem(index, noteForFailure(lastFailure)), usages };
+}
+
+/** The result without the usage, for callers that only need the reading. Same guarantees as analyzeSketchImageWithUsage. */
+export async function analyzeSketchImage(buffer: Buffer, mimeType: string, index = 0): Promise<SketchVisionItem> {
+  return (await analyzeSketchImageWithUsage(buffer, mimeType, index)).item;
 }

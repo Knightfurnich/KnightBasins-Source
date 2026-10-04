@@ -1053,10 +1053,14 @@ export function replaceStudioBasin(state: StudioState, previousSku: string, prod
     ...state,
     basinSkus: state.basinSkus.map((sku) => sku === previousSku ? product.sku : sku),
     basinPlacements: state.basinPlacements.map((placement) => placement.sku === previousSku
+      // A placement stores the basin's OWN width/depth; the rotation is applied later by placementCutSize. So the new
+      // model's raw size goes in as it is: swapping it for a turned (vertical) basin as well would cancel the rotation
+      // (KF003 350 x 500 turned 90 degrees must stay a 500 x 350 cut-out, not come back 350 x 500).
       ? {
         ...placement,
         sku: product.sku,
-        ...basinPlacementDimensions(size, basinPlacementOrientation(placement)),
+        widthMm: size.widthMm,
+        depthMm: size.depthMm,
         orientation: basinPlacementOrientation(placement),
       }
       : placement),
@@ -2133,7 +2137,12 @@ export function applyStudioSizePreset(
     if (cutWidthMm === null) return placement;
     // A basin snapped to one of the seven levels keeps its level on the resized sheet instead of being re-centred.
     if (isBasinPositionLevel(placement.positionLevel)) return positionPlacementAtLevel(placement, pieces[0]!, placement.positionLevel);
-    return { ...placement, xMm: clampToMargin((widthMm - cutWidthMm) / 2, widthMm, cutWidthMm) };
+    const recentered = { ...placement, xMm: clampToMargin((widthMm - cutWidthMm) / 2, widthMm, cutWidthMm) };
+    // The canvas and the "ระยะ X" field draw from offsetXMm/offsetYMm (calculateBasinCoordinates), not from xMm, so
+    // offsets left at their old values would keep the basin drawn at its old position (outside a shrunk sheet) while
+    // xMm says it was re-centred. A basin that never had offsets has nothing to keep in step and is left alone.
+    if (placement.offsetXMm === undefined && placement.offsetYMm === undefined) return recentered;
+    return { ...recentered, ...calculateBasinOffsets(resizedSheet, recentered, { xMm: recentered.xMm, yMm: recentered.yMm }, recentered.anchor ?? "top-left") };
   });
 
   return { ...state, dimensions, pieces, basinPlacements };
