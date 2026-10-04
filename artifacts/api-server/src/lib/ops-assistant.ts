@@ -11,6 +11,9 @@ import { customerLeads, paymentSlips, technicianTeams } from "@workspace/db/sche
 import { askGemini, vertexGeminiConfigured, type GeminiResult } from "./vertex-gemini.ts";
 
 export type OpsAssistantMode = "dashboard" | "leads" | "calendar";
+export type OpsAssistantResult =
+  | (Extract<GeminiResult, { ok: true }> & { dataAsOf: string })
+  | Extract<GeminiResult, { ok: false }>;
 
 export const OPS_ASSISTANT_MODES: OpsAssistantMode[] = ["dashboard", "leads", "calendar"];
 
@@ -26,6 +29,7 @@ const SYSTEM_PROMPT =
   "ห้ามใช้คำเทคนิคหรือคำอังกฤษในคำตอบ เช่น Lead, dispatched, status, record, field หรือ ID ให้ใช้คำไทยง่าย ๆ เช่น งาน สถานะงาน รายการ และข้อมูล " +
   "ห้ามเปิดเผยรหัสงานหรือรหัสภายใน UUID หรือเลขอ้างอิงยาว ให้เรียกรายการตามลำดับว่า “งานที่ 1” หรือเรียกตามชื่อว่า “งานของช่าง <ชื่อ>” " +
   "วันที่ให้ใช้รูปแบบภาษาไทย เช่น “4 ต.ค. 2569” และจำนวนเงินให้มีตัวคั่นหลักพันพร้อมหน่วย “บาท” " +
+  "ไม่ต้องระบุวันเวลาของข้อมูลเอง เพราะระบบจะเพิ่มบรรทัดข้อมูล ณ ต่อท้ายคำตอบให้ " +
   "หากข้อมูลไม่มีหรือไม่พอ ให้บอกอย่างสุภาพและเสนอทางเลือกที่ตรวจสอบได้แทน โดยเลือกสิ่งที่ทำได้จากข้อมูลที่มี หรือถามกลับเพื่อให้ชัดเจน " +
   "ถ้าถามถึงงานค้างแต่ข้อมูลมีเพียงจำนวนแยกตามสถานะ ให้สรุปตามสถานะที่มี ห้ามตั้งเกณฑ์หรือช่วงวันขึ้นเอง " +
   "ห้ามแนะนำการแก้ไขข้อมูลในระบบ";
@@ -87,6 +91,30 @@ function formatThaiOpsDate(value: unknown): string | null {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+function formatThaiOpsDataAsOf(value: Date): string {
+  const date = new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(value);
+  const time = new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(value);
+  return `ข้อมูล ณ วันที่ ${date} เวลา ${time} น. (เวลาไทย)`;
+}
+
+function appendOpsDataAsOf(reply: string, dataAsOf: Date): string {
+  const withoutModelTimestamp = reply
+    .replace(/ข้อมูล ณ วันที่ [^\n]*?\(เวลาไทย\)/gu, "")
+    .trimEnd();
+  const dataAsOfLine = formatThaiOpsDataAsOf(dataAsOf);
+  return withoutModelTimestamp ? `${withoutModelTimestamp}\n${dataAsOfLine}` : dataAsOfLine;
 }
 
 function formatThaiOpsMonth(isoDate: string): string {
@@ -274,21 +302,32 @@ export async function buildOpsContextSummary(mode: OpsAssistantMode, now: Date =
  * summary for `mode`. Locks the system prompt rules from KRAKEN ERP manual
  * item 15: Thai answers only, no guessed numbers, never suggest editing data.
  */
-export async function askOpsAssistant(question: string, mode: OpsAssistantMode = "dashboard"): Promise<GeminiResult> {
+export async function askOpsAssistant(
+  question: string,
+  mode: OpsAssistantMode = "dashboard",
+  clock: () => Date = () => new Date(),
+): Promise<OpsAssistantResult> {
   if (!vertexGeminiConfigured()) {
     return { ok: false, message: "ผู้ช่วย AI ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง" };
   }
+  const dataAsOf = clock();
   // The summary is read-only context. If it cannot be built the assistant still answers (and says there is no data) instead of
   // throwing out of the route as a 500.
   let dataSummary: string;
   try {
-    dataSummary = await buildOpsContextSummary(mode);
+    dataSummary = await buildOpsContextSummary(mode, dataAsOf);
   } catch (error) {
     console.warn("Ops assistant context summary failed", { mode, error: error instanceof Error ? error.message : "unknown" });
     dataSummary = "ไม่พบข้อมูล (ดึงข้อมูลอ้างอิงจากระบบไม่สำเร็จ)";
   }
-  return askGemini({
+  const result = await askGemini({
     message: question,
     contextSummary: `${SYSTEM_PROMPT}\n\nข้อมูลอ้างอิง:\n${dataSummary}`,
   });
+  if (!result.ok) return result;
+  return {
+    ...result,
+    reply: appendOpsDataAsOf(result.reply, dataAsOf),
+    dataAsOf: dataAsOf.toISOString(),
+  };
 }

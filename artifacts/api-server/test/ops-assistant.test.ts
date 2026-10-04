@@ -52,6 +52,8 @@ const FAKE_CREDENTIALS_JSON = JSON.stringify({
 
 const realFetch = globalThis.fetch;
 const adminRoute = fileURLToPath(new URL("../src/routes/admin-router.ts", import.meta.url));
+const FIXED_DATA_AS_OF = new Date("2026-10-04T20:05:00.000Z");
+const fixedDataAsOf = () => new Date(FIXED_DATA_AS_OF);
 
 /** Sensitive markers that must never appear in a context summary or an assistant reply. */
 const SENSITIVE_TAX_ID = "1234567890123";
@@ -260,7 +262,7 @@ describe("buildOpsContextSummary", () => {
 });
 
 describe("askOpsAssistant", () => {
-  it("returns ok:false with the fixed Thai message, and never touches the database, when Vertex AI is not configured", async () => {
+  it("(ค) returns a failure without a freshness line when Vertex AI is not configured", async () => {
     delete process.env["VERTEX_AI_PROJECT_ID"];
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
@@ -277,11 +279,34 @@ describe("askOpsAssistant", () => {
 
     const result = await askOpsAssistant("มีงานพร้อมผลิตกี่งาน", "dashboard");
     assert.deepEqual(result, { ok: false, message: "ผู้ช่วย AI ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง" });
+    assert.doesNotMatch(JSON.stringify(result), /ข้อมูล ณ วันที่/);
+    assert.equal("dataAsOf" in result, false);
     assert.equal(selectCalled, false);
     assert.equal(fetchCalled, false);
   });
 
-  it("asks Gemini with the locked system prompt plus the read-only context summary, and returns its reply", async () => {
+  it("(ค) omits freshness metadata when Gemini fails", async () => {
+    process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    mockDatabase([], []);
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
+      if (url.includes("aiplatform.googleapis.com")) {
+        return new Response(JSON.stringify({ error: { message: "upstream unavailable" } }), { status: 503 });
+      }
+      return realFetch(input as never, init);
+    });
+
+    const result = await askOpsAssistant("มีงานพร้อมผลิตกี่งาน", "dashboard", fixedDataAsOf);
+    assert.equal(result.ok, false);
+    assert.doesNotMatch(JSON.stringify(result), /ข้อมูล ณ วันที่/);
+    assert.equal("dataAsOf" in result, false);
+  });
+
+  it("(ข) returns a fixed UTC read time as the correct Thai date and 24-hour time", async () => {
     process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
     process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
     mockDatabase([leadRow({ id: 1, status: "ready_for_production" })], []);
@@ -299,14 +324,43 @@ describe("askOpsAssistant", () => {
       return realFetch(input as never, init);
     });
 
-    const result = await askOpsAssistant("มีงานพร้อมผลิตกี่งาน", "dashboard");
-    assert.deepEqual(result, { ok: true, reply: "มีงานพร้อมผลิต 1 งานครับ" });
+    const result = await askOpsAssistant("มีงานพร้อมผลิตกี่งาน", "dashboard", fixedDataAsOf);
+    assert.deepEqual(result, {
+      ok: true,
+      reply: "มีงานพร้อมผลิต 1 งานครับ\nข้อมูล ณ วันที่ 5 ต.ค. 2569 เวลา 03:05 น. (เวลาไทย)",
+      dataAsOf: "2026-10-04T20:05:00.000Z",
+    });
     assert.equal(capturedMessages[0]?.role, "system");
     assert.match(capturedMessages[0]?.content ?? "", /ห้ามเดาตัวเลข/);
     assert.match(capturedMessages[0]?.content ?? "", /พร้อมผลิต: 1 งาน/);
     assert.equal(capturedMessages[1]?.role, "user");
     assert.equal(capturedMessages[1]?.content, "มีงานพร้อมผลิตกี่งาน");
     assert.equal(writeAttempts, 0);
+  });
+
+  it("(ก) appends one server-owned freshness line after success, replacing any model-generated copy", async () => {
+    process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    mockDatabase([], []);
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
+      if (url.includes("aiplatform.googleapis.com")) {
+        return new Response(JSON.stringify({
+          choices: [{ message: { content: "สรุปแล้วครับ\nข้อมูล ณ วันที่ 4 ต.ค. 2569 เวลา 03:05 น. (เวลาไทย)" } }],
+        }), { status: 200 });
+      }
+      return realFetch(input as never, init);
+    });
+
+    const result = await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard", fixedDataAsOf);
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.reply, "สรุปแล้วครับ\nข้อมูล ณ วันที่ 5 ต.ค. 2569 เวลา 03:05 น. (เวลาไทย)");
+    assert.equal((result.reply.match(/ข้อมูล ณ วันที่/g) ?? []).length, 1);
+    assert.equal(result.dataAsOf, "2026-10-04T20:05:00.000Z");
   });
 });
 
@@ -489,8 +543,15 @@ describe("POST /admin/assistant/ask", () => {
         body: JSON.stringify({ question: "สรุปแดชบอร์ดให้หน่อย", mode: "dashboard" }),
       });
       assert.equal(response.status, 200);
-      const payload = await response.json() as { ok: boolean; reply?: string; mode?: string };
-      assert.deepEqual(payload, { ok: true, reply: "สรุปแล้วครับ", mode: "dashboard" });
+      const payload = await response.json() as { ok: boolean; reply?: string; mode?: string; dataAsOf?: string };
+      assert.deepEqual(Object.keys(payload).sort(), ["dataAsOf", "mode", "ok", "reply"]);
+      assert.equal(payload.ok, true);
+      assert.equal(payload.mode, "dashboard");
+      assert.equal(typeof payload.reply, "string");
+      assert.equal(typeof payload.dataAsOf, "string");
+      assert.ok(!Number.isNaN(Date.parse(payload.dataAsOf ?? "")));
+      assert.match(payload.reply ?? "", /\nข้อมูล ณ วันที่ \d{1,2} \S+ 2569 เวลา \d{2}:\d{2} น\. \(เวลาไทย\)$/);
+      assert.equal((payload.reply?.match(/ข้อมูล ณ วันที่/g) ?? []).length, 1);
       assert.equal(leads.length, leadCountBefore, "the fixture's row count never changes");
       assert.equal(writeAttempts, 0, "insert/update/delete must never be called");
     } finally {
@@ -611,12 +672,20 @@ describe("dates from the database arrive as Date objects", () => {
       return realFetch(input as never, init);
     });
     mockDatabase([leadRow({ id: 1 })], [slipRow({ id: 1, status: "verified", verifiedAmountThb: 900, createdAt: new Date("2026-10-01T00:00:00.000Z") })]);
-    assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard"), { ok: true, reply: "ตอบแล้วครับ" });
+    assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard", fixedDataAsOf), {
+      ok: true,
+      reply: "ตอบแล้วครับ\nข้อมูล ณ วันที่ 5 ต.ค. 2569 เวลา 03:05 น. (เวลาไทย)",
+      dataAsOf: "2026-10-04T20:05:00.000Z",
+    });
     assert.match(context, /900 บาท \(1 ต\.ค\. 2569\)/);
 
     mock.method(realDb, "select", () => { throw new Error("db is down"); });
     const warn = mock.method(console, "warn", () => {});
-    assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard"), { ok: true, reply: "ตอบแล้วครับ" });
+    assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard", fixedDataAsOf), {
+      ok: true,
+      reply: "ตอบแล้วครับ\nข้อมูล ณ วันที่ 5 ต.ค. 2569 เวลา 03:05 น. (เวลาไทย)",
+      dataAsOf: "2026-10-04T20:05:00.000Z",
+    });
     assert.match(context, /ไม่พบข้อมูล/);
     assert.equal(warn.mock.callCount(), 1);
   });
