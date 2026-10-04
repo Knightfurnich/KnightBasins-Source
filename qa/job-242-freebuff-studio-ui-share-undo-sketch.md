@@ -1,9 +1,9 @@
-# ใบงาน 242-R (Replit) — ซ่อม UX/UI 2D Studio + หน้า /sketch 6 จุด และทิ้งแบบร่างรูปแบบเก่า
+# ใบงาน 242-F (Freebuff/บอย) — ซ่อม UX/UI 2D Studio + หน้า /sketch 6 จุด และทิ้งแบบร่างรูปแบบเก่า
 
 **วันที่:** 4 ต.ค. 69 · **ออกโดย:** เดวิด (หัวหน้าทีม)
-**สถานะ:** มอบหมายให้ Replit · เริ่มได้ทันที
-**Branch:** `fix/replit-studio-ui-share-undo-sketch`
-**ที่มา:** บั๊กที่ตรวจพบบนเว็บจริง (งานซ่อมเดิมอยู่ใน PR #285 ที่ปิดไปโดยไม่ merge)
+**สถานะ:** มอบหมายให้บอย (Freebuff) · เริ่มได้ทันที
+**Branch:** `fix/freebuff-studio-ui-share-undo-sketch`
+**ที่มา:** บั๊กที่ตรวจพบบนเว็บจริง (งานซ่อมเดิมอยู่ใน PR #285 ที่ปิดไปโดยไม่ merge) · โอนจาก Replit มาให้บอย ตามที่บอสกำหนดเจ้าของ Frontend/UI (4 ต.ค. 69)
 
 ```
 ✅ มาตรฐานการออกใบงาน · 12/12 · 4 ต.ค. 69 · เดวิด
@@ -34,15 +34,15 @@ SCOPE:
   - artifacts/knight-basins/test/studio-share-undo-sketch-guardrails.test.ts (ใหม่)
 
 FORBIDDEN:
-  - ข้อบังคับสำหรับ Replit: ระบบนี้ใช้ GitHub Connection เท่านั้น ห้ามรันคำสั่ง git ใน Terminal และห้ามเด้งกล่องถามยืนยันเรื่อง Git/Branch ให้สร้าง branch และ push ผ่าน GitHub Connection อัตโนมัติทันที
+  - ข้อบังคับสำหรับ Freebuff (บอย): ใช้ GitHub Connection เท่านั้น ห้ามรันคำสั่ง git ใน Terminal และห้ามเด้งกล่องถามยืนยันเรื่อง Git/Branch ให้สร้าง branch และ push ผ่าน GitHub Connection อัตโนมัติทันที
   - ห้ามแตะต้องหรือแก้ไข src/index.css เด็ดขาด (0 diff)
   - ห้ามแตะ src/data/** (ของชัย) และ artifacts/api-server/** (มีใบงาน 240/241 แยกอยู่)
   - ห้ามแก้สูตรการคำนวณราคาใด ๆ ทั้งสิ้น
   - ห้ามเขียนหรือลบข้อมูลใน Production Database
-  - ทำงานผ่าน branch: fix/replit-studio-ui-share-undo-sketch แล้วเปิด PR เข้า main
+  - ทำงานผ่าน branch: fix/freebuff-studio-ui-share-undo-sketch แล้วเปิด PR เข้า main
 
 EVIDENCE (ต้องแนบผลรันจริงทุกข้อ — ตัวเลข ไม่ใช่คำรับรอง):
-  1) git status และ branch แสดง fix/replit-studio-ui-share-undo-sketch ชัดเจน
+  1) git status และ branch แสดง fix/freebuff-studio-ui-share-undo-sketch ชัดเจน
   2) npx tsc -p artifacts/knight-basins/tsconfig.json --noEmit → 0 errors
   3) node --experimental-strip-types --test test/studio-*.test.ts test/sketch-*.test.ts ใน artifacts/knight-basins
      → fail 0 (baseline ปัจจุบัน 413 pass / 0 fail / 2 skip)
@@ -74,9 +74,9 @@ STOP:
 | 4 | มีบล็อก EVIDENCE ชัดเจน | ผ่าน | tsc + เทสต์ baseline + พิสูจน์บนหน้าเว็บจริง 6 ข้อ |
 | 5 | มีบล็อก OUTPUT ชัดเจน | ผ่าน | ระบุไฟล์และ PR |
 | 6 | มีบล็อก STOP เป็นตัวเลข | ผ่าน | ระบุ 30 turns |
-| 7 | Replit SCOPE ใช้ path สัมพัทธ์ | ผ่าน | ไม่มี absolute path ของเครื่องเซิร์ฟเวอร์ |
-| 8 | Replit บังคับ GitHub Connection | ผ่าน | มีบรรทัดข้อบังคับครบถ้วน |
+| 7 | Freebuff SCOPE ใช้ path สัมพัทธ์ | ผ่าน | ไม่มี absolute path ของเครื่องเซิร์ฟเวอร์ |
+| 8 | Freebuff บังคับ GitHub Connection | ผ่าน | มีบรรทัดข้อบังคับครบถ้วน |
 | 9 | ห้ามแตะ src/index.css | ผ่าน | ระบุชัดเจน 0 diff |
-| 10 | มี branch name ชัดเจน | ผ่าน | fix/replit-studio-ui-share-undo-sketch |
+| 10 | มี branch name ชัดเจน | ผ่าน | fix/freebuff-studio-ui-share-undo-sketch |
 | 11 | มี baseline ตัวเลข | ผ่าน | 413 pass / 0 fail / 2 skip |
 | 12 | แยกงานไม่ให้ทับไฟล์กัน | ผ่าน | ห้ามแตะ src/data/** และ api-server/** |
