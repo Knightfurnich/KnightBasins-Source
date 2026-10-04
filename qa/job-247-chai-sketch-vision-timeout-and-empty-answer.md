@@ -20,6 +20,18 @@ GOAL:
   3. ยิงทดสอบจริงกับผู้ให้บริการจริง (มีคีย์ OpenRouter อยู่ใน /docker/knightbasins/.env แล้ว) อย่างน้อย 1 ภาพ
      และแนบผลจริงว่าได้ข้อความ/JSON กลับมา พร้อมเวลาที่ใช้
 
+เพิ่มข้อกำหนด (บอสสั่ง 4 ต.ค. 69 — ใช้ gemini-3.1-flash-lite เป็นโมเดลหลักของเส้นทางภาพ):
+  - เพิ่ม env เฉพาะทาง VERTEX_VISION_MODEL สำหรับเส้นทางอ่านภาพ โดยถ้าไม่ตั้งให้ใช้ VERTEX_AI_MODEL ตามเดิม
+    เหตุผล: VERTEX_AI_MODEL ถูกใช้ร่วมกับบอทซัพพอร์ตเว็บ (vertex-gemini.ts) ซึ่งเรียกผ่าน endpoint คนละแบบ
+    และ gemini-3.1-flash-lite ไม่มีให้ใช้ใน regional (404) → ถ้าเปลี่ยน VERTEX_AI_MODEL ตรง ๆ บอทซัพพอร์ตจะพัง
+  - ต้องไม่แตะ vertex-gemini.ts และไม่เปลี่ยนพฤติกรรมของบอทซัพพอร์ต
+  - หลัง merge จะตั้ง: VERTEX_VISION_MODEL=gemini-3.1-flash-lite · VERTEX_VISION_LOCATION=global
+  หลักฐานจากเดวิด (ยิงจริง 3 ภาพผ่าน Vertex global, prompt สั้น):
+    ภาพ 170KB: 2.5-flash 4.1s/1915 tok → I 1980x600 conf high · lite 4.0s/1184 tok → ผลเดียวกันเป๊ะ (โทเคนน้อยกว่า 38%)
+    ภาพ 261KB: 2.5-flash ตอบข้อความว่าง · lite ตอบ JSON ได้ (I, runA 300)
+    ภาพ 326KB: 2.5-flash ตอบข้อความว่าง · lite ตอบ JSON ได้ (L-right, runA 2040) ใน 2.6s
+    → lite เร็ว/ถูกกว่า และในตัวอย่างนี้ "ตอบได้ครบกว่า" 2.5-flash
+
 ข้อมูลจากเอกสาร OpenRouter (เดวิดตรวจเพิ่มให้ 4 ต.ค. 69) — ใช้หาเหตุ "sent no text":
   - ปลายทางถูกแล้ว: POST {base}/chat/completions โดย base = https://openrouter.ai/api/v1
   - header ที่จำเป็นคือ Authorization: Bearer เท่านั้น · HTTP-Referer และ X-OpenRouter-Title เป็นตัวเลือก
