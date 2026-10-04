@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
-import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db, paymentSlips } from "@workspace/db";
+import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db, paymentSlips, supportVoiceSettings } from "@workspace/db";
 import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
@@ -443,9 +443,38 @@ async function applyProfileUpdate(account: Account, fields: SupportProfileFields
  * paid, per-character cost rather than free text.
  */
 const supportSpeechRateLimit = createRateLimiter({ name: "support-speech", max: 20, windowMs: 60 * 60 * 1000 });
+
+export const SUPPORT_VOICE_DISABLED_MESSAGE = "ฟีเจอร์เสียงน้องไนท์ปิดใช้งานอยู่";
+
+/**
+ * Whether an admin has switched the น้องไนท์ voice on (/admin/voice-settings). Fails closed: no row, enabled=false, or
+ * a query that throws all answer false, so a database hiccup can never leave the paid TTS call open to the public.
+ */
+export async function isSupportVoiceEnabled(database: Pick<typeof db, "select"> = db): Promise<boolean> {
+  try {
+    const [row] = await database.select().from(supportVoiceSettings).orderBy(desc(supportVoiceSettings.id)).limit(1);
+    return row?.enabled === true;
+  } catch {
+    return false;
+  }
+}
+
+router.get("/support/voice-status", async (_req, res, next) => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ enabled: await isSupportVoiceEnabled() });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/support/speech", supportSpeechRateLimit, async (req, res, next) => {
   const text = typeof req.body?.text === "string" ? req.body.text : "";
   try {
+    if (!(await isSupportVoiceEnabled())) {
+      res.status(503).json({ message: SUPPORT_VOICE_DISABLED_MESSAGE });
+      return;
+    }
     const result = await synthesizeSpeech(text);
     if (!result.ok) {
       res.status(422).json({ message: result.message });

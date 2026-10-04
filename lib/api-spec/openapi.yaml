@@ -569,6 +569,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SupportChatResponse"
+  /support/voice-status:
+    get:
+      operationId: getSupportVoiceStatus
+      tags: [support]
+      summary: Whether the น้องไนท์ voice feature is switched on (public, never cached)
+      responses:
+        "200":
+          description: Current on/off state of the voice feature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportVoiceStatus"
   /support/payment-slip:
     post:
       operationId: submitSupportPaymentSlip
@@ -2415,12 +2427,18 @@ components:
         active: { type: boolean }
     SupportVoiceSetting:
       type: object
-      required: [voiceName, languageCode, speakingRate, updatedAt]
+      required: [voiceName, languageCode, speakingRate, enabled, updatedAt]
       properties:
         voiceName: { type: string, description: "A Google Cloud TTS voice name, e.g. th-TH-Chirp3-HD-Kore" }
         languageCode: { type: string }
         speakingRate: { type: number }
+        enabled: { type: boolean, description: "Whether the voice feature is switched on; false until an admin enables it" }
         updatedAt: { type: string, format: date-time }
+    SupportVoiceStatus:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean, description: "Whether POST /support/speech currently accepts requests" }
     SupportVoiceOption:
       type: object
       required: [voiceName, label]
@@ -2447,6 +2465,9 @@ components:
         voiceName:
           type: string
           description: Must match one of the voiceName values from GET /admin/support-voice's options list
+        enabled:
+          type: boolean
+          description: Switch the voice feature on or off; when omitted the saved value is kept (a first save defaults to off)
     SitePhoto:
       type: object
       required: [id, imageUrl, stage, createdAt]

@@ -5,6 +5,16 @@ import { serveTypeScriptRoute } from "./route-harness.ts";
 
 process.env["DATABASE_URL"] ??= "postgres://support-speech-route-test";
 
+// job-237-a: the route answers 503 unless an admin switched voice on, and it reads that switch from the shared `db`. These
+// tests are about the speech route itself, so each one starts with the switch ON (support-voice-toggle.test.ts covers off).
+// `db` is the same instance the bundled route imports (it is external to the bundle), so stubbing select() here reaches it.
+const { db } = (await import("@workspace/db")) as unknown as { db: { select: (...args: unknown[]) => unknown } };
+
+function switchVoiceOn() {
+  const settingsRow = [{ id: 1, enabled: true }];
+  mock.method(db, "select", () => ({ from: () => ({ orderBy: () => ({ limit: async () => settingsRow }) }) }));
+}
+
 const originalEnv = {
   serviceAccountJson: process.env["GOOGLE_SERVICE_ACCOUNT_JSON"],
   applicationCredentials: process.env["GOOGLE_APPLICATION_CREDENTIALS"],
@@ -56,6 +66,7 @@ const fakeAudioBase64 = Buffer.from([1, 2, 3]).toString("base64");
 
 describe("POST /api/support/speech", () => {
   it("returns audio/mpeg bytes for a valid message", async () => {
+    switchVoiceOn();
     process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
     mockGoogleTtsFetch(() =>
       new Response(JSON.stringify({ audioContent: fakeAudioBase64 }), { status: 200 }));
@@ -77,6 +88,7 @@ describe("POST /api/support/speech", () => {
   });
 
   it("returns 422 with the failure message when Google TTS isn't configured", async () => {
+    switchVoiceOn();
     delete process.env["GOOGLE_SERVICE_ACCOUNT_JSON"];
     delete process.env["GOOGLE_APPLICATION_CREDENTIALS"];
     // The loader also looks for credentials files on the host, which deleting the env vars does not hide.
@@ -97,6 +109,7 @@ describe("POST /api/support/speech", () => {
   });
 
   it("rejects a 21st request within an hour from the same IP with 429", async () => {
+    switchVoiceOn();
     process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
     mockGoogleTtsFetch(() =>
       new Response(JSON.stringify({ audioContent: fakeAudioBase64 }), { status: 200 }));
