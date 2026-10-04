@@ -199,7 +199,7 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["CT970", "Chess Terrazzo", 8000, null, "#d8d7d1"],
   ["CT981", "Clay Terrazzo", 8000, null, "#a7a2a8"],
   ["BT010", "Basalt Terrazzo", 8000, 8500, "#292b2b"],
-  ["BR816O", "Black River", 9500, 9500, "#101112", ["BR816", "BR 816"]],
+  ["BR816O", "Black River", 9500, 9500, "#101112", ["BR816", "BR 816", "BR8160", "BR 8160"]],
   ["KZ802", "Zen Autumn", 9500, 9500, "#b8b0a5"],
   ["KZ802N", "Zen Autumn New", 9500, 9500, "#c5c8c5", ["KZ802(N)", "KZ 802N"]],
   ["MS112", "Mahogany Stone", 9500, 9500, "#9b7659"],
@@ -303,10 +303,47 @@ export type StoneSelectionReconciliation = {
   hidden: StoneConfig[];
 };
 
+/**
+ * job-260: a stone code or name in the form used to compare spellings: lower case with every character that is not a letter
+ * or a digit taken out (spaces, brackets, dashes, dots), so "QS822N", "QS822 N", "QS 822N" and "QS-822(N)" compare equal.
+ * Letters and digits themselves are never changed or dropped: there is no O-for-0 rule and no trailing letter is cut, so
+ * KZ802 and KZ802N stay two different stones. Thai vowel and tone marks count as letters and are kept.
+ */
+export function stoneIdentifierKey(value: string): string {
+  return value.normalize("NFKC").toLocaleLowerCase("en-US").replace(/[^\p{L}\p{M}\p{N}]+/gu, "");
+}
+
+function stoneIdentifiers(color: StoneColor): string[] {
+  return [color.name, color.code, ...color.documentCodes];
+}
+
+/**
+ * The stone an identifier (code, name or an approved alias from the catalogue's aliases) names, or undefined. A spelling that
+ * is equal as typed wins first, exactly as before; only when none is does the comparison ignore spaces and punctuation.
+ */
+export function findStoneColor(identifier: string, colors: ReadonlyArray<StoneColor> = STONE_COLORS): StoneColor | undefined {
+  const exact = identifier.trim().toLowerCase();
+  const byExact = colors.find((color) => stoneIdentifiers(color).some((value) => value.trim().toLowerCase() === exact));
+  if (byExact) return byExact;
+  const key = stoneIdentifierKey(identifier);
+  if (!key) return undefined;
+  return colors.find((color) => stoneIdentifiers(color).some((value) => stoneIdentifierKey(value) === key));
+}
+
 export function stoneColorMatchesSelection(color: StoneColor, identifier: string) {
   const normalized = identifier.trim().toLowerCase();
-  return [color.code, color.name, ...color.documentCodes]
-    .some((value) => value.trim().toLowerCase() === normalized);
+  if (stoneIdentifiers(color).some((value) => value.trim().toLowerCase() === normalized)) return true;
+  const key = stoneIdentifierKey(identifier);
+  return key.length > 0 && stoneIdentifiers(color).some((value) => stoneIdentifierKey(value) === key);
+}
+
+/** Search box: a stone matches when its name, code or an alias contains the query, as typed or ignoring spaces and punctuation. */
+export function stoneColorMatchesQuery(color: StoneColor, query: string) {
+  const typed = query.trim().toLowerCase();
+  if (!typed) return true;
+  if (stoneIdentifiers(color).some((value) => value.toLowerCase().includes(typed))) return true;
+  const key = stoneIdentifierKey(query);
+  return key.length > 0 && stoneIdentifiers(color).some((value) => stoneIdentifierKey(value).includes(key));
 }
 
 /**
@@ -324,7 +361,7 @@ export function reconcileStoneSelections(
 ): StoneSelectionReconciliation {
   return stones.reduce<StoneSelectionReconciliation>((result, stone) => {
     const colors = colorsByMode[stone.mode];
-    const matchedColor = colors.find((color) => stoneColorMatchesSelection(color, stone.color));
+    const matchedColor = findStoneColor(stone.color, colors);
     if (matchedColor) {
       // Persist the canonical catalog code. Older local-storage records can
       // contain a document alias; keeping that alias makes the UI treat a
@@ -341,10 +378,7 @@ export const stoneColorByName = (
   identifier: string,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ) => {
-  const normalized = identifier.trim().toLowerCase();
-  return colors.find((color) =>
-    [color.name, color.code, ...color.documentCodes].some((value) => value.trim().toLowerCase() === normalized),
-  ) ?? colors[0] ?? STONE_COLORS[0];
+  return findStoneColor(identifier, colors) ?? colors[0] ?? STONE_COLORS[0];
 };
 
 export const stoneSheetUnitPrice = (
