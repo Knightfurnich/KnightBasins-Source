@@ -214,20 +214,28 @@ describe("buildOpsContextSummary", () => {
     assert.ok(!summary.includes(SENSITIVE_SECRET));
   });
 
-  it("labels every live lead status in Thai", async () => {
+  it("labels every current database and legacy lead status in Thai", async () => {
+    // Snapshot of the values returned by SELECT DISTINCT status FROM customer_leads.
+    const databaseDistinctStatuses: Array<[string, string]> = [
+      ["team_reported_paid", "ทีมรายงานชำระแล้ว"],
+      ["in_production", "กำลังผลิต"],
+      ["ready_for_production", "พร้อมผลิต"],
+      ["closed", "ปิดการขาย"],
+      ["quote_sent", "ส่งใบเสนอราคาแล้ว"],
+      ["confirmed", "ชำระเงินแล้ว"],
+    ];
     const statuses: Array<[string, string]> = [
+      ...databaseDistinctStatuses,
       ["new_lead", "งานใหม่"],
       ["selecting", "กำลังเลือกสินค้า"],
       ["quote_requested", "ขอใบเสนอราคา"],
-      ["quote_sent", "ส่งใบเสนอราคาแล้ว"],
       ["waiting_deposit", "รอมัดจำ"],
-      ["team_reported_paid", "ทีมรายงานชำระแล้ว"],
       ["deposit_paid", "มัดจำแล้ว"],
-      ["confirmed", "ชำระเงินแล้ว"],
-      ["ready_for_production", "พร้อมผลิต"],
-      ["closed", "ปิดการขาย"],
       ["new", "งานใหม่"],
+      ["contacted", "ติดต่อแล้ว"],
+      ["qualified", "ผ่านการคัดกรอง"],
       ["quoted", "ส่งใบเสนอราคาแล้ว"],
+      ["lost", "ยุติการติดตาม"],
     ];
     mockDatabase(statuses.map(([status], index) => leadRow({ id: index + 1, status })), []);
 

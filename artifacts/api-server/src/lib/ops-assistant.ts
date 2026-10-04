@@ -139,11 +139,15 @@ const LEAD_STATUS_LABELS: Record<string, string> = {
   team_reported_paid: "ทีมรายงานชำระแล้ว",
   deposit_paid: "มัดจำแล้ว",
   confirmed: "ชำระเงินแล้ว",
+  in_production: "กำลังผลิต",
   ready_for_production: "พร้อมผลิต",
   closed: "ปิดการขาย",
   // Compatibility labels for legacy lead rows and the SlipOK auto-close state.
   new: "งานใหม่",
+  contacted: "ติดต่อแล้ว",
+  qualified: "ผ่านการคัดกรอง",
   quoted: "ส่งใบเสนอราคาแล้ว",
+  lost: "ยุติการติดตาม",
 };
 
 function displayLeadStatus(status: string): string {
