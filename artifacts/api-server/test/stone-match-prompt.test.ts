@@ -128,7 +128,7 @@ function requestBody(calls: Array<{ url: string; init?: RequestInit }>) {
   assert.ok(call, "Vertex AI request should be mocked and observed");
   return JSON.parse(String(call.init?.body)) as {
     contents: Array<{ role?: string; parts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }> }>;
-    generationConfig: { responseMimeType: string };
+    generationConfig: { responseMimeType: string; temperature?: number };
   };
 }
 
@@ -423,5 +423,15 @@ describe("suggestStonesForPhoto", () => {
 
     assert.deepEqual(result, { status: "not-configured" });
     assert.equal(fetchCalled, false);
+  });
+
+  it("sets temperature to 0 so the same photo always yields the same ranking", async () => {
+    setVertexConfigured();
+    const calls = installVertexFetch(() => okVertexResponse(JSON.stringify({ matches: [] })));
+
+    await suggestStonesForPhoto(testImage, "image/jpeg", candidates);
+
+    const body = requestBody(calls);
+    assert.equal(body.generationConfig.temperature, 0);
   });
 });

@@ -315,7 +315,9 @@ export async function suggestStonesForPhoto(
           // Vertex rejects a content entry with no role (HTTP 400 "Please use a valid role: user, model."):
           // every request is a user turn.
           contents: [{ role: "user", parts }],
-          generationConfig: { responseMimeType: "application/json" },
+          // temperature 0: the same photo must produce the same ranking every time — with the default
+          // temperature the catalog answer flip-flopped between rounds (job 248 follow-up).
+          generationConfig: { responseMimeType: "application/json", temperature: 0 },
         }),
         signal: controller.signal,
       });
