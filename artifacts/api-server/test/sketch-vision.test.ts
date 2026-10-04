@@ -103,6 +103,9 @@ const originalEnv = {
   VERTEX_AI_MODEL: process.env["VERTEX_AI_MODEL"],
   VERTEX_AI_FALLBACK_MODELS: process.env["VERTEX_AI_FALLBACK_MODELS"],
   VERTEX_VISION_LOCATION: process.env["VERTEX_VISION_LOCATION"],
+  SKETCH_VISION_TOTAL_BUDGET_MS: process.env["SKETCH_VISION_TOTAL_BUDGET_MS"],
+  OPENROUTER_VISION_MAX_TOKENS: process.env["OPENROUTER_VISION_MAX_TOKENS"],
+  OPENROUTER_VISION_JSON_MODE: process.env["OPENROUTER_VISION_JSON_MODE"],
 };
 let uploadDirectory: string;
 
@@ -115,6 +118,7 @@ function clearSketchVisionCredentials() {
   for (const key of [
     "SKETCH_VISION_PROVIDER", "SKETCH_VISION_TIMEOUT_MS", "OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "OPENROUTER_VISION_MODEL",
     "VERTEX_AI_MODEL", "VERTEX_AI_FALLBACK_MODELS", "VERTEX_VISION_LOCATION",
+    "SKETCH_VISION_TOTAL_BUDGET_MS", "OPENROUTER_VISION_MAX_TOKENS", "OPENROUTER_VISION_JSON_MODE",
   ]) delete process.env[key];
 }
 
@@ -1119,8 +1123,8 @@ describe("job-240: configuration helpers (sketch-vision-config.ts)", () => {
   it("reads the OpenRouter settings from env, with the documented defaults for base URL and model", async () => {
     const config = await loadConfig();
     assert.equal(config.openRouterVisionConfig({}), null);
-    assert.deepEqual(config.openRouterVisionConfig({ OPENROUTER_API_KEY: "k" }), { apiKey: "k", baseUrl: "https://openrouter.ai/api/v1", model: "deepseek/deepseek-v4.1-flash" });
-    assert.deepEqual(config.openRouterVisionConfig({ OPENROUTER_API_KEY: " k ", OPENROUTER_BASE_URL: "https://x.test/v1//", OPENROUTER_VISION_MODEL: "a/b" }), { apiKey: "k", baseUrl: "https://x.test/v1", model: "a/b" });
+    assert.deepEqual(config.openRouterVisionConfig({ OPENROUTER_API_KEY: "k" }), { apiKey: "k", baseUrl: "https://openrouter.ai/api/v1", model: "deepseek/deepseek-v4.1-flash", maxTokens: 4096, jsonMode: true });
+    assert.deepEqual(config.openRouterVisionConfig({ OPENROUTER_API_KEY: " k ", OPENROUTER_BASE_URL: "https://x.test/v1//", OPENROUTER_VISION_MODEL: "a/b" }), { apiKey: "k", baseUrl: "https://x.test/v1", model: "a/b", maxTokens: 4096, jsonMode: true });
   });
 
   it("lists Vertex models primary-first without duplicates and without a built-in default", async () => {
@@ -1147,11 +1151,12 @@ describe("job-240: configuration helpers (sketch-vision-config.ts)", () => {
     assert.equal(config.isVertexModelNotFound(404, undefined), false);
   });
 
-  it("the attempt timeout is 45 s unless SKETCH_VISION_TIMEOUT_MS is a positive number", async () => {
+  it("the attempt timeout is 20 s by default, can be lowered by SKETCH_VISION_TIMEOUT_MS and can never be raised past 20 s (job-247)", async () => {
     const config = await loadConfig();
-    assert.equal(config.sketchVisionAttemptTimeoutMs({}), 45_000);
-    assert.equal(config.sketchVisionAttemptTimeoutMs({ SKETCH_VISION_TIMEOUT_MS: "60000" }), 60_000);
-    for (const bad of ["0", "-5", "abc", ""]) assert.equal(config.sketchVisionAttemptTimeoutMs({ SKETCH_VISION_TIMEOUT_MS: bad }), 45_000, bad);
+    assert.equal(config.sketchVisionAttemptTimeoutMs({}), 20_000);
+    assert.equal(config.sketchVisionAttemptTimeoutMs({ SKETCH_VISION_TIMEOUT_MS: "5000" }), 5_000);
+    assert.equal(config.sketchVisionAttemptTimeoutMs({ SKETCH_VISION_TIMEOUT_MS: "60000" }), 20_000);
+    for (const bad of ["0", "-5", "abc", ""]) assert.equal(config.sketchVisionAttemptTimeoutMs({ SKETCH_VISION_TIMEOUT_MS: bad }), 20_000, bad);
   });
 });
 
@@ -1171,5 +1176,263 @@ describe("job-240: no model id or key is written into the code", () => {
     const text = await code("../src/lib/sketch-vision-config.ts");
     assert.doesNotMatch(text, /gemini-\d|AIza|sk-or-/i);
     assert.equal(text.match(/deepseek\/deepseek-v4\.1-flash/g)?.length, 1);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// job-247: OpenRouter answers with no text, and the time one request may take.
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** A provider that never answers: it only gives up when the request's own timeout aborts it. */
+const hangUntilAborted: ProviderHandler = (_call, init) => new Promise<Response>((_resolve, reject) => {
+  init?.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })));
+});
+
+/** A provider that ignores the abort signal and never answers (like a stuck connection nobody can cancel). */
+const hangForever: ProviderHandler = () => new Promise<Response>(() => {});
+
+function openRouterRaw(message: Record<string, unknown>, extra: Record<string, unknown> = {}) {
+  return new Response(JSON.stringify({ model: "deepseek/deepseek-v4.1-flash", provider: "SomeProvider", choices: [{ finish_reason: "length", message, ...extra }], usage: { prompt_tokens: 1847, completion_tokens: 4096 } }), { status: 200 });
+}
+
+describe("job-247: an OpenRouter answer with no text", () => {
+  const vertexOk: ProviderHandler = () => geminiReply({ ...READING, shape: "L-left", workpieces: [] });
+
+  it("HTTP 200 with an empty content does not hang: it fails fast and Gemini answers", async () => {
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    captureWarnings();
+    const calls = mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "" }), vertex: vertexOk });
+    const startedAt = Date.now();
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.ok(Date.now() - startedAt < 2000, "no waiting around for an answer that is not coming");
+    assert.deepEqual(calls.map((call) => call.kind), ["openrouter", "vertex"]);
+    assert.equal(item.shape, "L-left");
+  });
+
+  it("null content, an empty list of parts and a missing message all count as no text", async () => {
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    for (const message of [{ role: "assistant", content: null }, { role: "assistant", content: [] }, { role: "assistant", content: [{ type: "text", text: "  " }] }, { role: "assistant" }]) {
+      captureWarnings();
+      const calls = mockProviders({ openrouter: () => openRouterRaw(message), vertex: vertexOk });
+      const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+      assert.deepEqual(calls.map((call) => call.kind), ["openrouter", "vertex"], JSON.stringify(message));
+      assert.equal(item.shape, "L-left");
+      mock.restoreAll();
+    }
+  });
+
+  it("content that arrives as a list of text parts is read", async () => {
+    setOpenRouterConfigured();
+    mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: [{ type: "text", text: JSON.stringify(READING).slice(0, 40) }, { type: "text", text: JSON.stringify(READING).slice(40) }] }, { finish_reason: "stop" }) });
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.equal(item.shape, "I");
+    assert.equal(item.runAMm, 1980);
+  });
+
+  it("when a thinking model leaves content empty but wrote the reading in its reasoning field, that reading is used (and the log says so)", async () => {
+    setOpenRouterConfigured();
+    const warnings = captureWarnings();
+    const reasoning = `Let me look at the drawing. A first guess: {"shape":"U"} no wait. Final answer: ${JSON.stringify(READING)} done.`;
+    mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "", reasoning }, { finish_reason: "stop" }) });
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.equal(item.shape, "I");
+    assert.equal(item.runAMm, 1980);
+    assert.ok(warnings.some((line) => /reasoning field/.test(line)));
+  });
+
+  it("a stray brace in the thinking does not hide the reading that follows it, and the whole outer reading is taken (not one workpiece of it)", async () => {
+    setOpenRouterConfigured();
+    captureWarnings();
+    const reasoning = `Hmm { the corner is unclear. Final: ${JSON.stringify(READING)} -- end`;
+    mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "", reasoning }, { finish_reason: "stop" }) });
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.equal(item.shape, "I");
+    assert.equal(item.runAMm, 1980);
+    assert.equal(item.workpieceCount, 1);
+    assert.equal(item.workpieces[0]?.panels.length, 1);
+  });
+
+  it("reasoning that holds no reading is not mistaken for one", async () => {
+    setOpenRouterConfigured();
+    const warnings = captureWarnings();
+    const calls = mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "", reasoning: "thinking about {an unfinished idea. Then a stray {\"color\":\"red\"} and nothing else. Also {\"x\":" }) });
+    const { item, usages } = await analyzeSketchImageWithUsage(IMAGE, "image/png", 0);
+    assert.equal(calls.length, 1);
+    assert.equal(item.shape, "unknown");
+    // a stray {"color":"red"} must not be taken for a reading: the call counts as an empty answer, not a successful one
+    assert.deepEqual(usages.map((usage) => usage.success), [false]);
+    assert.ok(warnings.some((line) => /sent no text/.test(line)));
+    assert.ok(!warnings.some((line) => /reasoning field/.test(line)));
+  });
+
+  it("the log explains why: finish_reason, completion tokens and the whole reply with long strings clipped (never the image or the key)", async () => {
+    setOpenRouterConfigured();
+    const warnings = captureWarnings();
+    mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "", reasoning: "r".repeat(5000) }) });
+    await analyzeSketchImage(IMAGE, "image/png", 0);
+    const line = warnings.find((entry) => entry.includes("sent no text"));
+    assert.ok(line, "a warning about the empty answer");
+    assert.match(line!, /finish_reason=length/);
+    assert.match(line!, /completion_tokens=4096/);
+    assert.match(line!, /SomeProvider/, "the reply body is in the log");
+    assert.match(line!, /\[5000 chars\]/, "long strings are clipped, with their length");
+    assert.ok(line!.length < 6000);
+    assert.ok(!line!.includes(IMAGE.toString("base64")));
+    assert.ok(!line!.includes("or-test-key"));
+  });
+
+  it("an empty answer that was charged for still reaches the cost center as a billed, unsuccessful call", async () => {
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    captureWarnings();
+    mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "" }), vertex: vertexOk });
+    const { usages } = await analyzeSketchImageWithUsage(IMAGE, "image/png", 0);
+    assert.deepEqual(usages.map((usage) => [usage.provider, usage.success, usage.promptTokens, usage.completionTokens]), [["openrouter", false, 1847, 4096], ["gemini", true, 3000, 500]]);
+  });
+
+  it("the customer never sees any of it: the note is a fixed Thai sentence", async () => {
+    setOpenRouterConfigured();
+    captureWarnings();
+    mockProviders({ openrouter: () => openRouterRaw({ role: "assistant", content: "", reasoning: "secret-gcp-project internals" }) });
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.match(item.notes ?? "", /[฀-๿]/);
+    assert.doesNotMatch(item.notes ?? "", /secret-gcp-project|finish_reason|sent no text|SomeProvider/);
+  });
+});
+
+describe("job-247: what is asked of OpenRouter", () => {
+  it("sends max_tokens 4096 by default and response_format json_object", async () => {
+    setOpenRouterConfigured();
+    const calls = mockProviders({ openrouter: () => openRouterReply(READING) });
+    await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.equal(calls[0]!.body["max_tokens"], 4096);
+    assert.deepEqual(calls[0]!.body["response_format"], { type: "json_object" });
+  });
+
+  it("OPENROUTER_VISION_MAX_TOKENS changes the limit; OPENROUTER_VISION_JSON_MODE=off drops response_format", async () => {
+    setOpenRouterConfigured();
+    process.env["OPENROUTER_VISION_MAX_TOKENS"] = "8000";
+    process.env["OPENROUTER_VISION_JSON_MODE"] = "off";
+    const calls = mockProviders({ openrouter: () => openRouterReply(READING) });
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.equal(calls[0]!.body["max_tokens"], 8000);
+    assert.equal("response_format" in calls[0]!.body, false);
+    assert.equal(item.shape, "I", "the reading is still taken from the prompt-forced JSON");
+  });
+
+  it("no attribution headers are sent: Authorization and Content-Type only", async () => {
+    setOpenRouterConfigured();
+    const calls = mockProviders({ openrouter: () => openRouterReply(READING) });
+    await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.deepEqual(Object.keys(calls[0]!.headers).sort(), ["Authorization", "Content-Type"]);
+  });
+
+  it("the config helper: limits and JSON mode from env, junk falls back to the defaults", async () => {
+    const config = await loadConfig();
+    const withKey = (extra: Record<string, string>) => config.openRouterVisionConfig({ OPENROUTER_API_KEY: "k", ...extra })!;
+    assert.equal(withKey({ OPENROUTER_VISION_MAX_TOKENS: "6000" }).maxTokens, 6000);
+    for (const bad of ["0", "-1", "abc", ""]) assert.equal(withKey({ OPENROUTER_VISION_MAX_TOKENS: bad }).maxTokens, 4096, bad);
+    for (const off of ["off", "OFF", "false", "0", "no"]) assert.equal(withKey({ OPENROUTER_VISION_JSON_MODE: off }).jsonMode, false, off);
+    for (const on of ["on", "true", "1", "", "anything"]) assert.equal(withKey({ OPENROUTER_VISION_JSON_MODE: on }).jsonMode, true, on);
+  });
+});
+
+describe("job-247: the time one request may take", () => {
+  const vertexOk: ProviderHandler = () => geminiReply({ ...READING, shape: "L-left", workpieces: [] });
+
+  it("a provider that hangs is cut off at the per-call limit while the budget is large, and the next one answers", async () => {
+    process.env["SKETCH_VISION_TIMEOUT_MS"] = "120";
+    process.env["SKETCH_VISION_TOTAL_BUDGET_MS"] = "5000";
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    captureWarnings();
+    const calls = mockProviders({ openrouter: hangUntilAborted, vertex: vertexOk });
+    const startedAt = Date.now();
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    const elapsed = Date.now() - startedAt;
+    assert.deepEqual(calls.map((call) => call.kind), ["openrouter", "vertex"]);
+    assert.equal(item.shape, "L-left");
+    assert.ok(elapsed >= 100 && elapsed < 1500, `cut off after the 120 ms call limit, not before and not much after (took ${elapsed} ms)`);
+  });
+
+  it("the whole request ends within the budget when every provider hangs, with a Thai note: the second call only gets what is left", async () => {
+    process.env["SKETCH_VISION_TIMEOUT_MS"] = "1000";
+    process.env["SKETCH_VISION_TOTAL_BUDGET_MS"] = "1600";
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    captureWarnings();
+    const calls = mockProviders({ openrouter: hangUntilAborted, vertex: hangUntilAborted });
+    const startedAt = Date.now();
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    const elapsed = Date.now() - startedAt;
+    assert.deepEqual(calls.map((call) => call.kind), ["openrouter", "vertex"]);
+    assert.equal(item.shape, "unknown");
+    assert.match(item.notes ?? "", /[฀-๿]/);
+    assert.ok(elapsed >= 1500 && elapsed < 1850, `a 1000 ms call, then only the ~600 ms that is left of the 1600 ms budget, not another 1000 ms (took ${elapsed} ms)`);
+  });
+
+  it("when the budget is spent before the next provider could get a fair chance, it is not even called", async () => {
+    process.env["SKETCH_VISION_TIMEOUT_MS"] = "200";
+    process.env["SKETCH_VISION_TOTAL_BUDGET_MS"] = "200";
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    captureWarnings();
+    const calls = mockProviders({ openrouter: hangUntilAborted, vertex: vertexOk });
+    const item = await analyzeSketchImage(IMAGE, "image/png", 0);
+    assert.deepEqual(calls.map((call) => call.kind), ["openrouter"]);
+    assert.equal(item.shape, "unknown");
+    assert.match(item.notes ?? "", /[฀-๿]/);
+  });
+
+  it("a call that cannot be cancelled still cannot hold the request past the budget (hard stop)", async () => {
+    process.env["SKETCH_VISION_TIMEOUT_MS"] = "200";
+    process.env["SKETCH_VISION_TOTAL_BUDGET_MS"] = "150";
+    setOpenRouterConfigured();
+    const warnings = captureWarnings();
+    mockProviders({ openrouter: hangForever });
+    const startedAt = Date.now();
+    const { item, usages } = await analyzeSketchImageWithUsage(IMAGE, "image/png", 3);
+    const elapsed = Date.now() - startedAt;
+    assert.equal(item.shape, "unknown");
+    assert.equal(item.index, 3);
+    assert.match(item.notes ?? "", /[฀-๿]/);
+    assert.deepEqual(usages, []);
+    assert.ok(elapsed >= 140 && elapsed < 1500, `ended by the hard stop shortly after the 150 ms budget (took ${elapsed} ms)`);
+    assert.ok(warnings.some((line) => /budget/.test(line)));
+  });
+
+  it("POST /api/sketch/analyze still answers 200 in time when the providers hang, and the body is the same as always", async () => {
+    process.env["SKETCH_VISION_TIMEOUT_MS"] = "250";
+    process.env["SKETCH_VISION_TOTAL_BUDGET_MS"] = "200";
+    setOpenRouterConfigured();
+    setVertexConfigured();
+    captureWarnings();
+    mockProviders({ openrouter: hangForever, vertex: hangForever });
+    const server = await startLeadsRoute();
+    try {
+      const startedAt = Date.now();
+      const response = await fetch(`${server.url}/api/sketch/analyze`, { method: "POST", body: sketchForm({ name: "sketch.png", type: "image/png" }) });
+      const elapsed = Date.now() - startedAt;
+      assert.equal(response.status, 200);
+      const body = (await response.json()) as { items: Array<{ shape: string; notes: string | null }> };
+      assert.deepEqual(Object.keys(body), ["items"]);
+      assert.equal(body.items[0]?.shape, "unknown");
+      assert.match(body.items[0]?.notes ?? "", /[฀-๿]/);
+      assert.ok(elapsed < 2500, `took ${elapsed} ms`);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("the defaults leave room under the proxy's 60 s: 20 s a call, 40 s the request, and neither can be raised past 20 s / 44 s", async () => {
+    const config = await loadConfig();
+    assert.equal(config.sketchVisionAttemptTimeoutMs({}), 20_000);
+    assert.equal(config.sketchVisionTotalBudgetMs({}), 40_000);
+    assert.equal(config.sketchVisionTotalBudgetMs({ SKETCH_VISION_TOTAL_BUDGET_MS: "30000" }), 30_000);
+    assert.equal(config.sketchVisionTotalBudgetMs({ SKETCH_VISION_TOTAL_BUDGET_MS: "90000" }), 44_000);
+    for (const bad of ["0", "-5", "abc", ""]) assert.equal(config.sketchVisionTotalBudgetMs({ SKETCH_VISION_TOTAL_BUDGET_MS: bad }), 40_000, bad);
+    assert.ok(config.sketchVisionTotalBudgetMs({}) < 45_000);
   });
 });

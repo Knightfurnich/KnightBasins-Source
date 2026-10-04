@@ -18,9 +18,17 @@ const DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 // OpenRouter's id for DeepSeek V4.1 Flash, the default the boss chose; OPENROUTER_VISION_MODEL overrides it.
 const DEFAULT_OPENROUTER_VISION_MODEL = "deepseek/deepseek-v4.1-flash";
 const DEFAULT_VERTEX_LOCATION = "asia-southeast1";
-// One attempt, not the whole request: the same sketch took 8.5 s on one Gemini model, 22 s on DeepSeek and 36 s on another
-// Gemini model, so the old 30 s ceiling would have cut off an answer that was about to arrive.
-const DEFAULT_ATTEMPT_TIMEOUT_MS = 45_000;
+// Time limits (job-247). The proxy in front of the API cuts a request at 60 s and answers 504, and a reading that has
+// not come back after 20 s is not going to be worth waiting for: one provider call gets at most 20 s, and the whole
+// request (every provider and model it tries) must finish before 45 s. The defaults sit under those ceilings and the env
+// overrides can only lower them, never raise them past a ceiling.
+const MAX_ATTEMPT_TIMEOUT_MS = 20_000;
+const DEFAULT_ATTEMPT_TIMEOUT_MS = 20_000;
+const MAX_TOTAL_BUDGET_MS = 44_000;
+const DEFAULT_TOTAL_BUDGET_MS = 40_000;
+// Room for the model to think and then write the whole reading as JSON (the sample sketch needed ~5.5k tokens end to end);
+// an unbounded answer is also an unbounded wait.
+const DEFAULT_OPENROUTER_MAX_TOKENS = 4_096;
 
 type Env = Record<string, string | undefined>;
 
@@ -46,7 +54,20 @@ export function orderSketchVisionProviders(choice: SketchVisionProviderChoice, a
   return preferred.filter((provider) => available.includes(provider));
 }
 
-export type OpenRouterVisionConfig = { apiKey: string; baseUrl: string; model: string };
+export type OpenRouterVisionConfig = {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  /** Upper bound for the answer's tokens (reasoning included). */
+  maxTokens: number;
+  /** Whether to ask for response_format json_object; some providers answer with an empty message when it is on. */
+  jsonMode: boolean;
+};
+
+function positiveInteger(raw: string | undefined): number | null {
+  const value = Number(clean(raw));
+  return Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+}
 
 /** null when there is no OPENROUTER_API_KEY. The base URL has any trailing slash removed. */
 export function openRouterVisionConfig(env: Env = process.env): OpenRouterVisionConfig | null {
@@ -56,6 +77,8 @@ export function openRouterVisionConfig(env: Env = process.env): OpenRouterVision
     apiKey,
     baseUrl: (clean(env["OPENROUTER_BASE_URL"]) || DEFAULT_OPENROUTER_BASE_URL).replace(/\/+$/, ""),
     model: clean(env["OPENROUTER_VISION_MODEL"]) || DEFAULT_OPENROUTER_VISION_MODEL,
+    maxTokens: positiveInteger(env["OPENROUTER_VISION_MAX_TOKENS"]) ?? DEFAULT_OPENROUTER_MAX_TOKENS,
+    jsonMode: !/^(off|false|0|no)$/i.test(clean(env["OPENROUTER_VISION_JSON_MODE"])),
   };
 }
 
@@ -98,8 +121,12 @@ export function isVertexModelNotFound(status: number, message: string | undefine
   return status === 404 && /publisher model|was not found|does not have access/i.test(message ?? "");
 }
 
-/** Per-attempt timeout: SKETCH_VISION_TIMEOUT_MS when it is a positive number, otherwise 45 seconds. */
+/** Per-provider-call timeout: SKETCH_VISION_TIMEOUT_MS when it is a positive number, never more than 20 s (default 20 s). */
 export function sketchVisionAttemptTimeoutMs(env: Env = process.env): number {
-  const configured = Number(clean(env["SKETCH_VISION_TIMEOUT_MS"]));
-  return Number.isFinite(configured) && configured > 0 ? Math.round(configured) : DEFAULT_ATTEMPT_TIMEOUT_MS;
+  return Math.min(positiveInteger(env["SKETCH_VISION_TIMEOUT_MS"]) ?? DEFAULT_ATTEMPT_TIMEOUT_MS, MAX_ATTEMPT_TIMEOUT_MS);
+}
+
+/** Time for the whole request, all providers together: SKETCH_VISION_TOTAL_BUDGET_MS, never more than 44 s (default 40 s). */
+export function sketchVisionTotalBudgetMs(env: Env = process.env): number {
+  return Math.min(positiveInteger(env["SKETCH_VISION_TOTAL_BUDGET_MS"]) ?? DEFAULT_TOTAL_BUDGET_MS, MAX_TOTAL_BUDGET_MS);
 }
