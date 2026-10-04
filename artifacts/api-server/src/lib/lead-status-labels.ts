@@ -1,15 +1,26 @@
 /**
- * แหล่งความจริงเดียวของ “ป้ายสถานะงาน” (ทั้งผู้ช่วย AI และไฟล์ส่งออก CSV ใช้ชุดเดียวกัน)
- *
- * โครงร่างโดยเดวิด (4 ต.ค. 69) — รีพิตเติมป้ายตามใบงาน 264 (ภาคผนวก):
- *   ต้องมีป้ายไทยครบทุกค่าที่พบจริงในฐานข้อมูล 4 ต.ค. 69 (65 งาน):
- *   team_reported_paid · in_production · ready_for_production · closed · quote_sent · confirmed
- *   และค่าเดิมเพื่อความเข้ากันได้: new_lead · contacted · qualified · quoted · lost ฯลฯ
- *
- * ห้ามคัดลอกแผนที่ป้ายไปไว้ที่อื่น — ให้ import จากไฟล์นี้เท่านั้น
+ * Shared source of Thai lead-status labels for the operations assistant and CSV exports.
+ * Keep status text here; consumers should call displayLeadStatus instead of copying a map.
  */
+
 export const LEAD_STATUS_LABELS: Record<string, string> = {
-  // TODO(รีพิต): เติมป้ายไทยตามใบงาน
+  new_lead: "งานใหม่",
+  selecting: "กำลังเลือกสินค้า",
+  quote_requested: "ขอใบเสนอราคา",
+  quote_sent: "ส่งใบเสนอราคาแล้ว",
+  waiting_deposit: "รอมัดจำ",
+  team_reported_paid: "ทีมรายงานชำระแล้ว",
+  deposit_paid: "มัดจำแล้ว",
+  confirmed: "ชำระเงินแล้ว",
+  in_production: "กำลังผลิต",
+  ready_for_production: "พร้อมผลิต",
+  closed: "ปิดการขาย",
+  // Compatibility labels for legacy lead rows and the SlipOK auto-close state.
+  new: "งานใหม่",
+  contacted: "ติดต่อแล้ว",
+  qualified: "ผ่านการคัดกรอง",
+  quoted: "ส่งใบเสนอราคาแล้ว",
+  lost: "ยุติการติดตาม",
 };
 
 /** คืนป้ายไทยของสถานะงาน (ค่าที่ไม่รู้จักให้ป้ายกลางที่อ่านเข้าใจได้) */
