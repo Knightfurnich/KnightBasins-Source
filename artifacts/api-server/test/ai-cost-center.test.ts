@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -9,6 +12,7 @@ import {
   calculateModelCostThb,
   clearAiUsageEvents,
   getUnifiedAiCostSummary,
+  parseHermesAuditLine,
   recordAiUsage,
 } from "../src/lib/ai-cost-tracker.ts";
 
@@ -270,5 +274,159 @@ describe("GET /admin/ai-cost-center", () => {
     } finally {
       await server.close();
     }
+  });
+});
+
+// job-251: the Hermes row of the AI cost page showed 0 because the parser read camelCase fields while Hermes's own engine
+// writes snake_case (ts, prompt_tokens, completion_tokens, total_tokens, duration_ms, error).
+
+describe("Hermes usage_audit.jsonl parser (job-251)", () => {
+  let directory: string;
+  const savedAuditPath = process.env["HERMES_AUDIT_LOG_PATH"];
+
+  before(async () => {
+    directory = await mkdtemp(path.join(os.tmpdir(), "hermes-audit-"));
+  });
+  after(async () => {
+    if (savedAuditPath === undefined) delete process.env["HERMES_AUDIT_LOG_PATH"];
+    else process.env["HERMES_AUDIT_LOG_PATH"] = savedAuditPath;
+    await rm(directory, { force: true, recursive: true });
+  });
+
+  /** Writes the lines to a file and points the tracker at it. */
+  async function auditFile(lines: string[], eol = "\n") {
+    const file = path.join(directory, `usage-${Math.random().toString(36).slice(2)}.jsonl`);
+    await writeFile(file, lines.join(eol) + eol);
+    process.env["HERMES_AUDIT_LOG_PATH"] = file;
+    return file;
+  }
+  const hermesRow = (summary: ReturnType<typeof getUnifiedAiCostSummary>) => summary.services.find((service) => service.id === "hermes_ops")!;
+
+  // The line the engine really wrote (quoted in the work order from /opt/data/cron/usage_audit.jsonl).
+  const ENGINE_LINE = '{"ts": "2026-10-04T10:42:01.309Z", "job_id": "8b4deceecb1a", "prompt_tokens": 42557, "completion_tokens": 1392, "total_tokens": 43949, "model": "deepseek/deepseek-v4.1-flash", "duration_ms": 7854, "error": null}';
+  const NOW = new Date("2026-10-05T00:00:00.000Z");
+
+  it("(a) a snake_case line from the engine gives its prompt, completion and total tokens, and a real cost (not 0)", async () => {
+    await auditFile([ENGINE_LINE]);
+    const summary = getUnifiedAiCostSummary("all", NOW);
+    const hermes = hermesRow(summary);
+    assert.equal(hermes.requests, 1);
+    assert.equal(hermes.tokens, 43949);
+    assert.equal(hermes.status, "active");
+    // the input and the output side are priced separately, so each must land in its own field
+    const expected = calculateModelCostThb("deepseek/deepseek-v4.1-flash", 42557, 1392, 0);
+    assert.ok(expected > 0.5 && expected < 0.51, `0.5053 THB for this line, got ${expected}`);
+    assert.equal(hermes.costThb, Math.round(expected * 100) / 100);
+    assert.deepEqual(summary.modelBreakdown.map((entry) => [entry.model, entry.requests]), [["deepseek/deepseek-v4.1-flash", 1]]);
+  });
+
+  it("(a) the parsed fields are exactly the engine's numbers", () => {
+    const event = parseHermesAuditLine(ENGINE_LINE)!;
+    assert.deepEqual(
+      [event.promptTokens, event.completionTokens, event.totalTokens, event.durationMs, event.model, event.success, event.service],
+      [42557, 1392, 43949, 7854, "deepseek/deepseek-v4.1-flash", true, "hermes_ops"],
+    );
+  });
+
+  it("(b) the camelCase lines the parser always accepted still work", async () => {
+    await auditFile([JSON.stringify({ timestamp: "2026-10-04T08:00:00.000Z", model: "gemini-2.5-flash", promptTokens: 1000, completionTokens: 500, totalTokens: 1500, durationMs: 1200, success: false })]);
+    const hermes = hermesRow(getUnifiedAiCostSummary("all", NOW));
+    assert.equal(hermes.requests, 1);
+    assert.equal(hermes.tokens, 1500);
+    assert.ok(hermes.costThb > 0);
+    const event = parseHermesAuditLine(JSON.stringify({ timestamp: "2026-10-04T08:00:00.000Z", promptTokens: 1000, completionTokens: 500, totalTokens: 1500, durationMs: 1200, success: false }))!;
+    assert.deepEqual([event.promptTokens, event.completionTokens, event.totalTokens, event.durationMs, event.success, event.timestamp], [1000, 500, 1500, 1200, false, "2026-10-04T08:00:00.000Z"]);
+  });
+
+  it("(b) a line with only prompt and completion tokens still totals them", async () => {
+    await auditFile([JSON.stringify({ ts: "2026-10-04T08:00:00.000Z", prompt_tokens: 700, completion_tokens: 300 })]);
+    assert.equal(hermesRow(getUnifiedAiCostSummary("all", NOW)).tokens, 1000);
+  });
+
+  it("(c) `ts` is the event's time: an old call stays out of the recent periods, a fresh one is in", async () => {
+    const old = JSON.stringify({ ts: "2026-01-15T03:00:00.000Z", prompt_tokens: 100, completion_tokens: 10, total_tokens: 110, model: "m", error: null });
+    const fresh = JSON.stringify({ ts: "2026-10-04T10:42:01.309Z", prompt_tokens: 200, completion_tokens: 20, total_tokens: 220, model: "m", error: null });
+    await auditFile([old, fresh]);
+    const now = new Date("2026-10-05T00:00:00.000Z");
+    assert.equal(hermesRow(getUnifiedAiCostSummary("30d", now)).tokens, 220, "only the October call is inside 30 days");
+    assert.equal(hermesRow(getUnifiedAiCostSummary("7d", now)).tokens, 220);
+    assert.equal(hermesRow(getUnifiedAiCostSummary("all", now)).tokens, 330, "all time has both");
+    assert.equal(parseHermesAuditLine(old)!.timestamp, "2026-01-15T03:00:00.000Z");
+  });
+
+  it("(c) an unreadable or missing time falls back to now, as before", () => {
+    const before = Date.now();
+    for (const line of [{ ts: "not a date", prompt_tokens: 1 }, { prompt_tokens: 1 }, { ts: 12345, prompt_tokens: 1 }]) {
+      const stamped = Date.parse(parseHermesAuditLine(JSON.stringify(line))!.timestamp);
+      assert.ok(stamped >= before - 5 && stamped <= Date.now() + 5, JSON.stringify(line));
+    }
+  });
+
+  it("(d) a call that ended in an error is unsuccessful but its tokens are still counted", async () => {
+    const failed = JSON.stringify({ ts: "2026-10-04T09:00:00.000Z", prompt_tokens: 5000, completion_tokens: 0, total_tokens: 5000, model: "deepseek/deepseek-v4.1-flash", duration_ms: 31000, error: "Request timed out" });
+    assert.equal(parseHermesAuditLine(failed)!.success, false);
+    assert.equal(parseHermesAuditLine(JSON.stringify({ ts: "2026-10-04T09:00:00.000Z", error: { message: "boom" } }))!.success, false);
+    await auditFile([failed, ENGINE_LINE]);
+    const hermes = hermesRow(getUnifiedAiCostSummary("all", NOW));
+    assert.equal(hermes.requests, 2, "the failed call is a request too");
+    assert.equal(hermes.tokens, 5000 + 43949, "and it is billed");
+  });
+
+  it("(d) error null, missing or empty means success; an explicit success:false still wins", () => {
+    assert.equal(parseHermesAuditLine('{"ts":"2026-10-04T09:00:00.000Z","error":null}')!.success, true);
+    assert.equal(parseHermesAuditLine('{"ts":"2026-10-04T09:00:00.000Z"}')!.success, true);
+    assert.equal(parseHermesAuditLine('{"ts":"2026-10-04T09:00:00.000Z","error":""}')!.success, true);
+    assert.equal(parseHermesAuditLine('{"ts":"2026-10-04T09:00:00.000Z","error":null,"success":false}')!.success, false);
+  });
+
+  it("when both spellings are present the engine's usable value wins, otherwise the camelCase one is used", () => {
+    const both = parseHermesAuditLine(JSON.stringify({ prompt_tokens: 10, promptTokens: 99, completion_tokens: "x", completionTokens: 7, ts: "2026-10-04T01:00:00.000Z", timestamp: "2026-10-04T02:00:00.000Z" }))!;
+    assert.deepEqual([both.promptTokens, both.completionTokens, both.timestamp], [10, 7, "2026-10-04T01:00:00.000Z"]);
+    const badTs = parseHermesAuditLine(JSON.stringify({ ts: "garbage", timestamp: "2026-10-04T02:00:00.000Z" }))!;
+    assert.equal(badTs.timestamp, "2026-10-04T02:00:00.000Z");
+  });
+
+  it("token fields that are not numbers are ignored rather than trusted", () => {
+    const event = parseHermesAuditLine(JSON.stringify({ prompt_tokens: "42557", completion_tokens: null, total_tokens: NaN, duration_ms: {} }))!;
+    assert.deepEqual([event.promptTokens, event.completionTokens, event.totalTokens, event.durationMs], [undefined, undefined, undefined, undefined]);
+  });
+
+  it("a line without a model is attributed to hermes-agent", () => {
+    assert.equal(parseHermesAuditLine('{"prompt_tokens":1}')!.model, "hermes-agent");
+    assert.equal(parseHermesAuditLine('{"prompt_tokens":1,"model":"  "}')!.model, "hermes-agent");
+  });
+
+  it("(e) a missing file gives an empty Hermes row and does not throw", () => {
+    process.env["HERMES_AUDIT_LOG_PATH"] = path.join(directory, "does-not-exist.jsonl");
+    let summary!: ReturnType<typeof getUnifiedAiCostSummary>;
+    assert.doesNotThrow(() => { summary = getUnifiedAiCostSummary("all", NOW); });
+    assert.equal(hermesRow(summary).requests, 0);
+    assert.equal(hermesRow(summary).status, "no-data");
+  });
+
+  it("(e) an empty file, and a directory where the file should be, also give an empty row without throwing", async () => {
+    await auditFile([]);
+    assert.equal(hermesRow(getUnifiedAiCostSummary("all", NOW)).requests, 0);
+    process.env["HERMES_AUDIT_LOG_PATH"] = directory;
+    assert.doesNotThrow(() => getUnifiedAiCostSummary("all", NOW));
+    assert.equal(hermesRow(getUnifiedAiCostSummary("all", NOW)).requests, 0);
+  });
+
+  it("(e) damaged lines are skipped and the good lines around them still count (also with CRLF line endings)", async () => {
+    const lines = ["not json at all", ENGINE_LINE, "{", "[1,2,3]", "42", "null", '"a string"', "", "   ", '{"ts": "2026-10-04T11:00:00.000Z", "prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150, "model": "m", "error": null}'];
+    for (const eol of ["\n", "\r\n"]) {
+      await auditFile(lines, eol);
+      let hermes!: ReturnType<typeof hermesRow>;
+      assert.doesNotThrow(() => { hermes = hermesRow(getUnifiedAiCostSummary("all", NOW)); });
+      assert.equal(hermes.requests, 2, JSON.stringify(eol));
+      assert.equal(hermes.tokens, 43949 + 150, JSON.stringify(eol));
+    }
+  });
+
+  it("parseHermesAuditLine never throws, whatever the line holds", () => {
+    for (const line of ["", " ", "{", "}", "[", "null", "true", "0", '"x"', "[]", "{}", '{"error": {"a": {"b": {"c": 1}}}}', '{"ts": {}}', "\u0000", "💥"]) {
+      assert.doesNotThrow(() => parseHermesAuditLine(line), JSON.stringify(line));
+    }
+    assert.equal(parseHermesAuditLine("[]"), null, "an array is not a usage record");
   });
 });

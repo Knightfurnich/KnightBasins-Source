@@ -148,29 +148,50 @@ export function resolveHermesAuditLogPath(env: NodeJS.ProcessEnv = process.env):
   return env["HERMES_AUDIT_LOG_PATH"] || HERMES_AUDIT_LOG_PATH;
 }
 
-function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null {
+/**
+ * One line of Hermes's usage_audit.jsonl -> a usage event, or null for a line that is not a JSON object. Never throws.
+ *
+ * Two spellings of every field are accepted, because the file is written by Hermes's own engine, not by this app: the
+ * engine writes snake_case (`ts`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `duration_ms`, `error`) while the
+ * first version of this parser, and any producer written for it, uses camelCase (`timestamp`, `promptTokens`, ...).
+ * Reading only camelCase made every engine line come back with no tokens, so the Hermes row of the AI cost page
+ * showed 0 although Hermes was in use every day. When both spellings are present the engine's (snake_case) value wins
+ * if it is usable, otherwise the camelCase one is used.
+ */
+export function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(line);
   } catch {
     return null;
   }
-  if (!parsed || typeof parsed !== "object") return null;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
   const body = parsed as Record<string, unknown>;
   const numberOrUndefined = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : undefined);
-  const timestamp = typeof body["timestamp"] === "string" && Number.isFinite(Date.parse(body["timestamp"]))
-    ? body["timestamp"]
-    : new Date().toISOString();
+  /** The first of the keys whose value is a usable number. */
+  const firstNumber = (...keys: string[]) => {
+    for (const key of keys) {
+      const value = numberOrUndefined(body[key]);
+      if (value !== undefined) return value;
+    }
+    return undefined;
+  };
+  // `ts` is the engine's time of the call; a missing or unparseable time falls back to now, as before
+  const timeText = [body["ts"], body["timestamp"]].find((value) => typeof value === "string" && Number.isFinite(Date.parse(value))) as string | undefined;
+  // A call that ended in an error still cost tokens, so it is kept and counted (as unsuccessful), never dropped.
+  // `error: null` and a missing or empty `error` mean no error; anything else (a message, an object) means it failed.
+  const error = body["error"];
+  const failedWithError = error !== null && error !== undefined && error !== false && error !== "";
   return {
     service: "hermes_ops",
     model: typeof body["model"] === "string" && body["model"].trim() ? body["model"] : "hermes-agent",
-    promptTokens: numberOrUndefined(body["promptTokens"]),
-    completionTokens: numberOrUndefined(body["completionTokens"]),
-    totalTokens: numberOrUndefined(body["totalTokens"]),
-    durationMs: numberOrUndefined(body["durationMs"]),
-    success: body["success"] !== false,
+    promptTokens: firstNumber("prompt_tokens", "promptTokens"),
+    completionTokens: firstNumber("completion_tokens", "completionTokens"),
+    totalTokens: firstNumber("total_tokens", "totalTokens"),
+    durationMs: firstNumber("duration_ms", "durationMs"),
+    success: body["success"] !== false && !failedWithError,
     imageCount: numberOrUndefined(body["imageCount"]),
-    timestamp,
+    timestamp: timeText ?? new Date().toISOString(),
   };
 }
 
