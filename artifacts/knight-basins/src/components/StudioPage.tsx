@@ -308,9 +308,10 @@ type SketchAnalysisWorkpiece = {
   cutouts: SketchWorkpieceCutout[];
   notes: string;
 };
+type SketchConfidenceValue = number | "high" | "medium" | "low" | null;
 type SketchAnalysisCardState = {
   shape: SketchAnalysisShape;
-  confidence: number | null;
+  confidence: SketchConfidenceValue;
   notes: string;
   runAMm: number | null;
   depthMm: number | null;
@@ -327,6 +328,45 @@ type SketchProcessingStatus = {
 
 const SKETCH_ANALYSIS_FALLBACK_MESSAGE = "ไม่สามารถอ่านขนาดจากภาพได้ กรุณากรอกด้วยตนเอง";
 const SKETCH_ANALYSIS_RATE_LIMIT_MESSAGE = "ส่งวิเคราะห์บ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่ หรือกรอกขนาดด้วยตนเอง";
+
+const MAX_SKETCH_ANALYSIS_FILE_BYTES = 10 * 1024 * 1024;
+
+type SketchAnalysisFailureKind = "file-too-large" | "network" | "rate-limit" | "service";
+
+function sketchAnalysisFailureMessage(kind: SketchAnalysisFailureKind): string {
+  switch (kind) {
+    case "file-too-large":
+      return "ไฟล์ภาพมีขนาดเกิน 10 MB กรุณาเลือกไฟล์ที่เล็กลง";
+    case "network":
+      return "เชื่อมต่อระบบวิเคราะห์ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง";
+    case "rate-limit":
+      return SKETCH_ANALYSIS_RATE_LIMIT_MESSAGE;
+    case "service":
+      return "ระบบวิเคราะห์ภาพขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง";
+  }
+}
+
+function normalizeSketchConfidence(value: unknown): SketchConfidenceValue {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string" || !value.trim()) return null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "high" || normalized === "สูง") return "high";
+  if (normalized === "medium" || normalized === "ปานกลาง") return "medium";
+  if (normalized === "low" || normalized === "ต่ำ") return "low";
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function formatSketchConfidence(value: SketchConfidenceValue): string {
+  if (value === "high") return "สูง";
+  if (value === "medium") return "ปานกลาง";
+  if (value === "low") return "ต่ำ";
+  if (typeof value !== "number" || !Number.isFinite(value)) return "ยังไม่ระบุ";
+  const percent = Math.round(value <= 1 ? value * 100 : value);
+  const level = percent >= 80 ? "สูง" : percent >= 50 ? "ปานกลาง" : "ต่ำ";
+  return `${level} (${percent}%)`;
+}
+
 
 function sketchAnalysisRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -414,10 +454,10 @@ function parseSketchWorkpiece(value: unknown, index: number): SketchAnalysisWork
   };
 }
 
-function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "phase"> {
+function parseSketchAnalysis(payload: unknown, itemIndex = 0): Omit<SketchAnalysisCardState, "phase"> {
   const root = sketchAnalysisRecord(payload) ?? {};
-  const firstItem = Array.isArray(root.items) && root.items.length > 0
-    ? sketchAnalysisRecord(root.items[0])
+  const firstItem = Array.isArray(root.items) && root.items.length > itemIndex
+    ? sketchAnalysisRecord(root.items[itemIndex])
     : null;
   const result = firstItem
     ?? sketchAnalysisRecord(root.analysis)
@@ -433,12 +473,7 @@ function parseSketchAnalysis(payload: unknown): Omit<SketchAnalysisCardState, "p
   const firstWorkpiece = workpieces[0];
   const firstPanel = firstWorkpiece?.panels[0];
   const shape = parseSketchShape(result.shape ?? result.shapeType ?? firstWorkpiece?.shape);
-  const rawConfidence = result.confidence;
-  const confidence = typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
-    ? rawConfidence
-    : typeof rawConfidence === "string" && rawConfidence.trim() && Number.isFinite(Number(rawConfidence))
-      ? Number(rawConfidence)
-      : null;
+  const confidence = normalizeSketchConfidence(result.confidence);
   const rawNotes = result.notes;
   const notes = typeof rawNotes === "string"
     ? rawNotes
@@ -777,20 +812,21 @@ function restoreStudioDraftState(
   const edges = studioDataRecord(draft.edges);
   const savedPieces = studioDraftPiecesFromEdges(edges);
   const existingPieces = getStudioPieces(current);
-  const shape = preset === "u" ? "U" : preset === "i" ? "I" : preset ? "L" : current.shape;
-  let pieces = savedPieces;
-  if (!pieces && preset) {
-    const savedPieceId = placements.find((placement) => placement.pieceId)?.pieceId;
-    const pieceId = savedPieceId ?? existingPieces[0]?.id ?? WIZARD_PIECE_ID;
-    const extension = (runMm: number, fallbackOverallMm: number) =>
-      Math.max(1, (runMm > 0 ? runMm : fallbackOverallMm) - dimensions.depthMm);
-    const legs = preset === "i"
-      ? [dimensions.runAMm]
-      : preset === "u"
-        ? [dimensions.runAMm, extension(dimensions.runBMm, defaults[1] ?? dimensions.depthMm + 600), extension(dimensions.runCMm, defaults[2] ?? dimensions.depthMm + 600)]
-        : [dimensions.runAMm, extension(dimensions.runBMm, defaults[1] ?? dimensions.depthMm + 600)];
-    pieces = [buildWizardPiece(pieceId, preset, legs, dimensions.depthMm)];
-  }
+  const hasSavedPieces = savedPieces !== null;
+  const shape = hasSavedPieces
+    ? preset === "u" ? "U" : preset === "i" ? "I" : preset ? "L" : current.shape
+    : "I";
+  const restoredDimensions = hasSavedPieces
+    ? dimensions
+    : { ...dimensions, runBMm: 0, runCMm: 0 };
+  let pieces = savedPieces ?? [
+    buildWizardPiece(
+      existingPieces[0]?.id ?? WIZARD_PIECE_ID,
+      "i",
+      [dimensions.runAMm],
+      dimensions.depthMm,
+    ),
+  ];
 
   if (pieces) {
     const sideStatusesByPiece = studioDataRecord(edges.sideStatusesByPiece);
@@ -812,9 +848,9 @@ function restoreStudioDraftState(
   }
 
   const edgeActivePieceId = typeof edges.activePieceId === "string" ? edges.activePieceId : undefined;
-  const activePieceId = pieces?.some((piece) => piece.id === edgeActivePieceId)
+  const activePieceId = pieces.some((piece) => piece.id === edgeActivePieceId)
     ? edgeActivePieceId
-    : pieces?.[0]?.id ?? current.activePieceId;
+    : pieces[0]?.id ?? current.activePieceId;
   const savedStone = typeof draft.stoneColor === "string" ? draft.stoneColor.trim() : "";
   const stoneColor = savedStone
     ? availableStoneColors.find((stone) => stone.code.toLowerCase() === savedStone.toLowerCase())?.code ?? savedStone
@@ -824,13 +860,14 @@ function restoreStudioDraftState(
   const next: StudioState = {
     ...current,
     shape,
-    dimensions,
-    ...(pieces ? { pieces, activePieceId } : {}),
+    dimensions: restoredDimensions,
+    pieces,
+    activePieceId,
     stoneColors: stoneColor ? [stoneColor] : current.stoneColors,
     activeStone: stoneColor,
     stoneSelectionSource: savedStone ? "user" : current.stoneSelectionSource,
     basinSkus,
-    basinPlacements: placements,
+    basinPlacements: hasSavedPieces ? placements : [],
   };
   return normalizeStudioState(next, basinProducts, availableStoneColors);
 }
@@ -3164,7 +3201,9 @@ function StudioCanvas({
     if (typeof window !== "undefined" && !window.confirm(`ลบชิ้นงาน “${target.name}” พร้อมแผ่นและอ่างที่อยู่ในชิ้นงานนี้หรือไม่`)) return;
     setState((current) => {
       const remaining = getStudioPieces(current).filter((p) => p.id !== pieceId);
-      const nextActiveId = remaining[0]?.id ?? "";
+      const nextActiveId = remaining.some((remainingPiece) => remainingPiece.id === current.activePieceId)
+        ? current.activePieceId
+        : remaining[0]?.id ?? "";
       return {
         ...current,
         pieces: remaining,
@@ -3651,7 +3690,25 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
   const indexRef = useRef(0);
   const mountedRef = useRef(false);
   const skipSnapshotRef = useRef(false);
+  const pendingSnapshotRef = useRef<StudioState | null>(null);
+  const pendingTimerRef = useRef<number | null>(null);
   const [, bumpHistoryVersion] = useState(0);
+
+  const flushPendingSnapshot = useCallback(() => {
+    const pendingSnapshot = pendingSnapshotRef.current;
+    if (!pendingSnapshot) return;
+    pendingSnapshotRef.current = null;
+    if (pendingTimerRef.current !== null) {
+      window.clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
+    }
+    // Dropping any "future" redo entries once a new edit branches off,
+    // same as any standard undo stack.
+    const truncated = historyRef.current.slice(0, indexRef.current + 1);
+    historyRef.current = [...truncated, pendingSnapshot].slice(-STUDIO_HISTORY_LIMIT);
+    indexRef.current = historyRef.current.length - 1;
+    bumpHistoryVersion((version) => version + 1);
+  }, []);
 
   useEffect(() => {
     if (!mountedRef.current) {
@@ -3664,33 +3721,42 @@ function useUndoableStudioState(initial: () => StudioState): [StudioState, Dispa
       skipSnapshotRef.current = false;
       return;
     }
-    const timer = window.setTimeout(() => {
-      // Dropping any "future" redo entries once a new edit branches off,
-      // same as any standard undo stack.
-      const truncated = historyRef.current.slice(0, indexRef.current + 1);
-      historyRef.current = [...truncated, state].slice(-STUDIO_HISTORY_LIMIT);
-      indexRef.current = historyRef.current.length - 1;
-      bumpHistoryVersion((version) => version + 1);
-    }, STUDIO_HISTORY_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [state]);
+    pendingSnapshotRef.current = state;
+    bumpHistoryVersion((version) => version + 1);
+    if (pendingTimerRef.current !== null) window.clearTimeout(pendingTimerRef.current);
+    pendingTimerRef.current = window.setTimeout(flushPendingSnapshot, STUDIO_HISTORY_DEBOUNCE_MS);
+    return () => {
+      if (pendingTimerRef.current !== null) window.clearTimeout(pendingTimerRef.current);
+    };
+  }, [state, flushPendingSnapshot]);
 
   const undo = useCallback(() => {
+    flushPendingSnapshot();
     if (indexRef.current <= 0) return;
     indexRef.current -= 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [flushPendingSnapshot]);
   const redo = useCallback(() => {
+    flushPendingSnapshot();
     if (indexRef.current >= historyRef.current.length - 1) return;
     indexRef.current += 1;
     skipSnapshotRef.current = true;
     setStateRaw(historyRef.current[indexRef.current]);
     bumpHistoryVersion((version) => version + 1);
-  }, []);
+  }, [flushPendingSnapshot]);
 
-  return [state, setStateRaw, { undo, redo, canUndo: indexRef.current > 0, canRedo: indexRef.current < historyRef.current.length - 1 }];
+  return [
+    state,
+    setStateRaw,
+    {
+      undo,
+      redo,
+      canUndo: indexRef.current > 0 || pendingSnapshotRef.current !== null,
+      canRedo: pendingSnapshotRef.current === null && indexRef.current < historyRef.current.length - 1,
+    },
+  ];
 }
 
 export function restrictStudioDiscountForMode(state: StudioState, isLeadLinkedMode: boolean): StudioState {
@@ -3870,7 +3936,7 @@ export function StudioPage({
   const rotatingSketchFileRef = useRef<File | null>(null);
   const sketchAnalysisQueueRef = useRef<Promise<void>>(Promise.resolve());
   const sketchDimensionEditVersionRef = useRef(0);
-  const activeSketchAnalysisFileRef = useRef<File | null>(null);
+  const activeSketchAnalysisFilesRef = useRef<Set<File>>(new Set());
   const sketchLengthMm = state.pieces?.[0]?.rectangles[0]?.widthMm ?? state.dimensions.runAMm;
   const sketchDepthMm = state.pieces?.[0]?.rectangles[0]?.lengthMm ?? state.dimensions.depthMm;
   const [sketchDimensionDrafts, setSketchDimensionDrafts] = useState(() => ({
@@ -4140,50 +4206,74 @@ export function StudioPage({
     });
   };
   const analyzeSketch = async (files: File[]) => {
-    for (const file of files) {
-      if (!sketchFilesRef.current.includes(file)) continue;
-      const dimensionEditVersion = sketchDimensionEditVersionRef.current;
-      activeSketchAnalysisFileRef.current = file;
-      updateSketchAnalysisCard(file, { phase: "uploading" });
-      setSketchStatus({
-        phase: "uploading",
-        message: "[1/3] 📤 กำลังอัปโหลดภาพเข้าสู่ระบบ…",
-        busy: true,
+    const requestedFiles = files.filter((file) => sketchFilesRef.current.includes(file));
+    if (!requestedFiles.length) return;
+    const oversizedFiles = requestedFiles.filter((file) => file.size > MAX_SKETCH_ANALYSIS_FILE_BYTES);
+    const analysisFiles = requestedFiles.filter((file) => file.size <= MAX_SKETCH_ANALYSIS_FILE_BYTES);
+    const fileTooLargeMessage = sketchAnalysisFailureMessage("file-too-large");
+    for (const file of oversizedFiles) {
+      updateSketchAnalysisCard(file, {
+        notes: fileTooLargeMessage,
+        phase: "unknown",
       });
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-      if (!sketchFilesRef.current.includes(file)) continue;
+    }
+    if (!analysisFiles.length) {
+      setSketchStatus({
+        phase: "error",
+        message: fileTooLargeMessage,
+        busy: false,
+      });
+      return;
+    }
 
-      updateSketchAnalysisCard(file, { phase: "analyzing" });
+    const dimensionEditVersion = sketchDimensionEditVersionRef.current;
+    const batchActiveFiles = new Set(analysisFiles);
+    activeSketchAnalysisFilesRef.current = batchActiveFiles;
+    for (const file of analysisFiles) {
+      updateSketchAnalysisCard(file, { phase: "uploading" });
+    }
+    setSketchStatus({
+      phase: "uploading",
+      message: `[1/3] 📤 กำลังอัปโหลดภาพ ${analysisFiles.length} รูปเข้าสู่ระบบ…`,
+      busy: true,
+    });
+    let filesToSend: File[] = [];
+    try {
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      filesToSend = analysisFiles.filter((file) => sketchFilesRef.current.includes(file));
+      if (!filesToSend.length) return;
+      for (const file of filesToSend) {
+        updateSketchAnalysisCard(file, { phase: "analyzing" });
+      }
       setSketchStatus({
         phase: "analyzing",
-        message: "[2/3] 🧠 AI กำลังวิเคราะห์ลายมือและรูปทรงเคาน์เตอร์…",
+        message: `[2/3] 🧠 AI กำลังวิเคราะห์ภาพ ${filesToSend.length} รูปเป็นชุดเดียว…`,
         busy: true,
       });
       const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        const response = await fetch("/api/sketch/analyze", { method: "POST", body: formData });
-        if (!response.ok) {
-          if (response.status === 429) {
-            throw new Error("RATE_LIMIT");
-          }
-          throw new Error(`Sketch analysis request failed: HTTP ${response.status}`);
+      filesToSend.forEach((file) => formData.append("file", file));
+      const response = await fetch("/api/sketch/analyze", { method: "POST", body: formData });
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => null) as unknown;
+        const errorRecord = sketchAnalysisRecord(errorPayload);
+        const serverMessage = [errorRecord?.error, errorRecord?.message]
+          .filter((value): value is string => typeof value === "string")
+          .join(" ");
+        if (response.status === 429) throw new Error("RATE_LIMIT");
+        if (response.status === 413 || /image is too large|file is too large|10\s*mb|maximum size/i.test(serverMessage)) {
+          throw new Error("FILE_TOO_LARGE");
         }
-        const analysis = parseSketchAnalysis(await response.json() as unknown);
-        if (!sketchFilesRef.current.includes(file)) continue;
-
+        throw new Error("SERVICE_ERROR");
+      }
+      const payload = await response.json() as unknown;
+      const failedMessages: string[] = [];
+      let hasRecognizedResult = false;
+      for (let index = 0; index < filesToSend.length; index += 1) {
+        const file = filesToSend[index];
+        if (!file || !sketchFilesRef.current.includes(file) || !batchActiveFiles.has(file)) continue;
+        const analysis = parseSketchAnalysis(payload, index);
         const dimensionsAvailable = analysis.runAMm !== null && analysis.depthMm !== null;
         const recognized = analysis.shape !== "unknown" && dimensionsAvailable;
-        if (recognized) {
-          setSketchStatus({
-            phase: "calculating",
-            message: "[3/3] 📐 AI ถอดขนาดสำเร็จ กำลังคำนวณราคา…",
-            busy: true,
-          });
-          await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-          if (!sketchFilesRef.current.includes(file)) continue;
-        }
         if (recognized && dimensionEditVersion === sketchDimensionEditVersionRef.current) {
           const requestedPreset: StudioPreset = analysis.shape === "U"
             ? "u"
@@ -4209,26 +4299,40 @@ export function StudioPage({
             };
           });
         }
+        const note = analysis.notes || (recognized ? "กรุณาตรวจสอบขนาดที่อ่านได้" : SKETCH_ANALYSIS_FALLBACK_MESSAGE);
         updateSketchAnalysisCard(file, {
           ...analysis,
-          notes: analysis.notes || (recognized ? "กรุณาตรวจสอบขนาดที่อ่านได้" : SKETCH_ANALYSIS_FALLBACK_MESSAGE),
+          notes: note,
           phase: recognized ? "complete" : "unknown",
         });
-        setSketchStatus(recognized
-          ? {
-              phase: "success",
-              message: "✅ ตรวจสอบตัวเลขที่ AI อ่านได้ แล้วแก้ไขได้ทันที",
-              busy: false,
-            }
-          : {
-              phase: "error",
-              message: SKETCH_ANALYSIS_FALLBACK_MESSAGE,
-              busy: false,
-            });
-      } catch (err: unknown) {
-        if (!sketchFilesRef.current.includes(file)) continue;
-        const isRateLimit = err instanceof Error && err.message === "RATE_LIMIT";
-        const message = isRateLimit ? SKETCH_ANALYSIS_RATE_LIMIT_MESSAGE : SKETCH_ANALYSIS_FALLBACK_MESSAGE;
+        hasRecognizedResult ||= recognized;
+        if (!recognized) failedMessages.push(note);
+      }
+      if (oversizedFiles.length) {
+        setSketchStatus({ phase: "error", message: fileTooLargeMessage, busy: false });
+      } else if (failedMessages.length) {
+        setSketchStatus({ phase: "error", message: failedMessages[0] ?? SKETCH_ANALYSIS_FALLBACK_MESSAGE, busy: false });
+      } else if (hasRecognizedResult) {
+        setSketchStatus({
+          phase: "success",
+          message: "✅ ตรวจสอบตัวเลขที่ AI อ่านได้ แล้วแก้ไขได้ทันที",
+          busy: false,
+        });
+      } else {
+        setSketchStatus({ phase: "error", message: SKETCH_ANALYSIS_FALLBACK_MESSAGE, busy: false });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error && error.message === "RATE_LIMIT"
+        ? sketchAnalysisFailureMessage("rate-limit")
+        : error instanceof Error && error.message === "FILE_TOO_LARGE"
+          ? fileTooLargeMessage
+          : error instanceof TypeError
+            ? sketchAnalysisFailureMessage("network")
+            : sketchAnalysisFailureMessage("service");
+      const currentFiles = filesToSend.filter((file) =>
+        sketchFilesRef.current.includes(file) && batchActiveFiles.has(file),
+      );
+      for (const file of currentFiles) {
         updateSketchAnalysisCard(file, {
           shape: "unknown",
           confidence: null,
@@ -4239,13 +4343,17 @@ export function StudioPage({
           workpieces: [],
           phase: "unknown",
         });
+      }
+      if (currentFiles.length) {
         setSketchStatus({
           phase: "error",
-          message,
+          message: oversizedFiles.length ? fileTooLargeMessage : message,
           busy: false,
         });
-      } finally {
-        if (activeSketchAnalysisFileRef.current === file) activeSketchAnalysisFileRef.current = null;
+      }
+    } finally {
+      if (activeSketchAnalysisFilesRef.current === batchActiveFiles) {
+        activeSketchAnalysisFilesRef.current = new Set();
       }
     }
   };
@@ -4363,8 +4471,10 @@ export function StudioPage({
       next.delete(file);
       return next;
     });
-    if (activeSketchAnalysisFileRef.current === file) {
-      activeSketchAnalysisFileRef.current = null;
+    if (activeSketchAnalysisFilesRef.current.has(file)) {
+      activeSketchAnalysisFilesRef.current.delete(file);
+    }
+    if (!activeSketchAnalysisFilesRef.current.size) {
       setSketchStatus(nextFiles.length
         ? { phase: "success", message: "ตรวจสอบตัวเลขที่ AI อ่านได้ แล้วแก้ไขได้ทันที", busy: false }
         : null);
@@ -4418,6 +4528,8 @@ export function StudioPage({
         setState((current) => restoreStudioDraftState(current, remoteDraft, basinProducts, stoneColors));
         const response = studioDataRecord(remoteDraft);
         const savedDraft = studioDataRecord(response.draft ?? response.data ?? remoteDraft);
+        const hasSavedPieces = studioDraftPiecesFromEdges(studioDataRecord(savedDraft.edges)) !== null;
+        if (hasSavedPieces) setAssembledStudioRoute(studioRouteKey);
         const savedAt = typeof savedDraft.savedAt === "string" && !Number.isNaN(Date.parse(savedDraft.savedAt))
           ? savedDraft.savedAt
           : new Date().toISOString();
@@ -4428,7 +4540,11 @@ export function StudioPage({
         setPieceZoom({});
         setSelectedPlacementId(null);
         setSelectedRectangleId(null);
-        setDraftResult("เปิดแบบร่างจากลิงก์แล้ว");
+        if (hasSavedPieces) {
+          setDraftResult("เปิดแบบร่างจากลิงก์แล้ว");
+        } else {
+          setDraftResult("แบบร่างเก่าไม่มีข้อมูลชิ้นงาน จึงเริ่มผังใหม่จากแผ่นหลัก กรุณาจัดวางชิ้นงานอีกครั้ง");
+        }
       })
       .catch((error: unknown) => {
         if (!isCurrent) return;
@@ -4443,7 +4559,7 @@ export function StudioPage({
     return () => {
       isCurrent = false;
     };
-  }, [remoteDraftKey, basinProducts, stoneColors, setState]);
+  }, [remoteDraftKey, basinProducts, stoneColors, setState, studioRouteKey]);
   useEffect(() => {
     if (mode !== "studio" || isLeadLinkedMode || isLoadingShareableDraft) return;
     if (!hasMountedDraftEffect.current) {
@@ -4474,15 +4590,26 @@ export function StudioPage({
   const resumeDraft = () => {
     if (!draftNotice) return;
     setEditingNamedDraftId(null);
-    setState(normalizeStudioState(draftNotice.state, basinProducts, stoneColors));
+    const savedState = studioDataRecord(draftNotice.state);
+    const hasSavedPieces = studioDraftPiecesFromEdges({ pieces: savedState.pieces }) !== null;
+    if (hasSavedPieces) {
+      setState(normalizeStudioState(draftNotice.state, basinProducts, stoneColors));
+      setAssembledStudioRoute(studioRouteKey);
+    } else {
+      setState((current) => restoreStudioDraftState(current, draftNotice.state, basinProducts, stoneColors));
+      setAssembledStudioRoute(null);
+    }
     setLastSavedAt(draftNotice.savedAt);
     setCatalogNotice(draftNotice.catalogContext ? studioCatalogNotice(draftNotice.catalogContext, basinProducts) : null);
     setDraftNotice(null);
-    setDraftResult("ดึงแบบร่างเดิมแล้ว");
+    setDraftResult(hasSavedPieces
+      ? "ดึงแบบร่างเดิมแล้ว"
+      : "แบบร่างเก่าไม่มีข้อมูลชิ้นงาน จึงเริ่มผังใหม่จากแผ่นหลัก กรุณาจัดวางชิ้นงานอีกครั้ง");
   };
   const startNewDraft = () => {
     clearStoredStudioDraft();
     setEditingNamedDraftId(null);
+    setAssembledStudioRoute(null);
     skipNextDraftSave.current = true;
     setState(createInitialStudioState(mode, studioInitialBasinSkus, initialStoneColors, basinProducts, stoneColors));
     setLastSavedAt(null);
@@ -4589,6 +4716,7 @@ export function StudioPage({
   };
   const openNamedDraft = (draft: NamedStudioDraftRecord) => {
     setEditingNamedDraftId(draft.id);
+    setAssembledStudioRoute(studioRouteKey);
     setState(normalizeStudioState(draft.state, basinProducts, stoneColors));
     setLastSavedAt(draft.savedAt);
     setCatalogNotice(draft.catalogContext ? studioCatalogNotice(draft.catalogContext, basinProducts) : null);
@@ -4624,6 +4752,7 @@ export function StudioPage({
     if (basinSku) url.searchParams.set("basin", basinSku);
     if (state.activeStone) url.searchParams.set("stone", state.activeStone);
     if (firstRectangle) url.searchParams.set("width", String(Math.round(firstRectangle.widthMm)));
+    if (firstRectangle) url.searchParams.set("depth", String(Math.round(firstRectangle.lengthMm)));
     url.searchParams.set("shape", studioPresetForShare(state, firstPiece));
 
     let feedback: "copied" | "failed" = "copied";
@@ -5279,9 +5408,7 @@ export function StudioPage({
             };
             const isRotating = rotatingSketchFile === file;
             const isBusy = isRotating || analysis.phase === "queued" || analysis.phase === "uploading" || analysis.phase === "analyzing";
-            const confidence = analysis.confidence === null
-              ? "ยังไม่ระบุ"
-              : `${Math.round(analysis.confidence <= 1 ? analysis.confidence * 100 : analysis.confidence)}%`;
+            const confidence = formatSketchConfidence(analysis.confidence);
             const shapeClass = analysis.shape.startsWith("L") ? "L" : analysis.shape;
             return <article className="studio-sketch-analysis-card" key={`${file.name}-${file.lastModified}-${index}`} data-testid={`card-sketch-analysis-${index}`}>
               {sketchPreviewUrls[index] && <img className="studio-sketch-analysis-preview" src={sketchPreviewUrls[index]} alt={`ภาพที่วิเคราะห์: ${file.name}`} />}
@@ -5444,7 +5571,7 @@ export function StudioPage({
       {mode === "studio" ? (
         <div className="studio-canvas-column">
           <div className="studio-share-actions">
-            <button type="button" className="button button--accent" onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
+            <button type="button" className="button button--accent" disabled={!exportReady} onClick={() => void exportFiles("png")} data-testid="button-share-studio-png">📷 บันทึกผังเป็นรูปภาพ (PNG)</button>
             <button
               type="button"
               className="button button--accent studio-share-button"
