@@ -86,6 +86,7 @@ STOP:
 - error: `TypeError: latestPayment.createdAt.slice is not a function` ที่ `src/lib/ops-assistant.ts:104` (DB คืนค่าเป็น Date object แต่โค้ดเรียก .slice() ตรง ๆ)
 งาน: แปลงค่าจาก DB อย่างปลอดภัย (Date|string|null → YYYY-MM-DD) + ตรวจจุดอื่นในไฟล์ที่เรียกเมธอดของ string กับค่าจาก DB + เพิ่มเทสต์ที่จำลอง Date object จริง (เทสต์เดิม mock เป็น string จึงไม่จับ)
 หลักฐาน: tsc 0 · ชุด api-server (baseline 1126/1123/3) · ย้อนโค้ดแล้วเทสต์ต้องตกพร้อมข้อความ "slice is not a function" · หลัง deploy ผมจะยิง dashboard/cost ให้ต้องได้ 200 ok=true
-หมายเหตุ: ผมผมแก้ปัญหาโมเดลบน production ชั่วคราวแล้ว (VERTEX_AI_MODEL=google/gemini-2.5-flash) — โหมด leads กลับมาตอบได้แล้ว
-เพิ่มข้อ 3: ให้ vertex-gemini.ts รองรับ `VERTEX_AI_LOCATION=global` (URL ต้องไม่มี prefix ภูมิภาค) + ถอยรุ่นอัตโนมัติเมื่อ 404 · หลักฐานสด: lite @global compat = 200 "pong" / global-aiplatform = 404 / asia-southeast1 = 404
-ปลายทางคือให้ทั้งตัวช่วยและตัวอ่านแบบร่างใช้ google/gemini-3.1-flash-lite รุ่นเดียวกัน (เร็วทั้งคู่) — ผมจะสลับ env หลัง deploy แล้วยิงทดสอบเอง
+หมายเหตุ: ผมแก้ปัญหาโมเดลบน production ชั่วคราวแล้ว (VERTEX_AI_MODEL=google/gemini-2.5-flash) — โหมด leads กลับมาตอบได้แล้ว
+ข้อ 3 (รองรับ global + ถอยรุ่นอัตโนมัติ): ให้ `vertex-gemini.ts` สร้าง URL แบบนี้ — ถ้า `VERTEX_AI_LOCATION=global` ใช้ host `aiplatform.googleapis.com` (ไม่มี prefix ภูมิภาค) · ถ้าเป็นโซนอื่นคงเดิม `{location}-aiplatform.googleapis.com` · เพิ่มเทสต์ตัวสร้าง URL ทั้งสองแบบ · และถ้ารุ่นที่ตั้งไว้ได้ 404 ให้ลองรุ่นถัดไปจาก `VERTEX_AI_FALLBACK_MODELS` แล้ว log เตือน (ห้ามให้กล่องตอบ "ไม่พร้อมใช้งาน" เพราะชื่อรุ่นผิดตัวเดียว)
+หลักฐานสดที่ผมยิงเอง: `lite @aiplatform/global compat` = **200** (ตอบ pong) · `global-aiplatform…` = **404** · `asia-southeast1-aiplatform…` = **404**
+ปลายทาง: ให้ตัวช่วย AI + น้องไนท์ (LINE) + ตัวอ่านแบบร่าง ใช้ `google/gemini-3.1-flash-lite` รุ่นเดียวกัน (เร็วทั้งคู่) — ผมจะสลับ env หลัง deploy แล้วยิงทดสอบ dashboard/cost/leads ให้ครบเอง
