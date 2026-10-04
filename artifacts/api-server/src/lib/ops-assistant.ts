@@ -7,7 +7,7 @@
 // { ok, reply } / { ok: false, message } shape.
 
 import { asc, desc } from "drizzle-orm";
-import { customerLeads, paymentSlips } from "@workspace/db/schema";
+import { customerLeads, paymentSlips, technicianTeams } from "@workspace/db/schema";
 import { askGemini, vertexGeminiConfigured, type GeminiResult } from "./vertex-gemini.ts";
 
 export type OpsAssistantMode = "dashboard" | "leads" | "calendar";
@@ -18,8 +18,15 @@ export const OPS_ASSISTANT_MODES: OpsAssistantMode[] = ["dashboard", "leads", "c
 const MAX_CONTEXT_SUMMARY_LENGTH = 2000;
 
 const SYSTEM_PROMPT =
-  "คุณเป็นผู้ช่วยตอบคำถามข้อมูลภายในของบริษัท ไนท์ เฟอร์นิช ตอบเป็นภาษาไทย กระชับ " +
-  "ใช้เฉพาะข้อมูลที่ให้มา หากไม่มีข้อมูลให้บอกว่าไม่พบข้อมูล ห้ามเดาตัวเลข ห้ามแนะนำการแก้ไขข้อมูลในระบบ";
+  "คุณเป็นผู้ช่วยตอบคำถามข้อมูลภายในของบริษัท ไนท์ เฟอร์นิช " +
+  "ตอบเป็นภาษาไทยทุกครั้ง และลงท้ายทุกคำตอบด้วยคำว่า “ครับ” " +
+  "ตอบตรงคำถามก่อน กระชับไม่เกิน 1–2 ประโยค " +
+  "ใช้เฉพาะข้อมูลอ้างอิงที่ให้มา ห้ามเดาตัวเลขหรือแต่งรายละเอียด " +
+  "ห้ามใช้ศัพท์อังกฤษหรือชื่อช่องภายใน ให้ใช้คำไทยแทน " +
+  "ห้ามเปิดเผยรหัสงานหรือรหัสภายใน ให้เรียกรายการตามลำดับว่า “งานที่ 1” หรือเรียกตามชื่อว่า “งานของช่าง <ชื่อ>” " +
+  "วันที่ให้ใช้รูปแบบภาษาไทย เช่น “4 ต.ค. 2569” " +
+  "หากข้อมูลไม่มีหรือไม่พอ ให้บอกว่าไม่พบข้อมูลและเสนอทางเลือกที่ตรวจสอบได้แทน " +
+  "ห้ามแนะนำการแก้ไขข้อมูลในระบบ";
 
 const READY_FOR_PRODUCTION_STATUS = "ready_for_production";
 const CLOSED_STATUS = "closed";
@@ -66,6 +73,52 @@ export function formatOpsDate(value: unknown): string | null {
 function opsTimeOf(value: unknown): number {
   const time = value instanceof Date ? value.getTime() : typeof value === "string" || typeof value === "number" ? new Date(value).getTime() : Number.NaN;
   return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
+}
+
+function formatThaiOpsDate(value: unknown): string | null {
+  const isoDate = formatOpsDate(value);
+  if (!isoDate) return null;
+  const date = new Date(`${isoDate}T12:00:00+07:00`);
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatThaiOpsMonth(isoDate: string): string {
+  const date = new Date(`${isoDate}T12:00:00+07:00`);
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+const LEAD_STATUS_LABELS: Record<string, string> = {
+  new_lead: "งานใหม่",
+  contacted: "ติดต่อแล้ว",
+  qualified: "ผ่านการคัดกรอง",
+  quoted: "ส่งใบเสนอราคาแล้ว",
+  ready_for_production: "พร้อมผลิต",
+  closed: "ปิดการขาย",
+  lost: "ยุติการติดตาม",
+};
+
+function displayLeadStatus(status: string): string {
+  return LEAD_STATUS_LABELS[status] ?? "ไม่ระบุสถานะ";
+}
+
+async function fetchTechnicianTeamNames(database: OpsDatabase): Promise<Map<string, string>> {
+  const rows: Array<{ code: string; name: string }> = await database
+    .select({
+      code: technicianTeams.code,
+      name: technicianTeams.name,
+    })
+    .from(technicianTeams)
+    .orderBy(asc(technicianTeams.sortOrder));
+  return new Map(rows.map((row) => [row.code, row.name]));
 }
 
 /** {start, end} ISO dates ("YYYY-MM-DD") spanning the calendar month of `now` in Asia/Bangkok. */
@@ -124,27 +177,27 @@ async function fetchDashboardSummary(database: OpsDatabase): Promise<string> {
   }
 
   return [
-    `จำนวน Lead ทั้งหมด: ${leadRows.length} งาน`,
+    `จำนวนงานทั้งหมด: ${leadRows.length} งาน`,
     `พร้อมผลิต: ${statusCounts.get(READY_FOR_PRODUCTION_STATUS) ?? 0} งาน`,
     `ปิดการขาย: ${statusCounts.get(CLOSED_STATUS) ?? 0} งาน`,
     latestPayment
-      ? `ยอดเงินที่รับชำระแล้วล่าสุด: ${latestPayment.amount.toLocaleString()} บาท (${formatOpsDate(latestPayment.createdAt) ?? "ไม่ระบุวันที่"})`
+      ? `ยอดเงินที่รับชำระแล้วล่าสุด: ${latestPayment.amount.toLocaleString()} บาท (${formatThaiOpsDate(latestPayment.createdAt) ?? "ไม่ระบุวันที่"})`
       : "ยอดเงินที่รับชำระแล้วล่าสุด: ไม่พบข้อมูล",
   ].join("\n");
 }
 
-async function fetchLeadsSummary(database: OpsDatabase): Promise<string> {
+async function fetchLeadsSummary(database: OpsDatabase, teamNames: Map<string, string>): Promise<string> {
   const rows: Array<{
-    leadKey: string;
     name: string | null;
     status: string;
     expectedInstallationDate: Date | string | null;
+    technicianTeamCode: string | null;
   }> = await database
     .select({
-      leadKey: customerLeads.leadKey,
       name: customerLeads.name,
       status: customerLeads.status,
       expectedInstallationDate: customerLeads.expectedInstallationDate,
+      technicianTeamCode: customerLeads.technicianTeamCode,
     })
     .from(customerLeads)
     .orderBy(desc(customerLeads.id))
@@ -153,12 +206,14 @@ async function fetchLeadsSummary(database: OpsDatabase): Promise<string> {
   if (rows.length === 0) return "ไม่พบข้อมูลงานล่าสุด";
 
   return rows
-    .map((row, index) =>
-      `${index + 1}. รหัสงาน: ${row.leadKey} · ลูกค้า: ${row.name ?? "ไม่ระบุ"} · สถานะ: ${row.status} · วันติดตั้ง: ${formatOpsDate(row.expectedInstallationDate) ?? "ไม่ระบุ"}`)
+    .map((row, index) => {
+      const technicianName = row.technicianTeamCode ? teamNames.get(row.technicianTeamCode) : undefined;
+      return `งานที่ ${index + 1} · งานของช่าง ${technicianName ?? "ไม่ระบุชื่อ"} · ลูกค้า: ${row.name ?? "ไม่ระบุ"} · สถานะ: ${displayLeadStatus(row.status)} · วันติดตั้ง: ${formatThaiOpsDate(row.expectedInstallationDate) ?? "ไม่ระบุวันที่"}`;
+    })
     .join("\n");
 }
 
-async function fetchCalendarSummary(database: OpsDatabase, now: Date): Promise<string> {
+async function fetchCalendarSummary(database: OpsDatabase, now: Date, teamNames: Map<string, string>): Promise<string> {
   const { start, end } = bangkokMonthRange(now);
   const rows: Array<{ technicianTeamCode: string | null; expectedInstallationDate: Date | string | null }> = await database
     .select({
@@ -172,20 +227,21 @@ async function fetchCalendarSummary(database: OpsDatabase, now: Date): Promise<s
     const installationDate = formatOpsDate(row.expectedInstallationDate);
     return installationDate !== null && installationDate >= start && installationDate <= end;
   });
+  const monthLabel = formatThaiOpsMonth(start);
 
-  if (inMonth.length === 0) return `เดือนนี้ยังไม่มีงานติดตั้งที่กำหนดวันไว้ (${start.slice(0, 7)})`;
+  if (inMonth.length === 0) return `เดือนนี้ยังไม่มีงานติดตั้งที่กำหนดวันไว้ (${monthLabel})`;
 
   const counts = new Map<string, number>();
   for (const row of inMonth) {
-    const key = row.technicianTeamCode ?? "ไม่ระบุทีม";
+    const key = row.technicianTeamCode ? teamNames.get(row.technicianTeamCode) ?? "ไม่ระบุชื่อ" : "ไม่ระบุชื่อ";
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 
   const lines = Array.from(counts.entries())
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([team, count]) => `ทีม ${team}: ${count} งาน`);
+    .map(([technicianName, count]) => `งานของช่าง ${technicianName}: ${count} งาน`);
 
-  return [`งานติดตั้งเดือนนี้ (${start.slice(0, 7)}) แยกตามทีมช่าง:`, ...lines].join("\n");
+  return [`งานติดตั้งเดือนนี้ (${monthLabel}) แยกตามช่าง:`, ...lines].join("\n");
 }
 
 /**
@@ -197,10 +253,11 @@ async function fetchCalendarSummary(database: OpsDatabase, now: Date): Promise<s
  */
 export async function buildOpsContextSummary(mode: OpsAssistantMode, now: Date = new Date()): Promise<string> {
   const database = await resolveOpsDatabase();
+  const teamNames = mode === "dashboard" ? new Map<string, string>() : await fetchTechnicianTeamNames(database);
   const summary = mode === "leads"
-    ? await fetchLeadsSummary(database)
+    ? await fetchLeadsSummary(database, teamNames)
     : mode === "calendar"
-      ? await fetchCalendarSummary(database, now)
+      ? await fetchCalendarSummary(database, now, teamNames)
       : await fetchDashboardSummary(database);
   return summary.slice(0, MAX_CONTEXT_SUMMARY_LENGTH);
 }

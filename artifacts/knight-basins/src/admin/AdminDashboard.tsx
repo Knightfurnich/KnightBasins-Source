@@ -207,7 +207,7 @@ function DashboardAiCostWidget({ canNavigate }: { canNavigate: (href: string) =>
     >
       <div className="dashboard-ai-cost-card__header">
         <div>
-          <p className="dashboard-ai-cost-card__eyebrow">06 / AI OPERATIONS</p>
+          <p className="admin-eyebrow">06 / AI OPERATIONS</p>
           <h2 className="dashboard-ai-cost-card__title">ต้นทุน &amp; ปริมาณงาน AI รวม (30 วัน)</h2>
         </div>
         <span className="dashboard-ai-cost-card__index" aria-hidden="true">06</span>
@@ -283,7 +283,7 @@ function DashboardStorageHealthWidget({ canNavigate }: { canNavigate: (href: str
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">07 / STORAGE &amp; BACKUP HEALTH</p>
+          <p className="admin-eyebrow">07 / STORAGE &amp; BACKUP HEALTH</p>
           <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">Storage &amp; Backup Health</h2>
           <p className="mt-1 text-xs text-[var(--ink-soft)]">สถานะคลังภาพและไฟล์สำรองข้อมูล</p>
         </div>
@@ -401,7 +401,7 @@ export function DashboardDatabaseHealthWidget() {
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">08 / DATABASE &amp; CONNECTION HEALTH</p>
+          <p className="admin-eyebrow">08 / DATABASE &amp; CONNECTION HEALTH</p>
           <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">Database &amp; Connection Health</h2>
           <p className="mt-1 text-xs text-[var(--ink-soft)]">สถานะการเชื่อมต่อ PostgreSQL และเวลาตอบสนอง</p>
         </div>
@@ -709,7 +709,7 @@ function PipelineRatio({ ratio }: { ratio: AdminDashboardStats["pipelineRatio"] 
     <Panel className="p-4 sm:p-5" data-testid="panel-pipeline-ratio">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Pipeline</p>
+          <p className="admin-eyebrow">Pipeline</p>
           <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สัดส่วน US / OF</h2>
         </div>
         <FileStack className="h-5 w-5 text-[var(--ink-soft)]" aria-hidden="true" />
@@ -765,7 +765,7 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
       <Panel className="p-4 sm:p-5" data-testid="panel-monthly-comparison">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">3-month comparison</p>
+            <p className="admin-eyebrow">3-month comparison</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สรุปเปรียบเทียบ 3 เดือน</h2>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">ยอดรับจริงและจำนวน Lead รายเดือน</p>
           </div>
@@ -805,7 +805,7 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
       <Panel className="p-4 sm:p-5" data-testid="panel-technician-capacity">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Technician capacity</p>
+            <p className="admin-eyebrow">Technician capacity</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สถานะคิวช่าง 10 ทีม</h2>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">จำนวนงานติดตั้งในคิว 7 วันข้างหน้า</p>
           </div>
@@ -883,7 +883,7 @@ function MonthlyComparisonPanel({ items }: { items: AdminDashboardStats["monthly
       <Panel className="p-4 sm:p-5" data-testid="panel-popular-items">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Top 5 best sellers</p>
+            <p className="admin-eyebrow">Top 5 best sellers</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">สินค้ายอดนิยม</h2>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">จัดอันดับจากจำนวนงานที่เลือกสินค้า</p>
           </div>
@@ -936,7 +936,7 @@ function RecentActivitiesPanel({ items }: { items: AdminDashboardActivity[] }) {
       <Panel className="p-4 sm:p-5" data-testid="panel-recent-activities">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Recent activities</p>
+            <p className="admin-eyebrow">Recent activities</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">⚡️ ความเคลื่อนไหวล่าสุด</h2>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">รายการอัปเดตจากลูกค้าและการชำระเงิน</p>
           </div>
@@ -1015,7 +1015,7 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
   if (isError && !data) {
     return (
       <div className="mx-auto max-w-2xl border border-[#a24439]/30 bg-[var(--card-paper)] p-6 text-center sm:p-10" role="alert" data-testid="dashboard-error">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[#a24439]">Dashboard unavailable</p>
+        <p className="admin-eyebrow">Dashboard unavailable</p>
         <h1 className="mt-2 text-xl font-semibold text-[var(--ink)]">โหลดข้อมูลภาพรวมไม่สำเร็จ</h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
           ตรวจสอบการเชื่อมต่อกับระบบ แล้วลองโหลดข้อมูลอีกครั้ง
@@ -1043,7 +1043,7 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
     <div className="admin-dashboard space-y-5 sm:space-y-6" data-testid="admin-dashboard">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow accent">BUSINESS OVERVIEW</p>
+          <p className="admin-eyebrow">BUSINESS OVERVIEW</p>
           <h1 className="font-semibold font-display tracking-tight text-[var(--ink)]">ภาพรวมธุรกิจ</h1>
           <p className="mt-1 text-sm text-[var(--ink-soft)]">ยอดขาย งานที่ต้องติดตาม และคิวนัดติดตั้ง</p>
         </div>
@@ -1150,7 +1150,7 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
       <Panel className="p-4 sm:p-5" data-testid="panel-dashboard-actions">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Needs attention</p>
+            <p className="admin-eyebrow">Needs attention</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">งานที่ต้องติดตาม</h2>
           </div>
           <span className="border border-[var(--saffron)]/40 bg-[var(--saffron)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--ink)]" data-testid="dashboard-action-total">
@@ -1186,7 +1186,7 @@ export function AdminDashboard({ canNavigate, onNavigate }: AdminDashboardProps)
         <Panel className="p-4 sm:p-5" data-testid="panel-upcoming-installations">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Next 7 days</p>
+              <p className="admin-eyebrow">Next 7 days</p>
               <h2 className="mt-1 text-lg font-semibold text-[var(--ink)]">คิวนัดติดตั้ง</h2>
               <p className="mt-1 text-xs text-[var(--ink-soft)]">งานนัดติดตั้งใน 7 วันข้างหน้า</p>
             </div>

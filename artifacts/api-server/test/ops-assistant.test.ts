@@ -97,10 +97,15 @@ let writeAttempts = 0;
  * ops-assistant.ts's dynamic `import("@workspace/db")` resolves to, and makes
  * insert/update/delete throw while counting how often they're called -- the
  * strongest possible proof that a code path never writes. */
-function mockDatabase(leads: Array<Record<string, unknown>>, slips: Array<Record<string, unknown>>) {
+function mockDatabase(
+  leads: Array<Record<string, unknown>>,
+  slips: Array<Record<string, unknown>>,
+  teams: Array<Record<string, unknown>> = [],
+) {
   mock.method(realDb, "select", () => ({
     from: (table: object) => {
-      const rows = tableName(table) === "customer_leads" ? leads : slips;
+      const name = tableName(table);
+      const rows = name === "customer_leads" ? leads : name === "technician_teams" ? teams : slips;
       const ordered = {
         limit: (n: number) => Promise.resolve(rows.slice(0, n)),
         then: (onFulfilled: (value: unknown) => unknown, onRejected?: (reason: unknown) => unknown) =>
@@ -115,6 +120,33 @@ function mockDatabase(leads: Array<Record<string, unknown>>, slips: Array<Record
       throw new Error(`ops-assistant must never call database.${method}()`);
     });
   }
+}
+
+async function captureAssistantContext(
+  mode: OpsAssistantMode,
+  leads: Array<Record<string, unknown>> = [],
+  slips: Array<Record<string, unknown>> = [],
+  teams: Array<Record<string, unknown>> = [],
+): Promise<string> {
+  process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
+  process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+  mockDatabase(leads, slips, teams);
+  let context = "";
+  mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.startsWith("https://oauth2.googleapis.com/token")) {
+      return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+    }
+    if (url.includes("aiplatform.googleapis.com")) {
+      const messages = JSON.parse(String(init?.body)).messages as Array<{ role: string; content: string }>;
+      context = messages[0]?.content ?? "";
+      return new Response(JSON.stringify({ choices: [{ message: { content: "รับทราบครับ" } }] }), { status: 200 });
+    }
+    return realFetch(input as never, init);
+  });
+  const result = await askOpsAssistant("สรุปข้อมูลให้หน่อย", mode);
+  assert.equal(result.ok, true);
+  return context;
 }
 
 before(async () => {
@@ -158,10 +190,11 @@ describe("buildOpsContextSummary", () => {
       ],
     );
     const summary = await buildOpsContextSummary("dashboard");
-    assert.match(summary, /จำนวน Lead ทั้งหมด: 4 งาน/);
+    assert.match(summary, /จำนวนงานทั้งหมด: 4 งาน/);
     assert.match(summary, /พร้อมผลิต: 2 งาน/);
     assert.match(summary, /ปิดการขาย: 1 งาน/);
-    assert.match(summary, /5,000 บาท \(2026-09-20\)/, "latest paid slip by createdAt, ignoring the newer voided one");
+    assert.match(summary, /5,000 บาท \(20 ก.ย. 2569\)/, "latest paid slip by createdAt, ignoring the newer voided one");
+    assert.doesNotMatch(summary, /\bLead\b/);
     assert.ok(!summary.includes(SENSITIVE_TAX_ID), "must never include taxId");
     assert.ok(!summary.includes(SENSITIVE_SECRET), "must never include secrets");
     assert.ok(summary.length <= 2000);
@@ -195,11 +228,16 @@ describe("buildOpsContextSummary", () => {
         leadRow({ id: 5, technicianTeamCode: null, expectedInstallationDate: "2026-09-12" }),
       ],
       [],
+      [
+        { code: "TP", name: "ทีมช่างปทุมวัน" },
+        { code: "PA", name: "ทีมช่างพระรามสอง" },
+      ],
     );
     const summary = await buildOpsContextSummary("calendar", now);
-    assert.match(summary, /ทีม TP: 2 งาน/);
-    assert.match(summary, /ทีม PA: 1 งาน/);
-    assert.match(summary, /ไม่ระบุทีม: 1 งาน/);
+    assert.match(summary, /งานของช่าง ทีมช่างปทุมวัน: 2 งาน/);
+    assert.match(summary, /งานของช่าง ทีมช่างพระรามสอง: 1 งาน/);
+    assert.match(summary, /งานของช่าง ไม่ระบุชื่อ: 1 งาน/);
+    assert.match(summary, /กันยายน 2569/);
     assert.ok(!summary.includes(SENSITIVE_TAX_ID));
     assert.ok(!summary.includes(SENSITIVE_SECRET));
   });
@@ -268,6 +306,57 @@ describe("askOpsAssistant", () => {
     assert.equal(capturedMessages[1]?.role, "user");
     assert.equal(capturedMessages[1]?.content, "มีงานพร้อมผลิตกี่งาน");
     assert.equal(writeAttempts, 0);
+  });
+});
+
+describe("askOpsAssistant Thai response rules", () => {
+  it("requires direct answers in one or two sentences that end with ครับ", async () => {
+    const context = await captureAssistantContext("dashboard");
+    const prompt = context.split("\n\nข้อมูลอ้างอิง:\n")[0] ?? "";
+    assert.match(prompt, /ตอบตรงคำถามก่อน/);
+    assert.match(prompt, /ไม่เกิน 1–2 ประโยค/);
+    assert.match(prompt, /ลงท้ายทุกคำตอบด้วยคำว่า “ครับ”/);
+  });
+
+  it("requires a no-data answer to offer a verifiable alternative", async () => {
+    const context = await captureAssistantContext("leads");
+    const prompt = context.split("\n\nข้อมูลอ้างอิง:\n")[0] ?? "";
+    assert.match(context, /ไม่พบข้อมูลงานล่าสุด/);
+    assert.match(prompt, /หากข้อมูลไม่มีหรือไม่พอ/);
+    assert.match(prompt, /เสนอทางเลือกที่ตรวจสอบได้แทน/);
+  });
+
+  it("uses Thai labels and friendly technician names without exposing internal identifiers", async () => {
+    const context = await captureAssistantContext(
+      "leads",
+      [leadRow({
+        id: 1,
+        leadKey: "lead_dispatch_2048",
+        name: "คุณสมชาย",
+        status: "new_lead",
+        technicianTeamCode: "TP",
+        expectedInstallationDate: "2026-10-04",
+      })],
+      [],
+      [{ code: "TP", name: "ทีมช่างสมชาย" }],
+    );
+    const summary = context.split("\n\nข้อมูลอ้างอิง:\n")[1] ?? "";
+    assert.match(summary, /งานที่ 1 · งานของช่าง ทีมช่างสมชาย/);
+    assert.match(summary, /สถานะ: งานใหม่/);
+    assert.doesNotMatch(context, /lead_dispatch_2048|\b(?:Lead|status|record|field)\b|new_lead|\bTP\b/);
+    assert.match(context, /ห้ามใช้ศัพท์อังกฤษ/);
+    assert.match(context, /ห้ามเปิดเผยรหัสงาน/);
+  });
+
+  it("formats dates in Thai Buddhist-calendar form", async () => {
+    const context = await captureAssistantContext(
+      "leads",
+      [leadRow({ id: 1, technicianTeamCode: "TP", expectedInstallationDate: "2026-10-04" })],
+      [],
+      [{ code: "TP", name: "ทีมช่างสมชาย" }],
+    );
+    assert.match(context, /วันติดตั้ง: 4 ต\.ค\. 2569/);
+    assert.match(context, /วันที่ให้ใช้รูปแบบภาษาไทย เช่น “4 ต\.ค\. 2569”/);
   });
 });
 
@@ -441,13 +530,13 @@ describe("POST /admin/assistant/ask", () => {
 // job-257: the database driver hands timestamps back as Date objects. The tests above feed ISO strings, which is why
 // `latestPayment.createdAt.slice is not a function` reached production (dashboard -> HTTP 500). These feed real Date objects.
 describe("dates from the database arrive as Date objects", () => {
-  it("dashboard mode: a payment whose createdAt is a real Date gives YYYY-MM-DD and does not throw", async () => {
+  it("dashboard mode: formats a payment whose createdAt is a real Date in Thai", async () => {
     mockDatabase(
       [leadRow({ id: 1, status: "closed" })],
       [slipRow({ id: 1, status: "verified", verifiedAmountThb: 12500, createdAt: new Date("2026-10-03T08:30:00.000Z") })],
     );
     const summary = await buildOpsContextSummary("dashboard");
-    assert.match(summary, /12,500 บาท \(2026-10-03\)/);
+    assert.match(summary, /12,500 บาท \(3 ต\.ค\. 2569\)/);
   });
 
   it("dashboard mode: picks the latest payment by time across Date objects, ISO strings and a missing date", async () => {
@@ -460,7 +549,7 @@ describe("dates from the database arrive as Date objects", () => {
         slipRow({ id: 4, status: "verified", verifiedAmountThb: 4000, createdAt: null }),
       ],
     );
-    assert.match(await buildOpsContextSummary("dashboard"), /3,000 บาท \(2026-09-30\)/);
+    assert.match(await buildOpsContextSummary("dashboard"), /3,000 บาท \(30 ก\.ย\. 2569\)/);
   });
 
   it("dashboard mode: a payment with no usable date is still reported, without a date and without throwing", async () => {
@@ -471,21 +560,23 @@ describe("dates from the database arrive as Date objects", () => {
     assert.match(await buildOpsContextSummary("dashboard"), /700 บาท \(ไม่ระบุวันที่\)/);
   });
 
-  it("leads mode: an installation date that is a Date prints as YYYY-MM-DD", async () => {
+  it("leads mode: formats a Date installation value in Thai", async () => {
     mockDatabase([leadRow({ id: 1, expectedInstallationDate: new Date("2026-10-20T00:00:00.000Z") })], []);
-    assert.match(await buildOpsContextSummary("leads"), /วันติดตั้ง: 2026-10-20/);
+    assert.match(await buildOpsContextSummary("leads"), /วันติดตั้ง: 20 ต\.ค\. 2569/);
   });
 
-  it("calendar mode: installation dates that are Date objects are counted in the right month", async () => {
+  it("calendar mode: counts Date installation values in the right month without exposing team codes", async () => {
     mockDatabase(
       [
         leadRow({ id: 1, technicianTeamCode: "TP", expectedInstallationDate: new Date("2026-09-10T00:00:00.000Z") }),
         leadRow({ id: 2, technicianTeamCode: "TP", expectedInstallationDate: new Date("2026-08-31T00:00:00.000Z") }),
       ],
       [],
+      [{ code: "TP", name: "ทีมช่างปทุมวัน" }],
     );
     const summary = await buildOpsContextSummary("calendar", new Date("2026-09-15T03:00:00.000Z"));
-    assert.match(summary, /ทีม TP: 1 งาน/);
+    assert.match(summary, /งานของช่าง ทีมช่างปทุมวัน: 1 งาน/);
+    assert.doesNotMatch(summary, /\bTP\b/);
   });
 
   it("formatOpsDate accepts Date, ISO string, date-only string, null and rubbish, and never throws", () => {
@@ -513,7 +604,7 @@ describe("dates from the database arrive as Date objects", () => {
     });
     mockDatabase([leadRow({ id: 1 })], [slipRow({ id: 1, status: "verified", verifiedAmountThb: 900, createdAt: new Date("2026-10-01T00:00:00.000Z") })]);
     assert.deepEqual(await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard"), { ok: true, reply: "ตอบแล้วครับ" });
-    assert.match(context, /900 บาท \(2026-10-01\)/);
+    assert.match(context, /900 บาท \(1 ต\.ค\. 2569\)/);
 
     mock.method(realDb, "select", () => { throw new Error("db is down"); });
     const warn = mock.method(console, "warn", () => {});
