@@ -23,13 +23,13 @@ const BROWSER_COST_RESPONSE = {
   updatedAt: "2026-09-26T03:00:00.000Z",
   totalCostThb: 1532.5,
   totalRequests: 4,
-  totalTokens: 35000,
+  totalTokens: 392_500_000,
   services: [
     {
       id: "sales_bot",
       name: "น้องไนท์ (LINE Bot ผู้ช่วยขาย)",
       requests: 2,
-      tokens: 22000,
+      tokens: 1_000_000,
       costThb: 845.75,
       status: "active",
     },
@@ -37,7 +37,7 @@ const BROWSER_COST_RESPONSE = {
       id: "sketch_vision",
       name: "AI Blueprint Reader (อ่านแบบร่าง)",
       requests: 1,
-      tokens: 9000,
+      tokens: 999_999,
       costThb: 501.25,
       status: "active",
     },
@@ -45,7 +45,7 @@ const BROWSER_COST_RESPONSE = {
       id: "hermes_ops",
       name: "เฮอร์มีส (งานบริหารระบบ & งานช่าง)",
       requests: 1,
-      tokens: 4000,
+      tokens: 390_500_001,
       costThb: 185.5,
       status: "no-data",
     },
@@ -197,6 +197,11 @@ describe("AI cost center UI contract", () => {
     assert.match(pageSource, /averageBahtPerRequest = averageSatang \/ 100/);
     assert.match(pageSource, /value=\{formatThb\(averageBahtPerRequest\)\}/);
     assert.match(pageSource, /title="ต้นทุนเฉลี่ยต่อคำขอ \(บาท\)"/);
+    assert.match(pageSource, /value=\{formatTokenCount\(data\.totalTokens\)\}/);
+    assert.match(pageSource, /valueTitle=\{formatExactTokenCount\(data\.totalTokens\)\}/);
+    assert.match(pageSource, /title=\{formatExactTokenCount\(service\.tokens\)\}/);
+    assert.match(pageSource, /formatTokenCount\(service\.tokens\)/);
+    assert.match(pageSource, /formatTokenCountWithExact\(data\.totalTokens\)/);
   });
 
   it("no longer says satang anywhere on the page, its LINE summary or its CSV", () => {
@@ -286,8 +291,8 @@ describe("AI cost center browser behavior", () => {
           responseCode = 503;
           body = { message: "fixture unavailable" };
         } else if (period === "today") {
-          // a period in which nothing was requested yet: every total is 0
-          body = { ...BROWSER_COST_RESPONSE, period, totalCostThb: 0, totalRequests: 0, totalTokens: 0, services: [], modelBreakdown: [] };
+            // a period in which nothing was requested yet: every total is 0
+            body = { ...BROWSER_COST_RESPONSE, period, totalCostThb: 0, totalRequests: 0, totalTokens: 0, services: [], modelBreakdown: [] };
         } else {
           body = { ...BROWSER_COST_RESPONSE, period };
         }
@@ -370,6 +375,33 @@ describe("AI cost center browser behavior", () => {
       assert.ok(!initialText.includes("sk-fixture-secret-must-not-render"));
       assert.ok(!initialText.includes("provider-fixture-token-must-not-render"));
       assert.ok(!initialText.includes("private-fixture@example.test"));
+      const tokenDisplay = await page.evaluate<{
+        kpi: string;
+        kpiTitle: string;
+        firstService: string;
+        firstServiceTitle: string;
+        secondService: string;
+      }>(
+        `(() => {
+          const kpi = document.querySelector('[data-testid="card-ai-cost-tokens-value"]');
+          const first = document.querySelector('[data-testid="table-ai-cost-services"] tbody tr:first-child td:nth-of-type(2)');
+          const second = document.querySelector('[data-testid="table-ai-cost-services"] tbody tr:nth-child(2) td:nth-of-type(2)');
+          return {
+            kpi: kpi?.textContent?.trim() ?? "",
+            kpiTitle: kpi?.getAttribute("title") ?? "",
+            firstService: first?.textContent?.trim() ?? "",
+            firstServiceTitle: first?.getAttribute("title") ?? "",
+            secondService: second?.textContent?.trim() ?? "",
+          };
+        })()`,
+      );
+      assert.deepEqual(tokenDisplay, {
+        kpi: "392.5 ล้านโทเคน",
+        kpiTitle: "392,500,000 โทเคน",
+        firstService: "1.0 ล้านโทเคน",
+        firstServiceTitle: "1,000,000 โทเคน",
+        secondService: "999,999 โทเคน",
+      });
       await waitForBrowserValue(
         () => page!.evaluate<string>("getComputedStyle(document.querySelector('.ai-cost-page')).opacity"),
         (opacity) => opacity === "1",
@@ -385,6 +417,23 @@ describe("AI cost center browser behavior", () => {
       assert.equal(typeof screenshotData, "string", "Chromium did not return screenshot data");
       mkdirSync(dirname(screenshotPath), { recursive: true });
       writeFileSync(screenshotPath, Buffer.from(screenshotData, "base64"));
+
+      await page.evaluate<boolean>(
+        `(() => {
+          Object.defineProperty(navigator, "clipboard", {
+            configurable: true,
+            value: { writeText: async (text) => { window.__aiCostClipboardText = text; } },
+          });
+          document.querySelector('[data-testid="button-ai-cost-copy-summary"]')?.click();
+          return true;
+        })()`,
+      );
+      const copiedSummary = await waitForBrowserValue(
+        () => page!.evaluate<string>("window.__aiCostClipboardText ?? ''"),
+        (text) => text.includes("392.5 ล้านโทเคน (392,500,000 โทเคน)"),
+        "Copied summary did not preserve the full token count",
+      );
+      assert.ok(copiedSummary.includes("1.0 ล้านโทเคน (1,000,000 โทเคน)"));
 
       await page.evaluate<boolean>(
         `(() => { document.querySelector('[data-testid="tab-ai-cost-period-7d"]')?.click(); return true; })()`,

@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { customFetch } from "@workspace/api-client-react";
 import { useState, type ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { formatExactTokenCount, formatTokenCount, formatTokenCountWithExact } from "./token-format";
 
 type AiCostPeriod = "today" | "7d" | "30d" | "all";
 
@@ -119,7 +120,7 @@ export function buildAiCostSummaryMessage(data: AiCostCenterResponse, period: Ai
   const selectedPeriod = periods.find((item) => item.value === period)?.label ?? period;
   const serviceLines = data.services.length > 0
     ? data.services.map((service) =>
-      `• ${service.name}: ${formatThb(service.costThb)} · ${formatCount(service.requests)} คำขอ · ${formatCount(service.tokens)} โทเค็น`,
+      `• ${service.name}: ${formatThb(service.costThb)} · ${formatCount(service.requests)} คำขอ · ${formatTokenCountWithExact(service.tokens)}`,
     )
     : ["• ยังไม่มีข้อมูลบริการในช่วงเวลานี้"];
   const modelLines = data.modelBreakdown.length > 0
@@ -133,7 +134,7 @@ export function buildAiCostSummaryMessage(data: AiCostCenterResponse, period: Ai
     `ช่วงเวลา: ${selectedPeriod}`,
     `ยอดรวม: ${formatThb(data.totalCostThb)}`,
     `จำนวนคำขอ: ${formatCount(data.totalRequests)}`,
-    `โทเค็นรวม: ${formatCount(data.totalTokens)}`,
+    `โทเค็นรวม: ${formatTokenCountWithExact(data.totalTokens)}`,
     "",
     "แยกตามบริการ:",
     ...serviceLines,
@@ -190,6 +191,7 @@ function MetricCard({
   title,
   value,
   detail,
+  valueTitle,
   icon: Icon,
   accent,
   testId,
@@ -197,6 +199,7 @@ function MetricCard({
   title: string;
   value: string;
   detail: string;
+  valueTitle?: string;
   icon: LucideIcon;
   accent: "gold" | "blue" | "teal" | "rose";
   testId: string;
@@ -209,7 +212,12 @@ function MetricCard({
         </span>
         <span className="ai-cost-metric__label">{title}</span>
       </div>
-      <strong className="ai-cost-metric__value" data-testid={`${testId}-value`}>
+      <strong
+        className="ai-cost-metric__value"
+        data-testid={`${testId}-value`}
+        title={valueTitle}
+        aria-label={valueTitle}
+      >
         {value}
       </strong>
       <span className="ai-cost-metric__detail">{detail}</span>
@@ -448,7 +456,8 @@ export default function AiCostCenterPage() {
             />
             <MetricCard
               title="โทเค็นรวม"
-              value={formatCount(data.totalTokens)}
+              value={formatTokenCount(data.totalTokens)}
+              valueTitle={formatExactTokenCount(data.totalTokens)}
               detail="อินพุตและเอาต์พุตรวม"
               icon={Database}
               accent="teal"
@@ -492,7 +501,9 @@ export default function AiCostCenterPage() {
                           <AiCostServiceName service={service} />
                         </th>
                         <td className="is-number">{formatCount(service.requests)}</td>
-                        <td className="is-number">{formatCount(service.tokens)}</td>
+                        <td className="is-number" title={formatExactTokenCount(service.tokens)}>
+                          {formatTokenCount(service.tokens)}
+                        </td>
                         <td className="is-number ai-cost-money">{formatThb(service.costThb)}</td>
                         <td><ServiceStatus status={service.status} /></td>
                       </tr>
