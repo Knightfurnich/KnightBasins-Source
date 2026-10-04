@@ -2924,7 +2924,7 @@ export function createAdminRouter(
         // timeout, or an API error.
         return res.json({ ok: false, message: "ผู้ช่วย AI ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง" });
       }
-      return res.json({ ok: true, reply: result.reply, mode });
+      return res.json({ ok: true, reply: result.reply, mode, dataAsOf: result.dataAsOf });
     } catch (error) {
       return next(error);
     }
