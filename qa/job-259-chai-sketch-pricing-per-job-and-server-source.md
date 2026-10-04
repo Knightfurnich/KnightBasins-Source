@@ -24,7 +24,8 @@ GOAL:
 
 SCOPE:
   - /opt/data/cache/kbsrc/artifacts/knight-basins/src/data/sketch-order.ts
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/sketch-order*.test.ts (+ ไฟล์เทสต์ที่ใช้ยอดรวม)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/sketch-order.test.ts
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/sketch-order-ui.test.ts
   - /opt/data/cache/kbsrc/artifacts/api-server/src/routes/leads.ts
   - /opt/data/cache/kbsrc/artifacts/api-server/test/ (เทสต์ใบเสนอราคา/sketchOrder)
   - /opt/data/cache/kbsrc/artifacts/api-server/src/lib/ (เฉพาะตัวช่วยที่เกี่ยวกับใบเสนอราคา ถ้าจำเป็น — ระบุใน PR)
