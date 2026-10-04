@@ -28,12 +28,19 @@
 
 ## 2 · เอกสารที่ต้องอ่านก่อนเริ่ม (เรียงลำดับ)
 
-1. `CLAUDE.md` — กฎโครงการทั้งหมด (ขอบเขต production, ความลับ, ราคา, ข้อห้าม)
-2. `knight-design-kb/TEAM.md` — โครงสร้างทีม บทบาท มารยาท
-3. `CONTRIBUTING.md` — กฎ commit/branch/หลักฐาน
-4. `KANBAN.md` — งานทั้งหมดและสถานะ
-5. `knight-design-kb/HANDOFF.md` — สถานะปัจจุบัน งานค้าง บทเรียนล่าสุด
-6. KB ของบอท/แอป: `company.md` · `products.md` · `pricing.md` · `policies.md` · `faq.md`
+**อ่านจากใน repo เท่านั้น** (ไฟล์ชุดนี้คัดลอกไว้ให้แล้วเพื่อคนที่ต่อผ่าน GitHub Connection):
+
+1. `docs/team/README.md` — ดัชนี + กฎห้ามพลาด 6 ข้อ (อ่านอันนี้ก่อน)
+2. `docs/team/ONBOARDING-freebuff.md` — ไฟล์นี้ (บทบาท/ขอบเขตไฟล์/กฎเหล็ก/คำสั่ง/โพรโทคอลตรวจงาน)
+3. `docs/team/TEAM.md` — โครงสร้างทีม บทบาท มารยาท
+4. `CONTRIBUTING.md` — กฎ commit/branch/หลักฐาน
+5. `KANBAN.md` — งานทั้งหมด สถานะ และ **ทะเบียนไฟล์ที่ถูกถืออยู่** (ท้ายไฟล์)
+6. `qa/job-*.md` — ใบงาน (GOAL · SCOPE · FORBIDDEN · EVIDENCE · OUTPUT · STOP)
+
+**อ่านจากเครื่อง Hermes ไม่ได้ (ไม่ต้องพยายาม):** `CLAUDE.md` และโฟลเดอร์ `knight-design-kb/`
+(`HANDOFF.md` · `TEAM.md` ต้นฉบับ · `company/products/pricing/policies/faq.md`) — อยู่บนเครื่อง Hermes นอก repo
+จำเป็นเฉพาะงานเดวิด · กฎจาก CLAUDE.md ที่คนทำงานต้องรู้ถูกสรุปไว้ใน `docs/team/README.md` แล้ว
+ถ้าต้องการเนื้อหา KB ส่วนใด ให้แจ้งเดวิดเพื่อขอสำเนา (ห้ามดึงตัวเลขธุรกิจไปใช้เดาเอง)
 
 ## 3 · กฎเหล็ก 10 ข้อ
 

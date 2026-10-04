@@ -56,6 +56,12 @@ EVIDENCE (ต้องแนบผลรันจริงทุกข้อ —
      - แบบร่างเก่าเริ่มใหม่ให้พร้อมข้อความไทย
   6) git diff main...HEAD -- artifacts/knight-basins/src/index.css ได้ผลลัพธ์ว่าง (0 diff)
 
+  หมายเหตุการรันในเครื่องคุณ:
+  - ถ้ายังไม่มี dependency ให้รัน `pnpm install` ก่อน (ครั้งแรกใช้เวลาหลายนาที) แล้วจึงรัน tsc/เทสต์
+  - `job_standard_check.py` เป็นเครื่องมือของเดวิด (อยู่บนเครื่อง Hermes) — คุณไม่ต้องใช้
+  - อ่านไฟล์จาก branch ที่ยังไม่ merge: ถ้า git ดึง blob ไม่ได้ ให้ใช้ `gh api repos/.../contents/<path>?ref=<branch>`
+  - **ห้ามเดาผลรันหรือคัดลอกตัวเลขของคนอื่นมาใส่** ถ้ารันไม่ได้ให้รายงานว่า "รันไม่ได้เพราะอะไร"
+
 OUTPUT:
   - artifacts/knight-basins/src/components/StudioPage.tsx
   - artifacts/knight-basins/test/studio-share-undo-sketch-guardrails.test.ts
