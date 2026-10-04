@@ -430,3 +430,96 @@ describe("Hermes usage_audit.jsonl parser (job-251)", () => {
     assert.equal(parseHermesAuditLine("[]"), null, "an array is not a usage record");
   });
 });
+
+// job-254: one Hermes line is one reporting round, not one model call. The engine writes the number of model calls in the
+// round as `api_calls`, and the Hermes row's request count is the sum of it. Tokens and cost must not move.
+describe("Hermes request count from api_calls (job-254)", () => {
+  let directory: string;
+  const savedAuditPath = process.env["HERMES_AUDIT_LOG_PATH"];
+  const NOW = new Date("2026-10-05T00:00:00.000Z");
+
+  before(async () => {
+    directory = await mkdtemp(path.join(os.tmpdir(), "hermes-api-calls-"));
+  });
+  beforeEach(() => clearAiUsageEvents());
+  after(async () => {
+    clearAiUsageEvents();
+    if (savedAuditPath === undefined) delete process.env["HERMES_AUDIT_LOG_PATH"];
+    else process.env["HERMES_AUDIT_LOG_PATH"] = savedAuditPath;
+    await rm(directory, { force: true, recursive: true });
+  });
+
+  async function auditFile(lines: string[]) {
+    const file = path.join(directory, `usage-${Math.random().toString(36).slice(2)}.jsonl`);
+    await writeFile(file, lines.join("\n") + "\n");
+    process.env["HERMES_AUDIT_LOG_PATH"] = file;
+  }
+  const row = (summary: ReturnType<typeof getUnifiedAiCostSummary>, id: string) => summary.services.find((service) => service.id === id)!;
+  /** A line in the engine's format; `extra` is spliced in as raw JSON so broken values can be written as they would appear. */
+  const line = (extra: string, promptTokens = 1000, completionTokens = 100) =>
+    `{"ts": "2026-10-04T11:34:00Z", "model": "deepseek/deepseek-v4.1-flash", "source": "hermes_interactive", "session": "s1"${extra}, "prompt_tokens": ${promptTokens}, "completion_tokens": ${completionTokens}, "total_tokens": ${promptTokens + completionTokens}, "duration_ms": null, "error": null}`;
+
+  it("a line with api_calls=4 counts as 4 requests", async () => {
+    await auditFile([line(', "api_calls": 4')]);
+    const summary = getUnifiedAiCostSummary("all", NOW);
+    assert.equal(row(summary, "hermes_ops").requests, 4);
+    assert.equal(summary.totalRequests, 4);
+    assert.deepEqual(summary.modelBreakdown.map((entry) => [entry.model, entry.requests]), [["deepseek/deepseek-v4.1-flash", 4]]);
+  });
+
+  it("a line without api_calls (the engine's cron lines) still counts as 1", async () => {
+    await auditFile([line("")]);
+    assert.equal(row(getUnifiedAiCostSummary("all", NOW), "hermes_ops").requests, 1);
+    assert.equal(parseHermesAuditLine(line(""))!.apiCalls, 1);
+  });
+
+  it("a broken api_calls (0, -3, \"x\", 2.5, null, a huge number) counts as 1", async () => {
+    const broken = ["0", "-3", '"x"', '"4"', "2.5", "null", "true", "{}", "[4]", "1e300"];
+    for (const value of broken) {
+      assert.equal(parseHermesAuditLine(line(`, "api_calls": ${value}`))!.apiCalls, 1, value);
+    }
+    await auditFile(broken.map((value) => line(`, "api_calls": ${value}`)));
+    assert.equal(row(getUnifiedAiCostSummary("all", NOW), "hermes_ops").requests, broken.length);
+  });
+
+  it("requests are the sum of api_calls over the lines, mixing lines with and without the field", async () => {
+    await auditFile([line(', "api_calls": 4'), line(""), line(', "api_calls": 0'), line(', "api_calls": 12'), line(', "apiCalls": 3')]);
+    assert.equal(row(getUnifiedAiCostSummary("all", NOW), "hermes_ops").requests, 4 + 1 + 1 + 12 + 3);
+  });
+
+  it("tokens and cost are exactly what the same lines give without api_calls", async () => {
+    const lines = [line(', "api_calls": 4', 29137, 148), line(', "api_calls": 7', 5000, 900), line("", 300, 20)];
+    await auditFile(lines.map((text) => text.replace(/, "api_calls": \d+/, "")));
+    const before = row(getUnifiedAiCostSummary("all", NOW), "hermes_ops");
+    await auditFile(lines);
+    const after = row(getUnifiedAiCostSummary("all", NOW), "hermes_ops");
+    assert.equal(before.requests, 3);
+    assert.equal(after.requests, 4 + 7 + 1);
+    assert.equal(after.tokens, before.tokens);
+    assert.equal(after.costThb, before.costThb);
+    assert.equal(after.tokens, 29285 + 5900 + 320);
+  });
+
+  it("other services keep counting one request per event, even if an event carries apiCalls", async () => {
+    await auditFile([]);
+    recordAiUsage({ service: "sales_bot", model: "gemini-2.5-flash", promptTokens: 10, completionTokens: 5, success: true, apiCalls: 9 });
+    recordAiUsage({ service: "sketch_vision", model: "deepseek/deepseek-v4.1-flash", success: true, imageCount: 1 });
+    recordAiUsage({ service: "vertex_gemini", model: "google/gemini-2.5-flash", success: true, apiCalls: 5 });
+    recordAiUsage({ service: "google_tts", model: "th-TH-Chirp3-HD-Kore", promptTokens: 40, success: true });
+    const summary = getUnifiedAiCostSummary("all", NOW);
+    for (const id of ["sales_bot", "sketch_vision", "vertex_gemini", "google_tts"]) {
+      assert.equal(row(summary, id).requests, 1, id);
+    }
+    assert.equal(row(summary, "hermes_ops").requests, 0);
+    assert.equal(row(summary, "hermes_ops").status, "no-data");
+    assert.equal(summary.totalRequests, 4);
+  });
+
+  it("the model breakdown counts Hermes requests the same way, alongside one-per-event app services", async () => {
+    await auditFile([line(', "api_calls": 4'), line(', "api_calls": 2')]);
+    recordAiUsage({ service: "sketch_vision", model: "deepseek/deepseek-v4.1-flash", success: true, imageCount: 1 });
+    const summary = getUnifiedAiCostSummary("all", NOW);
+    assert.deepEqual(summary.modelBreakdown.map((entry) => [entry.model, entry.requests]), [["deepseek/deepseek-v4.1-flash", 7]]);
+    assert.equal(summary.totalRequests, 7);
+  });
+});
