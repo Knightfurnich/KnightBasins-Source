@@ -214,6 +214,40 @@ describe("buildOpsContextSummary", () => {
     assert.ok(!summary.includes(SENSITIVE_SECRET));
   });
 
+  it("labels every current database and legacy lead status in Thai", async () => {
+    // Snapshot of the values returned by SELECT DISTINCT status FROM customer_leads.
+    const databaseDistinctStatuses: Array<[string, string]> = [
+      ["team_reported_paid", "ทีมรายงานชำระแล้ว"],
+      ["in_production", "กำลังผลิต"],
+      ["ready_for_production", "พร้อมผลิต"],
+      ["closed", "ปิดการขาย"],
+      ["quote_sent", "ส่งใบเสนอราคาแล้ว"],
+      ["confirmed", "ชำระเงินแล้ว"],
+    ];
+    const statuses: Array<[string, string]> = [
+      ...databaseDistinctStatuses,
+      ["new_lead", "งานใหม่"],
+      ["selecting", "กำลังเลือกสินค้า"],
+      ["quote_requested", "ขอใบเสนอราคา"],
+      ["waiting_deposit", "รอมัดจำ"],
+      ["deposit_paid", "มัดจำแล้ว"],
+      ["new", "งานใหม่"],
+      ["contacted", "ติดต่อแล้ว"],
+      ["qualified", "ผ่านการคัดกรอง"],
+      ["quoted", "ส่งใบเสนอราคาแล้ว"],
+      ["lost", "ยุติการติดตาม"],
+    ];
+    mockDatabase(statuses.map(([status], index) => leadRow({ id: index + 1, status })), []);
+
+    const summary = await buildOpsContextSummary("dashboard");
+
+    for (const [status, label] of statuses) {
+      assert.ok(summary.includes(`${label} 1 งาน`), `${status} should have the Thai label ${label}`);
+      assert.ok(!summary.includes(status), `${status} must not appear in the summary`);
+    }
+    assert.ok(!summary.includes("ไม่ทราบขั้นตอนงาน"));
+  });
+
   it("leads mode: reports a friendly message when there are no leads", async () => {
     mockDatabase([], []);
     const summary = await buildOpsContextSummary("leads");
@@ -362,6 +396,37 @@ describe("askOpsAssistant", () => {
     assert.equal((result.reply.match(/ข้อมูล ณ วันที่/g) ?? []).length, 1);
     assert.equal(result.dataAsOf, "2026-10-04T20:05:00.000Z");
   });
+
+  it("collapses attached, spaced, and more-than-two repeated ครับ endings", async () => {
+    process.env["VERTEX_AI_PROJECT_ID"] = "test-project";
+    process.env["GOOGLE_SERVICE_ACCOUNT_JSON"] = FAKE_CREDENTIALS_JSON;
+    mockDatabase([], []);
+    let generatedReply = "";
+    mock.method(globalThis, "fetch", async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://oauth2.googleapis.com/token")) {
+        return new Response(JSON.stringify({ access_token: "fake-access-token" }), { status: 200 });
+      }
+      if (url.includes("aiplatform.googleapis.com")) {
+        return new Response(JSON.stringify({ choices: [{ message: { content: generatedReply } }] }), { status: 200 });
+      }
+      return realFetch(input as never, init);
+    });
+
+    const cases = [
+      "สรุปแล้วครับครับ",
+      "สรุปแล้วครับ ครับ",
+      "สรุปแล้วครับ ครับ ครับครับ ครับ",
+    ];
+    for (const generated of cases) {
+      generatedReply = generated;
+      const result = await askOpsAssistant("สรุปภาพรวมให้หน่อย", "dashboard", fixedDataAsOf);
+      assert.equal(result.ok, true);
+      if (!result.ok) continue;
+      assert.equal(result.reply.split("\n")[0], "สรุปแล้วครับ");
+      assert.equal((result.reply.match(/ครับ/gu) ?? []).length, 1);
+    }
+  });
 });
 
 describe("askOpsAssistant Thai response rules", () => {
@@ -376,6 +441,10 @@ describe("askOpsAssistant Thai response rules", () => {
     assert.match(prompt, /ตอบตรงคำถามก่อน/);
     assert.match(prompt, /1–2 ประโยค/);
     assert.match(prompt, /ลงท้ายทุกคำตอบด้วยคำว่า “ครับ”/);
+    assert.match(prompt, /ลงท้ายทุกคำตอบด้วยคำว่า “ครับ” เพียงครั้งเดียว/);
+    assert.match(prompt, /ห้ามเขียนซ้ำไม่ว่าจะติดกันหรือคั่นด้วยช่องว่าง/);
+    assert.match(prompt, /“ครับครับ”/);
+    assert.match(prompt, /“ครับ ครับ”/);
   });
 
   it("(ค) keeps answers grounded in provided facts and offers a verifiable next step when data is missing", async () => {

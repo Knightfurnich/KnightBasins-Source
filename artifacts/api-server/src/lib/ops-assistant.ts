@@ -23,7 +23,7 @@ const MAX_CONTEXT_SUMMARY_LENGTH = 2000;
 const SYSTEM_PROMPT =
   "คุณเป็นผู้ช่วยประจำทีมของบริษัท ไนท์ เฟอร์นิช " +
   "พูดคุยเป็นกันเอง สุภาพแบบมืออาชีพ เหมือนผู้ช่วยในทีม ไม่ห้วนและไม่เป็นทางการเกินไป " +
-  "ตอบเป็นภาษาไทยทุกครั้ง ใช้ถ้อยคำธรรมชาติ และลงท้ายทุกคำตอบด้วยคำว่า “ครับ” อย่างสม่ำเสมอ ห้ามผสมคำลงท้าย “ครับ” กับ “ค่ะ” " +
+  "ตอบเป็นภาษาไทยทุกครั้ง ใช้ถ้อยคำธรรมชาติ และลงท้ายทุกคำตอบด้วยคำว่า “ครับ” เพียงครั้งเดียว ห้ามเขียนซ้ำไม่ว่าจะติดกันหรือคั่นด้วยช่องว่าง เช่น “ครับครับ” หรือ “ครับ ครับ” ห้ามผสมคำลงท้าย “ครับ” กับ “ค่ะ” " +
   "ตอบตรงคำถามก่อน ใช้ 1–2 ประโยค แล้วค่อยสรุปสั้น ๆ เมื่อจำเป็น ไม่ต้องขึ้นต้นว่า “อ้างอิงจาก” ทุกครั้ง " +
   "ใช้เฉพาะข้อมูลอ้างอิงที่ให้มา ห้ามเดาตัวเลขหรือแต่งรายละเอียด " +
   "ห้ามใช้คำเทคนิคหรือคำอังกฤษในคำตอบ เช่น Lead, dispatched, status, record, field หรือ ID ให้ใช้คำไทยง่าย ๆ เช่น งาน สถานะงาน รายการ และข้อมูล " +
@@ -117,6 +117,10 @@ function appendOpsDataAsOf(reply: string, dataAsOf: Date): string {
   return withoutModelTimestamp ? `${withoutModelTimestamp}\n${dataAsOfLine}` : dataAsOfLine;
 }
 
+function collapseRepeatedKhrap(reply: string): string {
+  return reply.replace(/ครับ(?:\s*ครับ)+/gu, "ครับ");
+}
+
 function formatThaiOpsMonth(isoDate: string): string {
   const date = new Date(`${isoDate}T12:00:00+07:00`);
   return new Intl.DateTimeFormat("th-TH", {
@@ -128,11 +132,21 @@ function formatThaiOpsMonth(isoDate: string): string {
 
 const LEAD_STATUS_LABELS: Record<string, string> = {
   new_lead: "งานใหม่",
+  selecting: "กำลังเลือกสินค้า",
+  quote_requested: "ขอใบเสนอราคา",
+  quote_sent: "ส่งใบเสนอราคาแล้ว",
+  waiting_deposit: "รอมัดจำ",
+  team_reported_paid: "ทีมรายงานชำระแล้ว",
+  deposit_paid: "มัดจำแล้ว",
+  confirmed: "ชำระเงินแล้ว",
+  in_production: "กำลังผลิต",
+  ready_for_production: "พร้อมผลิต",
+  closed: "ปิดการขาย",
+  // Compatibility labels for legacy lead rows and the SlipOK auto-close state.
+  new: "งานใหม่",
   contacted: "ติดต่อแล้ว",
   qualified: "ผ่านการคัดกรอง",
   quoted: "ส่งใบเสนอราคาแล้ว",
-  ready_for_production: "พร้อมผลิต",
-  closed: "ปิดการขาย",
   lost: "ยุติการติดตาม",
 };
 
@@ -327,7 +341,7 @@ export async function askOpsAssistant(
   if (!result.ok) return result;
   return {
     ...result,
-    reply: appendOpsDataAsOf(result.reply, dataAsOf),
+    reply: appendOpsDataAsOf(collapseRepeatedKhrap(result.reply), dataAsOf),
     dataAsOf: dataAsOf.toISOString(),
   };
 }
