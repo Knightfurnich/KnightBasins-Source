@@ -24,6 +24,8 @@ export type AiUsageEvent = {
   durationMs?: number;
   success: boolean;
   imageCount?: number;
+  /** Model calls this one event stands for. Only hermes_ops reads it (see eventRequests); absent means 1. */
+  apiCalls?: number;
 };
 
 type RecordedAiUsageEvent = AiUsageEvent & { timestamp: string };
@@ -148,6 +150,14 @@ export function resolveHermesAuditLogPath(env: NodeJS.ProcessEnv = process.env):
   return env["HERMES_AUDIT_LOG_PATH"] || HERMES_AUDIT_LOG_PATH;
 }
 
+/** The first of the values that is a whole number >= 1 (and safe to add up); 1 when none is. */
+function firstApiCalls(...values: unknown[]): number {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isSafeInteger(value) && value >= 1) return value;
+  }
+  return 1;
+}
+
 /**
  * One line of Hermes's usage_audit.jsonl -> a usage event, or null for a line that is not a JSON object. Never throws.
  *
@@ -157,6 +167,11 @@ export function resolveHermesAuditLogPath(env: NodeJS.ProcessEnv = process.env):
  * Reading only camelCase made every engine line come back with no tokens, so the Hermes row of the AI cost page
  * showed 0 although Hermes was in use every day. When both spellings are present the engine's (snake_case) value wins
  * if it is usable, otherwise the camelCase one is used.
+ *
+ * Unlike the app's own services, one Hermes line is one reporting round, not one model call: the engine adds the number of
+ * model calls in that round as `api_calls` (`apiCalls` is accepted too). It is kept as `apiCalls` only when it is a whole
+ * number of at least 1; a missing, zero, negative, fractional, non-numeric or absurdly large value leaves it at 1, so a
+ * line without the field (the engine's cron lines) still counts as one request.
  */
 export function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null {
   let parsed: unknown;
@@ -191,6 +206,7 @@ export function parseHermesAuditLine(line: string): RecordedAiUsageEvent | null 
     durationMs: firstNumber("duration_ms", "durationMs"),
     success: body["success"] !== false && !failedWithError,
     imageCount: numberOrUndefined(body["imageCount"]),
+    apiCalls: firstApiCalls(body["api_calls"], body["apiCalls"]),
     timestamp: timeText ?? new Date().toISOString(),
   };
 }
@@ -240,6 +256,14 @@ function eventTokens(event: RecordedAiUsageEvent): number {
   return typeof event.totalTokens === "number" ? event.totalTokens : (event.promptTokens ?? 0) + (event.completionTokens ?? 0);
 }
 
+/**
+ * Requests an event stands for. Every service counts one per event, as it always did, except hermes_ops, whose lines carry
+ * the number of model calls they cover (`apiCalls`, 1 when absent). Tokens and cost are never scaled by this.
+ */
+function eventRequests(event: RecordedAiUsageEvent): number {
+  return event.service === "hermes_ops" ? (event.apiCalls ?? 1) : 1;
+}
+
 function eventCostThb(event: RecordedAiUsageEvent): number {
   return calculateModelCostThb(event.model, event.promptTokens, event.completionTokens, event.imageCount);
 }
@@ -266,7 +290,7 @@ export function getUnifiedAiCostSummary(period: AiCostPeriod, now: Date = new Da
     return {
       id,
       name: SERVICE_NAMES[id],
-      requests: serviceEvents.length,
+      requests: serviceEvents.reduce((sum, event) => sum + eventRequests(event), 0),
       tokens: serviceEvents.reduce((sum, event) => sum + eventTokens(event), 0),
       costThb: roundThb(serviceEvents.reduce((sum, event) => sum + eventCostThb(event), 0)),
       status: serviceEvents.length > 0 ? "active" : "no-data",
@@ -276,7 +300,7 @@ export function getUnifiedAiCostSummary(period: AiCostPeriod, now: Date = new Da
   const modelTotals = new Map<string, { requests: number; costThb: number }>();
   for (const event of events) {
     const current = modelTotals.get(event.model) ?? { requests: 0, costThb: 0 };
-    current.requests += 1;
+    current.requests += eventRequests(event);
     current.costThb += eventCostThb(event);
     modelTotals.set(event.model, current);
   }
