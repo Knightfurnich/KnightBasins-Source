@@ -113,6 +113,7 @@ const BREADCRUMB_TRAILS: Readonly<Record<string, ReadonlyArray<BreadcrumbItem>>>
   "/sketch": [HOME_CRUMB, { name: "อัปโหลดสเก็ตช์หน้างาน", path: "/sketch" }],
   "/readme": [HOME_CRUMB, { name: "คู่มือการใช้งานเว็บไซต์", path: "/readme" }],
   "/updates": [HOME_CRUMB, { name: "ความเคลื่อนไหวและอัปเดตระบบ", path: "/updates" }],
+  "/network": [HOME_CRUMB, { name: "เครือข่ายเว็บไซต์ Knight Furnich", path: "/network" }],
 };
 
 /** The trail for `pathname`, or null for the home page and any page without one. */

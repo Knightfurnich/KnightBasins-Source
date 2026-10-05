@@ -18,7 +18,7 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const appDirectory = path.resolve(scriptDirectory, "..");
 const publicDirectory = path.join(appDirectory, "dist", "public");
 const sitemapPath = path.join(appDirectory, "public", "sitemap.xml");
-const expectedPageCount = 10;
+const expectedPageCount = 11;
 const maximumBrowserOutputBytes = 50 * 1024 * 1024;
 
 function decodeEntities(value) {

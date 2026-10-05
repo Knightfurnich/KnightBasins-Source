@@ -54,6 +54,11 @@ export const ROUTE_META: Record<string, RouteMetaEntry> = {
     title: "ความเคลื่อนไหวและอัปเดตระบบ | Knight Furnich",
     description: "สรุปฟีเจอร์และการอัปเดตล่าสุดของระบบ Knight Furnich",
   },
+  "/network": {
+    title: "เครือข่ายเว็บไซต์ Knight Furnich | Knight Basins",
+    description: "รู้จักบริษัท Knight Furnich, ระบบ Knight Basins และศูนย์ความรู้หินสังเคราะห์ พร้อมช่องทาง LINE OA, Facebook และลิงก์ชมผลงานกับใบเสนอราคา",
+  },
+
 };
 
 function upsertMetaContent(doc: MetaDocument, selector: string, value: string): () => void {
