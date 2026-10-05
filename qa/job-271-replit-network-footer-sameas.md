@@ -25,9 +25,9 @@ GOAL:
      - ⚠️ **YouTube: ห้ามใส่** — บอสสั่ง "ข้ามไปก่อน เอาที่มี ที่ได้" เพราะ `https://www.youtube.com/@knightfurnich` = **HTTP 404** (ห้ามใส่ลิงก์ที่เปิดไม่เจอ)
      - มี `<h1>` + ข้อความอธิบายภาษาไทยจริง (ไม่ใช่การ์ดเปล่า) · ใช้ดีไซน์/คอมโพเนนต์เดิมของเว็บ · **ห้ามใช้ `<iframe>`**
      - ลงทะเบียนเส้นทางใน `src/App.tsx` (สาธารณะ ไม่ต้องล็อกอิน)
-  3. **`sameAs` ใน JSON-LD (Organization)** — เพิ่มใน `src/data/structured-data.ts`:
-     `"sameAs": ["https://www.knightfurnich.com/", "https://xn--42cf7czb6aef3bfnp2mrg.com/"]`
-     (จุดประสงค์: ให้ Google/AI เชื่อม entity ร้านกับสองเว็บในเครือ — ช่วย GEO)
+  3. ~~**`sameAs` ใน JSON-LD**~~ — **เดวิดทำเสร็จแล้ว (5 ต.ค. 69)** ใน `index.html` (ที่เดียวกับที่ node Organization อยู่จริง ไม่ใช่ `structured-data.ts`)
+     ⇒ **ไม่ต้องทำในใบนี้** · `sameAs` ตอนนี้มี 6 รายการ: Facebook · Instagram · TikTok · knightfurnich.com · หินสังเคราะห์.com (punycode) · LINE @789gcnhq
+     ⚠️ แก้ความเข้าใจผิดในใบเดิม: Organization/HomeAndConstructionBusiness อยู่ใน `index.html` ไม่ใช่ `src/data/structured-data.ts`
   4. **`public/sitemap.xml`** — เพิ่ม URL ของหน้า `/network` (จาก 10 → 11 URL) **โดยไม่แก้/ลบ URL เดิม**
   5. **ให้ prerender (ใบ 270) ครอบคลุม `/network` ด้วย** — ถ้าสคริปต์ prerender อ่านเส้นทางจาก `sitemap.xml` อัตโนมัติ ก็ตรวจว่าได้ครบ; ถ้าใช้รายการคงที่ ให้เพิ่ม `/network` ในรายการนั้น
   6. **เทสต์กันหลุด (ใหม่ 1 ไฟล์):** (ก) มีลิงก์ footer ทั้ง 2 จุดพร้อม `noopener` และ **ไม่มี `nofollow`** (ข) `/network` มี `<h1>` + ลิงก์ออก 2 เว็บ + ลิงก์ภายใน 3 หน้า (ค) JSON-LD มี `sameAs` ที่มีทั้ง 2 URL (ง) `sitemap.xml` มี `/network`
@@ -35,7 +35,6 @@ GOAL:
 SCOPE:
   - /opt/data/cache/kbsrc/artifacts/knight-basins/src/App.tsx                        (footer + เส้นทาง /network)
   - /opt/data/cache/kbsrc/artifacts/knight-basins/src/pages/NetworkPage.tsx          (ไฟล์ใหม่)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/data/structured-data.ts        (เพิ่ม sameAs)
   - /opt/data/cache/kbsrc/artifacts/knight-basins/public/sitemap.xml                 (เพิ่ม /network)
   - /opt/data/cache/kbsrc/artifacts/knight-basins/test/network-links.test.ts         (ไฟล์ใหม่)
 
@@ -70,7 +69,7 @@ STOP:
 | ข้อ | รายการตรวจ | ผลตรวจ | หมายเหตุ |
 |---|---|---|---|
 | 1 | มีบล็อก GOAL ชัดเจน | ผ่าน | footer + /network + sameAs + sitemap + prerender + เทสต์ |
-| 2 | มีบล็อก SCOPE ชัดเจน | ผ่าน | 5 ไฟล์ (ใหม่ 2) |
+| 2 | มีบล็อก SCOPE ชัดเจน | ผ่าน | 4 ไฟล์ (ใหม่ 2) — ตัด structured-data.ts ออกเพราะ sameAs อยู่ใน index.html และเดวิดทำแล้ว |
 | 3 | มีบล็อก FORBIDDEN ชัดเจน | ผ่าน | index.css 0 · ห้าม iframe/nofollow · ห้ามเริ่มก่อน 270 |
 | 4 | มีบล็อก EVIDENCE ชัดเจน | ผ่าน | tsc · เทสต์+พิสูจน์จับได้ · grep จริง · ยิงหลัง deploy |
 | 5 | มีบล็อก OUTPUT ชัดเจน | ผ่าน | หน้า/ลิงก์/sameAs + PR |

@@ -1,78 +1,56 @@
-# ใบงาน 273-R (รีพิต) — ยกระดับ GEO: ข้อมูลโครงสร้างให้ AI/Google อ่านธุรกิจเราได้ครบ
+# ใบงาน 273-R (รีพิต) — GEO ส่วนที่เหลือ (เดวิดทำข้อมูลธุรกิจเสร็จแล้ว)
 
 **วันที่:** 5 ต.ค. 69 · **ออกโดย:** เดวิด · **เจ้าของงาน:** **รีพิต** · **ผู้ตรวจรับ:** เดวิด
-**Branch:** `fix/replit-geo-structured-data`
-**ที่มา:** ต่อจากใบ 272 (โดเมน/canonical) และใบ 271 (footer + /network + sameAs 2 เว็บ)
-**เริ่มได้เมื่อ:** ใบ 271 merge แล้ว (ไฟล์ `src/data/structured-data.ts` ชนกัน)
+**Branch:** `fix/replit-geo-structured-data` — แตกจาก main **หลังใบ 271 merge** (ไฟล์ `src/App.tsx` ใช้ร่วมกัน)
 
-**สภาพของจริงที่เดวิดตรวจ (5 ต.ค. 69 — ดึง JSON-LD จาก production แล้ว parse):**
+**✅ เดวิดทำเสร็จแล้ว (PR แยก 5 ต.ค. 69) — ห้ามทำซ้ำ:**
 ```
-@graph มี 4 node: HomeAndConstructionBusiness · WebSite · SiteNavigationElement · FAQPage
-HomeAndConstructionBusiness (ดึงจาก production 5 ต.ค. 69 แล้ว parse จริง):
-  tel        = +66-94-496-1949                    ← ต้องเปลี่ยนเป็น +66-91-978-2292 เป็นหลัก (บอสยืนยัน)
-  sameAs     = [knightfurnich.com, line.me/R/ti/p/@789gcnhq]   ← ยังขาด FB/TikTok/Instagram (และ 2 เว็บเครือ จากใบ 271)
-  address    = 35/170, 35/267 หมู่ที่ 1 … (โรงงาน)  ← ต้องเปลี่ยนเป็นที่อยู่โชว์รูม 35/633 (บอสยืนยัน)
-  openingHoursSpecification = มีอยู่แล้ว: จ.–ศ. 08:30–16:30 · เสาร์ 08:30–11:30   ⚠️ ขัดกับ GBP ที่แสดง จ. 09:00–17:00
-  geo        = มีอยู่แล้ว แต่ค่าไม่ตรง: 13.961, 100.5153  ← ต้องแก้เป็นพิกัดร้านจริง 13.9567567, 100.56523 (จากแผง Maps)
-  logo/image = มีอยู่แล้ว (https://knightbasins.com/knight-furnich-logo.png · og-image.jpg)
-  hasMap     = ยังไม่มี  ← ต้องเพิ่ม (ลิงก์ Google Maps ของร้าน)
-  url/@id    = https://knightbasins.com/ · #organization  (ถูกต้องแล้วหลังใบ 272)
-  ⚠️ แก้ข้อมูลที่ผมรายงานผิดรอบแรก: ผมเคยบอกว่า "ไม่มี openingHoursSpecification · geo · image · logo" — ตรวจซ้ำแล้ว **มีอยู่แล้วทั้ง 4** ที่ขาดจริงคือ **hasMap** และ "ค่าที่ไม่ตรง" (geo)
+index.html (node HomeAndConstructionBusiness):
+  address  → 35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000 (โชว์รูม · บอสยืนยัน)
+  phone    → +66-91-978-2292 (หลัก) · +66-94-496-1949 (contactPoint รอง)
+  geo      → 13.9567567, 100.56523  (แก้จาก 13.961,100.5153 ที่คลาด ~5 กม.)
+  hasMap   → https://maps.app.goo.gl/SYam8pshrFojMiwv5  (เพิ่มใหม่)
+  sameAs   → Facebook · Instagram · TikTok · knightfurnich.com · หินสังเคราะห์.com (punycode) · LINE @789gcnhq
+src/data/structured-data.ts:
+  BREADCRUMB_TRAILS → ครบทุกหน้าสาธารณะ (เดิมมีแค่ /stone /portfolio /studio /quote)
+test/geo-structured-data.test.ts → 6 เคส (ห้ามทำให้ตก)
 ```
 
 ```
 ✅ มาตรฐานการออกใบงาน · 12/12 · 5 ต.ค. 69 · เดวิด
 
 GOAL:
-  1. **`sameAs` — บอสยืนยัน 5 ต.ค. 69 + เดวิดตรวจ HTTP แล้ว:**
-     - `https://www.facebook.com/knightfurnich` → **มีจริง** (เพจ "หินสังเคราะห์ - Acrylic Solid surface by Knightfurnich" · ผู้ติดตาม 10,000) ✅
-     - `https://www.tiktok.com/@knightfurnich` → **HTTP 200** ✅
-     - `https://www.instagram.com/knightfurnich` → ใช้ตามที่บอสยืนยัน (IG บล็อกบอท ตรวจอัตโนมัติไม่ได้ · HTTP 429)
-     - **YouTube: ตัดออก** (บอส 5 ต.ค. 69: "ข้ามไปก่อน เอาที่มี ที่ได้") — `@knightfurnich` = **HTTP 404** · ห้ามใส่ลิงก์ที่เปิดไม่เจอ
-     - เว็บในเครือ `https://www.knightfurnich.com` · `https://www.หินสังเคราะห์.com` + LINE OA `https://line.me/R/ti/p/@789gcnhq`
-  2. **ข้อมูลธุรกิจให้ครบสำหรับ Local SEO/GEO (บอสยืนยัน 5 ต.ค. 69):**
-     - `telephone`: **`+66-91-978-2292` เป็นหลัก** และ `+66-94-496-1949` เป็นรอง
-     - `openingHoursSpecification`: **มีอยู่แล้ว (จ.–ศ. 08:30–16:30 · ส. 08:30–11:30)** — บอส 5 ต.ค. 69: "เอาตามปกติ เพราะแก้ภายหลังได้" ⇒ **คงค่าเดิมไว้** แต่ให้ระบุใน PR ว่าค่าปัจจุบันของเว็บ (08:30–16:30) ไม่ตรงกับ GBP (09:00–17:00) เพื่อรอเดวิดยืนยันรอบถัดไป **ห้ามเดาใหม่**
-     - `geo`: **แก้จาก `13.961, 100.5153` → `13.9567567, 100.56523`** (พิกัดร้านจากแผง Google Maps · ของเดิมคลาดไป ~5 กม.)
-     - `hasMap`: **เพิ่ม** `https://maps.app.goo.gl/SYam8pshrFojMiwv5` (ยังไม่มีตอนนี้)
-     - `image` + `logo`: URL บน `https://knightbasins.com/...` · `priceRange` คงเดิม
-  3. **`BreadcrumbList` ต่อหน้า** — เพิ่มใน WebPage node ที่ prerender สร้าง (หน้าแรก → หน้าปัจจุบัน) ตามพาธจริง
-  4. **`Service`/`Product` schema** สำหรับ `/stone` และ `/quote` — **ห้ามใส่ราคาที่ไม่มาจาก KB/DB** (ถ้าไม่มีราคาที่อนุญาต ให้ใส่แค่ชื่อบริการ/พื้นที่ให้บริการ)
-  5. **NAP — บอสยืนยัน 5 ต.ค. 69 (ตอบข้อ 1 = ก):** ให้ใช้ **ที่อยู่โชว์รูม `35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000` เป็นที่อยู่หลักในเว็บ**
-     (ตรงกับ GBP: "35, 633 ซอย ร่วมสุข 8/1 ตำบล บ้านใหม่ เมือง ปทุมธานี 12000 ไทย" · Plus code `XH48+P3`)
-     → เปลี่ยน `PostalAddress` ใน JSON-LD จากที่อยู่โรงงาน `35/170, 35/267 …` เป็นที่อยู่โชว์รูมนี้ · **โรงงานห้ามใส่เป็นที่อยู่หลัก**
-  6. **กันหลุด:** เพิ่มเทสต์ที่ยืนยันว่า (ก) `sameAs` มีครบทุกช่องทางที่ตกลง (ข) มี openingHours + geo + hasMap + logo
-     (ค) BreadcrumbList มี `itemListElement` เรียงถูก (ง) ไม่มี host เก่า `*.hstgr.cloud` ใน JSON-LD
-     และ **เทสต์เดิมต้องไม่ตก** (`jsonld-schema-integrity` · `product-schema-geo` · `domain-canonical`)
+  1. **เพิ่ม `Product` / `Service` schema ให้หน้า `/stone` และ `/quote`** — ตรวจจาก production 5 ต.ค. 69: หน้าแรกมี `Product` แล้ว แต่ `/stone` กับ `/quote` ยังไม่มี
+     → ใช้ `buildBasinProductsJsonLd` ที่มีอยู่แล้วใน `src/data/structured-data.ts` เป็นแบบอย่าง (หน้าแรกใช้ตัวนี้)
+     → **ห้ามใส่ราคาที่ไม่มาจาก KB/DB** — ถ้าไม่แน่ใจให้ใส่แค่ชื่อบริการ/พื้นที่ให้บริการ
+  2. **เวลาทำการ — คงค่าเดิมและรายงานความขัดแย้ง:** เว็บใช้ `จ.–ศ. 08:30–16:30 · ส. 08:30–11:30` แต่ GBP แสดง `จ. 09:00–17:00`
+     → **ห้ามเดาค่าใหม่** ให้คงค่าเดิม แล้วระบุใน PR ว่าขัดกับ GBP เพื่อรอเดวิดยืนยันจากบอส
+  3. **เทสต์กันหลุด:** เพิ่มเคสใน `test/geo-structured-data.test.ts` (หรือไฟล์ใหม่) ที่ยืนยันว่า `/stone` และ `/quote` มี Product/Service node
+     และยืนยันว่า `geo`/`hasMap`/`sameAs`/ที่อยู่ โชว์รูม ยังอยู่ (กันคนแก้กลับ)
 
 SCOPE:
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/index.html                                  (JSON-LD ระดับ shell: sameAs/openingHours/geo/hasMap/logo)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/data/structured-data.ts                 (ผู้ประกอบ JSON-LD ต่อหน้า + BreadcrumbList)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/data/faq-data.ts                        (แก้ได้เฉพาะข้อความที่เกี่ยวกับข้อมูลธุรกิจ ถ้าจำเป็น)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/geo-structured-data.test.ts            (ใหม่)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/jsonld-schema-integrity.test.ts        (ขยายการตรวจ)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/product-schema-geo.test.ts             (ขยายการตรวจ)
-  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/components/RouteMeta.logic.ts           (เฉพาะถ้าต้องส่ง breadcrumb ต่อหน้า)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/data/structured-data.ts       (เพิ่ม builder Product/Service)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/App.tsx                       (หน้า `StonePage`/`QuotePage` ถูกประกาศอยู่ในไฟล์นี้ (StonePage = บรรทัด ~607) — ผูก RouteStructuredData ให้ /stone และ /quote ที่นี่)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/geo-structured-data.test.ts  (ขยายเทสต์)
 
 FORBIDDEN:
-  - ห้ามแตะ `artifacts/knight-basins/src/index.css` (**0 diff**) · ห้ามแตะ `artifacts/api-server/**` · ห้ามแตะ `src/admin/**`
-  - **ห้ามเดา** handle โซเชียล, เวลาทำการ, ที่อยู่ (NAP), พิกัด หรือราคา — ใช้ของจริงที่เดวิดให้เท่านั้น (บอสยืนยันครบแล้ว 5 ต.ค. 69 ตามรายการในหัวข้อ GOAL)
-  - ห้ามใส่ราคา/โปรโมชันที่ไม่ได้มาจาก KB (`knight-design-kb/pricing.json`) หรือ DB
-  - ห้ามเปลี่ยน canonical/โดเมน (ใบ 272 จบแล้ว) · ห้าม push ตรงเข้า `main` · ห้าม deploy เอง
+  - ห้ามแตะ `artifacts/knight-basins/src/index.css` (**0 diff**) · ห้ามแตะ `artifacts/api-server/**` · `src/admin/**`
+  - ห้ามเดา handle โซเชียล · เวลาทำการ · ที่อยู่ (NAP) · พิกัด · ราคา — ใช้ค่าที่เดวิดใส่ไว้แล้วเท่านั้น (ห้ามแก้ค่าที่เสร็จแล้ว)
+  - ห้ามใส่ราคา/โปรโมชันที่ไม่ได้มาจาก KB (`knight-design-kb/pricing.json`) หรือ DB · ห้ามแก้ canonical/โดเมน
+  - ห้ามทำให้เทสต์ `test/geo-structured-data.test.ts` และ `test/domain-canonical.test.ts` ตก · ห้าม push ตรงเข้า `main` · ห้าม deploy เอง
 
 EVIDENCE:
-  1) `cd artifacts/knight-basins && npx tsc -p tsconfig.json --noEmit` → 0 errors · `pnpm run build` → ผ่าน (prerender ครบทุกหน้าตาม sitemap)
-  2) `node --experimental-strip-types --test test/geo-structured-data.test.ts test/jsonld-schema-integrity.test.ts test/product-schema-geo.test.ts` → ผ่าน · **พิสูจน์ว่าจับได้:** ลบ `hasMap` → เทสต์ต้องตก · ใส่พิกัดเดิม `13.961,100.5153` กลับ → เทสต์ต้องตก
-  3) เทสต์ชุดเว็บแบบ CI: `node --experimental-strip-types --test $(find test -maxdepth 1 -name '*.test.ts' ! -name '*.browser.test.ts' | sort)` → **ตก 0**
-     (baseline ที่เดวิดวัดหลังใบ 272: **1120 tests / 1110 pass / 0 fail / 10 skip**)
-  4) `python3 -c "..."` parse JSON-LD จาก `dist/public/index.html` + `dist/public/stone/index.html` → นับ node/@type และแสดง sameAs/openingHours/geo/hasMap/logo จริง (แนบผล ไม่ใช่คำรับรอง)
-  5) `git diff origin/main...HEAD --name-only` → เฉพาะไฟล์ใน SCOPE · `git diff origin/main...HEAD -- src/index.css | wc -l` → **0**
-  6) หลัง deploy (เดวิดทำ): ดึง JSON-LD จาก `https://knightbasins.com/` และ `/stone` แล้ว parse → ต้องมีฟิลด์ครบและไม่มี host เก่า · และยิง UA GPTBot/Googlebot ยังได้เนื้อหา > 0 คำ
-  7) แนบผลรันจริงเป็นตัวเลขทั้งหมด
+  1) `cd artifacts/knight-basins && npx tsc -p tsconfig.json --noEmit` → 0 errors · `pnpm run build` → ผ่าน (prerender ครบตาม sitemap)
+  2) `node --experimental-strip-types --test test/geo-structured-data.test.ts` → ผ่าน · **พิสูจน์ว่าจับได้:** ลบ Product ออกจาก `/stone` → เทสต์ต้องตก (แนบข้อความจริง)
+  3) ชุดเว็บแบบ CI: `node --experimental-strip-types --test $(find test -maxdepth 1 -name '*.test.ts' ! -name '*.browser.test.ts' | sort)` → **ตก 0**
+     · baseline ที่เดวิดวัดบน main 5 ต.ค. 69 (หลังใบ 272) = **1120 tests / 1110 pass / 0 fail / 10 skip** (ตัวเลขจะขยับตามเทสต์ใหม่ของใบนี้ — เกณฑ์ผ่านคือ "ตก 0")
+  4) parse JSON-LD จาก `dist/public/stone/index.html` และ `dist/public/quote/index.html` → แสดง @type ที่ได้ (แนบผลจริง ไม่ใช่คำรับรอง)
+  5) `git diff origin/main...HEAD -- artifacts/knight-basins/src/index.css | wc -l` → **0** · `git diff origin/main...HEAD --name-only` → เฉพาะไฟล์ใน SCOPE
+  6) หลัง deploy (เดวิดทำ): ดึง JSON-LD จาก `https://knightbasins.com/stone` และ `/quote` แล้ว parse → ต้องมี Product/Service · และค่า geo/hasMap/sameAs/ที่อยู่ ยังถูกต้อง
 
 OUTPUT:
-  - JSON-LD ครบสำหรับ Local SEO + GEO (sameAs ครบ · openingHours · geo · hasMap · logo · BreadcrumbList · Service/Product)
-  - เทสต์กันหลุด + เทสต์เดิมไม่ตก · PR เดียวแจ้งเดวิด (เดวิด merge เมื่อ CI เขียว + หลักฐานครบ) แล้วเดวิด deploy + ยืนยันบน production + รายงานบอส
+  - `/stone` และ `/quote` มีโครงสร้างข้อมูลสินค้า/บริการที่ Google/AI อ่านได้ · ค่าธุรกิจ (ที่อยู่โชว์รูม/เบอร์/พิกัด/hasMap/sameAs) ครบและตรงกับ GBP · เทสต์กันหลุด
+  - PR เดียว แจ้งเดวิด (เดวิด merge เมื่อ CI เขียว + หลักฐานครบ) → เดวิด deploy + ยืนยันบน production + รายงานบอส
 
 STOP:
   - เมื่อ tsc 0 · เทสต์ใหม่ผ่าน + พิสูจน์จับได้ · ชุด CI ตก 0 · index.css 0 diff · diff อยู่ใน SCOPE · เปิด PR แจ้งเดวิด
@@ -83,26 +61,29 @@ STOP:
 
 | # | สิ่งที่ต้องยืนยัน | เกณฑ์ |
 |---|---|---|
-| 1 | SCOPE | แก้เฉพาะไฟล์ใน SCOPE (7 ไฟล์) |
-| 2 | sameAs | ครบทุกช่องทางที่ตกลง (โซเชียล + 2 เว็บในเครือ + LINE) |
-| 3 | openingHours | คงค่าเดิม (จ.–ศ. 08:30–16:30 · ส. 08:30–11:30) และ **ระบุใน PR ว่าไม่ตรงกับ GBP 09:00–17:00** รอเดวิดยืนยัน |
-| 4 | geo / hasMap | `geo` = **13.9567567, 100.56523** (แก้จาก 13.961, 100.5153) · `hasMap` = `https://maps.app.goo.gl/SYam8pshrFojMiwv5` (เพิ่มใหม่) |
-| 5 | logo / image | มีอยู่แล้ว — ตรวจว่ายังเป็น `https://knightbasins.com/...` และเปิดได้ 200 (ห้ามทำให้หลุด) |
-| 6 | NAP | ใช้ที่อยู่โชว์รูม `35/633` เป็นที่อยู่หลัก (บอสยืนยัน) · ไม่ใส่ที่อยู่โรงงานเป็นหลัก |
-| 7 | BreadcrumbList | มี `itemListElement` เรียงถูกทุกหน้าที่ prerender |
-| 8 | Service/Product | มีที่ `/stone` `/quote` และไม่มีราคาที่ไม่ได้รับอนุญาต |
-| 9 | เทสต์ใหม่ | `geo-structured-data.test.ts` ผ่าน + พิสูจน์จับบั๊กได้ (เช่น ลบ `hasMap` → ตก · ใส่พิกัดเดิมกลับ → ตก) |
-| 10 | เทสต์เดิม | `jsonld-schema-integrity` · `product-schema-geo` · `domain-canonical` ไม่ตก |
-| 11 | index.css | `git diff origin/main...HEAD -- src/index.css | wc -l` = 0 |
-| 12 | รายงาน | แนบผลรันจริง/ตัวเลขทั้งหมด ไม่มีคำรับรองลอย ๆ |
+| 1 | SCOPE | แก้เฉพาะ 3 ไฟล์ใน SCOPE (`structured-data.ts` · `App.tsx` · `test/geo-structured-data.test.ts`) |
+| 2 | Product/Service | `/stone` ได้ Product หรือ Service node ที่ parse ได้ |
+| 3 | Product/Service | `/quote` ได้ Product หรือ Service node ที่ parse ได้ |
+| 4 | ราคา | ไม่มีราคาที่ไม่มาจาก KB/DB |
+| 5 | ค่าที่เดวิดทำแล้ว | ที่อยู่โชว์รูม · เบอร์ 091 · geo 13.9567567,100.56523 · hasMap · sameAs 6 รายการ — **ต้องไม่ถูกแก้กลับ** |
+| 6 | เวลาทำการ | คงค่าเดิม + ระบุความขัดแย้งกับ GBP ใน PR |
+| 7 | Breadcrumb | ครบทุกหน้าสาธารณะ (ที่มีอยู่แล้ว) ยังทำงาน |
+| 8 | เทสต์ใหม่ | ยืนยัน Product/Service + ค่าธุรกิจ · พิสูจน์จับได้ |
+| 9 | เทสต์เดิม | `geo-structured-data` · `domain-canonical` · `jsonld-schema-integrity` ไม่ตก |
+| 10 | index.css | `git diff origin/main...HEAD -- src/index.css | wc -l` = 0 |
+| 11 | typecheck | `npx tsc -p tsconfig.json --noEmit` = 0 |
+| 12 | รายงาน | แนบผลรัน/parse จริงเป็นตัวเลข ไม่มีคำรับรองลอย ๆ |
 
 ## ข้อความส่งต่อให้บอสวาง (relay)
 
 ```
-[เดวิด → รีพีต] ใบ 273 — ยกระดับ GEO ใน JSON-LD (ต่อจากใบ 271)
-เริ่มได้เมื่อใบ 271 merge แล้ว (ไฟล์ structured-data.ts ใช้ร่วมกัน)
-ที่ต้องทำ: sameAs ให้ครบ (FB/IG/TikTok/YouTube @knightfurnich + knightfurnich.com + หินสังเคราะห์.com + LINE @789gcnhq) · openingHoursSpecification · geo (13.9567262, 100.5627005) · hasMap · image/logo บนโดเมนใหม่ · BreadcrumbList ต่อหน้า · Service/Product สำหรับ /stone /quote
-ข้อห้าม: ห้ามเดา handle/เวลาทำการ/ที่อยู่/พิกัด/ราคา — ใช้ของจริงที่ผมให้ (geo ต้องเป็น 13.9567567,100.56523 · ที่อยู่โชว์รูม · โทร 091-978-2292 เป็นหลัก) · ห้ามแตะ index.css, api-server, src/admin · ใช้ข้อมูลที่บอสยืนยันแล้วเท่านั้น (NAP/เบอร์/เวลา/โซเชียล)
-หลักฐานใน PR: tsc 0 · เทสต์ใหม่ geo-structured-data ผ่าน + พิสูจน์จับบั๊กได้ (ลบ openingHours → ตก) · ชุดเว็บตก 0 (baseline หลังใบ 272 = 1120/1110/0/10) · parse JSON-LD จาก dist จริงแล้วแนบผล · index.css 0 diff
+[เดวิด → รีพีต] ใบ 273 (ฉบับย่อ) — GEO ส่วนที่เหลือ · เริ่มหลังใบ 271 merge
+ผมทำข้อมูลธุรกิจเสร็จแล้ว (ไม่ต้องทำซ้ำ): ที่อยู่โชว์รูม 35/633 · เบอร์ +66-91-978-2292 หลัก (094 รอง) · geo 13.9567567,100.56523 · เพิ่ม hasMap · sameAs ครบ 6 (FB/IG/TikTok/2 เว็บ/LINE · ไม่มียูทูบ 404) · BreadcrumbList ครบทุกหน้า · เทสต์ geo-structured-data.test.ts 6 เคส
+ที่เหลือให้ทำ:
+1) เพิ่ม Product/Service schema ให้ /stone และ /quote (หน้าแรกมี Product แล้ว แต่สองหน้านี้ยังไม่มี) — ห้ามใส่ราคาที่ไม่มาจาก KB/DB
+2) เวลาทำการ: คงค่าเดิม (จ.–ศ. 08:30–16:30 · ส. 08:30–11:30) และระบุใน PR ว่าไม่ตรงกับ GBP (09:00–17:00) — ห้ามเดาค่าใหม่ รอผมยืนยัน
+3) เทสต์: ยืนยัน Product/Service ของ 2 หน้า + ค่าธุรกิจที่ผมใส่ไว้ต้องไม่ถูกแก้กลับ · พิสูจน์จับได้ (ลบ Product → ตก)
+ห้าม: index.css (0 diff) · api-server · src/admin · แก้ค่าที่ผมทำแล้ว · เดาเวลา/ราคา/ที่อยู่
+หลักฐาน: tsc 0 · เทสต์ผ่าน+จับได้ · ชุด CI ตก 0 (baseline 1120/1110/0/10) · parse JSON-LD จาก dist จริงมาแนบ · index.css 0 diff
 รายละเอียดเต็ม: qa/job-273-replit-geo-structured-data.md
 ```
