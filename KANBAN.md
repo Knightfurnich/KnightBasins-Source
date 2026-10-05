@@ -448,3 +448,5 @@ python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะ�
 | **Task 268-C (ถอด feature “จับคู่สีหินจากภาพ” — แบบ A: ถอดทางเข้า เก็บเครื่องยนต์)** | **ชัย** (มอบหมาย 4 ต.ค. 69 ตามคำสั่งบอส) | ลบ `routes/stone-match.ts` · `test/stone-match-api.test.ts` · `StoneMatchPage.tsx` + แก้ `routes/index.ts` (3 จุด) · `AdminApp.tsx` (4 จุด) · `App.tsx` (1 จุด) · `admin-sidebar-groups.test.ts` (กลับเป็น 15 เมนู) · **เก็บ `lib/stone-matcher.ts` + เทสต์ 15 เคส เป็นโค้ดพัก (0 diff)** · index.css 0 diff · เดวิดยิงยืนยัน 404 หลัง deploy | `fix/chai-remove-stone-match-feature` | 🟡 **มอบหมายชัยแล้ว** · ใบงาน `qa/job-268-chai-remove-stone-match-feature.md` ผ่านตรวจ 12/12 |
 
 | 268 (ภาคผนวก) | เดวิด (บอสอนุมัติ) | ตัดคำโฆษณา feature “จับคู่สีหินจากภาพ” ออกจากหน้าสาธารณะ (/updates + llms.txt/llms-full.txt) + ปรับเทสต์ล็อก 4→3 highlights | 4 ต.ค. 69 | ✅ เสร็จ · PR #351 `b7a1929` · ยืนยันบน production แล้ว |
+
+| 269 (ภาคผนวก ข) | เดวิด | ลบ sitemap ที่ผิดรูปแบบ 9 รายการออกจาก GSC (บอสสั่ง “ลบเลย”) เหลือ `/sitemap.xml` + `/sitemap_index.xml` | 5 ต.ค. 69 | ✅ เสร็จ · DELETE 9× HTTP 204 · ยืนยันเหลือ 2 รายการ |

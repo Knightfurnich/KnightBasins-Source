@@ -82,3 +82,22 @@ sitemap: ส่ง 8 URL → ถูก index 0 URL · ตรวจ 4 หน้�
 รายงาน 09:00 ไทย จะมีตัวเลขนี้ทุกวัน (index/แสดงผล/คลิก + สถิติบอท จาก log ถาวรที่ไม่หายเมื่อ deploy)
 next: ถ้าบอสต้องการ ผมเสนอ (1) กด Request indexing ใน GSC สำหรับหน้าสำคัญ (2) พิจารณาโดเมนของตัวเองแทน *.hstgr.cloud เพื่อ SEO ระยะยาว
 ```
+
+
+---
+
+## ภาคผนวก ข — ลบ sitemap ที่ไม่ถูกต้องออกจาก GSC (บอสอนุมัติ 5 ต.ค. 69: “ลบเลย”)
+
+**ผู้ทำ:** เดวิด (บอสสั่งให้ลบ) · **วิธี:** Search Console API (`DELETE /webmasters/v3/sites/{site}/sitemaps/{feedpath}`) ด้วยสิทธิ์เขียนของ service account (SA เป็น **Full user** ใน property นี้)
+
+**ก่อนลบ (11 รายการ):** `/sitemap.xml` (type=sitemap · errors=0 · ส่ง 8 · index 0) · `/sitemap_index.xml` (errors=0) · และ **9 รายการที่ไม่ใช่ sitemap จริง** (`/updates` `/readme` `/studio-guide` `/site-prep` `/sketch` `/studio` `/quote` `/stone` `/portfolio` — errors=1 ทุกรายการ)
+
+**หลังลบ (2 รายการ — ยืนยันด้วยการดึงรายการใหม่):**
+```
+/sitemap.xml        | type=sitemap | errors=0 | ส่ง 8 · index 0
+/sitemap_index.xml  | type=          | errors=0 | ส่ง 0 · index 0
+```
+
+**คำสั่งที่ใช้:** `uv run --with google-auth --with requests --quiet python bin/gsc_sitemap_fix.py --list` → ตรวจรายการ · `--clean` → ลบ (ผล: `DELETE … → HTTP 204` ทั้ง 9 รายการ) · แล้ว `--list` ซ้ำเพื่อยืนยัน
+**ข้อยกเว้นที่บันทึกไว้:** ใบนี้เดิมกำหนดให้ GSC เป็น read-only — ครั้งนี้ **บอสสั่งให้ลบโดยตรง** จึงใช้สิทธิ์เขียนเฉพาะการลบ sitemap ที่ผิดรูปแบบเท่านั้น (ไม่แตะข้อมูลอื่น/ไม่ส่ง sitemap ใหม่/ไม่กด request indexing แทนบอส)
+**หมายเหตุ:** sitemap ที่ผิดเหล่านี้ไม่กระทบการจัดอันดับ/index — ลบเพื่อให้หน้าจอสะอาด · เพิ่มกลับได้ตลอด
