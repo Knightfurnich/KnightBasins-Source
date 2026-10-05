@@ -83,7 +83,7 @@ function upsertMetaContent(doc: MetaDocument, selector: string, value: string): 
 export function applyRouteMeta(
   pathname: string,
   doc: MetaDocument = document,
-  origin: string = typeof window !== "undefined" ? window.location.origin : "",
+  origin?: string,
 ): () => void {
   const entry = ROUTE_META[pathname];
 
@@ -99,7 +99,20 @@ export function applyRouteMeta(
 
   const previousTitle = doc.title;
   doc.title = entry.title;
-  const canonicalUrl = `${origin}${pathname}`;
+  const canonicalHref = doc
+    .querySelector<HTMLLinkElement>('link[rel="canonical"]')
+    ?.getAttribute("href");
+  let canonicalOrigin =
+    origin ??
+    (typeof window !== "undefined" ? window.location.origin : "");
+  if (origin === undefined && canonicalHref) {
+    try {
+      canonicalOrigin = new URL(canonicalHref, canonicalOrigin).origin;
+    } catch {
+      // Keep the current browser origin when the shell has no usable canonical URL.
+    }
+  }
+  const canonicalUrl = `${canonicalOrigin}${pathname}`;
 
   const restoreFns = [
     upsertMetaContent(doc, 'meta[name="description"]', entry.description),
