@@ -66,8 +66,20 @@ import { isValidEmailAddress } from "@/data/validation";
 import { stoneHeroFrame } from "@/data/stone-hero";
 import { CustomerProfilePage } from "@/components/CustomerProfilePage";
 import { DigitalHandoverPage } from "@/pages/DigitalHandoverPage";
+import { NetworkPage } from "@/pages/NetworkPage";
 import { knightFurnichLogo, lineQrCode } from "@/data/assets";
 import { StorefrontThemeProvider, ThemeToggle, useStorefrontTheme } from "@/components/ThemeToggle";
+
+const STANDALONE_PUBLIC_FOOTER_PATHS = new Set([
+  "/readme",
+  "/site-prep",
+  "/track",
+  "/handover",
+  "/updates",
+  "/studio-guide",
+  "/portfolio",
+]);
+
 
 const emptyCustomer: CustomerDetails = {
   name: "",
@@ -228,7 +240,10 @@ function Footer() {
             <img className="footer-logo footer-logo--png" src={knightFurnichLogo} alt="Knight Furnich" />
             <div>
               <strong className="footer-company-name">บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
-              <div className="footer-address">35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+              <div className="footer-address">
+                <div>โชว์รูม: 35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000</div>
+                <div>โรงงานผลิต: 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+              </div>
             </div>
           </div>
 
@@ -262,6 +277,7 @@ function Footer() {
               <span>จ.-ศ. 08:30–16:30 · ส. 08:30–11:30 (หยุดวันอาทิตย์)</span>
             </div>
           </div>
+          <NetworkFooterLinks />
         </div>
 
         <div className="footer-line-qr" data-testid="footer-line-qr">
@@ -287,6 +303,47 @@ function Footer() {
     </footer>
   );
 }
+
+function NetworkFooterLinks() {
+  return (
+    <div className="footer-contact-item" data-testid="footer-network-links">
+      <span className="footer-contact-key">เครือ Knight Furnich</span>
+      <span className="flex flex-wrap gap-x-4 gap-y-1">
+        <a
+          className="footer-owner-link"
+          href="https://www.knightfurnich.com/"
+          target="_blank"
+          rel="noopener"
+          data-testid="link-footer-knightfurnich"
+        >
+          Knight Furnich — เว็บบริษัท (ประสบการณ์ 20 ปี)
+        </a>
+        <a
+          className="footer-owner-link"
+          href="https://xn--42cf7czb6aef3bfnp2mrg.com/"
+          target="_blank"
+          rel="noopener"
+          data-testid="link-footer-hinsangkhro"
+        >
+          ความรู้เรื่องหินสังเคราะห์
+        </a>
+      </span>
+    </div>
+  );
+}
+
+function StandaloneNetworkFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="footer-inner">
+        <div className="footer-main-info">
+          <NetworkFooterLinks />
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 
 function QuoteDropZone({ cart, setCart, setStones, stoneColors }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; setStones: Dispatch<SetStateAction<StoneConfig[]>>; stoneColors: ReadonlyArray<StoneColor> }) {
   const [dragging, setDragging] = useState(false);
@@ -1739,7 +1796,7 @@ function Storefront() {
     return () => window.removeEventListener("popstate", syncModeFromUrl);
   }, []);
   const [leadKey] = useStored("knight-lead-key", `lead-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const lastCatalogFingerprint = useRef<string | null>(null);
   const upsertLead = useUpsertLead();
   const notifyQuoteMutation = useNotifySavedQuote();
@@ -1915,6 +1972,9 @@ function Storefront() {
     else if (mode === "sketch") setLocation("/sketch");
     else setLocation("/");
   };
+  if (location === "/network") {
+    return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><NetworkPage /></Layout>;
+  }
   return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} onRequestQuote={requestQuote} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onRequestPillarQuote={(sku) => requestQuote([sku])} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}<InstallationShowcase /><TrustBadges /><QuickFAQ /></Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onRequestPillarQuote={(sku) => requestQuote([sku])} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/sketch"><StudioPage mode="sketch" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage stoneColors={catalogStoneColors.all} /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
@@ -1942,9 +2002,11 @@ function App() {
               <Route path="/updates" component={UpdatesPage} />
               <Route path="/studio-guide" component={StudioGuidePage} />
               <Route path="/portfolio" component={PortfolioPage} />
+              <Route path="/network" component={Storefront} />
               <Route path="/" component={RootEntry} />
               <Route component={Storefront} />
             </Switch>
+            {!isAdminRoute && STANDALONE_PUBLIC_FOOTER_PATHS.has(location) && <StandaloneNetworkFooter />}
           </StorefrontThemeProvider>
         </div>
         <Toaster />
