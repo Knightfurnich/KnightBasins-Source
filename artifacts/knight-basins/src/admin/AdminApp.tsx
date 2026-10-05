@@ -25,7 +25,6 @@ import { SitePhotosPage } from "./SitePhotosPage";
 import { PortfolioGalleryPage } from "./PortfolioGalleryPage";
 import AiCostCenterPage from "./AiCostCenterPage";
 import { AdminLogsManager } from "./AdminLogsManager";
-import { StoneMatchPage } from "./StoneMatchPage";
 import { knightFurnichLogo } from "@/data/assets";
 import { AdminThemeStyles, AdminThemeToggle, useAdminTheme } from "./admin-theme";
 import { OpsAssistantWidget } from "./OpsAssistantWidget";
@@ -77,7 +76,6 @@ const NAV_ITEMS = [
   { href: "/admin/basins", label: "อ่างล้างหน้า", exact: false, permission: "basins", group: "catalog" },
   { href: "/admin/installed-stones", label: "หิน (พร้อมติดตั้ง)", exact: false, permission: "installed-stones", group: "catalog" },
   { href: "/admin/sheet-stones", label: "หิน (ขายแผ่น)", exact: false, permission: "sheet-stones", group: "catalog" },
-  { href: "/admin/stone-match", label: "จับคู่สีหินจากภาพ", exact: false, permission: "installed-stones", group: "catalog" },
   { href: "/admin/stock", label: "สต็อกหิน", exact: false, permission: "basins", group: "catalog" },
   { href: "/admin/leads", label: "ลูกค้า / Lead", exact: false, permission: "leads", group: "sales" },
   { href: "/admin/calendar", label: "ปฏิทินคิวช่าง", exact: false, permission: "leads", group: "sales" },
@@ -177,7 +175,6 @@ export default function AdminApp() {
               <Route path="/admin" component={AdminDashboardRoute} />
               <Route path="/admin/basins" component={BasinsRoute} />
               <Route path="/admin/installed-stones" component={InstalledStonesRoute} />
-              <Route path="/admin/stone-match" component={StoneMatchRoute} />
               <Route path="/admin/sheet-stones" component={SheetStonesRoute} />
               <Route path="/admin/stock" component={StockInventoryRoute} />
               <Route path="/admin/leads" component={LeadsRoute} />
@@ -311,10 +308,6 @@ function BasinsRoute() {
 
 function InstalledStonesRoute() {
   return <AdminPermissionGate permission="installed-stones" resource="หิน (พร้อมติดตั้ง)"><InstalledStonesManager /></AdminPermissionGate>;
-}
-
-function StoneMatchRoute() {
-  return <AdminPermissionGate permission="installed-stones" resource="จับคู่สีหินจากภาพ"><StoneMatchPage /></AdminPermissionGate>;
 }
 
 function SheetStonesRoute() {
