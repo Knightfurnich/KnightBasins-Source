@@ -61,6 +61,15 @@ jobs:
         working-directory: artifacts/knight-basins
         run: pnpm exec tsc --noEmit
 
+      # Deploy parity: run the exact web build the deploy workflow runs. Without this gate a build that only
+      # breaks in the deploy environment (Node version, missing script deps) shows up as "CI green / deploy red".
+      - name: Build Web App (deploy parity)
+        working-directory: artifacts/knight-basins
+        env:
+          PORT: "3000"
+          NODE_ENV: "production"
+        run: pnpm run build
+
       # The *.browser.test.ts files drive a real browser against a dev server and are left out here.
       - name: Test api-server
         working-directory: artifacts/api-server

@@ -45,7 +45,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node 24, not 20: scripts/prerender.mjs imports src/components/RouteMeta.logic.ts and the app's own
+          # scripts rely on type stripping, which needs Node >= 22.6. On Node 20 the web build died with
+          # "ERR_UNKNOWN_FILE_EXTENSION: Unknown file extension '.ts'" and the whole deploy failed.
+          # Keep this in lockstep with .github/workflows/release-validation.yml.
+          node-version: '24'
 
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
