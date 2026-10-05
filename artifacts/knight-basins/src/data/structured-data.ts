@@ -2,7 +2,7 @@ import type { PortfolioCategory, PortfolioPhoto } from "@/pages/PortfolioPage";
 import type { BasinProduct } from "@/data/catalog";
 import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
-const SITE = "https://knightbasins.srv1964473.hstgr.cloud";
+const SITE = "https://knightbasins.com";
 
 function absoluteImageUrl(imageUrl: string): string {
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;

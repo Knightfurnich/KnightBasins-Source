@@ -184,7 +184,7 @@ describe("buildFaqPageJsonLd integrity", () => {
 });
 
 describe("buildBreadcrumbListJsonLd (job-202)", () => {
-  const SITE = "https://knightbasins.srv1964473.hstgr.cloud";
+  const SITE = "https://knightbasins.com";
 
   it("emits a schema.org BreadcrumbList with positioned ListItems and absolute URLs", () => {
     const data = buildBreadcrumbListJsonLd([
@@ -234,7 +234,7 @@ describe("buildPortfolioStructuredData ImageObject quality (job-202)", () => {
 
   it("describes only the photos it was given, one ImageObject each", () => {
     assert.equal(media.length, photos.length);
-    assert.deepEqual(media.map((node) => node["@id"]), ["https://knightbasins.srv1964473.hstgr.cloud/portfolio#photo-kitchen_1", "https://knightbasins.srv1964473.hstgr.cloud/portfolio#photo-bath_1"]);
+    assert.deepEqual(media.map((node) => node["@id"]), ["https://knightbasins.com/portfolio#photo-kitchen_1", "https://knightbasins.com/portfolio#photo-bath_1"]);
     assert.equal(buildPortfolioStructuredData([], 0).associatedMedia, undefined, "no photos, no ImageObjects");
   });
 

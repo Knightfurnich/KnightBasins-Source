@@ -49,10 +49,10 @@ const mod = await import(${JSON.stringify(componentUrl)});
 const { toAbsolutePhotoUrl, portfolioCustomerMessage, filterPortfolioItems } = mod;
 
 const result = {
-  absoluteFromRelative: toAbsolutePhotoUrl("/api/uploads/portfolio/bathroom/bathroom_001.webp", "https://knightbasins.srv1964473.hstgr.cloud"),
-  absoluteFromRelativeTrailingSlashOrigin: toAbsolutePhotoUrl("/api/uploads/portfolio/x.webp", "https://knightbasins.srv1964473.hstgr.cloud/"),
-  alreadyAbsoluteUnchanged: toAbsolutePhotoUrl("https://cdn.example.com/already-absolute/counter_042.webp", "https://knightbasins.srv1964473.hstgr.cloud"),
-  customerMessage: portfolioCustomerMessage("งานห้องน้ำ", "https://knightbasins.srv1964473.hstgr.cloud/api/uploads/portfolio/bathroom/bathroom_001.webp"),
+  absoluteFromRelative: toAbsolutePhotoUrl("/api/uploads/portfolio/bathroom/bathroom_001.webp", "https://knightbasins.com"),
+  absoluteFromRelativeTrailingSlashOrigin: toAbsolutePhotoUrl("/api/uploads/portfolio/x.webp", "https://knightbasins.com/"),
+  alreadyAbsoluteUnchanged: toAbsolutePhotoUrl("https://cdn.example.com/already-absolute/counter_042.webp", "https://knightbasins.com"),
+  customerMessage: portfolioCustomerMessage("งานห้องน้ำ", "https://knightbasins.com/api/uploads/portfolio/bathroom/bathroom_001.webp"),
   filterByThaiCategoryKeyword: filterPortfolioItems(${JSON.stringify(FIXTURE_ITEMS)}, "ไอส์แลนด์").map((item) => item.id),
   filterByTitleKeyword: filterPortfolioItems(${JSON.stringify(FIXTURE_ITEMS)}, "คลินิก").map((item) => item.id),
   filterByCategorySlug: filterPortfolioItems(${JSON.stringify(FIXTURE_ITEMS)}, "bathroom").map((item) => item.id),
@@ -116,11 +116,11 @@ after(() => {
 
 describe("toAbsolutePhotoUrl", () => {
   it("prefixes a relative URL with the given origin", () => {
-    assert.equal(harness.absoluteFromRelative, "https://knightbasins.srv1964473.hstgr.cloud/api/uploads/portfolio/bathroom/bathroom_001.webp");
+    assert.equal(harness.absoluteFromRelative, "https://knightbasins.com/api/uploads/portfolio/bathroom/bathroom_001.webp");
   });
 
   it("does not produce a double slash when the origin has a trailing slash", () => {
-    assert.equal(harness.absoluteFromRelativeTrailingSlashOrigin, "https://knightbasins.srv1964473.hstgr.cloud/api/uploads/portfolio/x.webp");
+    assert.equal(harness.absoluteFromRelativeTrailingSlashOrigin, "https://knightbasins.com/api/uploads/portfolio/x.webp");
   });
 
   it("leaves an already-absolute URL unchanged", () => {
@@ -132,7 +132,7 @@ describe("portfolioCustomerMessage", () => {
   it("matches the exact format the work order specifies", () => {
     assert.equal(
       harness.customerMessage,
-      "ภาพตัวอย่างผลงานงานห้องน้ำจริงจากโรงงาน Knight Furnich ครับ\nhttps://knightbasins.srv1964473.hstgr.cloud/api/uploads/portfolio/bathroom/bathroom_001.webp",
+      "ภาพตัวอย่างผลงานงานห้องน้ำจริงจากโรงงาน Knight Furnich ครับ\nhttps://knightbasins.com/api/uploads/portfolio/bathroom/bathroom_001.webp",
     );
   });
 });

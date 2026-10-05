@@ -75,7 +75,7 @@ describe("buildBasinProductsJsonLd", () => {
     const withImage: BasinProduct = { ...PRODUCTS[0]!, imageUrl: "/uploads/basins/kf001.webp" };
     const withAbsoluteImage: BasinProduct = { ...PRODUCTS[1]!, imageUrl: "https://cdn.example.com/kf002.webp" };
     const graph = buildBasinProductsJsonLd([withImage, withAbsoluteImage])["@graph"] as JsonLdProductNode[];
-    assert.equal(graph[0]?.image, "https://knightbasins.srv1964473.hstgr.cloud/uploads/basins/kf001.webp");
+    assert.equal(graph[0]?.image, "https://knightbasins.com/uploads/basins/kf001.webp");
     assert.equal(graph[1]?.image, "https://cdn.example.com/kf002.webp");
   });
 

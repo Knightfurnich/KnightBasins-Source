@@ -34,23 +34,23 @@ const BASELINE = {
   'meta[name="description"]': "default description",
   'meta[property="og:title"]': "default og title",
   'meta[property="og:description"]': "default og description",
-  'meta[property="og:url"]': "https://knightbasins.srv1964473.hstgr.cloud/",
+  'meta[property="og:url"]': "https://knightbasins.com/",
   'meta[name="twitter:title"]': "default twitter title",
   'meta[name="twitter:description"]': "default twitter description",
   'meta[name="robots"]': "index, follow",
-  'link[rel="canonical"]': "https://knightbasins.srv1964473.hstgr.cloud/",
+  'link[rel="canonical"]': "https://knightbasins.com/",
 };
 
 describe("applyRouteMeta", () => {
   it("sets title, description, canonical and OG tags for a known route", () => {
     const doc = fakeDocument(BASELINE);
-    applyRouteMeta("/portfolio", doc as never, "https://knightbasins.srv1964473.hstgr.cloud");
+    applyRouteMeta("/portfolio", doc as never, "https://knightbasins.com");
 
     assert.equal(doc.title, ROUTE_META["/portfolio"]?.title);
     assert.equal(doc._elements.get('meta[name="description"]')?.getAttribute("content"), ROUTE_META["/portfolio"]?.description);
     assert.equal(doc._elements.get('meta[property="og:title"]')?.getAttribute("content"), ROUTE_META["/portfolio"]?.title);
-    assert.equal(doc._elements.get('meta[property="og:url"]')?.getAttribute("content"), "https://knightbasins.srv1964473.hstgr.cloud/portfolio");
-    assert.equal(doc._elements.get('link[rel="canonical"]')?.getAttribute("href"), "https://knightbasins.srv1964473.hstgr.cloud/portfolio");
+    assert.equal(doc._elements.get('meta[property="og:url"]')?.getAttribute("content"), "https://knightbasins.com/portfolio");
+    assert.equal(doc._elements.get('link[rel="canonical"]')?.getAttribute("href"), "https://knightbasins.com/portfolio");
   });
 
   it("strips the query string by looking up the bare pathname only", () => {
@@ -58,13 +58,13 @@ describe("applyRouteMeta", () => {
     // Caller is expected to pass the bare pathname (as wouter's useLocation
     // already does); this just documents that a token-bearing path with no
     // table entry falls into the noindex branch rather than matching /quote.
-    applyRouteMeta("/quote/view", doc as never, "https://knightbasins.srv1964473.hstgr.cloud");
+    applyRouteMeta("/quote/view", doc as never, "https://knightbasins.com");
     assert.equal(doc._elements.get('meta[name="robots"]')?.getAttribute("content"), "noindex, nofollow");
   });
 
   it("restores every original value when the returned cleanup runs", () => {
     const doc = fakeDocument(BASELINE);
-    const restore = applyRouteMeta("/stone", doc as never, "https://knightbasins.srv1964473.hstgr.cloud");
+    const restore = applyRouteMeta("/stone", doc as never, "https://knightbasins.com");
 
     restore();
 
@@ -78,23 +78,23 @@ describe("applyRouteMeta", () => {
 
   it("sets robots to noindex for a route with no table entry (private pages and the soft-404 fallback)", () => {
     const doc = fakeDocument(BASELINE);
-    applyRouteMeta("/track", doc as never, "https://knightbasins.srv1964473.hstgr.cloud");
+    applyRouteMeta("/track", doc as never, "https://knightbasins.com");
     assert.equal(doc._elements.get('meta[name="robots"]')?.getAttribute("content"), "noindex, nofollow");
 
     const unknownRouteDoc = fakeDocument(BASELINE);
-    applyRouteMeta("/this-page-does-not-exist-xyz", unknownRouteDoc as never, "https://knightbasins.srv1964473.hstgr.cloud");
+    applyRouteMeta("/this-page-does-not-exist-xyz", unknownRouteDoc as never, "https://knightbasins.com");
     assert.equal(unknownRouteDoc._elements.get('meta[name="robots"]')?.getAttribute("content"), "noindex, nofollow");
   });
 
   it("restores the original robots value when leaving a noindexed route", () => {
     const doc = fakeDocument(BASELINE);
-    const restore = applyRouteMeta("/admin", doc as never, "https://knightbasins.srv1964473.hstgr.cloud");
+    const restore = applyRouteMeta("/admin", doc as never, "https://knightbasins.com");
     restore();
     assert.equal(doc._elements.get('meta[name="robots"]')?.getAttribute("content"), "index, follow");
   });
 
   it("does not throw when a selector is missing from the document", () => {
     const doc = fakeDocument({});
-    assert.doesNotThrow(() => applyRouteMeta("/", doc as never, "https://knightbasins.srv1964473.hstgr.cloud")());
+    assert.doesNotThrow(() => applyRouteMeta("/", doc as never, "https://knightbasins.com")());
   });
 });

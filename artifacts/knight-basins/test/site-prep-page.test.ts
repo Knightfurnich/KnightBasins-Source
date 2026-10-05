@@ -61,7 +61,7 @@ const FIXTURE_PHOTOS: FixturePhoto[] = [
 
 const HARNESS_SCRIPT = `
 globalThis.window = globalThis;
-globalThis.location = { pathname: "/site-prep", search: "", hash: "", href: "https://knightbasins.srv1964473.hstgr.cloud/site-prep", origin: "https://knightbasins.srv1964473.hstgr.cloud" };
+globalThis.location = { pathname: "/site-prep", search: "", hash: "", href: "https://knightbasins.com/site-prep", origin: "https://knightbasins.com" };
 globalThis.history = { pushState: () => {}, replaceState: () => {}, state: null };
 globalThis.addEventListener = globalThis.addEventListener || (() => {});
 globalThis.removeEventListener = globalThis.removeEventListener || (() => {});
@@ -82,7 +82,7 @@ function renderWithPhotos(photos) {
 }
 
 const result = {
-  lineShareUrl: buildLineShareUrl("https://knightbasins.srv1964473.hstgr.cloud/site-prep", "หัวข้อทดสอบ\\nบรรทัดสอง"),
+  lineShareUrl: buildLineShareUrl("https://knightbasins.com/site-prep", "หัวข้อทดสอบ\\nบรรทัดสอง"),
   checklistCount: SITE_PREP_CHECKLIST.length,
   checklistTitles: SITE_PREP_CHECKLIST.map((item) => item.title),
   loadingHtml: renderWithPhotos(undefined),
@@ -152,7 +152,7 @@ after(() => {
 
 describe("buildLineShareUrl", () => {
   it("returns the LINE share intent URL with the title and page URL URL-encoded", () => {
-    const expected = `https://line.me/R/msg/text/?${encodeURIComponent("หัวข้อทดสอบ\nบรรทัดสอง\nhttps://knightbasins.srv1964473.hstgr.cloud/site-prep")}`;
+    const expected = `https://line.me/R/msg/text/?${encodeURIComponent("หัวข้อทดสอบ\nบรรทัดสอง\nhttps://knightbasins.com/site-prep")}`;
     assert.equal(harness.lineShareUrl, expected);
   });
 });

@@ -28,7 +28,7 @@ function extractPublicImageCount(text: string, label: string): number {
 
 describe("llms.txt", () => {
   it("lists the /updates release log in the navigation", () => {
-    assert.match(llmsTxt, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/updates/);
+    assert.match(llmsTxt, /https:\/\/knightbasins\.com\/updates/);
   });
 
   it("cites the material comparison standards", () => {
@@ -48,7 +48,7 @@ describe("llms-full.txt", () => {
   });
 
   it("references the /updates release log", () => {
-    assert.match(llmsFullTxt, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/updates/);
+    assert.match(llmsFullTxt, /https:\/\/knightbasins\.com\/updates/);
   });
 
   it("carries every KNIGHT_FAQ_ITEMS question and answer verbatim (drift guard)", () => {
@@ -135,8 +135,8 @@ describe("llms.txt / llms-full.txt stay in step with the site (job-202)", () => 
     });
 
     it(`${name} points to the 2D Studio and the quotation page`, () => {
-      assert.match(text, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/studio\b/);
-      assert.match(text, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/quote\b/);
+      assert.match(text, /https:\/\/knightbasins\.com\/studio\b/);
+      assert.match(text, /https:\/\/knightbasins\.com\/quote\b/);
     });
 
     it(`${name} answers the four common AI query intents`, () => {
