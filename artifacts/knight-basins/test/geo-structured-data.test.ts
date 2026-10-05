@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { breadcrumbItemsForPath } from "../src/data/structured-data.ts";
+import { breadcrumbItemsForPath, buildQuotePageJsonLd, buildStonePageJsonLd } from "../src/data/structured-data.ts";
 
 const appRoot = path.resolve(import.meta.dirname, "..");
 const shell = readFileSync(path.join(appRoot, "index.html"), "utf8");
@@ -81,6 +81,70 @@ describe("business JSON-LD", () => {
     assert.equal(org.areaServed.length >= 3, true);
     assert.match(String(org.url), /^https:\/\/knightbasins\.com\/$/);
     assert.ok(Array.isArray(org.openingHoursSpecification) && org.openingHoursSpecification.length >= 1);
+  });
+
+  it("keeps existing opening hours pending confirmation of the GBP discrepancy", () => {
+    assert.deepEqual(org.openingHoursSpecification, [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "08:30",
+        closes: "16:30",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Saturday"],
+        opens: "08:30",
+        closes: "11:30",
+      },
+    ]);
+  });
+});
+
+describe("stone and quotation route schemas", () => {
+  const appSource = readFileSync(path.join(appRoot, "src", "App.tsx"), "utf8");
+  const stone = JSON.parse(JSON.stringify(buildStonePageJsonLd()));
+  const quote = JSON.parse(JSON.stringify(buildQuotePageJsonLd()));
+
+  it("/stone describes a Product and the fabrication/installation Service", () => {
+    assert.equal(stone["@context"], "https://schema.org");
+    const product = stone["@graph"].find((node: any) => node["@type"] === "Product");
+    assert.ok(product, "/stone must retain its Product node");
+    assert.equal(product.url, "https://knightbasins.com/stone");
+    assert.equal(product.material, "Solid Surface");
+    assert.ok(product.name.length > 0);
+    assert.equal(product.brand["@id"], "https://knightbasins.com/#organization");
+    const service = stone["@graph"].find((node: any) => node["@type"] === "Service");
+    assert.ok(service, "/stone must retain its Service node");
+    assert.equal(service.provider["@id"], "https://knightbasins.com/#organization");
+  });
+
+  it("/quote describes the public quotation Service even with an empty cart", () => {
+    assert.equal(quote["@context"], "https://schema.org");
+    assert.equal(quote["@type"], "Service");
+    assert.equal(quote.url, "https://knightbasins.com/quote");
+    assert.equal(quote.provider["@id"], "https://knightbasins.com/#organization");
+    assert.ok(quote.name.length > 0 && quote.serviceType.length > 0);
+  });
+
+  it("publishes no guessed prices, offers, ratings or customer fields", () => {
+    const forbidden = new Set(["price", "priceCurrency", "priceSpecification", "offers", "aggregateRating", "review", "customer", "email", "telephone"]);
+    function check(value: unknown) {
+      if (!value || typeof value !== "object") return;
+      for (const [key, nested] of Object.entries(value)) {
+        assert.ok(!forbidden.has(key), `route schema must not fabricate or expose ${key}`);
+        check(nested);
+      }
+    }
+    check(stone);
+    check(quote);
+  });
+
+  it("mounts each schema inside its route component, not only on the home page", () => {
+    const stoneSource = appSource.slice(appSource.indexOf("function StonePage("), appSource.indexOf("function SavedQuotePage("));
+    const quoteSource = appSource.slice(appSource.indexOf("function QuotePage("), appSource.indexOf("function Storefront("));
+    assert.match(stoneSource, /<RouteStructuredData id="stone-products" data=\{buildStonePageJsonLd\(\)\} \/>/);
+    assert.match(quoteSource, /<RouteStructuredData id="quote-service" data=\{buildQuotePageJsonLd\(\)\} \/>/);
   });
 });
 
