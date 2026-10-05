@@ -158,8 +158,8 @@ Disallow: /admin
 
 # ---------------------------------------------------------------------------
 # Machine-readable knowledge base for LLMs (llms.txt standard):
-#   https://knightbasins.srv1964473.hstgr.cloud/llms.txt      (summary)
-#   https://knightbasins.srv1964473.hstgr.cloud/llms-full.txt (full spec & pricing)
+#   https://knightbasins.com/llms.txt      (summary)
+#   https://knightbasins.com/llms-full.txt (full spec & pricing)
 # ---------------------------------------------------------------------------
 
-Sitemap: https://knightbasins.srv1964473.hstgr.cloud/sitemap.xml
+Sitemap: https://knightbasins.com/sitemap.xml

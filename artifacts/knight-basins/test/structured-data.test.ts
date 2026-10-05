@@ -21,8 +21,8 @@ describe("buildPortfolioStructuredData", () => {
     const data = buildPortfolioStructuredData(categories, 124);
     assert.equal(data["@type"], "ImageGallery");
     assert.equal(data["@context"], "https://schema.org");
-    assert.equal(data["@id"], "https://knightbasins.srv1964473.hstgr.cloud/portfolio#gallery");
-    assert.equal(data.url, "https://knightbasins.srv1964473.hstgr.cloud/portfolio");
+    assert.equal(data["@id"], "https://knightbasins.com/portfolio#gallery");
+    assert.equal(data.url, "https://knightbasins.com/portfolio");
   });
 
   it("reports the live total in both the description and numberOfItems", () => {
@@ -33,17 +33,17 @@ describe("buildPortfolioStructuredData", () => {
 
   it("links itself to the site and the organization by @id", () => {
     const data = buildPortfolioStructuredData(categories, 124);
-    assert.deepEqual(data.isPartOf, { "@id": "https://knightbasins.srv1964473.hstgr.cloud/#website" });
-    assert.deepEqual(data.publisher, { "@id": "https://knightbasins.srv1964473.hstgr.cloud/#organization" });
+    assert.deepEqual(data.isPartOf, { "@id": "https://knightbasins.com/#website" });
+    assert.deepEqual(data.publisher, { "@id": "https://knightbasins.com/#organization" });
   });
 
   it("maps every category to a hasPart sub-gallery with URL-encoded slugs", () => {
     const data = buildPortfolioStructuredData(categories, 124);
     const parts = data.hasPart as Array<Record<string, unknown>>;
     assert.equal(parts.length, 2);
-    assert.equal(parts[0].url, "https://knightbasins.srv1964473.hstgr.cloud/portfolio?category=bathroom");
+    assert.equal(parts[0].url, "https://knightbasins.com/portfolio?category=bathroom");
     assert.equal(parts[0].numberOfItems, 69);
-    assert.equal(parts[1].url, "https://knightbasins.srv1964473.hstgr.cloud/portfolio?category=kitchen");
+    assert.equal(parts[1].url, "https://knightbasins.com/portfolio?category=kitchen");
   });
 
   it("omits hasPart entirely when no categories are known yet", () => {
@@ -72,7 +72,7 @@ describe("buildPortfolioStructuredData", () => {
     assert.equal(media.length, 2);
 
     assert.equal(media[0]?.["@type"], "ImageObject");
-    assert.equal(media[0]?.contentUrl, "https://knightbasins.srv1964473.hstgr.cloud/api/uploads/portfolio/bathroom/bathroom_001.webp");
+    assert.equal(media[0]?.contentUrl, "https://knightbasins.com/api/uploads/portfolio/bathroom/bathroom_001.webp");
     assert.equal(media[0]?.name, "เคาน์เตอร์อ่างคู่ลายหินอ่อน");
     assert.equal(media[0]?.caption, "เคาน์เตอร์อ่างคู่ลายหินอ่อน");
     assert.equal(media[0]?.about, "งานห้องน้ำ");
@@ -97,8 +97,8 @@ describe("buildSitePrepStructuredData", () => {
   it("emits a valid HowTo entity", () => {
     const data = buildSitePrepStructuredData();
     assert.equal(data["@type"], "HowTo");
-    assert.equal(data["@id"], "https://knightbasins.srv1964473.hstgr.cloud/site-prep#howto");
-    assert.equal(data.url, "https://knightbasins.srv1964473.hstgr.cloud/site-prep");
+    assert.equal(data["@id"], "https://knightbasins.com/site-prep#howto");
+    assert.equal(data.url, "https://knightbasins.com/site-prep");
     assert.equal(data.inLanguage, "th-TH");
   });
 

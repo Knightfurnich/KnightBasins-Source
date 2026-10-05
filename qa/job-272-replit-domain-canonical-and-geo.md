@@ -1,7 +1,8 @@
 # ใบงาน 272-R (รีพิต) — ย้ายโดเมนหลักเป็น `knightbasins.com` + ยกระดับ GEO/SEO
 
 **วันที่:** 5 ต.ค. 69 · **ออกโดย:** เดวิด · **เจ้าของงาน:** **รีพิต** · **ผู้ตรวจรับ:** เดวิด
-**Branch:** `fix/replit-domain-canonical-and-geo`
+**Branch:** `fix/david-domain-canonical-and-geo`
+**ผู้ดำเนินการ:** **เดวิด** (บอส 5 ต.ค. 69: “ทำเลย หรือออกใบงานให้รีพิตก็ได้”) — ส่วนโดเมน/canonical/301/IndexNow/เทสต์ เดวิดทำเอง · งาน GEO enrichment ยกเป็นใบ 273
 **ที่มา (บอสสั่ง 5 ต.ค. 69):** “เดินหน้าต่อ 3 ข้อ บอสอนุมัติ” — เป้าหมายคือ **SEO / GEO**
 **เริ่มได้เมื่อ:** (1) ใบ 270-fix merge + deploy เขียว (2) ใบ 271 merge — เพราะ 271 กับ 272 แก้ `public/sitemap.xml` ไฟล์เดียวกัน (ห้ามแก้ทับกัน)
 
@@ -15,7 +16,7 @@ https://www.knightbasins.com/        → 200
 **ปัญหาที่ยังเหลือ (ตรวจจากของจริง 5 ต.ค. 69):**
 ```
 public/sitemap.xml  → <loc> ยังเป็น https://knightbasins.srv1964473.hstgr.cloud ทุกบรรทัด
-public/robots.txt   → ไม่มีบรรทัด "Sitemap:" เลย (มีแค่ Allow/Disallow)
+public/robots.txt   → มีบรรทัด Sitemap: อยู่แล้ว (บรรทัด 165) แต่ยังชี้ host เก่า  ← เดวิดรายงานผิดรอบแรก (บอกว่า "ไม่มี") ขอแก้เป็น: "มี แต่ชี้ผิดโดเมน"
 GSC (property เดิม)  → ส่ง 10 URL · index 0 · คลิก/impression = 0 (7 วัน)
 JSON-LD (ของจริง)    → sameAs มีแค่ knightfurnich.com + LINE · ขาด FB/IG/TikTok/YouTube และเว็บในเครือ
                      → ยังไม่มี openingHoursSpecification · geo · hasMap · logo/image
