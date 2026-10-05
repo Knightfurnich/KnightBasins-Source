@@ -4,6 +4,48 @@ import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
 const SITE = "https://knightbasins.com";
 
+/**
+ * Made-to-order surfaces are not fixed-price SKUs. Describe the product and
+ * fabrication service without publishing an Offer or a guessed price.
+ */
+export function buildStonePageJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `${SITE}/stone#countertops`,
+        url: `${SITE}/stone`,
+        name: "ท็อปครัวและเคาน์เตอร์หินสังเคราะห์สั่งตัด",
+        description: "ท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์ สั่งตัดตามพื้นที่ใช้งาน",
+        material: "Solid Surface",
+        brand: { "@id": `${SITE}/#organization` },
+      },
+      {
+        "@type": "Service",
+        "@id": `${SITE}/stone#service`,
+        url: `${SITE}/stone`,
+        name: "บริการสั่งตัดและติดตั้งเคาน์เตอร์หินสังเคราะห์",
+        serviceType: "สั่งตัดและติดตั้งเคาน์เตอร์หินสังเคราะห์",
+        provider: { "@id": `${SITE}/#organization` },
+      },
+    ],
+  };
+}
+
+/** Public quotation capability, never the customer's cart or personal data. */
+export function buildQuotePageJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${SITE}/quote#service`,
+    url: `${SITE}/quote`,
+    name: "บริการขอใบเสนอราคาเคาน์เตอร์และอ่างล้างหน้าหินสังเคราะห์",
+    serviceType: "ขอใบเสนอราคาเคาน์เตอร์และอ่างล้างหน้าหินสังเคราะห์",
+    provider: { "@id": `${SITE}/#organization` },
+  };
+}
+
 function absoluteImageUrl(imageUrl: string): string {
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
   return `${SITE}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;

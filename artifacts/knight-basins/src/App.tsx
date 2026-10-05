@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, 
 import { RouteMeta } from "@/components/RouteMeta";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { StoneComparisonTable } from "@/components/StoneComparisonTable";
-import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJsonLd } from "@/data/structured-data";
+import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJsonLd, buildQuotePageJsonLd, buildStonePageJsonLd } from "@/data/structured-data";
 import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { TrustBadges } from "@/components/TrustBadges";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
@@ -755,7 +755,9 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
     setDimensionError("");
   };
   const validateDimensions = () => { if (!selectedStone || !editorStone.widthCm || !editorStone.lengthCm || editorStone.widthCm < 10 || editorStone.lengthCm < 10) setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. เพื่อคำนวณพื้นที่"); else setDimensionError(""); };
-  return <div className="page-wrap stone-page"><section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>ท็อปครัว &amp; เคาน์เตอร์หินสังเคราะห์<br /><em>สั่งตัดตามพื้นที่ของคุณ</em></h1><p className="hero-copy">สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์แท้ 100% ไร้รอยต่อ พร้อมบริการวัดหน้างานและติดตั้ง หรือเลือกซื้อแผ่นมาตรฐานสำหรับช่างและโรงงาน</p></div><StoneHeroMedia colors={availableColors} fallbackColor={selectedColor} /></section>
+  return <div className="page-wrap stone-page">
+    <RouteStructuredData id="stone-products" data={buildStonePageJsonLd()} />
+    <section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>ท็อปครัว &amp; เคาน์เตอร์หินสังเคราะห์<br /><em>สั่งตัดตามพื้นที่ของคุณ</em></h1><p className="hero-copy">สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์แท้ 100% ไร้รอยต่อ พร้อมบริการวัดหน้างานและติดตั้ง หรือเลือกซื้อแผ่นมาตรฐานสำหรับช่างและโรงงาน</p></div><StoneHeroMedia colors={availableColors} fallbackColor={selectedColor} /></section>
     <div className="config-layout"><section className="config-main"><div className="section-heading"><span className="step">01</span><div><p className="eyebrow">CHOOSE FORMAT</p><h2>เลือกรูปแบบการสั่งซื้อ</h2></div></div><div className="mode-switch"><button className={isWhole ? "is-active" : ""} onClick={() => switchMode("whole-sheet")} data-testid="button-stone-whole-sheet"><span>ซื้อแผ่นหินมาตรฐาน (สำหรับช่าง/โรงงาน)</span><small>ราคาขายส่งต่อแผ่น ขนาด 0.76 × 3.60 ม.</small></button><button className={!isWhole ? "is-active" : ""} onClick={() => switchMode("installed")} data-testid="button-stone-installed"><span>สั่งทำท็อปครัว / เคาน์เตอร์ (รวมติดตั้ง)</span><small>ราคาต่อ ตร.ม. พร้อมติดตั้งและวัดหน้างาน</small></button></div>
           <div className="section-heading">
             <span className="step">02</span>
@@ -1686,6 +1688,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     </label>
   );
   return <div className="page-wrap quote-page">
+    <RouteStructuredData id="quote-service" data={buildQuotePageJsonLd()} />
     <div className="quote-editor">
       <div className="saved-quote-actions quote-notification-actions">
         <button className="button button--accent" onClick={() => void saveQuote(true)} disabled={saving || !canGenerate} data-testid="button-send-quote-notification">{saving ? "กำลังบันทึก..." : "บันทึกและส่งเข้า Telegram"}</button>
