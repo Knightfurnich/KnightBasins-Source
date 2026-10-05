@@ -1934,6 +1934,7 @@ function App() {
             <Switch>
               <Route path="/admin" component={AdminApp} />
               <Route path="/admin/ai-cost" component={AdminApp} />
+              <Route path="/admin/stone-match" component={AdminApp} />
               <Route path="/admin/*" component={AdminApp} />
               <Route path="/readme" component={SalesGuide} />
               <Route path="/site-prep" component={SitePrepPage} />
