@@ -106,6 +106,13 @@ const BREADCRUMB_TRAILS: Readonly<Record<string, ReadonlyArray<BreadcrumbItem>>>
   "/portfolio": [HOME_CRUMB, { name: "ภาพผลงานติดตั้งจริง", path: "/portfolio" }],
   "/studio": [HOME_CRUMB, { name: "2D Studio ออกแบบเคาน์เตอร์", path: "/studio" }],
   "/quote": [HOME_CRUMB, { name: "สร้างใบเสนอราคาออนไลน์", path: "/quote" }],
+  // The remaining public pages carry their own trail too: without one a crawler only
+  // ever sees a flat URL, and AI answers cannot tell the section apart from the home page.
+  "/site-prep": [HOME_CRUMB, { name: "คู่มือเตรียมหน้างานติดตั้ง", path: "/site-prep" }],
+  "/studio-guide": [HOME_CRUMB, { name: "คู่มือใช้งาน Studio ออกแบบ", path: "/studio-guide" }],
+  "/sketch": [HOME_CRUMB, { name: "อัปโหลดสเก็ตช์หน้างาน", path: "/sketch" }],
+  "/readme": [HOME_CRUMB, { name: "คู่มือการใช้งานเว็บไซต์", path: "/readme" }],
+  "/updates": [HOME_CRUMB, { name: "ความเคลื่อนไหวและอัปเดตระบบ", path: "/updates" }],
 };
 
 /** The trail for `pathname`, or null for the home page and any page without one. */
