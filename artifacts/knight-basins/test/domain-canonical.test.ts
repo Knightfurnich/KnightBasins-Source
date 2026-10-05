@@ -70,6 +70,17 @@ describe("canonical domain", () => {
     }
   });
 
+  it("keeps one URL per page: index.html, trailing slashes and www all redirect", () => {
+    const nginx = readFileSync(path.join(repoRoot, "deploy", "hostinger", "nginx.conf"), "utf8");
+    // /index.html is the same page as /, a trailing slash is the same page without it,
+    // and www is the same host without it. Google needs one of each, not several.
+    assert.match(nginx, /location = \/index\.html \{\s*return 301 https:\/\/knightbasins\.com\/;/, "index.html must 301 to the canonical root");
+    assert.match(nginx, /if \(\$host = www\.knightbasins\.com\)/, "www must be redirected to the apex host");
+    assert.match(nginx, /return 301 https:\/\/knightbasins\.com\$1\$is_args\$args;/, "trailing slashes must 301 to the slashless URL and keep the query string");
+    // The API and hashed assets are not pages and must keep answering directly.
+    assert.ok(!/location = \/index\.html \{[\s\S]{0,200}\/api\//.test(nginx), "the API must not be caught by the page rules");
+  });
+
   it("redirects legacy page URLs to the canonical domain without touching the API", () => {
     const nginx = readFileSync(path.join(repoRoot, "deploy", "hostinger", "nginx.conf"), "utf8");
     assert.ok(/if \(\$knight_legacy_host\)/.test(nginx), "nginx must gate the legacy redirect on the legacy host map");
