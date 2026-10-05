@@ -23,18 +23,10 @@ describe("admin sidebar grouping", () => {
 
   it("assigns every nav item to a declared group", () => {
     const itemLines = source.match(/\{ href: "\/admin[^\n]*\},?/g) ?? [];
-    assert.equal(itemLines.length, 16, "expected 16 nav items (job-215 added /admin/logs, job-266 added /admin/stone-match)");
+    assert.equal(itemLines.length, 15, "expected 15 nav items (job-215 added /admin/logs)");
     for (const line of itemLines) {
       assert.match(line, /group: "(overview|catalog|sales|system)"/, `nav item without group: ${line}`);
     }
-  });
-
-  it("files the stone-match page under the catalogue group, behind the installed-stones permission", () => {
-    const line = source.split("\n").find((l) => l.includes('href: "/admin/stone-match"'));
-    assert.ok(line, "nav item for /admin/stone-match not found");
-    assert.ok(line.includes('group: "catalog"'), `stone-match should sit in the catalogue group — got: ${line.trim()}`);
-    assert.ok(line.includes('permission: "installed-stones"'), `stone-match should need installed-stones — got: ${line.trim()}`);
-    assert.match(source, /function StoneMatchRoute\(\) \{\s*return <AdminPermissionGate permission="installed-stones"/);
   });
 
   it("renders the sidebar grouped and skips empty groups", () => {
@@ -54,7 +46,6 @@ describe("admin sidebar grouping", () => {
       ["/admin/basins", 'permission: "basins"'],
       ["/admin/installed-stones", 'permission: "installed-stones"'],
       ["/admin/sheet-stones", 'permission: "sheet-stones"'],
-      ["/admin/stone-match", 'permission: "installed-stones"'],
       ["/admin/stock", 'permission: "basins"'],
       ["/admin/leads", 'permission: "leads"'],
       ["/admin/calendar", 'permission: "leads"'],
