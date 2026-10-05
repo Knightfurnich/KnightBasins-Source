@@ -107,10 +107,10 @@ export const UPDATE_RELEASES = [
   },
   {
     version: "v1.2.0",
-    badge: "Stone Visual Experience & AI Matcher Suite",
+    badge: "Stone Visual Experience Suite",
     date: "3 ตุลาคม 2569",
     dateTime: "2026-10-03",
-    title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ, Studio Slab Viewer และ AI Visual Matcher",
+    title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ และ Studio Slab Viewer",
     highlights: [
       {
         icon: "🪨",
@@ -126,11 +126,6 @@ export const UPDATE_RELEASES = [
         icon: "📨",
         title: "Automated Studio Sales Alert",
         description: "แจ้งเตือนงานขายเข้า Telegram อัตโนมัติทันทีที่ยื่นแบบร่างจาก Studio พร้อมแนบลิงก์รูปหินให้ช่างเปิดดูหน้างานได้ทันที",
-      },
-      {
-        icon: "🎨",
-        title: "AI Visual Matcher (Gemini)",
-        description: "ระบบคลังจับคู่สีหินจากภาพห้องน้ำลูกค้าด้วย Vertex AI Gemini วิเคราะห์เฉพาะหินในแคตตาล็อก",
       },
     ],
   },

@@ -14,11 +14,11 @@ describe("v1.2.0 release notes", () => {
     assert.equal(versions[3], "v1.2.0");
     assert.match(
       updatesSource,
-      /version: "v1\.2\.0",\s*badge: "Stone Visual Experience & AI Matcher Suite",\s*date: "3 ตุลาคม 2569",\s*dateTime: "2026-10-03",\s*title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ, Studio Slab Viewer และ AI Visual Matcher"/,
+      /version: "v1\.2\.0",\s*badge: "Stone Visual Experience Suite",\s*date: "3 ตุลาคม 2569",\s*dateTime: "2026-10-03",\s*title: "ระบบภาพหิน 3 บทบาทเต็มรูปแบบ และ Studio Slab Viewer"/,
     );
   });
 
-  it("records all four v1.2.0 feature highlights", () => {
+  it("records all three v1.2.0 feature highlights", () => {
     const releaseBlock = updatesSource.match(/version: "v1\.2\.0",[\s\S]*?(?=\n  },\n  \{\n    version: "v1\.1\.0")/)?.[0] ?? "";
     for (const expected of [
       "Full Slab & Studio Viewer",
@@ -28,9 +28,6 @@ describe("v1.2.0 release notes", () => {
       "ใบเสนอราคาทางการ (PDF/A4) ทั้งแบบ US และ OF",
       "Automated Studio Sales Alert",
       "Telegram",
-      "AI Visual Matcher (Gemini)",
-      "Vertex AI Gemini",
-      "วิเคราะห์เฉพาะหินในแคตตาล็อก",
     ]) {
       assert.ok(releaseBlock.includes(expected), `Missing v1.2.0 release detail: ${expected}`);
     }
