@@ -90,7 +90,7 @@ test("production build prerenders unique, contentful HTML for every public sitem
     (match) => decodeEntities(match[1].trim()),
   );
 
-  assert.equal(locations.length, 11, "the public sitemap must keep its 11 URLs");
+  assert.equal(locations.length, 12, "the public sitemap must keep its 12 URLs");
   assert.equal(
     existsSync(join(publicDirectory, "admin")),
     false,

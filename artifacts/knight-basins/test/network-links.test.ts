@@ -207,6 +207,7 @@ test("the sitemap adds /network without dropping any existing public route", () 
     "/",
     "/portfolio",
     "/stone",
+    "/price-guide",
     "/site-prep",
     "/studio-guide",
     "/quote",
@@ -216,8 +217,8 @@ test("the sitemap adds /network without dropping any existing public route", () 
     "/updates",
   ];
 
-  assert.equal(paths.length, 11);
-  assert.equal(new Set(paths).size, 11, "Sitemap routes must remain unique");
+  assert.equal(paths.length, 12);
+  assert.equal(new Set(paths).size, 12, "Sitemap routes must remain unique");
   assert.ok(paths.includes("/network"));
   for (const path of originalPaths) {
     assert.ok(paths.includes(path), `Existing sitemap route ${path} was removed`);
