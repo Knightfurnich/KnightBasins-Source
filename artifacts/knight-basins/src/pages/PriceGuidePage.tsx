@@ -4,7 +4,10 @@ import { RouteStructuredData } from "@/components/RouteStructuredData";
 import {
   formatTHB,
   INSTALLATION_PRICE,
+  PRODUCTS,
   STONE_COLORS,
+  STONE_SHEET_SIZE,
+  STONE_SHEET_THICKNESS,
   STONE_INSTALLED_MIN_BANGKOK_SQM,
   STONE_INSTALLED_MIN_PROVINCE_SQM,
   STONE_SMALL_JOB_BANGKOK_FEE,
@@ -42,6 +45,40 @@ export const PRICE_GUIDE_INSTALLATION_RATES = installedRateLabels.flatMap(
     return price === undefined ? [] : [{ ...tier, price }];
   },
 );
+
+
+/** The buying options compared in the table below: every number is read from the catalogue, none is typed here. */
+const sheetPrices = STONE_COLORS.map((stone) => stone.sheetPriceTHB).filter((price): price is number => price !== null);
+const installedPrices = STONE_COLORS.map((stone) => stone.installedPriceTHB).filter((price): price is number => price !== null);
+const basinPrices = PRODUCTS.map((product) => product.priceTHB);
+const priceRangeTHB = (values: ReadonlyArray<number>) => {
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  return low === high ? formatTHB(low) : `${formatTHB(low)}–${formatTHB(high)}`;
+};
+const BUYING_OPTIONS = [
+  {
+    key: "fabricated",
+    label: "สั่งตัดพร้อมติดตั้ง",
+    unit: "บาท / ตร.ม. (ราคารวมตัด เจาะ และติดตั้งหน้างาน)",
+    from: priceRangeTHB(installedPrices),
+    fits: "เจ้าของบ้านและงานโครงการที่อยากให้ทีมวัดหน้างาน ผลิต และติดตั้งครบวงจร",
+  },
+  {
+    key: "sheet",
+    label: "ซื้อแผ่นดิบ",
+    unit: `บาท / แผ่น (${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS})`,
+    from: priceRangeTHB(sheetPrices),
+    fits: "ช่างและโรงงานเฟอร์นิเจอร์ที่ตัดและติดตั้งเอง รับของเองที่โรงงานได้",
+  },
+  {
+    key: "basin",
+    label: "อ่างล้างหน้าสำเร็จรูป",
+    unit: "บาท / ชุด (ตามรุ่นที่เลือก)",
+    from: priceRangeTHB(basinPrices),
+    fits: "ห้องน้ำที่ต้องการชุดสำเร็จรูปเลือกได้ทันที สั่ง 3 ชุดขึ้นไปฟรีค่าดำเนินการติดตั้ง",
+  },
+] as const;
 
 const vatPercent = new Intl.NumberFormat("th-TH", {
   maximumFractionDigits: 2,
@@ -124,7 +161,10 @@ function PriceGuidePage() {
                 <h2 id="buying-options-title" className="mt-1 text-2xl font-bold">3 วิธีสั่งซื้อและช่วงราคา</h2>
               </div>
             </div>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <p className="mb-6 text-sm leading-6 text-slate-600 dark:text-slate-300" data-testid="paragraph-price-guide-buying-options-title">
+              ราคาต่อหน่วยของแต่ละแบบไม่เหมือนกัน และใครเป็นคนติดตั้งก็เป็นคนละกรณี ตารางด้านล่างเทียบให้เห็นในตารางเดียว ช่วงราคาอ่านจากราคารวมในแคตตาล็อกทั้งหมด
+            </p>
+<div className="grid gap-4 lg:grid-cols-3">
               <section className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm dark:bg-slate-900">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-800 dark:text-blue-300">สั่งตัดพร้อมติดตั้ง</p>
                 <h3 className="mt-3 text-lg font-bold">เลือกเรตตามสีและลาย</h3>
@@ -171,6 +211,48 @@ function PriceGuidePage() {
                 </Link>
               </section>
             </div>
+
+            <div className="mt-6 overflow-x-auto" data-testid="table-price-guide-buying">
+              <table className="w-full min-w-[46rem] border-collapse text-left text-sm">
+                <caption className="sr-only">
+                  เปรียบเทียบสามวิธีสั่งซื้อเคาน์เตอร์และอ่างล้างหน้าหินสังเคราะห์ พร้อมช่วงราคาที่อ่านจากแคตตาล็อก
+                </caption>
+                <thead>
+                  <tr className="border-b border-[var(--line)] text-xs uppercase tracking-[0.12em] text-slate-500">
+                    <th scope="col" className="py-3 pr-4 font-semibold">วิธีซื้อ</th>
+                    <th scope="col" className="py-3 pr-4 font-semibold">คิดราคาอย่างไร</th>
+                    <th scope="col" className="py-3 pr-4 font-semibold">ช่วงราคาที่มีในแคตตาล็อก</th>
+                    <th scope="col" className="py-3 font-semibold">เหมาะกับ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {BUYING_OPTIONS.map((option) => (
+                    <tr key={option.key} className="border-b border-[var(--line)] align-top">
+                      <th scope="row" className="py-3 pr-4 font-semibold">{option.label}</th>
+                      <td className="py-3 pr-4 text-slate-600 dark:text-slate-300">{option.unit}</td>
+                      <td className="py-3 pr-4 font-semibold tabular-nums">{option.from} บาท</td>
+                      <td className="py-3 text-slate-600 dark:text-slate-300">{option.fits}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <th scope="row" className="py-3 pr-4 font-semibold">ขั้นต่ำงานติดตั้ง</th>
+                    <td className="py-3 pr-4 text-slate-600 dark:text-slate-300">ตร.ม. ต่องาน · มีค่าดำเนินการเมื่อพื้นที่ไม่ถึงขั้นต่ำ</td>
+                    <td className="py-3 pr-4 font-semibold tabular-nums">
+                      {formatTHB(STONE_SMALL_JOB_BANGKOK_FEE)} / {formatTHB(STONE_SMALL_JOB_PROVINCE_FEE)} บาท
+                    </td>
+                    <td className="py-3 text-slate-600 dark:text-slate-300">
+                      กรุงเทพฯ และปริมณฑลขั้นต่ำ {STONE_INSTALLED_MIN_BANGKOK_SQM} ตร.ม. · ต่างจังหวัดขั้นต่ำ {STONE_INSTALLED_MIN_PROVINCE_SQM} ตร.ม.
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row" className="py-3 pr-4 font-semibold">ภาษี</th>
+                    <td className="py-3 pr-4 text-slate-600 dark:text-slate-300">VAT ที่นำมาแสดงในใบเสนอราคา</td>
+                    <td className="py-3 pr-4 font-semibold tabular-nums">{vatPercent}%</td>
+                    <td className="py-3 text-slate-600 dark:text-slate-300">ราคาทุกตัวในหน้านี้เป็นราคายังไม่รวม VAT ระบบจะคำนวณภาษีในขั้นตอนออกใบเสนอราคา</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section aria-labelledby="area-measurement-title" className="scroll-mt-24 border-t border-[var(--line)] py-10 sm:py-14">
@@ -181,7 +263,10 @@ function PriceGuidePage() {
                 <h2 id="area-measurement-title" className="mt-1 text-2xl font-bold">วิธีคิดพื้นที่และวัดหน้างาน</h2>
               </div>
             </div>
-            <div className="grid gap-6 md:grid-cols-[auto_1fr]">
+            <p className="mb-6 text-sm leading-6 text-slate-600 dark:text-slate-300" data-testid="paragraph-price-guide-area-measurement-title">
+              คิดราคาจากพื้นที่หน้างานจริงรวมทุกช่วง ไม่ใช่จำนวนแผ่น ถ้ามีหลายช่วงที่สั้นยาวไม่เท่ากัน ให้วัดแยกเป็นส่วนแล้วค่อยรวมกัน
+            </p>
+<div className="grid gap-6 md:grid-cols-[auto_1fr]">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200">
                 <Ruler size={26} aria-hidden="true" />
               </div>
@@ -213,7 +298,10 @@ function PriceGuidePage() {
                 <h2 id="additional-fees-title" className="mt-1 text-2xl font-bold">ค่าดำเนินการและขั้นต่ำ</h2>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
+            <p className="mb-6 text-sm leading-6 text-slate-600 dark:text-slate-300" data-testid="paragraph-price-guide-additional-fees-title">
+              งานที่พื้นที่ไม่ถึงขั้นต่ำยังมีค่าดำเนินการเหมาจ่ายต่อครั้งตามเขตหน้างาน เพื่อคุมต้นทุนการเข้าไซต์แต่ละรอบ
+            </p>
+<div className="grid gap-4 md:grid-cols-2">
               <section className="rounded-2xl border border-[var(--line)] bg-white p-6 dark:bg-slate-900">
                 <h3 className="font-bold">งานเล็กและพื้นที่ติดตั้ง</h3>
                 <div className="mt-4 space-y-3 text-sm leading-6">
@@ -261,7 +349,10 @@ function PriceGuidePage() {
                 <h2 id="choose-color-title" className="mt-1 text-2xl font-bold">วิธีเลือกสีให้เหมาะกับงาน</h2>
               </div>
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <p className="mb-6 text-sm leading-6 text-slate-600 dark:text-slate-300" data-testid="paragraph-price-guide-choose-color-title">
+              เลือกจากลักษณะการใช้งานก่อนว่าจะโดนน้ำ โดนความร้อน หรือโดนกรดด่างบ่อยแค่ไหน แล้วค่อยเทียบสีจริงกับแสงหน้างาน เพราะเรตราคาขึ้นอยู่กับกลุ่มสีที่เลือก
+            </p>
+<div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-[var(--line)] p-5">
                 <h3 className="font-semibold">เริ่มจากภาพรวมของห้อง</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">เทียบสีกับผนัง พื้น และหน้าบาน เพื่อให้เคาน์เตอร์กลมกลืนหรือเป็นจุดเด่นอย่างที่ตั้งใจ</p>

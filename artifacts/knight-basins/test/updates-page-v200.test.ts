@@ -118,7 +118,7 @@ describe("the footer link label", () => {
   it("matches the newest release", () => {
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.2\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \({LATEST_UPDATE_VERSION}\)<\/Link>/,
     );
   });
 });

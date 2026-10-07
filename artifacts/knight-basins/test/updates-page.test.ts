@@ -94,7 +94,7 @@ describe("updates changelog page", () => {
     assert.match(appSource, /<Route path="\/updates" component=\{UpdatesPage\} \/>/);
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.2\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \({LATEST_UPDATE_VERSION}\)<\/Link>/,
     );
   });
 });
