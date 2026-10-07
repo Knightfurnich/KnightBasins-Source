@@ -309,7 +309,7 @@ describe("GET /admin/backup/basins-export", () => {
       assert.equal(lines.length, 3, "header + 2 basins");
       assert.equal(lines[1], "KF001,White,WHT,4500,500x400mm,400x300x120mm,https://example.com/kf001.jpg,https://example.com/kf001-top.jpg");
       // KF002 has no stored imageUrl, so withBasinMedia() falls back to the generated basin-hd URL; topViewImageUrl is blank.
-      assert.ok(lines[2]?.startsWith("KF002,Black,BLK,5200,600x450mm,,https://api.srv1964473.hstgr.cloud/kb/images/basin-hd/KF002.jpg,"));
+      assert.ok(lines[2]?.startsWith("KF002,Black,BLK,5200,600x450mm,,https://knightbasins.com/kb/images/basin-hd/KF002.jpg,"));
       assert.ok(lines[2]?.endsWith(","), "topViewImageUrl column is blank when null");
     } finally {
       await server.close();

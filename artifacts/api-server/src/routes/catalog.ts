@@ -2,7 +2,7 @@ import { db, basinCategories, basinPrices, installedStonePrices, sheetStonePrice
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { PRODUCTS, STONE_COLORS } from "../../../knight-basins/src/data/catalog";
-import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+import { canonicalMediaUrl, normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
 
 const router: IRouter = Router();
 
@@ -142,7 +142,7 @@ router.get("/site-photos/showcase", async (req, res, next) => {
         // A photo without a usable caption adds no credibility — drop it rather
         // than publishing an unexplained image.
         .filter((row) => Boolean(row.imageUrl) && Boolean(row.caption?.trim()))
-        .map((row) => ({ id: row.id, imageUrl: row.imageUrl, caption: row.caption?.trim() ?? null })),
+        .map((row) => ({ id: row.id, imageUrl: canonicalMediaUrl(row.imageUrl), caption: row.caption?.trim() ?? null })),
     );
   } catch (error) {
     next(error);
