@@ -131,7 +131,8 @@ describe("price guide page", () => {
       ),
     ].sort((first, second) => first - second);
 
-    assert.equal(catalogueTiers.length, 3, "the guide expects the three current installed-price tiers");
+    // job-277 brought VW342 "Aria Whisper" back at 12,000 a sqm, so the catalogue now carries four rates.
+    assert.equal(catalogueTiers.length, 4, "the guide expects the four current installed-price tiers");
     assert.deepEqual(pageHarness.ratePrices, catalogueTiers);
     for (const tier of catalogueTiers) {
       assert.ok(

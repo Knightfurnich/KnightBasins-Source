@@ -215,7 +215,9 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["VS311", "Shine", 12000, 9500, "#d9dad6", ["VS 311", "Aria Shine"]],
   ["VS351", "Soft", 12000, 9500, "#e8e2d8", ["VS 351", "Aria Soft"]],
   ["VS385", "Slate", 12000, 9500, "#777a78", ["VS 385", "Aria Slate"]],
-  ["V342", "Whisper", 12000, 9500, "#d9d1c2", ["VW342", "VW 342"]],
+  // job-277 follow-up: the owner trimmed the alias lists in the database on 7 Oct 2026 — this closed
+  // stone answers to V342 and "V 342" only; VW342 and "VW 342" belong to Aria Whisper and nowhere else.
+  ["V342", "Whisper", 12000, 9500, "#d9d1c2", ["V 342"]],
   ["VD345", "Dusk", 12000, 9500, "#d6c5ab", ["VD 345", "Aria Dusk"]],
   ["VV351", "Veil", 12000, 9500, "#e8e1db", ["VV 351", "Aria Veil"]],
   ["PT857", "Pebble Terrain", 9500, 8500, "#7f6249", ["PT 857"]],
