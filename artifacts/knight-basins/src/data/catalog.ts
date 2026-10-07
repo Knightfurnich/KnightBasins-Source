@@ -163,7 +163,6 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["EG595", "Metallic Galaxy", 9500, 8500, "#1c1d1a", ["EG 595"]],
   ["NT970", "Bologna Terrazzo", 9000, 8500, "#e8e7dc", ["NT 970"]],
   ["PS820", "Pebble Saratoga", 9500, 8500, "#d2cec7", ["PS 820"]],
-  ["QS288", "Quarry Starred", 9500, null, "#52565e", ["QS 288"]],
   ["VC110", "Cotton White", 12000, 9500, "#f7f8f3", ["VC 110", "Supreme Cotton White"]],
   ["VL343", "Latte Cream", 12000, 9500, "#eee6db", ["VL 343", "Supreme Latte Cream"]],
   ["VR322", "Rotor Cloud", 12000, 9500, "#dfe2e5", ["VR 322", "Supreme Rotor Cloud"]],
@@ -225,7 +224,7 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["KZ695", "Zen Grey", null, 8500, "#c8cdd6"],
   ["AI612", "Aspen Iceberg", null, 8500, "#e4e5e0"],
   ["AA625", "Aspen Alder", null, 8500, "#aeb7c2"],
-  ["QS822N", "Quarry Starred", null, 8500, "#52565e"],
+  ["QS822N", "Quarry Starred", 8500, 8500, "#52565e", ["QS 822N"]],
   ["VL155", "Loam", null, 9500, "#8e7766"],
   ["VD126", "Dawn", null, 9500, "#e1e2dd"],
 ];

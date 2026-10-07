@@ -35,11 +35,12 @@ const LIVE_INSTALLED = [
 const LIVE_SHEET = [
   row(1, "MU010", "Evermoin Ultra Bright", ["MU 010"], 7500),
   row(2, "EG501", "Glaring White", ["EG 501"], 9000),
-  row(3, "QS288", "Quarry Starred", ["QS 288", "QS288", "QS822 N", "QS 822N"], 9500),
+  row(3, "QS822N", "Quarry Starred", ["QS 822 N", "QS822 N", "QS 822N"], 8500),
   row(4, "BR816O", "Black River", ["BR816", "BR 816", "BR8160", "BR 8160"], 9500),
   row(5, "KZ802", "Zen Autumn", [], 9500),
   row(6, "KZ802N", "Zen Autumn New", ["KZ802(N)", "KZ 802N"], 9500),
   row(7, "WH112", "Witch Hazel", ["WH122", "WH 122", "WH 112", "WH112"], 9500),
+  row(8, "QS822N", "Quarry Starred", ["QS 822 N", "QS822 N", "QS 822N"], 8500),
 ];
 const live = stoneColorsFromCatalog(LIVE_INSTALLED, LIVE_SHEET);
 
@@ -47,7 +48,7 @@ const live = stoneColorsFromCatalog(LIVE_INSTALLED, LIVE_SHEET);
 const GROUPS: Record<string, string[]> = {
   BR816O: ["BR816O", "BR816", "BR 816", "BR8160", "BR 8160"],
   WH112: ["WH112", "WH122", "WH 122", "WH 112"],
-  QS288: ["QS288", "QS 288", "QS822N", "QS 822N", "QS822 N"],
+  QS822N: ["QS822N", "QS 822N", "QS822 N"],
   MU010: ["MU010", "MU 010"],
   EG501: ["EG501", "EG 501"],
 };
@@ -64,7 +65,7 @@ function withCatalog<T>(colors: ReadonlyArray<StoneColor>, calculate: () => T): 
 }
 
 describe("(ก) every approved spelling finds the stone the app shows", () => {
-  it("live catalogue: BR816O, WH112, QS288, MU010, EG501 groups", () => {
+  it("live catalogue: BR816O, WH112, QS822N, MU010, EG501 groups", () => {
     for (const [shown, spellings] of Object.entries(GROUPS)) {
       for (const spelling of spellings) {
         assert.equal(findStoneColor(spelling, live)?.code, shown, `${spelling} -> ${shown}`);
@@ -79,52 +80,73 @@ describe("(ก) every approved spelling finds the stone the app shows", () => {
     }
   });
 
-  it("the catalogue in the code keeps its own codes and names: BR816O Black River, V342 Whisper, WH112 Witch Hazel, QS288 Quarry Starred", () => {
+  it("the catalogue in the code keeps its own codes and names: BR816O Black River, V342 Whisper, WH112 Witch Hazel, QS822N Quarry Starred", () => {
     const shown = (spelling: string) => { const color = findStoneColor(spelling, STONE_COLORS); return color && [color.code, color.name]; };
     assert.deepEqual(shown("BR 8160"), ["BR816O", "Black River"]);
     assert.deepEqual(shown("BR8160"), ["BR816O", "Black River"]);
     assert.deepEqual(shown("V 342"), ["V342", "Whisper"]);
     assert.deepEqual(shown("VW-342"), ["V342", "Whisper"]);
     assert.deepEqual(shown("WH 122"), ["WH112", "Witch Hazel"]);
-    assert.deepEqual(shown("QS 288"), ["QS288", "Quarry Starred"]);
+    assert.deepEqual(shown("QS 822N"), ["QS822N", "Quarry Starred"]);
     assert.deepEqual(shown("MU 010"), ["MU010", "Evermoin Ultra Bright"]);
   });
 
   it("spaces, brackets, dashes, dots and case do not matter; a spelling that matches as typed still wins first", () => {
     for (const spelling of ["qs822n", " QS822N ", "QS-822-N", "QS.822.N", "(QS 822N)", "QS 822N"]) {
-      assert.equal(findStoneColor(spelling, live)?.code, "QS288", JSON.stringify(spelling));
+      assert.equal(findStoneColor(spelling, live)?.code, "QS822N", JSON.stringify(spelling));
     }
     assert.equal(stoneIdentifierKey("KZ802(N)"), "kz802n");
     assert.equal(stoneIdentifierKey(" BR 816-O "), "br816o");
   });
 });
 
-describe("(ข) QS822N is the same stone as QS288 (live catalogue)", () => {
-  it("QS822N / QS 822N / QS822 N / QS 288 all give one entry, QS288, at QS288's sheet price", () => {
-    const found = new Set(["QS822N", "QS 822N", "QS822 N", "QS 288", "QS288"].map((spelling) => findStoneColor(spelling, live)));
+describe("(ข) QS822N is the single Quarry Starred stone (owner decision 6 Oct 2026)", () => {
+  it("QS822N / QS 822N / QS822 N all give one entry, QS822N, at 8,500 a sheet", () => {
+    // The owner removed QS288 from the catalogue: QS822N is the only code for this stone,
+    // its sheet price is 8,500 and it is also sold installed at 8,500 per sqm.
+    const found = new Set(["QS822N", "QS 822N", "QS822 N"].map((spelling) => findStoneColor(spelling, live)));
     assert.equal(found.size, 1);
     const [color] = [...found];
-    assert.equal(color?.code, "QS288");
+    assert.equal(color?.code, "QS822N");
     assert.equal(color?.name, "Quarry Starred");
-    for (const spelling of ["QS822N", "QS 822N", "QS822 N", "QS 288"]) {
-      assert.equal(stoneSheetUnitPrice(spelling, 1, live), 9500, spelling);
+    for (const spelling of ["QS822N", "QS 822N", "QS822 N"]) {
+      assert.equal(stoneSheetUnitPrice(spelling, 1, live), 8500, spelling);
+      assert.equal(stoneInstalledUnitPrice(spelling), 8500, spelling);
     }
     assert.equal(live.filter((color) => color.name === "Quarry Starred").length, 1);
   });
 
-  it("a saved selection written QS822N is kept and stored as QS288", () => {
+  it("prices the sheet tiers the owner confirmed: 8,500 · 8,300 from 10 sheets · 8,075 from 50", () => {
+    withCatalog(live, () => {
+      assert.equal(stoneSheetUnitPrice("QS822N", 1), 8500);
+      assert.equal(stoneSheetUnitPrice("QS822N", 9), 8500);
+      assert.equal(stoneSheetUnitPrice("QS822N", 10), 8300);
+      assert.equal(stoneSheetUnitPrice("QS822N", 49), 8300);
+      assert.equal(stoneSheetUnitPrice("QS822N", 50), 8075);
+    });
+  });
+
+  it("the old QS288 code is gone: it no longer finds a stone", () => {
+    for (const spelling of ["QS288", "QS 288", "qs288"]) {
+      assert.equal(findStoneColor(spelling, live), undefined, spelling);
+      assert.equal(findStoneColor(spelling, STONE_COLORS), undefined, spelling);
+    }
+  });
+
+  it("a saved selection written QS822N is kept and stored as QS822N", () => {
     const { active, hidden } = reconcileStoneSelections(
       [{ id: "s1", color: "QS822N", mode: "whole-sheet", sheets: 2 } as never],
       { "whole-sheet": live, installed: live },
     );
     assert.equal(hidden.length, 0);
-    assert.equal(active[0]?.color, "QS288");
-    assert.equal(stoneColorMatchesSelection(live.find((color) => color.code === "QS288")!, "QS822N"), true);
+    assert.equal(active[0]?.color, "QS822N");
+    assert.equal(stoneColorMatchesSelection(live.find((color) => color.code === "QS822N")!, "QS822N"), true);
   });
 
-  it("the search box finds QS288 when typing qs822n or qs 822n", () => {
-    const qs = live.find((color) => color.code === "QS288")!;
-    for (const query of ["qs822n", "QS 822N", "822n", "qs288"]) assert.equal(stoneColorMatchesQuery(qs, query), true, query);
+  it("the search box finds QS822N when typing qs822n or qs 822n, and no longer matches qs288", () => {
+    const qs = live.find((color) => color.code === "QS822N")!;
+    for (const query of ["qs822n", "QS 822N", "822n", "qs 822 n"]) assert.equal(stoneColorMatchesQuery(qs, query), true, query);
+    assert.equal(stoneColorMatchesQuery(qs, "qs288"), false);
     assert.equal(stoneColorMatchesQuery(live.find((color) => color.code === "KZ802")!, "kz802n"), false);
   });
 });
@@ -172,7 +194,7 @@ describe("(ง) the catalogue counts and every alias prices as its group", () =>
         }
       }
       const shared = [...owners].filter(([, codes]) => codes.size > 1).map(([key, codes]) => `${key}:${[...codes].join("/")}`);
-      assert.deepEqual(shared, colors === live ? [] : ["quarrystarred:QS288/QS822N"]);
+      assert.deepEqual(shared, [], "one code per stone in both catalogues");
     }
   });
 });
