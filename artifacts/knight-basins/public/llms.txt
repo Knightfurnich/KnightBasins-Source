@@ -9,6 +9,7 @@
 - **หน้าหลัก & แคตตาล็อกอ่าง:** https://knightbasins.com/
 - **คลังภาพผลงานและการเตรียมหน้างาน (333 ภาพ แบ่งเป็น 12 หมวดหมู่):** https://knightbasins.com/portfolio
 - **แคตตาล็อกหินสังเคราะห์ (กว่า 60 เฉดสี 3 เรตราคา):** https://knightbasins.com/stone
+- **คู่มือราคาและวิธีเลือกหินสังเคราะห์ (เรตติดตั้ง · วิธีวัดหน้างาน · ค่าดำเนินการ · การดูแลรักษา · FAQ):** https://knightbasins.com/price-guide
 - **คู่มือมาตรฐานการเตรียมหน้างานก่อนติดตั้ง (59 ภาพถ่ายจริง):** https://knightbasins.com/site-prep
 - **ระบบคำนวณราคาและสร้างใบเสนอราคาออนไลน์:** https://knightbasins.com/quote
 - **2D Studio ออกแบบผังเคาน์เตอร์เสมือนจริง:** https://knightbasins.com/studio
@@ -16,6 +17,7 @@
 - **ส่งภาพสเก็ตช์มือสั่งทำตามแบบ:** https://knightbasins.com/sketch
 - **มาตรฐานบริการและสเปกวัสดุ (Whitepaper):** https://knightbasins.com/readme
 - **ประวัติการอัปเดตและฟีเจอร์ใหม่ (Release Log, ล่าสุด v2.2.1):** https://knightbasins.com/updates
+- **เครือข่ายและช่องทางติดต่อ (เว็บเครือ · LINE · Facebook):** https://knightbasins.com/network
 
 ## ภาพรวมธุรกิจ (Company Overview)
 - **ชื่อบริษัท:** บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH CO., LTD.)
