@@ -76,6 +76,27 @@ describe("business JSON-LD", () => {
     assert.ok(!sameAs.some((url) => /youtube\.com/i.test(url)), "a dead YouTube link must not ship");
   });
 
+  it("states one set of opening hours everywhere", () => {
+    const spec: any[] = org.openingHoursSpecification;
+    const weekdays = spec.find((entry) => entry.dayOfWeek.includes("Monday"));
+    assert.deepEqual(weekdays.dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]);
+    assert.equal(weekdays.opens, "08:00");
+    assert.equal(weekdays.closes, "17:00");
+    const saturday = spec.find((entry) => entry.dayOfWeek.includes("Saturday"));
+    assert.equal(saturday.opens, "08:00");
+    assert.equal(saturday.closes, "12:00");
+    assert.equal(spec.some((entry) => entry.dayOfWeek.includes("Sunday")), false, "the shop is closed on Sundays");
+
+    // The boss confirmed 08:00-17:00 Mon-Fri and 08:00-12:00 Sat. The footer and the two
+    // llms files are copied from the same fact, so they must not drift apart again.
+    const footer = readFileSync(path.join(appRoot, "src", "App.tsx"), "utf8");
+    assert.ok(footer.includes("จ.-ศ. 08:00–17:00 · ส. 08:00–12:00"), "the footer must state the same hours");
+    for (const file of ["public/llms.txt", "public/llms-full.txt"]) {
+      const text = readFileSync(path.join(appRoot, file), "utf8");
+      assert.ok(text.includes("08:00 – 17:00") && text.includes("08:00 – 12:00"), `${file} must state the same hours`);
+    }
+  });
+
   it("keeps the rest of the identity intact", () => {
     assert.equal(org.priceRange, "฿฿฿");
     assert.equal(org.areaServed.length >= 3, true);
@@ -83,19 +104,20 @@ describe("business JSON-LD", () => {
     assert.ok(Array.isArray(org.openingHoursSpecification) && org.openingHoursSpecification.length >= 1);
   });
 
-  it("keeps existing opening hours pending confirmation of the GBP discrepancy", () => {
+  it("carries the opening hours the boss confirmed", () => {
+    // Confirmed 6 Oct 2026: Mon-Fri 08:00-17:00, Sat 08:00-12:00, closed Sunday.
     assert.deepEqual(org.openingHoursSpecification, [
       {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        opens: "08:30",
-        closes: "16:30",
+        opens: "08:00",
+        closes: "17:00",
       },
       {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: ["Saturday"],
-        opens: "08:30",
-        closes: "11:30",
+        opens: "08:00",
+        closes: "12:00",
       },
     ]);
   });
