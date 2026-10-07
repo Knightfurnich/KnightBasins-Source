@@ -29,8 +29,45 @@ export function isFreestandingPillarProduct(
     || (product.category === "tall vertical washbasin" && !product.basinDimensions?.trim());
 }
 
-export function studioCutoutBasinProducts(products: ReadonlyArray<BasinProduct>): BasinProduct[] {
-  return products.filter((product) => !isFreestandingPillarProduct(product));
+/**
+ * job-279: the owner's rule is "what the database hides, nobody sells". A basin ships with one stone colour of its
+ * own, so when that stone is closed the basin stops being a product a customer can be offered — and it must not be
+ * quietly repriced against some other stone (that is the silent-fallback hole job 278 closed).
+ *
+ * A basin is sellable when its colour still resolves to a stone in the loaded catalogue and that stone is visible.
+ * An unresolvable code also counts as not sellable: it is not a stone anyone can stand behind.
+ */
+export function isBasinSellable(
+  product: Pick<BasinProduct, "colorCode">,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): boolean {
+  const stone = findStoneColor(product.colorCode, colors);
+  return stone !== undefined && isStoneVisible(stone.code);
+}
+
+/** Why a basin is not on the shelf, in words a screen can show. `null` when the basin is sellable. */
+export function basinHiddenReason(
+  product: Pick<BasinProduct, "colorCode" | "colorName">,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): string | null {
+  if (isBasinSellable(product, colors)) return null;
+  return isStoneVisible(product.colorCode)
+    ? `แคตตาล็อกไม่มีสี ${product.colorCode} ของอ่างรุ่นนี้`
+    : `สี ${product.colorCode} ถูกปิดในฐานข้อมูล`;
+}
+
+export function sellableBasinProducts(
+  products: ReadonlyArray<BasinProduct>,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): BasinProduct[] {
+  return products.filter((product) => isBasinSellable(product, colors));
+}
+
+export function studioCutoutBasinProducts(
+  products: ReadonlyArray<BasinProduct>,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): BasinProduct[] {
+  return products.filter((product) => !isFreestandingPillarProduct(product) && isBasinSellable(product, colors));
 }
 
 export function productCategoryLabel(product: BasinProduct): string {
@@ -535,11 +572,11 @@ export const BASIN_PRODUCTS: BasinProduct[] = [
   ["KF001", "VS311", "Shine", 19000, counterDims],
   ["KF002", "VS351", "Soft", 19000, counterDims],
   ["KF003", "RW316", "River White", 19000, counterDims],
-  ["KF004", "VW050", "Wene White", 19000, counterDims],
-  ["KF005", "HJ524M", "Honer Jade", 19000, counterDims],
+  ["KF004", "VW050", "Vene White", 19000, counterDims],
+  ["KF005", "HJ524M", "Honey Jade", 19000, counterDims],
   ["KF006", "RW316", "River White", 19000, counterDims],
   ["KF007", "VL343", "Latte Cream", 19000, counterDims],
-  ["KF008", "SI414", "Sanded Icice", 17000, counterDims],
+  ["KF008", "SI414", "Sanded Icicle", 17000, counterDims],
   ["KF009", "NB091", "Neo Black", 17000, counterDims],
   ["KF010", "NA160", "Navis", 17000, counterDims],
   ["KF011", "VD382", "Drift", 19000, counterWideDims],
@@ -586,10 +623,19 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
 export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
-export function filterBasinProducts(products: ReadonlyArray<BasinProduct>, query: string) {
+/**
+ * The basin picker list. job-279: a closed stone takes its basin off the shelf, whatever the search box says — the
+ * picker shows "แสดง X จาก Y รุ่น" from this function, so the count itself tells the customer something was withheld.
+ */
+export function filterBasinProducts(
+  products: ReadonlyArray<BasinProduct>,
+  query: string,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) {
   const normalizedQuery = query.trim().toLocaleLowerCase();
-  if (!normalizedQuery) return products;
-  return products.filter((product) => [
+  const sellable = sellableBasinProducts(products, colors);
+  if (!normalizedQuery) return sellable;
+  return sellable.filter((product) => [
     product.sku,
     product.colorCode,
     product.colorName,
