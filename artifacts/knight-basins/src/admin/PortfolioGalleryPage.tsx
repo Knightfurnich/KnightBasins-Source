@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clipboard, Images, MessageCircle, Search, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -285,6 +285,33 @@ async function patchPortfolioVisibility(id: string, visible: boolean): Promise<{
   return response.json() as Promise<{ id: string; visible: boolean }>;
 }
 
+export type PortfolioFilenamePrivacyReport = {
+  action: "inspect" | "anonymize";
+  flaggedCount: number;
+  flagged?: Array<{ id: string; category: string; filename: string }>;
+  renamed?: string[];
+  missing?: string[];
+  totalItems?: number;
+  note?: string;
+};
+
+/**
+ * Legacy LINE-album imports left customer words in the photo file names, and a photo URL is public and permanent.
+ * The API reports the rows and renames them with its own generator; this page only ever asks, shows the list, and
+ * repeats back the count it was given, so nobody renames the catalogue from memory.
+ */
+async function requestPortfolioFilenamePrivacy(action: "inspect" | "anonymize", confirmCount?: number): Promise<PortfolioFilenamePrivacyReport> {
+  const response = await fetch("/api/admin/portfolio/filename-privacy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(confirmCount === undefined ? { action } : { action, confirmCount }),
+  });
+  const report = await response.json().catch(() => null) as PortfolioFilenamePrivacyReport | { message?: string } | null;
+  const failure = (report ?? {}) as { message?: string };
+  if (!response.ok) throw new Error(failure.message ?? "ตรวจชื่อไฟล์ไม่สำเร็จ");
+  return report as PortfolioFilenamePrivacyReport;
+}
+
 const VISIBILITY_FILTER_OPTIONS: ReadonlyArray<{ value: PortfolioVisibilityFilter; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
   { value: "visible", label: "🟢 เผยแพร่แล้ว" },
@@ -406,6 +433,7 @@ export function PortfolioGalleryPage() {
   const [uploadError, setUploadError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [pageFeedback, setPageFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [filenamePrivacy, setFilenamePrivacy] = useState<PortfolioFilenamePrivacyReport | null>(null);
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadObjectUrls = useRef(new Set<string>());
@@ -638,6 +666,31 @@ export function PortfolioGalleryPage() {
     deleteMutation.mutate(item.id);
   };
 
+  const handleInspectFilenamePrivacy = useCallback(async () => {
+    try {
+      const report = await requestPortfolioFilenamePrivacy("inspect");
+      setFilenamePrivacy(report);
+      if (!report.flaggedCount) {
+        setPageFeedback({ type: "success", message: "ไม่พบชื่อไฟล์ที่มีข้อมูลลูกค้าหลงเหลืออยู่ในคลังรูป" });
+      }
+    } catch (error) {
+      setPageFeedback({ type: "error", message: error instanceof Error ? error.message : "ตรวจชื่อไฟล์ไม่สำเร็จ" });
+    }
+  }, []);
+
+  const handleAnonymizeFilenames = useCallback(async () => {
+    const count = filenamePrivacy?.flaggedCount ?? 0;
+    if (!count) return;
+    if (!window.confirm(`จะเปลี่ยนชื่อไฟล์ ${count} รูปที่ผูกกับชื่อลูกค้า/หน้างานเป็นชื่อสุ่ม ลิงก์เดิมจะใช้ไม่ได้และต้องรีเซ็ตหน้า Featured ตามนั้นด้วย ยืนยันหรือไม่`)) return;
+    try {
+      const report = await requestPortfolioFilenamePrivacy("anonymize", count);
+      setFilenamePrivacy({ ...report, flagged: [], flaggedCount: 0 });
+      setPageFeedback({ type: "success", message: `เปลี่ยนชื่อไฟล์เรียบร้อย ${report.renamed?.length ?? 0} รูป${report.missing?.length ? ` (${report.missing.length} รูปไม่พบไฟล์บนดิสก์)` : ""}` });
+    } catch (error) {
+      setPageFeedback({ type: "error", message: error instanceof Error ? error.message : "เปลี่ยนชื่อไฟล์ไม่สำเร็จ" });
+    }
+  }, [filenamePrivacy]);
+
   const handleToggleMultiSelectMode = () => {
     if (actionsDisabled) return;
     if (multiSelectMode) {
@@ -726,6 +779,27 @@ export function PortfolioGalleryPage() {
             >
               ☑️ {multiSelectMode ? "เสร็จสิ้นการเลือก" : "เลือกหลายรูป"}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full rounded-none sm:w-auto"
+              onClick={() => void handleInspectFilenamePrivacy()}
+              disabled={actionsDisabled}
+              data-testid="button-portfolio-check-filename-privacy"
+            >
+              🔒 ตรวจชื่อไฟล์ที่มีชื่อลูกค้า{filenamePrivacy?.flaggedCount ? ` (${filenamePrivacy.flaggedCount})` : ""}
+            </Button>
+            {filenamePrivacy?.flaggedCount ? (
+              <span className="flex flex-col gap-2 text-xs text-red-800 sm:flex-row sm:items-center" role="status" data-testid="status-portfolio-filename-privacy">
+                <span>
+                  พบ {filenamePrivacy.flaggedCount} รูปที่ URL ยังอ้างถึงหน้างาน/ลูกค้า เช่น{" "}
+                  {filenamePrivacy.flagged?.[0]?.filename ?? "-"}
+                </span>
+                <Button type="button" size="sm" onClick={() => void handleAnonymizeFilenames()} data-testid="button-portfolio-anonymize-filenames">
+                  ตั้งชื่อใหม่ให้ไม่ระบุตัวตน
+                </Button>
+              </span>
+            ) : null}
             <Button
               type="button"
               className="w-full rounded-none sm:w-auto"
