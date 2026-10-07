@@ -32,6 +32,9 @@ SCOPE:
   - /opt/data/cache/kbsrc/artifacts/knight-basins/public/sitemap.xml                     (เพิ่ม 1 URL)
   - /opt/data/cache/kbsrc/artifacts/knight-basins/test/price-guide-page.test.ts          (ใหม่)
   - /opt/data/cache/kbsrc/artifacts/knight-basins/test/prerender-output.test.ts          (จำนวนหน้า 11 → 12)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/scripts/prerender.mjs                 ⬅ เพิ่มรอบ 2 · `expectedPageCount` 11 → 12 (บรรทัด 21)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/src/components/RouteMeta.logic.ts      ⬅ เพิ่มรอบ 2 · เพิ่ม /price-guide ใน `ROUTE_META` (title/description เฉพาะหน้า)
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/test/network-links.test.ts            ⬅ เพิ่มรอบ 2 · `paths.length` 11 → 12 + ใส่ "/price-guide" ในรายการ route
 
 FORBIDDEN:
   - ห้ามแตะ `artifacts/knight-basins/src/index.css` (**0 diff**) · ห้ามแตะ `artifacts/api-server/**` · `src/admin/**`
@@ -57,6 +60,21 @@ STOP:
   - เมื่อ tsc 0 · build ผ่าน 12 หน้า · เทสต์ใหม่ผ่าน + พิสูจน์จับได้ · ชุด CI ตก 0 · index.css 0 diff · diff อยู่ใน SCOPE · เปิด PR แจ้งเดวิด
   - หรือเมื่อทำงานครบ 12 turns ให้หยุดและรายงานสิ่งที่ทำเสร็จ/เหลือ (ห้ามทำต่อจนผลลัพธ์หาย)
 ```
+
+## 🔧 ปรับ SCOPE รอบ 2 (7 ต.ค. 69) — ตอบข้อทักท้วงของรีพีต
+
+รีพีตแจ้งถูกต้องว่า SCOPE เดิมไม่คลุมไฟล์ที่ต้องแก้จริง ⇒ **ห้ามเปิด PR จนกว่าจะปรับ SCOPE** และตอนนี้ **ปรับให้แล้ว** ดังนี้
+
+| ไฟล์ที่เพิ่มเข้า SCOPE | แก้อะไร (เจาะจง) | เหตุผล (ตรวจจากโค้ดจริงแล้ว) |
+|---|---|---|
+| `scripts/prerender.mjs` | `const expectedPageCount = 11;` (บรรทัด 21) → **12** | สคริปต์ **ล็อกจำนวน URL ในสคริปต์เอง** — ถ้าไม่แก้ ตัว prerender จะ **throw** ทันทีเมื่อ sitemap มี 12 URL |
+| `src/components/RouteMeta.logic.ts` | เพิ่ม `/price-guide` ใน `ROUTE_META` (บรรทัด 15) | `test/prerender-output.test.ts:113` บังคับว่า **ทุก route ใน sitemap ต้องมี entry ใน ROUTE_META** — ไม่มี = เทสต์ fail |
+| `test/network-links.test.ts` | `assert.equal(paths.length, 11)` (บรรทัด 219) → **12** + เพิ่ม `"/price-guide"` ในรายการ `originalPaths` (บรรทัด ~211) | เทสต์นับจำนวน route ตรง ๆ และตรวจว่า route เดิมไม่หาย |
+
+**สิ่งที่ยังห้ามแตะ (คงเดิม):** `src/index.css` (0 diff) · `artifacts/api-server/**` · `src/admin/**` · `src/data/catalog.ts` · ไฟล์อื่นนอกตาราง SCOPE
+**หมายเหตุเจ้าของไฟล์:** `src/components/**` เป็นของบอย — บอยไม่ได้ทำงานนี้อยู่ ⇒ ไม่ชนกัน · ถ้าบอยกลับมาทำพร้อมกัน ให้หยุดและถามเดวิดก่อน
+**เทสต์ที่ต้องผ่านหลังแก้:** ชุดเต็มต้อง **ตก 0** (baseline main 7 ต.ค. 69 = **1144 tests / 1135 pass / 0 fail / 9 skip**) · หลังเพิ่มหน้าใหม่ ตัวเลขรวมจะเพิ่มขึ้น (เทสต์ใหม่ + 1 ข้อที่เปลี่ยนจาก 11→12) — **ให้รายงานตัวเลขที่วัดได้จริง** ไม่ต้องยัดให้เท่า baseline
+
 
 ## เช็คลิสต์ 12 ข้อ (ติ๊กใน PR)
 
