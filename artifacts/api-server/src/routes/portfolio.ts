@@ -12,6 +12,9 @@ import { readMultipartForm, UPLOAD_DIR } from "../lib/image-upload";
 import { createAdminAuthMiddleware, requireAnyAdminPermission } from "../middlewares/admin-auth";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
 import {
+  applyPortfolioFilenameAnonymization,
+  findPersonalPortfolioFilenames,
+  planPortfolioFilenameAnonymization,
   generatePortfolioFilename,
   generatePortfolioId,
   loadCatalog,
@@ -444,6 +447,57 @@ router.patch("/admin/portfolio/:id/visibility", createAdminAuthMiddleware(), req
     return next(error);
   }
 });
+
+/**
+ * POST /api/admin/portfolio/filename-privacy
+ *
+ * Reports the portfolio rows whose public URL still carries customer words from the old LINE photo import, and only
+ * renames them when the caller repeats back what it was shown (action="anonymize" plus the exact confirmation of the
+ * count). File names come from the same generator the upload path uses, ids and the visibility map stay untouched, so
+ * an operator can run it without knowing anything about the naming scheme, and an accidental click cannot move files.
+ */
+router.post(
+  "/admin/portfolio/filename-privacy",
+  createAdminAuthMiddleware(),
+  requireAnyAdminPermission(["leads", "basins"]),
+  async (req, res, next) => {
+    try {
+      const body = (req.body ?? {}) as { action?: unknown; confirmCount?: unknown };
+      const action = body.action === "anonymize" ? "anonymize" : "inspect";
+      const catalog = await loadCatalog(UPLOAD_DIR);
+      const flagged = findPersonalPortfolioFilenames(catalog.items);
+
+      if (action === "inspect") {
+        return res.json({
+          action,
+          flagged: flagged.map((item) => ({ id: item.id, category: item.category, filename: item.filename })),
+          flaggedCount: flagged.length,
+          totalItems: catalog.items.length,
+        });
+      }
+
+      if (typeof body.confirmCount !== "number" || body.confirmCount !== flagged.length) {
+        return res.status(409).json({
+          message: `confirmCount must equal the number of rows still carrying a customer name (${flagged.length})`,
+          flaggedCount: flagged.length,
+        });
+      }
+      if (!flagged.length) return res.json({ action, renamed: [], missing: [], flaggedCount: 0 });
+
+      const plan = planPortfolioFilenameAnonymization(catalog.items);
+      const result = await applyPortfolioFilenameAnonymization(UPLOAD_DIR, catalog, plan);
+      return res.json({
+        action,
+        renamed: result.renamed,
+        missing: result.missing,
+        flaggedCount: flagged.length,
+        note: "old /api/uploads/portfolio/... paths stop resolving; regenerate the featured list and the llms photo counts after this runs",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+);
 
 /**
  * GET /api/portfolio/featured

@@ -209,6 +209,89 @@ export function portfolioExtensionForContentType(contentType: string): string | 
 }
 
 /** New, server-generated filename for an uploaded portfolio photo -- never derived from the client's own filename, so it can't carry a path-traversal payload. */
+/**
+ * Legacy import: the portfolio used to be seeded from LINE photo dumps, and those file names carried the customer's
+ * own words ("LINE_ALBUM_บ้านคุณ‹name›‹particle›"). The URL of a finished photo is public and never rotates, so a
+ * customer's name became part of a permanent, indexable address -- and now part of anything an AI cites from it.
+ * Uploads since job-102 already get server-generated opaque names from generatePortfolioFilename(); this is only
+ * about the rows that predate that, so the patterns below stay narrow and err toward reporting, not hiding.
+ */
+const PERSONAL_NAME_IN_FILENAME = [/LINE_ALBUM/i, /\u0e1a\u0e49\u0e32\u0e19\u0e04\u0e38\u0e13/, /\u0e04\u0e38\u0e13/, /\u0e04\u0e23\u0e31\u0e1a/, /\u0e04\u0e38\u0e13\u0e19\u0e49\u0e2d\u0e22/, /\u0e19\u0e49\u0e2d\u0e07/, /\u0e1c\u0e39\u0e49/];
+
+export function looksPersonalPortfolioFilename(filename: string): boolean {
+  return PERSONAL_NAME_IN_FILENAME.some((pattern) => pattern.test(filename));
+}
+
+/** The rows that still publish a person or a site contact in their public URL, oldest id first. */
+export function findPersonalPortfolioFilenames(items: ReadonlyArray<Pick<PortfolioItem, "id" | "category" | "filename">>) {
+  return items
+    .filter((item) => looksPersonalPortfolioFilename(item.filename))
+    .sort((left, right) => left.id.localeCompare(right.id, "en"));
+}
+
+/**
+ * A rename plan: new names come from the same generator the upload route uses, so nothing about the customer survives
+ * and nothing depends on a hand-written slug. The id never changes, which is what keeps the visibility map and the
+ * React keys valid across a rename.
+ */
+export function planPortfolioFilenameAnonymization(
+  items: ReadonlyArray<Pick<PortfolioItem, "id" | "category" | "filename">>,
+  now: () => number = Date.now,
+): Array<{ id: string; category: string; from: string; to: string }> {
+  const affected = findPersonalPortfolioFilenames(items);
+  return affected.map((item, index) => {
+    const extension = item.filename.slice(item.filename.lastIndexOf("."));
+    const serial = (now() + index).toString(36);
+    const token = randomBytes(6).toString("hex");
+    return {
+      id: item.id,
+      category: item.category,
+      from: item.filename,
+      to: `${item.category}_${serial}_${token}${extension}`,
+    };
+  });
+}
+
+/**
+ * Execute a plan on disk and in catalog.json: same-directory rename (one filesystem, like saveCatalog's temp file),
+ * then one atomic catalog write. Any failure aborts before the catalog is replaced, so a half-renamed set cannot be
+ * published; a file that is already gone is reported and skipped rather than fatal, because the catalog is the record.
+ */
+export async function applyPortfolioFilenameAnonymization(
+  uploadDir: string,
+  catalog: PortfolioCatalog,
+  plan: ReadonlyArray<{ id: string; category: string; from: string; to: string }>,
+): Promise<{ renamed: string[]; missing: string[]; catalog: PortfolioCatalog }> {
+  const renamed: string[] = [];
+  const missing: string[] = [];
+  const byId = new Map(plan.map((step) => [step.id, step]));
+  const moved: Array<{ id: string; from: string; to: string }> = [];
+
+  for (const step of plan) {
+    const source = resolvePortfolioFilePath(uploadDir, step.category, step.from);
+    if (!source) throw new Error(`refused to touch ${step.from}: path escapes the uploads root`);
+    const target = resolvePortfolioFilePath(uploadDir, step.category, step.to);
+    if (!target) throw new Error(`refused to write ${step.to}: path escapes the uploads root`);
+    try {
+      await rename(source, target);
+      renamed.push(step.id);
+      moved.push(step);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code === "ENOENT") missing.push(step.id);
+      else throw error;
+    }
+  }
+
+  const items = catalog.items.map((item) => {
+    const step = byId.get(item.id);
+    if (!step || !moved.some((entry) => entry.id === item.id)) return item;
+    return { ...item, filename: step.to, url: `/api/uploads/portfolio/${item.category}/${step.to}` };
+  });
+  const nextCatalog = { ...catalog, items, updatedAt: new Date().toISOString() };
+  if (moved.length) await saveCatalog(uploadDir, nextCatalog);
+  return { renamed, missing, catalog: moved.length ? nextCatalog : catalog };
+}
+
 export function generatePortfolioFilename(category: string, extension: string): string {
   const serial = Date.now().toString(36);
   const token = randomBytes(6).toString("hex");
