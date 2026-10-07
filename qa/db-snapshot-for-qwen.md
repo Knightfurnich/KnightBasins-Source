@@ -10,8 +10,9 @@ cd KnightBasins-Source
 git checkout main          # หรือ branch ของใบงาน
 ```
 ยืนยันว่ารีโปสาธารณะ: `curl -s https://api.github.com/repos/Knightfurnich/KnightBasins-Source | grep '"private": false'` → ได้ `false` ✅
-ไฟล์ที่ต้องใช้อ่านจะอยู่ครบหลัง clone: `CLAUDE.md` · `knight-design-kb/TEAM.md`* · `qa/job-274-replit-price-guide-page.md` · `qa/job-275-qwen-onboarding-audit.md` · `artifacts/knight-basins/src/data/catalog.ts` · `bin/job_standard_check.py`
-(*TEAM.md อยู่ใน KB ฝั่งเดวิด ไม่ได้อยู่ในรีโป — แนบข้อความสำคัญมาให้ในหัวข้อ 5)
+ไฟล์ที่ต้องอ่านหลัง clone: `CLAUDE.md` · `docs/team/README.md` · `qa/job-274-replit-price-guide-page.md` · `qa/job-275-qwen-onboarding-audit.md` · `artifacts/knight-basins/src/data/catalog.ts` · `CONTRIBUTING.md`
+⚠️ **แก้ข้อผิดพลาดของใบงาน (Qwen ติถูก 6 ต.ค. 69):** `bin/job_standard_check.py` และ `knight-design-kb/TEAM.md` **ไม่ได้อยู่ในรีโป** — อยู่บนเครื่อง Hermes ของเดวิดเท่านั้น
+⇒ ข้อ A2 ของใบ 275: **เดวิดเป็นคนรัน** `job_standard_check.py` ให้ (รันแล้ว = **9/9** ✅) · ฝั่ง Qwen ส่งรายงานมาให้ตรวจแทน · สรุป TEAM.md อยู่ในหัวข้อ 6 ของไฟล์นี้
 
 ## 1 · sheet_stone_prices (แผ่นดิบ) — ทั้ง 73 แถว
 รูปแบบ: `code|name|base|10+|50+|active`
