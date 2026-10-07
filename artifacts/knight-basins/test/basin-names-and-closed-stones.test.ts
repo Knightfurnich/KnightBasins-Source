@@ -57,32 +57,41 @@ describe("basin names follow the stone catalogue (job-279 A)", () => {
   });
 });
 
-describe("a basin on a closed stone is not for sale (job-279 B)", () => {
-  it("KF024 is the only affected model, and it is withheld with a reason that names the stone", () => {
+describe("a basin on a closed stone is not for sale (job-279 B, owner ruling applied)", () => {
+  it("every basin in the catalogue ships a stone that is on sale", () => {
+    // The owner ruled that KF024 keeps its shelf — its row was never hidden — and the database moved it from the
+    // closed V342 onto VW342 "Aria Whisper". So no real model is withheld today, and the rule below still stands
+    // for the next stone that gets closed.
     const withheld = PRODUCTS.filter((product) => !isBasinSellable(product));
-    assert.deepEqual(withheld.map((product) => product.sku), ["KF024"]);
-    assert.equal(bySku("KF024").colorCode, "V342", "still bound to Whisper — the row was not re-pointed");
-    assert.equal(STONE_COLORS.some((color) => color.code === "V342"), false, "the database closed it in job 277");
-    assert.equal(basinHiddenReason(bySku("KF024")), "สี V342 ถูกปิดในฐานข้อมูล");
-    assert.equal(basinHiddenReason(bySku("KF001")), null, "a sellable basin carries no warning");
+    assert.deepEqual(withheld.map((product) => product.sku), []);
+    assert.equal(bySku("KF024").colorCode, "VW342", "the model ships the Whisper stone that is still sold");
+    assert.equal(bySku("KF024").colorName, "Aria Whisper");
+    assert.equal(basinHiddenReason(bySku("KF024")), null, "nothing withheld, nothing to explain");
+    assert.equal(filterBasinProducts(PRODUCTS, "").length, 30);
+    assert.deepEqual(filterBasinProducts(PRODUCTS, "KF024").map((p) => p.sku), ["KF024"]);
+    assert.equal(studioCutoutBasinProducts(PRODUCTS).some((product) => product.sku === "KF024"), true);
+    assert.equal(sellableBasinProducts(PRODUCTS).length, PRODUCTS.length);
   });
 
-  it("both pickers drop it, and searching for it finds nothing", () => {
-    assert.equal(filterBasinProducts(PRODUCTS, "").some((p) => p.sku === "KF024"), false);
-    assert.equal(studioCutoutBasinProducts(PRODUCTS).some((p) => p.sku === "KF024"), false);
-    assert.equal(sellableBasinProducts(PRODUCTS).length, PRODUCTS.length - 1);
-    assert.deepEqual(filterBasinProducts(PRODUCTS, "KF024").map((p) => p.sku), []);
-    assert.equal(sellableBasinProducts(BASIN_PRODUCTS).length, BASIN_PRODUCTS.length, "no counter basin lost its stone");
-    assert.equal(sellableBasinProducts(TALL_PRODUCTS).length, TALL_PRODUCTS.length - 1);
-    assert.equal(PRODUCTS.length, 30, "hidden is not deleted: every model is still in the source list");
+  it("the rule still withholds a basin whose stone is closed — proved on a synthetic model", () => {
+    // No live model is affected, which is exactly why the mechanism needs its own fixture: if this ever stops
+    // working, nothing in the shipped catalogue would notice. V342 is the closed stone from job 277.
+    const closedStoneBasin: BasinProduct = { ...bySku("KF024"), sku: "KF999", colorCode: "V342", colorName: "Whisper" };
+    assert.equal(isBasinSellable(closedStoneBasin), false);
+    assert.equal(basinHiddenReason(closedStoneBasin), "สี V342 ถูกปิดในฐานข้อมูล");
+    assert.deepEqual(sellableBasinProducts([closedStoneBasin, bySku("KF001")]).map((p) => p.sku), ["KF001"]);
+    assert.deepEqual(filterBasinProducts([closedStoneBasin, bySku("KF001")], "KF999").map((p) => p.sku), []);
+    assert.deepEqual(studioCutoutBasinProducts([closedStoneBasin, bySku("KF001")]).map((p) => p.sku), ["KF001"]);
+    // and an unknown code is not sellable either: nobody can stand behind a stone that does not exist
+    assert.equal(isBasinSellable({ ...closedStoneBasin, colorCode: "ZZZ999" }), false);
+    assert.equal(basinHiddenReason({ ...closedStoneBasin, colorCode: "ZZZ999" }), "แคตตาล็อกไม่มีสี ZZZ999 ของอ่างรุ่นนี้");
   });
 
-  it("it is never priced as some other stone", () => {
-    const stone = bySku("KF024").colorCode;
-    assert.equal(stoneInstalledUnitPrice(stone), null, "no Bright White rate standing in for a closed stone");
-    assert.equal(stoneSheetUnitPrice(stone, 1), null);
-    assert.notEqual(stoneInstalledUnitPrice(stone), stoneInstalledUnitPrice("BW010"), "must not stand in for the first row");
-    for (const sku of ["KF004", "KF005", "KF008", "KF001", "KF028"]) {
+  it("a withheld basin is never priced as some other stone", () => {
+    assert.equal(stoneInstalledUnitPrice("V342"), null, "no Bright White rate standing in for a closed stone");
+    assert.equal(stoneSheetUnitPrice("V342", 1), null);
+    assert.notEqual(stoneInstalledUnitPrice("V342"), stoneInstalledUnitPrice("BW010"), "must not stand in for the first row");
+    for (const sku of ["KF004", "KF005", "KF008", "KF001", "KF024"]) {
       const product = bySku(sku);
       assert.equal(isBasinSellable(product), true, `${sku} still sells`);
       assert.equal(stoneInstalledUnitPrice(product.colorCode), stoneOf(product)?.installedPriceTHB ?? null, `${sku} stone rate`);

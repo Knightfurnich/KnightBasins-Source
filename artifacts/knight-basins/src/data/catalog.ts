@@ -606,7 +606,10 @@ const tallProducts: Array<[string, string, string, number, string, string | unde
   ["KF021", "KZ802N", "Zen Autumn New", 25000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
   ["KF022", "NW013", "Neo White", 24000, "400 × 400 × 850 mm", "350 × 350 × 150 mm"],
   ["KF023", "WH112", "Witch Hazel", 26000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
-  ["KF024", "V342", "Whisper", 25000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
+  // job-279 follow-up (owner ruling 7 Oct 2026, after Chai's review): the basin row was never hidden and
+  // "not hidden = sold", so the model keeps its shelf. The database moved it onto VW342 "Aria Whisper",
+  // the Whisper stone that is still on sale, in both basin_prices and this row.
+  ["KF024", "VW342", "Aria Whisper", 25000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
   ["KF025", "NB091", "Neo Black", 24000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
   ["KF026", "NW013", "Neo White", 24000, "400 × 400 × 850 mm", "Ø350 × 150 mm"],
   ["KF027", "SW534M", "Starry White", 28000, "400 × 600 × 850 mm", "370 × 570 × 150 mm"],
