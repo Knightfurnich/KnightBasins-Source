@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { BASIN_PRODUCTS, PRODUCTS, STONE_COLORS, TALL_PRODUCTS, type BasinProduct, type StoneColor } from "../src/data/catalog.ts";
+import { ALL_STONE_COLORS, BASIN_PRODUCTS, PRODUCTS, TALL_PRODUCTS, type BasinProduct, type StoneColor } from "../src/data/catalog.ts";
 
 // job-276: the basin rows are hand-written, so a colour code can drift into a transposed spelling that never existed
 // in the database (KF010 shipped a digit-swapped variant of NA160, KF012 and KF013 the same way against CS532M and VR322).
@@ -12,7 +12,7 @@ import { BASIN_PRODUCTS, PRODUCTS, STONE_COLORS, TALL_PRODUCTS, type BasinProduc
 // the database has closed for now — that is job-277's D1 case (KF024 on V342), reported for the owner to rule on.
 // "The code is real" and "the code may be sold" are two different locks; stone-status-visibility.test.ts holds the second.
 
-const codes = STONE_COLORS.map((color: StoneColor) => color.code);
+const codes = ALL_STONE_COLORS.map((color: StoneColor) => color.code);
 
 describe("catalogue stone codes (job-276)", () => {
   it("B1 no stone code is listed twice in the colour catalogue", () => {

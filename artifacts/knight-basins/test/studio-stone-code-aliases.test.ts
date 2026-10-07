@@ -80,12 +80,17 @@ describe("(ก) every approved spelling finds the stone the app shows", () => {
     }
   });
 
-  it("the catalogue in the code keeps its own codes and names: BR816O Black River, V342 Whisper, WH112 Witch Hazel, QS822N Quarry Starred", () => {
+  it("the catalogue in the code keeps its own codes and names: BR816O Black River, VW342 Aria Whisper, WH112 Witch Hazel, QS822N Quarry Starred", () => {
     const shown = (spelling: string) => { const color = findStoneColor(spelling, STONE_COLORS); return color && [color.code, color.name]; };
     assert.deepEqual(shown("BR 8160"), ["BR816O", "Black River"]);
     assert.deepEqual(shown("BR8160"), ["BR816O", "Black River"]);
-    assert.deepEqual(shown("V 342"), ["V342", "Whisper"]);
-    assert.deepEqual(shown("VW-342"), ["V342", "Whisper"]);
+    // job-277 changed the two Whisper lines: V342 is closed in the database, so it is no longer a stone the app can
+    // show, and VW342 carries its own row. A code that names the closed stone stays unresolved rather than quietly
+    // borrowing the sibling's identity — the owner's ruling was "what the database closes stays closed".
+    assert.deepEqual(shown("VW-342"), ["VW342", "Aria Whisper"]);
+    assert.deepEqual(shown("VW 342"), ["VW342", "Aria Whisper"]);
+    assert.equal(findStoneColor("V 342", STONE_COLORS), undefined);
+    assert.equal(findStoneColor("V342", STONE_COLORS), undefined);
     assert.deepEqual(shown("WH 122"), ["WH112", "Witch Hazel"]);
     assert.deepEqual(shown("QS 822N"), ["QS822N", "Quarry Starred"]);
     assert.deepEqual(shown("MU 010"), ["MU010", "Evermoin Ultra Bright"]);
@@ -164,8 +169,9 @@ describe("(ค) WH112 and WH122 are one price", () => {
 });
 
 describe("(ง) the catalogue counts and every alias prices as its group", () => {
-  it("the catalogue in the code has 73 colours with a sheet price, and no WR815", () => {
-    assert.equal(STONE_COLORS.filter((color) => color.sheetPriceTHB !== null).length, 73);
+  it("the catalogue in the code has 64 colours with a sheet price, and no WR815", () => {
+    // job-277: the count follows the database — 9 of the closed codes carried a sheet price, so 73 became 64.
+    assert.equal(STONE_COLORS.filter((color) => color.sheetPriceTHB !== null).length, 64);
     assert.equal(STONE_COLORS.some((color) => stoneIdentifiers(color).some((value) => stoneIdentifierKey(value) === "wr815")), false);
   });
 

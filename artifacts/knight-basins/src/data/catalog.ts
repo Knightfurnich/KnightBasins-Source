@@ -227,9 +227,13 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["QS822N", "Quarry Starred", 8500, 8500, "#52565e", ["QS 822N"]],
   ["VL155", "Loam", null, 9500, "#8e7766"],
   ["VD126", "Dawn", null, 9500, "#e1e2dd"],
+  // job-277: the database has sold this stone all along (installed 12,000 per sqm, no sheet price), but the catalogue
+  // never carried its own row, so no customer could pick it. Its two spellings that name the closed V342 stone are
+  // deliberately not listed here — a code belongs to one stone.
+  ["VW342", "Aria Whisper", null, 12000, "#d9d1c2", ["VW 342"]],
 ];
 
-export const STONE_COLORS: StoneColor[] = stoneCatalogRows.map(([code, name, sheetPriceTHB, installedPriceTHB, tone, documentCodes]) => ({
+const stoneCatalogColours: StoneColor[] = stoneCatalogRows.map(([code, name, sheetPriceTHB, installedPriceTHB, tone, documentCodes]) => ({
   code,
   name,
   tone,
@@ -237,6 +241,43 @@ export const STONE_COLORS: StoneColor[] = stoneCatalogRows.map(([code, name, she
   installedPriceTHB,
   documentCodes: documentCodes ?? [],
 }));
+
+/**
+ * job-277: the database decides whether a stone is on sale. `stone-status.json` is generated from production by
+ * David's read-only script — one row per code, `visible` true when either price table still keeps the stone active.
+ * Nothing is deleted here: a closed stone stays in the table above so reopening it is a one-line database change,
+ * it simply stops reaching the storefront. A code the status file has never heard of stays visible, so a stone the
+ * database adds before the file is regenerated cannot disappear in silence; the lock in
+ * `test/stone-status-visibility.test.ts` is what shouts when the two lists drift apart.
+ */
+import stoneStatusFile from "./stone-status.json" with { type: "json" };
+
+export type StoneStatus = {
+  code: string;
+  name: string;
+  activeInstalled: boolean | null;
+  activeSheet: boolean | null;
+  visible: boolean;
+};
+
+const stoneStatusByCode = new Map<string, StoneStatus>(
+  (stoneStatusFile.colours as StoneStatus[]).map((status) => [status.code, status]),
+);
+
+export const stoneStatusForCode = (code: string): StoneStatus | undefined => stoneStatusByCode.get(code);
+
+export function isStoneVisible(code: string): boolean {
+  return stoneStatusByCode.get(code)?.visible ?? true;
+}
+
+/** The stones the app may show: the catalogue minus every code the database closed. */
+export const STONE_COLORS: StoneColor[] = stoneCatalogColours.filter((color) => isStoneVisible(color.code));
+
+/**
+ * Every row, closed stones included. Nothing that renders a picker may use this — it exists so an audit, an admin
+ * screen or a test can still name a stone the storefront stopped offering (and reopen it without digging through git).
+ */
+export const ALL_STONE_COLORS: StoneColor[] = stoneCatalogColours;
 
 export type CatalogStoneRecord = {
   code: string;
@@ -257,7 +298,7 @@ export function stoneColorsFromCatalog(
 ): StoneColor[] {
   const installedByCode = new Map(installedStones.map((stone) => [stone.code, stone]));
   const sheetByCode = new Map(sheetStones.map((stone) => [stone.code, stone]));
-  const codes = [...new Set([...installedByCode.keys(), ...sheetByCode.keys()])];
+  const codes = [...new Set([...installedByCode.keys(), ...sheetByCode.keys()])].filter(isStoneVisible);
 
   return codes.map((code) => {
     const installed = installedByCode.get(code);
@@ -317,16 +358,28 @@ function stoneIdentifiers(color: StoneColor): string[] {
 }
 
 /**
- * The stone an identifier (code, name or an approved alias from the catalogue's aliases) names, or undefined. A spelling that
- * is equal as typed wins first, exactly as before; only when none is does the comparison ignore spaces and punctuation.
+ * The stone an identifier (code, name or an approved alias from the catalogue's aliases) names, or undefined.
+ *
+ * job-277: a real code always beats an alias, so the lookup runs in four passes and never mixes the layers:
+ *   1. a code equal to the identifier as typed
+ *   2. a code equal to the identifier once spaces and punctuation are gone
+ *   3. a name or an alias equal to the identifier as typed
+ *   4. a name or an alias equal to that same reduced form
+ * Before this, one scan over the rows let a stone whose alias list carried another stone's code win over the stone
+ * that owns the code: "VW342" returned V342 Whisper at 9,500 a sqm instead of VW342 Aria Whisper at 12,000.
+ * Job 260's rules are untouched: spaces, brackets, dashes and dots never matter, while letters and digits always do
+ * (no O-for-0, no dropping a trailing N), and a spelling that matches as typed is still preferred over a reduced one.
  */
 export function findStoneColor(identifier: string, colors: ReadonlyArray<StoneColor> = STONE_COLORS): StoneColor | undefined {
   const exact = identifier.trim().toLowerCase();
-  const byExact = colors.find((color) => stoneIdentifiers(color).some((value) => value.trim().toLowerCase() === exact));
-  if (byExact) return byExact;
   const key = stoneIdentifierKey(identifier);
-  if (!key) return undefined;
-  return colors.find((color) => stoneIdentifiers(color).some((value) => stoneIdentifierKey(value) === key));
+  const byCode = (match: (entry: string) => boolean) => colors.find((color) => match(color.code));
+  const byNameOrAlias = (match: (entry: string) => boolean) =>
+    colors.find((color) => match(color.name) || color.documentCodes.some(match));
+  return byCode((code) => code.trim().toLowerCase() === exact)
+    ?? (key ? byCode((code) => stoneIdentifierKey(code) === key) : undefined)
+    ?? byNameOrAlias((value) => value.trim().toLowerCase() === exact)
+    ?? (key ? byNameOrAlias((value) => stoneIdentifierKey(value) === key) : undefined);
 }
 
 export function stoneColorMatchesSelection(color: StoneColor, identifier: string) {
