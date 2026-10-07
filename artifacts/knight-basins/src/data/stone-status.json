@@ -1,0 +1,568 @@
+{
+  "_comment": "สร้างจากฐานข้อมูล production โดยสคริปต์ของเดวิด (read-only) — ฐานข้อมูลคือแหล่งความจริงของสถานะสี",
+  "_generated": "2026-10-07 (Asia/Bangkok)",
+  "_rule": "visible = active ในตารางใดตารางหนึ่ง (installed_stone_prices / sheet_stone_prices) · ถ้า false = ซ่อนจากหน้าเว็บ/แอป",
+  "_note": "เมื่อบอสแก้สถานะใน DB ให้เดวิดรันตัวสร้างใหม่ → ไฟล์นี้เปลี่ยน → เทสต์จะฟ้องถ้าโค้ดยังไม่ตรง",
+  "colours": [
+    {
+      "code": "AA625",
+      "name": "Aspen Alder",
+      "activeInstalled": true,
+      "activeSheet": null,
+      "visible": true
+    },
+    {
+      "code": "AI612",
+      "name": "Aspen Iceberg",
+      "activeInstalled": true,
+      "activeSheet": null,
+      "visible": true
+    },
+    {
+      "code": "AL645",
+      "name": "Aspen Lily",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "AP100",
+      "name": "Apex",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "AS610",
+      "name": "Aspen Snow",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "BL461",
+      "name": "Bold Lines",
+      "activeInstalled": false,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "BR816O",
+      "name": "Black River",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "BT010",
+      "name": "Basalt Terrazzo",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "BW010",
+      "name": "Bright White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "CO521M",
+      "name": "Cloud Onyx",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "CS532M",
+      "name": "Cascade Slope",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "CT970",
+      "name": "Chess Terrazzo",
+      "activeInstalled": null,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "CT981",
+      "name": "Clay Terrazzo",
+      "activeInstalled": null,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "CW013",
+      "name": "Camellia White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "DU121",
+      "name": "Duese",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "E085",
+      "name": "Everest",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "EG501",
+      "name": "Glaring White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "EG595",
+      "name": "Metallic Galaxy",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "GC714",
+      "name": "Glalet Crystals",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "GE118",
+      "name": "Glalet Ebony",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "GG884(N)",
+      "name": "Glalet Grey (N)",
+      "activeInstalled": null,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "GG884",
+      "name": "Glalet Grey",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "GI017",
+      "name": "Glalet Ice",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "GT010",
+      "name": "Grigio Terrazzo",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "HJ524M",
+      "name": "Honey Jade",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "JG532M",
+      "name": "Jade Golddust",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "KZ695",
+      "name": "Zen Grey",
+      "activeInstalled": false,
+      "activeSheet": null,
+      "visible": false
+    },
+    {
+      "code": "KZ802",
+      "name": "Zen Autumn",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "KZ802N",
+      "name": "Zen Autumn New",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "MB025",
+      "name": "Mist Beech",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "MC016",
+      "name": "Mist Concrete",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "ME642",
+      "name": "Mist Egg",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "MM541",
+      "name": "Metallic Marble",
+      "activeInstalled": null,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "MS112",
+      "name": "Mahogany Stone",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "MU010",
+      "name": "Evermoin Ultra Bright",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "NA160",
+      "name": "Navis",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "NB091",
+      "name": "Neo Black",
+      "activeInstalled": true,
+      "activeSheet": null,
+      "visible": true
+    },
+    {
+      "code": "NB091F",
+      "name": "Neo Black Facade",
+      "activeInstalled": null,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "NT970",
+      "name": "Bologna Terrazzo",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "NW013",
+      "name": "Neo White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "OM391",
+      "name": "Ocean Marble",
+      "activeInstalled": null,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "PS820",
+      "name": "Pebble Saratoga",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "PT857",
+      "name": "Pebble Terrain",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "QS822N",
+      "name": "Quarry Starred",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "RC469",
+      "name": "Rock Cliffs",
+      "activeInstalled": false,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "RW316",
+      "name": "River White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SC457",
+      "name": "Sanded Chestnut",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SG420",
+      "name": "Sanded Grey",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SH428",
+      "name": "Sanded Heron",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SI414",
+      "name": "Sanded Icicle",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SL531",
+      "name": "Sandy Lines",
+      "activeInstalled": false,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "SO423",
+      "name": "Sanded Onyx",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SS440",
+      "name": "Sanded Sahara",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SV430",
+      "name": "Sanded Vermillion",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "SW534M",
+      "name": "Starry White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "V342",
+      "name": "Whisper",
+      "activeInstalled": false,
+      "activeSheet": false,
+      "visible": false
+    },
+    {
+      "code": "VA311",
+      "name": "Arctic White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VC110",
+      "name": "Cotton White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VD126",
+      "name": "Dawn",
+      "activeInstalled": false,
+      "activeSheet": null,
+      "visible": false
+    },
+    {
+      "code": "VD175",
+      "name": "Dandelion",
+      "activeInstalled": null,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VD345",
+      "name": "Dusk",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VD382",
+      "name": "Drift",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VF113",
+      "name": "Flux",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VF345",
+      "name": "Flat White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VL155",
+      "name": "Loam",
+      "activeInstalled": false,
+      "activeSheet": null,
+      "visible": false
+    },
+    {
+      "code": "VL312",
+      "name": "Premiere Largo",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VL343",
+      "name": "Latte Cream",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VM114",
+      "name": "Morning Sky",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VO171",
+      "name": "Ocean View",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VR322",
+      "name": "Rotor Cloud",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VS311",
+      "name": "Shine",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VS351",
+      "name": "Soft",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VS385",
+      "name": "Slate",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VV351",
+      "name": "Veil",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VV375",
+      "name": "Vivace",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VW050",
+      "name": "Vene White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VW213",
+      "name": "Vena White",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "VW342",
+      "name": "Aria Whisper",
+      "activeInstalled": true,
+      "activeSheet": null,
+      "visible": true
+    },
+    {
+      "code": "WH112",
+      "name": "Witch Hazel",
+      "activeInstalled": true,
+      "activeSheet": true,
+      "visible": true
+    },
+    {
+      "code": "WW001",
+      "name": "Wave White",
+      "activeInstalled": null,
+      "activeSheet": false,
+      "visible": false
+    }
+  ]
+}
