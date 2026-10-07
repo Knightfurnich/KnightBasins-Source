@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import {
   LINE_CALLBACK_PATH,
+  LINE_CANONICAL_CALLBACK_URL,
+  LINE_CANONICAL_HOST,
   LINE_LOCAL_CALLBACK_URL,
   LINE_PRODUCTION_CALLBACK_URL,
   LINE_PRODUCTION_HOST,
@@ -65,6 +67,26 @@ describe("LINE callback URL validation", () => {
     assert.equal(
       LINE_PRODUCTION_CALLBACK_URL,
       `https://${LINE_PRODUCTION_HOST}${LINE_CALLBACK_PATH}`,
+    );
+  });
+
+  it("accepts the canonical knightbasins.com callback the LINE console now points at", () => {
+    setLineEnvironment({
+      nodeEnv: "production",
+      callbackUrl: LINE_CANONICAL_CALLBACK_URL,
+    });
+
+    // The owner moved "Use LINE Login in your web app" to the canonical domain on
+    // 8 Oct 2026; this host must be as acceptable as the legacy one, or the app
+    // would refuse to build the authorize request it is now registered for.
+    assert.deepEqual(validateLineCallbackUrl(), {
+      valid: true,
+      environment: "production",
+      reason: "configured",
+    });
+    assert.equal(
+      LINE_CANONICAL_CALLBACK_URL,
+      `https://${LINE_CANONICAL_HOST}${LINE_CALLBACK_PATH}`,
     );
   });
 

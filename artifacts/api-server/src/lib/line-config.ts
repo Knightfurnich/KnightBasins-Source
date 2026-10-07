@@ -1,6 +1,14 @@
+export const LINE_CANONICAL_HOST = "knightbasins.com";
 export const LINE_PRODUCTION_HOST = "knightbasins.srv1964473.hstgr.cloud";
 export const LINE_CALLBACK_PATH = "/api/auth/line/callback";
+export const LINE_CANONICAL_CALLBACK_URL = `https://${LINE_CANONICAL_HOST}${LINE_CALLBACK_PATH}`;
 export const LINE_PRODUCTION_CALLBACK_URL = `https://${LINE_PRODUCTION_HOST}${LINE_CALLBACK_PATH}`;
+/**
+ * Hosts the LINE Login callback is allowed to live on. The owner moved the LINE
+ * console to the canonical domain on 8 Oct 2026; the legacy host stays in the
+ * list so a rollback in the console keeps working during the transition.
+ */
+export const LINE_CALLBACK_HOSTS: readonly string[] = [LINE_CANONICAL_HOST, LINE_PRODUCTION_HOST];
 export const LINE_LOCAL_CALLBACK_URL = `http://localhost:5000${LINE_CALLBACK_PATH}`;
 
 const LINE_CALLBACK_REASONS = [
@@ -54,7 +62,7 @@ export function validateLineCallbackUrl(callbackUrl = process.env["LINE_CALLBACK
     return { valid: false, environment: "invalid", reason: "malformed" };
   }
 
-  if (parsed.href === LINE_PRODUCTION_CALLBACK_URL) {
+  if (parsed.href === LINE_CANONICAL_CALLBACK_URL || parsed.href === LINE_PRODUCTION_CALLBACK_URL) {
     return { valid: true, environment: "production", reason: "configured" };
   }
 
@@ -66,7 +74,7 @@ export function validateLineCallbackUrl(callbackUrl = process.env["LINE_CALLBACK
     return { valid: false, environment: "invalid", reason: "not_https" };
   }
 
-  if (parsed.hostname !== LINE_PRODUCTION_HOST) {
+  if (!LINE_CALLBACK_HOSTS.includes(parsed.hostname)) {
     return { valid: false, environment: "invalid", reason: "unexpected_host" };
   }
 
