@@ -46,6 +46,32 @@ export function buildQuotePageJsonLd(): Record<string, unknown> {
   };
 }
 
+/** Pricing guidance identifies the product and service without publishing an Offer. */
+export function buildPriceGuideJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `${SITE}/price-guide#solid-surface-countertops`,
+        url: `${SITE}/price-guide`,
+        name: "เคาน์เตอร์หินสังเคราะห์และแนวทางเลือก",
+        description: "คู่มือเลือกและวางแผนสั่งทำเคาน์เตอร์หินสังเคราะห์ตามขนาดและรูปแบบงาน",
+        material: "Solid Surface",
+        brand: { "@id": `${SITE}/#organization` },
+      },
+      {
+        "@type": "Service",
+        "@id": `${SITE}/price-guide#fabrication-service`,
+        url: `${SITE}/price-guide`,
+        name: "บริการให้คำแนะนำ สั่งตัด และติดตั้งเคาน์เตอร์หินสังเคราะห์",
+        serviceType: "ให้คำแนะนำ สั่งตัด และติดตั้งเคาน์เตอร์หินสังเคราะห์",
+        provider: { "@id": `${SITE}/#organization` },
+      },
+    ],
+  };
+}
+
 function absoluteImageUrl(imageUrl: string): string {
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
   return `${SITE}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
@@ -145,6 +171,7 @@ const HOME_CRUMB: BreadcrumbItem = { name: "หน้าแรก", path: "/" };
 /** Breadcrumb trails for the indexed content pages; the home page is the top level of each. */
 const BREADCRUMB_TRAILS: Readonly<Record<string, ReadonlyArray<BreadcrumbItem>>> = {
   "/stone": [HOME_CRUMB, { name: "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์", path: "/stone" }],
+  "/price-guide": [HOME_CRUMB, { name: "ราคาและวิธีเลือกหินสังเคราะห์", path: "/price-guide" }],
   "/portfolio": [HOME_CRUMB, { name: "ภาพผลงานติดตั้งจริง", path: "/portfolio" }],
   "/studio": [HOME_CRUMB, { name: "2D Studio ออกแบบเคาน์เตอร์", path: "/studio" }],
   "/quote": [HOME_CRUMB, { name: "สร้างใบเสนอราคาออนไลน์", path: "/quote" }],

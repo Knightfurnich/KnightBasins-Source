@@ -78,6 +78,7 @@ const STANDALONE_PUBLIC_FOOTER_PATHS = new Set([
   "/updates",
   "/studio-guide",
   "/portfolio",
+  "/price-guide",
 ]);
 
 
@@ -295,6 +296,7 @@ function Footer() {
           <span>TH / 2026 COLLECTION</span>
           <span>ราคาสินค้ายังไม่รวม VAT</span>
           <Link href="/portfolio" className="footer-owner-link">คลังผลงานติดตั้งจริง</Link>
+          <Link href="/price-guide" className="footer-owner-link" data-testid="link-footer-price-guide">ราคาและวิธีเลือกหินสังเคราะห์</Link>
           <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
           <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v2.2)</Link>
         </div>
@@ -327,6 +329,13 @@ function NetworkFooterLinks() {
         >
           ความรู้เรื่องหินสังเคราะห์
         </a>
+        <Link
+          className="footer-owner-link"
+          href="/price-guide"
+          data-testid="link-network-footer-price-guide"
+        >
+          ราคาและวิธีเลือกหินสังเคราะห์
+        </Link>
       </span>
     </div>
   );
@@ -1724,6 +1733,7 @@ import { SitePrepPage } from "./pages/SitePrepPage";
 import UpdatesPage from "./pages/UpdatesPage";
 import { StudioGuidePage } from "./pages/StudioGuidePage";
 import { PortfolioPage } from "./pages/PortfolioPage";
+import PriceGuidePage from "./pages/PriceGuidePage";
 import { CustomerTrackingPage } from "./pages/CustomerTrackingPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -2000,6 +2010,7 @@ function App() {
               <Route path="/admin/*" component={AdminApp} />
               <Route path="/readme" component={SalesGuide} />
               <Route path="/site-prep" component={SitePrepPage} />
+              <Route path="/price-guide" component={PriceGuidePage} />
               <Route path="/track" component={CustomerTrackingPage} />
               <Route path="/handover" component={DigitalHandoverPage} />
               <Route path="/updates" component={UpdatesPage} />
