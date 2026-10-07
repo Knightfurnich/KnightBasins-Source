@@ -47,7 +47,8 @@ describe("stone colour count copy (job-203)", () => {
   });
 
   it("llms.txt names the colour count on the stone catalogue line and on the raw-slab line", () => {
-    assert.match(llmsTxt, new RegExp(`แคตตาล็อกหินสังเคราะห์ \\(${COLOUR_PHRASE} 3 เรตราคา\\)`));
+    // job-277/282: the catalogue carries a fourth installed rate (Aria Whisper, 12,000), so the line moves with it.
+    assert.match(llmsTxt, new RegExp(`แคตตาล็อกหินสังเคราะห์ \\(${COLOUR_PHRASE} 4 เรตราคา\\)`));
     assert.match(llmsTxt, new RegExp(`แผ่นหินสังเคราะห์ดิบ[^\\n]*มีให้เลือก${COLOUR_PHRASE}`));
   });
 

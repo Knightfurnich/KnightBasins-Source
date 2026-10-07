@@ -12,6 +12,9 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { KNIGHT_FAQ_ITEMS } from "../src/data/faq-data.ts";
+import { STONE_COLORS } from "../src/data/catalog.ts";
+
+const thb = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
 
 const llmsTxt = readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8");
 const llmsFullTxt = readFileSync(new URL("../public/llms-full.txt", import.meta.url), "utf8");
@@ -147,9 +150,18 @@ describe("llms.txt / llms-full.txt stay in step with the site (job-202)", () => 
       assert.match(text, /ร้านทำท็อปครัว[^\n]*กรุงเทพ[^\n]*ปริมณฑล/);
     });
 
-    it(`${name} only quotes the three KB stone rates`, () => {
-      const rates = new Set([...text.matchAll(/([\d,]+)\s*บาท\s*\/\s*ตร\.ม\./g)].map((match) => match[1]));
-      assert.deepEqual([...rates].sort(), ["7,500", "8,500", "9,500"]);
+    it(`${name} only quotes installed rates the catalogue actually sells`, () => {
+      // This used to be a hard-coded trio, written long before the catalogue carried a fourth rate.
+      // job-277 restored VW342 Aria Whisper at 12,000 a sqm, so the trio is no longer the truth — and a
+      // copy that has to catch up with the price list must be checked against the price list, not a constant.
+      const rates = new Set(
+        [...STONE_COLORS.map((stone) => stone.installedPriceTHB).filter((price): price is number => price !== null)]
+          .map((price) => thb.format(price)),
+      );
+      const quoted = [...text.matchAll(/([\d,]+)\s*บาท\s*\/\s*ตร\.ม\./g)].map((match) => match[1]);
+      assert.ok(quoted.length > 0, `${name} must quote at least one installed rate`);
+      const invented = [...new Set(quoted)].filter((rate) => !rates.has(rate));
+      assert.deepEqual(invented, [], `${name} quotes a rate the catalogue never sells: ${invented.join(" · ")}`);
     });
   }
 
