@@ -5,6 +5,7 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { UPLOAD_DIR } from "./lib/image-upload";
+import { uploadsStaticOptions } from "./lib/uploads-static";
 import { validatePayloadDepthAndSize } from "./lib/payload-guard";
 
 const app: Express = express();
@@ -75,8 +76,9 @@ app.use((_req, res, next) => {
   next();
 });
 app.use(cookieParser());
-app.use("/kb/images/uploads", express.static(UPLOAD_DIR));
-app.use("/api/uploads", express.static(UPLOAD_DIR));
+// Uploaded photos keep their name for good, so they are served with a cache lifetime (see lib/uploads-static.ts).
+app.use("/kb/images/uploads", express.static(UPLOAD_DIR, uploadsStaticOptions()));
+app.use("/api/uploads", express.static(UPLOAD_DIR, uploadsStaticOptions()));
 // 256kb comfortably covers every legitimate JSON body this API accepts
 // (studioData/lead payloads are a few KB to a few tens of KB even for a
 // complex multi-piece L/U counter) while still being far below a size that
