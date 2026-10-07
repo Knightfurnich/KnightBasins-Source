@@ -246,6 +246,70 @@ function createStaticSeoShell(shell, route, metadata) {
   return html;
 }
 
+/**
+ * When the page was generated. Honest for a static export and the strongest attribution an AI answer can use;
+ * these are storefront pages, not dated editorial, so it is deliberately the build and not a per-article field.
+ */
+const buildStamp = new Date().toISOString();
+
+/**
+ * A live crawl of the 12 sitemap routes found a WebPage node with no authorship and no date on 12/12 of them, and no
+ * email anywhere in the published JSON-LD. This adds the three attribution fields, pointing at nodes that already
+ * exist in the same document so nothing is duplicated.
+ */
+function stampRouteWebPageJsonLd(html) {
+  return html.replace(
+    /<script\b[^>]*data-prerender-webpage[^>]*>([\s\S]*?)<\/script>/i,
+    (whole, body) => {
+      let page;
+      try {
+        page = JSON.parse(body);
+      } catch {
+        return whole;
+      }
+      const origin = new URL(html.match(/<link\b[^>]*rel="canonical"[^>]*href="([^"]+)"/i)?.[1] ?? page.url ?? "https://knightbasins.com/").origin;
+      page.inLanguage ??= "th";
+      page.dateModified ??= buildStamp;
+      page.author ??= { "@id": `${origin}/#organization` };
+      page.publisher ??= { "@id": `${origin}/#website` };
+      return whole.replace(body, JSON.stringify(page).replace(/</g, "\\u003c"));
+    },
+  );
+}
+
+/**
+ * The static shell carries the ten-question FAQPage that the homepage answers on screen; rendering the shared head
+ * into every route made eleven pages advertise answers they never showed, and an AI citing them would send a reader
+ * to a page without the text. A route that really renders an FAQ marks its own block with data-route-schema="faq",
+ * which is the flag this keeps; anything inherited disappears.
+ */
+function dropInheritedFaqJsonLd(html, route) {
+  if (route.path === "/") return html;
+  let next = html;
+  for (const block of html.match(/<script\b[^>]*\btype="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi) ?? []) {
+    if (!block.includes("FAQPage") || /data-route-schema=/i.test(block)) continue;
+    const body = block.replace(/^<script\b[^>]*>/i, "").replace(/<\/script>$/i, "");
+    let doc;
+    try {
+      doc = JSON.parse(body);
+    } catch {
+      throw new Error(`[prerender] ${route.path}: an inherited FAQPage block cannot be parsed.`);
+    }
+    const kept = (doc["@graph"] ?? []).filter((node) => node?.["@type"] !== "FAQPage");
+    if (kept.length === (doc["@graph"] ?? []).length) continue;
+    if (Object.keys(doc).some((key) => key !== "@context" && key !== "@graph")) {
+      throw new Error(`[prerender] ${route.path}: FAQPage shares a block with other top-level keys; widen this helper instead of dropping data.`);
+    }
+    next = next.replace(block, kept.length
+      ? `<script type="application/ld+json">${JSON.stringify({ "@context": doc["@context"], "@graph": kept }).replace(/</g, "\u003c")}</script>`
+      : "");
+  }
+  if (next.includes("FAQPage")) {
+    throw new Error(`[prerender] ${route.path}: an FAQPage survives although the route renders none - give the block data-route-schema="faq".`);
+  }
+  return next;
+}
+
 function addRouteWebPageJsonLd(html, route, metadata) {
   if (!metadata) {
     throw new Error(`[prerender] No route metadata is defined for ${route.path}.`);
@@ -451,7 +515,10 @@ async function main() {
             route.path,
           )
         : createStaticSeoShell(staticShell, route, metadata);
-      const html = addRouteWebPageJsonLd(renderedHtml, route, metadata);
+      const html = dropInheritedFaqJsonLd(
+        stampRouteWebPageJsonLd(addRouteWebPageJsonLd(renderedHtml, route, metadata)),
+        route,
+      );
       const title = findTitle(html);
       const description = findMetaContent(html, "description");
       const canonical = findCanonical(html);

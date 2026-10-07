@@ -299,6 +299,7 @@ function Footer() {
           <Link href="/price-guide" className="footer-owner-link" data-testid="link-footer-price-guide">ราคาและวิธีเลือกหินสังเคราะห์</Link>
           <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
           <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v2.2)</Link>
+          <Link href="/network" className="footer-owner-link">เครือข่ายเว็บไซต์ของเรา</Link>
         </div>
         <Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link>
       </div>
