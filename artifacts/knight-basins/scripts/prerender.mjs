@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { dropInheritedFaqJsonLd } from "./prerender-faq.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const appDirectory = path.resolve(scriptDirectory, "..");
@@ -285,39 +286,6 @@ function stampRouteWebPageJsonLd(html) {
       return whole.replace(body, JSON.stringify(page).replace(/</g, "\\u003c"));
     },
   );
-}
-
-/**
- * The static shell carries the ten-question FAQPage that the homepage answers on screen; rendering the shared head
- * into every route made eleven pages advertise answers they never showed, and an AI citing them would send a reader
- * to a page without the text. A route that really renders an FAQ marks its own block with data-route-schema="faq",
- * which is the flag this keeps; anything inherited disappears.
- */
-function dropInheritedFaqJsonLd(html, route) {
-  if (route.path === "/") return html;
-  let next = html;
-  for (const block of html.match(/<script\b[^>]*\btype="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi) ?? []) {
-    if (!block.includes("FAQPage") || /data-route-schema=/i.test(block)) continue;
-    const body = block.replace(/^<script\b[^>]*>/i, "").replace(/<\/script>$/i, "");
-    let doc;
-    try {
-      doc = JSON.parse(body);
-    } catch {
-      throw new Error(`[prerender] ${route.path}: an inherited FAQPage block cannot be parsed.`);
-    }
-    const kept = (doc["@graph"] ?? []).filter((node) => node?.["@type"] !== "FAQPage");
-    if (kept.length === (doc["@graph"] ?? []).length) continue;
-    if (Object.keys(doc).some((key) => key !== "@context" && key !== "@graph")) {
-      throw new Error(`[prerender] ${route.path}: FAQPage shares a block with other top-level keys; widen this helper instead of dropping data.`);
-    }
-    next = next.replace(block, kept.length
-      ? `<script type="application/ld+json">${JSON.stringify({ "@context": doc["@context"], "@graph": kept }).replace(/</g, "\u003c")}</script>`
-      : "");
-  }
-  if (next.includes("FAQPage")) {
-    throw new Error(`[prerender] ${route.path}: an FAQPage survives although the route renders none - give the block data-route-schema="faq".`);
-  }
-  return next;
 }
 
 function addRouteWebPageJsonLd(html, route, metadata) {
