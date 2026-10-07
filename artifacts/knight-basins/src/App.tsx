@@ -274,7 +274,7 @@ function Footer() {
             </div>
             <div className="footer-contact-item">
               <span className="footer-contact-key">เวลาทำการ</span>
-              <span>จ.-ศ. 08:30–16:30 · ส. 08:30–11:30 (หยุดวันอาทิตย์)</span>
+              <span>จ.-ศ. 08:00–17:00 · ส. 08:00–12:00 (หยุดวันอาทิตย์)</span>
             </div>
           </div>
           <NetworkFooterLinks />
