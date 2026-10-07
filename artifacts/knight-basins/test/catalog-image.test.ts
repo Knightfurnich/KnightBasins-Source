@@ -236,8 +236,15 @@ describe("storefront multi-selection state", () => {
     assert.deepEqual(result.hidden, [selected[2]]);
   });
 
-  it("studio basin search reaches every catalog model", () => {
-    assert.equal(filterBasinProducts(PRODUCTS, "").length, 30);
+  it("studio basin search reaches every catalogue model the database still sells", () => {
+    // job-279: KF024 ships in Whisper (V342) and the database closed that stone, so the picker must withhold the basin
+    // (owner rule: hidden = not for sale). The row stays inside PRODUCTS — hiding a stone is not deleting a model —
+    // which is why 30 models are still listed while 29 are offered, and why searching cannot resurrect KF024.
+    assert.equal(PRODUCTS.length, 30);
+    assert.equal(filterBasinProducts(PRODUCTS, "").length, 29);
+    assert.equal(filterBasinProducts(PRODUCTS, "").some((product) => product.sku === "KF024"), false);
+    assert.deepEqual(filterBasinProducts(PRODUCTS, "KF024").map((product) => product.sku), []);
+    assert.deepEqual(filterBasinProducts(PRODUCTS, "Whisper").map((product) => product.sku), []);
     assert.deepEqual(filterBasinProducts(PRODUCTS, "KF029").map((product) => product.sku), ["KF029"]);
     assert.deepEqual(filterBasinProducts(PRODUCTS, "KF030").map((product) => product.sku), ["KF030"]);
   });

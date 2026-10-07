@@ -29,8 +29,45 @@ export function isFreestandingPillarProduct(
     || (product.category === "tall vertical washbasin" && !product.basinDimensions?.trim());
 }
 
-export function studioCutoutBasinProducts(products: ReadonlyArray<BasinProduct>): BasinProduct[] {
-  return products.filter((product) => !isFreestandingPillarProduct(product));
+/**
+ * job-279: the owner's rule is "what the database hides, nobody sells". A basin ships with one stone colour of its
+ * own, so when that stone is closed the basin stops being a product a customer can be offered — and it must not be
+ * quietly repriced against some other stone (that is the silent-fallback hole job 278 closed).
+ *
+ * A basin is sellable when its colour still resolves to a stone in the loaded catalogue and that stone is visible.
+ * An unresolvable code also counts as not sellable: it is not a stone anyone can stand behind.
+ */
+export function isBasinSellable(
+  product: Pick<BasinProduct, "colorCode">,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): boolean {
+  const stone = findStoneColor(product.colorCode, colors);
+  return stone !== undefined && isStoneVisible(stone.code);
+}
+
+/** Why a basin is not on the shelf, in words a screen can show. `null` when the basin is sellable. */
+export function basinHiddenReason(
+  product: Pick<BasinProduct, "colorCode" | "colorName">,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): string | null {
+  if (isBasinSellable(product, colors)) return null;
+  return isStoneVisible(product.colorCode)
+    ? `แคตตาล็อกไม่มีสี ${product.colorCode} ของอ่างรุ่นนี้`
+    : `สี ${product.colorCode} ถูกปิดในฐานข้อมูล`;
+}
+
+export function sellableBasinProducts(
+  products: ReadonlyArray<BasinProduct>,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): BasinProduct[] {
+  return products.filter((product) => isBasinSellable(product, colors));
+}
+
+export function studioCutoutBasinProducts(
+  products: ReadonlyArray<BasinProduct>,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+): BasinProduct[] {
+  return products.filter((product) => !isFreestandingPillarProduct(product) && isBasinSellable(product, colors));
 }
 
 export function productCategoryLabel(product: BasinProduct): string {
@@ -178,7 +215,9 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["VS311", "Shine", 12000, 9500, "#d9dad6", ["VS 311", "Aria Shine"]],
   ["VS351", "Soft", 12000, 9500, "#e8e2d8", ["VS 351", "Aria Soft"]],
   ["VS385", "Slate", 12000, 9500, "#777a78", ["VS 385", "Aria Slate"]],
-  ["V342", "Whisper", 12000, 9500, "#d9d1c2", ["VW342", "VW 342"]],
+  // job-277 follow-up: the owner trimmed the alias lists in the database on 7 Oct 2026 — this closed
+  // stone answers to V342 and "V 342" only; VW342 and "VW 342" belong to Aria Whisper and nowhere else.
+  ["V342", "Whisper", 12000, 9500, "#d9d1c2", ["V 342"]],
   ["VD345", "Dusk", 12000, 9500, "#d6c5ab", ["VD 345", "Aria Dusk"]],
   ["VV351", "Veil", 12000, 9500, "#e8e1db", ["VV 351", "Aria Veil"]],
   ["PT857", "Pebble Terrain", 9500, 8500, "#7f6249", ["PT 857"]],
@@ -227,9 +266,13 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["QS822N", "Quarry Starred", 8500, 8500, "#52565e", ["QS 822N"]],
   ["VL155", "Loam", null, 9500, "#8e7766"],
   ["VD126", "Dawn", null, 9500, "#e1e2dd"],
+  // job-277: the database has sold this stone all along (installed 12,000 per sqm, no sheet price), but the catalogue
+  // never carried its own row, so no customer could pick it. Its two spellings that name the closed V342 stone are
+  // deliberately not listed here — a code belongs to one stone.
+  ["VW342", "Aria Whisper", null, 12000, "#d9d1c2", ["VW 342"]],
 ];
 
-export const STONE_COLORS: StoneColor[] = stoneCatalogRows.map(([code, name, sheetPriceTHB, installedPriceTHB, tone, documentCodes]) => ({
+const stoneCatalogColours: StoneColor[] = stoneCatalogRows.map(([code, name, sheetPriceTHB, installedPriceTHB, tone, documentCodes]) => ({
   code,
   name,
   tone,
@@ -237,6 +280,43 @@ export const STONE_COLORS: StoneColor[] = stoneCatalogRows.map(([code, name, she
   installedPriceTHB,
   documentCodes: documentCodes ?? [],
 }));
+
+/**
+ * job-277: the database decides whether a stone is on sale. `stone-status.json` is generated from production by
+ * David's read-only script — one row per code, `visible` true when either price table still keeps the stone active.
+ * Nothing is deleted here: a closed stone stays in the table above so reopening it is a one-line database change,
+ * it simply stops reaching the storefront. A code the status file has never heard of stays visible, so a stone the
+ * database adds before the file is regenerated cannot disappear in silence; the lock in
+ * `test/stone-status-visibility.test.ts` is what shouts when the two lists drift apart.
+ */
+import stoneStatusFile from "./stone-status.json" with { type: "json" };
+
+export type StoneStatus = {
+  code: string;
+  name: string;
+  activeInstalled: boolean | null;
+  activeSheet: boolean | null;
+  visible: boolean;
+};
+
+const stoneStatusByCode = new Map<string, StoneStatus>(
+  (stoneStatusFile.colours as StoneStatus[]).map((status) => [status.code, status]),
+);
+
+export const stoneStatusForCode = (code: string): StoneStatus | undefined => stoneStatusByCode.get(code);
+
+export function isStoneVisible(code: string): boolean {
+  return stoneStatusByCode.get(code)?.visible ?? true;
+}
+
+/** The stones the app may show: the catalogue minus every code the database closed. */
+export const STONE_COLORS: StoneColor[] = stoneCatalogColours.filter((color) => isStoneVisible(color.code));
+
+/**
+ * Every row, closed stones included. Nothing that renders a picker may use this — it exists so an audit, an admin
+ * screen or a test can still name a stone the storefront stopped offering (and reopen it without digging through git).
+ */
+export const ALL_STONE_COLORS: StoneColor[] = stoneCatalogColours;
 
 export type CatalogStoneRecord = {
   code: string;
@@ -257,7 +337,7 @@ export function stoneColorsFromCatalog(
 ): StoneColor[] {
   const installedByCode = new Map(installedStones.map((stone) => [stone.code, stone]));
   const sheetByCode = new Map(sheetStones.map((stone) => [stone.code, stone]));
-  const codes = [...new Set([...installedByCode.keys(), ...sheetByCode.keys()])];
+  const codes = [...new Set([...installedByCode.keys(), ...sheetByCode.keys()])].filter(isStoneVisible);
 
   return codes.map((code) => {
     const installed = installedByCode.get(code);
@@ -317,16 +397,28 @@ function stoneIdentifiers(color: StoneColor): string[] {
 }
 
 /**
- * The stone an identifier (code, name or an approved alias from the catalogue's aliases) names, or undefined. A spelling that
- * is equal as typed wins first, exactly as before; only when none is does the comparison ignore spaces and punctuation.
+ * The stone an identifier (code, name or an approved alias from the catalogue's aliases) names, or undefined.
+ *
+ * job-277: a real code always beats an alias, so the lookup runs in four passes and never mixes the layers:
+ *   1. a code equal to the identifier as typed
+ *   2. a code equal to the identifier once spaces and punctuation are gone
+ *   3. a name or an alias equal to the identifier as typed
+ *   4. a name or an alias equal to that same reduced form
+ * Before this, one scan over the rows let a stone whose alias list carried another stone's code win over the stone
+ * that owns the code: "VW342" returned V342 Whisper at 9,500 a sqm instead of VW342 Aria Whisper at 12,000.
+ * Job 260's rules are untouched: spaces, brackets, dashes and dots never matter, while letters and digits always do
+ * (no O-for-0, no dropping a trailing N), and a spelling that matches as typed is still preferred over a reduced one.
  */
 export function findStoneColor(identifier: string, colors: ReadonlyArray<StoneColor> = STONE_COLORS): StoneColor | undefined {
   const exact = identifier.trim().toLowerCase();
-  const byExact = colors.find((color) => stoneIdentifiers(color).some((value) => value.trim().toLowerCase() === exact));
-  if (byExact) return byExact;
   const key = stoneIdentifierKey(identifier);
-  if (!key) return undefined;
-  return colors.find((color) => stoneIdentifiers(color).some((value) => stoneIdentifierKey(value) === key));
+  const byCode = (match: (entry: string) => boolean) => colors.find((color) => match(color.code));
+  const byNameOrAlias = (match: (entry: string) => boolean) =>
+    colors.find((color) => match(color.name) || color.documentCodes.some(match));
+  return byCode((code) => code.trim().toLowerCase() === exact)
+    ?? (key ? byCode((code) => stoneIdentifierKey(code) === key) : undefined)
+    ?? byNameOrAlias((value) => value.trim().toLowerCase() === exact)
+    ?? (key ? byNameOrAlias((value) => stoneIdentifierKey(value) === key) : undefined);
 }
 
 export function stoneColorMatchesSelection(color: StoneColor, identifier: string) {
@@ -373,20 +465,42 @@ export function reconcileStoneSelections(
   }, { active: [], hidden: [] });
 }
 
+/**
+ * job-278: a stone the catalogue does not know stays unknown. Until now every lookup ended in `?? colors[0]`, so an
+ * unrecognised code — a typo, or a stone the database has since closed such as V342 after job 277 — quietly became
+ * the first row of the catalogue: Bright White, 7,500 a square metre, 5,900 a sheet. A quote came out looking
+ * complete while naming and pricing a stone nobody asked for (1 sqm of Aria Whisper quoted as Bright White is
+ * 4,500 baht short). Three rules now hold instead:
+ *   · a price helper returns null when it cannot name the stone, which every caller already treats as "no price"
+ *     (App.tsx `stoneTotal`/`isInvalidStone`, StudioEstimate `stoneUnitPriceTHB`, `quoteSketchPiece` → "no-price");
+ *   · the display helper still never returns undefined — thirty render sites read `.name`/`.tone` on it — but what it
+ *     returns for an unknown identifier describes that identifier back, never another stone's identity;
+ *   · `isUnknownStone()` is the explicit check for a caller that wants to say "ไม่รู้จักสีนี้" itself.
+ */
+export const UNKNOWN_STONE_TONE = "#e6e6e3";
+
+/** The placeholder record for an identifier the catalogue cannot resolve. It carries no price on purpose. */
+export function unknownStone(identifier: string): StoneColor {
+  const code = identifier.trim();
+  return { code, name: code || "ยังไม่ได้เลือกสีหิน", tone: UNKNOWN_STONE_TONE, sheetPriceTHB: null, installedPriceTHB: null, documentCodes: [] };
+}
+
+export function isUnknownStone(identifier: string, colors: ReadonlyArray<StoneColor> = STONE_COLORS): boolean {
+  return findStoneColor(identifier, colors) === undefined;
+}
+
 export const stoneColorByName = (
   identifier: string,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
-) => {
-  return findStoneColor(identifier, colors) ?? colors[0] ?? STONE_COLORS[0];
-};
+) => findStoneColor(identifier, colors) ?? unknownStone(identifier);
 
 export const stoneSheetUnitPrice = (
   colorIdentifier: string,
   quantity: number,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ) => {
-  const color = stoneColorByName(colorIdentifier, colors);
-  if (color.sheetPriceTHB === null) return null;
+  const color = findStoneColor(colorIdentifier, colors);
+  if (!color || color.sheetPriceTHB === null) return null;
   const promotionExcluded = ["BW010", "NW013"].includes(color.code);
   if (quantity >= 50 && !promotionExcluded) return Math.round(color.sheetPriceTHB * 0.95);
   if (quantity >= 10 && !promotionExcluded) return Math.max(0, color.sheetPriceTHB - 200);
@@ -396,7 +510,7 @@ export const stoneSheetUnitPrice = (
 export const stoneInstalledUnitPrice = (
   colorIdentifier: string,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
-) => stoneColorByName(colorIdentifier, colors).installedPriceTHB;
+) => findStoneColor(colorIdentifier, colors)?.installedPriceTHB ?? null;
 
 export function toggleBasinSelection(lines: QuoteBasinLine[], sku: string): QuoteBasinLine[] {
   return lines.some((line) => line.sku === sku)
@@ -460,16 +574,16 @@ export const BASIN_PRODUCTS: BasinProduct[] = [
   ["KF001", "VS311", "Shine", 19000, counterDims],
   ["KF002", "VS351", "Soft", 19000, counterDims],
   ["KF003", "RW316", "River White", 19000, counterDims],
-  ["KF004", "VW050", "Wene White", 19000, counterDims],
-  ["KF005", "HJ524M", "Honer Jade", 19000, counterDims],
+  ["KF004", "VW050", "Vene White", 19000, counterDims],
+  ["KF005", "HJ524M", "Honey Jade", 19000, counterDims],
   ["KF006", "RW316", "River White", 19000, counterDims],
   ["KF007", "VL343", "Latte Cream", 19000, counterDims],
-  ["KF008", "SI414", "Sanded Icice", 17000, counterDims],
+  ["KF008", "SI414", "Sanded Icicle", 17000, counterDims],
   ["KF009", "NB091", "Neo Black", 17000, counterDims],
-  ["KF010", "NA016", "Navis", 17000, counterDims],
+  ["KF010", "NA160", "Navis", 17000, counterDims],
   ["KF011", "VD382", "Drift", 19000, counterWideDims],
-  ["KF012", "CS522M", "Cascade Slope", 19000, counterWideDims],
-  ["KF013", "WR322", "Rotor Cloud", 19000, counterWideDims],
+  ["KF012", "CS532M", "Cascade Slope", 19000, counterWideDims],
+  ["KF013", "VR322", "Rotor Cloud", 19000, counterWideDims],
   ["KF014", "EG501", "Glaring White", 17000, counterWideDims],
   ["KF015", "GG884", "Glalet Grey", 20000, counterWideDims],
   ["KF016", "KZ802", "Zen Autumn", 19000, counterWideDims],
@@ -511,10 +625,19 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
 export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
-export function filterBasinProducts(products: ReadonlyArray<BasinProduct>, query: string) {
+/**
+ * The basin picker list. job-279: a closed stone takes its basin off the shelf, whatever the search box says — the
+ * picker shows "แสดง X จาก Y รุ่น" from this function, so the count itself tells the customer something was withheld.
+ */
+export function filterBasinProducts(
+  products: ReadonlyArray<BasinProduct>,
+  query: string,
+  colors: ReadonlyArray<StoneColor> = STONE_COLORS,
+) {
   const normalizedQuery = query.trim().toLocaleLowerCase();
-  if (!normalizedQuery) return products;
-  return products.filter((product) => [
+  const sellable = sellableBasinProducts(products, colors);
+  if (!normalizedQuery) return sellable;
+  return sellable.filter((product) => [
     product.sku,
     product.colorCode,
     product.colorName,

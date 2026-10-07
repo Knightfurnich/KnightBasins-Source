@@ -25,10 +25,15 @@ const installedPriceTiers = [
   ),
 ].sort((first, second) => first - second);
 
+// One label per installed rate, paired by index with the prices read from the catalogue above.
+// job-277 restored VW342 "Aria Whisper" (12,000 a sqm, straight from the database), which made the
+// catalogue carry a fourth rate; without this entry the page silently dropped it. The wording of the
+// new tier is a placeholder until the owner confirms it — the price itself is the database's.
 const installedRateLabels = [
   { name: "สีพื้นเรียบ", detail: "โทนสีสม่ำเสมอ ดูเรียบง่ายและเข้ากับพื้นที่ได้หลายแบบ" },
   { name: "ลายเกล็ดชิป", detail: "เพิ่มมิติด้วยลายเม็ดละเอียด เหมาะกับพื้นที่ใช้งานทุกวัน" },
   { name: "ลายหินอ่อน", detail: "ลายเส้นและเฉดสีที่ให้ความรู้สึกโดดเด่นกับพื้นที่" },
+  { name: "Aria Whisper", detail: "สีระดับพรีเมียม — เรตสูงสุดของแคตตาล็อก (สูงกว่าเรตลายหินอ่อน)" },
 ] as const;
 
 export const PRICE_GUIDE_INSTALLATION_RATES = installedRateLabels.flatMap(

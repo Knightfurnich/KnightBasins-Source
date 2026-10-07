@@ -245,13 +245,15 @@ describe("(ฉ) order type: installed top by default, standard sheets as the sec
     assert.equal(DEFAULT_SKETCH_ORDER_TYPE, "fabrication");
   });
 
-  it("the colour list follows the order type: sheets and installed tops each list exactly the colours that have a price of that type (this catalogue: 73 sheet, 71 installed)", () => {
+  it("the colour list follows the order type: sheets and installed tops each list exactly the colours that have a price of that type (this catalogue: 64 sheet, 65 installed)", () => {
     const installed = sketchStoneChoices("fabrication");
     const sheets = sketchStoneChoices("sheet");
-    // The work order said 74 sheet colours; the catalogue in this repo has 73 (9 sheet-only, 7 installed-only, 0 with neither).
+    // job-277: STONE_COLORS is now the stones the database sells, so the count moved from 73/71 to 64/65 — 9 closed
+    // codes carried a sheet price and 4 more carried only a sheet price, while Aria Whisper (VW342) came back with an
+    // installed rate of 12,000. The work order's "74 sheet colours" prediction still does not hold for this checkout.
     assert.equal(sheets.length, STONE_COLORS.filter((color) => color.sheetPriceTHB !== null).length);
-    assert.equal(sheets.length, 73);
-    assert.equal(installed.length, 71);
+    assert.equal(sheets.length, 64);
+    assert.equal(installed.length, 65);
     assert.ok(installed.every((color) => color.installedPriceTHB !== null));
     assert.ok(sheets.every((color) => color.sheetPriceTHB !== null));
     assert.ok(installed.length !== sheets.length);
