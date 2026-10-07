@@ -118,3 +118,31 @@ describe("llms-full.txt copies the app's numbers, not remembered ones (job-282 B
     }
   });
 });
+
+describe("every rate list in the copy names all four rates (job-283)", () => {
+  // "฿7,500 / ฿8,500 / ฿9,500" once sat in four places at once — llms-full.txt, the studio-guide page,
+  // the studio-guide JSON-LD and llms.txt. Catalogue changes reach the price calculators automatically and
+  // the price-guide page builds its own tier list from STONE_COLORS, but a hand-written list of rates just
+  // keeps printing the old number until a customer or an AI model notices. Every "฿ / ฿ / …" run in the copy
+  // is therefore compared against the tiers the catalogue sells today.
+  const expected = installedTiers.map((price) => `\u0e3f${baht.format(price)}`).join(" / ");
+  const copied: Array<[string, string]> = [
+    ["public/llms.txt", llmsTxt],
+    ["public/llms-full.txt", llmsFullTxt],
+    ["src/data/structured-data.ts", readFileSync(new URL("../src/data/structured-data.ts", import.meta.url), "utf8")],
+    ["src/pages/StudioGuidePage.tsx", readFileSync(new URL("../src/pages/StudioGuidePage.tsx", import.meta.url), "utf8")],
+  ];
+
+  it("a rate list exists in the copy at all, so this test cannot pass by deleting the copy", () => {
+    const lists = copied.flatMap(([, text]) => [...text.matchAll(/\u0e3f[\d,]+(?: \/ \u0e3f[\d,]+)+/g)]);
+    assert.ok(lists.length >= 3, `expected the studio-guide rate list in at least three places, found ${lists.length}`);
+  });
+
+  it("no copy still prints a short rate list", () => {
+    for (const [file, text] of copied) {
+      for (const match of text.matchAll(/\u0e3f[\d,]+(?: \/ \u0e3f[\d,]+)+/g)) {
+        assert.equal(match[0], expected, `${file} lists "${match[0]}" but the catalogue sells ${expected}`);
+      }
+    }
+  });
+});
