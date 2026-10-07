@@ -29,6 +29,7 @@ GOAL:
 SCOPE:
   - /opt/data/cache/kbsrc/artifacts/knight-basins/src/data/catalog.ts      (แก้ 3 บรรทัดของอ่าง KF010/KF012/KF013 เท่านั้น)
   - /opt/data/cache/kbsrc/artifacts/knight-basins/test/                    (ใหม่) ไฟล์เทสต์ใหม่ 1 ไฟล์ในนี้
+  - /opt/data/cache/kbsrc/artifacts/knight-basins/public/llms-full.txt      ⬅ เพิ่ม 7 ต.ค. 69 · บรรทัด 57/59/60 เท่านั้น (รหัส NA016→NA160 · CS522M→CS532M · WR322→VR322)
   - /opt/data/cache/kbsrc/qa/job-276-qwen-reference-and-alias-tests.md     อ่านเท่านั้น
 
 FORBIDDEN:
@@ -90,6 +91,12 @@ STOP:
 | 10 | ไม่แก้สีที่รอตัดสิน | V342/VW342 ไม่ถูกแก้ในโค้ด (รายงานเท่านั้น) |
 | 11 | index.css | 0 diff |
 | 12 | หลักฐานดิบ | แนบผลรันจริงทุกข้อ (คำสั่ง + ตัวเลข) ไม่ใช่คำรับรอง |
+| 13 | llms-full.txt | แก้ 3 บรรทัด (57/59/60) ให้รหัสตรงแคตตาล็อก · `grep -rn "NA016\|CS522M\|WR322" --exclude-dir=dist --exclude-dir=qa .` = 0 (ยกเว้น KANBAN/qa/attached_assets ที่เป็นบันทึก) |
+
+## 🔧 ปรับ SCOPE รอบ 2 (7 ต.ค. 69) — ตอบคำถามของ Qwen
+
+Qwen ถามว่า `public/llms-full.txt` บรรทัด 57/59/60 (รหัสชุดเดียวกันโผล่ในตารางสำหรับ AI crawler) อยู่นอก SCOPE → **อนุญาตให้แก้ใน PR เดียวกันได้เลย** (ใส่ SCOPE แล้วด้านบน) ตามข้อ 13
+**ยังไม่อนุญาตในรอบนี้:** ชื่ออ่างที่สะกดไม่ตรง (`Wene White`/`Honer Jade`/`Sanded Icice` ในบรรทัด 55 ฯลฯ) — ชื่อสินค้าเป็นเรื่องที่บอสต้องเคาะ ⇒ รวมไว้ในใบ 277 เป็น "รายงาน ไม่แก้" แล้ว
 
 ## ข้อความส่งต่อให้บอสวาง (relay)
 
