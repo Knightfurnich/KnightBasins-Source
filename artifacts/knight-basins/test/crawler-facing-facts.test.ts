@@ -5,11 +5,13 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-// job-285: the crawler-facing facts that live in the built HTML rather than in the React tree.
-// An AI engine reads the static output, so these are the promises worth locking:
-//  - only the homepage advertises the ten-question FAQPage (the other eleven routes rendered none of it),
-//  - every route says who published it and when the page was generated,
-//  - the shared header is not presented as the canonical home address on every brand page.
+// job-285: the crawler-facing facts that live in the built HTML rather than in the React tree. An AI engine reads the
+// static output, so these are the promises worth locking:
+//  - only the homepage advertises the ten-question FAQPage (measured on the live routes: all 12 advertised it, but the
+//    visible question marks were / = 69, /stone = 1, /network = 1);
+//  - every route says who published it and when the page was generated (measured before: 0 of 12 had either);
+//  - og:url and canonical name the route they are on, and the email the footer already shows is in the JSON-LD
+//    (og:url already per-route before this work; the assertion stays so it cannot regress).
 
 const testDirectory = dirname(fileURLToPath(import.meta.url));
 const appDirectory = resolve(testDirectory, "..");
