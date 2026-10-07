@@ -217,6 +217,16 @@ function createStaticSeoShell(shell, route, metadata) {
   html = setMetaContent(html, "property", "og:title", metadata.title);
   html = setMetaContent(html, "property", "og:description", metadata.description);
   html = setMetaContent(html, "property", "og:url", route.canonical);
+  // Prerendered pages are what a crawler reads without JavaScript, so the card has to be written here too.
+  if (metadata.image) {
+    const imageUrl = `${new URL(route.canonical).origin}${metadata.image.path}`;
+    html = setMetaContent(html, "property", "og:image", imageUrl);
+    html = setMetaContent(html, "property", "og:image:alt", metadata.image.alt);
+    html = setMetaContent(html, "property", "og:image:type", `image/${metadata.image.path.split(".").pop()}`);
+    html = setMetaContent(html, "property", "og:image:width", String(metadata.image.width));
+    html = setMetaContent(html, "property", "og:image:height", String(metadata.image.height));
+    html = setMetaContent(html, "name", "twitter:image", imageUrl);
+  }
   html = setMetaContent(html, "name", "twitter:title", metadata.title);
   html = setMetaContent(
     html,

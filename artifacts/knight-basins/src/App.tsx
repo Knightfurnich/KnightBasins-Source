@@ -2,6 +2,7 @@ import { Component, useCallback, useEffect, useMemo, useRef, useState, type Disp
 import { Link, Route, Switch, useLocation } from "wouter";
 import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, GripVertical, MessageCircle, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import { RouteMeta } from "@/components/RouteMeta";
+import { UPDATE_RELEASES } from "@/pages/UpdatesPage";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { StoneComparisonTable } from "@/components/StoneComparisonTable";
 import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJsonLd, buildQuotePageJsonLd, buildStonePageJsonLd } from "@/data/structured-data";
@@ -298,7 +299,7 @@ function Footer() {
           <Link href="/portfolio" className="footer-owner-link">คลังผลงานติดตั้งจริง</Link>
           <Link href="/price-guide" className="footer-owner-link" data-testid="link-footer-price-guide">ราคาและวิธีเลือกหินสังเคราะห์</Link>
           <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
-          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต (v2.2)</Link>
+          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต ({LATEST_UPDATE_VERSION})</Link>
           <Link href="/network" className="footer-owner-link">เครือข่ายเว็บไซต์ของเรา</Link>
         </div>
         <Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link>
@@ -916,6 +917,10 @@ type QuickQuoteSnapshot = {
   vat: boolean;
   sitePhotos?: string[];
 };
+
+// The release label in the footer used to be typed by hand and fell behind the log; it now reads the same
+// list the /updates page renders (job-286 D).
+const LATEST_UPDATE_VERSION = UPDATE_RELEASES[0]?.version ?? "";
 
 const COMPANY_DETAILS = {
   name: "บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่)",

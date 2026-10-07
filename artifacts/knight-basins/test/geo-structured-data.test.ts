@@ -47,10 +47,13 @@ describe("business JSON-LD", () => {
     assert.ok(!/35\/170|35\/267/.test(JSON.stringify(address)), "the factory address must not be the primary address");
   });
 
+  // Owner ruling (8 Oct 2026): 094-496-1949 is the published primary line, 091-978-2292 is the
+  // secondary one, and 089-762-2209 stays only where it already appeared (the visible footer) - it is
+  // deliberately not introduced into the structured data here.
   it("leads with the primary phone and keeps the second line reachable", () => {
-    assert.equal(org.telephone, "+66-91-978-2292");
+    assert.equal(org.telephone, "+66-94-496-1949");
     const phones = (org.contactPoint ?? []).map((c: any) => c.telephone);
-    assert.deepEqual(phones, ["+66-91-978-2292", "+66-94-496-1949"]);
+    assert.deepEqual(phones, ["+66-94-496-1949", "+66-91-978-2292"]);
   });
 
   it("carries the coordinates from the Maps listing and a map link", () => {

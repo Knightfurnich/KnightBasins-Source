@@ -1,6 +1,13 @@
 type RouteMetaEntry = {
   title: string;
   description: string;
+  /**
+   * Social card for this route, picked from the photos already published under public/guide.
+   * Every route used to ship the homepage card, so a shared /stone or /price-guide link looked like
+   * the home page in every preview and to every AI that reads metadata. Routes without one keep the
+   * shell default; no new image files are added here.
+   */
+  image?: { path: string; alt: string; width: number; height: number };
 };
 
 type MetaDocument = Pick<Document, "querySelector"> & { title: string };
@@ -19,14 +26,17 @@ export const ROUTE_META: Record<string, RouteMetaEntry> = {
       "โรงงานผลิตและติดตั้งอ่างล้างหน้าหินสังเคราะห์และเคาน์เตอร์ Solid Surface ไร้รอยต่อ 30 รุ่น กว่า 60 เฉดสี พร้อมระบบคำนวณราคาและใบเสนอราคาออนไลน์ รับประกัน 1 ปี",
   },
   "/portfolio": {
+    image: { path: "/guide/counter-straight-01.webp", alt: "เคาน์เตอร์อ่างล้างหน้าหินสังเคราะห์ไร้รอยต่อ งานติดตั้งจริง", width: 1024, height: 1024 },
     title: "ภาพผลงานจริง | Knight Furnich",
     description: "รวมภาพผลงานติดตั้งอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์จริงจากลูกค้า Knight Furnich แยกตามหมวดหมู่",
   },
   "/stone": {
+    image: { path: "/guide/basin-marble-03.webp", alt: "ผิวหินสังเคราะห์ลายหินอ่อนบนเคาน์เตอร์และไอส์แลนด์", width: 1024, height: 1024 },
     title: "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์ ไร้รอยต่อ | Knight Furnich",
     description: "สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์แท้ ไร้รอยต่อ หรือซื้อแผ่นดิบมาตรฐาน คำนวณราคาตามขนาดจริง พร้อมบริการติดตั้ง",
   },
   "/price-guide": {
+    image: { path: "/guide/basin-vanity-04.webp", alt: "อ่างล้างหน้าหินสังเคราะห์แบบขาแขวนในงานห้องน้ำ", width: 1024, height: 1024 },
     title: "ราคาเคาน์เตอร์หินสังเคราะห์และวิธีเลือก | Knight Furnich",
     description:
       "รวมแนวทางเลือกราคาเคาน์เตอร์หินสังเคราะห์ วิธีวัดพื้นที่ ค่าดำเนินการตามเงื่อนไข สีและลาย วิธีดูแลรักษา และคำถามที่พบบ่อย พร้อมลิงก์ขอใบเสนอราคา",
@@ -44,10 +54,12 @@ export const ROUTE_META: Record<string, RouteMetaEntry> = {
     description: "อัปโหลดภาพสเก็ตช์หรือแบบหน้างานให้ทีม Knight Furnich คำนวณราคาและออกแบบให้",
   },
   "/site-prep": {
+    image: { path: "/guide/basin-pedestal-05.webp", alt: "อ่างตั้งพื้นที่ต้องเผื่อระยะและต้องรับน้ำหนักที่จุดวาง", width: 1024, height: 1024 },
     title: "คู่มือเตรียมหน้างานติดตั้ง | Knight Furnich",
     description: "ขั้นตอนเตรียมพื้นที่ก่อนติดตั้งอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์ Knight Furnich",
   },
   "/studio-guide": {
+    image: { path: "/guide/counter-kitchen-02.webp", alt: "เคาน์เตอร์ครัวหินสังเคราะห์พร้อมอ่างและก๊อก", width: 1024, height: 1024 },
     title: "คู่มือใช้งาน Studio ออกแบบ | Knight Furnich",
     description: "วิธีใช้ Studio ออกแบบเคาน์เตอร์หินสังเคราะห์ 2 มิติของ Knight Furnich ทีละขั้นตอน",
   },
@@ -132,6 +144,20 @@ export function applyRouteMeta(
     upsertMetaContent(doc, 'meta[name="twitter:title"]', entry.title),
     upsertMetaContent(doc, 'meta[name="twitter:description"]', entry.description),
   ];
+
+  // The card follows the route, and cleanup restores it exactly like title/canonical do above.
+  if (entry.image) {
+    const imageUrl = `${canonicalOrigin}${entry.image.path}`;
+    restoreFns.push(
+      upsertMetaContent(doc, 'meta[property="og:image"]', imageUrl),
+      upsertMetaContent(doc, 'meta[property="og:image:secure_url"]', imageUrl),
+      upsertMetaContent(doc, 'meta[property="og:image:alt"]', entry.image.alt),
+      upsertMetaContent(doc, 'meta[property="og:image:type"]', `image/${entry.image.path.split(".").pop()}`),
+      upsertMetaContent(doc, 'meta[property="og:image:width"]', String(entry.image.width)),
+      upsertMetaContent(doc, 'meta[property="og:image:height"]', String(entry.image.height)),
+      upsertMetaContent(doc, 'meta[name="twitter:image"]', imageUrl),
+    );
+  }
 
   const canonicalLink = doc.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   const previousCanonical = canonicalLink?.getAttribute("href") ?? null;

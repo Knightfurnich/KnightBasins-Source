@@ -36,7 +36,7 @@ describe("v1.2.0 release notes", () => {
   it("updates the footer link label to v2.2", () => {
     assert.match(
       appSource,
-      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \(v2\.2\)<\/Link>/,
+      /<Link href="\/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต \({LATEST_UPDATE_VERSION}\)<\/Link>/,
     );
   });
 });

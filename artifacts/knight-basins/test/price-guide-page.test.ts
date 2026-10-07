@@ -217,3 +217,60 @@ describe("price guide page", () => {
     );
   });
 });
+
+// job-286 A/C/D: the comparison table, the per-route social card, and the footer label.
+const STONE_COLOR_LIST = STONE_COLORS;
+// Live measurement on 8 Oct 2026: /studio-guide renders 267 words and /price-guide 220. The two files keep
+// their own tests, so the target is restated here rather than imported.
+const STUDIO_GUIDE_WORDS = 267;
+
+describe("price guide comparison table (job-286 A)", () => {
+  const range = (values: ReadonlyArray<number>) => {
+    const low = Math.min(...values);
+    const high = Math.max(...values);
+    return low === high ? formatTHB(low) : `${formatTHB(low)}–${formatTHB(high)}`;
+  };
+  const installedRange = range(STONE_COLOR_LIST.map((s) => s.installedPriceTHB).filter((v): v is number => v !== null));
+  const sheetRange = range(STONE_COLOR_LIST.map((s) => s.sheetPriceTHB).filter((v): v is number => v !== null));
+
+  it("compares the three ways of buying in a real table, not three cards", () => {
+    assert.equal((pageHarness.markup.match(/<table\b/g) ?? []).length >= 1, true, "the page still has no <table>");
+    assert.equal((pageHarness.markup.match(/<thead\b/g) ?? []).length >= 1, true, "a table without <thead> is not machine-readable");
+    assert.equal((pageHarness.markup.match(/<th scope="row"/g) ?? []).length >= 3, true, "each buying option should be a row header");
+  });
+
+  it("quotes the price range from the catalogue instead of a typed number", () => {
+    const text = visibleText(pageHarness.markup);
+    assert.ok(text.includes(installedRange), `expected the installed range ${installedRange} on the page`);
+    assert.ok(text.includes(sheetRange), `expected the sheet range ${sheetRange} on the page`);
+    for (const tier of pageHarness.ratePrices) {
+      assert.ok(text.includes(formatTHB(tier)), `installed rate ${tier} is missing from the rendered page`);
+    }
+  });
+
+  it("keeps the page as substantial as the studio guide, and still free of prices in JSON-LD", () => {
+    const words = visibleText(pageHarness.markup).split(/\s+/).length;
+    assert.ok(words >= STUDIO_GUIDE_WORDS, `the guide renders ${words} words, below /studio-guide's ${STUDIO_GUIDE_WORDS}`);
+    assert.doesNotMatch(JSON.stringify(buildPriceGuideJsonLd()), /"(?:offers?|price|priceCurrency)"/i);
+  });
+});
+
+describe("per-route social cards and the footer release label (job-286 C/D)", () => {
+  it("gives the crawler pages their own og:image, and only with files that exist", () => {
+    const withImage = Object.entries(ROUTE_META).filter(([, entry]) => "image" in entry);
+    assert.ok(withImage.length >= 3, `expected at least 3 routes with their own card, found ${withImage.length}`);
+    const paths = new Set(withImage.map(([, entry]) => entry.image!.path));
+    assert.equal(paths.size >= 3, true, "routes may not all point at the same picture");
+    for (const [path, entry] of withImage) {
+      const image = entry.image!;
+      assert.ok(existsSync(join(appRoot, "public", image.path.slice(1))), `${path} points at a missing file ${image.path}`);
+      assert.equal(image.width > 0 && image.height > 0, true, `${path} needs real dimensions`);
+      assert.ok(image.alt.length > 10, `${path} needs a descriptive alt`);
+    }
+  });
+
+  it("reads the footer release label from the release log instead of typing it", () => {
+    assert.match(appSource, /const LATEST_UPDATE_VERSION = UPDATE_RELEASES\[0\]\?\.version/);
+    assert.equal(appSource.includes("บันทึกการอัปเดต (v2."), false, "the version must not be hard-coded in the footer");
+  });
+});
