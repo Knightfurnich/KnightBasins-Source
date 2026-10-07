@@ -426,20 +426,42 @@ export function reconcileStoneSelections(
   }, { active: [], hidden: [] });
 }
 
+/**
+ * job-278: a stone the catalogue does not know stays unknown. Until now every lookup ended in `?? colors[0]`, so an
+ * unrecognised code — a typo, or a stone the database has since closed such as V342 after job 277 — quietly became
+ * the first row of the catalogue: Bright White, 7,500 a square metre, 5,900 a sheet. A quote came out looking
+ * complete while naming and pricing a stone nobody asked for (1 sqm of Aria Whisper quoted as Bright White is
+ * 4,500 baht short). Three rules now hold instead:
+ *   · a price helper returns null when it cannot name the stone, which every caller already treats as "no price"
+ *     (App.tsx `stoneTotal`/`isInvalidStone`, StudioEstimate `stoneUnitPriceTHB`, `quoteSketchPiece` → "no-price");
+ *   · the display helper still never returns undefined — thirty render sites read `.name`/`.tone` on it — but what it
+ *     returns for an unknown identifier describes that identifier back, never another stone's identity;
+ *   · `isUnknownStone()` is the explicit check for a caller that wants to say "ไม่รู้จักสีนี้" itself.
+ */
+export const UNKNOWN_STONE_TONE = "#e6e6e3";
+
+/** The placeholder record for an identifier the catalogue cannot resolve. It carries no price on purpose. */
+export function unknownStone(identifier: string): StoneColor {
+  const code = identifier.trim();
+  return { code, name: code || "ยังไม่ได้เลือกสีหิน", tone: UNKNOWN_STONE_TONE, sheetPriceTHB: null, installedPriceTHB: null, documentCodes: [] };
+}
+
+export function isUnknownStone(identifier: string, colors: ReadonlyArray<StoneColor> = STONE_COLORS): boolean {
+  return findStoneColor(identifier, colors) === undefined;
+}
+
 export const stoneColorByName = (
   identifier: string,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
-) => {
-  return findStoneColor(identifier, colors) ?? colors[0] ?? STONE_COLORS[0];
-};
+) => findStoneColor(identifier, colors) ?? unknownStone(identifier);
 
 export const stoneSheetUnitPrice = (
   colorIdentifier: string,
   quantity: number,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
 ) => {
-  const color = stoneColorByName(colorIdentifier, colors);
-  if (color.sheetPriceTHB === null) return null;
+  const color = findStoneColor(colorIdentifier, colors);
+  if (!color || color.sheetPriceTHB === null) return null;
   const promotionExcluded = ["BW010", "NW013"].includes(color.code);
   if (quantity >= 50 && !promotionExcluded) return Math.round(color.sheetPriceTHB * 0.95);
   if (quantity >= 10 && !promotionExcluded) return Math.max(0, color.sheetPriceTHB - 200);
@@ -449,7 +471,7 @@ export const stoneSheetUnitPrice = (
 export const stoneInstalledUnitPrice = (
   colorIdentifier: string,
   colors: ReadonlyArray<StoneColor> = STONE_COLORS,
-) => stoneColorByName(colorIdentifier, colors).installedPriceTHB;
+) => findStoneColor(colorIdentifier, colors)?.installedPriceTHB ?? null;
 
 export function toggleBasinSelection(lines: QuoteBasinLine[], sku: string): QuoteBasinLine[] {
   return lines.some((line) => line.sku === sku)

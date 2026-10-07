@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PRODUCTS } from "../src/data/catalog.ts";
+import { PRODUCTS, stoneInstalledUnitPrice } from "../src/data/catalog.ts";
 import {
   basinDimensionsForProduct,
   basinPlacementOrientation,
@@ -133,16 +133,21 @@ test("a fresh 1800 × 600 board (the real counter size) estimates 1.08 square me
 test("Studio defaults the counter stone to the first basin color", () => {
   assert.equal(studioDefaultStoneCode(["KF001"], PRODUCTS), "VS311");
   assert.equal(studioDefaultStoneCode(["KF002"], PRODUCTS), "VS351");
-  assert.equal(studioDefaultStoneCode([], PRODUCTS), "BW010");
+  // job-278: with no basin placed there is no stone to default to. This used to answer "BW010", because the lookup
+  // ended in `?? colors[0]` and silently handed the board Bright White — a stone nobody had chosen, at its price.
+  assert.equal(studioDefaultStoneCode([], PRODUCTS), "");
 });
 
-test("Studio falls back to the available catalog when a basin color is unavailable", () => {
-  assert.equal(
-    studioDefaultStoneCode(["KF001"], PRODUCTS, [
-      { code: "SO423", name: "Sanded Onyx", tone: "#343736", sheetPriceTHB: 9000, installedPriceTHB: 8500, documentCodes: [] },
-    ]),
-    "SO423",
-  );
+test("a basin color missing from the catalogue is kept as itself, not swapped for another stone", () => {
+  // job-278 rewrote this case. It used to expect "SO423": the first row of whatever catalogue was passed in. That
+  // fallback is exactly the silent mispricing the work order closes, and swapping a customer's stone for an
+  // unrelated one is not a decision the code may make. The code is returned unchanged, so the price helpers answer
+  // null and the studio says "no price" instead of quoting Bright White/Sanded Onyx by accident.
+  const onlySandedOnyx = [
+    { code: "SO423", name: "Sanded Onyx", tone: "#343736", sheetPriceTHB: 9000, installedPriceTHB: 8500, documentCodes: [] },
+  ];
+  assert.equal(studioDefaultStoneCode(["KF001"], PRODUCTS, onlySandedOnyx), "VS311");
+  assert.equal(stoneInstalledUnitPrice("VS311", onlySandedOnyx), null);
 });
 
 test("overlapping rectangles warn but are still counted additively", () => {
