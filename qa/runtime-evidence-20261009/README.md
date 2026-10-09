@@ -12,7 +12,9 @@
 | `model-watch-dry-run.txt` | ผล dry-run ของ watchdog โมเดล/โควตา (ไม่ส่งข้อความ ไม่แก้อะไร) | `/opt/hermes/.venv/bin/python3 bin/model_rate_limit_watch.py --dry-run` |
 | `crawler-report-snapshot.md` | รายงาน Crawler+GSC ฉบับที่ cron ส่งจริง (คัดจาก `cron/output/`) | `scripts/knight_crawler_report.sh` (ผ่าน cron `knight-gsc-crawler-tracker`) |
 | `cron-jobs-summary.md` | ตารางงาน cron ทั้งหมด: ตารางเวลา/โหมด/โมเดล/ปลายทาง (ไม่มีคีย์) | อ่าน `cron/jobs.json` |
-| `ledger-summary.md` | สรุปการใช้โมเดล (calls/tokens) จาก `hermes-usage/.ledger.jsonl` | สคริปต์ในรีวิว 292-Q ข้อ F |
+| `ledger-summary.md` | สรุปการใช้โมเดล (calls/tokens) จาก `hermes-usage/.ledger.jsonl` — **ฉบับแก้ไข 9 ต.ค. 69**: ตารางเดิมหารผิดคู่ (prompt_tokens ÷ เซสชัน) ⇒ ถอนทั้งตาราง · ฉบับนี้ใช้ Σ`total_tokens` ÷ Σ`api_calls` + แนบ 3 บรรทัดดิบ | `/opt/hermes/.venv/bin/python3` อ่าน `.ledger.jsonl` (324 บรรทัด) |
+| `model-watch-failover-raw.txt` | บรรทัดจริงของการสลับโมเดลสำรอง 1 ครั้ง (ตัวหลัก → `gemini-3.5-flash` ไม่ใช่ apodex) | `grep "Fallback activated" logs/agent.log` |
+| `watchdog-container-skip-dryrun.txt` | ผลทดสอบสองทางของกลไก "container ที่หยุดโดยเจตนา" (เอาชื่อออก → เตือน · ใส่กลับ → เงียบ) | รัน `bin/knight_watchdog.sh` บนสำเนาชั่วคราว (`/tmp`) แล้วลบ |
 | `checksums.md` | md5 ของสคริปต์ที่สร้างหลักฐานชุดนี้ | `md5sum` |
 | `free-model-probe.md` | ผลตรวจโมเดลฟรี 15 ตัว (privacy probe + วันหมดอายุ) | `GET/POST openrouter.ai/api/v1/...` |
 
@@ -25,3 +27,12 @@
 - ผลรันเป็น **ภาพ ณ เวลาหนึ่ง** (ระบุในหัวไฟล์) ไม่ใช่หลักฐานสด — ของที่เปลี่ยนได้ (สถานะ index ของ GSC, จำนวนแถว DB) ต้องวัดใหม่ทุกครั้ง
 - `ledger-summary.md` ไม่มีคอลัมน์ต้นทุน (ledger ไม่เก็บราคา) ⇒ คำนวณ "ประหยัดกี่บาท" จากไฟล์นี้ไม่ได้
 - โฟลเดอร์นี้ **ไม่รวมตัวสคริปต์เอง** เพราะรีโปนี้เป็น public และสคริปต์ฝั่ง ops เปิดเผยพื้นผิวภายใน (ที่อยู่ VPS, ชื่อคอนเทนเนอร์, endpoint แอดมิน) — แนบ md5 + คำสั่งแทน ถ้าต้องการตัวสคริปต์ให้ขอผ่านช่องทางทีม
+
+## แก้ตามรีวิว 294-Q (รอบ 2) — 9 ต.ค. 69
+1. **`ledger-summary.md`**: ตารางเดิมหารผิดคู่ ⇒ ถอนทั้งตาราง ใช้วิธี Σ`total_tokens` ÷ Σ`api_calls` + แนบ 3 บรรทัดดิบ (ดูไฟล์)
+2. **chain ปัจจุบัน = 5 รายการ** (ตัวหลัก `deepseek/deepseek-v4.1-flash` + สำรอง 4: `gemini-3.5-flash` → `cohere/north-mini-code:free` → `apodex/apodex-1.1-mini:free` → `deepseek/deepseek-chat`) — เอกสารก่อนหน้าเขียน 4 รายการ (เริ่มที่ gemini) ⇒ **แก้แล้ว**
+3. **failover**: เพิ่มบรรทัดดิบว่าสลับจาก/ไปยังตัวไหน (`model-watch-failover-raw.txt` — ตัวหลัก → `gemini-3.5-flash`)
+4. **ถอนคำอ้าง "22"** ของรายงาน crawler เวอร์ชันก่อนแก้: ผลรันเวอร์ชันเดิม **ไม่ได้เก็บไว้** และสร้างใหม่ไม่ได้ (index ปัจจุบันชี้ `sitemap.xml` ไฟล์เดียว ⇒ 12 + 1 = 13) ⇒ **ไม่ยืนยันตัวเลขนี้** ตัวเลขที่ยืนยันได้คือ **12 URL ใน sitemap** (นับสด)
+5. **"ถอดโฮสต์เก่าครบทั้งระบบ"** ต้องอ่านให้ถูก: ครบในความหมาย **references** (สคริปต์ · `.env` · KB · cron · nginx/Traefik ของ web+line) แต่ **`api.srv1964473.hstgr.cloud` ยังให้บริการโดยเจตนา** เป็น data-plane (`/kb/` `/kb/images/` `/v1/` — 239 แถวใน DB ชี้ที่นั่น) ⇒ ไม่ใช่ "ปิดทุกโฮสต์เก่า" (ดู KANBAN: ยังไม่มีกำหนดปิด)
+6. **`deliver=origin`** ของ cron `knight-tracker-switch-to-weekly`: ตรวจแล้วเป็นค่าที่ถูกต้อง (Hermes รับ `origin` = ส่งกลับห้องที่สร้างงาน) ไม่ใช่ค่าที่พิมพ์ผิด
+7. **md5 ยังเทียบไม่ได้จริง** (Qwen ข้อ D.5 ถูกต้อง): สคริปต์ที่ `checksums.md` อ้าง **ไม่อยู่ในรีโป** ⇒ ปิดช่องนี้ได้เฉพาะเมื่อ commit ตัวสคริปต์ลง `deploy/hermes-runtime/` ซึ่งต้องให้บอสเคาะก่อน (ความเสี่ยง: รีโป public + สคริปต์เปิดเผยพื้นผิวภายใน) — **ยังไม่ทำ รอบอคำตอบ**

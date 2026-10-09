@@ -1,6 +1,11 @@
+# ผลรันจริง: bin/verify_deploy.py
+**รันเมื่อ:** 2026-10-09 16:16:06 +07 (เวลาไทย) · **คำสั่ง:** `HERMES_HOME=/opt/data /opt/hermes/.venv/bin/python3 bin/verify_deploy.py`
+**exit code:** 0
+**หมายเหตุ:** ผลนี้เป็นภาพ ณ เวลาที่ระบุ — ตัวเลขที่เปลี่ยนได้ (จำนวนแถว DB, สถานะ index) ต้องวัดใหม่ทุกครั้ง
+
 A) containers
-  [PASS] knightbasins-web running — knightbasins-web|Up About a minute
-  [PASS] knightbasins-api running — knightbasins-api|Up About a minute (healthy)
+  [PASS] knightbasins-web running — knightbasins-web|Up 27 minutes
+  [PASS] knightbasins-api running — knightbasins-api|Up 27 minutes (healthy)
   [PASS] knightbasins-db running — knightbasins-db|Up 5 days (healthy)
 
 B) web root is the directory the container is actually bound to
