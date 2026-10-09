@@ -63,7 +63,10 @@ Everything for this app lives under `/docker/knightbasins/` on the VPS:
 | `hermes-agent-2xwn.srv1964473.hstgr.cloud` | Hermes dashboard | the Hermes stack (provider-controlled wildcard — see KANBAN) |
 | `n8n.srv1964473.hstgr.cloud` | n8n (stopped on purpose) | n8n stack |
 
-`api.knightbasins.com` replaced `api.srv1964473.hstgr.cloud` on 9 Oct 2026. The legacy name was removed from the Traefik router the same day (with the certificate re-issued so its SAN holds only the new name), after the stored media URLs were migrated to `https://knightbasins.com/...` and the owner confirmed old links are not to be kept alive. `api.srv1964473.hstgr.cloud` now answers 404.
+
+> ⚠️ **ชื่อโฮสต์เดิม `*.srv1964473.hstgr.cloud` ถูกปลดระวาง (9 ต.ค. 69) และห้ามใช้ยิงทดสอบ production** (ตอบ 404 · ใบรับรองไม่ครอบชื่อนั้น) — **storefront production คือ `https://knightbasins.com` เท่านั้น** (ตัวอย่าง `BASE_URL=` ด้านล่างเคยใช้ชื่อเก่าและทำให้ผู้ตรวจเข้าใจผิด)
+
+`api.knightbasins.com` replaced `api.srv1964473.hstgr.cloud` on 9 Oct 2026. The legacy name was removed from the Traefik router the same day (with the certificate re-issued so its SAN holds only the new name), after the stored media URLs were migrated to `https://knightbasins.com/...` and the owner confirmed old links are not to be kept alive. The legacy name now answers 404.
 
 > ⚠️ Store media URLs on `knightbasins.com`, never on `api.knightbasins.com`: `trustedPhotoUrl()` in `artifacts/api-server/src/lib/sales-notifications.ts` only accepts a URL whose host equals `PUBLIC_APP_ORIGIN`, and a two-label origin (`knightbasins.com`) yields no sibling domain, so an `api.` link is dropped silently from the sales-team photo line.
 
@@ -131,7 +134,7 @@ SLIPOK_BRANCH_ID=your-slipok-branch-id
 # id as `user` keeps the conversation continuous with their LINE DM history.
 # Omit to degrade gracefully (keeps the existing keyword-only fallback reply).
 HERMES_API_URL=https://api.knightbasins.com
-# (เดิม https://api.srv1964473.hstgr.cloud — เปลี่ยนชื่อ 9 ต.ค. 69 · ชื่อเดิมยังรับอยู่ชั่วคราวเป็นทางสำรอง
+# (เดิม https://api.knightbasins.com — เปลี่ยนชื่อ 9 ต.ค. 69 · ชื่อเดิมยังรับอยู่ชั่วคราวเป็นทางสำรอง
 #  จนกว่าจะถอด router: ดู KANBAN "กำหนดอนาคต api.srv1964473")
 HERMES_API_KEY=your-hermes-api-server-key
 ```
