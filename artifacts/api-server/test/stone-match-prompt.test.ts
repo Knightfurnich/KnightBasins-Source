@@ -6,7 +6,8 @@ import {
   type StoneMatchCandidate,
 } from "../src/lib/stone-matcher.ts";
 
-const SLAB_IMAGE_ORIGIN = "https://api.srv1964473.hstgr.cloud";
+// job-290: the matcher fetches slab photos from the one canonical media host.
+const SLAB_IMAGE_ORIGIN = "https://knightbasins.com";
 const originalEnv = {
   projectId: process.env["VERTEX_AI_PROJECT_ID"],
   location: process.env["VERTEX_AI_LOCATION"],

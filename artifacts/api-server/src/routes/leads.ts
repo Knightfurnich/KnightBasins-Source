@@ -6,6 +6,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { recordAiUsage } from "../lib/ai-cost-tracker";
+import { canonicalMediaUrl } from "../lib/catalog-media";
 import { auditErrorDetails, auditRequestContext, logAuditEvent, type AuditEventInput } from "../lib/audit-logger";
 import { checkCutoutJointClash, MIN_BASIN_CLEARANCE_MM, validateBasinClearance } from "../lib/fabrication-geometry";
 import { readMultipartForm, removeUploadedMedia, saveUploadedMedia, UPLOAD_DIR } from "../lib/image-upload";
@@ -866,7 +867,7 @@ router.post("/public/quotes/promptpay-qr", promptpayQrRateLimit, async (req, res
         warrantyPeriodMonths: lead.warrantyPeriodMonths ?? null,
         sitePhotos: visiblePhotos
           .filter((photo) => photo.stage === "completed")
-          .map((photo) => ({ id: photo.id, imageUrl: photo.imageUrl, stage: photo.stage, caption: photo.caption, takenAt: photo.takenAt })),
+          .map((photo) => ({ id: photo.id, imageUrl: canonicalMediaUrl(photo.imageUrl), stage: photo.stage, caption: photo.caption, takenAt: photo.takenAt })),
       });
     } catch (error) {
       return next(error);

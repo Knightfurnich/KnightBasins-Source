@@ -23,10 +23,12 @@ import {
   vertexModelCandidates,
   vertexVisionLocation,
 } from "./sketch-vision-config.ts";
+import { CANONICAL_MEDIA_ORIGIN, canonicalMediaUrl } from "./catalog-media.ts";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const VERTEX_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
-const SLAB_IMAGE_ORIGIN = "https://api.srv1964473.hstgr.cloud";
+// job-290: slab reference photos are fetched from the one canonical host; a stored URL on an old host is rewritten first.
+const SLAB_IMAGE_ORIGIN = CANONICAL_MEDIA_ORIGIN;
 const MAX_SLAB_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_CONCURRENT_SLAB_FETCHES = 6;
 /** The only failure text a customer ever sees: static Thai, no provider detail, polite, invites a retry. */
@@ -125,7 +127,7 @@ function cleanCandidates(candidates: readonly StoneMatchCandidate[]): CandidateW
     uniqueByCode.set(code, {
       code,
       name,
-      slabImageUrl: candidate.slabImageUrl?.trim() || null,
+      slabImageUrl: canonicalMediaUrl(candidate.slabImageUrl?.trim() || null),
     });
   }
   return [...uniqueByCode.values()];
