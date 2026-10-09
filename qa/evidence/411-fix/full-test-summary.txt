@@ -1,0 +1,7 @@
+Full workspace test command: timeout 270s pnpm --filter @workspace/knight-basins test
+Exit: 124 (outer timeout; no aggregate summary)
+✖ loads the contract-shaped stock response and captures Staron and filtered Zen Stone views (684.600331ms)
+✖ admin image upload browser flow (41214.625407ms)
+✖ transparent basin image visual regression (45666.481867ms)
+✖ authenticated dispatch persistence browser flow (35577.010758ms)
+✖ test/quote-print.browser.test.ts (212110.367652ms)

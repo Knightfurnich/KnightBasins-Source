@@ -1,0 +1,281 @@
+{
+  "timestamp": "2026-10-09T17:56:52.569Z",
+  "origin": "http://127.0.0.1:5191",
+  "main": "0cc838755732471fcf49bb89deb956365e4b5850",
+  "rows": [
+    {
+      "route": "/",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/stone",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/quote",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/price-guide",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/readme",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/stone",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 377,
+      "overflow": 2,
+      "candidates": [
+        {
+          "tag": "DIV",
+          "cls": "quantity-editor large",
+          "text": "— แผ่นมาตรฐาน / 760 × 3680 mm",
+          "left": 19.5,
+          "right": 377.390625,
+          "scrollableAncestor": false
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "แผ่นมาตรฐาน / 760 × 3680 mm",
+          "left": 158.5,
+          "right": 376.390625,
+          "scrollableAncestor": false
+        }
+      ]
+    },
+    {
+      "route": "/quote",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/price-guide",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/readme",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 387,
+      "overflow": 12,
+      "candidates": [
+        {
+          "tag": "DIV",
+          "cls": "",
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH Co., Ltd.) ผู้เชี่ยวชาญอ่าง",
+          "left": 84,
+          "right": 387.109375,
+          "scrollableAncestor": false
+        },
+        {
+          "tag": "DIV",
+          "cls": "whitespace-nowrap inline-flex items-center rounded-md px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[12px]",
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH Co., Ltd.)",
+          "left": 84,
+          "right": 387.109375,
+          "scrollableAncestor": false
+        },
+        {
+          "tag": "H1",
+          "cls": "font-bold text-[#003366]",
+          "text": "ผู้เชี่ยวชาญอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์แท้ ไร้รอยต่อ",
+          "left": 84,
+          "right": 387.109375,
+          "scrollableAncestor": false
+        }
+      ]
+    },
+    {
+      "route": "/",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/stone",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 376,
+      "overflow": 31,
+      "candidates": [
+        {
+          "tag": "DIV",
+          "cls": "quantity-editor large",
+          "text": "— แผ่นมาตรฐาน / 760 × 3680 mm",
+          "left": 18,
+          "right": 375.890625,
+          "scrollableAncestor": false
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "แผ่นมาตรฐาน / 760 × 3680 mm",
+          "left": 157,
+          "right": 374.890625,
+          "scrollableAncestor": false
+        }
+      ]
+    },
+    {
+      "route": "/quote",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/price-guide",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/readme",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 387,
+      "overflow": 42,
+      "candidates": [
+        {
+          "tag": "DIV",
+          "cls": "",
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH Co., Ltd.) ผู้เชี่ยวชาญอ่าง",
+          "left": 84,
+          "right": 387.109375,
+          "scrollableAncestor": false
+        },
+        {
+          "tag": "DIV",
+          "cls": "whitespace-nowrap inline-flex items-center rounded-md px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[12px]",
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH Co., Ltd.)",
+          "left": 84,
+          "right": 387.109375,
+          "scrollableAncestor": false
+        },
+        {
+          "tag": "H1",
+          "cls": "font-bold text-[#003366]",
+          "text": "ผู้เชี่ยวชาญอ่างล้างหน้าและเคาน์เตอร์หินสังเคราะห์แท้ ไร้รอยต่อ",
+          "left": 84,
+          "right": 387.109375,
+          "scrollableAncestor": false
+        }
+      ]
+    }
+  ],
+  "extra": [],
+  "nonRead": [],
+  "shots": [
+    "qa/evidence/411-fix/stone-before-1440.jpg",
+    "qa/evidence/411-fix/readme-before-1440.jpg",
+    "qa/evidence/411-fix/stone-before-390.jpg",
+    "qa/evidence/411-fix/readme-before-390.jpg",
+    "qa/evidence/411-fix/stone-before-360.jpg",
+    "qa/evidence/411-fix/readme-before-360.jpg"
+  ]
+}

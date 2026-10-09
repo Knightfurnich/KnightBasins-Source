@@ -84,3 +84,29 @@ test("mobile stone layout wraps its summary and constrains card grid tracks", ()
     "allow the selected-stone summary to wrap instead of widening the page",
   );
 });
+
+test("mobile sheet quantity editor fits its stone container without clipping the root", () => {
+  assert.ok(stoneMobileStyles);
+  const editor = stoneMobileStyles.match(
+    /\.config-main:has\(\.stone-price-filters\)\s*>\s*\.quantity-editor\.large\s*\{([^}]*)\}/,
+  );
+  assert.ok(editor, "the stone-only mobile quantity editor must override max-content width");
+  const declarations = declarationsFrom(editor[1]);
+  assert.equal(declarations.get("width"), "100%");
+  assert.equal(declarations.get("min-width"), "0");
+  const label = stoneMobileStyles.match(
+    /\.config-main:has\(\.stone-price-filters\)\s*>\s*\.quantity-editor\.large\s*>\s*span\s*\{([^}]*)\}/,
+  );
+  assert.ok(label, "the quantity label must shrink and wrap within the editor");
+  const labelDeclarations = declarationsFrom(label[1]);
+  assert.equal(labelDeclarations.get("min-width"), "0");
+  assert.equal(labelDeclarations.get("white-space"), "normal");
+  assert.equal(labelDeclarations.get("overflow-wrap"), "anywhere");
+});
+
+test("readme company badge wraps inside a shrinkable heading without changing its text", () => {
+  const guide = readFileSync(new URL("../src/components/SalesGuide.tsx", import.meta.url), "utf8");
+  assert.match(guide, /<div className="max-\[720px\]:min-w-0">\s*<Badge/);
+  assert.match(guide, /<Badge[^>]*max-\[720px\]:max-w-full[^>]*max-\[720px\]:whitespace-normal/);
+  assert.ok(guide.includes("บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH Co., Ltd.)"));
+});

@@ -1,0 +1,226 @@
+{
+  "timestamp": "2026-10-09T17:59:00.967Z",
+  "origin": "http://127.0.0.1:5191",
+  "main": "0cc838755732471fcf49bb89deb956365e4b5850",
+  "rows": [
+    {
+      "route": "/",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/stone",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/quote",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/price-guide",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/readme",
+      "width": 1440,
+      "height": 900,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/stone",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/quote",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/price-guide",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/readme",
+      "width": 390,
+      "height": 844,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/stone",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/quote",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/price-guide",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    },
+    {
+      "route": "/readme",
+      "width": 360,
+      "height": 800,
+      "http": 200,
+      "errors": [],
+      "innerWidth": 360,
+      "clientWidth": 345,
+      "scrollWidth": 345,
+      "overflow": 0,
+      "candidates": []
+    }
+  ],
+  "extra": [
+    {
+      "route": "/portfolio",
+      "http": 200
+    },
+    {
+      "route": "/updates",
+      "http": 200
+    },
+    {
+      "route": "/site-prep",
+      "http": 200
+    },
+    {
+      "route": "/studio",
+      "http": 200
+    },
+    {
+      "route": "/studio-guide",
+      "http": 200
+    },
+    {
+      "route": "/sketch",
+      "http": 200
+    },
+    {
+      "route": "/network",
+      "http": 200
+    }
+  ],
+  "nonRead": [],
+  "shots": [
+    "qa/evidence/411-fix/stone-after-1440.jpg",
+    "qa/evidence/411-fix/readme-after-1440.jpg",
+    "qa/evidence/411-fix/stone-after-390.jpg",
+    "qa/evidence/411-fix/readme-after-390.jpg",
+    "qa/evidence/411-fix/stone-after-360.jpg",
+    "qa/evidence/411-fix/readme-after-360.jpg"
+  ]
+}

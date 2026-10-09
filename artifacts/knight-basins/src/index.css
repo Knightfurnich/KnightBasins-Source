@@ -6500,4 +6500,15 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   .stone-colors {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .config-main:has(.stone-price-filters) > .quantity-editor.large {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .config-main:has(.stone-price-filters) > .quantity-editor.large > span {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }

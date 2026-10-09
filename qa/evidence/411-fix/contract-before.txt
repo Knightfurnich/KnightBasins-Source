@@ -1,0 +1,17 @@
+✔ hero gradient stays within the page-wrap and keeps its original scale (1.117343ms)
+✔ mobile stone layout wraps its summary and constrains card grid tracks (0.344037ms)
+✖ mobile sheet quantity editor fits its stone container without clipping the root (0.775269ms)
+✖ readme company badge wraps inside a shrinkable heading without changing its text (1.636796ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 180.150152
+✖ failing tests:
+✖ mobile sheet quantity editor fits its stone container without clipping the root (0.775269ms)
+  AssertionError [ERR_ASSERTION]: the stone-only mobile quantity editor must override max-content width
+✖ readme company badge wraps inside a shrinkable heading without changing its text (1.636796ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /<div className="max-\[720px\]:min-w-0">\s*<Badge/. Input:
