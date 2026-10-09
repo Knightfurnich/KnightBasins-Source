@@ -11,6 +11,7 @@
 | knight-basins-watchdog | every 30m | script (no LLM) | (default) | telegram | active |
 | knight-bundle-watch | every 15m | agent (LLM) | cohere/north-mini-code:free | telegram | active |
 | knight-cert-renewal-check-dec | once at 2026-12-01 02:00 | agent (LLM) | (default) | origin | active |
+| knight-kb-sync-business-hours | */10 1-14 * * * (08:00–21:59 ไทย) | script (no LLM) | (default) | telegram | active |
 | knight-kb-sync-from-admin | 0 19 * * * (02:00 ไทย) | script (no LLM) | (default) | telegram | active |
 | knight-crawler-collect | every 120m | script (no LLM) | (default) | local | active |
 | knight-customer-log-collect | every 30m | script (no LLM) | (default) | origin | active |
@@ -27,3 +28,7 @@
 · เพิ่ม 9 ต.ค. 69: `knight-kb-sync-from-admin` — ซิงก์ KB จากข้อมูลจริงในแอป (admin) ทุกคืน 02:00
   · สคริปต์: `scripts/kb_sync_from_admin.py` · โหมด script ล้วน (0 token)
   · ไม่มีการเปลี่ยนแปลง = stdout ว่าง = ไม่ส่งข้อความ · ผิดปกติ (API ล่ม/ข้อมูลไม่ครบ) = หยุดและแจ้งเตือน โดยไม่แก้ไฟล์
+· เพิ่ม 9 ต.ค. 69 (บอสอนุมัติ "ให้อัปเดตทันทีหลังบันทึกในแอป"): `knight-kb-sync-business-hours`
+  · ทุก 10 นาที ในเวลาทำการ 08:00–21:59 (ไทย) + รอบเต็ม 02:00 — สคริปต์เดียวกัน (`kb_sync_from_admin.py`)
+  · เขียนไฟล์เฉพาะเมื่อข้อมูลเปลี่ยนจริง · เงียบเมื่อไม่เปลี่ยน · lock file กันรันซ้อนกันเอง
+  · ภาระระบบ: GET `/api/catalog` 144 ครั้ง/วัน (~16 MB) · 0 token (no_agent)
