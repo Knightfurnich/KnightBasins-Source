@@ -1,0 +1,12 @@
+✔ hero gradient stays within the page-wrap and keeps its original scale (1.172967ms)
+✔ mobile stone layout wraps its summary and constrains card grid tracks (0.409976ms)
+✔ mobile sheet quantity editor fits its stone container without clipping the root (0.340703ms)
+✔ readme company badge wraps inside a shrinkable heading without changing its text (0.623309ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.671092

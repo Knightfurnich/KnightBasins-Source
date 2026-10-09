@@ -58,8 +58,8 @@ export default function SalesGuide() {
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#003366]/10 text-2xl">
               🏢
             </div>
-            <div>
-              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[12px]">
+            <div className="max-[720px]:min-w-0">
+              <Badge variant="outline" className="bg-[#003366]/5 text-[#003366] border-[#003366]/30 mb-1 text-[12px] max-[720px]:max-w-full max-[720px]:whitespace-normal">
                 บริษัท ไนท์ เฟอร์นิช จำกัด (KNIGHT FURNICH Co., Ltd.)
               </Badge>
               <h1 className="font-bold text-[#003366]" style={{ fontSize: "clamp(26px, calc(20px + 1.5vw), 40px)", lineHeight: 1.15 }}>
