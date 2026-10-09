@@ -3,6 +3,17 @@ name: Deploy to Hostinger VPS
 on:
   push:
     branches: [ main ]
+    # Docs-only pushes must not redeploy. Until 9 Oct 2026 every push to main recreated the api and web
+    # containers (`up -d --force-recreate api web`), so merging a documentation PR cost a few seconds of 502
+    # on the API routes: review job 298-C measured /api/catalog and /api/site-photos/showcase answering 502
+    # inside the deploy window of a docs-only PR (web Up 6s, api Up 12s at the time).
+    # GitHub skips the run only when EVERY changed path matches this list, so a push that also touches app
+    # code, migrations or deploy/ still deploys.
+    paths-ignore:
+      - 'qa/**'
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/**'
 
 # One deploy at a time. Two pushes to main in quick succession used to run side by side (job-225): both copy into
 # the same /docker/knightbasins directories, both run migrate.sh and both restart the containers, so the older
