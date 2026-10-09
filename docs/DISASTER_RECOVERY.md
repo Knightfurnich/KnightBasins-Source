@@ -63,7 +63,7 @@ bash backups/disaster_recovery_restore.sh backups/knight_basins_disaster_recover
 ## 3. การเปลี่ยนการชี้โดเมน (DNS Switch) (~2 นาที)
 * เข้าสู่ระบบจัดการ DNS (เช่น Cloudflare, Hostinger DNS หรือผู้ให้บริการโดเมน)
 * แก้ไข A Record ของโดเมน:
-  * โดเมน: `knightbasins.srv1964473.hstgr.cloud` (หรือโดเมนหลักของบริษัท)
+  * โดเมน: `knightbasins.com`
   * ชี้ IP Address ไปยัง: **`IP ของ VPS เครื่องใหม่`**
 * ระบบจะกลับมาให้บริการลูกค้าและทีมงานได้ทันที 100%
 

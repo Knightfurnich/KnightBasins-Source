@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-https://knightbasins.srv1964473.hstgr.cloud}"
+BASE_URL="${BASE_URL:-https://knightbasins.com}"
 BASE_URL="${BASE_URL%/}"
 
 index_body="$(mktemp)"

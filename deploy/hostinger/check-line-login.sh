@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-https://knightbasins.srv1964473.hstgr.cloud}"
+BASE_URL="${BASE_URL:-https://knightbasins.com}"
 API_BASE="${BASE_URL%/}/api"
-EXPECTED_CALLBACK="https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback"
+EXPECTED_CALLBACK="https://knightbasins.com/api/auth/line/callback"
 
 health_body="$(mktemp)"
 login_headers="$(mktemp)"

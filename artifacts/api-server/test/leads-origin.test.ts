@@ -121,23 +121,23 @@ async function startLeadsRoute() {
 describe("public quote origin", () => {
   it("prefers PUBLIC_APP_ORIGIN and strips any path", async () => {
     process.env["NODE_ENV"] = "production";
-    process.env["PUBLIC_APP_ORIGIN"] = "http://knightbasins.srv1964473.hstgr.cloud/quote/view";
+    process.env["PUBLIC_APP_ORIGIN"] = "http://knightbasins.com/quote/view";
     process.env["PUBLIC_UPLOAD_ORIGIN"] = "https://upload.example.test/api/uploads";
 
     assert.equal(
       (await module()).requestOrigin(request("http", { host: "internal:8080", "x-forwarded-proto": "http" })),
-      "https://knightbasins.srv1964473.hstgr.cloud",
+      "https://knightbasins.com",
     );
   });
 
   it("uses the existing PUBLIC_UPLOAD_ORIGIN as the public app origin", async () => {
     process.env["NODE_ENV"] = "production";
     delete process.env["PUBLIC_APP_ORIGIN"];
-    process.env["PUBLIC_UPLOAD_ORIGIN"] = "https://knightbasins.srv1964473.hstgr.cloud/api/uploads";
+    process.env["PUBLIC_UPLOAD_ORIGIN"] = "https://knightbasins.com/api/uploads";
 
     assert.equal(
       (await module()).requestOrigin(request("http", { host: "internal:8080", "x-forwarded-proto": "http" })),
-      "https://knightbasins.srv1964473.hstgr.cloud",
+      "https://knightbasins.com",
     );
   });
 
