@@ -1,19 +1,24 @@
 # md5 ของสคริปต์ที่สร้างหลักฐานชุดนี้ (ตรวจว่าเวอร์ชันตรงกับที่รันจริง)
 
-**เก็บเมื่อ:** 2026-10-09 22:40 +07 · **ที่มา:** `md5sum` บนเครื่อง Hermes (รีเฟรชหลังงาน 405-C ฝั่งเดวิด)
+**เก็บเมื่อ:** 2026-10-10 00:40 +07 · **ที่มา:** `md5sum` บนเครื่อง Hermes (รีเฟรชหลังแก้ตามรีวิว 409-C/410-Q · รีโป ops `f809a45`)
+
+> ℹ️ **ค่า asset ที่เสิร์ฟจริง:** ใช้ **sha256** เป็นหลัก (ตัวเลขไบต์ขึ้นกับวิธีวัด/การบีบอัด — รีวิว 410-Q จับได้ ±8 B)
+> `/assets/index-CBuXnlCN.css` = **386,347 B · sha256 `5ec13b68f3637b54b7e7cce2c7e08aaecba13664a62a2bf660e8bccb2d796e8f`** (ยืนยันโดย Qwen + เดวิด)
 
 > ⚠️ รีวิว 293-C/294-Q ชี้ถูกว่า md5 **ยังเทียบไม่ได้จริง** เพราะตัวสคริปต์ไม่ได้อยู่ในรีโป
 > (md5 ทำได้แค่ยืนยันว่า *รอบนี้* ไฟล์ที่รันมีค่าเท่านี้) — ตัวสคริปต์อยู่ในรีโปส่วนตัว
-> `Knightfurnich/hermes-ops-private` แล้ว (commit ล่าสุด **`c726926`**) ซึ่ง **รวม `plugins/knight-team/tools.py` เข้าชุดตรวจด้วย** (รีวิว 402-C/403-Q)
+> `Knightfurnich/hermes-ops-private` แล้ว (commit ล่าสุด **`f809a45`**) ซึ่ง **รวม `plugins/knight-team/tools.py` เข้าชุดตรวจด้วย** (รีวิว 402-C/403-Q)
 
 | ไฟล์ | md5 |
 |---|---|
-| `bin/verify_deploy.py` | `6ab6abd03bfb78260cdc96e8edbd154c` |
-| `plugins/knight-team/tools.py` | `c312bdaab1d26fa5c13d8262c42cdd66` |
+| `bin/verify_deploy.py` | `a3c2e329c06e7568f3f8f80f1b7ce7d3` |
+| `plugins/knight-team/tools.py` | `d1401daa3e057807fef388dea3697303` |
 | `bin/model_rate_limit_watch.py` | `289aa4a14ada42cfa8f06e2c78009446` |
 | `bin/knight_crawler_report.sh` | `8ebb3b6af9d2087c6f02c111e28cb259` |
 | `bin/knight_bundle_probe.sh` | `5d5aefa535ad75fb01226e0de00638bc` |
 | `bin/verify_vps_repo_drift.py` | `90a1c922880b0712a5d00a563b67358d` |
+| `knight-design-kb/build-public.py` | `d0fd87ba99b3ae85a53a60a7edf64c1d` |
+| `knight-design-kb/sync-kb.py` | `1fbd6b0a3eb4da62e70cd591007320ee` |
 | `scripts/knight_crawler_report.sh` | `5397447bc2716deb52ccf505c306554e` |
 | `bin/knight_watchdog.sh` | `a0dd8f5c8916d56b5569f663564f6977` |
 | `scripts/knightbasins_watchdog.sh` | `d39bb090834265133f8fc99ba7217770` |
@@ -22,7 +27,7 @@
 | `bin/push_indexnow.py` | `ed1918b7ca679cbea86dda216c5ba685` |
 | `bin/gsc_deep_check.py` | `5602768f8971f4ed66c542dff272fb1e` |
 | `bin/seo_onpage_check.py` | `1a33f4c2170630c6fd88f27f33d19400` |
-| `scripts/kb_sync_from_admin.py` | `bce49289a9597894b4f47147f6a2a24b` |
+| `scripts/kb_sync_from_admin.py` | `3baf7ae1e2f83baea91b65c9398e7f13` |
 
 ## ตัวสคริปต์อยู่ที่ไหน (ปิดช่อง md5 — อัปเดต 9 ต.ค. 69)
 
