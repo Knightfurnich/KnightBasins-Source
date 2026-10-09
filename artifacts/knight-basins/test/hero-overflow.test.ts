@@ -6,6 +6,23 @@ const stylesheet = readFileSync(new URL("../src/index.css", import.meta.url), "u
 const heroBackgroundRule = stylesheet.match(
   /\.catalog-hero::before\s*,\s*\.stone-hero::before\s*,\s*\.quote-heading::before\s*\{([^}]*)\}/,
 );
+const stylesheetWithoutComments = stylesheet.replace(/\/\*[\s\S]*?\*\//g, "");
+const stoneMobileStyles = Array.from(
+  stylesheetWithoutComments.matchAll(/@media\s+(?:screen\s+and\s+)?\(\s*max-width:\s*720px\s*\)\s*\{/g),
+).map((match) => {
+  const blockStart = (match.index ?? 0) + match[0].length;
+  let depth = 1;
+  for (let index = blockStart; index < stylesheetWithoutComments.length; index += 1) {
+    if (stylesheetWithoutComments[index] === "{") depth += 1;
+    if (stylesheetWithoutComments[index] === "}") depth -= 1;
+    if (depth === 0) return stylesheetWithoutComments.slice(blockStart, index);
+  }
+  return "";
+}).find((block) =>
+  block.includes(".stone-colors") &&
+  block.includes(".stone-search-row") &&
+  block.includes("repeat(3, minmax(0, 1fr)"),
+);
 
 function declarationsFrom(ruleBody: string) {
   return new Map(
@@ -46,5 +63,24 @@ test("hero gradient stays within the page-wrap and keeps its original scale", ()
     declarations.get("background") ?? "",
     /linear-gradient\(115deg,\s*rgba\(228,244,252,\.88\),\s*rgba\(244,249,253,0\)\s*58%\)/,
     "keep the existing hero gradient colors and direction",
+  );
+});
+
+test("mobile stone layout wraps its summary and constrains card grid tracks", () => {
+  assert.ok(stoneMobileStyles, "the mobile storefront styles must contain the stone grid");
+  assert.match(
+    stoneMobileStyles,
+    /\.stone-colors\s*\{\s*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
+    "let the three stone-card columns shrink within the config main width",
+  );
+  assert.match(
+    stoneMobileStyles,
+    /\.stone-search-row\s*\{[^}]*flex-direction:\s*column/,
+    "stack the search control and selection summary on mobile",
+  );
+  assert.match(
+    stoneMobileStyles,
+    /\.stone-search-row\s*>\s*span\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/,
+    "allow the selected-stone summary to wrap instead of widening the page",
   );
 });

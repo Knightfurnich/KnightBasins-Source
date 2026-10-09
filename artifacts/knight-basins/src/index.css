@@ -6475,3 +6475,29 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .ai-cost-page {
   color: var(--ink);
 }
+
+/* 407-R: prevent the mobile stone selector from widening the page. */
+@media screen and (max-width: 720px) {
+  .stone-search-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stone-search-row .search-field {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .stone-search-row > span {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .stone-colors {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
