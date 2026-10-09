@@ -1,0 +1,38 @@
+A) containers
+  [PASS] knightbasins-web running — knightbasins-web|Up About a minute
+  [PASS] knightbasins-api running — knightbasins-api|Up About a minute (healthy)
+  [PASS] knightbasins-db running — knightbasins-db|Up 5 days (healthy)
+
+B) web root is the directory the container is actually bound to
+  [PASS] web-dist inode matches container — host=1884215 container=1884215
+  [PASS] web-dist has files — 15 files at top level
+
+C) the app actually renders
+  [PASS] / is 200 — 200 text/html 155826B
+  [PASS] / is html — text/html
+  [PASS] api /catalog is 200 — 200 application/json
+  [PASS] /readme is 200 — 200 text/html
+  [PASS] /studio is 200 — 200 text/html
+  [PASS] /sketch is 200 — 200 text/html
+  [PASS] HTML references a bundle — js=['/assets/index-Ch5gquFv.js'] css=['/assets/index-DK5ZqJ6H.css']
+  [PASS] asset /assets/index-Ch5gquFv.js type — 200 application/javascript 1794132B
+  [PASS] asset /assets/index-DK5ZqJ6H.css type — 200 text/css 385899B
+
+D) a missing asset must not be swallowed by the SPA fallback
+  [PASS] missing asset is 404 — 404 text/html
+
+E) catalogue contract
+  [PASS] fabrication colours — 71 codes
+  [PASS] fabrication images — 71/71 have imageUrl
+  [PASS] SG420 rate in feed — rate=8500
+  [PASS] expected total from source = 14180 — 8500*1.08 + 5000 = 14180.00
+
+F) image origin is exempt from the chat rate limit
+  [PASS] images not rate limited — {200: 60}
+
+G) the assistant answers from the knowledge base
+  [PASS] hermes answers — 200 · สี BW010 (Bright White) ราคา 5,900 บาท/แผ่น ค่ะ (ยังไม่รวม VAT 7% และไม่รวมกาว)
+  [PASS] answer has no inline image data — clean text
+
+======================================================
+  22/22 passed
