@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import express from "express";
-import { LINE_PRODUCTION_CALLBACK_URL } from "../src/lib/line-config.ts";
+import { LINE_CANONICAL_CALLBACK_URL } from "../src/lib/line-config.ts";
 import { importTypeScriptModule } from "./route-harness.ts";
 
 type DatabaseHealth = { connected: boolean };
@@ -144,7 +144,7 @@ describe("GET /api/healthz", () => {
       nodeEnv: "production",
       channelId: "line-channel-id-route-test",
       channelSecret: "line-channel-secret-route-test",
-      callbackUrl: LINE_PRODUCTION_CALLBACK_URL,
+      callbackUrl: LINE_CANONICAL_CALLBACK_URL,
     });
 
     const server = await startHealthRoute(async () => ({ connected: true }));
@@ -166,7 +166,7 @@ describe("GET /api/healthz", () => {
       nodeEnv: "production",
       channelId: "line-channel-id-route-test",
       channelSecret: "line-channel-secret-route-test",
-      callbackUrl: LINE_PRODUCTION_CALLBACK_URL,
+      callbackUrl: LINE_CANONICAL_CALLBACK_URL,
     });
 
     const server = await startHealthRoute(async () => ({ connected: false }));
