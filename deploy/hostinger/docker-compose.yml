@@ -26,10 +26,12 @@ services:
     volumes:
       - ./api-dist:/app/dist:ro
       - ./uploads:/app/uploads
-      # Read-only logical backups (pg_dump) written by backups/knight_db_backup.sh.
-      # Only the api service gets this mount; nginx has no view of the directory,
-      # so a dump is reachable solely through the authenticated admin route.
+      # Read-only logical backups (pg_dump). Never mounted into web/nginx, so the
+      # dumps are only reachable through the authenticated admin endpoint.
       - ./backups:/app/backups:ro
+      - ./google-credentials.json:/app/google-credentials.json:ro
+      # อ่านไฟล์ต้นทุน/การใช้งาน AI ของ Hermes (สร้างโดย cron ของ Hermes ทุก 15 นาที) แบบอ่านอย่างเดียว
+      - /docker/hermes-agent-2xwn/data/hermes-usage:/hermes-usage:ro
     networks:
       - hermes
     depends_on:

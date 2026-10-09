@@ -299,3 +299,14 @@ BASE_URL=https://YOUR_PUBLIC_HTTPS_HOST \
 - Keep `/docker/knightbasins/.env` and `/docker/knightbasins/.db.env` outside the repository.
 - `deploy/hostinger/knight-basins-api.service`, `knight-basins-backup.service`, and `knight-basins-backup.timer` (systemd units) and the old host-level nginx `sites-available` config **no longer exist in this repo** — an earlier version of this deployment ran on bare systemd/nginx instead of Docker + Traefik; they were removed once the Docker Compose setup became the real, actually-running deployment, to avoid anyone following stale instructions.
 - Do not put VPS passwords, private keys, or database credentials in this repository or in chat.
+
+## Comparing the VPS config against this repository (drift check)
+
+Tests in this repository can only read the **copies committed here** — if the live file on the VPS is edited without syncing back, the tests stay green while production differs. That already happened once with `docker-compose.yml`, where the committed copy lagged behind the running one. Run this from the Hermes box:
+
+```bash
+HERMES_HOME=/opt/data /opt/hermes/.venv/bin/python3 bin/verify_vps_repo_drift.py [repo_root]
+# exit 0 = every file matches · exit 1 = a file differs (with the differing lines)
+```
+
+Files watched: `/docker/knightbasins/nginx.conf` ↔ `deploy/hostinger/nginx.conf` · `/docker/knightbasins/docker-compose.yml` ↔ `deploy/hostinger/docker-compose.yml`. **The VPS is the truth; when they differ, sync from the VPS into this repository.**
