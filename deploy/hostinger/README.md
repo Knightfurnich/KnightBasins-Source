@@ -53,6 +53,18 @@ Everything for this app lives under `/docker/knightbasins/` on the VPS:
 
 `docker-compose.yml` and `nginx.conf` in this repo are copies of what actually runs — keep them in sync if you change the VPS versions. The `web` container's nginx proxies `/api/` to the `api` container over the `hermes-agent-2xwn_default` Docker network (an external network shared with the Hermes Agent stack) and falls back to `index.html` for client-side routes such as `/stone` and `/quote`. TLS and the public hostname (`knightbasins.com`) are handled entirely by Traefik via the labels on the `web` service — this repo's nginx config only listens on plain port 80.
 
+### Public hostnames (who serves what)
+
+| Hostname | Serves | Routed by |
+|---|---|---|
+| `knightbasins.com` + `www` | the site (web container) and `/api/` | Traefik label on the `web` service |
+| `line.knightbasins.com` | the LINE webhook front door | `/docker/line-proxy` (its own compose project, router `line`) |
+| `api.knightbasins.com` | Hermes API (`/v1/`), the KB price feed (`/kb/pricing.json`) and KB images (`/kb/images/`) | `/docker/hermes-agent-2xwn/data/knight-design-kb/api-proxy` (router `knightapi`) |
+| `hermes-agent-2xwn.srv1964473.hstgr.cloud` | Hermes dashboard | the Hermes stack (provider-controlled wildcard — see KANBAN) |
+| `n8n.srv1964473.hstgr.cloud` | n8n (stopped on purpose) | n8n stack |
+
+`api.knightbasins.com` replaced `api.srv1964473.hstgr.cloud` on 9 Oct 2026; the legacy name stays routed as a temporary fallback until the stored media URLs are migrated and traffic to it has been zero for a week.
+
 To bring the stack up or recreate it after an `.env` change:
 
 ```bash
@@ -116,7 +128,9 @@ SLIPOK_BRANCH_ID=your-slipok-branch-id
 # bot, for logged-in (LINE) customers only. Passing the customer's LINE user
 # id as `user` keeps the conversation continuous with their LINE DM history.
 # Omit to degrade gracefully (keeps the existing keyword-only fallback reply).
-HERMES_API_URL=https://api.srv1964473.hstgr.cloud
+HERMES_API_URL=https://api.knightbasins.com
+# (เดิม https://api.srv1964473.hstgr.cloud — เปลี่ยนชื่อ 9 ต.ค. 69 · ชื่อเดิมยังรับอยู่ชั่วคราวเป็นทางสำรอง
+#  จนกว่าจะถอด router: ดู KANBAN "กำหนดอนาคต api.srv1964473")
 HERMES_API_KEY=your-hermes-api-server-key
 ```
 
