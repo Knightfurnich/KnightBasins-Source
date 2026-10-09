@@ -3,6 +3,7 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { PRODUCTS, STONE_COLORS } from "../../../knight-basins/src/data/catalog";
 import { canonicalMediaUrl, normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+import { commercialConstants, sheetTierPrices } from "../lib/commercial-constants";
 
 const router: IRouter = Router();
 
@@ -57,13 +58,11 @@ export async function seedCatalogIfEmpty() {
         await tx.insert(sheetStonePrices).values(
             STONE_COLORS.flatMap((stone, index) => {
               if (stone.sheetPriceTHB === null) return [];
-              const excluded = ["BW010", "NW013"].includes(stone.code);
               return [{
                 code: stone.code,
                 name: stone.name,
                 basePriceTHB: stone.sheetPriceTHB,
-                price10PlusTHB: excluded ? stone.sheetPriceTHB : Math.max(0, stone.sheetPriceTHB - 200),
-                price50PlusTHB: excluded ? stone.sheetPriceTHB : Math.round(stone.sheetPriceTHB * 0.95),
+                ...sheetTierPrices(stone.code, stone.sheetPriceTHB),
                 tone: stone.tone,
                 aliases: stone.documentCodes,
                 sortOrder: index,
@@ -103,7 +102,8 @@ router.get("/catalog", async (_req, res, next) => {
     // The storefront polls this endpoint to keep other tabs and sessions fresh.
     // Never let an intermediary replay an older active/archived catalog response.
     res.setHeader("Cache-Control", "no-store, max-age=0");
-    res.json(await getCatalogData(true));
+    // Job 405-C: the trade constants the app prices with ride along, so the knowledge base can follow the app. Added keys only.
+    res.json({ ...(await getCatalogData(true)), ...commercialConstants() });
   } catch (error) {
     next(error);
   }
