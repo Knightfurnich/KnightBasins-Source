@@ -81,13 +81,19 @@ describe("canonical domain", () => {
     assert.ok(!/location = \/index\.html \{[\s\S]{0,200}\/api\//.test(nginx), "the API must not be caught by the page rules");
   });
 
-  it("redirects legacy page URLs to the canonical domain without touching the API", () => {
+  it("keeps the retired legacy hostname out of the deploy config", () => {
     const nginx = readFileSync(path.join(repoRoot, "deploy", "hostinger", "nginx.conf"), "utf8");
-    assert.ok(/if \(\$knight_legacy_host\)/.test(nginx), "nginx must gate the legacy redirect on the legacy host map");
-    assert.ok(
-      nginx.includes(`rewrite ^(?!/api/|/kb/|/assets/)(.*)$ ${CANONICAL}$1 permanent;`),
-      "nginx must 301 legacy page URLs while excluding /api/, /kb/ and /assets/",
+    // The legacy host is retired on purpose: one canonical hostname, no redirect
+    // host left behind. If it creeps back into nginx.conf or the Traefik labels
+    // the site silently splits across two hosts again.
+    assert.ok(!nginx.includes(LEGACY_HOST), `deploy/hostinger/nginx.conf still contains ${LEGACY_HOST}`);
+    assert.ok(!nginx.includes("knight_legacy_host"), "the legacy host map must be gone from nginx.conf");
+    assert.match(
+      nginx,
+      /server_name knightbasins\.com www\.knightbasins\.com;/,
+      "nginx must serve only the canonical hosts",
     );
-    assert.match(nginx, /server_name knightbasins\.srv1964473\.hstgr\.cloud knightbasins\.com www\.knightbasins\.com;/, "nginx must serve both hosts");
+    const compose = readFileSync(path.join(repoRoot, "deploy", "hostinger", "docker-compose.yml"), "utf8");
+    assert.ok(!compose.includes(LEGACY_HOST), `deploy/hostinger/docker-compose.yml still contains ${LEGACY_HOST}`);
   });
 });

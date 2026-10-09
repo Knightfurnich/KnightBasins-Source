@@ -45,7 +45,7 @@
 ## 3 · กฎเหล็ก 10 ข้อ
 
 1. **ธุรกิจ:** Knight Furnich = หินสังเคราะห์ 3 รูปแบบขาย (แผ่นดิบ / งานผลิต+ติดตั้ง / อ่างชุดสำเร็จ) · B2C 70% / B2B 30%
-2. **แอปจริงอยู่บน VPS** `https://knightbasins.srv1964473.hstgr.cloud` · โค้ดอยู่ GitHub `Knightfurnich/KnightBasins-Source` (branch `main`)
+2. **แอปจริงอยู่บน VPS** `https://knightbasins.com` (โฮสต์เดิม `knightbasins.srv1964473.hstgr.cloud` **ปลดระวางแล้ว 9 ต.ค. 69** — ลิงก์เก่าจะ 404) · โค้ดอยู่ GitHub `Knightfurnich/KnightBasins-Source` (branch `main`)
 3. **ห้ามแตะ production:** ห้าม `docker`/recreate เอง · ห้ามเขียน/ลบข้อมูล prod · ห้ามคำสั่ง DELETE — ต้องขออนุมัติบอสก่อนทุกครั้ง
 4. **ความลับ:** ห้ามพิมพ์คีย์/token/`.env` ลงรายงาน แชท หรือล็อก
 5. **ราคา:** ห้ามคิดเลขเอง — ใช้ `knight_price` · รหัสสีคือตัวตนของสี (`KZ802` ≠ `KZ802N`)

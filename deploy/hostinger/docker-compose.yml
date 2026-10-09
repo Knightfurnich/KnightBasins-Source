@@ -57,7 +57,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.http.routers.knightbasins.entrypoints: "websecure"
-      traefik.http.routers.knightbasins.rule: "Host(`knightbasins.srv1964473.hstgr.cloud`)"
+      traefik.http.routers.knightbasins.rule: "Host(`knightbasins.com`) || Host(`www.knightbasins.com`)"
       traefik.http.routers.knightbasins.tls: "true"
       traefik.http.routers.knightbasins.tls.certresolver: "letsencrypt"
       traefik.http.services.knightbasins.loadbalancer.server.port: "80"
