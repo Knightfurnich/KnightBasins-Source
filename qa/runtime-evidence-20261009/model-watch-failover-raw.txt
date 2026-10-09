@@ -1,0 +1,16 @@
+# หลักฐานดิบ: การสลับโมเดลสำรอง (failover) — ตามที่ 294-Q ข้อ D ขอ "สลับจาก/ไปยังตัวไหน"
+
+**เก็บเมื่อ:** 9 ต.ค. 69 (TH) · **แหล่ง:** log ของ Hermes (`logs/agent.log`) · **ไม่มีคีย์ในไฟล์นี้**
+
+## บรรทัดจริง (คัดมาตรง ๆ)
+```
+2026-10-09 05:53:46,949 INFO [20261007_200422_85dad695] agent.chat_completion_helpers: Fallback gemini-3.5-flash: reasoning_config resolved: {'enabled': True, 'effort': 'medium'}
+2026-10-09 05:53:46,949 INFO [20261007_200422_85dad695] agent.chat_completion_helpers: Fallback gemini-3.5-flash: extra_body resolved: None
+2026-10-09 05:53:46,950 INFO [20261007_200422_85dad695] agent.chat_completion_helpers: Fallback activated: deepseek/deepseek-v4.1-flash → gemini-3.5-flash (gemini)
+```
+
+## อ่านผล
+- การสลับที่ watchdog นับได้ 1 ครั้งในหน้าต่าง 60 นาที = **ตัวหลัก `deepseek/deepseek-v4.1-flash` → ตัวสำรองลำดับที่ 1 `gemini-3.5-flash`**
+- **ไม่ใช่ apodex** ⇒ ไม่ขัดกับผลทดสอบภาษาไทยที่ apodex ตอบว่าง (294-Q ข้อ D ข้อ 2: "ถ้าเป็น apodex = ถูกเรียกใช้กับงานจริงแล้ว")
+- เวลา 05:53 UTC = 12:53 น. ไทย ตรงกับช่วงที่เดวิดทำงานหนัก (UPDATE DB + บังคับออก cert ใหม่) ⇒ เข้าเกณฑ์ "ตัวหลักชนเพดาน/ล้มชั่วคราวแล้วระบบสลับให้อัตโนมัติ"
+- รูปแบบบรรทัดที่สคริปต์นับ: `agent.chat_completion_helpers` + คำว่า `Fallback activated` (ดู `bin/model_rate_limit_watch.py` ฟังก์ชัน `scan_failover`)
