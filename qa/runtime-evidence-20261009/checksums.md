@@ -1,13 +1,15 @@
 # md5 ของสคริปต์ที่สร้างหลักฐานชุดนี้ (ตรวจว่าเวอร์ชันตรงกับที่รันจริง)
 
-**เก็บเมื่อ:** 2026-10-09 21:39 +07 · **ที่มา:** `md5sum` บนเครื่อง Hermes
+**เก็บเมื่อ:** 2026-10-09 22:40 +07 · **ที่มา:** `md5sum` บนเครื่อง Hermes (รีเฟรชหลังงาน 405-C ฝั่งเดวิด)
 
 > ⚠️ รีวิว 293-C/294-Q ชี้ถูกว่า md5 **ยังเทียบไม่ได้จริง** เพราะตัวสคริปต์ไม่ได้อยู่ในรีโป
-> (md5 ทำได้แค่ยืนยันว่า *รอบนี้* ไฟล์ที่รันมีค่าเท่านี้) — จะปิดช่องนี้ได้เมื่อ commit ตัวสคริปต์ลง `deploy/hermes-runtime/` ซึ่งรอการตัดสินใจของเจ้าของ
+> (md5 ทำได้แค่ยืนยันว่า *รอบนี้* ไฟล์ที่รันมีค่าเท่านี้) — ตัวสคริปต์อยู่ในรีโปส่วนตัว
+> `Knightfurnich/hermes-ops-private` แล้ว (commit ล่าสุด **`c726926`**) ซึ่ง **รวม `plugins/knight-team/tools.py` เข้าชุดตรวจด้วย** (รีวิว 402-C/403-Q)
 
 | ไฟล์ | md5 |
 |---|---|
 | `bin/verify_deploy.py` | `6ab6abd03bfb78260cdc96e8edbd154c` |
+| `plugins/knight-team/tools.py` | `c312bdaab1d26fa5c13d8262c42cdd66` |
 | `bin/model_rate_limit_watch.py` | `289aa4a14ada42cfa8f06e2c78009446` |
 | `bin/knight_crawler_report.sh` | `8ebb3b6af9d2087c6f02c111e28cb259` |
 | `bin/knight_bundle_probe.sh` | `5d5aefa535ad75fb01226e0de00638bc` |
@@ -20,7 +22,7 @@
 | `bin/push_indexnow.py` | `ed1918b7ca679cbea86dda216c5ba685` |
 | `bin/gsc_deep_check.py` | `5602768f8971f4ed66c542dff272fb1e` |
 | `bin/seo_onpage_check.py` | `1a33f4c2170630c6fd88f27f33d19400` |
-| `scripts/kb_sync_from_admin.py` | `8f6451cd81609b297584f7066ef00af8` |
+| `scripts/kb_sync_from_admin.py` | `bce49289a9597894b4f47147f6a2a24b` |
 
 ## ตัวสคริปต์อยู่ที่ไหน (ปิดช่อง md5 — อัปเดต 9 ต.ค. 69)
 
