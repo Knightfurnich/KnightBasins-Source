@@ -959,7 +959,8 @@ h1, h2, h3 { color: var(--ink); }
 .site-header, .page-wrap, .site-footer, .quote-drop-shell,
 .studio-drafts-layer, .studio-save-draft-layer { font-family: var(--storefront-sans); }
 .catalog-hero, .stone-hero, .quote-heading { min-height: 410px; border-color: var(--line); }
-.catalog-hero::before, .stone-hero::before, .quote-heading::before { content: ""; position: absolute; inset: 0 -20vw; z-index: -1; background: linear-gradient(115deg, rgba(228,244,252,.88), rgba(244,249,253,0) 58%); pointer-events: none; }
+/* Extend the hero paint only to the page-wrap edge; keep the former 20vw bleed scale. */
+.catalog-hero::before, .stone-hero::before, .quote-heading::before { content: ""; position: absolute; inset: 0 calc(0px - clamp(18px, 5vw, 76px)); z-index: -1; background: linear-gradient(115deg, rgba(228,244,252,.88), rgba(244,249,253,0) 58%); background-size: calc(100% + 40vw - clamp(18px, 5vw, 76px) - clamp(18px, 5vw, 76px)) 100%; background-position: center; pointer-events: none; }
 .catalog-hero, .stone-hero, .quote-heading { position: relative; }
 .hero-line { background: #a9cfe4; }
 .text-link { color: var(--brand-blue); border-color: #8fc5df; font-weight: 700; }
@@ -6473,4 +6474,30 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .admin-login,
 .ai-cost-page {
   color: var(--ink);
+}
+
+/* 407-R: prevent the mobile stone selector from widening the page. */
+@media screen and (max-width: 720px) {
+  .stone-search-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stone-search-row .search-field {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .stone-search-row > span {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .stone-colors {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
