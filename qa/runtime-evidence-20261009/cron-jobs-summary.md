@@ -11,6 +11,7 @@
 | knight-basins-watchdog | every 30m | script (no LLM) | (default) | telegram | active |
 | knight-bundle-watch | every 15m | agent (LLM) | cohere/north-mini-code:free | telegram | active |
 | knight-cert-renewal-check-dec | once at 2026-12-01 02:00 | agent (LLM) | (default) | origin | active |
+| knight-kb-sync-from-admin | 0 19 * * * (02:00 ไทย) | script (no LLM) | (default) | telegram | active |
 | knight-crawler-collect | every 120m | script (no LLM) | (default) | local | active |
 | knight-customer-log-collect | every 30m | script (no LLM) | (default) | origin | active |
 | knight-deployment-watchdog | every 60m | script (no LLM) | (default) | local | active |
@@ -23,3 +24,6 @@
 
 หมายเหตุ: ไม่มีค่า `.env`/คีย์ในไฟล์นี้ · งาน `no_agent` ไม่เรียก LLM เลย (0 token)
 · งานที่ย้ายไปโมเดลฟรี 9 ต.ค. 69: `knight-gsc-crawler-tracker`, `knight-bundle-watch` (cohere/north-mini-code:free)
+· เพิ่ม 9 ต.ค. 69: `knight-kb-sync-from-admin` — ซิงก์ KB จากข้อมูลจริงในแอป (admin) ทุกคืน 02:00
+  · สคริปต์: `scripts/kb_sync_from_admin.py` · โหมด script ล้วน (0 token)
+  · ไม่มีการเปลี่ยนแปลง = stdout ว่าง = ไม่ส่งข้อความ · ผิดปกติ (API ล่ม/ข้อมูลไม่ครบ) = หยุดและแจ้งเตือน โดยไม่แก้ไฟล์
