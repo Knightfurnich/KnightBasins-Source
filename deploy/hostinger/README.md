@@ -63,7 +63,9 @@ Everything for this app lives under `/docker/knightbasins/` on the VPS:
 | `hermes-agent-2xwn.srv1964473.hstgr.cloud` | Hermes dashboard | the Hermes stack (provider-controlled wildcard — see KANBAN) |
 | `n8n.srv1964473.hstgr.cloud` | n8n (stopped on purpose) | n8n stack |
 
-`api.knightbasins.com` replaced `api.srv1964473.hstgr.cloud` on 9 Oct 2026; the legacy name stays routed as a temporary fallback until the stored media URLs are migrated and traffic to it has been zero for a week.
+`api.knightbasins.com` replaced `api.srv1964473.hstgr.cloud` on 9 Oct 2026. The legacy name was removed from the Traefik router the same day (with the certificate re-issued so its SAN holds only the new name), after the stored media URLs were migrated to `https://knightbasins.com/...` and the owner confirmed old links are not to be kept alive. `api.srv1964473.hstgr.cloud` now answers 404.
+
+> ⚠️ Store media URLs on `knightbasins.com`, never on `api.knightbasins.com`: `trustedPhotoUrl()` in `artifacts/api-server/src/lib/sales-notifications.ts` only accepts a URL whose host equals `PUBLIC_APP_ORIGIN`, and a two-label origin (`knightbasins.com`) yields no sibling domain, so an `api.` link is dropped silently from the sales-team photo line.
 
 To bring the stack up or recreate it after an `.env` change:
 
