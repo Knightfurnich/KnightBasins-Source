@@ -2376,7 +2376,7 @@ export function createAdminRouter(
           ? painPoints.map((point, index) => `${index + 1}. ${point.description} — ${point.count.toLocaleString("th-TH")} ครั้ง`)
           : ["ยังไม่พบปัญหาในช่วงนี้"]),
         `💡 ข้อเสนอแนะเพื่อพัฒนา: ${recommendations.length ? recommendations.join(" / ") : "ติดตามสถิติอย่างต่อเนื่อง"}`,
-        "🔗 ดูรายละเอียดทั้งหมดที่: https://knightbasins.srv1964473.hstgr.cloud/admin/logs",
+        "🔗 ดูรายละเอียดทั้งหมดที่: https://knightbasins.com/admin/logs",
       ].join("\n");
       const stats = {
         quoteRequests,

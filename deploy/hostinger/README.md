@@ -51,7 +51,7 @@ Everything for this app lives under `/docker/knightbasins/` on the VPS:
 └── uploads/              # runtime-uploaded catalog/sketch media (see cleanup below)
 ```
 
-`docker-compose.yml` and `nginx.conf` in this repo are copies of what actually runs — keep them in sync if you change the VPS versions. The `web` container's nginx proxies `/api/` to the `api` container over the `hermes-agent-2xwn_default` Docker network (an external network shared with the Hermes Agent stack) and falls back to `index.html` for client-side routes such as `/stone` and `/quote`. TLS and the public hostname (`knightbasins.srv1964473.hstgr.cloud`) are handled entirely by Traefik via the labels on the `web` service — this repo's nginx config only listens on plain port 80.
+`docker-compose.yml` and `nginx.conf` in this repo are copies of what actually runs — keep them in sync if you change the VPS versions. The `web` container's nginx proxies `/api/` to the `api` container over the `hermes-agent-2xwn_default` Docker network (an external network shared with the Hermes Agent stack) and falls back to `index.html` for client-side routes such as `/stone` and `/quote`. TLS and the public hostname (`knightbasins.com`) are handled entirely by Traefik via the labels on the `web` service — this repo's nginx config only listens on plain port 80.
 
 To bring the stack up or recreate it after an `.env` change:
 
@@ -96,9 +96,9 @@ PORT=8080
 NODE_ENV=production
 LINE_CHANNEL_ID=your-line-channel-id
 LINE_CHANNEL_SECRET=your-line-channel-secret
-LINE_CALLBACK_URL=https://knightbasins.srv1964473.hstgr.cloud/api/auth/line/callback
-PUBLIC_UPLOAD_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud/api/uploads
-PUBLIC_APP_ORIGIN=https://knightbasins.srv1964473.hstgr.cloud
+LINE_CALLBACK_URL=https://knightbasins.com/api/auth/line/callback
+PUBLIC_UPLOAD_ORIGIN=https://knightbasins.com/api/uploads
+PUBLIC_APP_ORIGIN=https://knightbasins.com
 # Optional sales notification channel for submitted quotes/sketches.
 # Omit both to degrade gracefully ("saved, but not notified") instead of failing.
 NOTIFY_CHANNEL=telegram
@@ -159,7 +159,7 @@ Run the cleanup once a day from an operator machine or a protected scheduler. Ke
 
 ```bash
 set -euo pipefail
-BASE_URL=https://knightbasins.srv1964473.hstgr.cloud
+BASE_URL=https://knightbasins.com
 COOKIE_FILE="$(mktemp)"
 trap 'rm -f "$COOKIE_FILE"' EXIT
 
@@ -255,7 +255,7 @@ Run this as the final validation step after every API deployment, LINE environme
 
 ```bash
 set -euo pipefail
-BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \
+BASE_URL=https://knightbasins.com \
   bash deploy/hostinger/check-line-login.sh
 ```
 
@@ -278,7 +278,7 @@ bash deploy/hostinger/check-upload-files.test.sh
 Run the web asset gate after a deploy. It fetches `/`, extracts the JavaScript URL with Python 3's standard library, then requires a `/assets/` path, HTTP 200, a JavaScript content type, and a non-HTML response body. This catches both a real 404 and the more subtle case where an SPA fallback returns `index.html` with HTTP 200. The checker requires only `bash`, `curl`, and `python3`; it does not require Node.js:
 
 ```bash
-BASE_URL=https://knightbasins.srv1964473.hstgr.cloud \
+BASE_URL=https://knightbasins.com \
   bash deploy/hostinger/check-web-assets.sh
 ```
 

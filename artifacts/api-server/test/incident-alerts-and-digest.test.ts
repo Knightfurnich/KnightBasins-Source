@@ -194,7 +194,7 @@ describe("slip incident alert and weekly digest", () => {
       assert.match(result.text, /จุดติดขัดที่พบ: 4 ราย \(20\.0%\)/);
       assert.match(result.text, /1\. ลูกค้าติดขัดระหว่างเลือกอ่างหรือจัดวางผังเคาน์เตอร์ — 3 ครั้ง/);
       assert.match(result.text, /ข้อเสนอแนะเพื่อพัฒนา:/);
-      assert.match(result.text, /https:\/\/knightbasins\.srv1964473\.hstgr\.cloud\/admin\/logs/);
+      assert.match(result.text, /https:\/\/knightbasins\.com\/admin\/logs/);
       assert.ok(Number.isFinite(Date.parse(result.generatedAt)));
       assert.equal(requests.length, 0);
 
