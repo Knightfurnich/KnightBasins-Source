@@ -51,7 +51,7 @@ sheet_colours, discount_tiers, discount_excluded_codes, basin_models, fabricatio
 
 **B3 — `hidden_colours` 7 รายการ**
 ```
-fields中出现ทั้งหมด = ['code','name','note'] เท่านั้น · key ที่ตรง pattern price|rate|THB = 0 ✅
+fields ที่ปรากฏทั้งหมด = ['code','name','note'] เท่านั้น · key ที่ตรง pattern price|rate|THB = 0 ✅
 codes: KZ695 · V342 · VL155 · RC469 · VD126 · BL461 · SL531
 ซ้อนกับ tiers = 0 · ซ้อนกับ sheet_colours = 0 · ปรากฏใน sheetStones/installedStones ของแอป = 0 ✅
 note = "ไม่ปรากฏในรายการขาย — ซ่อนไว้ (ของหมด/รอของเข้า หรือยกเลิก) · ถ้าเปิดขายอีกครั้งระบบจะอัปเดตให้เอง"
@@ -149,7 +149,7 @@ VAT เฉพาะค่างาน แล้วค่อยบวกค่า
 → คือแถว "ชิปกรองตามช่วงราคา" บน /stone ที่เลยขอบขวา (บนเดสก์ท็อปไม่ล้น เพราะ layout กว้างพอ)
 ```
 ⚠️ **เหตุผลที่น่าจะทำให้เดวิด/รีพิตวัดแล้วได้ 0 (ผมระบุให้เห็นชัด แทนที่จะบอกว่าเขาโกหก):** Chromium บน desktop ของผมมี classic scrollbar กว้าง 15px ทำให้ `clientWidth` = 375 ขณะ `window.innerWidth` = 390 → **่าาา** `scrollWidth (377) < innerWidth (390) = 0 การล้น` ถ้าวัดด้วย innerWidth หรือเปิดใน iPhone จริง (overlay scrollbar, cw = 390) จะเห็นว่า "ไม่ล้น" — แต่เกณฑ์ที่ใบงาน 410-Q เขียนไว้คือ **scrollWidth − clientWidth** ซึ่งตามนิยามนั้น = **+2 (ที่ 390) และ +31 (ที่ 360)** ⇒ **"0 ทุกช่อง" จึงไม่จริงทั้งหมด: ผิด 2 จาก 10 ช่องที่ผมวัด (4 หน้า × 2 จอ + 2 ขนาดเสริม)**
-🟡 ข้อจำกัดของผм: ผมวัดบน Chromium (viewport emulation) ไม่ใช่ iPhone/iPadจริง → ตัวเลขบน Safari iOS อาจต่าง; ผมวัดตอนหน้าโหลดครบ `networkidle` แล้วเท่านั้น (ไม่ได้กด tab/เปิด dropdown ภายในصفح → อาจมีองค์ประกอบที่ล้นเฉพาะตอน interact ซึ่งผมไม่ได้ test และไม่ได้สรุปว่าไม่มี)
+🟡 ข้อจำกัดของผм: ผมวัดบน Chromium (viewport emulation) ไม่ใช่ iPhone/iPadจริง → ตัวเลขบน Safari iOS อาจต่าง; ผมวัดตอนหน้าโหลดครบ `networkidle` แล้วเท่านั้น (ไม่ได้กด tab/เปิด dropdown ภายในหน้า → อาจมีองค์ประกอบที่ล้นเฉพาะตอน interact ซึ่งผมไม่ได้ test และไม่ได้สรุปว่าไม่มี)
 **verdict F: ไม่เห็นด้วยกับ "0 ทุกช่อง"** (เฉพาะ `/stone` บนมือถือ) + ข้อเสนอ: ระบุ metric + browser/scrollbar ในเกณฑ์ให้ตรงกัน 1 บรรทัด และแก้อัตราส่วน chip โดยใส่ `min-width:0`/`flex-wrap` ให้แถวชิป หรือทำให้เป็น scroller จริง (แล้ว test ที่ 360 ด้วย)
 
 ## G. ล่าของที่ยังไม่มีหลักฐาน / เอกสารไม่ตรงความจริง
