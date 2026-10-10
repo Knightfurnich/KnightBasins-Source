@@ -65,13 +65,25 @@ function aggregateOffer(url: string, fragment: string, range: OfferRange): Recor
 }
 
 /**
+ * The Product's `image`, as a full https URL. The caller passes the image the route already publishes
+ * (ROUTE_META, the same file its og:image uses) so this module never types a path: change the route's
+ * picture and the schema follows. Nothing is invented -- no image given means no `image` key.
+ */
+function productImage(image: string | null | undefined): { image?: string } {
+  const value = typeof image === "string" ? image.trim() : "";
+  return value ? { image: absoluteImageUrl(value) } : {};
+}
+
+/**
  * Made-to-order surfaces are not fixed-price SKUs, so the Product publishes no
  * single price: it publishes the bands its own page shows, read from the
  * catalogue (per sheet, and per square metre installed). Ratings are never
- * invented -- an Offer alone is what Google asks for.
+ * invented -- an Offer alone is what Google asks for. `image` is the route's own
+ * picture (see productImage); Google recommends one on every Product.
  */
 export function buildStonePageJsonLd(
   prices: { sheet?: OfferRange | null; installed?: OfferRange | null } = {},
+  image?: string | null,
 ): Record<string, unknown> {
   const url = `${SITE}/stone`;
   const offers = [
@@ -85,6 +97,7 @@ export function buildStonePageJsonLd(
         "@type": "Product",
         "@id": `${SITE}/stone#countertops`,
         url,
+        ...productImage(image),
         name: "ท็อปครัวและเคาน์เตอร์หินสังเคราะห์สั่งตัด",
         description: "ท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์ สั่งตัดตามพื้นที่ใช้งาน",
         material: "Solid Surface",
@@ -123,6 +136,7 @@ export function buildQuotePageJsonLd(): Record<string, unknown> {
  */
 export function buildPriceGuideJsonLd(
   prices: { sheet?: OfferRange | null; installed?: OfferRange | null } = {},
+  image?: string | null,
 ): Record<string, unknown> {
   const url = `${SITE}/price-guide`;
   const offers = [
@@ -136,6 +150,7 @@ export function buildPriceGuideJsonLd(
         "@type": "Product",
         "@id": `${SITE}/price-guide#solid-surface-countertops`,
         url,
+        ...productImage(image),
         name: "เคาน์เตอร์หินสังเคราะห์และแนวทางเลือก",
         description: "คู่มือเลือกและวางแผนสั่งทำเคาน์เตอร์หินสังเคราะห์ตามขนาดและรูปแบบงาน",
         material: "Solid Surface",

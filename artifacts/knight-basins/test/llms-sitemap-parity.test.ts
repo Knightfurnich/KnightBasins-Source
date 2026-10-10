@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import {
@@ -14,6 +14,7 @@ import {
   VAT_RATE,
 } from "../src/data/catalog.ts";
 import { buildPriceGuideJsonLd } from "../src/data/structured-data.ts";
+import { ROUTE_META } from "../src/components/RouteMeta.logic.ts";
 
 // job-282: llms.txt and llms-full.txt are what an AI crawler reads when it does not run JavaScript, and
 // nothing generates them — so they drift silently. Two drifts happened at once here: /price-guide and
@@ -116,13 +117,26 @@ describe("llms-full.txt copies the app's numbers, not remembered ones (job-282 B
     // "Either 'offers', 'review', or 'aggregateRating' should be specified". Offers now come from
     // the catalogue via the page, so the check is: offers exist, are priced in THB, and no rating
     // is ever invented alongside them.
-    const schema = buildPriceGuideJsonLd({ sheet: { lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 64 }, installed: { lowPrice: 7500, highPrice: 12000, unitText: "ตร.ม.", offerCount: 65 } });
+    const schema = buildPriceGuideJsonLd({ sheet: { lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 64 }, installed: { lowPrice: 7500, highPrice: 12000, unitText: "ตร.ม.", offerCount: 65 } }, ROUTE_META["/price-guide"]?.image?.path);
     const json = JSON.stringify(schema);
     assert.equal(json.includes('"offers"'), true, "the Product must carry offers");
     assert.equal(json.includes('"priceCurrency":"THB"'), true, "offers must be priced in THB");
     for (const forbidden of ["aggregateRating", "review", '"rating"']) {
       assert.equal(json.includes(forbidden), false, `the price-guide JSON-LD must not carry ${forbidden}`);
     }
+  });
+
+  it("the Product's image is the route's own picture, a full URL to a file that exists (job-413)", () => {
+    const meta = ROUTE_META["/price-guide"]!.image!;
+    const schema = buildPriceGuideJsonLd({ sheet: { lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 64 } }, meta.path);
+    const product = (schema["@graph"] as Array<Record<string, unknown>>)[0];
+    assert.equal(product.image, `${ORIGIN}${meta.path}`);
+    const file = new URL(`../public${meta.path}`, import.meta.url);
+    assert.ok(existsSync(file), `${meta.path} is missing from public/`);
+    assert.ok(statSync(file).size > 30_000, `${meta.path} is too small to be a real picture`);
+    assert.equal(JSON.stringify(schema).includes("aggregateRating"), false);
+    // No picture handed in means no image key -- never a guessed path.
+    assert.equal("image" in (buildPriceGuideJsonLd({})["@graph"] as Array<Record<string, unknown>>)[0], false);
   });
 });
 

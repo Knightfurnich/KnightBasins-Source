@@ -8,11 +8,12 @@
  * must keep matching the GBP listing.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 
 import { breadcrumbItemsForPath, buildQuotePageJsonLd, buildStonePageJsonLd, offerRangeFrom } from "../src/data/structured-data.ts";
+import { ROUTE_META } from "../src/components/RouteMeta.logic.ts";
 
 const appRoot = path.resolve(import.meta.dirname, "..");
 const shell = readFileSync(path.join(appRoot, "index.html"), "utf8");
@@ -131,7 +132,7 @@ describe("stone and quotation route schemas", () => {
   const stone = JSON.parse(JSON.stringify(buildStonePageJsonLd({
     sheet: { lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 64 },
     installed: { lowPrice: 7500, highPrice: 12000, unitText: "ตร.ม.", offerCount: 65 },
-  })));
+  }, ROUTE_META["/stone"]?.image?.path)));
   const quote = JSON.parse(JSON.stringify(buildQuotePageJsonLd()));
 
   it("/stone describes a Product and the fabrication/installation Service", () => {
@@ -198,10 +199,35 @@ describe("stone and quotation route schemas", () => {
     assert.equal("offers" in product, false, "no catalogue prices means no offer, never a guess");
   });
 
+  it("/stone Product carries the route's own picture as a full URL, and the file really exists (job-413)", () => {
+    // Google recommends an `image` on every Product. The picture is the route's social card (ROUTE_META),
+    // handed in by the caller -- the schema module holds no path. Min size for Google is 300x300.
+    const product = stone["@graph"].find((node: any) => node["@type"] === "Product");
+    const meta = ROUTE_META["/stone"]!.image!;
+    assert.equal(product.image, `https://knightbasins.com${meta.path}`);
+    assert.match(product.image, /^https:\/\/knightbasins\.com\/[^\s]+\.(webp|jpg|jpeg|png)$/);
+    const file = path.join(appRoot, "public", meta.path.slice(1));
+    assert.ok(existsSync(file), `${meta.path} is missing from public/`);
+    assert.ok(statSync(file).size > 30_000, `${meta.path} is too small to be a real picture`);
+    assert.ok(meta.width >= 300 && meta.height >= 300, "Google needs at least 300x300");
+    // The offers closed in job 413-D are untouched: still one band per buying option.
+    assert.equal(product.offers.length, 2);
+  });
+
+  it("publishes no `image` when no picture is passed, and types no image path in the schema module", () => {
+    const bare = buildStonePageJsonLd({ sheet: { lowPrice: 1, highPrice: 2, unitText: "แผ่น", offerCount: 1 } });
+    assert.equal("image" in (bare["@graph"] as Array<Record<string, unknown>>)[0], false);
+    assert.equal("image" in (buildStonePageJsonLd({}, "   ")["@graph"] as Array<Record<string, unknown>>)[0], false);
+    const absolute = buildStonePageJsonLd({}, "https://example.com/a.webp")["@graph"] as Array<Record<string, unknown>>;
+    assert.equal(absolute[0].image, "https://example.com/a.webp", "an absolute URL is kept as is");
+    const schemaSource = readFileSync(path.join(appRoot, "src", "data", "structured-data.ts"), "utf8");
+    assert.equal(/\/guide\/[a-z0-9-]+\.(webp|jpg|png)/i.test(schemaSource), false, "an image path was typed into structured-data.ts");
+  });
+
   it("mounts each schema inside its route component, not only on the home page", () => {
     const stoneSource = appSource.slice(appSource.indexOf("function StonePage("), appSource.indexOf("function SavedQuotePage("));
     const quoteSource = appSource.slice(appSource.indexOf("function QuotePage("), appSource.indexOf("function Storefront("));
-    assert.match(stoneSource, /<RouteStructuredData id="stone-products" data=\{buildStonePageJsonLd\(stoneSchemaPrices\)\} \/>/);
+    assert.match(stoneSource, /<RouteStructuredData id="stone-products" data=\{buildStonePageJsonLd\(stoneSchemaPrices, ROUTE_META\["\/stone"\]\?\.image\?\.path\)\} \/>/);
     assert.match(stoneSource, /offerRangeFrom\(stoneColorsByMode\.wholeSheet\.map/);
     assert.match(quoteSource, /<RouteStructuredData id="quote-service" data=\{buildQuotePageJsonLd\(\)\} \/>/);
   });
