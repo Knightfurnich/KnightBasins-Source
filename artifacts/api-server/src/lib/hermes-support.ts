@@ -4,8 +4,31 @@
 // uses keeps the conversation continuous across the website and LINE DMs --
 // that continuity is the whole point of this integration, so `user` must
 // always come from the authenticated session, never from client input.
+//
+// `user` alone does NOT join the LINE conversation: Hermes resolves "which
+// transcript?" from the declared session key (header `X-Hermes-Session-Key`),
+// and the Knight patch KNIGHT_SHARED_SESSION_CHAT makes /v1/chat/completions
+// continue the newest existing transcript stored under that key, whatever
+// channel created it. A LINE DM is stored under
+// `agent:main:line:dm:<LINE user id>` -- the format the ops repo's own decisive
+// test (bin/_test_shared_transcript.py) sends and finds the LINE transcript with.
+// Without the header the web chat gets a transcript derived from the prompt, so
+// the customer meets a bot that "has never spoken to them".
 
 const REQUEST_TIMEOUT_MS = 45_000;
+
+const LINE_DM_SESSION_KEY_PREFIX = "agent:main:line:dm:";
+// A LINE user id is "U" + 32 hex characters. Anything else is not put into a header.
+const LINE_USER_ID_PATTERN = /^U[0-9a-f]{32}$/;
+
+/**
+ * The Hermes session key of this customer's LINE DM, or null when `userId` is not a
+ * LINE user id. `userId` must come from the verified session (see top of file); the
+ * pattern check additionally keeps a malformed value out of an HTTP header.
+ */
+export function lineConversationSessionKey(userId: string): string | null {
+  return LINE_USER_ID_PATTERN.test(userId) ? `${LINE_DM_SESSION_KEY_PREFIX}${userId}` : null;
+}
 
 export type HermesSupportResult =
   | { ok: true; reply: string }
@@ -41,6 +64,7 @@ export async function askHermesSupport(options: {
     { role: "user" as const, content: options.message },
   ];
 
+  const sessionKey = lineConversationSessionKey(options.userId);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -49,6 +73,7 @@ export async function askHermesSupport(options: {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${config.apiKey}`,
+        ...(sessionKey ? { "X-Hermes-Session-Key": sessionKey } : {}),
       },
       body: JSON.stringify({ model: config.model, messages, user: options.userId }),
       signal: controller.signal,
