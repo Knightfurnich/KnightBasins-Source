@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { breadcrumbItemsForPath, buildQuotePageJsonLd, buildStonePageJsonLd } from "../src/data/structured-data.ts";
+import { breadcrumbItemsForPath, buildQuotePageJsonLd, buildStonePageJsonLd, offerRangeFrom } from "../src/data/structured-data.ts";
 
 const appRoot = path.resolve(import.meta.dirname, "..");
 const shell = readFileSync(path.join(appRoot, "index.html"), "utf8");
@@ -128,7 +128,10 @@ describe("business JSON-LD", () => {
 
 describe("stone and quotation route schemas", () => {
   const appSource = readFileSync(path.join(appRoot, "src", "App.tsx"), "utf8");
-  const stone = JSON.parse(JSON.stringify(buildStonePageJsonLd()));
+  const stone = JSON.parse(JSON.stringify(buildStonePageJsonLd({
+    sheet: { lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 64 },
+    installed: { lowPrice: 7500, highPrice: 12000, unitText: "ตร.ม.", offerCount: 65 },
+  })));
   const quote = JSON.parse(JSON.stringify(buildQuotePageJsonLd()));
 
   it("/stone describes a Product and the fabrication/installation Service", () => {
@@ -152,8 +155,8 @@ describe("stone and quotation route schemas", () => {
     assert.ok(quote.name.length > 0 && quote.serviceType.length > 0);
   });
 
-  it("publishes no guessed prices, offers, ratings or customer fields", () => {
-    const forbidden = new Set(["price", "priceCurrency", "priceSpecification", "offers", "aggregateRating", "review", "customer", "email", "telephone"]);
+  it("publishes an AggregateOffer per buying option, and still never fabricates ratings or customer fields", () => {
+    const forbidden = new Set(["aggregateRating", "review", "rating", "customer", "email", "telephone"]);
     function check(value: unknown) {
       if (!value || typeof value !== "object") return;
       for (const [key, nested] of Object.entries(value)) {
@@ -163,12 +166,43 @@ describe("stone and quotation route schemas", () => {
     }
     check(stone);
     check(quote);
+
+    // Google: "Either 'offers', 'review', or 'aggregateRating' should be specified" — so each
+    // buying option the page shows becomes one band, priced in THB and marked in stock.
+    const product = stone["@graph"].find((node: any) => node["@type"] === "Product");
+    const offers = product.offers;
+    assert.equal(offers.length, 2);
+    assert.deepEqual(offers.map((offer: any) => offer["@type"]), ["AggregateOffer", "AggregateOffer"]);
+    for (const offer of offers) {
+      assert.equal(offer.priceCurrency, "THB");
+      assert.equal(typeof offer.lowPrice, "number");
+      assert.equal(typeof offer.highPrice, "number");
+      assert.ok(offer.lowPrice <= offer.highPrice);
+      assert.equal(offer.availability, "https://schema.org/InStock");
+      assert.equal(offer.seller["@id"], "https://knightbasins.com/#organization");
+    }
+    assert.equal(offers[1].priceSpecification.unitText, "ตร.ม.");
+    assert.equal(offers[0].priceSpecification.unitText, "แผ่น");
+    // The /quote service page is not a product and must stay price-free.
+    assert.equal(JSON.stringify(quote).includes("offers"), false);
+  });
+
+  it("reads the band from the catalogue and drops nonsense before it reaches the schema", () => {
+    assert.deepEqual(offerRangeFrom([12000, null, 4900, 0, Number.NaN, undefined, 7500], "แผ่น"), {
+      lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 3,
+    });
+    assert.equal(offerRangeFrom([], "แผ่น"), null);
+    assert.equal(offerRangeFrom([null, 0], "แผ่น"), null);
+    const withoutCatalogue = buildStonePageJsonLd();
+    const product = (withoutCatalogue["@graph"] as Array<Record<string, unknown>>)[0];
+    assert.equal("offers" in product, false, "no catalogue prices means no offer, never a guess");
   });
 
   it("mounts each schema inside its route component, not only on the home page", () => {
     const stoneSource = appSource.slice(appSource.indexOf("function StonePage("), appSource.indexOf("function SavedQuotePage("));
     const quoteSource = appSource.slice(appSource.indexOf("function QuotePage("), appSource.indexOf("function Storefront("));
-    assert.match(stoneSource, /<RouteStructuredData id="stone-products" data=\{buildStonePageJsonLd\(\)\} \/>/);
+    assert.match(stoneSource, /<RouteStructuredData id="stone-products" data=\{buildStonePageJsonLd\(stoneSchemaPrices\)\} \/>/);
+    assert.match(stoneSource, /offerRangeFrom\(stoneColorsByMode\.wholeSheet\.map/);
     assert.match(quoteSource, /<RouteStructuredData id="quote-service" data=\{buildQuotePageJsonLd\(\)\} \/>/);
   });
 });

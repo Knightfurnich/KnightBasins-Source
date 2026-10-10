@@ -14,7 +14,7 @@ import {
   STONE_SMALL_JOB_PROVINCE_FEE,
   VAT_RATE,
 } from "@/data/catalog";
-import { buildPriceGuideJsonLd } from "@/data/structured-data";
+import { buildPriceGuideJsonLd, offerRangeFrom } from "@/data/structured-data";
 
 const BASIN_INSTALLATION_FREE_FROM = 3;
 const NIGHT_WORK_START = "20:00";
@@ -84,10 +84,19 @@ const vatPercent = new Intl.NumberFormat("th-TH", {
   maximumFractionDigits: 2,
 }).format(VAT_RATE * 100);
 
+/**
+ * The two bands the comparison table shows, handed to the JSON-LD builder so the
+ * Product node can publish offers without typing a price into the schema module.
+ */
+export const PRICE_GUIDE_SCHEMA_PRICES = {
+  sheet: offerRangeFrom(sheetPrices, "แผ่น"),
+  installed: offerRangeFrom(installedPrices, "ตร.ม."),
+};
+
 function PriceGuidePage() {
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-      <RouteStructuredData id="price-guide" data={buildPriceGuideJsonLd()} />
+      <RouteStructuredData id="price-guide" data={buildPriceGuideJsonLd(PRICE_GUIDE_SCHEMA_PRICES)} />
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8">
         <Link
           href="/"

@@ -18,6 +18,7 @@ import {
   breadcrumbItemsForPath,
   buildBreadcrumbListJsonLd,
   buildPriceGuideJsonLd,
+  type OfferRange,
 } from "../src/data/structured-data.ts";
 import { ROUTE_META } from "../src/components/RouteMeta.logic.ts";
 
@@ -38,7 +39,7 @@ const HARNESS_SCRIPT = `
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Router } from "wouter";
-const { default: PriceGuidePage, PRICE_GUIDE_INSTALLATION_RATES } = await import(${JSON.stringify(pageUrl)});
+const { default: PriceGuidePage, PRICE_GUIDE_INSTALLATION_RATES, PRICE_GUIDE_SCHEMA_PRICES } = await import(${JSON.stringify(pageUrl)});
 const page = createElement(
   Router,
   { hook: () => ["/price-guide", () => {}] },
@@ -47,6 +48,7 @@ const page = createElement(
 process.stdout.write(JSON.stringify({
   markup: renderToStaticMarkup(page),
   ratePrices: PRICE_GUIDE_INSTALLATION_RATES.map((tier) => tier.price),
+  schemaPrices: PRICE_GUIDE_SCHEMA_PRICES,
   basinInstallationFreeFrom: ${BASIN_INSTALLATION_FREE_FROM},
   nightWorkStart: ${JSON.stringify(NIGHT_WORK_START)},
   nightWorkEnd: ${JSON.stringify(NIGHT_WORK_END)},
@@ -56,6 +58,7 @@ process.stdout.write(JSON.stringify({
 type PageHarness = {
   markup: string;
   ratePrices: number[];
+  schemaPrices: { sheet: OfferRange | null; installed: OfferRange | null };
   basinInstallationFreeFrom: number;
   nightWorkStart: string;
   nightWorkEnd: string;
@@ -196,13 +199,33 @@ describe("price guide page", () => {
     assert.match(appSource, /<Route path="\/price-guide" component=\{PriceGuidePage\} \/>/);
   });
 
-  it("emits Product and Service JSON-LD without offers, prices or ratings", () => {
-    const schema = buildPriceGuideJsonLd();
+  it("publishes offers read from the catalogue, never from the schema module", () => {
+    // job-274 forbade prices in route JSON-LD; Google then reported "Either 'offers', 'review', or
+    // 'aggregateRating' should be specified" for both Product nodes. The rule is now: publish the
+    // bands the page already shows, taken from STONE_COLORS — so this test reads the page's own
+    // schema input and compares it to the catalogue, not to a number typed in the test either.
+    const schema = buildPriceGuideJsonLd(pageHarness.schemaPrices);
     const graph = schema["@graph"] as Array<Record<string, unknown>>;
     assert.deepEqual(graph.map((entity) => entity["@type"]), ["Product", "Service"]);
     assert.equal((graph[0].brand as Record<string, unknown>)["@id"], "https://knightbasins.com/#organization");
     assert.equal((graph[1].provider as Record<string, unknown>)["@id"], "https://knightbasins.com/#organization");
-    assert.doesNotMatch(JSON.stringify(schema), /"(?:offers?|price|aggregateRating|review|rating)"/i);
+
+    const offers = graph[0].offers as Array<Record<string, unknown>>;
+    assert.equal(offers.length, 2, "the Product must carry one band per buying option");
+    const installed = offers.find((offer) => offer["@id"] === "https://knightbasins.com/price-guide#offer-installed")!;
+    const sheet = offers.find((offer) => offer["@id"] === "https://knightbasins.com/price-guide#offer-sheet")!;
+    const installedPrices = STONE_COLORS.map((stone) => stone.installedPriceTHB).filter((price): price is number => price !== null);
+    const sheetPrices = STONE_COLORS.map((stone) => stone.sheetPriceTHB).filter((price): price is number => price !== null);
+    assert.equal(installed.lowPrice, Math.min(...installedPrices));
+    assert.equal(installed.highPrice, Math.max(...installedPrices));
+    assert.equal(sheet.lowPrice, Math.min(...sheetPrices));
+    assert.equal(sheet.highPrice, Math.max(...sheetPrices));
+    assert.equal(installed.priceCurrency, "THB");
+    assert.equal(installed.availability, "https://schema.org/InStock");
+    assert.equal((installed.priceSpecification as Record<string, unknown>).unitText, "ตร.ม.");
+    assert.equal((sheet.priceSpecification as Record<string, unknown>).unitText, "แผ่น");
+    // A rating is never invented: only an Offer is published.
+    assert.equal(/"(?:aggregateRating|review|rating)"/i.test(JSON.stringify(schema)), false);
 
     const breadcrumbs = breadcrumbItemsForPath("/price-guide");
     assert.deepEqual(breadcrumbs, [
@@ -215,6 +238,13 @@ describe("price guide page", () => {
       (breadcrumbSchema.itemListElement as Array<Record<string, unknown>>)[1]?.item,
       "https://knightbasins.com/price-guide",
     );
+  });
+
+  it("omits offers instead of inventing a price when the catalogue has none", () => {
+    const empty = buildPriceGuideJsonLd({ sheet: null, installed: null });
+    const product = (empty["@graph"] as Array<Record<string, unknown>>)[0];
+    assert.equal("offers" in product, false);
+    assert.equal(/"price/i.test(JSON.stringify(empty)), false);
   });
 });
 
@@ -248,10 +278,21 @@ describe("price guide comparison table (job-286 A)", () => {
     }
   });
 
-  it("keeps the page as substantial as the studio guide, and still free of prices in JSON-LD", () => {
+  it("keeps the page as substantial as the studio guide, and prices only where the table shows them", () => {
     const words = visibleText(pageHarness.markup).split(/\s+/).length;
     assert.ok(words >= STUDIO_GUIDE_WORDS, `the guide renders ${words} words, below /studio-guide's ${STUDIO_GUIDE_WORDS}`);
-    assert.doesNotMatch(JSON.stringify(buildPriceGuideJsonLd()), /"(?:offers?|price|priceCurrency)"/i);
+    // Every number in the schema must be a number the page prints too (job-274 rule, updated
+    // for Google's "offers should be specified"): no offer band may exist that the table lacks.
+    const schema = JSON.stringify(buildPriceGuideJsonLd(pageHarness.schemaPrices));
+    const text = visibleText(pageHarness.markup);
+    for (const band of [installedRange, sheetRange]) {
+      assert.ok(text.includes(band), `the page must show ${band}`);
+    }
+    for (const price of [Math.min(...pageHarness.ratePrices), Math.max(...pageHarness.ratePrices)]) {
+      assert.ok(schema.includes(`"lowPrice":${price}`) || schema.includes(`"highPrice":${price}`)
+        || schema.includes(`"lowPrice":${price},`) || schema.includes(`"highPrice":${price},`),
+        `offer bound ${price} must come from the catalogue rates the page lists`);
+    }
   });
 });
 

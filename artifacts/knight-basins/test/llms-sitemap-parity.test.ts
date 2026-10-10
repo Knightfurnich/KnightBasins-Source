@@ -111,9 +111,16 @@ describe("llms-full.txt copies the app's numbers, not remembered ones (job-282 B
     assert.ok(priceGuideSection.includes(STONE_SHEET_SIZE) && priceGuideSection.includes(STONE_SHEET_THICKNESS), "standard sheet size and thickness");
   });
 
-  it("keeps prices out of structured data (job-274 rule, re-checked here)", () => {
-    const json = JSON.stringify(buildPriceGuideJsonLd());
-    for (const forbidden of ["offers", "priceCurrency", '"price"']) {
+  it("publishes the catalogue price bands Google asks for, and nothing more", () => {
+    // job-274 kept prices out of structured data; Google then refused the Product with
+    // "Either 'offers', 'review', or 'aggregateRating' should be specified". Offers now come from
+    // the catalogue via the page, so the check is: offers exist, are priced in THB, and no rating
+    // is ever invented alongside them.
+    const schema = buildPriceGuideJsonLd({ sheet: { lowPrice: 4900, highPrice: 12000, unitText: "แผ่น", offerCount: 64 }, installed: { lowPrice: 7500, highPrice: 12000, unitText: "ตร.ม.", offerCount: 65 } });
+    const json = JSON.stringify(schema);
+    assert.equal(json.includes('"offers"'), true, "the Product must carry offers");
+    assert.equal(json.includes('"priceCurrency":"THB"'), true, "offers must be priced in THB");
+    for (const forbidden of ["aggregateRating", "review", '"rating"']) {
       assert.equal(json.includes(forbidden), false, `the price-guide JSON-LD must not carry ${forbidden}`);
     }
   });
