@@ -4,7 +4,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, afterEach, before, describe, it, mock } from "node:test";
 import { commercialConstants } from "../src/lib/commercial-constants.ts";
-import { IMAGE_DISCLAIMER } from "../src/lib/support-guest-answers.ts";
+import {
+  IMAGE_DISCLAIMER,
+  basinTermsLines,
+  identityReply,
+  nextStepsLine,
+  personalQuestionReply,
+  serviceAreaReply,
+  shoppingReply,
+  stoneTermsLines,
+} from "../src/lib/support-guest-answers.ts";
 import { extractSupportProfileFields } from "../src/lib/support-profile.ts";
 import { isIdentityQuestion, isServiceAreaQuestion, isShoppingMessage } from "../src/lib/support-signals.ts";
 import { serveTypeScriptRoute } from "./route-harness.ts";
@@ -71,6 +80,32 @@ after(async () => {
     const value = savedEnv[key];
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;
+  }
+});
+
+// job 421-C ข้อ 2 (บอสสั่ง 10 ต.ค. 69): "ตอบสั้น กระชับ" ต้องถูกล็อกด้วยเทสต์ ไม่ใช่แค่ความตั้งใจของคนเขียน
+//
+// ตรวจที่ตัวเทมเพลตโดยตรง (ไม่ยิง HTTP) เพราะไฟล์นี้มีลิมิต 30 ครั้ง/นาทีอยู่แล้ว -- เทมเพลตคือสิ่งที่ผู้ใช้เห็นจริง
+describe("every visitor answer stays short enough to read on a phone (owner's brief)", () => {
+  const MAX_CHARS = 340;
+  const MAX_LINES = 4;
+  const cases: Array<[string, string]> = [
+    ["who are you", identityReply()],
+    ["a personal question", personalQuestionReply()],
+    ["a branch question", serviceAreaReply()],
+    ["want a basin", shoppingReply("อยากได้อ่างล้างหน้าสำหรับคอนโด 1 ห้องค่ะ", catalog)],
+    ["want a countertop", shoppingReply("อยากได้ท็อปครัวค่ะ", catalog)],
+    ["ask about installation", shoppingReply("ติดตั้งอ่างล้างหน้าฟรีไหมคะ", catalog)],
+    ["stone conditions block", stoneTermsLines({ installed: true, images: true }).join("\n")],
+    ["basin conditions block", basinTermsLines({ images: true }).join("\n")],
+    ["the way forward", nextStepsLine()],
+  ];
+  for (const [label, reply] of cases) {
+    it(`${label}: at most ${MAX_LINES} lines / ${MAX_CHARS} characters`, () => {
+      const lines = reply.split("\n").filter((line) => line.trim().length > 0);
+      assert.ok(reply.length <= MAX_CHARS, `${label}: ${reply.length} ตัวอักษร\n${reply}`);
+      assert.ok(lines.length <= MAX_LINES, `${label}: ${lines.length} บรรทัด\n${reply}`);
+    });
   }
 });
 

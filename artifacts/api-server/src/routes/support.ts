@@ -428,7 +428,7 @@ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, 
         sheet ? `ขายแผ่นเริ่มต้น ${sheet.basePriceTHB.toLocaleString("th-TH")} บาท/แผ่น` : "",
       ].filter(Boolean).join(" · ");
       res.json({
-        reply: `${stone.code} · ${stone.name} — ${prices || "กรุณาติดต่อทีมงานเพื่อเช็กราคา"}\nเปิดภาพแผ่น HD ได้จากรายการสีหิน\n\n${stoneTermsLines({ installed: Boolean(installed), images: true }).join("\n")}`,
+        reply: `${stone.code} · ${stone.name} — ${prices || "กรุณาติดต่อทีมงานเพื่อเช็กราคา"} · ดูภาพ HD ในรายการสีหิน\n${stoneTermsLines({ installed: Boolean(installed), images: true }).join("\n")}`,
         matchedType: "stone",
         matchedCode: stone.code,
       });
