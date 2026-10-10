@@ -4,22 +4,92 @@ import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
 const SITE = "https://knightbasins.com";
 
+/** One price band read straight from the catalogue — never typed by hand. */
+export type OfferRange = {
+  lowPrice: number;
+  highPrice: number;
+  /** Visible unit on the page: "แผ่น" (per sheet) or "ตร.ม." (per square metre). */
+  unitText: string;
+  /** How many catalogue items the band was read from. */
+  offerCount: number;
+};
+
 /**
- * Made-to-order surfaces are not fixed-price SKUs. Describe the product and
- * fabrication service without publishing an Offer or a guessed price.
+ * Turns the prices a page already displays into one offer band.
+ *
+ * Google reports "Either 'offers', 'review', or 'aggregateRating' should be
+ * specified" for a Product without an Offer, so /stone and /price-guide now
+ * publish the same ranges their pages show. The numbers still come from the
+ * catalogue: this only measures what the caller passes (null/0/NaN dropped),
+ * so a catalogue change moves the schema with it instead of drifting.
  */
-export function buildStonePageJsonLd(): Record<string, unknown> {
+export function offerRangeFrom(
+  prices: ReadonlyArray<number | null | undefined>,
+  unitText: string,
+): OfferRange | null {
+  const clean = prices
+    .filter((price): price is number => typeof price === "number" && Number.isFinite(price) && price > 0)
+    .sort((first, second) => first - second);
+  if (clean.length === 0) return null;
+  return {
+    lowPrice: clean[0],
+    highPrice: clean[clean.length - 1],
+    unitText,
+    offerCount: clean.length,
+  };
+}
+
+/**
+ * A price band, published as an AggregateOffer because the catalogue has many
+ * colours at many prices. `unitText` carries the unit the buyer pays for, so
+ * Google never reads a per-sheet number as a per-square-metre one.
+ */
+function aggregateOffer(url: string, fragment: string, range: OfferRange): Record<string, unknown> {
+  return {
+    "@type": "AggregateOffer",
+    "@id": `${url}#${fragment}`,
+    url,
+    priceCurrency: "THB",
+    lowPrice: range.lowPrice,
+    highPrice: range.highPrice,
+    offerCount: range.offerCount,
+    availability: "https://schema.org/InStock",
+    seller: { "@id": `${SITE}/#organization` },
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      priceCurrency: "THB",
+      unitText: range.unitText,
+      referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "C62" },
+    },
+  };
+}
+
+/**
+ * Made-to-order surfaces are not fixed-price SKUs, so the Product publishes no
+ * single price: it publishes the bands its own page shows, read from the
+ * catalogue (per sheet, and per square metre installed). Ratings are never
+ * invented -- an Offer alone is what Google asks for.
+ */
+export function buildStonePageJsonLd(
+  prices: { sheet?: OfferRange | null; installed?: OfferRange | null } = {},
+): Record<string, unknown> {
+  const url = `${SITE}/stone`;
+  const offers = [
+    prices.sheet ? aggregateOffer(url, "offer-sheet", prices.sheet) : null,
+    prices.installed ? aggregateOffer(url, "offer-installed", prices.installed) : null,
+  ].filter((offer): offer is Record<string, unknown> => offer !== null);
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Product",
         "@id": `${SITE}/stone#countertops`,
-        url: `${SITE}/stone`,
+        url,
         name: "ท็อปครัวและเคาน์เตอร์หินสังเคราะห์สั่งตัด",
         description: "ท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์ สั่งตัดตามพื้นที่ใช้งาน",
         material: "Solid Surface",
         brand: { "@id": `${SITE}/#organization` },
+        ...(offers.length > 0 ? { offers } : {}),
       },
       {
         "@type": "Service",
@@ -46,19 +116,31 @@ export function buildQuotePageJsonLd(): Record<string, unknown> {
   };
 }
 
-/** Pricing guidance identifies the product and service without publishing an Offer. */
-export function buildPriceGuideJsonLd(): Record<string, unknown> {
+/**
+ * Pricing guidance identifies the product and service and publishes the same
+ * two bands the page's comparison table shows — per square metre installed and
+ * per sheet — both read from the catalogue by the caller.
+ */
+export function buildPriceGuideJsonLd(
+  prices: { sheet?: OfferRange | null; installed?: OfferRange | null } = {},
+): Record<string, unknown> {
+  const url = `${SITE}/price-guide`;
+  const offers = [
+    prices.installed ? aggregateOffer(url, "offer-installed", prices.installed) : null,
+    prices.sheet ? aggregateOffer(url, "offer-sheet", prices.sheet) : null,
+  ].filter((offer): offer is Record<string, unknown> => offer !== null);
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Product",
         "@id": `${SITE}/price-guide#solid-surface-countertops`,
-        url: `${SITE}/price-guide`,
+        url,
         name: "เคาน์เตอร์หินสังเคราะห์และแนวทางเลือก",
         description: "คู่มือเลือกและวางแผนสั่งทำเคาน์เตอร์หินสังเคราะห์ตามขนาดและรูปแบบงาน",
         material: "Solid Surface",
         brand: { "@id": `${SITE}/#organization` },
+        ...(offers.length > 0 ? { offers } : {}),
       },
       {
         "@type": "Service",
