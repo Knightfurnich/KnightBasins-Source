@@ -160,9 +160,14 @@ describe("POST /api/public/portfolio/inquiry binds identity from the session onl
 
       const saved = database.records[0]!;
       assert.equal(saved["customerAccountId"], null, "a client-supplied account id must never be trusted");
-      assert.ok(!JSON.stringify(saved).includes("999"), "no client id leaked into the stored row");
-      assert.ok(!JSON.stringify(saved).includes("U-somebody-elses-account"), "no client userId leaked into the stored row");
-      assert.ok(!JSON.stringify(saved).includes("คนที่ไม่ใช่ผม"), "no client displayName leaked into the stored row");
+      // `leadKey` is a fresh randomUUID, so it is excluded from the substring scan: measured
+      // 0.56% of UUIDs contain "999", which made the old whole-row scan flaky (it failed CI once).
+      // Everything the visitor sent must still be absent from every other stored field.
+      const storedFields = Object.fromEntries(Object.entries(saved).filter(([key]) => key !== "leadKey"));
+      const storedJson = JSON.stringify(storedFields);
+      for (const clientValue of ["999", "U-somebody-elses-account", "คนที่ไม่ใช่ผม"]) {
+        assert.ok(!storedJson.includes(clientValue), `no client value (${clientValue}) leaked into the stored row`);
+      }
       assert.equal(resolverCalls, 1, "identity resolution happens exactly once, server-side");
     } finally {
       await server.close();
