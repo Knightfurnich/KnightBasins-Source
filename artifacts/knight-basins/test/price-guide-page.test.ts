@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { after, before, describe, it } from "node:test";
@@ -39,7 +39,7 @@ const HARNESS_SCRIPT = `
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Router } from "wouter";
-const { default: PriceGuidePage, PRICE_GUIDE_INSTALLATION_RATES, PRICE_GUIDE_SCHEMA_PRICES } = await import(${JSON.stringify(pageUrl)});
+const { default: PriceGuidePage, PRICE_GUIDE_INSTALLATION_RATES, PRICE_GUIDE_SCHEMA_PRICES, PRICE_GUIDE_SCHEMA_IMAGE } = await import(${JSON.stringify(pageUrl)});
 const page = createElement(
   Router,
   { hook: () => ["/price-guide", () => {}] },
@@ -49,6 +49,7 @@ process.stdout.write(JSON.stringify({
   markup: renderToStaticMarkup(page),
   ratePrices: PRICE_GUIDE_INSTALLATION_RATES.map((tier) => tier.price),
   schemaPrices: PRICE_GUIDE_SCHEMA_PRICES,
+  schemaImage: PRICE_GUIDE_SCHEMA_IMAGE ?? null,
   basinInstallationFreeFrom: ${BASIN_INSTALLATION_FREE_FROM},
   nightWorkStart: ${JSON.stringify(NIGHT_WORK_START)},
   nightWorkEnd: ${JSON.stringify(NIGHT_WORK_END)},
@@ -59,6 +60,7 @@ type PageHarness = {
   markup: string;
   ratePrices: number[];
   schemaPrices: { sheet: OfferRange | null; installed: OfferRange | null };
+  schemaImage: string | null;
   basinInstallationFreeFrom: number;
   nightWorkStart: string;
   nightWorkEnd: string;
@@ -204,7 +206,7 @@ describe("price guide page", () => {
     // 'aggregateRating' should be specified" for both Product nodes. The rule is now: publish the
     // bands the page already shows, taken from STONE_COLORS — so this test reads the page's own
     // schema input and compares it to the catalogue, not to a number typed in the test either.
-    const schema = buildPriceGuideJsonLd(pageHarness.schemaPrices);
+    const schema = buildPriceGuideJsonLd(pageHarness.schemaPrices, pageHarness.schemaImage);
     const graph = schema["@graph"] as Array<Record<string, unknown>>;
     assert.deepEqual(graph.map((entity) => entity["@type"]), ["Product", "Service"]);
     assert.equal((graph[0].brand as Record<string, unknown>)["@id"], "https://knightbasins.com/#organization");
@@ -238,6 +240,24 @@ describe("price guide page", () => {
       (breadcrumbSchema.itemListElement as Array<Record<string, unknown>>)[1]?.item,
       "https://knightbasins.com/price-guide",
     );
+  });
+
+  it("Product carries the route's own picture as a full URL that really exists, handed in by the page (job-413)", () => {
+    // The page passes the picture it already uses as its social card (ROUTE_META); the schema module types no path.
+    const meta = ROUTE_META["/price-guide"]!.image!;
+    assert.equal(pageHarness.schemaImage, meta.path, "the page must hand its ROUTE_META image to the builder");
+    const schema = buildPriceGuideJsonLd(pageHarness.schemaPrices, pageHarness.schemaImage);
+    const product = (schema["@graph"] as Array<Record<string, unknown>>)[0];
+    assert.equal(product.image, `https://knightbasins.com${meta.path}`);
+    assert.match(String(product.image), /^https:\/\/knightbasins\.com\/[^\s]+\.(webp|jpg|jpeg|png)$/);
+    const file = join(appRoot, "public", meta.path.slice(1));
+    assert.ok(existsSync(file), `${meta.path} is missing from public/`);
+    assert.ok(statSync(file).size > 30_000, `${meta.path} is too small to be a real picture`);
+    assert.ok(meta.width >= 300 && meta.height >= 300, "Google needs at least 300x300");
+    assert.equal((product.offers as unknown[]).length, 2, "the offers closed in 413-D must be untouched");
+    assert.equal(/"(?:aggregateRating|review|rating)"/i.test(JSON.stringify(schema)), false);
+    assert.match(pageSource, /buildPriceGuideJsonLd\(PRICE_GUIDE_SCHEMA_PRICES, PRICE_GUIDE_SCHEMA_IMAGE\)/);
+    assert.match(pageSource, /PRICE_GUIDE_SCHEMA_IMAGE = ROUTE_META\["\/price-guide"\]\?\.image\?\.path/);
   });
 
   it("omits offers instead of inventing a price when the catalogue has none", () => {

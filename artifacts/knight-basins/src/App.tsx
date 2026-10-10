@@ -2,6 +2,7 @@ import { Component, useCallback, useEffect, useMemo, useRef, useState, type Disp
 import { Link, Route, Switch, useLocation } from "wouter";
 import { AlertTriangle, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown, Clock, Copy, Download, GripVertical, MessageCircle, Minus, Phone, Plus, PlayCircle, Printer, QrCode, Search, ShoppingBag, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import { RouteMeta } from "@/components/RouteMeta";
+import { ROUTE_META } from "@/components/RouteMeta.logic";
 import { UPDATE_RELEASES } from "@/pages/UpdatesPage";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { StoneComparisonTable } from "@/components/StoneComparisonTable";
@@ -774,7 +775,7 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
   };
   const validateDimensions = () => { if (!selectedStone || !editorStone.widthCm || !editorStone.lengthCm || editorStone.widthCm < 10 || editorStone.lengthCm < 10) setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. เพื่อคำนวณพื้นที่"); else setDimensionError(""); };
   return <div className="page-wrap stone-page">
-    <RouteStructuredData id="stone-products" data={buildStonePageJsonLd(stoneSchemaPrices)} />
+    <RouteStructuredData id="stone-products" data={buildStonePageJsonLd(stoneSchemaPrices, ROUTE_META["/stone"]?.image?.path)} />
     <section className="stone-hero"><div><p className="eyebrow accent">MATERIAL / CONFIGURATOR</p><h1>ท็อปครัว &amp; เคาน์เตอร์หินสังเคราะห์<br /><em>สั่งตัดตามพื้นที่ของคุณ</em></h1><p className="hero-copy">สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินสังเคราะห์แท้ 100% ไร้รอยต่อ พร้อมบริการวัดหน้างานและติดตั้ง หรือเลือกซื้อแผ่นมาตรฐานสำหรับช่างและโรงงาน</p></div><StoneHeroMedia colors={availableColors} fallbackColor={selectedColor} /></section>
     <div className="config-layout"><section className="config-main"><div className="section-heading"><span className="step">01</span><div><p className="eyebrow">CHOOSE FORMAT</p><h2>เลือกรูปแบบการสั่งซื้อ</h2></div></div><div className="mode-switch"><button className={isWhole ? "is-active" : ""} onClick={() => switchMode("whole-sheet")} data-testid="button-stone-whole-sheet"><span>ซื้อแผ่นหินมาตรฐาน (สำหรับช่าง/โรงงาน)</span><small>ราคาขายส่งต่อแผ่น ขนาด 0.76 × 3.60 ม.</small></button><button className={!isWhole ? "is-active" : ""} onClick={() => switchMode("installed")} data-testid="button-stone-installed"><span>สั่งทำท็อปครัว / เคาน์เตอร์ (รวมติดตั้ง)</span><small>ราคาต่อ ตร.ม. พร้อมติดตั้งและวัดหน้างาน</small></button></div>
           <div className="section-heading">

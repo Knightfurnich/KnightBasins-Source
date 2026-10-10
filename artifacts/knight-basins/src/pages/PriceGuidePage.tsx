@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ArrowLeft, ArrowRight, BookOpen, Ruler, Sparkles } from "lucide-react";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
+import { ROUTE_META } from "@/components/RouteMeta.logic";
 import {
   formatTHB,
   INSTALLATION_PRICE,
@@ -93,10 +94,16 @@ export const PRICE_GUIDE_SCHEMA_PRICES = {
   installed: offerRangeFrom(installedPrices, "ตร.ม."),
 };
 
+/**
+ * The picture the Product node publishes: the one this route already uses as its social card (ROUTE_META),
+ * handed to the JSON-LD builder so the schema module never types an image path.
+ */
+export const PRICE_GUIDE_SCHEMA_IMAGE = ROUTE_META["/price-guide"]?.image?.path;
+
 function PriceGuidePage() {
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-      <RouteStructuredData id="price-guide" data={buildPriceGuideJsonLd(PRICE_GUIDE_SCHEMA_PRICES)} />
+      <RouteStructuredData id="price-guide" data={buildPriceGuideJsonLd(PRICE_GUIDE_SCHEMA_PRICES, PRICE_GUIDE_SCHEMA_IMAGE)} />
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8">
         <Link
           href="/"
