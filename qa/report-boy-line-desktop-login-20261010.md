@@ -80,7 +80,7 @@ baseline ของใบงาน = 1249 / 1207 / 0 / 42  → +9 tests (ไฟ�
       (อีก 4 เคส fail ตาม: unbound / body-spoof / fail-open / hermetic-default)
       # pass 0 · # fail 5      [คืนของแล้ว → 5/5 เขียว]
 ```
-(บันทึกmethod: ผมใช้ backup (`/tmp/b414/modal.GOOD.tsx`, `portfolio.GOOD.ts`) ตอน破坏แล้วคืน · บทเรียนประจำตัว: ครั้งแรกใช้ `git checkout --` เพื่อ "คืนของ" ทำให้นิยามงานแก้ทั้ง 2 ไฟล์หายไปด้วย (ยังไม่ได้ commit) — re-apply ครบแล้วและเทสต์กลับมาเขียวทั้ง 27/27 + 10/10 + เต็มชุด 1216/0)
+(บันทึกmethod: ผมใช้ backup (`/tmp/b414/modal.GOOD.tsx`, `portfolio.GOOD.ts`) ตอน“ถอดของออกเพื่อพิสูจน์”แล้วคืน · บทเรียนประจำตัว: ครั้งแรกใช้ `git checkout --` เพื่อ "คืนของ" ทำให้นิยามงานแก้ทั้ง 2 ไฟล์หายไปด้วย (ยังไม่ได้ commit) — re-apply ครบแล้วและเทสต์กลับมาเขียวทั้ง 27/27 + 10/10 + เต็มชุด 1216/0)
 **6) QR / add-friend:** `200 1694B` และ `200` · **7) login:** `302 → access.line.me/oauth2/v2.1/authorize…` · `status: configured=true, authenticated=false`
 
 ## ของที่ "ตรวจไม่ได้" + วิธีให้เดวิด/ชัยตรวจต่อ
