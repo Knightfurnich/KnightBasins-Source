@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+const channelsSource = readFileSync(new URL("../src/data/contact-channels.ts", import.meta.url), "utf8");
 
 function sourceBetween(startMarker: string, endMarker: string): string {
   const start = appSource.indexOf(startMarker);
@@ -73,8 +74,12 @@ test("Error Boundary switches to a Thai fallback with reload and support contact
   assert.match(errorBoundary, /ขออภัย เกิดข้อผิดพลาดในการแสดงหน้านี้/);
   assert.match(errorBoundary, /window\.location\.reload\(\)/);
   assert.match(errorBoundary, /🔄 โหลดหน้านี้ใหม่/);
-  assert.match(errorBoundary, /href="tel:0944961949"/);
-  assert.match(errorBoundary, /094-496-1949/);
+  assert.match(errorBoundary, /href=\{telHref\(CONTACT_PHONE_PRIMARY\)\}/);
+  // the digits must still be the sales line, just declared once, in the constants module
+  assert.match(channelsSource, /export const CONTACT_PHONE_PRIMARY = "094-496-1949"/);
+  assert.match(errorBoundary, /\{CONTACT_PHONE_PRIMARY\}|094-496-1949/);
+  // the number itself is no longer typed in App.tsx -- prove the constant still says it
+  assert.match(channelsSource, /export const CONTACT_PHONE_PRIMARY = "094-496-1949"/);
 });
 
 test("the Error Boundary and network status banner wrap every app route", () => {

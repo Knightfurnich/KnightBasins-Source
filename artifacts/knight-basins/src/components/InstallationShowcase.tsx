@@ -1,6 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
 import { Camera, ChevronLeft, ChevronRight, Images, Sparkles, X } from "lucide-react";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+/**
+ * job 431-B A: the catalogue count shown to customers must be the real one. The
+ * storefront used to print three different claims (670-something in the
+ * showcase, 180-something on /readme, 333 on /portfolio) at the same time. Every surface now reads `total` from GET /api/portfolio and only
+ * falls back to PORTFOLIO_TOTAL_FALLBACK while that request is in flight.
+ */
+export const PORTFOLIO_TOTAL_FALLBACK = 333;
+export function usePortfolioTotal(): string {
+  const { data } = useQuery<{ total?: number }>({
+    queryKey: ["portfolio-total-count"],
+    queryFn: async () => (await fetch("/api/portfolio", { headers: { Accept: "application/json" } })).json(),
+    staleTime: 5 * 60 * 1000,
+  });
+  return typeof data?.total === "number" && data.total > 0 ? String(data.total) : String(PORTFOLIO_TOTAL_FALLBACK);
+}
 import { Link } from "wouter";
 
 export interface ShowcasePhoto {
@@ -69,6 +84,7 @@ async function fetchFeaturedShowcase(): Promise<ShowcasePhoto[]> {
  * Continuously loops, pauses on hover/touch, and supports manual stepping.
  */
 export function InstallationShowcase() {
+  const portfolioTotal = usePortfolioTotal();
   const { data: photos = [], isLoading } = useQuery<ShowcasePhoto[]>({
     queryKey: ["portfolio-featured-showcase"],
     queryFn: fetchFeaturedShowcase,
@@ -300,7 +316,7 @@ export function InstallationShowcase() {
           data-testid="link-showcase-all-portfolio"
         >
           <Images size={16} aria-hidden="true" />
-          <span>ดูคลังผลงานทั้งหมด (670+ ภาพ)</span>
+          <span>ดูคลังผลงานทั้งหมด ({portfolioTotal} ภาพ)</span>
         </Link>
       </div>
     </section>

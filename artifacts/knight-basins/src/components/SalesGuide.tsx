@@ -1,4 +1,6 @@
 import { Link } from "wouter";
+import { usePortfolioTotal } from "@/components/InstallationShowcase";
+import { SALES_WORKING_HOURS, contactPhonesCommaText } from "@/data/contact-channels";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
 import {
   ArrowLeft,
@@ -29,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { knightFurnichLogo } from "@/data/assets";
 
 export default function SalesGuide() {
+  const portfolioTotal = usePortfolioTotal();
   return (
     <div className="sales-guide sales-guide-page min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       {/* Header */}
@@ -276,7 +279,7 @@ export default function SalesGuide() {
                     <Images size={16} /> คลังผลงานจริง
                   </div>
                   <p className="text-xs text-[var(--ink-soft)] mt-1.5 leading-relaxed">
-                    ชมภาพถ่ายงานติดตั้งจริง 180+ ภาพคัดสรร แยกหมวดห้องน้ำ ครัว และเคาน์เตอร์
+                    ชมภาพถ่ายงานติดตั้งจริง {portfolioTotal} ภาพคัดสรร แยกหมวดห้องน้ำ ครัว และเคาน์เตอร์
                   </p>
                 </div>
                 <span className="text-xs font-bold text-[#003366] flex items-center gap-1 group-hover:underline">
@@ -361,7 +364,7 @@ export default function SalesGuide() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-sm text-white/95 border-t border-white/15">
               <div className="flex items-center gap-2">
                 <Phone size={15} className="text-amber-300 shrink-0" />
-                <span><strong>สายด่วนปรึกษาทีมงาน :</strong> 094-496-1949, 089-762-2209</span>
+                <span><strong>สายด่วนปรึกษาทีมงาน :</strong> {contactPhonesCommaText()}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MessageSquare size={15} className="text-amber-300 shrink-0" />
@@ -373,7 +376,7 @@ export default function SalesGuide() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={15} className="text-amber-300 shrink-0" />
-                <span><strong>เวลาทำการ :</strong> จันทร์ – ศุกร์ 08:30 – 16:30 น. | เสาร์ 08:30 – 11:30 น.</span>
+                <span><strong>เวลาทำการ :</strong> {SALES_WORKING_HOURS}</span>
               </div>
             </div>
           </CardHeader>

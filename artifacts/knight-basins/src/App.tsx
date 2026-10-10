@@ -7,6 +7,17 @@ import { UPDATE_RELEASES } from "@/pages/UpdatesPage";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { StoneComparisonTable } from "@/components/StoneComparisonTable";
 import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJsonLd, buildQuotePageJsonLd, buildStonePageJsonLd, offerRangeFrom } from "@/data/structured-data";
+import {
+  CONTACT_PHONE_BACKUP_SALES,
+  CONTACT_PHONE_PRIMARY,
+  PLANT_PICKUP_HOURS,
+  QUOTE_LINK_VALID_DAYS,
+  QUOTE_PRICE_VALID_DAYS,
+  SALES_WORKING_HOURS,
+  contactPhonesCommaText,
+  contactPhonesText,
+  telHref,
+} from "@/data/contact-channels";
 import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { TrustBadges } from "@/components/TrustBadges";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
@@ -213,6 +224,19 @@ function Header({ cartCount }: { cartCount: number }) {
   const [location] = useLocation();
   return <header className="site-header">
     <style>{`
+        /* job 431-B H: /stone overflowed horizontally at 768px. Root cause was the
+           colour grid refusing to shrink below its content; give it a shrinkable track
+           and let the chip strip scroll itself (never mask the page with overflow-x). */
+        @media (max-width: 800px) {
+          .stone-colors { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+          .stone-search-row { flex-wrap: wrap; gap: 10px; }
+          .stone-search-row .search-field { max-width: none; min-width: 0; }
+          .stone-search-row input { min-height: 44px; font-size: 16px; }
+          .stone-price-filters { scrollbar-width: none; }
+          .stone-price-filters::-webkit-scrollbar { display: none; }
+          .stone-price-filters button { flex: 0 0 auto; min-height: 44px; }
+          .empty-state--stone .empty-state-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        }
       @media (max-width: 720px) {
         .site-header {
           min-height: auto;
@@ -234,10 +258,15 @@ function Header({ cartCount }: { cartCount: number }) {
         .site-header > .main-nav::-webkit-scrollbar { display: none; }
         .site-header > .main-nav a {
           flex: 0 0 auto;
-          height: 100%;
-          font-size: 11px;
+          min-height: 44px;
+          padding: 10px;
+          font-size: 13px;
+          line-height: 1.2;
           white-space: nowrap;
         }
+        /* the strip scrolls sideways here -- say so (job 431-B H3) */
+        .site-header > .main-nav::after { content: "→"; flex: 0 0 auto; align-self: center; color: var(--ink-soft); font-size: 13px; }
+        .site-header > .main-nav .quote-link { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; }
       }
     `}</style>
     <Link href="/" className="brand" data-testid="link-brand"><img className="brand-logo brand-logo--png" src={knightFurnichLogo} alt="Knight Furnich" /><span className="brand-copy"><strong>KNIGHT FURNICH</strong><small>SOLID SURFACE / BASINS</small></span></Link>
@@ -288,7 +317,7 @@ function Footer() {
           <div className="footer-contact-grid">
             <div className="footer-contact-item">
               <span className="footer-contact-key">โทร</span>
-              <span>094-496-1949, 089-762-2209</span>
+              <span data-testid="text-footer-phones">{contactPhonesCommaText()}</span>
             </div>
             <div className="footer-contact-item">
               <span className="footer-contact-key">LINE</span>
@@ -727,6 +756,19 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
     sheet: offerRangeFrom(stoneColorsByMode.wholeSheet.map((color) => color.sheetPriceTHB), "แผ่น"),
     installed: offerRangeFrom(stoneColorsByMode.installed.map((color) => color.installedPriceTHB), "ตร.ม."),
   }), [stoneColorsByMode]);
+  // A search miss is often "this colour sells only in the other mode" (Aria Whisper
+  // is cut-to-fit only). Say which, and never imply the code is unknown to us.
+  const stoneSearchOtherMode = useMemo(() => {
+    const q = stoneQuery.trim().toLowerCase();
+    if (!q) return null;
+    const here = new Set(availableColors.map((color) => `${color.name.toLowerCase()}|${color.code.toLowerCase()}`));
+    const other = activeMode === "whole-sheet" ? "installed" : "whole-sheet";
+    const found = (stoneColorsByMode[other === "whole-sheet" ? "wholeSheet" : "installed"] ?? []).find((color) =>
+      !here.has(`${color.name.toLowerCase()}|${color.code.toLowerCase()}`)
+      && (color.name.toLowerCase().includes(q) || color.code.toLowerCase().includes(q)));
+    return found ? { ...found, mode: other as StoneConfig["mode"] } : null;
+  }, [stoneQuery, availableColors, activeMode, stoneColorsByMode]);
+
   const priceFilterOptions = useMemo(() => {
     const counts = new Map<number, number>();
     availableColors.forEach((color) => {
@@ -857,7 +899,17 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
                   </div>
                 );
               })
-              : <div className="empty-state empty-state--stone"><span className="empty-number">—</span><p>ไม่พบสีหรือรหัสสินค้าที่ค้นหา</p></div>}
+              : <div className="empty-state empty-state--stone" data-testid="status-stone-search-empty">
+            <span className="empty-number">—</span>
+            <p data-testid="text-stone-search-none">{stoneSearchOtherMode
+              ? `ไม่พบในโหมดนี้ — ${stoneSearchOtherMode.name} (${stoneSearchOtherMode.code}) จำหน่ายในโหมด${stoneSearchOtherMode.mode === "installed" ? " “สั่งทำท็อป/เคาน์เตอร์ รวมติดตั้ง”" : " “ซื้อแผ่นเต็ม”"} เท่านั้น`
+              : "ไม่พบรหัสนี้ในรายการขายปัจจุบัน · ถ้าเคยเห็นสีนี้มาก่อน อาจเป็นรุ่นที่ของหมด/รอของเข้า หรือยังไม่วางขายออนไลน์"}</p>
+            <div className="empty-state-actions">
+              <button type="button" className="button button--outline" onClick={() => setStoneQuery("")} data-testid="button-clear-stone-search-empty">ล้างคำค้น</button>
+              {stoneSearchOtherMode && <button type="button" className="button button--dark" onClick={() => { setUnselectedMode(stoneSearchOtherMode.mode); setActiveColor(stoneSearchOtherMode.name); setStoneQuery(""); }} data-testid="button-stone-search-switch-mode">สลับไปดูโหมดนั้น</button>}
+              <a className="button button--outline" href={telHref(CONTACT_PHONE_PRIMARY)} data-testid="link-stone-search-contact">โทรหาทีมขาย {CONTACT_PHONE_PRIMARY}</a>
+            </div>
+          </div>}
           </div>
                  <section
             className="stone-worktop-highlights"
@@ -879,11 +931,11 @@ function StonePage({ stones, setStones, stoneColorsByMode }: { stones: StoneConf
             </article>
           </section>
        <div className="section-heading"><span className="step">03</span><div><p className="eyebrow">SIZE & QUANTITY</p><h2>{isWhole ? "จำนวนแผ่น" : "ขนาดพื้นที่"} <span>/ กำลังแก้ไข {selectedStone ? selectedColor.code : "ยังไม่ได้เลือกสี"}</span></h2></div></div>{isWhole ? <div className="quantity-editor large"><button onClick={() => update({ quantity: Math.max(1, editorStone.quantity - 1) })} disabled={!selectedStone} data-testid="button-stone-quantity-minus"><Minus size={16} /></button><strong data-testid="text-stone-quantity">{selectedStone ? editorStone.quantity : "—"}</strong><button onClick={() => update({ quantity: editorStone.quantity + 1 })} disabled={!selectedStone} data-testid="button-stone-quantity-plus"><Plus size={16} /></button><span>แผ่นมาตรฐาน / 760 × 3680 mm</span></div> : <div className="dimensions-form"><label>กว้าง (ซม.)<input type="number" min="10" value={selectedStone ? editorStone.widthCm || "" : ""} onChange={(event) => update({ widthCm: Number(event.target.value) })} onBlur={validateDimensions} disabled={!selectedStone} data-testid="input-stone-width" /></label><span>×</span><label>ยาว (ซม.)<input type="number" min="10" value={selectedStone ? editorStone.lengthCm || "" : ""} onChange={(event) => update({ lengthCm: Number(event.target.value) })} onBlur={validateDimensions} disabled={!selectedStone} data-testid="input-stone-length" /></label><div className="area-result"><small>พื้นที่รวม</small><strong>{area.toFixed(2)} m²</strong></div>{dimensionError && <p className="field-error" data-testid="status-stone-dimension-error">{dimensionError}</p>}</div>}</section>
-         <aside className="config-summary" draggable={editorStone.enabled && !invalidInstalledSize && selectedPrice !== null} onDragStart={(event) => { if (!selectedStone || !editorStone.enabled || invalidInstalledSize || selectedPrice === null) return; event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "stone"); event.dataTransfer.setData("application/x-knight-stone", JSON.stringify(editorStone)); }}><p className="eyebrow">CONFIGURATION NOTE</p><div className="summary-swatch" style={{ background: selectedColor.tone }}>{selectedColor.imageUrl && <img src={selectedColor.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</div><h3>{selectedStone ? selectedColor.name : "ยังไม่ได้เลือกสีหิน"}</h3><p className="muted">{stoneOrderModeLabel(editorStone.mode)} · {selectedStone ? selectedColor.code : "เลือกจากรายการด้านบน"}</p><div className="summary-divider" /><div className="summary-row"><span>{isWhole ? "ราคาขายแผ่น" : "ราคารวมติดตั้ง"}<small>{isWhole ? `${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS}` : "คิดตามพื้นที่แผ่นตัด"}</small></span><strong>{formatStonePrice(selectedPrice)} {isWhole ? "/ แผ่น" : "/ m²"}</strong></div>{!isWhole && <div className="summary-row"><span>ค่าแรงติดตั้ง</span><strong>{selectedPrice === null ? "ไม่มีราคา" : "รวมในราคาแล้ว"}</strong></div>}{!isWhole && <div className="summary-row"><span>พื้นที่ติดตั้ง</span><strong>{area ? `${area.toFixed(2)} m²` : "—"}<small>เลือกเขตงานเพื่อดูค่าดำเนินการที่ใช่</small></strong></div>}
+         <aside className="config-summary" draggable={editorStone.enabled && !invalidInstalledSize && selectedPrice !== null} onDragStart={(event) => { if (!selectedStone || !editorStone.enabled || invalidInstalledSize || selectedPrice === null) return; event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-knight-type", "stone"); event.dataTransfer.setData("application/x-knight-stone", JSON.stringify(editorStone)); }}><p className="eyebrow">CONFIGURATION NOTE</p><div className="summary-swatch" style={{ background: selectedColor.tone }}>{selectedColor.imageUrl && <img src={selectedColor.imageUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</div><h3>{selectedStone ? selectedColor.name : "ยังไม่ได้เลือกสีหิน"}</h3><p className="muted">{stoneOrderModeLabel(editorStone.mode)} · {selectedStone ? selectedColor.code : "เลือกจากรายการด้านบน"}</p><div className="summary-divider" /><div className="summary-row"><span>{isWhole ? "ราคาขายแผ่น" : "ราคารวมติดตั้ง"}<small>{isWhole ? `${STONE_SHEET_SIZE} · ${STONE_SHEET_THICKNESS}` : "คิดตามพื้นที่แผ่นตัด"}</small></span><strong>{formatStonePrice(selectedPrice)} {isWhole ? "/ แผ่น" : "/ ตร.ม."}</strong></div>{!isWhole && <div className="summary-row"><span>ค่าแรงติดตั้ง</span><strong>{selectedPrice === null ? "ไม่มีราคา" : "รวมในราคาแล้ว"}</strong></div>}{!isWhole && <div className="summary-row"><span>พื้นที่ติดตั้ง</span><strong>{area ? `${area.toFixed(2)} ตร.ม.` : "—"}<small>เลือกเขตงานเพื่อดูค่าดำเนินการที่ใช่</small></strong></div>}
 {!isWhole && selectedStone && selectedPrice !== null && <div className="summary-row" role="group" aria-label="เขตงานติดตั้ง" data-testid="group-stone-job-site"><span>เขตงาน</span><strong><label><input type="radio" name="stone-job-site" checked={stoneJobSite === "bangkok"} onChange={() => setStoneJobSite("bangkok")} data-testid="radio-stone-job-bangkok" /> กทม./ปริมณฑล</label><label><input type="radio" name="stone-job-site" checked={stoneJobSite === "province"} onChange={() => setStoneJobSite("province")} data-testid="radio-stone-job-province" /> ต่างจังหวัด</label></strong></div>}
 {!isWhole && stoneEstimate(editorStone, availableColors, stoneJobSite).smallJobFeeTHB > 0 && <div className="summary-row"><span>ค่าดำเนินการงานเล็ก ({stoneJobSite === "bangkok" ? `ต่ำกว่า ${STONE_INSTALLED_MIN_BANGKOK_SQM} m²` : `ต่ำกว่า ${STONE_INSTALLED_MIN_PROVINCE_SQM} m²`})</span><strong data-testid="text-stone-small-job-fee">{formatTHB(stoneEstimate(editorStone, availableColors, stoneJobSite).smallJobFeeTHB)}</strong></div>}
 <div className="summary-total"><span>{isWhole ? "ประมาณการ" : "ประมาณการรวมค่าดำเนินการ"}</span><strong data-testid="text-stone-estimate-total">{selectedPrice === null ? "—" : formatTHB(stoneEstimate(editorStone, availableColors, stoneJobSite).totalTHB)}</strong></div>{selectedStone && editorStone.enabled && !invalidInstalledSize && selectedPrice !== null && <p className="drag-summary-hint"><GripVertical size={14} /> ลากสรุปนี้ไปเพิ่มในใบเสนอราคา</p>}<Link href="/quote" className={`button button--dark full-width ${!selectedStone || invalidInstalledSize || selectedPrice === null ? "is-disabled" : ""}`} onClick={(event) => { if (!selectedStone) { event.preventDefault(); setDimensionError("กรุณาเลือกสีหินก่อนเพิ่มลงในใบเสนอราคา"); } else if (invalidInstalledSize) { event.preventDefault(); setDimensionError("กรุณาระบุความกว้างและความยาวอย่างน้อย 10 ซม. ก่อนเพิ่มลงในใบเสนอราคา"); } else if (selectedPrice === null) { event.preventDefault(); setDimensionError("รายการนี้ไม่มีราคาในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้"); } }} data-testid="link-stone-to-quote">ดูใบเสนอราคา <ArrowRight size={16} /></Link><p className="price-note">{!selectedStone ? "เลือกสีหินก่อนเพิ่มลงในใบเสนอราคา" : selectedPrice === null ? "ไม่มีราคาของรูปแบบนี้ในเอกสารราคา จึงยังเพิ่มในใบเสนอราคาไม่ได้" : isWhole ? `ราคาขายแผ่นยังไม่รวม VAT และกาว 250 ml (${formatTHB(STONE_GLUE_PRICE)} / หลอด)` : `กรุงเทพฯ/ปริมณฑลขั้นต่ำ ${STONE_INSTALLED_MIN_BANGKOK_SQM} m² · ต่างจังหวัดขั้นต่ำ ${STONE_INSTALLED_MIN_PROVINCE_SQM} m²`}</p>{!isWhole && selectedStone && selectedPrice !== null && <p className="price-note">งานต่ำกว่าขั้นต่ำคิดค่าดำเนินการ {formatTHB(STONE_SMALL_JOB_BANGKOK_FEE)} ในกรุงเทพฯ หรือ {formatTHB(STONE_SMALL_JOB_PROVINCE_FEE)} ต่างจังหวัด</p>}</aside>
-     </div><div className="source-note"><span>แหล่งอ้างอิง</span> ราคาขายแผ่นและราคารวมติดตั้งจากเอกสาร Knight Furnich ที่แนบมา · ราคายังไม่รวม VAT 7%</div><StoneComparisonTable /></div>;
+     </div><div className="source-note"><span>แหล่งอ้างอิง</span> ราคาขายแผ่นและราคารวมติดตั้งตามเอกสารราคาปัจจุบันของ Knight Furnich · ยังไม่รวม VAT {VAT_PERCENT_LABEL}</div><StoneComparisonTable /></div>;
 }
 
 function QuoteStoneRow({ stone, onRemove, stoneColors }: { stone: StoneConfig; onRemove: (color: string) => void; stoneColors: ReadonlyArray<StoneColor> }) {
@@ -961,14 +1013,14 @@ const COMPANY_DETAILS = {
   name: "บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่)",
   taxId: "0-1355-53014-11-4",
   address: "โรงงาน / สำนักงานใหญ่ ปทุมธานี",
-  phones: "094-496-1949 · 089-762-2209",
+  phones: contactPhonesText(),
   email: "info@knightfurnich.com",
   bankName: "ธ.กรุงศรีอยุธยา",
   bankBranch: "สาขาปตท. ติวานนท์",
   bankAccountName: "บริษัท ไนท์ เฟอร์นิช จำกัด",
   bankAccountNumber: "574-1-18925-4",
   salesRepresentative: "คุณอุไรวรรณ สังข์อารียกุล (นิด)",
-  salesPhone: "091-978-2292",
+  salesPhone: CONTACT_PHONE_BACKUP_SALES,
 };
 
 const QUOTE_PRODUCT_DETAILS = [
@@ -978,7 +1030,7 @@ const QUOTE_PRODUCT_DETAILS = [
   "หินสังเคราะห์โทนสีเข้ม สีดำ เป็นรอย ขีด ข่วน ได้ง่ายต้องระวังการใช้งานเป็นพิเศษ",
   "สินค้า ในแต่ละสี มีการจำหน่ายทุกวัน กรุณาตรวจสอบสินค้าก่อนทำการสั่งซื้อทุกครั้ง",
   "ใบเสนอราคาระบุเงื่อนไขการชำระเงิน กรุณาตรวจสอบก่อนทำการสั่งซื้อ",
-  "กำหนดรับสินค้า ( จันทร์-ศุกร์ เวลา 08.30-16.30) , ( เสาร์ 08.30-11.30)",
+  "เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): ${PLANT_PICKUP_HOURS} · เสาร์ 08:30–11:30",
 ] as const;
 
 const QUOTE_NOTE_DETAILS = [
@@ -1044,7 +1096,7 @@ function FormalQuote({
       <div className="formal-quote-meta">
         <p className="eyebrow">ใบเสนอราคาอย่างเป็นทางการ / {format}</p>
         <strong>{quoteNumber}</strong>
-        <span>ยืนราคา 30 วัน · ถึง {formatQuoteDate(expiryDate)}</span>
+        <span>{`ยืนราคา ${QUOTE_PRICE_VALID_DAYS} วัน`} · ถึง {formatQuoteDate(expiryDate)}</span>
       </div>
     </header>
 
@@ -1293,9 +1345,9 @@ function SavedQuotePage({ stoneColors }: { stoneColors: ReadonlyArray<StoneColor
     return <div className="page-wrap empty-state" role="alert" data-testid="status-saved-quote-expired">
       <span className="empty-number">410</span>
       <h3>ลิงก์ใบเสนอราคานี้หมดอายุแล้ว</h3>
-      <p>ลิงก์ใบเสนอราคานี้หมดอายุแล้ว (เกิน 45 วัน) กรุณาติดต่อทีมขายเพื่อขอรับลิงก์หรือประเมินราคาใหม่</p>
+      <p data-testid="text-expired-quote-note">ลิงก์ใบเสนอราคานี้หมดอายุแล้ว (เกิน 45 วัน) กรุณาติดต่อทีมขายเพื่อขอรับลิงก์หรือประเมินราคาใหม่</p><p className="muted" data-testid="text-expired-quote-window">{`หมายเหตุ: ลิงก์เปิดดูได้ ${QUOTE_LINK_VALID_DAYS} วัน ส่วนราคายืน ${QUOTE_PRICE_VALID_DAYS} วันนับจากวันที่ออกเอกสาร — เลยกำหนดราคายืนกรุณาติดต่อทีมขายเพื่อขอราคาใหม่`}</p>
       <a className="button button--accent" href="https://line.me/R/ti/p/@789gcnhq" target="_blank" rel="noreferrer" data-testid="button-contact-expired-quote-line">ติดต่อทีมขายทาง LINE</a>
-      <a className="button button--outline" href="tel:0944961949" data-testid="button-contact-expired-quote-phone">โทร 094-496-1949</a>
+      <a className="button button--outline" href={telHref(CONTACT_PHONE_PRIMARY)} data-testid="button-contact-expired-quote-phone">โทร {CONTACT_PHONE_PRIMARY}</a>
     </div>;
   }
   if (error || !lead) {
@@ -1496,8 +1548,8 @@ function SavedQuotePage({ stoneColors }: { stoneColors: ReadonlyArray<StoneColor
 
   return <div className="page-wrap quote-page saved-quote-page" data-testid="saved-quote-page">
     <section className="quote-heading saved-quote-heading">
-      <div><p className="eyebrow accent">SAVED QUOTATION / {lead.quoteNumber}</p><h1>ใบเสนอราคา<br /><em>พร้อมแบบที่บันทึกไว้</em></h1><p className="hero-copy">เอกสารนี้เปิดดูได้จากลิงก์เดิม และข้อมูลในแบบเป็น read-only</p></div>
-       <div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatQuoteDate(issueDate)}</strong><small>ใช้ได้ถึง {formatQuoteDate(expiryDate)} · 30 วัน</small><button onClick={printSavedQuote} data-testid="button-print-saved-quote"><Printer size={15} /> พิมพ์ใบเสนอราคา</button></div>
+      <div><p className="eyebrow accent">ใบเสนอราคาที่บันทึกไว้ {lead.quoteNumber}</p><h1>ใบเสนอราคา<br /><em>พร้อมแบบที่บันทึกไว้</em></h1><p className="hero-copy">เอกสารนี้เปิดดูได้จากลิงก์เดิม และข้อมูลในแบบเป็น read-only</p></div>
+       <div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatQuoteDate(issueDate)}</strong><small>ใช้ได้ถึง {formatQuoteDate(expiryDate)} · {QUOTE_PRICE_VALID_DAYS} วัน</small><button onClick={printSavedQuote} data-testid="button-print-saved-quote"><Printer size={15} /> พิมพ์ใบเสนอราคา</button></div>
     </section>
     <div className="saved-quote-next-steps" role="status" data-testid="status-saved-quote-next-steps">
       <Check size={16} />
@@ -1520,8 +1572,8 @@ function SavedQuotePage({ stoneColors }: { stoneColors: ReadonlyArray<StoneColor
       <Phone size={16} />
       <div>
         <strong>ติดต่อหลังการขาย</strong>
-        <p>โทร 094-496-1949 หรือ LINE Official</p>
-        <p className="saved-quote-support-hours"><Clock size={13} /> จันทร์-ศุกร์ 08:00–17:00 · เสาร์ 08:00–12:00</p>
+        <p>โทร {CONTACT_PHONE_PRIMARY} หรือ LINE Official</p>
+        <p className="saved-quote-support-hours" data-testid="text-support-hours"><Clock size={13} /> เวลาทำการ {SALES_WORKING_HOURS}</p>
       </div>
     </div>
     {state && <StudioLayoutSnapshot state={state} quoteNumber={savedQuoteNumber} stoneColors={stoneColors} />}
@@ -1620,7 +1672,7 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     `สินค้า: ${cart.map((line) => `${line.sku} x${line.quantity}`).join(", ") || "-"}`,
     `หินสังเคราะห์: ${stoneActive ? stones.map((stone) => `${stoneColorByName(stone.color, stoneColors).code} · ${stoneOrderModeLabel(stone.mode)} · ${stone.mode === "whole-sheet" ? `${stone.quantity} แผ่น` : `${stoneAreaSqM(stone).toFixed(2)} m²`}`).join(", ") : "ไม่ได้เลือก"}`,
     `ยอดสุทธิประมาณการ: ${formatTHB(total)}`,
-    `เอกสารมีอายุ 30 วันนับจากวันที่ออกเอกสาร (${formatDate(expiryDate)})`,
+    `เอกสารยืนราคา ${QUOTE_PRICE_VALID_DAYS} วันนับจากวันที่ออกเอกสาร (${formatDate(expiryDate)})`,
     "ขอให้ทีมงานยืนยันแบบและติดต่อกลับเพื่อสรุปหน้างาน",
   ].join("\n");
   const fastLaneProduct = cart[0] ? productBySku(cart[0].sku) : undefined;
@@ -1743,15 +1795,15 @@ function QuotePage({ cart, setCart, stones, setStones, stoneColors, customer, se
     <RouteStructuredData id="quote-service" data={buildQuotePageJsonLd()} />
     <div className="quote-editor">
       <div className="saved-quote-actions quote-notification-actions">
-        <button className="button button--accent" onClick={() => void saveQuote(true)} disabled={saving || !canGenerate} data-testid="button-send-quote-notification">{saving ? "กำลังบันทึก..." : "บันทึกและส่งเข้า Telegram"}</button>
+        <button className="button button--accent" onClick={() => void saveQuote(true)} disabled={saving || !canGenerate} data-testid="button-send-quote-notification">{saving ? "กำลังบันทึก..." : "บันทึกและส่งให้ทีมขาย"}</button>
         {saveError && <span className="summary-warning" role="alert" data-testid="status-quote-save-error">{saveError}</span>}
       </div>
-      <section className="quote-heading"><div><p className="eyebrow accent">QUOTE BUILDER / {quoteNumber}</p><h1>จากรายการ<br /><em>สู่ตัวเลขที่ชัดเจน</em></h1><p className="hero-copy">ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทางการสำหรับโปรเจกต์ของคุณ</p><button type="button" className="button button--accent" onClick={() => setFastLaneInquiryOpen(true)} data-testid="button-inquire-fast-lane"><MessageCircle size={15} aria-hidden="true" /> 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว</button></div><div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={printQuote} data-testid="button-print-quote"><Printer size={15} /> พิมพ์ใบเสนอราคา</button><button type="button" className="text-link" onClick={viewQuoteHistory} data-testid="button-view-quote-history">ดูใบเสนอราคาก่อนหน้า</button>{historyNotice && <span className="summary-warning" role="alert" data-testid="status-quote-history-login-required">{historyNotice}</span>}</div></section>
+      <section className="quote-heading"><div><p className="eyebrow accent">เลขที่เอกสาร {quoteNumber}</p><h1>จากรายการ<br /><em>สู่ตัวเลขที่ชัดเจน</em></h1><p className="hero-copy">ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทางการสำหรับโปรเจกต์ของคุณ</p><button type="button" className="button button--accent" onClick={() => setFastLaneInquiryOpen(true)} data-testid="button-inquire-fast-lane"><MessageCircle size={15} aria-hidden="true" /> 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว</button></div><div className="quote-date"><span>วันที่ออกเอกสาร</span><strong>{formatDate(issueDate)}</strong><small>ใช้ได้ถึง {formatDate(expiryDate)} · 30 วัน</small><button onClick={printQuote} data-testid="button-print-quote"><Printer size={15} /> พิมพ์ใบเสนอราคา</button><button type="button" className="text-link" onClick={viewQuoteHistory} data-testid="button-view-quote-history">ดูใบเสนอราคาก่อนหน้า</button>{historyNotice && <span className="summary-warning" role="alert" data-testid="status-quote-history-login-required">{historyNotice}</span>}</div></section>
         <section className="quote-format-panel"><div><p className="eyebrow">รูปแบบเอกสาร</p><strong>เลือกรูปแบบใบเสนอราคา</strong><small>US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จุดติดตั้ง</small></div><div className="quote-format-switch"><button className={quoteFormat === "US" ? "is-active" : ""} onClick={() => setQuoteFormat("US")} data-testid="button-quote-format-us"><span>US</span><small>พื้นที่ / แผ่น</small></button><button className={quoteFormat === "OF" ? "is-active" : ""} onClick={() => setQuoteFormat("OF")} data-testid="button-quote-format-of"><span>OF</span><small>รายห้อง / จุด</small></button></div></section>
       <div className="quote-layout"><section className="quote-main"><div className="quote-block"><div className="block-header"><div><p className="eyebrow">01 / BASINS</p><h2>รายการอ่างล้างหน้า</h2></div><Link href="/" className="text-link" data-testid="link-add-more">เพิ่มรายการ <Plus size={15} /></Link></div>{cart.length ? cart.map((line) => { const product = productBySku(line.sku)!; return <div className="quote-line" key={line.sku} data-testid={`row-quote-${line.sku}`}><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} alt={`${product.sku} ${product.colorName}`} tall={product.category === "tall vertical washbasin"} /><div className="quote-line-name"><span className="eyebrow">{product.sku} / {product.colorCode}</span><strong>{product.colorName}</strong><small>{isFreestandingPillarProduct(product) ? `${productCategoryLabel(product)} · ${productSpecLabel(product)} · ${product.dimensions}` : `${product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง"} · ${product.dimensions}`}</small></div><div className="line-quantity"><button onClick={() => updateLine(line.sku, { quantity: line.quantity - 1 })} aria-label={`ลดจำนวน ${line.sku}`} data-testid={`button-quantity-minus-${line.sku}`}><Minus size={13} /></button><span data-testid={`text-quantity-${line.sku}`}>{line.quantity}</span><button onClick={() => updateLine(line.sku, { quantity: line.quantity + 1 })} aria-label={`เพิ่มจำนวน ${line.sku}`} data-testid={`button-quantity-plus-${line.sku}`}><Plus size={13} /></button></div><label className="install-toggle"><input type="checkbox" checked={line.installationSelected} onChange={(event) => updateLine(line.sku, { installationSelected: event.target.checked })} data-testid={`input-installation-${line.sku}`} /><span />ติดตั้ง</label><strong className="line-price">{formatTHB(product.priceTHB * line.quantity)}</strong><button className="icon-button" onClick={() => setCart((lines) => lines.filter((item) => item.sku !== line.sku))} aria-label={`ลบ ${line.sku}`} data-testid={`button-remove-${line.sku}`}><Trash2 size={15} /></button></div>; }) : <div className="quote-empty" data-testid="status-quote-empty"><ShoppingBag size={22} /><p>ยังไม่มีสินค้าในใบเสนอราคา</p><Link href="/" className="text-link" data-testid="link-empty-catalog">เลือกจากแคตตาล็อก <ArrowRight size={15} /></Link></div>}<div className="install-note">ค่าติดตั้งอ่าง <strong>5,000 บาท/ชุด</strong> · ฟรีค่าดำเนินการติดตั้งเมื่อสั่งตั้งแต่ 3 ชุดขึ้นไป</div></div>
            <div className="quote-block"><div className="block-header"><div><p className="eyebrow">02 / STONE</p><h2>หินสังเคราะห์</h2></div><Link href="/stone" className="text-link" data-testid="link-edit-stone">{stoneActive ? "แก้ไขการกำหนดค่า" : "เพิ่มหินสังเคราะห์"} <ArrowRight size={15} /></Link></div>{stoneActive ? stones.map((stone) => <QuoteStoneRow key={stone.color} stone={stone} stoneColors={stoneColors} onRemove={removeStone} />) : <div className="quote-empty quote-empty--compact" data-testid="status-stone-empty"><p>ยังไม่ได้เลือกหินสังเคราะห์</p><Link href="/stone" className="text-link" data-testid="link-empty-stone">เลือกสีและรูปแบบการสั่งซื้อ <ArrowRight size={15} /></Link></div>}</div>
         <div className="quote-block customer-block"><div className="block-header"><div><p className="eyebrow">03 / CUSTOMER</p><h2>ข้อมูลลูกค้าและหน้างาน</h2><p className="customer-intro">กรอกเท่าที่มีได้เลยครับ ข้อมูลลูกค้ายังไม่ครบก็ออกใบเสนอราคาได้ ระบบจะแจ้งเฉพาะค่าที่กรอกแล้วแต่รูปแบบไม่ถูกต้อง</p></div></div><div className="customer-grid"><div className="customer-group-title span-2"><strong>1 / ข้อมูลลูกค้าและที่อยู่ใบเสนอราคา</strong><small>ชื่อและที่อยู่ช่วยให้ทีมขายจัดทำเอกสารได้ตรงใจ แต่ไม่บังคับ</small></div>{customerFields.slice(0, 2).map(renderCustomerField)}<div className="span-2 customer-address-field"><WorksiteAddressAutocomplete value={customer.address ?? ""} selectedPlaceId={worksitePlaceId} inputTestId="input-customer-address" onValueChange={(value) => setCustomer((current) => ({ ...current, address: value }))} onPlaceSelect={setWorksitePlaceId} onClearPlace={() => setWorksitePlaceId(null)} /></div><div className="customer-group-title span-2"><strong>2 / ช่องทางติดต่อ</strong><small>กรอกช่องทางที่สะดวกอย่างน้อยหนึ่งช่องทางได้ตามต้องการ</small></div>{customerFields.slice(2, 5).map(renderCustomerField)}<label>ช่องทางติดต่อที่สะดวก<select value={customer.preferredContact} onChange={(event) => setCustomer((current) => ({ ...current, preferredContact: event.target.value as CustomerDetails["preferredContact"] }))} data-testid="input-customer-preferred-contact"><option value="">ยังไม่ระบุ</option>{CUSTOMER_CONTACT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><div className="customer-group-title span-2"><strong>3 / ข้อมูลใบกำกับภาษี (ไม่บังคับ)</strong><small>กรอกเมื่อขอใบกำกับภาษีในนามบริษัทหรือนิติบุคคล</small></div>{customerFields.slice(7, 10).map(renderCustomerField)}<label className="span-2 customer-address-field"><span>ที่อยู่สำหรับใบกำกับภาษี</span><textarea value={customer.taxAddress ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, taxAddress: event.target.value }))} placeholder="กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา" data-testid="input-customer-tax-address" /></label><div className="customer-group-title span-2"><strong>4 / รายละเอียดหน้างาน (ไม่บังคับ)</strong><small>ช่วยให้ทีมงานประเมินงานและนัดหมายได้ตรงจุด</small></div><label>โลเคชันหน้างาน<input value={customer.site ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, site: event.target.value }))} placeholder="เช่น ห้องน้ำชั้น 2" data-testid="input-customer-site" /></label><label>ประเภทสถานที่<select value={customer.propertyType} onChange={(event) => setCustomer((current) => ({ ...current, propertyType: event.target.value as CustomerDetails["propertyType"], condoFloor: event.target.value === "condo" ? current.condoFloor : "" }))} data-testid="input-customer-property-type"><option value="">ยังไม่ระบุ</option>{PROPERTY_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>{customer.propertyType === "condo" && <label>ชั้นคอนโด<input value={customer.condoFloor} onChange={(event) => setCustomer((current) => ({ ...current, condoFloor: event.target.value }))} maxLength={32} data-testid="input-customer-condo-floor" /></label>}<label>วันที่คาดว่าจะติดตั้ง<input type="date" min={today} value={customer.expectedInstallationDate} onChange={(event) => setCustomer((current) => ({ ...current, expectedInstallationDate: event.target.value }))} data-testid="input-customer-installation-date" /></label><label>บทบาทลูกค้า<select value={customer.customerRole} onChange={(event) => setCustomer((current) => ({ ...current, customerRole: event.target.value as CustomerDetails["customerRole"] }))} data-testid="input-customer-role"><option value="">ยังไม่ระบุ</option>{CUSTOMER_ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><label className="span-2">หมายเหตุเพิ่มเติม<textarea value={customer.notes ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} placeholder="ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน" data-testid="input-customer-notes" /></label></div>{hasInvalidEmail && <p className="summary-warning" role="alert" data-testid="status-quote-email-validation">กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)</p>}{hasInvalidTaxId && <p className="summary-warning" role="alert" data-testid="status-quote-tax-id-validation">เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก</p>}{hasPastInstallationDate && <p className="summary-warning" role="alert" data-testid="status-quote-installation-date-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}</div>
-         </section><aside className="quote-summary"><p className="eyebrow">04 / TOTAL</p><h2>สรุปใบเสนอราคา</h2><div className="total-rows"><div><span>สินค้าอ่างล้างหน้า <small>{basinSets} ชุด</small></span><strong>{formatTHB(basinSubtotal)}</strong></div><div><span>ค่าติดตั้งอ่าง</span><strong className={installationCharge === 0 ? "free-text" : ""}>{installationCharge === 0 ? "ฟรี" : formatTHB(installationCharge)}</strong></div>{stoneActive && <div><span>หินสังเคราะห์ <small>{stones.length} สี · อ้างอิงราคาจากเอกสาร</small></span><strong>{hasInvalidStone ? "ตรวจสอบรายการ" : formatTHB(totalStone)}</strong></div>}<div className="discount-row"><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{installationDiscount ? `-${formatTHB(installationDiscount)}` : "—"}</strong></div></div><div className="vat-row"><label><input type="checkbox" checked={vat} onChange={(event) => setVat(event.target.checked)} data-testid="input-vat" /><span />คิด VAT 7%</label><strong>{formatTHB(vatAmount)}</strong></div>{missingTaxIdForVat && <p className="summary-warning" role="status" data-testid="status-quote-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}<div className="grand-total"><span>ยอดรวมทั้งสิ้น</span><strong data-testid="text-grand-total">{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div><button className="button button--accent full-width" onClick={generateQuote} data-testid="button-generate-quote">{submitted && canGenerate ? <><Check size={16} /> สร้างใบเสนอราคาแล้ว</> : <>ออกใบเสนอราคาทางการ <ArrowRight size={16} /></>}</button>{hasMissing && <p className="summary-warning" data-testid="status-quote-validation">กรอกชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ เพื่อสร้างใบเสนอราคาที่สมบูรณ์</p>}{hasPastInstallationDate && <p className="summary-warning" data-testid="status-quote-installation-date-summary-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}{hasInvalidStone && <p className="summary-warning" data-testid="status-quote-stone-validation">กลับไปหน้าหินสังเคราะห์และกรอกขนาดอย่างน้อย 10 × 10 ซม. หรือเลือกสีที่มีราคาในเอกสาร ก่อนสร้างใบเสนอราคา</p>}{!hasQuoteLines && <p className="summary-warning" data-testid="status-quote-cart-validation">ยังไม่มีรายการในใบเสนอราคา — เลือกอ่างล้างหน้าอย่างน้อย 1 ชุด หรือเพิ่มสีหินที่ระบุขนาดแล้ว (กด “ดูใบเสนอราคา” จากหน้าหินสังเคราะห์) •{cart.length === 0 && stones.length > 0 ? " รายการหินที่ยังไม่ครบขนาดจะยังไม่ถูกคิดราคา" : ""}</p>}{submitted && canGenerate && <div className="success-message" data-testid="status-quote-success"><Check size={16} /> {quoteNumber} พร้อมพิมพ์หรือบันทึกเป็น PDF</div>}<div className="quote-share"><strong>ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ</strong><p>กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิด LINE เพื่อส่งต่อได้ทันที</p><div className="quote-share-actions"><button type="button" className="button button--dark" onClick={copyLineSummary} data-testid="button-copy-line-summary">{copied ? <><Check size={15} /> คัดลอกแล้ว</> : "คัดลอกสรุปส่ง LINE"}</button><a className="button button--outline" href={`https://line.me/R/msg/text/?text=${encodeURIComponent(lineSummary)}`} target="_blank" rel="noreferrer" data-testid="link-send-line-summary">เปิด LINE</a></div></div><div className="quote-terms"><strong>หมายเหตุจากแคตตาล็อก</strong><p>ราคาสินค้าไม่รวม VAT · หินตัดและติดตั้งใช้อัตรารวมติดตั้งแล้ว · งานหินต่ำกว่าพื้นที่ขั้นต่ำอาจมีค่าดำเนินการเพิ่มตามพื้นที่</p></div></aside></div>
+         </section><aside className="quote-summary"><p className="eyebrow">04 / TOTAL</p><h2>สรุปใบเสนอราคา</h2><div className="total-rows"><div><span>สินค้าอ่างล้างหน้า <small>{basinSets} ชุด</small></span><strong>{formatTHB(basinSubtotal)}</strong></div><div><span>ค่าติดตั้งอ่าง</span><strong className={basinSets > 0 && installationCharge === 0 ? "free-text" : ""}>{basinSets === 0 ? "—" : installationCharge === 0 ? "ฟรี" : formatTHB(installationCharge)}</strong></div>{stoneActive && <div><span>หินสังเคราะห์ <small>{stones.length} สี · อ้างอิงราคาจากเอกสาร</small></span><strong>{hasInvalidStone ? "ตรวจสอบรายการ" : formatTHB(totalStone)}</strong></div>}<div className="discount-row"><span>ส่วนลด / สิทธิ์ติดตั้งฟรี</span><strong>{installationDiscount ? `-${formatTHB(installationDiscount)}` : "—"}</strong></div></div><div className="vat-row"><label><input type="checkbox" checked={vat} onChange={(event) => setVat(event.target.checked)} data-testid="input-vat" /><span />คิด VAT 7%</label><strong>{formatTHB(vatAmount)}</strong></div>{missingTaxIdForVat && <p className="summary-warning" role="status" data-testid="status-quote-vat-tax-id">💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไฟล์เพื่อให้ออกใบกำกับภาษีได้สมบูรณ์</p>}<div className="grand-total"><span>ยอดรวมทั้งสิ้น</span><strong data-testid="text-grand-total">{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div><button className="button button--accent full-width" onClick={generateQuote} data-testid="button-generate-quote">{submitted && canGenerate ? <><Check size={16} /> สร้างใบเสนอราคาแล้ว</> : <>ออกใบเสนอราคาทางการ <ArrowRight size={16} /></>}</button>{hasMissing && <p className="summary-warning" data-testid="status-quote-validation">กรอกชื่อผู้ติดต่อ โทรศัพท์ อีเมล และชื่อโครงการ เพื่อสร้างใบเสนอราคาที่สมบูรณ์</p>}{hasPastInstallationDate && <p className="summary-warning" data-testid="status-quote-installation-date-summary-validation">วันที่เข้าติดตั้งต้องไม่เป็นวันที่ผ่านมา</p>}{hasInvalidStone && <p className="summary-warning" data-testid="status-quote-stone-validation">กลับไปหน้าหินสังเคราะห์และกรอกขนาดอย่างน้อย 10 × 10 ซม. หรือเลือกสีที่มีราคาในเอกสาร ก่อนสร้างใบเสนอราคา</p>}{!hasQuoteLines && <p className="summary-warning" data-testid="status-quote-cart-validation">ยังไม่มีรายการในใบเสนอราคา — เลือกอ่างล้างหน้าอย่างน้อย 1 ชุด หรือเพิ่มสีหินที่ระบุขนาดแล้ว (กด “ดูใบเสนอราคา” จากหน้าหินสังเคราะห์) •{cart.length === 0 && stones.length > 0 ? " รายการหินที่ยังไม่ครบขนาดจะยังไม่ถูกคิดราคา" : ""}</p>}{submitted && canGenerate && <div className="success-message" data-testid="status-quote-success"><Check size={16} /> {quoteNumber} พร้อมพิมพ์หรือบันทึกเป็น PDF</div>}<div className="quote-share"><strong>ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ</strong><p>กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิด LINE เพื่อส่งต่อได้ทันที</p><div className="quote-share-actions"><button type="button" className="button button--dark" onClick={copyLineSummary} data-testid="button-copy-line-summary">{copied ? <><Check size={15} /> คัดลอกแล้ว</> : "คัดลอกสรุปส่ง LINE"}</button><a className="button button--outline" href={`https://line.me/R/msg/text/?text=${encodeURIComponent(lineSummary)}`} target="_blank" rel="noreferrer" data-testid="link-send-line-summary">เปิด LINE</a></div></div><div className="quote-terms"><strong>หมายเหตุจากแคตตาล็อก</strong><p>ราคาสินค้าไม่รวม VAT · หินตัดและติดตั้งใช้อัตรารวมติดตั้งแล้ว · งานหินต่ำกว่าพื้นที่ขั้นต่ำอาจมีค่าดำเนินการเพิ่มตามพื้นที่</p></div></aside></div>
     </div>
      <div className="customer-extra-fields quote-block" data-testid="section-quote-project-details"><div><p className="eyebrow">PROJECT DETAILS / ข้อมูลหน้างาน</p><strong>ข้อมูลสำหรับหัวใบเสนอราคา</strong></div><label>ชื่อโครงการ<input value={customer.project ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, project: event.target.value }))} placeholder="เช่น บ้านพักอาศัยสุขุมวิท" data-testid="input-customer-project" /></label><label>ฝ่ายจัดซื้อ / บัญชี<input value={customer.purchasingDepartment ?? ""} onChange={(event) => setCustomer((current) => ({ ...current, purchasingDepartment: event.target.value }))} placeholder="ถ้ามี" data-testid="input-customer-purchasing-department" /></label></div>
      {submitted && canGenerate && <FormalQuote format={quoteFormat} quoteNumber={quoteNumber} issueDate={issueDate} expiryDate={expiryDate} customer={customer} items={formalItems} grossSubtotal={grossSubtotal} discountAmount={installationDiscount} subtotal={subtotal} vatAmount={vatAmount} total={total} vat={vat} />}
@@ -2174,11 +2226,11 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, AppErrorBounda
           <p className="text-sm leading-relaxed text-[var(--ink-soft)]">
             กรุณาลองโหลดหน้าใหม่อีกครั้ง หากยังพบปัญหา ติดต่อทีมงานได้ที่{" "}
             <a
-              href="tel:0944961949"
+              href={telHref(CONTACT_PHONE_PRIMARY)}
               className="font-semibold text-[var(--brand-blue)] underline underline-offset-2"
               data-testid="link-error-support-phone"
             >
-              094-496-1949
+              {CONTACT_PHONE_PRIMARY}
             </a>
           </p>
         </div>
