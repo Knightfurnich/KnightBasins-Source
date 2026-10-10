@@ -6,6 +6,14 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CONTACT_PHONE_PRIMARY,
+  OVERLAY_OPEN_EVENT,
+  SALES_REPLY_WINDOW,
+  SALES_WORKING_HOURS,
+  contactPhonesText,
+  telHref,
+} from "@/data/contact-channels";
 
 type PortfolioInquiryPhoto = {
   id: string;
@@ -163,6 +171,11 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
   }, []);
 
   useEffect(() => {
+    // While this dialog is on screen the floating assistant would sit on top of the
+    // LINE / copy buttons at 360px (job 419-R ข้อ 1) -- announce ourselves so it hides.
+    const announce = (open: boolean) =>
+      window.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, { detail: { open } }));
+    announce(true);
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || isSubmitting) return;
@@ -175,6 +188,7 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
+      announce(false);
     };
   }, [isSubmitting, linePanelOpen, onClose]);
 
@@ -308,8 +322,18 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
               <CheckCircle2 className="mx-auto mb-3 text-emerald-700" size={34} aria-hidden="true" />
               <h3 className="text-lg font-bold text-emerald-950">ได้รับข้อมูลแล้ว</h3>
               <p className="mt-2 text-sm leading-relaxed text-emerald-900">
-                ทีมงาน Knight Furnich ได้รับข้อมูลแล้ว จะติดต่อกลับอย่างรวดเร็วที่สุดครับ
+                ทีมขาย Knight Furnich จะติดต่อกลับ{SALES_REPLY_WINDOW} ({SALES_WORKING_HOURS}) ครับ
               </p>
+              <ul className="mx-auto mt-3 max-w-sm space-y-1 text-left text-xs leading-relaxed text-emerald-900" data-testid="list-inquiry-next-steps">
+                <li>• ทีมโทรเข้าเบอร์ที่คุณกรอก — ไม่ต้องพิมพ์ซ้ำ</li>
+                <li>
+                  <span data-testid="text-inquiry-backup-phone">
+                    สำรอง: โทร <a href={telHref(CONTACT_PHONE_PRIMARY)} className="font-bold underline">{CONTACT_PHONE_PRIMARY}</a> หรือ{" "}
+                    <span className="tabular-nums">{contactPhonesText()}</span>
+                  </span>
+                </li>
+                <li>• เช็กสถานะได้ตลอด: พิมพ์รหัสสินค้าถามน้องไนท์ในแชทมุมขวา หรือตอบกลับใน LINE @789gcnhq</li>
+              </ul>
               <button
                 type="button"
                 className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#003366] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#002244]"
@@ -549,7 +573,7 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
                   <a
                     href={loginHref}
                     className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#06c755]/60 bg-white px-3 text-[11px] font-bold text-[#07331b] transition hover:bg-emerald-50"
-                    data-testid="button-line-login"
+                    data-testid="button-line-login-portfolio"
                   >
                     เข้าสู่ระบบด้วย LINE (ไม่บังคับ)
                   </a>
