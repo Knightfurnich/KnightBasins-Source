@@ -49,14 +49,14 @@ function loadLineContactHelpers() {
   const moduleConstants = [
     `const LINE_OA_DEEPLINK_BASE = "https://line.me/R/oaMessage/%40789gcnhq/?text=";`,
     `const LINE_LOGIN_PATH = "/api/auth/line/login";`,
-    `const DESKTOP_LINE_BREAKPOINT_PX = 1024;`,
+    `const MOBILE_LINE_MAX_WIDTH_PX = 1023;`,
   ].join("\n");
   const compiled = ts.transpileModule(
     `${moduleConstants}\n${helperSource}\nreturn { ${helperNames.join(", ")} };`,
     { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } },
   ).outputText;
   return new Function(compiled)() as {
-    lineContactModeForViewport: (width: number, hasFinePointer: boolean) => "dialog" | "deeplink";
+    lineContactModeForViewport: (width: number, pointer?: "fine" | "coarse" | null) => "dialog" | "deeplink";
     buildLineDeepLink: (message: string) => string;
     lineLoginHref: (pathWithQuery: string) => string;
     lineButtonLabel: (authenticated: boolean, isCatalog: boolean) => string;
@@ -75,14 +75,38 @@ const {
 } = loadLineContactHelpers();
 
 describe("desktop LINE contact path stays on-site (job 414-B A)", () => {
-  it("uses the in-page dialog only on a wide viewport with a fine pointer", () => {
-    assert.equal(lineContactModeForViewport(1440, true), "dialog");
-    assert.equal(lineContactModeForViewport(1024, true), "dialog", "1024px is the documented breakpoint");
-    assert.equal(lineContactModeForViewport(1023, true), "deeplink", "just below the breakpoint keeps the deep link");
-    assert.equal(lineContactModeForViewport(1366, false), "deeplink", "a touchscreen at desktop width keeps the deep link");
-    assert.equal(lineContactModeForViewport(390, false), "deeplink", "phones keep the working oaMessage link");
-    assert.equal(lineContactModeForViewport(0, true), "deeplink", "unknown viewport must not trap the visitor");
-    assert.equal(lineContactModeForViewport(Number.NaN, true), "deeplink", "unreadable metrics fall back to the link");
+  // job 416-B: the test is inverted -- a device must *prove* it is a phone.
+  it("(1) 390px + coarse pointer -> deep link (a real phone)", () => {
+    assert.equal(lineContactModeForViewport(390, "coarse"), "deeplink");
+  });
+
+  it("(2) 1440px + fine pointer -> on-site panel", () => {
+    assert.equal(lineContactModeForViewport(1440, "fine"), "dialog");
+    assert.equal(lineContactModeForViewport(1024, "fine"), "dialog", "1024 is above the mobile max width");
+  });
+
+  it("(3) 1440px but pointer unknown -> on-site panel (the case this job exists for)", () => {
+    assert.equal(lineContactModeForViewport(1440, null), "dialog", "browser that cannot report pointer");
+    assert.equal(lineContactModeForViewport(1440, undefined), "dialog", "no pointer argument at all");
+  });
+
+  it("(4) 390px even with a fine pointer -> deep link (narrow viewport wins)", () => {
+    assert.equal(lineContactModeForViewport(390, "fine"), "deeplink");
+    assert.equal(lineContactModeForViewport(1023, "fine"), "deeplink", "up to the mobile max width");
+  });
+
+  it("(5) nothing measurable at all -> on-site panel, and the component defaults to it", () => {
+    assert.equal(lineContactModeForViewport(Number.NaN, null), "dialog", "unreadable metrics must not pick the broken link");
+    assert.equal(lineContactModeForViewport(0, null), "dialog");
+    // the state starts on the panel, so the first paint is already the safe one
+    assert.match(modalSource, /const \[onSitePanel, setOnSitePanel\] = useState\(true\)/);
+    // no matchMedia => return early, default stays true
+    assert.match(modalSource, /typeof window\.matchMedia !== "function"\) return;/);
+    // the query now asks "are you a phone?"
+    assert.match(modalSource, /export const MOBILE_LINE_MEDIA_QUERY = `\(max-width: \$\{MOBILE_LINE_MAX_WIDTH_PX\}px\), \(pointer: coarse\)`;/);
+    assert.match(modalSource, /window\.matchMedia\(MOBILE_LINE_MEDIA_QUERY\)/);
+    assert.match(modalSource, /setOnSitePanel\(!media\.matches\)/, "flip: matching the mobile query means NOT the panel");
+    assert.doesNotMatch(modalSource, /\(min-width: 1024px\) and \(pointer: fine\)/, "the old desktop-first query must be gone");
   });
 
   it("keeps the mobile deep link exactly as it was", () => {
@@ -117,7 +141,7 @@ describe("desktop LINE contact path stays on-site (job 414-B A)", () => {
   });
 
   it("keeps the touch deep link anchor (with its original test id) for non-desktop visitors", () => {
-    assert.match(modalSource, /\{!desktopMode && \(/);
+    assert.match(modalSource, /\{!onSitePanel && \(/);
     assert.match(modalSource, /href=\{lineHref\}/);
     assert.match(modalSource, /data-testid="button-inquiry-line"/);
   });
