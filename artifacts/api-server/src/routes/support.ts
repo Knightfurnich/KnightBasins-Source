@@ -5,6 +5,9 @@ import { customerAccounts, customerLeads, customerProfileUpdateConfirmations, db
 import { getCatalogData } from "./catalog";
 import { supportQueryMatches } from "../lib/support-search";
 import { getSupportIntentReply } from "../lib/support-intents";
+import { SUPPORT_PHONE_PRIMARY, SUPPORT_PHONES_TEXT } from "../lib/contact-info";
+import { isServiceAreaQuestion, isShoppingMessage } from "../lib/support-signals";
+import { basinTermsLines, serviceAreaReply, shoppingReply, stoneTermsLines } from "../lib/support-guest-answers";
 import { askHermesSupport, hermesSupportConfigured } from "../lib/hermes-support";
 import { detectPromptInjection, sanitizeAiResponse } from "../lib/prompt-guard";
 import { synthesizeSpeech } from "../lib/google-tts";
@@ -45,7 +48,7 @@ import { SLIPOK_UNVERIFIABLE_CODES, verifySlip } from "../lib/slipok";
  * (`loginRequired: true` lets the page show the sign-in button). A signed-in customer reaches this only when the
  * assistant (Hermes) is not configured or did not answer; that path keeps its previous text and gets no flag.
  */
-export const GUEST_SCOPE_REPLY = "ตอนนี้คุณกำลังใช้โหมดทั่วไป (ยังไม่เข้าสู่ระบบ LINE) ดิฉันตอบได้เฉพาะข้อมูลสินค้าในแคตตาล็อก เช่น \"KF023\" หรือ \"BW010\" ค่ะ\n\nหากต้องการปรึกษาการออกแบบ การชำระเงิน สถานะใบเสนอราคา หรือข้อมูลอื่น ๆ กรุณาเข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบน เพื่อคุยกับน้องไนท์โหมดเต็มแบบเดียวกับใน LINE ค่ะ\n\nหรือติดต่อฝ่ายขาย 094-496-1949 · 089-762-2209";
+export const GUEST_SCOPE_REPLY = `ตอนนี้คุณกำลังใช้โหมดทั่วไป (ยังไม่เข้าสู่ระบบ LINE) ดิฉันตอบได้เฉพาะข้อมูลสินค้าในแคตตาล็อก เช่น \"KF023\" หรือ \"BW010\" ค่ะ\n\nหากต้องการปรึกษาการออกแบบ การชำระเงิน สถานะใบเสนอราคา หรือข้อมูลอื่น ๆ กรุณาเข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบน เพื่อคุยกับน้องไนท์โหมดเต็มแบบเดียวกับใน LINE ค่ะ\n\nหรือติดต่อฝ่ายขาย ${SUPPORT_PHONES_TEXT}`;
 export const SIGNED_IN_FALLBACK_REPLY = "ดิฉันช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ค่ะ ลองพิมพ์เช่น KF001, KF023 หรือ BW010";
 
 export function supportFallbackResponse(signedIn: boolean) {
@@ -241,7 +244,7 @@ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, 
   const injectionCheck = detectPromptInjection(message);
   if (injectionCheck.isSuspicious) {
     res.json({
-      reply: "ขออภัยค่ะ น้องไนท์สามารถให้ข้อมูลเฉพาะเรื่องแคตตาล็อกสินค้า อ่างล้างหน้า และการออกแบบเคาน์เตอร์ของ Knight Furnich เท่านั้นค่ะ หากมีข้อสงสัยเพิ่มเติมติดต่อทีมงานได้ที่ 094-496-1949 นะคะ",
+      reply: `ขออภัยค่ะ น้องไนท์สามารถให้ข้อมูลเฉพาะเรื่องแคตตาล็อกสินค้า อ่างล้างหน้า และการออกแบบเคาน์เตอร์ของ Knight Furnich เท่านั้นค่ะ หากมีข้อสงสัยเพิ่มเติมติดต่อทีมงานได้ที่ ${SUPPORT_PHONE_PRIMARY} นะคะ`,
       matchedType: "none",
     });
     return;
@@ -311,8 +314,11 @@ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, 
       }
     }
 
+    const shopping = isShoppingMessage(message);
     const extracted = extractSupportProfileFields(message);
-    if (Object.keys(extracted).length > 0) {
+    // Job 421-C: a visitor who says what they want ("อยากได้อ่างล้างหน้า... เบอร์ 08x") is answered from the catalogue below;
+    // the profile prompt ("sign in first") is only for someone who is not asking for a product.
+    if (Object.keys(extracted).length > 0 && (account || !shopping)) {
       if (!account) {
         res.json({
           reply: "น้องไนท์พบข้อมูลโปรไฟล์ใหม่ แต่การบันทึกข้อมูลต้องเข้าสู่ระบบด้วย LINE ก่อนนะคะ",
@@ -382,7 +388,7 @@ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, 
       const formatBasin = (basin: typeof first) =>
         `${basin.sku} ${basin.colorName} · ${basin.priceTHB.toLocaleString("th-TH")} บาท · ${basin.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น"} · ${basin.dimensions}${basin.basinDimensions ? ` · หลุม ${basin.basinDimensions}` : ""}`;
       res.json({
-        reply: `เปรียบเทียบจาก Catalog จริงให้แล้วค่ะ\n• ${formatBasin(first)}\n• ${formatBasin(second)}\n\nถ้าต้องการ ดิฉันเพิ่มทั้ง 2 รุ่นเข้าใบเสนอราคาให้ได้ค่ะ`,
+        reply: `เปรียบเทียบจาก Catalog จริงให้แล้วค่ะ\n• ${formatBasin(first)}\n• ${formatBasin(second)}\n\nถ้าต้องการ ดิฉันเพิ่มทั้ง 2 รุ่นเข้าใบเสนอราคาให้ได้ค่ะ\n\n${basinTermsLines({ images: false }).join("\n")}`,
         matchedType: "basin",
         matchedCode: null,
         compareItems: comparedBasins.map((basin) => ({
@@ -407,7 +413,7 @@ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, 
     if (basin) {
       const category = basin.category === "counter basin" ? "อ่างวางเคาน์เตอร์" : "อ่างตั้งพื้น";
       res.json({
-        reply: `${basin.sku} · ${basin.colorName} เป็น${category} ราคา ${basin.priceTHB.toLocaleString("th-TH")} บาท ขนาดโดยรวม ${basin.dimensions}${basin.basinDimensions ? ` และขนาดหลุม ${basin.basinDimensions}` : ""} มีวิดีโอ 3D 360° ให้ดูในรายการสินค้า`,
+        reply: `${basin.sku} · ${basin.colorName} เป็น${category} ราคา ${basin.priceTHB.toLocaleString("th-TH")} บาท ขนาดโดยรวม ${basin.dimensions}${basin.basinDimensions ? ` และขนาดหลุม ${basin.basinDimensions}` : ""} มีวิดีโอ 3D 360° ให้ดูในรายการสินค้า\n\n${basinTermsLines({ images: true }).join("\n")}`,
         matchedType: "basin",
         matchedCode: basin.sku,
       });
@@ -422,11 +428,25 @@ router.post("/support/chat", createRateLimiter({ name: "support-chat", max: 30, 
         sheet ? `ขายแผ่นเริ่มต้น ${sheet.basePriceTHB.toLocaleString("th-TH")} บาท/แผ่น` : "",
       ].filter(Boolean).join(" · ");
       res.json({
-        reply: `${stone.code} · ${stone.name} — ${prices || "กรุณาติดต่อทีมงานเพื่อเช็กราคา"}. เปิดภาพแผ่น HD ได้จากรายการสีหิน`,
+        reply: `${stone.code} · ${stone.name} — ${prices || "กรุณาติดต่อทีมงานเพื่อเช็กราคา"}\nเปิดภาพแผ่น HD ได้จากรายการสีหิน\n\n${stoneTermsLines({ installed: Boolean(installed), images: true }).join("\n")}`,
         matchedType: "stone",
         matchedCode: stone.code,
       });
       return;
+    }
+
+    // Job 421-C: a visitor is answered here instead of being sent to sign in. Templates only -- no model is called for a
+    // visitor (no token cost, nothing to hammer). `loginRequired` keeps its meaning: the page shows the sign-in button as
+    // one of the two ways forward.
+    if (!account) {
+      if (isServiceAreaQuestion(message)) {
+        res.json({ reply: serviceAreaReply(), matchedType: "none", loginRequired: true });
+        return;
+      }
+      if (shopping) {
+        res.json({ reply: shoppingReply(message, catalog), matchedType: "none", loginRequired: true });
+        return;
+      }
     }
 
     if (account && hermesSupportConfigured()) {
@@ -594,7 +614,7 @@ export async function validateSupportSlipQuote(
 function normalizePhoneDigits(value: string) {
   // Thai mobile/landline numbers always start with 0, so a leading +66 or 66
   // country code unambiguously means "this replaces the 0" -- e.g.
-  // "+66 61 845 9666" and "061-845-9666" are the same number.
+  // "+66 81 234 5678" and "081-234-5678" are the same number.
   const withLocalPrefix = value.trim().replace(/^\+?66/, "0");
   return withLocalPrefix.replace(/\D/g, "");
 }
