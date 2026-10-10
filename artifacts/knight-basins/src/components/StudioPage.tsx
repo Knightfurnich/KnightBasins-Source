@@ -2061,7 +2061,7 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
   const selectedStoneCodes = useMemo(() => new Set(state.stoneColors), [state.stoneColors]);
   // The Studio only ever quotes cut-and-install work (studioEstimate prices
   // every layout with stoneInstalledUnitPrice), so these budget filters must
-  // group by the installed price per m² the customer will actually be
+  // group by the installed price per ตร.ม. the customer will actually be
   // charged — grouping by the whole-sheet price put stones in buckets that
   // did not match their quoted rate.
   const stonePriceForFilter = (stone: StoneColor) => stone.installedPriceTHB;
@@ -2236,7 +2236,7 @@ function StudioShortlists({ mode, state, setState, stoneColors, basinProducts, s
         </div>}
       </div>;
     })}</div>
-    <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => { setState((current) => ({ ...current, activeStone: code })); if (mode === "studio") setOpenCatalog(null); }} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / m²</button>)}</div>
+    <div className="studio-active-stone"><span>กำลังคำนวณด้วย</span>{state.stoneColors.map((code) => <button type="button" key={code} className={state.activeStone === code ? "is-active" : ""} onClick={() => { setState((current) => ({ ...current, activeStone: code })); if (mode === "studio") setOpenCatalog(null); }} data-testid={`button-studio-active-stone-${code}`}>{state.activeStone === code && <Check size={12} />}{studioStoneName(code)} · {formatTHB(stoneColorByName(code, stoneColors).installedPriceTHB ?? 0)} / ตร.ม.</button>)}</div>
   </section>;
   const basinSelector = <section className={`studio-panel studio-selector-panel ${mode === "studio" ? "studio-basin-popover-panel" : ""}`}>
     <div className="studio-panel-heading"><div><p className="eyebrow">02 / BASIN SHORTLIST</p><h3>เลือกแบบอ่าง</h3></div><span>{state.basinSkus.length} รุ่น</span></div>
@@ -2448,7 +2448,7 @@ function StudioPieceEditorLegacy({
   return <section className="studio-piece-editor">
     <div className="studio-piece-heading">
       <label><span>ชื่อชิ้นงาน</span><input value={piece.name} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, name: event.target.value }))} data-testid={`input-piece-name-${piece.id}`} /></label>
-      <span>{piece.rectangles.length} / {STUDIO_MAX_RECTANGLES} แผ่น · {studioPieceAreaSqM(piece).toFixed(4)} m²</span>
+      <span>{piece.rectangles.length} / {STUDIO_MAX_RECTANGLES} แผ่น · {studioPieceAreaSqM(piece).toFixed(4)} ตร.ม.</span>
     </div>
     <div className="studio-piece-rectangle-list">
       {piece.rectangles.map((rectangle, index) => {
@@ -2905,7 +2905,7 @@ function StudioPieceEditor({
     <div className="studio-piece-heading">
       <label><span>ชื่อชิ้นงาน</span><input value={piece.name} onChange={(event) => setPieceState(setState, piece.id, (current) => ({ ...current, name: event.target.value }))} data-testid={`input-piece-name-${piece.id}`} /></label>
       <div className="studio-piece-heading-meta">
-        <span>{piece.rectangles.length} / {STUDIO_MAX_RECTANGLES} แผ่น · {studioPieceAreaSqM(piece).toFixed(4)} m²</span>
+        <span>{piece.rectangles.length} / {STUDIO_MAX_RECTANGLES} แผ่น · {studioPieceAreaSqM(piece).toFixed(4)} ตร.ม.</span>
         {showAddPiece && onAddPiece && <button type="button" className="button button--outline studio-piece-add" onClick={onAddPiece} data-testid="button-add-studio-piece"><Plus size={14} /> เพิ่มชิ้นงาน</button>}
         <button type="button" className="button button--outline studio-piece-delete" disabled={getStudioPieces(state).length <= 1} onClick={removePiece} data-testid={`button-delete-studio-piece-${piece.id}`}><Trash2 size={14} /> ลบชิ้นงาน</button>
       </div>
@@ -3288,7 +3288,7 @@ function StudioCanvas({
             >
               <span className="studio-piece-tab-title">{p.name || `ชิ้นงาน ${index + 1}`}</span>
               <span className="studio-piece-tab-badge">
-                {p.rectangles.length} แผ่น · {studioPieceAreaSqM(p).toFixed(2)} m²
+                {p.rectangles.length} แผ่น · {studioPieceAreaSqM(p).toFixed(2)} ตร.ม.
               </span>
               {pieces.length > 1 && (
                 <span
@@ -3496,7 +3496,7 @@ function StudioPrintLayout({
 }) {
   const pieces = getStudioPieces(state);
   return <section className="studio-print-layout" data-testid="studio-print-layout">
-    <div className="studio-print-heading"><div><p className="eyebrow">KNIGHT BASINS / RECTANGLE WORKPIECES</p><h2>ผังประกอบ {pieces.length} ชิ้นงาน</h2></div><div className="studio-print-dimensions">พื้นที่รวม {studioEstimate(state, PRODUCTS).counterAreaSqM.toFixed(4)} m²</div></div>
+    <div className="studio-print-heading"><div><p className="eyebrow">KNIGHT BASINS / RECTANGLE WORKPIECES</p><h2>ผังประกอบ {pieces.length} ชิ้นงาน</h2></div><div className="studio-print-dimensions">พื้นที่รวม {studioEstimate(state, PRODUCTS).counterAreaSqM.toFixed(4)} ตร.ม.</div></div>
     {pieces.map((piece) => {
       const placements = state.basinPlacements.filter((placement) => (placement.pieceId ?? pieces[0]?.id) === piece.id);
       return <div className="studio-print-piece" key={piece.id}>
@@ -3546,7 +3546,7 @@ function StudioDraftCard({
     </div>
     <div className="studio-saved-draft-content">
       <div className="studio-saved-draft-heading"><div><strong>{draft.name}</strong><small>บันทึกล่าสุด {formatDraftTimestamp(draft.savedAt)}</small></div><span>{draft.state.activeStone}</span></div>
-      <div className="studio-saved-draft-summary"><span>{estimate.counterAreaSqM.toFixed(4)} m² · อ่าง {draft.state.basinPlacements.length} จุด</span><strong>{formatTHB(estimate.totalTHB)}</strong></div>
+      <div className="studio-saved-draft-summary"><span>{estimate.counterAreaSqM.toFixed(4)} ตร.ม. · อ่าง {draft.state.basinPlacements.length} จุด</span><strong>{formatTHB(estimate.totalTHB)}</strong></div>
       <div className="studio-saved-draft-actions">
         <button type="button" className="button button--accent" onClick={onOpen} data-testid={`button-open-studio-draft-${draft.id}`}><Pencil size={14} /> เปิดทำต่อ</button>
         <button type="button" className="button button--outline" onClick={onCopy} data-testid={`button-copy-studio-draft-${draft.id}`}><Link2 size={14} /> คัดลอกลิงก์</button>
@@ -5286,10 +5286,10 @@ export function StudioPage({
       <div className="studio-panel-heading"><div><p className="eyebrow">LIVE ESTIMATE</p><h3>ประมาณการเบื้องต้น</h3></div>{mode !== "sketch" && <span>{activeStone.code}</span>}</div>
       {showSketchEstimateLines ? sketchEstimateLines : <div className="studio-estimate-lines">
         {mode !== "sketch" && <div><span>จำนวนชิ้นงาน / แผ่น</span><strong>{estimate.pieceCount} / {estimate.rectangleCount}</strong></div>}
-        {mode !== "sketch" && <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} m²</strong></div>}
+        {mode !== "sketch" && <div><span>พื้นที่แผ่นรวม</span><strong>{estimate.counterAreaSqM.toFixed(4)} ตร.ม.</strong></div>}
         {!(mode === "sketch" && estimate.upstandLengthM <= 0) && <div><span>บัว <small>{estimate.upstandLengthM.toFixed(2)} ม. × {state.upstandHeightMm ?? "ว่าง"} มม.</small></span><strong>{formatTHB(estimate.upstandTotalTHB)}</strong></div>}
         {!(mode === "sketch" && estimate.openEdgeLengthM <= 0) && <div><span>ขอบเปิด <small>{estimate.openEdgeLengthM.toFixed(2)} ม.</small></span><strong>{estimate.openEdgeUnitPriceTHB === 0 ? "ฟรี" : formatTHB(estimate.openEdgeTotalTHB)}</strong></div>}
-        <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / m²</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
+        <div><span>หิน {formatTHB(estimate.stoneUnitPriceTHB ?? 0)} / ตร.ม.</span><strong>{estimate.sheetCutPriceWarning ? "คิดตามแผ่นตัด" : formatTHB(counterStoneTotal)}</strong></div>
         {(() => {
           const tier = stonePriceTier(stoneColorByName(state.activeStone, stoneColors).installedPriceTHB, stoneColors);
           return mode !== "sketch" && tier && <p className="studio-price-tier" data-testid="text-studio-price-tier">สี {activeStone.code} อยู่ในระดับราคา <strong>{tier.label}</strong> เทียบกับหินทั้งหมด {tier.total} สีในแคตตาล็อก</p>;

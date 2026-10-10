@@ -69,6 +69,9 @@ describe("a search miss keeps a way forward (431-B D)", () => {
 describe("internal wording gone, one expiry pair (431-B E + F)", () => {
   it("no Telegram/attachment/English-mixed copy in customer surfaces", () => {
     assert.match(app, /"บันทึกและส่งให้ทีมขาย"/);
+    // the *saved quote* screen had the same leak on a different button
+    assert.match(app, /"ส่งให้ทีมขายอีกครั้ง"/);
+    assert.equal((app.match(/ส่งเข้า Telegram/g) ?? []).length, 0, "no channel name on any customer button");
     assert.ok(!/บันทึกและส่งเข้า Telegram/.test(app), "internal channel name must not face customers");
     assert.match(app, /เอกสารราคาปัจจุบันของ Knight Furnich/);
     assert.ok(!/ที่แนบมา · ราคายังไม่รวม VAT|จากเอกสาร Knight Furnich ที่แนบมา/.test(app));
@@ -106,3 +109,24 @@ describe("layout fixes at the audited widths (431-B H)", () => {
     assert.ok(!/font-size: 11px;\s*white-space: nowrap;/s.test(app), "11px nav type must be gone");
   });
 });
+
+describe("one unit and one currency symbol (432-B F)", () => {
+  it("the storefront says ตร.ม. -- no m² / ตรม. left in the files customers see", async () => {
+    const [appFile, studioFile] = await Promise.all([
+      readFile(new URL("../src/App.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../src/components/StudioPage.tsx", import.meta.url), "utf8"),
+    ]);
+    for (const [name, src] of Object.entries({ appFile, studioFile })) {
+      assert.equal((src.match(/m²/g) ?? []).length, 0, `${name} still uses m² (${(src.match(/m²/g)||[]).length})`);
+      assert.equal((src.match(/ตรม\./g) ?? []).length, 0, `${name} still uses ตรม. without the dot`);
+    }
+    assert.match(appFile, /ตร\.ม\./);
+  });
+  it("no price reads '฿x–฿y บาท' (symbol once)", async () => {
+    const src = appFileForCopy();
+    assert.equal((src.match(/฿[\d,]+\s*[–-]\s*฿/g) ?? []).length, 0, "currency symbol must appear once per range");
+    assert.ok(!/ราคา final/.test(src), "Thai wording for the final price");
+  });
+});
+
+function appFileForCopy() { return app; }
