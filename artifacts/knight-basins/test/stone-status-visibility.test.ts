@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import {
   ALL_STONE_COLORS,
+  PRODUCTS,
   STONE_COLORS,
   findStoneColor,
   isStoneVisible,
@@ -124,5 +125,73 @@ describe("a real code beats an alias (job-277 C)", () => {
     assert.equal(stoneSheetUnitPrice("QS822 N", 50), 8075);
     assert.equal(stoneInstalledUnitPrice("BR 816"), 9500);
     assert.equal(stoneInstalledUnitPrice("WH122"), 9500);
+  });
+});
+
+describe("closed stones reach nobody: no row, no price, no lookup (job 429-C D)", () => {
+  const closed = ALL_STONE_COLORS.filter((color) => !isStoneVisible(color.code));
+
+  it("every closed code is a built-in row the storefront list drops, and none of them is in the live catalogue shape", () => {
+    assert.equal(closed.length, 12);
+    assert.deepEqual(closed.map((color) => color.code).sort(), hiddenByFile.slice().sort());
+    for (const color of closed) assert.equal(STONE_COLORS.includes(color), false, color.code);
+  });
+
+  it("a closed stone cannot be found by its code, its name or any spelling it carries, and is never priced", () => {
+    for (const color of closed) {
+      for (const identifier of [color.code, color.name, ...color.documentCodes]) {
+        const found = findStoneColor(identifier);
+        // An alias may legitimately point at the OPEN sibling (V342's "VW342"); it must never resolve to the closed row.
+        assert.ok(found === undefined || (found.code !== color.code && isStoneVisible(found.code)), `${color.code} found by "${identifier}"`);
+      }
+      assert.equal(stoneSheetUnitPrice(color.code, 1), null, `${color.code} must not have a sheet price`);
+      assert.equal(stoneSheetUnitPrice(color.code, 50), null, `${color.code} must not have a 50+ sheet price`);
+      assert.equal(stoneInstalledUnitPrice(color.code), null, `${color.code} must not have an installed price`);
+    }
+  });
+
+  it("no basin on the shelf is built on a closed stone, and every basin's stone is open", () => {
+    for (const product of PRODUCTS) {
+      assert.equal(isStoneVisible(product.colorCode), true, `${product.sku} uses closed stone ${product.colorCode}`);
+      assert.ok(findStoneColor(product.colorCode), `${product.sku}: ${product.colorCode} is not in the storefront list`);
+    }
+  });
+});
+
+describe("one name per colour code (job 429-C C)", () => {
+  const nameOf = (code: string) => ALL_STONE_COLORS.find((color) => color.code === code)?.name;
+
+  it("the four codes the owner corrected carry the Galet spelling, in the stone list and on the basins that use them", () => {
+    assert.deepEqual(
+      ["GC714", "GE118", "GG884", "GI017"].map(nameOf),
+      ["Galet Crystals", "Galet Ebony", "Galet Grey", "Galet Ice"],
+    );
+    assert.equal(nameOf("GG884(N)"), "Galet Grey (N)");
+    assert.equal(PRODUCTS.find((p) => p.sku === "KF015")?.colorName, "Galet Grey");
+    assert.equal(PRODUCTS.find((p) => p.sku === "KF018")?.colorName, "Galet Ice");
+    assert.ok(!ALL_STONE_COLORS.some((color) => /Glalet/.test(color.name)), "no built-in name still says Glalet");
+    assert.ok(!PRODUCTS.some((product) => /Glalet/.test(product.colorName)), "no basin still says Glalet");
+  });
+
+  it("every basin names its stone the way the stone list does", () => {
+    for (const product of PRODUCTS) {
+      assert.equal(product.colorName, nameOf(product.colorCode), `${product.sku}: ${product.colorName} vs the stone list`);
+    }
+  });
+
+  it("the old spelling and the code still find the stone, so nobody searching the way they used to gets 'not found'", () => {
+    const expected: Array<[string, string]> = [["GC714", "Glalet Crystals"], ["GE118", "Glalet Ebony"], ["GG884", "Glalet Grey"], ["GI017", "Glalet Ice"]];
+    for (const [code, oldName] of expected) {
+      assert.equal(findStoneColor(code)?.code, code, `${code} by code`);
+      assert.equal(findStoneColor(oldName)?.code, code, `${code} by the old name "${oldName}"`);
+      assert.equal(findStoneColor(nameOf(code)!)?.code, code, `${code} by the new name`);
+    }
+  });
+
+  it("the other names stay as they were: Honey Jade keeps its old typos as aliases, and the two awaiting a ruling are untouched", () => {
+    assert.equal(nameOf("HJ524M"), "Honey Jade");
+    assert.equal(findStoneColor("Honer Jade")?.code, "HJ524M");
+    assert.equal(nameOf("MU010"), "Evermoin Ultra Bright");
+    assert.equal(nameOf("VD175"), "Dandelion");
   });
 });
