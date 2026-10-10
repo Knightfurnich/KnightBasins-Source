@@ -260,17 +260,20 @@ export type InquiryLineAccountIdResolver = (req: Request) => Promise<number | nu
 
 // Cookie name repeated here on purpose: importing SESSION_COOKIE from
 // `./line-auth` at module scope would pull `@workspace/db` (real DATABASE_URL
-// required) into this route file, which every existing portfolio test loads
-// hermetically. Same for the module specifier below -- `./line-auth` is the
-// single source of the verification + lookup logic (`findAuthenticatedAccount`),
-// imported when actually needed instead of duplicated.
+// required) into this route file at load time. `./line-auth` stays the single
+// source of the verification + lookup logic (`findAuthenticatedAccount`), loaded
+// only when a request actually carries the cookie.
+// The specifier MUST stay a string literal at the call site: the production
+// build is a single esbuild bundle, and only a literal `import("./line-auth")`
+// is inlined into dist/. A computed specifier is left as a runtime import of a
+// file that dist/ does not contain (ERR_MODULE_NOT_FOUND, swallowed by the
+// fail-open catch below, so every lead would silently be saved unbound).
 const SESSION_COOKIE_NAME = "knight_line_session";
-const LINE_AUTH_MODULE_ID = "./" + "line-auth";
 
 async function lineAccountIdFromSessionCookie(req: Request): Promise<number | null> {
   if (!req.headers?.cookie?.includes(`${SESSION_COOKIE_NAME}=`)) return null;
   try {
-    const { findAuthenticatedAccount, SESSION_COOKIE } = await import(LINE_AUTH_MODULE_ID);
+    const { findAuthenticatedAccount, SESSION_COOKIE } = await import("./line-auth");
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
     return account?.id ?? null;
   } catch (error) {

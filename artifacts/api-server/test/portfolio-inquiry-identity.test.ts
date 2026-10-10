@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import { createHmac } from "node:crypto";
+import { after, before, describe, it, mock } from "node:test";
 import cookieParser from "cookie-parser";
+import { build } from "esbuild";
 import express from "express";
 import { importTypeScriptModule } from "./route-harness.ts";
 
@@ -190,21 +192,83 @@ describe("POST /api/public/portfolio/inquiry binds identity from the session onl
     }
   });
 
-  it("production default never touches the session store when no cookie is sent (and needs no DATABASE_URL)", async () => {
+  it("a request without the session cookie never touches the session store", async () => {
+    const { pool } = await import("@workspace/db");
+    const sessionStoreQueries: string[] = [];
+    const realQuery = pool.query;
+    // Stand-in for the session store: record the touch, never dial a database.
+    (pool as { query: unknown }).query = async (config: unknown) => {
+      sessionStoreQueries.push(typeof config === "string" ? config : String((config as { text?: string }).text));
+      throw new Error("session store stub: unreachable");
+    };
+    const warn = mock.method(console, "warn", () => {});
+    const originalSecret = process.env["SESSION_SECRET"];
+    process.env["SESSION_SECRET"] = "portfolio-inquiry-identity-test-secret";
     const database = createFakeDatabase();
-    assert.equal(process.env["DATABASE_URL"], undefined, "this suite must stay hermetic");
-    const server = await startRouter(database); // no options => real resolver
+    const server = await startRouter(database, undefined, true); // no options => real resolver
 
     try {
-      const response = await fetch(`${server.url}/api/public/portfolio/inquiry`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inquiryBody),
-      });
-      assert.equal(response.status, 201, "an anonymous inquiry must not depend on LINE auth being configured");
+      const post = (cookie?: string) =>
+        fetch(`${server.url}/api/public/portfolio/inquiry`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}) },
+          body: JSON.stringify(inquiryBody),
+        });
+
+      // Control: a correctly signed session cookie does reach the store (here it is
+      // unreachable, so the lead is saved unbound -- fail-open). Without this the
+      // zero below would hold just as well for a spy that never fires.
+      const payload = Buffer.from(JSON.stringify({ token: "control-session-token" })).toString("base64url");
+      const signature = createHmac("sha256", "portfolio-inquiry-identity-test-secret").update(payload).digest("hex");
+      const withCookie = await post(`knight_line_session=${payload}.${signature}`);
+      assert.equal(withCookie.status, 201, "a failing session lookup must not cost the lead");
+      assert.equal(sessionStoreQueries.length, 1, "control: a signed session cookie must query the session store");
       assert.equal(database.records[0]?.["customerAccountId"], null);
+
+      sessionStoreQueries.length = 0;
+      warn.mock.resetCalls();
+      const anonymous = await post();
+      assert.equal(anonymous.status, 201);
+      assert.deepEqual(sessionStoreQueries, [], "no cookie => the session store is not touched");
+      assert.equal(warn.mock.callCount(), 0, "no cookie => no lookup was attempted, so nothing was swallowed");
+      assert.equal(database.records[1]?.["customerAccountId"], null);
     } finally {
       await server.close();
+      warn.mock.restore();
+      (pool as { query: unknown }).query = realQuery;
+      if (originalSecret === undefined) delete process.env["SESSION_SECRET"];
+      else process.env["SESSION_SECRET"] = originalSecret;
     }
+  });
+
+  it("the production bundle inlines the session lookup (no runtime import of ./line-auth)", async () => {
+    // api-server ships as ONE esbuild bundle (build.mjs). A computed import specifier
+    // is invisible to esbuild: dist/ then has no line-auth module, the import fails
+    // at runtime, and the fail-open catch hides it -- every lead is saved unbound.
+    const result = await build({
+      entryPoints: ["src/routes/portfolio.ts"],
+      bundle: true,
+      write: false,
+      external: ["express", "pg", "@workspace/db", "@workspace/db/*"],
+      format: "esm",
+      logLevel: "silent",
+      platform: "node",
+      sourcemap: false,
+    });
+    const output = result.outputFiles[0]!.text;
+
+    assert.ok(
+      output.includes("findAuthenticatedAccount"),
+      "the session lookup from ./line-auth must be bundled into the output",
+    );
+    const dynamicImports = [...output.matchAll(/\bimport\(([^)]*)\)/g)].map((match) => match[1]!.trim());
+    for (const specifier of dynamicImports) {
+      assert.match(
+        specifier,
+        /^["'][^"']+["']$/,
+        `every remaining runtime import() must have a literal specifier, found import(${specifier})`,
+      );
+    }
+    assert.ok(!output.includes("./line-auth"), "no runtime reference to a ./line-auth file may survive the bundle");
   });
 });

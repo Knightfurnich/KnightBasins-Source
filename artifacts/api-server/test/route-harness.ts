@@ -17,6 +17,22 @@ type RunningRoute = {
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 
+// Placeholder only: `@workspace/db` is external to the test bundles, and any route
+// that reaches it through a literal `import()` (e.g. `./line-auth`) gets that import
+// hoisted, so it is evaluated -- and throws without a URL -- when the route module
+// loads. `pg.Pool` connects lazily, so nothing dials this address; tests that need
+// their own value (or a fake database) still set it themselves.
+//
+// Applied lazily, right before a bundle is loaded, NOT when this file is imported:
+// support-route.test.ts decides at its own module scope whether to skip itself
+// (DATABASE_URL unset => no disposable Postgres), and a placeholder that already
+// exists by then would make it run against a database that is not there.
+function ensureDatabaseUrlPlaceholder(): void {
+  if (!process.env["DATABASE_URL"]) {
+    process.env["DATABASE_URL"] = "postgres://test:test@127.0.0.1:5432/test";
+  }
+}
+
 async function bundleTypeScriptModule(entryPoint: string): Promise<{
   moduleUrl: string;
   cleanup: () => Promise<void>;
@@ -51,6 +67,7 @@ export async function importTypeScriptModule<T>(
   entryPoint: string,
 ): Promise<T> {
   const bundle = await bundleTypeScriptModule(entryPoint);
+  ensureDatabaseUrlPlaceholder();
 
   try {
     return (await import(bundle.moduleUrl)) as T;
@@ -64,6 +81,7 @@ export async function serveTypeScriptRoute(
   mountPath = "/api",
 ): Promise<RunningRoute> {
   const bundle = await bundleTypeScriptModule(entryPoint);
+  ensureDatabaseUrlPlaceholder();
 
   try {
     const route = (await import(bundle.moduleUrl)) as RouteModule;
