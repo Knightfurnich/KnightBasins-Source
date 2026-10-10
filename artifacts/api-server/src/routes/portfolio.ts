@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request } from "express";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 // Type-only -- erased at compile time, so merely importing this route module
@@ -251,7 +251,43 @@ async function sendPortfolioInquiryTelegramAlert(text: string): Promise<void> {
  * via `createPortfolioInquiryRouter`, mirroring createLeadsRouter's pattern,
  * without having to touch every other route in this file.
  */
-export function createPortfolioInquiryRouter(database?: typeof Db): IRouter {
+/**
+ * Identity comes from the server-side LINE session cookie only. The resolver is
+ * injectable so a test can prove the lead row is bound without a database, and
+ * so the production path stays the only code that reads cookies.
+ */
+export type InquiryLineAccountIdResolver = (req: Request) => Promise<number | null>;
+
+// Cookie name repeated here on purpose: importing SESSION_COOKIE from
+// `./line-auth` at module scope would pull `@workspace/db` (real DATABASE_URL
+// required) into this route file at load time. `./line-auth` stays the single
+// source of the verification + lookup logic (`findAuthenticatedAccount`), loaded
+// only when a request actually carries the cookie.
+// The specifier MUST stay a string literal at the call site: the production
+// build is a single esbuild bundle, and only a literal `import("./line-auth")`
+// is inlined into dist/. A computed specifier is left as a runtime import of a
+// file that dist/ does not contain (ERR_MODULE_NOT_FOUND, swallowed by the
+// fail-open catch below, so every lead would silently be saved unbound).
+const SESSION_COOKIE_NAME = "knight_line_session";
+
+async function lineAccountIdFromSessionCookie(req: Request): Promise<number | null> {
+  if (!req.headers?.cookie?.includes(`${SESSION_COOKIE_NAME}=`)) return null;
+  try {
+    const { findAuthenticatedAccount, SESSION_COOKIE } = await import("./line-auth");
+    const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
+    return account?.id ?? null;
+  } catch (error) {
+    // Identity is an enrichment: never lose a lead over a session lookup.
+    console.warn("portfolio inquiry: LINE session lookup skipped", error instanceof Error ? error.message : "unknown");
+    return null;
+  }
+}
+
+export function createPortfolioInquiryRouter(
+  database?: typeof Db,
+  options: { resolveLineAccountId?: InquiryLineAccountIdResolver } = {},
+): IRouter {
+  const resolveLineAccountId = options.resolveLineAccountId ?? lineAccountIdFromSessionCookie;
   const inquiryRouter: IRouter = Router();
 
   inquiryRouter.post("/public/portfolio/inquiry", portfolioInquiryRateLimit, async (req, res, next) => {
@@ -274,6 +310,16 @@ export function createPortfolioInquiryRouter(database?: typeof Db): IRouter {
       // Loaded lazily (not at module import time) so this route's own
       // production dependency on DATABASE_URL never leaks onto every other
       // test in this file that imports the module but never calls this route.
+      // Never read an identity from the body: only the verified session cookie may
+      // bind a lead to a customer account (client-supplied ids are dropped). An
+      // unavailable lookup degrades to "anonymous", it never fails the inquiry.
+      let customerAccountId: number | null = null;
+      try {
+        customerAccountId = await resolveLineAccountId(req);
+      } catch (error) {
+        console.warn("portfolio inquiry: line identity unavailable", error instanceof Error ? error.message : "unknown");
+        customerAccountId = null;
+      }
       const activeDb = database ?? (await import("@workspace/db")).db;
       const [lead] = await activeDb
         .insert(customerLeads)
@@ -286,6 +332,7 @@ export function createPortfolioInquiryRouter(database?: typeof Db): IRouter {
           status: "new",
           notes: `[สนใจผลงาน]: ${photoTitle} (รหัสภาพ: ${photoId}) · บันทึกเพิ่มเติม: ${notes || "-"}`,
           sketchUrl: photoUrl || null,
+          customerAccountId,
         })
         .returning();
 
@@ -298,6 +345,7 @@ export function createPortfolioInquiryRouter(database?: typeof Db): IRouter {
         `📞 เบอร์โทรศัพท์: ${phone}`,
         `📝 รายละเอียด/สถานที่: ${notes || "-"}`,
         `🔗 ดูภาพผลงาน: ${photoUrl}`,
+        ...(!customerAccountId ? [] : [`🧾 ผูกกับบัญชีลูกค้า #${customerAccountId} (LINE session — ลูกค้าเก่า)`]),
         divider,
         "⚙️ ระบบ Knight Basins Portfolio Lead Engine",
       ].join("\n"));
