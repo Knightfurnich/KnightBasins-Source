@@ -226,6 +226,9 @@ describe("POST /api/public/portfolio/inquiry", () => {
       assert.match(text, /มีลูกค้าสนใจสั่งผลิตจากภาพผลงานจริง/);
       assert.match(text, /bathroom-012/);
       assert.match(text, /0812345678/);
+      // job 417-C: the team does not need the photo link (the customer gets it instead).
+      assert.ok(!text.includes("ดูภาพผลงาน"), "no photo-link line in the team card");
+      assert.ok(!text.includes("/api/uploads/portfolio/bathroom/bathroom-012.jpg"), "the photo URL is not in the team card");
       assert.match(text, /ระบบ Knight Basins Portfolio Lead Engine/);
       assert.equal((text.match(/━━━━━━━━━━━━━━━━━━━/g) ?? []).length, 2);
     } finally {
