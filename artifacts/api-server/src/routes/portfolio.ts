@@ -11,6 +11,8 @@ import { customerLeads } from "@workspace/db/schema";
 import { readMultipartForm, UPLOAD_DIR } from "../lib/image-upload";
 import { createAdminAuthMiddleware, requireAnyAdminPermission } from "../middlewares/admin-auth";
 import { createConcurrencyLimiter, createRateLimiter } from "../lib/rate-limit";
+import { CANONICAL_MEDIA_ORIGIN } from "../lib/catalog-media";
+import { requestOrigin } from "../lib/public-origin";
 import {
   applyPortfolioFilenameAnonymization,
   findPersonalPortfolioFilenames,
@@ -256,7 +258,8 @@ async function sendPortfolioInquiryTelegramAlert(text: string): Promise<void> {
  * injectable so a test can prove the lead row is bound without a database, and
  * so the production path stays the only code that reads cookies.
  */
-export type InquiryLineAccountIdResolver = (req: Request) => Promise<number | null>;
+export type InquiryLineIdentity = { accountId: number; lineUserId?: string | null };
+export type InquiryLineAccountIdResolver = (req: Request) => Promise<number | InquiryLineIdentity | null>;
 
 // Cookie name repeated here on purpose: importing SESSION_COOKIE from
 // `./line-auth` at module scope would pull `@workspace/db` (real DATABASE_URL
@@ -270,16 +273,99 @@ export type InquiryLineAccountIdResolver = (req: Request) => Promise<number | nu
 // fail-open catch below, so every lead would silently be saved unbound).
 const SESSION_COOKIE_NAME = "knight_line_session";
 
-async function lineAccountIdFromSessionCookie(req: Request): Promise<number | null> {
+async function lineAccountIdFromSessionCookie(req: Request): Promise<InquiryLineIdentity | null> {
   if (!req.headers?.cookie?.includes(`${SESSION_COOKIE_NAME}=`)) return null;
   try {
     const { findAuthenticatedAccount, SESSION_COOKIE } = await import("./line-auth");
     const account = await findAuthenticatedAccount(req.cookies?.[SESSION_COOKIE]);
-    return account?.id ?? null;
+    // `userId` is customer_accounts.line_user_id of the account the session proved.
+    return account ? { accountId: account.id, lineUserId: account.userId ?? null } : null;
   } catch (error) {
     // Identity is an enrichment: never lose a lead over a session lookup.
     console.warn("portfolio inquiry: LINE session lookup skipped", error instanceof Error ? error.message : "unknown");
     return null;
+  }
+}
+
+const CUSTOMER_NOTIFY_TIMEOUT_MS = 8_000;
+
+function requestOriginOrCanonical(req: Request): string {
+  try {
+    return requestOrigin(req);
+  } catch {
+    // Production without a configured origin: fall back to the canonical media host.
+    return CANONICAL_MEDIA_ORIGIN;
+  }
+}
+
+/**
+ * The photo link goes into a message the customer receives, so it is never taken on
+ * trust: only a path under /api/uploads/ on one of our own origins is kept (another
+ * host, a javascript: URL, free text -- all dropped, and the message goes out without
+ * the link line). A relative path is made absolute so LINE can open it.
+ */
+function trustedPhotoLink(photoUrl: string, req: Request): string | null {
+  if (!photoUrl || photoUrl.length > 500) return null;
+  const ownOrigin = requestOriginOrCanonical(req);
+  const trusted = new Set<string>([CANONICAL_MEDIA_ORIGIN, ownOrigin]);
+  const uploadOrigin = process.env["PUBLIC_UPLOAD_ORIGIN"]?.trim();
+  if (uploadOrigin) {
+    try {
+      trusted.add(new URL(uploadOrigin).origin);
+    } catch {
+      // A malformed value is reported where it is actually used.
+    }
+  }
+  try {
+    const url = new URL(photoUrl, ownOrigin);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (!trusted.has(url.origin)) return null;
+    if (!url.pathname.startsWith("/api/uploads/")) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/** Fixed template: nothing the visitor typed reaches the message except the validated photo link. */
+function customerNoticeText(photoLink: string | null): string {
+  return [
+    "สวัสดีค่ะ 🙂 ได้รับความสนใจจากภาพผลงานแล้วนะคะ",
+    ...(photoLink ? [`รูปที่สนใจ: ${photoLink}`] : []),
+    "ทีมงานจะติดต่อกลับเพื่อประเมินราคาโดยเร็วค่ะ",
+  ].join("\n");
+}
+
+/**
+ * Asks Hermes to push a LINE message to the customer whose session bound the lead.
+ * One attempt, never throws: a customer who has not added the OA, a Hermes outage or
+ * a missing config must not cost the team a lead or turn into a 500.
+ */
+async function notifyCustomerOnLine(options: { lineUserId: string; text: string; leadId: unknown }): Promise<void> {
+  const apiUrl = process.env["HERMES_API_URL"];
+  const apiKey = process.env["HERMES_API_KEY"];
+  if (!apiUrl || !apiKey) return;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), CUSTOMER_NOTIFY_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${apiUrl.replace(/\/$/, "")}/knight/line/notify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ user_id: options.lineUserId, text: options.text }),
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => null) as { ok?: boolean; pushed?: boolean } | null;
+    if (!response.ok || payload?.ok === false || payload?.pushed === false) {
+      console.warn("portfolio inquiry: customer LINE notice not delivered", { leadId: options.leadId, status: response.status });
+    }
+  } catch (error) {
+    console.warn("portfolio inquiry: customer LINE notice failed", {
+      leadId: options.leadId,
+      reason: error instanceof Error ? (error.name === "AbortError" ? "timeout" : error.message) : "unknown",
+    });
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -314,11 +400,19 @@ export function createPortfolioInquiryRouter(
       // bind a lead to a customer account (client-supplied ids are dropped). An
       // unavailable lookup degrades to "anonymous", it never fails the inquiry.
       let customerAccountId: number | null = null;
+      let customerLineUserId: string | null = null;
       try {
-        customerAccountId = await resolveLineAccountId(req);
+        const resolved = await resolveLineAccountId(req);
+        if (typeof resolved === "number") {
+          customerAccountId = resolved;
+        } else if (resolved) {
+          customerAccountId = resolved.accountId;
+          customerLineUserId = resolved.lineUserId || null;
+        }
       } catch (error) {
         console.warn("portfolio inquiry: line identity unavailable", error instanceof Error ? error.message : "unknown");
         customerAccountId = null;
+        customerLineUserId = null;
       }
       const activeDb = database ?? (await import("@workspace/db")).db;
       const [lead] = await activeDb
@@ -344,11 +438,21 @@ export function createPortfolioInquiryRouter(
         `👤 ชื่อผู้ติดต่อ: ${name || "ไม่ได้ระบุ"}`,
         `📞 เบอร์โทรศัพท์: ${phone}`,
         `📝 รายละเอียด/สถานที่: ${notes || "-"}`,
-        `🔗 ดูภาพผลงาน: ${photoUrl}`,
         ...(!customerAccountId ? [] : [`🧾 ผูกกับบัญชีลูกค้า #${customerAccountId} (LINE session — ลูกค้าเก่า)`]),
         divider,
         "⚙️ ระบบ Knight Basins Portfolio Lead Engine",
       ].join("\n"));
+
+      // After the team card, so a slow or failing Hermes can never delay or drop it.
+      // Only a lead bound to a verified account (whose account has a LINE id) is
+      // messaged; the target id and the text are both server-side, never from the body.
+      if (customerAccountId && customerLineUserId) {
+        await notifyCustomerOnLine({
+          lineUserId: customerLineUserId,
+          text: customerNoticeText(trustedPhotoLink(photoUrl, req)),
+          leadId: (lead as { id?: number } | undefined)?.id,
+        });
+      }
 
       return res.status(201).json({
         success: true,
