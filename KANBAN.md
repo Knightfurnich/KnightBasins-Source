@@ -538,3 +538,13 @@ python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะ�
 - **E2/E3:** เตือนรูปฝั่งงานผลิตเพิ่ม · path รูป KB 232 ไฟล์ (สปอตเช็กจริง 3 รหัส + รหัสปลอม)
 - **หลักฐาน:** ซิงก์โหมดจริงเงียบ · KB 64/30 · ฟีด 64/65/30 · `test_knight_tools.py` ผ่านทั้งหมด · `verify_deploy` 27/27 · md5 `kb_sync 8d81e313…` · `tools fce0023c…`
 - ⏳ **ค้าง:** `tools.py` ต้อง restart gateway จึงมีผลกับบอทจริง (ขออนุมัติบอส · ปลั๊กอินโหลดตอน start)
+
+| **413-D (Product schema ไม่มี `offers` — GSC "1 invalid item detected")** | **เดวิด** (บอสสั่ง 10 ต.ค. 69 — "เดวิดแก้เองได้เลย") | `/stone` + `/price-guide` Product nodes ประกาศ **AggregateOffer** = ช่วงราคาที่หน้าเว็บแสดงอยู่แล้ว โดยอ่านจากแค็ตตาล็อก (ห้ามพิมพ์เลขลง schema) · `/stone` = ต่อแผ่น (จาก `stoneColorsByMode.wholeSheet`) + ต่อ ตร.ม. (จาก `.installed`) · `/price-guide` = ใช้ `sheetPrices`/`installedPrices` ชุดเดียวกับตาราง · ไม่มี rating/review ปลอม · แค็ตตาล็อกว่าง ⇒ ไม่ใส่ `offers` (ไม่เดาราคา) | `src/data/structured-data.ts` · `src/App.tsx` · `src/pages/PriceGuidePage.tsx` · เทสต์ 3 ไฟล์ | ✅ ปิด 10 ต.ค. 69 — PR #463 `9e4c8ff` · deploy success · วัดบน production ได้ `lowPrice/highPrice` = แค็ตตาล็อกสด (4,900–12,000/แผ่น · 7,500–12,000/ตร.ม.) |
+
+### 10 ต.ค. 69 — 413-D: แก้ JSON-LD Product ให้มี offers (บอสสั่งให้เดวิดทำเอง · เดวิดรับงานนี้เองเพราะเป็น data layer เล็กและต้องยึดแค็ตตาล็อก)
+- **ที่มา:** GSC URL Inspection → Product snippets → `Either 'offers', 'review', or 'aggregateRating' should be specified` ที่ `/price-guide` (crawl 8 ต.ค.) และ `/stone` (crawl 10 ต.ค.)
+- **สาเหตุ:** กฎ job-274 เดิม "ห้ามมีราคาใน schema" ⇒ Product ไม่มี `offers` เลย ⇒ ไม่เข้า rich result
+- **แก้:** `offerRangeFrom()` แปลงราคาที่หน้าเว็บแสดงเป็นช่วง · `aggregateOffer()` ประกอบ AggregateOffer (`priceCurrency THB` · `availability InStock` · `seller` = organization · `priceSpecification.unitText` = แผ่น/ตร.ม.)
+- **พิสูจน์สองทาง:** ย้อนโค้ดไม่ประกาศ offers → เทสต์ fail · คืนโค้ด → **36/36** · เต็มชุด **1,203 ผ่าน / 0 ตก** · `tsc --noEmit` **0**
+- **วัดบน production (หลัง deploy):** `/stone` → `low 4900 high 12000` (แผ่น, 64 สี) + `low 7500 high 12000` (ตร.ม., 65 สี) · `/price-guide` → ชุดเดียวกัน · ตรงกับ `/api/catalog` สด และตรงกับข้อความบนหน้าเว็บ (`฿4,900–฿12,000` · `฿7,500–฿12,000`)
+- 📌 ยังไม่ใส่ `image` ใน Product (เป็น "recommended" ไม่ใช่ error) — ถ้าบอสต้องการปิด warning ทั้งหมดด้วย ให้เปิดใบใหม่ได้
