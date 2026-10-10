@@ -1,16 +1,16 @@
 # รายงาน 416-B (บอย = Qwen) — กลับด้าน heuristic ปุ่ม LINE: กล่องในเว็บเป็นค่าเริ่มต้น
 
-**ผู้ทำ:** บอย (Qwen) · **วันที่:** 10 ต.ค. 69 · เวลาไทยที่ทำ **21:2x–21:3x น.** (รันเทสต์最后一次 21:3x)
-**分支/PR:** `fix/line-onsite-panel-default` → PR `fix(line): default to the on-site LINE panel and treat coarse/narrow as mobile` · base `main = f1a5409`
+**ผู้ทำ:** บอย (Qwen) · **วันที่:** 10 ต.ค. 69 · เวลาไทยที่ทำ **21:2x–21:3x น.** (รันซ้ำครั้สุดท້าย 21:3x)
+**สาขา/PR:** `fix/line-onsite-panel-default` → PR `fix(line): default to the on-site LINE panel and treat coarse/narrow as mobile` · base `main = f1a5409`
 **ไฟล์ที่แตะ (2):** `artifacts/knight-basins/src/components/PortfolioInquiryModal.tsx` · `artifacts/knight-basins/test/portfolio-inquiry-line-contact.test.ts` — **ไม่แตะ** `api-server/**`, `src/data/**`, ฟอร์มโทรกลับ, ปุ่ม login, `/api/auth/line/status`, ข้อความสรุปที่ส่งเข้า LINE, testid เดิม
 
 ## A. สิ่งที่เปลี่ยน (ชื่อ query/ค่าคงที่ใหม่)
 | เดิม (414-B) | ใหม่ (416-B) |
 |---|---|
 | `DESKTOP_LINE_MEDIA_QUERY = "(min-width: 1024px) and (pointer: fine)"` | `MOBILE_LINE_MEDIA_QUERY = `(max-width: ${MOBILE_LINE_MAX_WIDTH_PX}px), (pointer: coarse)``` (= `(max-width: 1023px), (pointer: coarse)`) |
-| `DESKTOP_LINE_BREAKPOINT_PX = 1024` | `MOBILE_LINE_MAX_WIDTH_PX = 1023` (+คง别名 `DESKTOP_LINE_BREAKPOINT_PX = 1024` แบบ @deprecated เพื่อ人不พัง) |
-| `useState(false)` = เริ่มต้น **deep link** | `useState(true)` ชื่ อ `onSitePanel` = เริ่มต้น **กล่องในเว็บ** |
-| `setDesktopMode(media.matches)` | `setOnSitePanle(!media.matches)` — ถามเครื่องว่า “เป็นมือถือไหม?” ถ้าตอบใช่จึงใช้ deep link |
+| `DESKTOP_LINE_BREAKPOINT_PX = 1024` | `MOBILE_LINE_MAX_WIDTH_PX = 1023` (+คง alias `DESKTOP_LINE_BREAKPOINT_PX = 1024` แบบ @deprecated เพื่อไม่ให้ของเดิมพัง) |
+| `useState(false)` = เริ่มต้น **deep link** | `useState(true)` ชื่อ `onSitePanel` = เริ่มต้น **กล่องในเว็บ** |
+| `setDesktopMode(media.matches)` | `setOnSitePanel(!media.matches)` — ถามเครื่องว่า “เป็นมือถือไหม?” ถ้าตอบใช่จึงใช้ deep link |
 | ไม่มี `matchMedia` → ตกไป deep link | **early `return`** ไม่แก้อะไร ⇒ คงค่าเริ่มต้น = กล่องในเว็บ |
 
 `lineContactModeForViewport(width, pointer?)` เปลี่ยน pointer เป็น **3 สถานะ** `"fine" | "coarse" | null/undefined` (เดิม boolean บังคับให้ “ไม่รู้” กลายเป็น “fine” หรือ “coarse” เสมอ) และลำดับการตัดสินใจ:
