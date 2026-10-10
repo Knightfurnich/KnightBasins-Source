@@ -161,6 +161,11 @@ export const STONE_INSTALLED_MIN_BANGKOK_SQM = 5;
 export const STONE_INSTALLED_MIN_PROVINCE_SQM = 10;
 export const STONE_SMALL_JOB_BANGKOK_FEE = 5000;
 export const STONE_SMALL_JOB_PROVINCE_FEE = 8000;
+// Night work (job 429-C, owner ruling 10 Oct 2026): 5,000 baht a night in every area. The quote terms (App.tsx) and the price
+// guide print their own copy of the hours and the fee; test/catalog-commercial-constants.test.ts reads both and fails if they drift.
+export const NIGHT_WORK_FEE = 5000;
+export const NIGHT_WORK_START = "20.00";
+export const NIGHT_WORK_END = "05.00";
 
 export type StoneColor = {
   name: string;
@@ -226,13 +231,13 @@ const stoneCatalogRows: Array<[string, string, number | null, number | null, str
   ["NB091F", "Neo Black Facade", 7000, null, "#080a09", ["NB 091F"]],
   ["CW013", "Camellia White", 7000, 7500, "#e5ded2", ["CW 013"]],
   ["E085", "Everest", 8000, 8500, "#d6d7d0", ["E 085"]],
-  ["GC714", "Glalet Crystals", 8000, 8500, "#e8eae6"],
-  ["GI017", "Glalet Ice", 8000, 8500, "#e1e5e2"],
-  ["GG884", "Glalet Grey", 8000, 8500, "#6c7073"],
-  ["GG884(N)", "Glalet Grey (N)", 8000, null, "#45494d", ["GG884 (N)"]],
+  ["GC714", "Galet Crystals", 8000, 8500, "#e8eae6", ["Glalet Crystals"]],
+  ["GI017", "Galet Ice", 8000, 8500, "#e1e5e2", ["Glalet Ice"]],
+  ["GG884", "Galet Grey", 8000, 8500, "#6c7073", ["Glalet Grey"]],
+  ["GG884(N)", "Galet Grey (N)", 8000, null, "#45494d", ["GG884 (N)", "Glalet Grey (N)"]],
   ["MB025", "Mist Beech", 8000, 8500, "#e1dbcd"],
   ["MC016", "Mist Concrete", 8000, 8500, "#858783"],
-  ["GE118", "Glalet Ebony", 8000, 8500, "#252727"],
+  ["GE118", "Galet Ebony", 8000, 8500, "#252727", ["Glalet Ebony"]],
   ["GT010", "Grigio Terrazzo", 8000, 8500, "#e2e4df", ["Grigio Tarrazzo"]],
   ["CT970", "Chess Terrazzo", 8000, null, "#d8d7d1"],
   ["CT981", "Clay Terrazzo", 8000, null, "#a7a2a8"],
@@ -585,10 +590,10 @@ export const BASIN_PRODUCTS: BasinProduct[] = [
   ["KF012", "CS532M", "Cascade Slope", 19000, counterWideDims],
   ["KF013", "VR322", "Rotor Cloud", 19000, counterWideDims],
   ["KF014", "EG501", "Glaring White", 17000, counterWideDims],
-  ["KF015", "GG884", "Glalet Grey", 20000, counterWideDims],
+  ["KF015", "GG884", "Galet Grey", 20000, counterWideDims],
   ["KF016", "KZ802", "Zen Autumn", 19000, counterWideDims],
   ["KF017", "KZ802N", "Zen Autumn New", 19000, counterWideDims],
-  ["KF018", "GI017", "Glalet Ice", 17000, counterWideDims],
+  ["KF018", "GI017", "Galet Ice", 17000, counterWideDims],
 ].map(([sku, colorCode, colorName, priceTHB, dims], index) => ({
   sku: sku as string,
   colorCode: colorCode as string,

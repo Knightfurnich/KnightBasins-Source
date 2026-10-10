@@ -11,6 +11,9 @@ import {
   STONE_SHEET_THICKNESS,
   STONE_SMALL_JOB_BANGKOK_FEE,
   STONE_SMALL_JOB_PROVINCE_FEE,
+  NIGHT_WORK_END,
+  NIGHT_WORK_FEE,
+  NIGHT_WORK_START,
   VAT_RATE,
 } from "../../knight-basins/src/data/catalog.ts";
 import {
@@ -26,10 +29,10 @@ import {
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
-// The figures the knowledge-base feed (`pricing.json`, 9 Oct 2026) holds for the blocks the app can vouch for. They are
+// The figures the knowledge-base feed (`pricing.json`, 10 Oct 2026) holds for the blocks the app can vouch for. They are
 // pinned here on purpose: changing a trade constant is a business decision, and this test is where it gets noticed so the
-// feed and the bot are told. Notes, `sale_types`, `glue_gun`, `basin_stopper`, the delivery window and the night-work rule
-// are not in the app and are deliberately absent.
+// feed and the bot are told. Notes, `sale_types`, `glue_gun`, `basin_stopper` and the delivery window are not in the app
+// and are deliberately absent. The night-work rule joined the list in job 429-C (owner ruling: every area, 5,000 a night).
 const FEED = {
   vat_percent: 7,
   sheet_size: { w_m: 0.76, h_m: 3.6, thickness_mm: 12, m2: 2.736 },
@@ -38,6 +41,7 @@ const FEED = {
     { scope: "กทม.+ปริมณฑล", condition: "พื้นที่น้อยกว่า 5 ตร.ม.", charge: 5000, unit: "บาท/งาน" },
     { scope: "ต่างจังหวัด", condition: "พื้นที่น้อยกว่า 10 ตร.ม.", charge: 8000, unit: "บาท/งาน" },
     { scope: "ลูกค้ารับสินค้าเองที่โรงงาน", condition: "-", charge: 0, unit: "ไม่คิดค่าดำเนินการ" },
+    { scope: "งานกลางคืน 20.00-05.00 น.", condition: "ทุกพื้นที่", charge: 5000, unit: "บาท/คืน" },
     { scope: "ค่าเดินทาง + เบี้ยเลี้ยง", condition: "งานต่างจังหวัด", charge: null, unit: "ตามสถานที่" },
   ],
   tiers: [
@@ -128,6 +132,16 @@ describe("commercialConstants: the SAME value the app prices with", () => {
     assert.ok(rule("ต่างจังหวัด").condition.includes(String(STONE_INSTALLED_MIN_PROVINCE_SQM)));
   });
 
+  it("the night-work rule is the storefront constants: every area, the fee and the hours the pages print (job 429-C)", () => {
+    const night = c.installation.rules.filter((r) => r.scope.startsWith("งานกลางคืน"));
+    assert.equal(night.length, 1);
+    assert.equal(night[0]!.scope, `งานกลางคืน ${NIGHT_WORK_START}-${NIGHT_WORK_END} น.`);
+    assert.equal(night[0]!.condition, "ทุกพื้นที่");
+    assert.equal(night[0]!.charge, NIGHT_WORK_FEE);
+    assert.equal(night[0]!.unit, "บาท/คืน");
+    assert.equal(c.installation.rules.length, 5);
+  });
+
   it("add-on prices, VAT and sheet size are the storefront constants", () => {
     assert.equal(c.addons.find((a) => a.id === "glue")!.price, STONE_GLUE_PRICE);
     assert.equal(c.addons.find((a) => a.id === "basin_install")!.price, INSTALLATION_PRICE);
@@ -183,6 +197,19 @@ describe("one source: nobody re-types the figures", () => {
 
   it("the endpoint adds the blocks after the catalogue and never replaces a catalogue key", () => {
     assert.match(route, /res\.json\(\{ \.\.\.\(await getCatalogData\(true\)\), \.\.\.commercialConstants\(\) \}\)/);
+  });
+
+  it("the quote terms and the price guide print the same night hours and fee as the exported rule", () => {
+    const quote = read("../../knight-basins/src/App.tsx");
+    const guide = read("../../knight-basins/src/pages/PriceGuidePage.tsx");
+    const baht = NIGHT_WORK_FEE.toLocaleString("en-US");
+    assert.ok(quote.includes(`(${NIGHT_WORK_START} น. - ${NIGHT_WORK_END} น.) คิดค่าดำเนินการเพิ่มต่างหาก ${baht} บาท/คืน`), "quote terms: night hours/fee drifted from NIGHT_WORK_*");
+    assert.ok(guide.includes(`const NIGHT_WORK_START = "${NIGHT_WORK_START.replace(".", ":")}";`), "price guide: night start drifted");
+    assert.ok(guide.includes(`const NIGHT_WORK_END = "${NIGHT_WORK_END.replace(".", ":")}";`), "price guide: night end drifted");
+    // The guide has no night-fee constant of its own: it prints INSTALLATION_PRICE next to "/ คืน". Until it gets one, the two
+    // fees can only agree, and this line is where a change to either one is noticed.
+    assert.match(guide, /NIGHT_WORK_END\}: เพิ่ม\{" "\}\s*<strong[^>]*>\{formatTHB\(INSTALLATION_PRICE\)\} \/ คืน/);
+    assert.equal(NIGHT_WORK_FEE, INSTALLATION_PRICE);
   });
 
   it("each storefront constant is declared once, in catalog.ts, and the calculators import it", () => {

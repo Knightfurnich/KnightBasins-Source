@@ -4,11 +4,15 @@
 // by the code that applies it (the catalogue seed, `sheetTierPrices`). Job 405-C.
 //
 // What is NOT exported, on purpose: values the app does not price with (the bot's `sale_types`, `glue_gun`,
-// `basin_stopper`, the delivery window, tier notes) and the night-work rule, whose scope the app and the feed word
-// differently. Exporting copies of those would let the feed "agree" with itself and prove nothing.
+// `basin_stopper`, the delivery window, tier notes). Exporting copies of those would let the feed "agree" with itself and
+// prove nothing. The night-work rule used to be on that list because the app and the feed worded its scope differently;
+// the owner ruled on 10 Oct 2026 that it applies in every area (job 429-C), so it is exported like the other fees.
 
 import {
   INSTALLATION_PRICE,
+  NIGHT_WORK_END,
+  NIGHT_WORK_FEE,
+  NIGHT_WORK_START,
   STONE_GLUE_PRICE,
   STONE_INSTALLED_MIN_BANGKOK_SQM,
   STONE_INSTALLED_MIN_PROVINCE_SQM,
@@ -76,6 +80,7 @@ export function commercialConstants(): CommercialConstants {
         { scope: "ต่างจังหวัด", condition: `พื้นที่น้อยกว่า ${STONE_INSTALLED_MIN_PROVINCE_SQM} ตร.ม.`, charge: STONE_SMALL_JOB_PROVINCE_FEE, unit: "บาท/งาน" },
         // A customer who collects at the factory pays no service charge (SKETCH_FULFILMENTS "pickup"; the calculators add none).
         { scope: "ลูกค้ารับสินค้าเองที่โรงงาน", condition: "-", charge: 0, unit: "ไม่คิดค่าดำเนินการ" },
+        { scope: `งานกลางคืน ${NIGHT_WORK_START}-${NIGHT_WORK_END} น.`, condition: "ทุกพื้นที่", charge: NIGHT_WORK_FEE, unit: "บาท/คืน" },
         // The app states it has no rate for province travel and allowance (SKETCH_PROVINCE_TRAVEL_NOTE): no number, by design.
         { scope: "ค่าเดินทาง + เบี้ยเลี้ยง", condition: "งานต่างจังหวัด", charge: null, unit: "ตามสถานที่" },
       ],
