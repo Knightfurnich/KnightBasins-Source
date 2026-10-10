@@ -3,6 +3,7 @@ import { GripVertical, Loader2, MessageCircle, Paperclip, RotateCcw, Send, Volum
 import { Link } from "wouter";
 import { useDeleteLineSession, useGetLineAuthStatus, useSendSupportChatMessage, type SupportProfileUpdate } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { OVERLAY_OPEN_EVENT, type OverlayOpenDetail } from "@/data/contact-channels";
 
 type ChatMessage = {
   role: "assistant" | "user";
@@ -99,6 +100,18 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const busy = chat.isPending || slipSending;
   const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+  // job 422-B D: a full-screen dialog (e.g. the inquiry form) asks the floating
+  // launcher to step aside so it never covers the buttons underneath it.
+  const [coveredByOverlay, setCoveredByOverlay] = useState(false);
+
+  useEffect(() => {
+    const onOverlay = (event: Event) => {
+      const detail = (event as CustomEvent<OverlayOpenDetail>).detail;
+      setCoveredByOverlay(Boolean(detail?.open));
+    };
+    window.addEventListener(OVERLAY_OPEN_EVENT, onOverlay);
+    return () => window.removeEventListener(OVERLAY_OPEN_EVENT, onOverlay);
+  }, []);
   const speechAudioRef = useRef<HTMLAudioElement | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
 
@@ -374,7 +387,18 @@ export function KnightSupport({ onAddToQuote, onRequestQuote, onLeadEvent }: Kni
           </form>
         </section>
       )}
-      <button type="button" className="knight-support-trigger" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="เปิด KnightSupport" data-testid="button-knight-support">
+      {/* Hidden -- not removed -- while a dialog is open, and it stays clickable-off (no phantom hit area). */}
+      <button
+        type="button"
+        className="knight-support-trigger"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-label="เปิด KnightSupport"
+        aria-hidden={coveredByOverlay || undefined}
+        data-testid="button-knight-support"
+        data-overlay-covered={coveredByOverlay ? "true" : "false"}
+        style={coveredByOverlay ? { visibility: "hidden", pointerEvents: "none" } : undefined}
+      >
         {open ? <X size={17} /> : <MessageCircle size={17} />} <span>น้องไนท์</span>
       </button>
     </div>

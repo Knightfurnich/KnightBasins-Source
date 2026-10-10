@@ -63,7 +63,7 @@ describe("public portfolio direct inquiry", () => {
     assert.match(inquiryModalSource, /data-testid="button-submit-inquiry"/);
     assert.match(inquiryModalSource, /isSubmitting \? \(/);
     assert.match(inquiryModalSource, /กำลังส่งข้อมูล/);
-    assert.match(inquiryModalSource, /ทีมงาน Knight Furnich ได้รับข้อมูลแล้ว จะติดต่อกลับอย่างรวดเร็วที่สุดครับ/);
+    assert.match(inquiryModalSource, /ทีมขาย Knight Furnich จะติดต่อกลับ\{SALES_REPLY_WINDOW\}/);
   });
 
   it("provides an inquiry link to the Knight Furnich LINE OA with the selected work details", () => {
