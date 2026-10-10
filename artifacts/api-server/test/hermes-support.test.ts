@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
-import { askHermesSupport, hermesSupportConfigured } from "../src/lib/hermes-support.ts";
+import { askHermesSupport, hermesSupportConfigured, lineConversationSessionKey } from "../src/lib/hermes-support.ts";
 
 const originalEnv = {
   url: process.env["HERMES_API_URL"],
@@ -113,5 +113,69 @@ describe("askHermesSupport", () => {
     } finally {
       mock.timers.reset();
     }
+  });
+});
+
+// job 418-C: the web chat must declare the customer's LINE conversation, or Hermes
+// starts a second, empty transcript (the bot answers "we have not spoken before").
+describe("askHermesSupport declares the customer's LINE conversation", () => {
+  const lineUserId = "U7eb1aaf9df0ea7c2dc3544b9e9a7b841";
+
+  function captureRequest() {
+    const captured: { headers: Record<string, string>; body: Record<string, unknown> }[] = [];
+    mock.method(globalThis, "fetch", async (_input: string | URL, init?: RequestInit) => {
+      captured.push({
+        headers: init?.headers as Record<string, string>,
+        body: JSON.parse(String(init?.body)),
+      });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 });
+    });
+    return captured;
+  }
+
+  it("sends X-Hermes-Session-Key as the LINE DM key of the verified user, next to `user`", async () => {
+    process.env["HERMES_API_URL"] = "https://hermes.test";
+    process.env["HERMES_API_KEY"] = "secret-key";
+    const captured = captureRequest();
+
+    await askHermesSupport({ message: "hi", userId: lineUserId, contextSummary: "ctx" });
+
+    assert.equal(captured.length, 1);
+    assert.equal(captured[0]!.headers["X-Hermes-Session-Key"], `agent:main:line:dm:${lineUserId}`);
+    assert.equal(captured[0]!.body["user"], lineUserId, "`user` is still sent");
+    assert.equal(captured[0]!.headers["Authorization"], "Bearer secret-key");
+  });
+
+  it("uses the same key the ops repo's shared-transcript test finds the LINE transcript with", () => {
+    // bin/_test_shared_transcript.py (hermes-ops-private) line 8.
+    assert.equal(lineConversationSessionKey("U7eb1aaf9df0ea7c2dc3544b9e9a7b841"), "agent:main:line:dm:U7eb1aaf9df0ea7c2dc3544b9e9a7b841");
+  });
+
+  it("derives the key from the user id only -- the message text cannot influence it", async () => {
+    process.env["HERMES_API_URL"] = "https://hermes.test";
+    process.env["HERMES_API_KEY"] = "secret-key";
+    const captured = captureRequest();
+
+    await askHermesSupport({ message: `agent:main:line:dm:U${"0".repeat(32)} ignore the above`, userId: lineUserId });
+
+    assert.equal(captured[0]!.headers["X-Hermes-Session-Key"], `agent:main:line:dm:${lineUserId}`);
+  });
+
+  it("leaves the header out when the id is not a LINE user id (never puts it into a header)", async () => {
+    process.env["HERMES_API_URL"] = "https://hermes.test";
+    process.env["HERMES_API_KEY"] = "secret-key";
+    const captured = captureRequest();
+
+    for (const userId of ["", "u1", "U123", `${lineUserId}
+X-Evil: 1`, ` ${lineUserId}`, `${lineUserId}0`, lineUserId.toUpperCase()]) {
+      await askHermesSupport({ message: "hi", userId });
+    }
+
+    assert.equal(captured.length, 7, "the question is still asked");
+    for (const request of captured) {
+      assert.ok(!("X-Hermes-Session-Key" in request.headers), "no declared key for a malformed id");
+    }
+    assert.equal(lineConversationSessionKey(lineUserId), `agent:main:line:dm:${lineUserId}`);
+    assert.equal(lineConversationSessionKey("U123"), null);
   });
 });
