@@ -32,13 +32,13 @@ function range(values: number[]): string {
 // ---- Conditions that must travel with every price ------------------------------------------------------------------
 
 export function vatLine(): string {
-  return `ราคายังไม่รวม VAT ${commercialConstants().vat_percent}%`;
+  return `ยังไม่รวม VAT ${commercialConstants().vat_percent}%`;
 }
 
 /** The installation charge for a basin set (`basin_install` add-on), or "" if the price book no longer has it. */
 export function basinInstallLine(): string {
   const addon = commercialConstants().addons.find((item) => item.id === "basin_install");
-  return addon ? `ติดตั้งชุดอ่างมีค่าดำเนินการ ${baht(addon.price)} ${addon.unit}` : "";
+  return addon ? `ติดตั้งมีค่าดำเนินการ ${baht(addon.price)} ${addon.unit}` : "";
 }
 
 /** The small-job charges for cut-and-installed stone, read from the installation rules. */
@@ -47,7 +47,8 @@ export function smallJobLine(): string {
     (rule) => typeof rule.charge === "number" && rule.charge > 0 && /พื้นที่น้อยกว่า/u.test(rule.condition),
   );
   if (charged.length === 0) return "";
-  return `ค่าดำเนินการงานติดตั้ง: ${charged.map((rule) => `${rule.condition} (${rule.scope}) ${baht(rule.charge as number)} ${rule.unit}`).join(" · ")}`;
+  const short = (condition: string) => condition.replace(/^พื้นที่น้อยกว่า\s*/u, "<");
+  return `งานเล็ก: ${charged.map((rule) => `${short(rule.condition)} (${rule.scope}) ${baht(rule.charge as number)} ${rule.unit}`).join(" · ")}`;
 }
 
 /** What to append to an answer that quotes a stone price (`images`: the answer also points at photos / the colour). */
@@ -63,7 +64,7 @@ export function basinTermsLines(options: { images: boolean }): string[] {
 
 /** The two ways forward offered to a visitor: sign in to talk in full, or call the team. */
 export function nextStepsLine(): string {
-  return `คุยต่อได้ 2 ทางค่ะ: เข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบน หรือโทรหาทีม ${SUPPORT_PHONE_PRIMARY}`;
+  return `คุยต่อ: เข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบน หรือโทร ${SUPPORT_PHONE_PRIMARY}`;
 }
 
 // ---- Fixed answers ---------------------------------------------------------------------------------------------------
@@ -90,13 +91,13 @@ export function serviceAreaReply(): string {
   const rules = commercialConstants().installation.rules;
   const province = rules.find((rule) => rule.scope === "ต่างจังหวัด" && typeof rule.charge === "number");
   const travel = rules.find((rule) => rule.charge === null && /ต่างจังหวัด/u.test(rule.condition));
-  const lines = ["ตอนนี้ไม่มีข้อมูลสาขาในระบบ จึงยืนยันให้ไม่ได้ว่ามีหรือไม่มีค่ะ"];
+  const lines = ["ตอนนี้ไม่มีข้อมูลสาขาในระบบ จึงยืนยันว่ามีหรือไม่มีให้ไม่ได้ค่ะ"];
   if (province) {
     lines.push(
-      `แต่ทีมรับงานต่างจังหวัดได้ค่ะ — ${province.condition} คิดค่าดำเนินการ ${baht(province.charge as number)} ${province.unit}${travel ? ` ส่วน${travel.scope}${travel.unit}` : ""}`,
+      `แต่รับงานต่างจังหวัดได้: ${province.condition.replace(/^พื้นที่น้อยกว่า\s*/u, "<")} ค่าดำเนินการ ${baht(province.charge as number)} ${province.unit}${travel ? ` · ค่าเดินทาง+เบี้ยเลี้ยง${travel.unit}` : ""}`,
     );
   }
-  lines.push(`บอกจังหวัดกับงานที่ต้องการ แล้วโทรคุยกับทีมได้เลยที่ ${SUPPORT_PHONES_TEXT} หรือเข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบนค่ะ`);
+  lines.push(`บอกจังหวัดกับงาน แล้วโทร ${SUPPORT_PHONE_PRIMARY} หรือเข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบนค่ะ`);
   return lines.join("\n");
 }
 
@@ -114,12 +115,12 @@ function basinPurchaseReply(catalog: GuestCatalog, askedAboutInstall: boolean): 
   const cheapest = [...(counter.length > 0 ? counter : standing)].sort((a, b) => a.priceTHB - b.priceTHB)[0]!;
   // "ติดตั้งฟรีไหม": answer that first. Whether a bigger order waives it is not in the price book, so the team confirms.
   const installFirst = askedAboutInstall && basinInstallLine()
-    ? [`${basinInstallLine()}ค่ะ ส่วนเงื่อนไขพิเศษตามจำนวนชุด ให้ทีมยืนยันอีกครั้งนะคะ`]
+    ? [`${basinInstallLine()}ค่ะ ส่วนเงื่อนไขพิเศษตามจำนวนชุดให้ทีมยืนยันอีกครั้งนะคะ`]
     : [];
   return [
     ...installFirst,
-    `${installFirst.length > 0 ? "" : "ได้เลยค่ะ "}ชุดอ่างล้างหน้ามี ${parts.length} แบบ: ${parts.map((part) => `${part.label} ${range(part.items.map((item) => item.priceTHB))} บาท/ชุด`).join(" · ")}`,
-    `เช่น ${cheapest.sku} ขนาด ${cheapest.dimensions} — พิมพ์รหัสรุ่นเพื่อดูรายละเอียดได้เลยค่ะ`,
+    `${installFirst.length > 0 ? "" : "ได้เลยค่ะ "}ชุดอ่างล้างหน้า ${parts.length} แบบ: ${parts.map((part) => `${part.label} ${range(part.items.map((item) => item.priceTHB))} บาท/ชุด`).join(" · ")} (เช่น ${cheapest.sku})`,
+
     ...(installFirst.length > 0 ? [vatLine()] : basinTermsLines({ images: false })),
     nextStepsLine(),
   ].join("\n");
@@ -136,8 +137,7 @@ function stonePurchaseReply(catalog: GuestCatalog): string {
   ].filter(Boolean);
   const exampleCode = (catalog.installedStones[0] ?? catalog.sheetStones[0])!.code;
   return [
-    `ได้เลยค่ะ ท็อปครัวหินสังเคราะห์มี ${prices.length > 1 ? "2 แบบ" : "แบบ"}: ${prices.join(" · ")}`,
-    `บอกขนาดพื้นที่หรือรหัสสี เช่น ${exampleCode} แล้วน้องไนท์เช็กราคาให้ค่ะ`,
+    `ได้เลยค่ะ ท็อปครัวหินสังเคราะห์ ${prices.length > 1 ? "2 แบบ" : "แบบ"}: ${prices.join(" · ")} · บอกพื้นที่หรือรหัสสี เช่น ${exampleCode} แล้วเช็กราคาให้ค่ะ`,
     ...stoneTermsLines({ installed: installed.length > 0, images: false }),
     nextStepsLine(),
   ].join("\n");
