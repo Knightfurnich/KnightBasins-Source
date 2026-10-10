@@ -1,3 +1,5 @@
+import { isShoppingMessage } from "./support-signals.ts";
+
 export type SupportProfileField =
   | "fullName"
   | "phone"
@@ -101,7 +103,10 @@ export function extractSupportProfileFields(message: string): SupportProfileFiel
   const taxBranch = labeled("taxBranch");
   const taxAddress = labeled("taxAddress");
   const taxId = extractTaxId(message);
-  const propertyType = extractPropertyType(message);
+  // Job 421-C: "อยากได้อ่างล้างหน้าสำหรับคอนโด 1 ห้อง" names a kind of property but is a purchase, not a profile
+  // statement. An unlabeled property type is only taken from a message that is not shopping; a labeled one
+  // ("ประเภทสถานที่: คอนโด") always counts.
+  const propertyType = labeled("propertyType") || !isShoppingMessage(message) ? extractPropertyType(message) : "";
   const condoFloor = extractCondoFloor(message);
 
   if (fullName) fields.fullName = fullName;

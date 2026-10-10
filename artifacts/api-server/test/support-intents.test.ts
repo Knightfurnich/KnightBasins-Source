@@ -3,8 +3,11 @@ import { describe, it } from "node:test";
 import { getSupportIntentReply } from "../src/lib/support-intents.ts";
 
 describe("KnightSupport conversational replies", () => {
-  it("introduces KnightSupport instead of repeating the search instructions", () => {
-    assert.match(getSupportIntentReply("คุณคืออะไร") ?? "", /KnightSupport/);
+  it("introduces น้องไนท์ as an automated assistant instead of repeating the search instructions", () => {
+    const reply = getSupportIntentReply("คุณคืออะไร") ?? "";
+    assert.match(reply, /น้องไนท์เป็นผู้ช่วยอัตโนมัติ/);
+    assert.match(reply, /ไม่ใช่คนจริง/);
+    assert.ok(!/ครับ|ผมคือ/.test(reply), "the assistant is น้องไนท์ (ค่ะ), not a male voice");
   });
 
   it("handles location questions without inventing an address", () => {

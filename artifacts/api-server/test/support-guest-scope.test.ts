@@ -37,7 +37,7 @@ after(() => {
 const PREVIOUS_FALLBACK = "ดิฉันช่วยค้นหา SKU อ่างล้างหน้า รหัสสีหิน ราคา ขนาด และวิดีโอ 3D 360° ได้ค่ะ ลองพิมพ์เช่น KF001, KF023 หรือ BW010";
 
 describe("job-235: the reply for a visitor who is not signed in", () => {
-  it("states the scope, invites LINE sign-in and gives both sales numbers", () => {
+  it("states the scope, invites LINE sign-in and gives the sales numbers (main line first, job 421-C)", () => {
     const { reply, matchedType, loginRequired } = support.supportFallbackResponse(false);
     assert.equal(loginRequired, true);
     assert.equal(matchedType, "none");
@@ -49,6 +49,7 @@ describe("job-235: the reply for a visitor who is not signed in", () => {
       "\"BW010\"",
       "เข้าสู่ระบบด้วย LINE",
       "094-496-1949",
+      "091-978-2292",
       "089-762-2209",
     ]) {
       assert.ok(reply.includes(expected), `the reply is missing: ${expected}`);
@@ -60,7 +61,7 @@ describe("job-235: the reply for a visitor who is not signed in", () => {
       support.GUEST_SCOPE_REPLY,
       "ตอนนี้คุณกำลังใช้โหมดทั่วไป (ยังไม่เข้าสู่ระบบ LINE) ดิฉันตอบได้เฉพาะข้อมูลสินค้าในแคตตาล็อก เช่น \"KF023\" หรือ \"BW010\" ค่ะ\n\n"
         + "หากต้องการปรึกษาการออกแบบ การชำระเงิน สถานะใบเสนอราคา หรือข้อมูลอื่น ๆ กรุณาเข้าสู่ระบบด้วย LINE ที่ปุ่มด้านบน เพื่อคุยกับน้องไนท์โหมดเต็มแบบเดียวกับใน LINE ค่ะ\n\n"
-        + "หรือติดต่อฝ่ายขาย 094-496-1949 · 089-762-2209",
+        + "หรือติดต่อฝ่ายขาย 094-496-1949 · 091-978-2292 · 089-762-2209",
     );
   });
 

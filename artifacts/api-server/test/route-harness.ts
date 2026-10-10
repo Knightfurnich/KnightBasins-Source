@@ -33,7 +33,13 @@ function ensureDatabaseUrlPlaceholder(): void {
   }
 }
 
-async function bundleTypeScriptModule(entryPoint: string): Promise<{
+/**
+ * Replace a module the route imports (matched on the import specifier) with a file of the test's own -- for the one
+ * dependency that would otherwise need a database, so a route can be exercised end to end without one.
+ */
+export type ModuleStubs = Record<string, string>;
+
+async function bundleTypeScriptModule(entryPoint: string, stubs: ModuleStubs = {}): Promise<{
   moduleUrl: string;
   cleanup: () => Promise<void>;
 }> {
@@ -52,6 +58,17 @@ async function bundleTypeScriptModule(entryPoint: string): Promise<{
       outfile: outputFile,
       platform: "node",
       sourcemap: false,
+      plugins: [
+        {
+          name: "test-module-stubs",
+          setup(build) {
+            build.onResolve({ filter: /.*/ }, (args) => {
+              const file = stubs[args.path];
+              return file === undefined ? undefined : { path: path.resolve(file) };
+            });
+          },
+        },
+      ],
     });
 
     return {
@@ -79,8 +96,9 @@ export async function importTypeScriptModule<T>(
 export async function serveTypeScriptRoute(
   entryPoint: string,
   mountPath = "/api",
+  stubs: ModuleStubs = {},
 ): Promise<RunningRoute> {
-  const bundle = await bundleTypeScriptModule(entryPoint);
+  const bundle = await bundleTypeScriptModule(entryPoint, stubs);
   ensureDatabaseUrlPlaceholder();
 
   try {
