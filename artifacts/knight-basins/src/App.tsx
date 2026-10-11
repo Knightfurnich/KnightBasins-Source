@@ -70,10 +70,7 @@ import {
   buildCatalogueChips,
   catalogueGroupLabel,
   catalogueGroupValue,
-  catalogueRowFacts,
-  EMPTY_CATALOGUE_FACTS,
-  indexCatalogueRowFacts,
-  type CatalogueFacts,
+  isShelfSetProduct,
 } from "@/components/catalogueCategoryFacts";
 import { calculateFormalQuoteTotals, formatQuoteMonth, quoteQrImageUrl, thaiNumberText, type QuoteFormat } from "@/data/quote-utils";
 import { formatThaiDate, thaiDateInputValue } from "@/data/date-time";
@@ -533,14 +530,16 @@ function Layout({ children, cart, setCart, stones, setStones, stoneColors, catal
   return <><Header cartCount={count} />{catalogNotice && <div className="catalog-freshness-notice" role="status" aria-live="polite"><span>{catalogNotice}</span>{onDismissCatalogNotice && <button type="button" onClick={onDismissCatalogNotice} aria-label="ปิดการแจ้งเตือนแคตตาล็อก"><X size={15} /></button>}</div>}<main aria-label="เนื้อหาหลัก" data-testid="storefront-main">{children}</main><QuoteDropZone cart={cart} setCart={setCart} setStones={setStones} stoneColors={stoneColors} /><Footer /><KnightSupport onAddToQuote={onAddToQuote} onRequestQuote={onRequestQuote} onLeadEvent={onLeadEvent} /></>;
 }
 
-function ProductCard({ sku, cart, onToggle, onRequestQuote, facts }: { sku: string; cart: QuoteBasinLine[]; onToggle: (sku: string) => void; onRequestQuote: (skus: string[]) => void; facts: CatalogueFacts }) {
+function ProductCard({ sku, product: given, cart, onToggle, onRequestQuote }: { sku: string; product?: BasinProduct; cart: QuoteBasinLine[]; onToggle: (sku: string) => void; onRequestQuote: (skus: string[]) => void }) {
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [specCopied, setSpecCopied] = useState(false);
   const closeInquiry = useCallback(() => setInquiryOpen(false), []);
-  const product = productBySku(sku)!;
+  // job 454-C: the card reads the product HomePage rendered it from (the same object the chips counted),
+  // not a lookup in PRODUCTS, which the loader only refreshes after the render
+  const product = given ?? productBySku(sku)!;
   const isTall = product.category === "tall vertical washbasin";
-  // job 441-B: a row the database files as `storage` is a shelf set whatever the built-in copy says
-  const isPillarSet = isFreestandingPillarProduct(product) || catalogueRowFacts(sku, facts)?.category === "storage";
+  // a row the database files as `storage` is a shelf set whatever the built-in copy says
+  const isPillarSet = isShelfSetProduct(product);
   const inQuote = cart.find((line) => line.sku === sku);
   const toggle = () => onToggle(sku);
   const galleryImages = [product.imageUrl, ...(product.galleryImageUrls ?? [])].filter((url): url is string => Boolean(url));
@@ -569,7 +568,7 @@ function ProductCard({ sku, cart, onToggle, onRequestQuote, facts }: { sku: stri
     >
        {inQuote && <SelectionMarker className="product-selected-badge" />}
        <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} hoverImageUrl={product.quoteImageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isPillarSet ? "READY-MADE PILLAR SET" : isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{galleryImages.length > 1 && <BasinGalleryTrigger images={galleryImages} alt={`${product.sku} ${product.colorName}`} />}{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
-       <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3>{isPillarSet && <p className="eyebrow" data-testid={`label-product-category-${sku}`}>{catalogueGroupLabel(product, productCategoryLabel, facts)}</p>}</div></div>
+       <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3>{isPillarSet && <p className="eyebrow" data-testid={`label-product-category-${sku}`}>{catalogueGroupLabel(product, productCategoryLabel)}</p>}</div></div>
        <div className="product-specs"><span>{product.dimensions}</span><span>{productSpecLabel(product)}</span></div>
       {/* Only ever rendered from catalogue data (see bowlShapeLabel); empty => no node. */}
       {bowlShapeText(product) && (
@@ -663,7 +662,7 @@ function compareProductNames(left: BasinProduct, right: BasinProduct) {
     || left.sku.localeCompare(right.sku, "en", { numeric: true });
 }
 
-function HomePage({ cart, setCart, categories, products = PRODUCTS, facts = EMPTY_CATALOGUE_FACTS, catalog, onRequestQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; categories?: StorefrontCategory[]; products?: ReadonlyArray<BasinProduct>; facts?: CatalogueFacts; catalog?: unknown; onRequestQuote: (skus: string[]) => void }) {
+function HomePage({ cart, setCart, categories, products = PRODUCTS, catalog, onRequestQuote }: { cart: QuoteBasinLine[]; setCart: Dispatch<SetStateAction<QuoteBasinLine[]>>; categories?: StorefrontCategory[]; products?: ReadonlyArray<BasinProduct>; catalog?: unknown; onRequestQuote: (skus: string[]) => void }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("catalog");
@@ -673,9 +672,8 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS, facts = EMPT
       products,
       (categories ?? []).filter((item) => item.active !== false && item.name.trim()).map((item) => item.name),
       productCategoryLabel,
-      facts,
     ),
-    [categories, facts, products],
+    [categories, products],
   );
   const selectedProductCount = useMemo(() => {
     const selectedSkus = new Set(cart.map((line) => line.sku));
@@ -690,10 +688,10 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS, facts = EMPT
     const selectedSkus = new Set(cart.map((line) => line.sku));
     const visibleProducts = products.filter((product) => {
     // job 441-B: the database's own wording is searchable too ("เสา" has to find KF029/KF030)
-    const haystack = [product.sku, product.colorCode, product.colorName, catalogueGroupValue(product, facts), catalogueGroupLabel(product, productCategoryLabel, facts)].join(" ").toLowerCase();
+    const haystack = [product.sku, product.colorCode, product.colorName, catalogueGroupValue(product), catalogueGroupLabel(product, productCategoryLabel)].join(" ").toLowerCase();
     const matchesCategory = category === "all"
       || (category === "selected" && selectedSkus.has(product.sku))
-      || catalogueGroupValue(product, facts) === category;
+      || catalogueGroupValue(product) === category;
     return matchesCategory && haystack.includes(query.toLowerCase());
     });
     if (sort === "sku-az") return sortBasinProductsBySku(visibleProducts);
@@ -711,7 +709,7 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS, facts = EMPT
        <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="catalog-hero-art"><BasinHeroMedia products={products} /><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></div></section>
        <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2><p className="price-note" data-testid="text-price-terms-note">ราคาต่อชุด · ยังไม่รวม VAT {VAT_PERCENT_LABEL}</p></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs filter-tabs--wrap flex-wrap" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button><button className={category === "selected" ? "is-active" : ""} onClick={() => setCategory("selected")} data-testid="button-filter-selected">อ่างที่เลือก {selectedProductCount}</button>{catalogueChips.map((item) => <button key={item.value} className={category === item.value ? "is-active" : ""} onClick={() => setCategory(item.value)} data-testid={categoryTestId(item.value)}>{item.label} {categoryCounts.get(item.value) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
      <BasinOverflowNote catalog={catalog} />
-     {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} cart={cart} onToggle={toggle} onRequestQuote={onRequestQuote} facts={facts} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
+     {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} product={product} cart={cart} onToggle={toggle} onRequestQuote={onRequestQuote} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
   </div>;
 }
 
@@ -1960,8 +1958,6 @@ function Storefront() {
   const [customer, setCustomer] = useStoredCustomer("knight-customer");
   const [vat, setVat] = useStored<boolean>("knight-vat", true);
   const activeBasinProducts = useMemo(() => remoteCatalog?.basins.map(basinProductFromCatalog) ?? PRODUCTS, [remoteCatalog?.basins]);
-  // job 441-B: the row-level wording travels as a value, so a new response always repaints the chips
-  const catalogueFacts = useMemo(() => indexCatalogueRowFacts(remoteCatalog?.basins), [remoteCatalog?.basins]);
   const [catalogNotice, setCatalogNotice] = useState("");
   const [orderMode, setOrderMode] = useState<StudioOrderMode>(() => {
     if (typeof window !== "undefined") {
@@ -2165,7 +2161,7 @@ function Storefront() {
   if (location === "/network") {
     return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><NetworkPage /></Layout>;
   }
-  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} catalog={remoteCatalog} facts={catalogueFacts} onRequestQuote={requestQuote} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onRequestPillarQuote={(sku) => requestQuote([sku])} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}<InstallationShowcase /><TrustBadges /><QuickFAQ /></Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onRequestPillarQuote={(sku) => requestQuote([sku])} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/sketch"><StudioPage mode="sketch" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage stoneColors={catalogStoneColors.all} /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
+  return <Layout cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} catalogNotice={catalogNotice} onDismissCatalogNotice={() => setCatalogNotice("")} onAddToQuote={addToQuote} onRequestQuote={requestQuote} onLeadEvent={leadEvent}><Switch><Route path="/"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-homepage-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link>{orderMode === "quick-purchase" ? <HomePage cart={cart} setCart={setCart} categories={remoteCatalog?.categories} products={activeBasinProducts} catalog={remoteCatalog} onRequestQuote={requestQuote} /> : <StudioPage mode={orderMode} leadKey={leadKey} onSubmitStudio={submitStudio} onRequestPillarQuote={(sku) => requestQuote([sku])} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} />}<InstallationShowcase /><TrustBadges /><QuickFAQ /></Route><Route path="/studio"><StudioPage mode="studio" leadKey={leadKey} onSubmitStudio={submitStudio} onRequestPillarQuote={(sku) => requestQuote([sku])} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/sketch"><StudioPage mode="sketch" leadKey={leadKey} onSubmitStudio={submitStudio} onContactChange={persistStudioContact} contactDefaults={contactDefaults} initialBasinSkus={initialBasinSkus} initialStoneColors={initialStoneColors} stoneColors={catalogStoneColors.installed} basinProducts={activeBasinProducts} /></Route><Route path="/stone"><OrderModeTabs mode={orderMode} setMode={setOrderMode} onModeChange={navigateFromModeTabs} /><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-stone-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><StonePage stones={stones} setStones={setStones} stoneColorsByMode={catalogStoneColors} /></Route><Route path="/quote/view"><SavedQuotePage stoneColors={catalogStoneColors.all} /></Route><Route path="/quote"><Link href="/readme" className="text-link homepage-guide-link" data-testid="link-quote-guide"><BookOpen size={15} /> อ่านคู่มือการใช้งานก่อนเริ่ม</Link><QuotePage cart={cart} setCart={setCart} stones={stones} setStones={setStones} stoneColors={catalogStoneColors.all} customer={customer} setCustomer={setCustomer} vat={vat} setVat={setVat} onSubmitQuote={submitQuote} /></Route><Route path="/profile"><CustomerProfilePage /></Route><Route><div className="empty-state"><span className="empty-number">404</span><h3>ไม่พบหน้านี้</h3><Link href="/" className="text-link" data-testid="link-not-found-home">กลับไปแคตตาล็อก <ArrowRight size={15} /></Link></div></Route></Switch></Layout>;
 }
 
 function App() {
