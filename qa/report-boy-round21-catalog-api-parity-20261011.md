@@ -8,6 +8,14 @@ Baseline: `main@59950f7` (441-B) · `main@65e866d` (446-B รอบ 2) · ผู
 
 ## A. 441-B — KF029 / KF030 และความจริงเรื่องรูปทรงอ่าง
 
+> **ตรวจแก้ความถูกต้องของตัวเลข (11 ต.ค. 69 รอบlate):** ตัวเลข “static ขัด DB 15/25 แถว”วัดบน **baseline ของใบนี้ = `main@59950f7`**
+> (`git show 59950f7:./src/data/catalog.ts | grep 'KF006:'` → `bowlShapeLabel: "หลุมวงรี มีรูน้ำล้น"`)
+> แต่ระหว่างทางมีการแก้ของชัยที่ `9e30755 feat(db): single bowl_shape column, shape-only labels (job 445-C revision 2)`
+> ซึ่งบน `main@65e866d` กลายเป็น `bowlShapeLabel: "หลุมวงรี"` แล้ว (`grep -rn "รูน้ำล้น" src` → 0 รายการ)
+> ⇒ ข้อสรุปที่เปลี่ยนไป: **ทุกวันนี้ copies ไม่ขัด API แล้ว** แต่ยัง“โชว์ค้างก่อน API โหลด”อยู่จริง (เป็นค่าในโค้ดที่ไม่ได้มาจากแถวของฐานข้อมูล)
+> และการตัด `BASIN_BOWL_SHAPES` ยังคงตามคำสั่งข้อ (ค) ของใบ 441-B/deวิด — PR นี้อาจ conflict กับโซนนั้นถ้า merge คนละเวลา
+
+
 ### A0 วัดก่อนแก้ (ของจริงทั้งหมด)
 `GET https://knightbasins.com/api/catalog` บันทึก 11 ต.ค. 69 — basins 30 แถว
 
