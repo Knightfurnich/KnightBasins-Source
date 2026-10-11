@@ -6,6 +6,8 @@ export type BasinProduct = {
   colorName: string;
   priceTHB: number;
   category: string;
+  /** job 441-B: the Thai display name the API carries (`categoryLabel`); absent = we have not been told. */
+  categoryLabel?: string;
   dimensions: string;
   basinDimensions?: string;
   imageTone: string;
@@ -14,7 +16,7 @@ export type BasinProduct = {
   quoteImageUrl?: string;
   topViewImageUrl?: string;
   videoUrl?: string;
-  /** job 438-C: bowl shape, only for models whose picture was checked (see BASIN_BOWL_SHAPES). Absent = not checked. */
+  /** job 438-C/441-B: bowl shape as the API reports it (`GET /api/catalog`). Absent = the catalogue has not told us. */
   bowlShape?: "rounded-rectangle" | "oval" | "round" | "rectangle" | "square" | "rounded-square";
   bowlShapeLabel?: string;
   bowlOverflowHole?: boolean | null;
@@ -23,6 +25,8 @@ export type BasinProduct = {
 export const PILLAR_PRODUCT_SKUS = ["KF029", "KF030"] as const;
 export const PILLAR_PRODUCT_LABEL = "เสาวางของตั้งพื้น (ชุดสำเร็จรูป)";
 export const PILLAR_PRODUCT_PURCHASE_NOTE = "ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์";
+/** job 441-B: the database category the pillar sets live in (`GET /api/catalog` sends this for KF029 / KF030). */
+export const PILLAR_PRODUCT_CATEGORY = "storage";
 
 const pillarProductSkuSet = new Set<string>(PILLAR_PRODUCT_SKUS);
 
@@ -30,6 +34,7 @@ export function isFreestandingPillarProduct(
   product: Pick<BasinProduct, "sku" | "category" | "basinDimensions">,
 ): boolean {
   return pillarProductSkuSet.has(product.sku.toUpperCase())
+    || product.category === PILLAR_PRODUCT_CATEGORY
     || (product.category === "tall vertical washbasin" && !product.basinDimensions?.trim());
 }
 
@@ -75,6 +80,8 @@ export function studioCutoutBasinProducts(
 }
 
 export function productCategoryLabel(product: BasinProduct): string {
+  const wording = product.categoryLabel?.trim();
+  if (wording) return wording;
   if (isFreestandingPillarProduct(product)) return PILLAR_PRODUCT_LABEL;
   return product.category === "counter basin" ? "เคาน์เตอร์" : "ทรงสูง";
 }
@@ -629,50 +636,41 @@ const tallProducts: Array<[string, string, string, number, string, string | unde
   ["KF030", "GT010", "Grigio Terrazzo", 16000, "400 × 400 × 1000 mm", undefined],
 ];
 
-export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, colorName, priceTHB, dimensions, basinDimensions], index) => ({
-  sku, colorCode, colorName, priceTHB,
-  category: "tall vertical washbasin",
-  dimensions, basinDimensions,
-  imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
-}));
-
 /**
- * Bowl shape of the models whose HD product picture settles it (job 438-C: KF003 / KF006; job 442-C: the survey of the
- * rest). Same values GET /api/catalog sends (`bowlShape`, `bowlShapeLabel`, `bowlOverflowHole`). A model that is not
- * listed — picture not clear, or not a wash basin (KF029 / KF030) — has none; nothing here is guessed.
+ * job 441-B: the two ready-made pillar sets are not basins. The database files them under category `storage` and sends
+ * the wording "เสาวางของตั้งพื้น", so the built-in rows now say the same thing instead of `tall vertical washbasin`
+ * (which is why the live catalogue counted KF029 / KF030 inside the "ทรงสูง" chip).
  */
-export const BASIN_BOWL_SHAPES: Readonly<Record<string, Pick<BasinProduct, "bowlShape" | "bowlShapeLabel" | "bowlOverflowHole">>> = {
-  KF001: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF002: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF003: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF004: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF005: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF006: { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี มีรูน้ำล้น", bowlOverflowHole: true },
-  KF008: { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF011: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
-  KF012: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
-  KF013: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
-  KF014: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF015: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
-  KF016: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF017: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF018: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF019: { bowlShape: "square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF020: { bowlShape: "square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF021: { bowlShape: "square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF022: { bowlShape: "rounded-square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมมน", bowlOverflowHole: null },
-  KF023: { bowlShape: "round", bowlShapeLabel: "หลุมกลม", bowlOverflowHole: null },
-  KF024: { bowlShape: "round", bowlShapeLabel: "หลุมกลม", bowlOverflowHole: null },
-  KF025: { bowlShape: "round", bowlShapeLabel: "หลุมกลม", bowlOverflowHole: null },
-  KF026: { bowlShape: "round", bowlShapeLabel: "หลุมกลม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
-  KF027: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
-  KF028: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน", bowlOverflowHole: null },
+const PILLAR_PRODUCT_CATALOG_FIELDS: Record<string, Pick<BasinProduct, "category" | "categoryLabel">> = {
+  KF029: { category: "storage", categoryLabel: "เสาวางของตั้งพื้น" },
+  KF030: { category: "storage", categoryLabel: "เสาวางของตั้งพื้น" },
 };
 
-export const PRODUCTS: BasinProduct[] = [...BASIN_PRODUCTS, ...TALL_PRODUCTS].map((product) => ({
-  ...product,
-  ...BASIN_BOWL_SHAPES[product.sku],
-}));
+export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, colorName, priceTHB, dimensions, basinDimensions], index) => {
+  const pillarFields = PILLAR_PRODUCT_CATALOG_FIELDS[sku];
+  return {
+    sku,
+    colorCode,
+    colorName,
+    priceTHB,
+    category: pillarFields?.category ?? "tall vertical washbasin",
+    categoryLabel: pillarFields?.categoryLabel,
+    dimensions,
+    basinDimensions,
+    imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
+  };
+});;
+;
+
+/**
+ * job 441-B: the built-in catalogue carries **no** bowl shape. The shape and its Thai wording come from
+ * `GET /api/catalog` (`bowlShape` / `bowlShapeLabel` / `bowlOverflowHole`) and are passed straight onto the product
+ * by `basinProductFromCatalog`. An earlier built-in survey (`BASIN_BOWL_SHAPES`) was cut because on 11 Oct its labels
+ * disagreed with the database on 15 of 25 models (the API sends the shape only, e.g. "หลุมสี่เหลี่ยมมุมมน", while the
+ * static copy had appended " ไม่มีรูน้ำล้น") — that is a fabricated detail we no longer print before the API answers.
+ * No data therefore means no line (see `bowlShapeFromModel` in App.tsx).
+ */
+export const PRODUCTS: BasinProduct[] = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
 /**
@@ -704,6 +702,9 @@ export function sortBasinProductsBySku(products: ReadonlyArray<BasinProduct>) {
   return [...products].sort(compareBasinProductSkus);
 }
 
+/** The machine values the catalogue may send (job 438-C). Anything else stays undefined: we do not guess a shape. */
+export const BASIN_BOWL_SHAPE_VALUES = ["rounded-rectangle", "oval", "round", "rectangle", "square", "rounded-square"] as const;
+
 export function basinProductFromCatalog(item: {
   sku: string;
   colorCode: string;
@@ -718,6 +719,10 @@ export function basinProductFromCatalog(item: {
   quoteImageUrl?: string | null;
   topViewImageUrl?: string | null;
   videoUrl?: string | null;
+  categoryLabel?: string | null;
+  bowlShape?: string | null;
+  bowlShapeLabel?: string | null;
+  bowlOverflowHole?: boolean | null;
 }): BasinProduct {
   const galleryImageUrls = (item.galleryImageUrls ?? [])
     .map((url) => url?.trim())
@@ -729,6 +734,7 @@ export function basinProductFromCatalog(item: {
     colorName: item.colorName,
     priceTHB: item.priceTHB,
     category: item.category as BasinCategory,
+    categoryLabel: item.categoryLabel?.trim() || undefined,
     dimensions: item.dimensions,
     basinDimensions: item.basinDimensions ?? undefined,
     imageTone: item.imageTone,
@@ -737,6 +743,12 @@ export function basinProductFromCatalog(item: {
     quoteImageUrl: item.quoteImageUrl?.trim() || imageUrl,
     topViewImageUrl: item.topViewImageUrl?.trim() || undefined,
     videoUrl: item.videoUrl ?? undefined,
+    // job 441-B: bowl shape arrives from the API and stays on the product, so one read path is enough.
+    bowlShape: (BASIN_BOWL_SHAPE_VALUES as readonly string[]).includes(item.bowlShape ?? "")
+      ? (item.bowlShape as BasinProduct["bowlShape"])
+      : undefined,
+    bowlShapeLabel: item.bowlShapeLabel?.trim() || undefined,
+    bowlOverflowHole: typeof item.bowlOverflowHole === "boolean" ? item.bowlOverflowHole : null,
   };
 }
 

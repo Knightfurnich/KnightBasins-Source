@@ -131,34 +131,14 @@ const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: 
 const BOWL_SHAPE_KEYS = ["bowlShapeLabel"] as const;
 
 /**
- * Two sources, one answer:
- *  · the card model itself (`BasinProduct.bowlShapeLabel`) — the built-in catalogue
- *    copy applies `BASIN_BOWL_SHAPES`, so this works before/without a network call;
- *  · the **raw** `/api/catalog` rows — `basinProductFromCatalog` rebuilds its object
- *    from an explicit field list and does not (yet) pass `bowlShapeLabel` through, so
- *    on the API path the value would otherwise vanish one row before the card.
- * The cache is rebuilt on every catalogue load, so a value that disappears really
- * disappears instead of lingering on screen.
+ * job 441-B: one source, one read path. `basinProductFromCatalog` now carries `bowlShapeLabel` through from
+ * `GET /api/catalog`, so the card reads the product in front of it. There is deliberately no sku-keyed cache
+ * and no built-in survey behind it: before the catalogue answers, the line is empty (no data = no line), and a
+ * shape the database stops sending disappears from the screen on the same render instead of lingering.
  */
-const bowlShapeBySku = new Map<string, string>();
-
-export function syncBowlShapesFromCatalog(rows: unknown): void {
-  bowlShapeBySku.clear();
-  if (!Array.isArray(rows)) return;
-  for (const row of rows) {
-    const sku = typeof (row as { sku?: unknown })?.sku === "string" ? (row as { sku: string }).sku : "";
-    const label = bowlShapeFromModel(row);
-    if (sku && label) bowlShapeBySku.set(sku, label);
-  }
-}
-
-export function bowlShapeForSku(sku: string): string {
-  return bowlShapeBySku.get(sku) ?? "";
-}
-
-/** What the card prints: the model's own label first, else the raw-row cache. */
-export function bowlShapeText(product: { sku?: string } & unknown): string {
-  return bowlShapeFromModel(product) || bowlShapeForSku(String((product as { sku?: string })?.sku ?? ""));
+/** What the card prints: the catalogue's own wording, or nothing at all. */
+export function bowlShapeText(product: unknown): string {
+  return bowlShapeFromModel(product);
 }
 
 export function bowlShapeFromModel(product: unknown): string {
@@ -638,8 +618,13 @@ const legacyCategoryLabels: Record<string, string> = {
   "tall vertical washbasin": "ทรงสูง",
 };
 
-function categoryLabel(name: string) {
-  return legacyCategoryLabels[name] ?? name;
+/**
+ * job 441-B: the API sends the Thai wording per row (`categoryLabel`), so a chip is named after what the database
+ * calls it. `legacyCategoryLabels` is only a fallback for a catalogue that predates the field — an unknown category
+ * keeps its own name instead of being reported as "ทรงสูง".
+ */
+function categoryLabel(name: string, wording?: Map<string, string>) {
+  return wording?.get(name) ?? legacyCategoryLabels[name] ?? name;
 }
 
 function categoryTestId(name: string) {
@@ -661,9 +646,22 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS, onRequestQuo
   const catalogCount = products.length;
   const visibleCategories = useMemo(() => {
     const persistedCategories = categories?.filter((item) => item.active !== false && item.name.trim()) ?? [];
-    if (persistedCategories.length) return persistedCategories;
+    const known = new Set(persistedCategories.map((item) => item.name));
+    // a catalogue row filed under a category the category list does not mention still gets its own chip
+    const uncovered = [...new Set(products.map((product) => product.category))]
+      .filter((name) => persistedCategories.length > 0 && !known.has(name))
+      .map((name, sortOrder) => ({ name, sortOrder: persistedCategories.length + sortOrder }));
+    if (persistedCategories.length) return [...persistedCategories, ...uncovered];
     return [...new Set(products.map((product) => product.category))].map((name, sortOrder) => ({ name, sortOrder }));
   }, [categories, products]);
+  const categoryWordings = useMemo(() => {
+    const wording = new Map<string, string>();
+    for (const product of products) {
+      const label = product.categoryLabel?.trim();
+      if (label && !wording.has(product.category)) wording.set(product.category, label);
+    }
+    return wording;
+  }, [products]);
   const selectedProductCount = useMemo(() => {
     const selectedSkus = new Set(cart.map((line) => line.sku));
     return products.filter((product) => selectedSkus.has(product.sku)).length;
@@ -694,7 +692,7 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS, onRequestQuo
    return <div className="page-wrap">
        <RouteStructuredData id="basin-products" data={buildBasinProductsJsonLd(products)} />
        <section className="catalog-hero"><div><p className="eyebrow accent">KNIGHT BASINS / 2026</p><h1>Knight Basins<br /><em>อ่างล้างหน้า by ไนท์ เฟอร์นิช</em></h1><p className="hero-copy">อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่ซึ่งต้องการความเรียบ ความทนทาน และรายละเอียดที่อยู่ได้นานกว่ากระแส</p><Link href="/stone" className="text-link" data-testid="link-hero-stone">ดูวัสดุหินสังเคราะห์ <ArrowRight size={16} /></Link></div><div className="catalog-hero-art"><BasinHeroMedia products={products} /><div className="hero-index"><span>01</span><div className="hero-line" /><span>{catalogCount} SKU</span></div></div></section>
-       <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2><p className="price-note" data-testid="text-price-terms-note">ราคาต่อชุด · ยังไม่รวม VAT {VAT_PERCENT_LABEL}</p></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button><button className={category === "selected" ? "is-active" : ""} onClick={() => setCategory("selected")} data-testid="button-filter-selected">อ่างที่เลือก {selectedProductCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
+       <section className="catalog-toolbar"><div><p className="eyebrow">THE BASIN INDEX</p><h2>ทุกทรง ทุกโทน <span>/ เลือกได้ชัดเจน</span></h2><p className="price-note" data-testid="text-price-terms-note">ราคาต่อชุด · ยังไม่รวม VAT {VAT_PERCENT_LABEL}</p></div><div className="catalog-controls"><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหา SKU หรือสี" data-testid="input-product-search" />{query && <button onClick={() => setQuery("")} aria-label="ล้างการค้นหา" data-testid="button-clear-search"><X size={14} /></button>}</label><div className="filter-tabs" role="tablist"><button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")} data-testid="button-filter-all">ทั้งหมด {catalogCount}</button><button className={category === "selected" ? "is-active" : ""} onClick={() => setCategory("selected")} data-testid="button-filter-selected">อ่างที่เลือก {selectedProductCount}</button>{visibleCategories.map((item) => <button key={item.name} className={category === item.name ? "is-active" : ""} onClick={() => setCategory(item.name)} data-testid={categoryTestId(item.name)}>{categoryLabel(item.name, categoryWordings)} {categoryCounts.get(item.name) ?? 0}</button>)}</div><label className="sort-field"><SlidersHorizontal size={14} /><span className="sort-field-content"><select value={sort} onChange={(event) => setSort(event.target.value)} aria-describedby="catalog-sort-help" data-testid="select-sort"><option value="catalog">เรียงตามแคตตาล็อก</option><option value="name-az">ชื่อสี: A–Z</option><option value="name-za">ชื่อสี: Z–A</option><option value="sku-az">รหัสรุ่น / SKU: น้อยไปมาก</option><option value="price-low">ราคา: ต่ำไปสูง</option><option value="price-high">ราคา: สูงไปต่ำ</option><option value="selected">รายการที่เลือกก่อน</option></select><span id="catalog-sort-help" className="sort-field-help" data-testid="text-sort-help">เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุกรุ่นที่เปิดใช้งานและรุ่นใหม่อัตโนมัติ</span></span><ChevronDown size={14} /></label></div></section>
      {filtered.length ? <section className="product-grid">{filtered.map((product) => <ProductCard key={product.sku} sku={product.sku} cart={cart} onToggle={toggle} onRequestQuote={onRequestQuote} />)}</section> : <div className="empty-state" data-testid="status-no-results"><span className="empty-number">—</span><h3>ไม่พบรายการที่ตรงกัน</h3><p>ลองใช้ SKU เช่น KF014 หรือค้นหาด้วยชื่อสี</p><button className="button button--outline" onClick={() => { setQuery(""); setCategory("all"); }} data-testid="button-reset-filters">แสดงสินค้าทั้งหมด</button></div>}
   </div>;
 }
@@ -2035,7 +2033,6 @@ function Storefront() {
     const catalogChanged = lastCatalogFingerprint.current !== null && lastCatalogFingerprint.current !== catalogFingerprint;
     lastCatalogFingerprint.current = catalogFingerprint;
     PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
-    syncBowlShapesFromCatalog(remoteCatalog.basins);
     const wholeSheet = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "whole-sheet");
     const installed = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "installed");
     const all = stoneColorsFromCatalog(remoteCatalog.installedStones, remoteCatalog.sheetStones);

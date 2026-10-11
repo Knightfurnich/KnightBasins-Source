@@ -1,5 +1,5 @@
 {
- "_comment": "Compact snapshot of GET https://knightbasins.com/api/catalog (the app/admin values), taken 11 Oct 2026 (job 436-C). Only the customer-visible fields the built-in copy in src/data/catalog.ts must equal. Refresh by re-running the curl in qa/report-chai-round15-align-to-app-20261010.md.",
+ "_comment": "Compact snapshot of GET https://knightbasins.com/api/catalog (the app/admin values), taken 11 Oct 2026 (job 436-C). Only the customer-visible fields the built-in copy in src/data/catalog.ts must equal. Refresh by re-running the curl in qa/report-chai-round15-align-to-app-20261010.md. | job 441-B: KF029/KF030 re-read from GET /api/catalog on 11 Oct 2026 (category \"storage\", categoryLabel \"เสาวางของตั้งพื้น\").",
  "sheetStones": [
   {
    "code": "BW010",
@@ -907,7 +907,8 @@
    "colorCode": "EG595",
    "colorName": "Metallic Galaxy",
    "priceTHB": 16000,
-   "category": "tall vertical washbasin",
+   "category": "storage",
+    "categoryLabel": "เสาวางของตั้งพื้น",
    "dimensions": "400 × 400 × 1000 mm",
    "basinDimensions": null
   },
@@ -916,7 +917,8 @@
    "colorCode": "GT010",
    "colorName": "Grigio Terrazzo",
    "priceTHB": 16000,
-   "category": "tall vertical washbasin",
+   "category": "storage",
+    "categoryLabel": "เสาวางของตั้งพื้น",
    "dimensions": "400 × 400 × 1000 mm",
    "basinDimensions": null
   }

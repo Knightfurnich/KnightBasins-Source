@@ -23,11 +23,16 @@ test("the catalog keeps both ready-made pillar sets at 16,000 THB and labels the
     const product = PRODUCTS.find((candidate) => candidate.sku === sku);
     assert.ok(product, `${sku} remains in the main catalog`);
     assert.equal(product.priceTHB, 16000);
-    assert.equal(product.category, "tall vertical washbasin");
+    // job 441-B: the database files both sets under category "storage" and sends the wording itself
+    assert.equal(product.category, "storage");
+    assert.equal(product.categoryLabel, "เสาวางของตั้งพื้น");
     assert.equal(isFreestandingPillarProduct(product), true);
-    assert.equal(productCategoryLabel(product), PILLAR_PRODUCT_LABEL);
+    assert.equal(productCategoryLabel(product), "เสาวางของตั้งพื้น");
+    assert.equal(productCategoryLabel({ ...product, categoryLabel: undefined }), PILLAR_PRODUCT_LABEL,
+      "without the API wording the built-in label is still accurate");
     assert.equal(productSpecLabel(product), PILLAR_PRODUCT_PURCHASE_NOTE);
     assert.match(productQuoteDescription(product), /เสาวางของตั้งพื้น \(ชุดสำเร็จรูป\).*ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์/);
+    assert.doesNotMatch(productCategoryLabel(product), /ทรงสูง/, "a pillar set is never sold as a tall basin");
   }
 });
 
@@ -53,6 +58,19 @@ test("2D Studio excludes the freestanding pillar sets and dimensionless tall pro
     category: "counter basin",
   };
   assert.equal(isFreestandingPillarProduct(dimensionlessCounterBasin), false);
+
+  // job 441-B: a pillar row the built-in list has never heard of is still detected from the database category
+  const unknownStorageRow = { sku: "KF031", colorCode: "ZZ001", colorName: "New Pillar", priceTHB: 16000, category: "storage", categoryLabel: "เสาวางของตั้งพื้น", dimensions: "400 × 400 × 1000 mm", basinDimensions: undefined, imageTone: "#717779" };
+  assert.equal(isFreestandingPillarProduct(unknownStorageRow), true);
+  assert.equal(studioCutoutBasinProducts([...PRODUCTS, unknownStorageRow]).some((p) => p.sku === "KF031"), false);
+});
+
+test("the catalogue index gives every row its own chip instead of folding pillars into \"ทรงสูง\" (441-B)", () => {
+  assert.match(appSource, /const categoryWordings = useMemo/);
+  assert.match(appSource, /categoryLabel\(item\.name, categoryWordings\)/, "chip text follows the API wording");
+  assert.match(appSource, /const uncovered = \[\.\.\.new Set\(products\.map\(\(product\) => product\.category\)\)\]/, "a category the list omits still gets a chip");
+  assert.match(appSource, /\]?\s*\[\.\.\.persistedCategories, \.\.\.uncovered\]/);
+  assert.doesNotMatch(appSource, /persistedCategories\.length\) return persistedCategories;\n    return/, "no silent drop of uncovered rows");
 });
 
 test("Studio uses the filtered catalog, blocks pillar placements, and explains direct pillar links", () => {
