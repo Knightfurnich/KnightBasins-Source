@@ -515,6 +515,7 @@ function BasinFormDialog({
 
               <FormItem>
                 <BasinImageManagerField
+                  sku={form.watch("sku")}
                   images={[imageUrl, ...(galleryImageUrls ?? [])].filter((url): url is string => Boolean(url))}
                   quoteImageUrl={quoteImageUrl ?? null}
                   topViewImageUrl={topViewImageUrl ?? null}
