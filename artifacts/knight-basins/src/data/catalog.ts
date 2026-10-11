@@ -727,6 +727,8 @@ export function basinProductFromCatalog(item: {
   colorName: string;
   priceTHB: number;
   category: string;
+  /** job 454-C: Thai text of the type, as sent by GET /api/catalog (job 440-C). */
+  categoryLabel?: string | null;
   dimensions: string;
   basinDimensions?: string | null;
   imageTone: string;
@@ -746,6 +748,7 @@ export function basinProductFromCatalog(item: {
     colorName: item.colorName,
     priceTHB: item.priceTHB,
     category: item.category as BasinCategory,
+    categoryLabel: item.categoryLabel?.trim() || undefined,
     dimensions: item.dimensions,
     basinDimensions: item.basinDimensions ?? undefined,
     imageTone: item.imageTone,
