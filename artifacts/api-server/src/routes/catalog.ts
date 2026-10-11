@@ -3,6 +3,7 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { PRODUCTS, STONE_COLORS } from "../../../knight-basins/src/data/catalog";
 import { canonicalMediaUrl, normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+import { withBasinBowlShape } from "../lib/basin-bowl-shape";
 import { commercialConstants, sheetTierPrices } from "../lib/commercial-constants";
 
 const router: IRouter = Router();
@@ -90,7 +91,7 @@ export async function getCatalogData(activeOnly = true) {
     db.select().from(sheetStonePrices).where(sheetActive).orderBy(asc(sheetStonePrices.sortOrder), asc(sheetStonePrices.id)),
   ]);
   return {
-    basins: basins.map((basin) => withBasinCategory(withBasinMedia(basin), categories)),
+    basins: basins.map((basin) => withBasinBowlShape(withBasinCategory(withBasinMedia(basin), categories))),
     categories,
     installedStones: installedStones.map(withStoneMedia),
     sheetStones: sheetStones.map(withStoneMedia),

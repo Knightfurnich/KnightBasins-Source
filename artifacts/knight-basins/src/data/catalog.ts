@@ -14,6 +14,10 @@ export type BasinProduct = {
   quoteImageUrl?: string;
   topViewImageUrl?: string;
   videoUrl?: string;
+  /** job 438-C: bowl shape, only for models whose picture was checked (see BASIN_BOWL_SHAPES). Absent = not checked. */
+  bowlShape?: "rounded-rectangle" | "oval";
+  bowlShapeLabel?: string;
+  bowlOverflowHole?: boolean;
 };
 
 export const PILLAR_PRODUCT_SKUS = ["KF029", "KF030"] as const;
@@ -630,7 +634,19 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
   imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
 }));
 
-export const PRODUCTS = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
+/**
+ * job 438-C: bowl shape of the two models whose cards read the same (KF003 / KF006), read off their product pictures.
+ * Same values GET /api/catalog sends (`bowlShape`, `bowlShapeLabel`, `bowlOverflowHole`); every other model has none.
+ */
+export const BASIN_BOWL_SHAPES: Readonly<Record<string, Required<Pick<BasinProduct, "bowlShape" | "bowlShapeLabel" | "bowlOverflowHole">>>> = {
+  KF003: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF006: { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี มีรูน้ำล้น", bowlOverflowHole: true },
+};
+
+export const PRODUCTS: BasinProduct[] = [...BASIN_PRODUCTS, ...TALL_PRODUCTS].map((product) => ({
+  ...product,
+  ...BASIN_BOWL_SHAPES[product.sku],
+}));
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
 /**
