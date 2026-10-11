@@ -73,21 +73,15 @@ describe("bowl shape fields sent by GET /api/catalog (job 438-C)", () => {
     assert.match(source, /basins: basins\.map\(\(basin\) => withBasinBowlShape\(withBasinProductType\(withBasinCategory\(withBasinMedia\(basin\), categories\)\)\)\)/);
   });
 
-  it("the built-in copy in the web bundle says the same for every model, and has nothing for the others", () => {
+  it("the web table is a seed reference equal to the API seed table, and PRODUCTS carries none of it: screens print only what the API sends (job 451-C)", () => {
     assert.deepEqual(Object.keys(BASIN_BOWL_SHAPES).sort(), [...SEEDED_BOWL_SKUS].sort());
+    for (const sku of SEEDED_BOWL_SKUS) assert.deepEqual(BASIN_BOWL_SHAPES[sku], seedBowlShapeFields(sku), sku);
     for (const product of PRODUCTS) {
-      const fromApi = seedBowlShapeFields(product.sku);
-      if (fromApi.bowlShape === null) {
-        assert.equal(product.bowlShape, undefined, product.sku);
-        assert.equal(product.bowlShapeLabel, undefined, product.sku);
-        assert.equal(BASIN_BOWL_SHAPES[product.sku], undefined, product.sku);
-      } else {
-        assert.deepEqual(BASIN_BOWL_SHAPES[product.sku], fromApi, product.sku);
-        assert.equal(product.bowlShape, fromApi.bowlShape, product.sku);
-        assert.equal(product.bowlShapeLabel, fromApi.bowlShapeLabel, product.sku);
-        assert.equal(product.bowlOverflowHole ?? null, null, product.sku);
-        assert.ok(!/รูน้ำล้น/.test(product.bowlShapeLabel ?? ""), `${product.sku}: the built-in label does not mention the overflow hole`);
-      }
+      assert.equal(product.bowlShape, undefined, `${product.sku}: no bowl shape on the offline card`);
+      assert.equal(product.bowlShapeLabel, undefined, `${product.sku}: no bowl label on the offline card`);
+      assert.equal(product.bowlOverflowHole, undefined, `${product.sku}`);
     }
+    const catalog = readFileSync(new URL("../../knight-basins/src/data/catalog.ts", import.meta.url), "utf8");
+    assert.ok(!/\.\.\.BASIN_BOWL_SHAPES\[/.test(catalog), "PRODUCTS does not spread the table");
   });
 });

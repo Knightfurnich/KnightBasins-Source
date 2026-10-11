@@ -1,4 +1,4 @@
-export type BasinCategory = "counter basin" | "tall vertical washbasin" | (string & {});
+export type BasinCategory = "counter basin" | "tall vertical washbasin" | "storage" | (string & {});
 
 export type BasinProduct = {
   sku: string;
@@ -6,6 +6,8 @@ export type BasinProduct = {
   colorName: string;
   priceTHB: number;
   category: string;
+  /** job 451-C: Thai text for the type, the same as `categoryLabel` in GET /api/catalog (job 440-C). */
+  categoryLabel?: string;
   dimensions: string;
   basinDimensions?: string;
   imageTone: string;
@@ -19,6 +21,16 @@ export type BasinProduct = {
   bowlShapeLabel?: string;
   bowlOverflowHole?: boolean | null;
 };
+
+/**
+ * job 451-C: the offline copy follows GET /api/catalog (job 440-C): KF029 and KF030 are floor-standing storage pillars, not
+ * wash basins, so their type is "storage" with the label below - the same two values the API sends. Price, size and
+ * colour are unchanged.
+ */
+export const STORAGE_CATEGORY = "storage";
+export const STORAGE_CATEGORY_LABEL = "เสาวางของตั้งพื้น";
+const COUNTER_CATEGORY_LABEL = "เคาน์เตอร์";
+const TALL_CATEGORY_LABEL = "ทรงสูง";
 
 export const PILLAR_PRODUCT_SKUS = ["KF029", "KF030"] as const;
 export const PILLAR_PRODUCT_LABEL = "เสาวางของตั้งพื้น (ชุดสำเร็จรูป)";
@@ -606,6 +618,7 @@ export const BASIN_PRODUCTS: BasinProduct[] = [
   colorName: colorName as string,
   priceTHB: priceTHB as number,
   category: "counter basin" as BasinCategory,
+  categoryLabel: COUNTER_CATEGORY_LABEL,
   dimensions: (dims as typeof counterDims).dimensions,
   basinDimensions: (dims as typeof counterDims).basinDimensions,
   imageTone: ["#dfe4df", "#d2d0c9", "#c6cdc9", "#ece7db", "#9eaa9a", "#d5dad3"][index % 6],
@@ -631,15 +644,22 @@ const tallProducts: Array<[string, string, string, number, string, string | unde
 
 export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, colorName, priceTHB, dimensions, basinDimensions], index) => ({
   sku, colorCode, colorName, priceTHB,
-  category: "tall vertical washbasin",
+  ...(pillarProductSkuSet.has(sku)
+    ? { category: STORAGE_CATEGORY, categoryLabel: STORAGE_CATEGORY_LABEL }
+    : { category: "tall vertical washbasin", categoryLabel: TALL_CATEGORY_LABEL }),
   dimensions, basinDimensions,
   imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
 }));
 
 /**
  * Bowl shape of the models whose HD product picture settles it (job 438-C: KF003 / KF006; job 442-C: the survey of the
- * rest). Same values GET /api/catalog sends (`bowlShape`, `bowlShapeLabel`; `bowlOverflowHole` is always null — the overflow hole is a made-to-order option, not a spec of the model). A model that is not
- * listed — picture not clear, or not a wash basin (KF029 / KF030) — has none; nothing here is guessed.
+ * rest). Same values the migrations 025 / 026 seeded into the database.
+ *
+ * job 451-C: SEED / REFERENCE ONLY. Nothing on a screen may be printed from this table: the shape a customer sees comes
+ * from GET /api/catalog alone (`bowlShapeLabel`, from the database), so clearing a value in the admin really hides the
+ * line. That is why `PRODUCTS` below does not carry these fields; the table stays here so the tests can compare it with the
+ * API's seed table and with what the migrations hold. A model that is not listed - picture not clear, or not a wash
+ * basin (KF029 / KF030) - has none; nothing here is guessed.
  */
 export const BASIN_BOWL_SHAPES: Readonly<Record<string, Pick<BasinProduct, "bowlShape" | "bowlShapeLabel" | "bowlOverflowHole">>> = {
   KF001: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน", bowlOverflowHole: null },
@@ -669,10 +689,7 @@ export const BASIN_BOWL_SHAPES: Readonly<Record<string, Pick<BasinProduct, "bowl
   KF028: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน", bowlOverflowHole: null },
 };
 
-export const PRODUCTS: BasinProduct[] = [...BASIN_PRODUCTS, ...TALL_PRODUCTS].map((product) => ({
-  ...product,
-  ...BASIN_BOWL_SHAPES[product.sku],
-}));
+export const PRODUCTS: BasinProduct[] = [...BASIN_PRODUCTS, ...TALL_PRODUCTS];
 export const productBySku = (sku: string) => PRODUCTS.find((product) => product.sku === sku);
 
 /**
