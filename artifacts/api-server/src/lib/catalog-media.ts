@@ -52,6 +52,28 @@ export function basinImageUrl(sku: string) {
   return `${CENTRAL_MEDIA_ORIGIN}/basin-hd/${encodeURIComponent(sku)}.jpg`;
 }
 
+/**
+ * job 437-C: main photos the owner has confirmed show a room, not the basin. The database row is not touched (the owner
+ * rules out writes to production); the API swaps the photo on the way out, and only while the row still holds exactly
+ * this upload — an upload saved in the admin later replaces it and wins. The replacement is the basin's own HD picture.
+ * One entry per model, and only after the owner confirmed that model.
+ */
+const CONFIRMED_WRONG_MAIN_IMAGE_UPLOADS: Readonly<Record<string, string>> = {
+  KF003: "catalog-mua05rff-0a5b2aa03a5e73f7.jpg",
+};
+
+function isConfirmedWrongMainImage(sku: string, storedUrl: string) {
+  const upload = CONFIRMED_WRONG_MAIN_IMAGE_UPLOADS[sku.trim().toUpperCase()];
+  if (!upload || !storedUrl) return false;
+  let pathname = storedUrl;
+  try {
+    pathname = new URL(storedUrl, CANONICAL_MEDIA_ORIGIN).pathname;
+  } catch {
+    // keep the raw string; the suffix check below still decides
+  }
+  return pathname.endsWith(`/${upload}`);
+}
+
 export function normalizeDimension(value: string | null | undefined) {
   if (!value) return value ?? null;
   return value.replace(/\bD\s*(?=\d)/gi, "Ø");
@@ -95,7 +117,8 @@ export function withBasinMedia<T extends { sku: string }>(basin: T) {
   const storedImageUrl = "imageUrl" in basin && typeof basin.imageUrl === "string"
     ? basin.imageUrl.trim()
     : "";
-  const isLegacyBrokenImage = storedImageUrl.includes("/kb/images/basins/");
+  const isLegacyBrokenImage = storedImageUrl.includes("/kb/images/basins/")
+    || isConfirmedWrongMainImage(basin.sku, storedImageUrl);
   return canonicalFields({
     ...basin,
     imageUrl: storedImageUrl && !isLegacyBrokenImage
