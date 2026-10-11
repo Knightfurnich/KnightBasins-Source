@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 
@@ -8,9 +9,11 @@ import { describe, it } from "node:test";
  * GET /api/admin/basins; `null` ("ไม่ระบุ") is a value that really gets saved.
  */
 import {
+  BOWL_SHAPE_SOURCES,
   bowlShapePatchBody,
   confirmShapeSummary,
   deriveShapeOptions,
+  isBowlShapeSource,
   labelForCode,
   readBowlShapeValue,
   saveBowlShape,
@@ -25,7 +28,7 @@ const [componentSource, managerSource] = await Promise.all([
 /** Rows exactly as job 445-C describes them (labels are the API's text, not ours). */
 const API_ROWS = [
   { id: 3, sku: "KF003", bowlShape: "rounded-rectangle", bowlShapeLabel: "LABEL-A", bowlShapeSource: "database" },
-  { id: 6, sku: "KF006", bowlShape: "oval", bowlShapeLabel: "LABEL-B", bowlShapeSource: "builtin" },
+  { id: 6, sku: "KF006", bowlShape: "oval", bowlShapeLabel: "LABEL-B", bowlShapeSource: "database" },
   { id: 21, sku: "KF021", bowlShape: "round", bowlShapeLabel: null, bowlShapeSource: "none" },
 ];
 
@@ -46,11 +49,26 @@ describe("options and labels come from the API (446-B A + B)", () => {
     assert.equal(labelForCode(options, null, "anything"), "ไม่ระบุ");
   });
 
-  it("names where the current value came from (database / builtin / none)", () => {
-    assert.equal(sourceBadge("database"), "(ค่าที่แก้ไขเอง)");
-    assert.match(sourceBadge("builtin"), /ค่าตั้งต้นของระบบ/);
+  it("names where the current value came from — database / none only (446-B round 2)", () => {
+    assert.deepEqual([...BOWL_SHAPE_SOURCES], ["database", "none"]);
+    assert.equal(sourceBadge("database"), "(จากฐานข้อมูล)", "the column owns the answer, nobody edited it by hand here");
+    assert.equal(sourceBadge("database", "ค่าที่ทีมป้อน"), "(ค่าที่ทีมป้อน)", "the wording can be supplied, the state cannot");
     assert.match(sourceBadge("none"), /ยังไม่ระบุ/);
+    // the retired value must produce no sentence at all, not a translation we invented
+    assert.equal(sourceBadge("builtin"), "");
+    assert.equal(sourceBadge("survey"), "");
+    assert.equal(sourceBadge(null), "");
     assert.equal(sourceBadge(undefined), "");
+    assert.equal(isBowlShapeSource("builtin"), false);
+    assert.equal(isBowlShapeSource("database"), true);
+  });
+
+  it("the admin panel no longer knows a built-in shape source", () => {
+    const src = readFileSync(new URL("../src/admin/basinBowlShape.ts", import.meta.url), "utf8");
+    const field = readFileSync(new URL("../src/admin/BasinBowlShapeField.tsx", import.meta.url), "utf8");
+    assert.doesNotMatch(src, /case "builtin"|ค่าตั้งต้นของระบบ/);
+    assert.doesNotMatch(field, /builtin|ค่าตั้งต้นของระบบ/);
+    assert.match(src, /BOWL_SHAPE_SOURCES = \["database", "none"\] as const/);
   });
 
   it("reads the shape off a row without inventing defaults", () => {

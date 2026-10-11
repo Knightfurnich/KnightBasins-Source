@@ -61,14 +61,24 @@ export function labelForCode(options: ReadonlyArray<ShapeOption>, code: string |
   return known || (fallbackLabel && fallbackLabel.trim()) || code;
 }
 
-/** Where the value on screen came from, per job 446-B ข้อ B (the API sends the key). */
-export function sourceBadge(source: string | null | undefined, savedByAdminLabel = "ค่าที่แก้ไขเอง"): string {
-  switch (source) {
-    case "database": return `(${savedByAdminLabel})`;
-    case "builtin": return "(ค่าตั้งต้นของระบบ)";
-    case "none": return "(ยังไม่ระบุ)";
-    default: return "";
-  }
+/** The only two places a bowl shape can come from now (job 446-B + 441-B). */
+export const BOWL_SHAPE_SOURCES = ["database", "none"] as const;
+export type BowlShapeSource = (typeof BOWL_SHAPE_SOURCES)[number];
+
+export function isBowlShapeSource(value: unknown): value is BowlShapeSource {
+  return typeof value === "string" && (BOWL_SHAPE_SOURCES as readonly string[]).includes(value);
+}
+
+/**
+ * Where the value on screen came from — job 446-B: there are two states, not three.
+ *  · `database` — the `bowl_shape` column holds an answer (job 445-C);
+ *  · `none` — the column is empty, so the editor offers "ไม่ระบุ";
+ *  · anything else (including the retired `builtin`, which job 441-B deleted together with
+ *    the front-end shape survey) gets **no wording** — we do not describe a source we do not know.
+ */
+export function sourceBadge(source: string | null | undefined, databaseLabel = "จากฐานข้อมูล"): string {
+  if (!isBowlShapeSource(source)) return "";
+  return source === "database" ? `(${databaseLabel})` : "(ยังไม่ระบุ)";
 }
 
 /** Body for PUT /api/admin/basins/:id/bowl-shape — one key only; null clears to "ไม่ระบุ". */
