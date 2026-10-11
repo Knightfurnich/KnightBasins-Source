@@ -169,7 +169,7 @@ export default function AdminApp() {
               })}
             </nav>
           </aside>
-          <main className="admin-main flex-1 p-4 md:p-10 overflow-x-hidden">
+          <main className="admin-main flex-1 p-4 md:p-10">
             <Switch>
               <Route path="/admin/access-denied" component={AccessDeniedRoute} />
               <Route path="/admin" component={AdminDashboardRoute} />

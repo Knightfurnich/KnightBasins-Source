@@ -209,7 +209,7 @@ function StockLoadingState() {
       <div className="border border-[var(--line)] bg-[var(--card-paper)] p-5">
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((item) => (
-            <div key={item} className="grid grid-cols-4 gap-4">
+            <div key={item} className="grid grid-cols-2 gap-3 min-[820px]:grid-cols-4 min-[820px]:gap-4">
               <div className="h-4 bg-[var(--line)]" />
               <div className="col-span-2 h-4 bg-[var(--line)]" />
               <div className="h-4 bg-[var(--line)]" />

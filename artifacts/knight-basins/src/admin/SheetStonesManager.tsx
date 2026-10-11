@@ -361,7 +361,7 @@ function StoneFormDialog({ open, onOpenChange, initialData }: { open: boolean, o
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col overflow-hidden">
             <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="admin-form-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <FormField control={form.control} name="code" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">รหัสสินค้า</FormLabel>
@@ -404,7 +404,7 @@ function StoneFormDialog({ open, onOpenChange, initialData }: { open: boolean, o
                   </FormItem>
                 )} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="admin-form-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <FormField control={form.control} name="price10PlusTHB" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ราคา/แผ่น 10+ (บาท)</FormLabel>

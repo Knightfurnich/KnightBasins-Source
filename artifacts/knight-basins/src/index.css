@@ -6512,3 +6512,44 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
     overflow-wrap: anywhere;
   }
 }
+
+/* ─── job 450-B · admin panel responsive (ต้นเหตุจริง ห้ามกลบด้วย overflow-x:hidden) ─── */
+/* grid/flex child ที่,min-width:auto คือสาเหตุที่ของในกรอบดันหน้าให้กว้างกว่าจอ */
+.admin-app .admin-main,
+.admin-app .admin-main :where(.grid, .flex, .table, table, [data-slot="dialog-content"]) {
+  min-width: 0;
+}
+.admin-app .admin-main :where(.grid) > * { min-width: 0; }
+/* ฟอร์มในไดอะล็อก: label อยู่บนช่อง, เว้น 12px ระหว่างฟิลด์ (grid gap) */
+.admin-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.admin-form-grid .text-muted-foreground,
+.admin-form-grid p { overflow-wrap: anywhere; }
+/* ปฏิทิน 7 วัน: คงโครงสัปดาห์ไว้ แต่ cell หดได้ && เลื่อนในกรอบของตัวเอง ไม่ใช่ดันทั้งหน้า */
+.admin-calendar-shell { overflow-x: auto; overscroll-behavior-x: contain; }
+.admin-week-grid { min-width: 460px; }
+.admin-week-grid > * { min-width: 0; overflow-wrap: anywhere; }
+/* ตารางทุกตัวต้องเลื่อนในกรอบของตัวเอง */
+.admin-app .admin-main :where(.overflow-x-auto) { max-width: 100%; }
+
+@media (max-width: 768px) {
+  /* เป้าแตะ ≥44px ทุกควบคุมหลักในแอดมิน */
+  .admin-app .admin-main :where(button, a[class*="button"], input:not([type="checkbox"]):not([type="radio"]), select, textarea, [role="button"]) {
+    min-height: 44px;
+  }
+  .admin-app .admin-main :where(input[type="checkbox"], input[type="radio"]) { width: 20px; height: 20px; }
+  /*ไดอะล็อกฟอร์มกินความกว้างเกือบทั้งจอ + เอน scrolls ในตัวมันเอง */
+  .admin-app [data-slot="dialog-content"] {
+    max-width: calc(100vw - 16px) !important;
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 24px);
+  }
+  .admin-app [data-slot="dialog-overlay"] { backdrop-filter: blur(2px); }
+  /* ตัวเลข/ข้อคามยาวๆ ห้ามล้นกรอบ */
+  .admin-app .admin-main :where(td, th) { overflow-wrap: anywhere; }
+}
