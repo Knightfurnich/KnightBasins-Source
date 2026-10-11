@@ -11,6 +11,10 @@
 > (ง) **ลำดับงาน:** ถ้า 451-C ยังไม่ merge ⇒ ให้ทำ (ข)/(ก)/(ค) ส่วน UI ได้ แต่ **ต้องไม่แตะ `src/data/**`**
 > **คำชี้แจงเรื่องที่มา (จากชัย):** `bowlShapeSource` เหลือ **`database` / `none`** (เลิกใช้ `builtin`)
 
+
+> **เพิ่มข้อกำหนด 11 ต.ค. 69 (ชัยแจ้งตอนแก้ 451-C — ต้องปิดในใบนี้):** ฟังก์ชัน `categoryLabel()` ใน `src/App.tsx` (~บรรทัด 641) รู้จักเฉพาะ `counter basin` / `tall vertical washbasin` ⇒ ถ้าไม่รู้จัก `storage` **ปุ่มตัวกรองจะโชว์คำอังกฤษดิบ "storage" ให้ลูกค้าเห็น** ในโหมดที่ API ยังไม่ตอบ/ออฟไลน์
+> ⇒ **ข้อกำหนด C2:** ห้ามให้คำอังกฤษดิบ (`storage`, `counter basin`, `tall vertical washbasin`) ปรากฏบนหน้าลูกค้า **ทุกโหมด** — ให้อ่าน `categoryLabel` ที่ตอนนี้มีมาแล้วในสำเนา static (จาก 451-C) หรือซ่อนชิปจนกว่าจะรู้คำไทย · เพิ่มเทสต์ล็อกว่าคำอังกฤษดิบไม่โผล่
+
 **ที่แก้:** รีโป `Knightfurnich/KnightBasins-Source` → `artifacts/knight-basins/src/App.tsx` + `src/components/**` → **เปิด PR**
 
 ```
