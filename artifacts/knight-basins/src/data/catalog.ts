@@ -15,9 +15,9 @@ export type BasinProduct = {
   topViewImageUrl?: string;
   videoUrl?: string;
   /** job 438-C: bowl shape, only for models whose picture was checked (see BASIN_BOWL_SHAPES). Absent = not checked. */
-  bowlShape?: "rounded-rectangle" | "oval";
+  bowlShape?: "rounded-rectangle" | "oval" | "round" | "rectangle" | "square" | "rounded-square";
   bowlShapeLabel?: string;
-  bowlOverflowHole?: boolean;
+  bowlOverflowHole?: boolean | null;
 };
 
 export const PILLAR_PRODUCT_SKUS = ["KF029", "KF030"] as const;
@@ -637,12 +637,36 @@ export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, 
 }));
 
 /**
- * job 438-C: bowl shape of the two models whose cards read the same (KF003 / KF006), read off their product pictures.
- * Same values GET /api/catalog sends (`bowlShape`, `bowlShapeLabel`, `bowlOverflowHole`); every other model has none.
+ * Bowl shape of the models whose HD product picture settles it (job 438-C: KF003 / KF006; job 442-C: the survey of the
+ * rest). Same values GET /api/catalog sends (`bowlShape`, `bowlShapeLabel`, `bowlOverflowHole`). A model that is not
+ * listed — picture not clear, or not a wash basin (KF029 / KF030) — has none; nothing here is guessed.
  */
-export const BASIN_BOWL_SHAPES: Readonly<Record<string, Required<Pick<BasinProduct, "bowlShape" | "bowlShapeLabel" | "bowlOverflowHole">>>> = {
+export const BASIN_BOWL_SHAPES: Readonly<Record<string, Pick<BasinProduct, "bowlShape" | "bowlShapeLabel" | "bowlOverflowHole">>> = {
+  KF001: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF002: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
   KF003: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF004: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF005: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", bowlOverflowHole: false },
   KF006: { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี มีรูน้ำล้น", bowlOverflowHole: true },
+  KF008: { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF011: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
+  KF012: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
+  KF013: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
+  KF014: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF015: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
+  KF016: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF017: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF018: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF019: { bowlShape: "square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF020: { bowlShape: "square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF021: { bowlShape: "square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF022: { bowlShape: "rounded-square", bowlShapeLabel: "หลุมสี่เหลี่ยมจัตุรัสมุมมน", bowlOverflowHole: null },
+  KF023: { bowlShape: "round", bowlShapeLabel: "หลุมกลม", bowlOverflowHole: null },
+  KF024: { bowlShape: "round", bowlShapeLabel: "หลุมกลม", bowlOverflowHole: null },
+  KF025: { bowlShape: "round", bowlShapeLabel: "หลุมกลม", bowlOverflowHole: null },
+  KF026: { bowlShape: "round", bowlShapeLabel: "หลุมกลม ไม่มีรูน้ำล้น", bowlOverflowHole: false },
+  KF027: { bowlShape: "rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมเหลี่ยม", bowlOverflowHole: null },
+  KF028: { bowlShape: "rounded-rectangle", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน", bowlOverflowHole: null },
 };
 
 export const PRODUCTS: BasinProduct[] = [...BASIN_PRODUCTS, ...TALL_PRODUCTS].map((product) => ({
