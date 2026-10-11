@@ -51,6 +51,8 @@ export const basinPrices = pgTable(
     quoteImageUrl: text("quote_image_url"),
     videoUrl: text("video_url"),
     topViewImageUrl: text("top_view_image_url"),
+    /** job 445-C: bowl shape (rounded-rectangle | oval | round | rectangle | square | rounded-square). NULL = not specified, the built-in table answers. */
+    bowlShape: varchar("bowl_shape", { length: 24 }),
     active: boolean("active").default(true).notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),
     ...auditColumns,

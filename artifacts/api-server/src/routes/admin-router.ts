@@ -73,6 +73,7 @@ import {
 import { createAdminInviteSecrets, hashAdminInviteValue } from "../lib/admin-invites";
 import { ADMIN_API_KEY_SCOPE, createAdminApiKeySecret } from "../lib/admin-api-keys";
 import { normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
+import { parseBowlShapeInput, resolveBowlShape } from "../lib/basin-bowl-shape";
 import { findAutoMatchLead } from "../lib/slip-matching";
 import { checkLeadFinancialLock } from "../lib/financial-safety";
 import {
@@ -4063,7 +4064,11 @@ export function createAdminRouter(
     try {
       const basins = await database.select().from(basinPrices).orderBy(asc(basinPrices.sortOrder), asc(basinPrices.id));
       const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
-      res.json(basins.map((basin: any) => withBasinCategory(withBasinMedia(basin), categories)));
+      res.json(basins.map((basin: any) => {
+        const bowl = resolveBowlShape(basin);
+        // job 445-C: the shape the customer sees (database value, else the built-in table) and where it comes from.
+        return { ...withBasinCategory(withBasinMedia(basin), categories), ...bowl.fields, bowlShapeSource: bowl.source };
+      }));
     } catch (error) { return next(error); }
   });
 
@@ -4125,6 +4130,30 @@ export function createAdminRouter(
       return res.json(withBasinCategory(withBasinMedia(updated), categories));
     } catch (error) {
       auditAdmin(req, { action: "admin.basin.update", status: "error", errorCode: "BASIN_UPDATE_FAILED", targetId: String(id), details: { id, ...auditErrorDetails(error) } });
+      return next(error);
+    }
+  });
+
+  // job 445-C: the bowl shape of one basin. Its own route so the generic basin edit (which the form sends whole) can
+  // never blank this column by accident. The shape key is required; null = "not specified" (the built-in table then
+  // answers). Every change is written to the audit trail with who made it.
+  router.put("/admin/basins/:id/bowl-shape", requireAdminPermission("basins", "edit"), async (req, res, next) => {
+    const id = idFrom(req.params.id);
+    if (!id) return invalid(res, "Invalid basin id");
+    const parsed = parseBowlShapeInput(req.body);
+    if (!parsed.ok) return invalid(res, parsed.message);
+    try {
+      const before = await auditRowBefore(basinPrices, basinPrices.id, id);
+      const [updated] = await database.update(basinPrices).set({ ...parsed.value, updatedAt: new Date() }).where(eq(basinPrices.id, id)).returning();
+      if (!updated) {
+        auditAdmin(req, { action: "admin.basin.bowl_shape", status: "warning", errorCode: "NOT_FOUND", targetId: String(id), details: { id } });
+        return res.status(404).json({ message: "Basin not found" });
+      }
+      auditAdmin(req, { action: "admin.basin.bowl_shape", targetId: String(updated.sku ?? id), details: { id, sku: updated.sku, changes: auditFieldChanges(before, parsed.value) } });
+      const bowl = resolveBowlShape(updated);
+      return res.json({ id: updated.id, sku: updated.sku, ...bowl.fields, bowlShapeSource: bowl.source });
+    } catch (error) {
+      auditAdmin(req, { action: "admin.basin.bowl_shape", status: "error", errorCode: "BASIN_BOWL_SHAPE_FAILED", targetId: String(id), details: { id, ...auditErrorDetails(error) } });
       return next(error);
     }
   });
