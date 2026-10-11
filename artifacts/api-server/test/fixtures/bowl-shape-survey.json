@@ -1,0 +1,236 @@
+{
+ "_comment": "ผลสำรวจรูปทรงหลุมของ 26 รุ่น (ใบ 442-C) ดูจากภาพ HD + ภาพหลัก ณ 11 ต.ค. 69 — แหล่งอ้างอิงของเทสต์ basin-bowl-shape.test.ts ห้ามเดาค่าเพิ่มโดยไม่มีภาพยืนยัน",
+ "overflowRule": "bowlOverflowHole=false เฉพาะเมื่อเห็นผนังหลังหลุมครบและไม่เห็นรู; true เมื่อเห็นรู; null เมื่อภาพตัดสินไม่ได้",
+ "surveyed": [
+  {
+   "sku": "KF001",
+   "bowlShape": "rounded-rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมมน มีเฉพาะรูระบายก้นหลุม ผนังหลังหลุมเห็นครบ ไม่เห็นรูที่ขอบ (ภาพหลักเป็นฉากห้องน้ำ หลุมดูโค้งกว่าภาพ HD — ใช้ HD ตัดสิน)",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF001.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua03t7d-3e99dedba004d47f.jpg?v=mua03t7d"
+  },
+  {
+   "sku": "KF002",
+   "bowlShape": "rounded-rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมมน ผนังหลังเห็นครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF002.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua052m4-dda19b739017a596.jpg?v=mua052m4"
+  },
+  {
+   "sku": "KF003",
+   "bowlShape": "rounded-rectangle",
+   "bowlOverflowHole": false,
+   "note": "ตรวจในใบ 438-C",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF003.jpg",
+   "mainUrl": "https://knightbasins.com/kb/images/basin-hd/KF003.jpg"
+  },
+  {
+   "sku": "KF004",
+   "bowlShape": "rounded-rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมมน ผนังหลังเห็นครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF004.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua060bn-e00a5572f3851e3a.jpg?v=mua060bn"
+  },
+  {
+   "sku": "KF005",
+   "bowlShape": "rounded-rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมมนมาก (ใกล้ทรงสี่เหลี่ยมโค้ง) ผนังหลังเห็นครบ ไม่เห็นรูน้ำล้น (ภาพหลักเป็นอ่างฝังใต้ท็อปเคาน์เตอร์)",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF005.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua06fsz-43fdd862d610d949.jpg?v=mua06fsz"
+  },
+  {
+   "sku": "KF006",
+   "bowlShape": "oval",
+   "bowlOverflowHole": true,
+   "note": "ตรวจในใบ 438-C",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF006.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua06q66-d9865050fb8511af.jpg?v=mua06q66"
+  },
+  {
+   "sku": "KF008",
+   "bowlShape": "oval",
+   "bowlOverflowHole": false,
+   "note": "หลุมวงรียาวชัดกว่ามุมมองของหน้าบน ผนังหลังเห็นครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF008.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua07hs6-c6b909baf858f46b.jpg?v=mua07hs6"
+  },
+  {
+   "sku": "KF011",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": null,
+   "note": "รางสี่เหลี่ยมก้นลาดเอียง ไม่เห็นรูระบายแบบกลม เห็นรูน้ำล้นหรือไม่ตัดสินไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF011.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua08r6a-127d62bb55aee4c1.jpg?v=mua08r6a"
+  },
+  {
+   "sku": "KF012",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": null,
+   "note": "รางสี่เหลี่ยมก้นลาดเอียง สีขาวบนขาว เห็นรูน้ำล้นหรือไม่ตัดสินไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF012.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0951f-464cf3e950f678f7.jpg?v=mua0951f"
+  },
+  {
+   "sku": "KF013",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": null,
+   "note": "รางสี่เหลี่ยมก้นลาดเอียง สีขาวบนขาว เห็นรูน้ำล้นหรือไม่ตัดสินไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF013.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua09ibd-c5ffe26b5a4cb630.jpg?v=mua09ibd"
+  },
+  {
+   "sku": "KF014",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมเหลี่ยม ก้นลาดเอียง เห็นรูระบายสีเข้ม ผนังหลังเห็นครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF014.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua09vf6-7f3a5868886a2d92.jpg?v=mua09vf6"
+  },
+  {
+   "sku": "KF015",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": null,
+   "note": "หลุมสี่เหลี่ยมสีเข้ม ก้นลาดเอียง เห็นรูน้ำล้นหรือไม่ตัดสินไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF015.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0a86q-330c04eab9aac815.jpg?v=mua0a86q"
+  },
+  {
+   "sku": "KF016",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมเหลี่ยม ผนังเห็นครบ ไม่เห็นรูน้ำล้น (ภาพหลักเป็นเคาน์เตอร์ครัวฝังอ่าง)",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF016.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0aks3-507c605940a50d68.jpg?v=mua0aks3"
+  },
+  {
+   "sku": "KF017",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมเหลี่ยม ผนังเห็นครบ ไม่เห็นรูน้ำล้น (ภาพหลักเป็นเคาน์เตอร์ครัวฝังอ่าง)",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF017.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0avqy-5a1bac8b658f3d4c.jpg?v=mua0avqy"
+  },
+  {
+   "sku": "KF018",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมมุมเหลี่ยม มีขั้น ผนังเห็นครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF018.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0b9az-da327837f2c99f84.jpg?v=mua0b9az"
+  },
+  {
+   "sku": "KF019",
+   "bowlShape": "square",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม มองจากด้านบนเห็นผนังครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF019.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0bmi2-f02f7f4f2b63fa17.jpg?v=mua0bmi2"
+  },
+  {
+   "sku": "KF020",
+   "bowlShape": "square",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม มองจากด้านบนเห็นผนังครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF020.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0c6yu-37a7dfd7c8115347.jpg?v=mua0c6yu"
+  },
+  {
+   "sku": "KF021",
+   "bowlShape": "square",
+   "bowlOverflowHole": false,
+   "note": "หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม ที่ระบายโครเมียม ไม่เห็นรูน้ำล้นที่ผนังที่เห็น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF021.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0rk6j-7c58b48c7f9c93fc.jpg?v=mua0rk6j"
+  },
+  {
+   "sku": "KF022",
+   "bowlShape": "rounded-square",
+   "bowlOverflowHole": null,
+   "note": "หลุมสี่เหลี่ยมจัตุรัสมุมมนชัด แต่เห็นไม่ถึงก้นหลุม จึงไม่ทราบรูระบาย/รูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF022.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0rym9-e6714bda78528c3e.jpg?v=mua0rym9"
+  },
+  {
+   "sku": "KF023",
+   "bowlShape": "round",
+   "bowlOverflowHole": null,
+   "note": "หลุมกลม ผนังในลายไม้ ดูรูน้ำล้นไม่ชัด",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF023.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0si4n-a5dac6d2dbcee3db.jpg?v=mua0si4n"
+  },
+  {
+   "sku": "KF024",
+   "bowlShape": "round",
+   "bowlOverflowHole": null,
+   "note": "หลุมกลม มีแท่นแบ่งครึ่งหลุม บังผนังหลัง ตัดสินรูน้ำล้นไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF024.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0sws2-e16e824e0c825673.jpg?v=mua0sws2"
+  },
+  {
+   "sku": "KF025",
+   "bowlShape": "round",
+   "bowlOverflowHole": null,
+   "note": "หลุมกลม สีดำ ภายในมืด ตัดสินรูน้ำล้นไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF025.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0tb10-a06f476e710be0cc.jpg?v=mua0tb10"
+  },
+  {
+   "sku": "KF026",
+   "bowlShape": "round",
+   "bowlOverflowHole": false,
+   "note": "หลุมกลม ผนังเห็นครบ ไม่เห็นรูน้ำล้น",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF026.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0to1p-a913f7550a5b62d6.jpg?v=mua0to1p"
+  },
+  {
+   "sku": "KF027",
+   "bowlShape": "rectangle",
+   "bowlOverflowHole": null,
+   "note": "หลุมสี่เหลี่ยมมุมเหลี่ยม มีช่องระบายแบบสี่เหลี่ยม มองเห็นผนังไม่ครบ",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF027.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0u24k-beabcfee04b553fc.jpg?v=mua0u24k"
+  },
+  {
+   "sku": "KF028",
+   "bowlShape": "rounded-rectangle",
+   "bowlOverflowHole": null,
+   "note": "หลุมสี่เหลี่ยมมุมมน มีแท่นแบ่งหลุม บังผนังหลัง ตัดสินรูน้ำล้นไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF028.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua0uhjm-25c5ca095e67a8cf.jpg?v=mua0uhjm"
+  }
+ ],
+ "unclear": [
+  {
+   "sku": "KF007",
+   "reason": "ภาพไม่ชัด: หลุมตื้นลายหินเกือบกลืนกับท็อป ขอบหน้าไม่ชัด แยกวงกลม/วงรีจากมุมถ่ายไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF007.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua074m7-966ec42e360033e7.jpg?v=mua074m7"
+  },
+  {
+   "sku": "KF009",
+   "reason": "ภาพไม่ชัด: อ่างดำเงา ขอบหลุมมีแสงสะท้อน ตัดสินรูปทรงไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF009.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua07wcs-fb9b7694e26d6402.jpg?v=mua07wcs"
+  },
+  {
+   "sku": "KF010",
+   "reason": "ภาพไม่ชัด: หลุมทรงถ้วยตื้น แยกวงกลมกับวงรีจากมุมถ่ายไม่ได้",
+   "hdUrl": "https://knightbasins.com/kb/images/basin-hd/KF010.jpg",
+   "mainUrl": "https://knightbasins.com/api/uploads/catalog-mua088gb-202e852eb8a59d55.jpg?v=mua088gb"
+  }
+ ],
+ "notBasins": [
+  {
+   "sku": "KF029",
+   "reason": "บอสชี้ขาดว่าไม่ใช่อ่างล้างหน้า (ที่วางของ) — ห้ามสำรวจ/เติมค่า (ใบ 442-C)"
+  },
+  {
+   "sku": "KF030",
+   "reason": "บอสชี้ขาดว่าไม่ใช่อ่างล้างหน้า (ที่วางของ) — ห้ามสำรวจ/เติมค่า (ใบ 442-C)"
+  }
+ ]
+}
