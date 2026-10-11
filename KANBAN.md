@@ -763,3 +763,4 @@ python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะ�
   3. กริดไม่พับ: `grid-cols-4` ×3 · `grid-cols-3` ×2 · `grid-cols-7` ×3 · `grid-cols-2` ~28 จุด
   4. `<table>` 4 ไฟล์ (AiCostCenter · FactoryCutList · StockInventory · TechnicianTeams)
 - **450-B (บอย) ✅ ออกใหม่ · ผ่าน 9/9** — แก้ responsive แอดมิน 390/360 ที่ต้นเหตุ · ห้าม overflow กลบ · เดสก์ท็อป ≥1024 ห้ามเปลี่ยน · วัด scrollWidth−clientWidth = 0 ทุกหน้า · บอสทดสอบซ้ำบนมือถือหลัง deploy
+- **บอสชี้จุดสำคัญ (11 ต.ค. 69, ข้อ ค): "ฟอร์มเรียงเบียดกัน"** ⇒ เดวิดปรับใบ 450-B ตั้งเป็นเป้าหมายแรก: ฟอร์มคอลัมน์เดียวบนมือถือ · label เหนือช่อง · ระยะห่าง ≥12px · ช่องกรอก/ปุ่ม ≥44px · แนบภาพก่อน/หลังของ BasinsManager
