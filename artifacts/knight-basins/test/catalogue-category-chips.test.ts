@@ -178,6 +178,13 @@ describe("no raw machine id reaches the customer, in any mode (441-B v2 C2)", ()
     assert.equal(chips[1].label, "เสาวางของตั้งพื้น");
   });
 
+  it("an empty duplicate (same id, other letter case) does not add a second identical chip", () => {
+    const chips = buildCatalogueChips(models, [...tableCategories, "Tall Vertical Washbasin", "STORAGE"], productCategoryLabel, FACTS);
+    const labels = chips.map((chip) => chip.label);
+    assert.equal(new Set(labels).size, labels.length, `duplicate chip wording: ${labels.join(" | ")}`);
+    assert.deepEqual(chips.map((chip) => `${chip.label} ${chip.count}`), ["เคาน์เตอร์ 18", "ทรงสูง 10", "เสาวางของตั้งพื้น 2"]);
+  });
+
   it("a row whose label is the raw id is not trusted as wording", () => {
     const dirty = indexCatalogueRowFacts([{ sku: "KF029", category: "storage", categoryLabel: "storage" }]);
     const label = catalogueGroupLabel(pillar, productCategoryLabel, dirty);

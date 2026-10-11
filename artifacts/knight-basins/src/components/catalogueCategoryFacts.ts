@@ -167,5 +167,8 @@ export function buildCatalogueChips(
   };
   for (const name of tableNames) push(name, false);
   for (const value of grouped.keys()) push(value, true);
-  return chips;
+  // C2: an empty group whose Thai wording another chip already carries (the same id in another
+  // letter case) would only print a second "ทรงสูง 0" - drop it.
+  const shown = new Set(chips.filter((chip) => chip.count > 0).map((chip) => chip.label));
+  return chips.filter((chip) => chip.count > 0 || !shown.has(chip.label));
 }
