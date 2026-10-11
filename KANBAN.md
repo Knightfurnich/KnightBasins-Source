@@ -764,3 +764,11 @@ python3 /opt/data/bin/job_scope_conflicts.py --register # พิมพ์ทะ�
   4. `<table>` 4 ไฟล์ (AiCostCenter · FactoryCutList · StockInventory · TechnicianTeams)
 - **450-B (บอย) ✅ ออกใหม่ · ผ่าน 9/9** — แก้ responsive แอดมิน 390/360 ที่ต้นเหตุ · ห้าม overflow กลบ · เดสก์ท็อป ≥1024 ห้ามเปลี่ยน · วัด scrollWidth−clientWidth = 0 ทุกหน้า · บอสทดสอบซ้ำบนมือถือหลัง deploy
 - **บอสชี้จุดสำคัญ (11 ต.ค. 69, ข้อ ค): "ฟอร์มเรียงเบียดกัน"** ⇒ เดวิดปรับใบ 450-B ตั้งเป็นเป้าหมายแรก: ฟอร์มคอลัมน์เดียวบนมือถือ · label เหนือช่อง · ระยะห่าง ≥12px · ช่องกรอก/ปุ่ม ≥44px · แนบภาพก่อน/หลังของ BasinsManager
+
+### 11 ต.ค. 69 — ปิด 440-C · 445-C rev2 · 449-C · 446-B (merge + deploy + ตรวจ production เอง)
+- **440-C ✅ `1ce39ac7`** (PR #526) — KF029/KF030 = `category: storage` + `categoryLabel: เสาวางของตั้งพื้น` · ไม่แตะ DB/ราคา/ขนาด/สี · live: category นับ 18/10/**2** · label ตรง
+- **445-C ฉบับ revise 2 ✅ `78e08a38`** (PR #518) — migration `025` เพิ่มคอลัมน์เดียว `bowl_shape` (additive, seed 3 รุ่น guard IS NULL) · label คำนวณในโค้ด · **ไม่เหลือคำว่า "รูน้ำล้น"** ในป้ายลูกค้า (live: 0 ครั้ง)
+- **449-C ✅ `8eccd495`** (PR #527) — migration `026` seed อีก 22 รุ่น (รวม 25) · **DB = แหล่งจริง · ค่าว่าง = ไม่ระบุ (ซ่อนบรรทัด)** · `parseBowlShapeInput` ปฏิเสธค่า `bowlOverflowHole` ที่ไม่ใช่ null
+- **446-B ✅ `4ca5c160`** (PR #525 · บอย) — ช่องแก้ "รูปทรงอ่าง" ในแอดมิน (อ่านจาก API เท่านั้น · ไม่มีสวิตช์รูน้ำล้น)
+- **เดวิดตรวจ production เอง 3 ชั้น:** (1) อ่าน DB ตรง — `bowl_shape` มีค่า 25 รุ่น · KF007/9/10 + KF029/30 = NULL (2) `GET /api/catalog` — 25 label · 0 คำ "รูน้ำล้น" · `bowlOverflowHole` ว่างทั้งหมด · category 18/10/2 (3) CI deploy มี step `Apply Database Migrations` = success
+- ⏳ **447-C ยังไม่ครบ:** ข้อ A/B (ลบวลี + คืน null) ทำแล้วใน #518 · แต่ **ข้อ C (ข้อความรวมระดับแคตตาล็อก)** ยังไม่มีในโค้ด ⇒ 448-B (บอย) ยังเริ่มไม่ได้
