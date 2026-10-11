@@ -198,7 +198,8 @@ describe("the built-in catalogue equals what the app sends (job 436-C)", () => {
       const own = PRODUCTS.find((p) => p.sku === basin.sku)!;
       assert.deepEqual(
         { colorCode: own.colorCode, colorName: own.colorName, priceTHB: own.priceTHB, category: own.category, dimensions: own.dimensions, basinDimensions: own.basinDimensions ?? null },
-        { colorCode: basin.colorCode, colorName: basin.colorName, priceTHB: basin.priceTHB, category: basin.category, dimensions: basin.dimensions, basinDimensions: basin.basinDimensions },
+        // the snapshot is the database row (11 Oct 2026); GET /api/catalog turns KF029 / KF030 into "storage" on the way out (job 440-C)
+        { colorCode: basin.colorCode, colorName: basin.colorName, priceTHB: basin.priceTHB, category: basin.sku === "KF029" || basin.sku === "KF030" ? "storage" : basin.category, dimensions: basin.dimensions, basinDimensions: basin.basinDimensions },
         basin.sku,
       );
     }
