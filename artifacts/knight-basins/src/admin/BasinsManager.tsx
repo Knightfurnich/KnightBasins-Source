@@ -38,6 +38,8 @@ import {
   toggleAdminItemActive,
 } from "./adminArchive";
 import { BasinImageManagerField } from "./BasinImageManagerField";
+import { BasinBowlShapeField } from "./BasinBowlShapeField";
+import { readBowlShapeValue } from "./basinBowlShape";
 import { VideoUploadField } from "./VideoUploadField";
 import { isTallBasinSku, normalizeDimensionInput, sanitizePriceInput } from "@/data/input-sanitizers";
 import { AdminSortableHeader } from "./AdminSortableHeader";
@@ -237,6 +239,7 @@ export function BasinsManager() {
         <BasinFormDialog 
           open={true}
           initialData={editingItem || undefined}
+          shapeRows={(basins ?? []) as ReadonlyArray<unknown>}
           categories={categories ?? []}
           onManageCategories={() => {
             setIsCreateOpen(false);
@@ -307,12 +310,15 @@ function BasinFormDialog({
   initialData,
   categories,
   onManageCategories,
+  shapeRows,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   initialData?: BasinPrice;
   categories: BasinCategory[];
   onManageCategories: () => void;
+  /** job 446-B: the list response, so the option labels are the API's own words. */
+  shapeRows?: ReadonlyArray<unknown>;
 }) {
   const queryClient = useQueryClient();
   const createMutation = useCreateAdminBasin();
@@ -527,6 +533,18 @@ function BasinFormDialog({
                   onTopViewImageChange={(url) => form.setValue("topViewImageUrl", url, { shouldDirty: true, shouldValidate: true })}
                 />
               </FormItem>
+
+              {/* job 446-B: bowl shape is saved per model through its own route, never by the generic basin PUT */}
+              <BasinBowlShapeField
+                basinId={initialData?.id ?? null}
+                sku={form.watch("sku")}
+                current={readBowlShapeValue(initialData)}
+                rows={shapeRows ?? (initialData ? [initialData] : [])}
+                onSaved={() => {
+                  void queryClient.invalidateQueries({ queryKey: ["/api/admin/basins"] });
+                  void queryClient.invalidateQueries({ queryKey: ["/api/catalog"] });
+                }}
+              />
 
               <FormField control={form.control} name="videoUrl" render={({ field }) => (
                 <FormItem>
