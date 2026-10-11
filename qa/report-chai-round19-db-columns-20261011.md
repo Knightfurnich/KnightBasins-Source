@@ -1,7 +1,7 @@
 # รายงานชัย รอบ 19 · ใบงาน 445-C — รูปทรงหลุม/รูน้ำล้นเป็นคอลัมน์ DB (บอสแก้เองผ่านแอดมินได้)
 
 **ผู้ทำ:** ชัย (ผ่าน Claude Code) · **ทำเมื่อ:** 11 ต.ค. 69 ราว 03:10–03:35 น. (เวลาไทย) · **สาขา:** `feat/chai-bowl-shape-db-columns`
-**ฐาน:** ต่อจากสาขาของ PR #516 (commit `21357cf` — ตารางสำรวจ 25 รุ่น) ซ้อนบน `main` ที่ `26c4e61` · ⚠ **ต้อง merge #516 ก่อน** แล้วจึง merge ใบนี้ (ดู "ลำดับ deploy")
+**ฐาน:** `main` ที่ `27c3c76` (มี #516 ตารางสำรวจ 25 รุ่น merge แล้วที่ `832ea53`; rebase จากเดิมที่ซ้อนบนสาขา #516 — เนื้อหาไม่เปลี่ยน)
 **แตะ:** `lib/db/src/schema/index.ts` · `deploy/hostinger/migrations/025_basin_bowl_shape.sql` (ใหม่) · `artifacts/api-server/src/lib/basin-bowl-shape.ts` · `artifacts/api-server/src/routes/admin-router.ts` (เพิ่มเส้นทางใหม่ 1 เส้น + ให้ GET ส่งค่าที่มีผลจริง) · `artifacts/api-server/test/basin-bowl-shape-db.test.ts` (ใหม่) · รายงาน
 **ไม่แตะ:** `artifacts/knight-basins/src/admin/**` · `src/components/**` · `App.tsx` · ราคา/ขนาด/สี · ข้อมูลลูกค้า · **ไม่ได้รัน migration กับ production**
 
@@ -31,7 +31,7 @@ curl -s -X PUT "$BASE/api/admin/basins/7/bowl-shape" -H "cookie: knight_admin_se
 1. **ทำอะไร:** เพิ่ม 2 คอลัมน์ (`bowl_shape`, `bowl_overflow_hole`) + migration 025 (additive, ไม่มี DROP/TRUNCATE) พร้อม seed KF003/KF006/KF025 · `GET /api/catalog` ใช้ค่าจาก DB ก่อน ถ้าคอลัมน์ว่างใช้ตารางในโค้ดเดิม · เส้นทางใหม่ `PUT /api/admin/basins/:id/bowl-shape` บันทึกพร้อม audit log (ใครแก้อะไรจาก→เป็น)
 2. **เทสต์:** api-server 1305 / ผ่าน 1300 / ตก 5 (ชุดเดิม Windows) · เทสต์ใหม่ 18 ข้อผ่านหมด (พิสูจน์สองทาง 9 แบบ) · migration ทดลองรันบน PostgreSQL จำลอง (PGlite) ผ่าน 3 รอบ · web 1311 / ผ่าน 1257 / ตก 12 / ข้าม 42 (ชุดที่ตกเท่ากับ main ทุกข้อ — ไม่ได้แตะไฟล์ฝั่งเว็บ)
 3. **ตรวจไม่ได้:** รัน migration กับ production/Postgres จริงของโปรเจกต์ (ห้ามตามใบ) · ผล `/api/catalog` หลัง deploy · ฝั่ง UI แอดมิน (ของบอย)
-4. **ความเสี่ยง:** (ก) ใบนี้ซ้อนบน #516 — ถ้า deploy 445 โดยยังไม่มี #516 รุ่น KF025 จะมีค่า "หลุมกลม" เพิ่มจากที่ลูกค้าเห็นตอนนี้ (ก่อน/หลังไม่เท่ากัน) (ข) migration ถูกบันทึกใน ledger และรันครั้งเดียว — ถ้ามีคนรันซ้ำด้วยมือหลังที่แอดมินล้างค่าทั้งสองคอลัมน์ของรุ่นที่ seed ไว้ จะถูก seed คืน (ใน ledger ปกติไม่เกิด) (ค) ข้อความ "ไม่มีรูน้ำล้น" ของ 13 รุ่นยังรอบอสยืนยัน (จาก 442-C)
+4. **ความเสี่ยง:** (ก) ใบนี้ต้องไปหลัง #516 (merge แล้ว) — ถ้า #516 ยังไม่ขึ้น production รุ่น KF025 จะมีค่า "หลุมกลม" เพิ่มจากที่ลูกค้าเห็นตอนนี้ (ก่อน/หลังไม่เท่ากัน) ให้ตรวจว่า #516 deploy แล้วก่อน (ข) migration ถูกบันทึกใน ledger และรันครั้งเดียว — ถ้ามีคนรันซ้ำด้วยมือหลังที่แอดมินล้างค่าทั้งสองคอลัมน์ของรุ่นที่ seed ไว้ จะถูก seed คืน (ใน ledger ปกติไม่เกิด) (ค) ข้อความ "ไม่มีรูน้ำล้น" ของ 13 รุ่นยังรอบอสยืนยัน (จาก 442-C)
 5. **ข้อเสนอ:** ลำดับ merge/deploy ด้านล่าง · ให้บอสตรวจ `bowlShapeSource` หลัง deploy · ถ้าต้องการให้ "ล้างค่า = ซ่อนจริง" ออกใบแยกให้ย้าย 25 ค่าจากตารางในโค้ดเข้า DB ทั้งหมด (ผมทำ migration 026 ได้ แต่ต้องให้บอสยืนยันค่าก่อน)
 
 ## ลำดับ deploy (ข้อ B)
@@ -41,7 +41,7 @@ curl -s -X PUT "$BASE/api/admin/basins/7/bowl-shape" -H "cookie: knight_admin_se
 4. ถ้าต้องถอย: โค้ดเก่าไม่รู้จักสองคอลัมน์จึงทำงานต่อได้ตามปกติ (ไม่ต้อง rollback DB)
 
 ## 0–1. baseline และคำสั่งตรวจฟีด (ก่อน = หลัง)
-- baseline ผู้รัน: ชัย · Windows 11 · base ที่ `21357cf` (api-server บนสาขา #516) = 1287 / 1282 / 5 ตก → หลังแก้ **1305 / 1300 / 5 ตก** (+18 ข้อ; 5 ข้อที่ตกเป็นชุดเดิมทุกรอบ: slip digest / support-guest) · คำสั่ง `cd artifacts/api-server && node --experimental-strip-types --test test/*.test.ts` · baseline Linux เดวิด `6b10827`: api 1,286 / 1,286 ผ่าน (คนละเครื่อง)
+- baseline ผู้รัน: ชัย · Windows 11 · base `21357cf` (สาขา #516 ก่อน merge; เนื้อหาเดียวกับ `832ea53`) = 1287 / 1282 / 5 ตก → หลังแก้ **1305 / 1300 / 5 ตก** (+18 ข้อ; 5 ข้อที่ตกเป็นชุดเดิมทุกรอบ: slip digest / support-guest) · คำสั่ง `cd artifacts/api-server && node --experimental-strip-types --test test/*.test.ts` · baseline Linux เดวิด `6b10827`: api 1,286 / 1,286 ผ่าน (คนละเครื่อง)
 - `tsc --noEmit`: api-server ไม่มี error ใหม่ (4 error เดิม `speakingRate`/`enabled`) · web 1 error เดิม `src/admin/AdminVoiceSettings.tsx` (`speakingRate`)
 ```bash
 curl -s https://knightbasins.com/api/catalog | python3 -c "import json,sys;d=json.load(sys.stdin);print([(b['sku'],b.get('bowlShape'),b.get('bowlShapeLabel'),b.get('bowlOverflowHole')) for b in d['basins'] if b.get('bowlShapeLabel')])"
