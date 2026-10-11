@@ -1,0 +1,924 @@
+{
+ "_comment": "Compact snapshot of GET https://knightbasins.com/api/catalog (the app/admin values), taken 11 Oct 2026 (job 436-C). Only the customer-visible fields the built-in copy in src/data/catalog.ts must equal. Refresh by re-running the curl in qa/report-chai-round15-align-to-app-20261010.md.",
+ "sheetStones": [
+  {
+   "code": "BW010",
+   "name": "Bright White",
+   "basePriceTHB": 5900
+  },
+  {
+   "code": "MU010",
+   "name": "Evermoin Ultra Bright",
+   "basePriceTHB": 7500
+  },
+  {
+   "code": "EG501",
+   "name": "Glaring White",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "AL645",
+   "name": "Aspen Lily",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "AS610",
+   "name": "Aspen Snow",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SO423",
+   "name": "Sanded Onyx",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SH428",
+   "name": "Sanded Heron",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SG420",
+   "name": "Sanded Grey",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SI414",
+   "name": "Sanded Icicle",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SS440",
+   "name": "Sanded Sahara",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SC457",
+   "name": "Sanded Chestnut",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "SV430",
+   "name": "Sanded Vermillion",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "EG595",
+   "name": "Metallic Galaxy",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "NT970",
+   "name": "Bologna Terrazzo",
+   "basePriceTHB": 9000
+  },
+  {
+   "code": "PS820",
+   "name": "Pebble Saratoga",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "QS822N",
+   "name": "Quarry Starred",
+   "basePriceTHB": 8500
+  },
+  {
+   "code": "VC110",
+   "name": "Cotton White",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VL343",
+   "name": "Latte Cream",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VR322",
+   "name": "Rotor Cloud",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VO171",
+   "name": "Ocean View",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VF113",
+   "name": "Flux",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VL312",
+   "name": "Premiere Largo",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VM114",
+   "name": "Morning Sky",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VF345",
+   "name": "Flat White",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VA311",
+   "name": "Arctic White",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VD175",
+   "name": "Dandelion",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VV375",
+   "name": "Vivace",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VD382",
+   "name": "Drift",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VS311",
+   "name": "Shine",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VS351",
+   "name": "Soft",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VS385",
+   "name": "Slate",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VD345",
+   "name": "Dusk",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "VV351",
+   "name": "Veil",
+   "basePriceTHB": 12000
+  },
+  {
+   "code": "PT857",
+   "name": "Pebble Terrain",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "NW013",
+   "name": "Neo White",
+   "basePriceTHB": 4900
+  },
+  {
+   "code": "DU121",
+   "name": "Duese",
+   "basePriceTHB": 7000
+  },
+  {
+   "code": "NB091F",
+   "name": "Neo Black Facade",
+   "basePriceTHB": 7000
+  },
+  {
+   "code": "CW013",
+   "name": "Camellia White",
+   "basePriceTHB": 7000
+  },
+  {
+   "code": "E085",
+   "name": "Everest",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "GC714",
+   "name": "Glalet Crystals",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "GI017",
+   "name": "Glalet Ice",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "GG884",
+   "name": "Glalet Grey",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "MB025",
+   "name": "Mist Beech",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "MC016",
+   "name": "Mist Concrete",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "GE118",
+   "name": "Glalet Ebony",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "GT010",
+   "name": "Grigio Terrazzo",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "BT010",
+   "name": "Basalt Terrazzo",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "BR816O",
+   "name": "Black River",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "KZ802",
+   "name": "Zen Autumn",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "KZ802N",
+   "name": "Zen Autumn New",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "MS112",
+   "name": "Mahogany Stone",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "VW213",
+   "name": "Vena White",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "RW316",
+   "name": "River White",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "CO521M",
+   "name": "Cloud Onyx",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "CS532M",
+   "name": "Cascade Slope",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "HJ524M",
+   "name": "Honey Jade",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "JG532M",
+   "name": "Jade Golddust",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "SW534M",
+   "name": "Starry White",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "VW050",
+   "name": "Vene White",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "WH112",
+   "name": "Witch Hazel",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "MM541",
+   "name": "Metallic Marble",
+   "basePriceTHB": 9500
+  },
+  {
+   "code": "ME642",
+   "name": "Mist Egg",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "AP100",
+   "name": "Apex",
+   "basePriceTHB": 8000
+  },
+  {
+   "code": "NA160",
+   "name": "Navis",
+   "basePriceTHB": 8000
+  }
+ ],
+ "installedStones": [
+  {
+   "code": "BW010",
+   "name": "Bright White",
+   "pricePerSqmTHB": 7500
+  },
+  {
+   "code": "MU010",
+   "name": "Evermoin Ultra Bright",
+   "pricePerSqmTHB": 7500
+  },
+  {
+   "code": "EG501",
+   "name": "Glaring White",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "AL645",
+   "name": "Aspen Lily",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "AS610",
+   "name": "Aspen Snow",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SO423",
+   "name": "Sanded Onyx",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SH428",
+   "name": "Sanded Heron",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SG420",
+   "name": "Sanded Grey",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SI414",
+   "name": "Sanded Icicle",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SS440",
+   "name": "Sanded Sahara",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SC457",
+   "name": "Sanded Chestnut",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "SV430",
+   "name": "Sanded Vermillion",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "EG595",
+   "name": "Metallic Galaxy",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "NT970",
+   "name": "Bologna Terrazzo",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "PS820",
+   "name": "Pebble Saratoga",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "VC110",
+   "name": "Cotton White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VL343",
+   "name": "Latte Cream",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VR322",
+   "name": "Rotor Cloud",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VO171",
+   "name": "Ocean View",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VF113",
+   "name": "Flux",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VL312",
+   "name": "Premiere Largo",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VM114",
+   "name": "Morning Sky",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VF345",
+   "name": "Flat White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VA311",
+   "name": "Arctic White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VV375",
+   "name": "Vivace",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VD382",
+   "name": "Drift",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VS311",
+   "name": "Shine",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VS351",
+   "name": "Soft",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VS385",
+   "name": "Slate",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VW342",
+   "name": "Aria Whisper",
+   "pricePerSqmTHB": 12000
+  },
+  {
+   "code": "VD345",
+   "name": "Dusk",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VV351",
+   "name": "Veil",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "PT857",
+   "name": "Pebble Terrain",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "NW013",
+   "name": "Neo White",
+   "pricePerSqmTHB": 7500
+  },
+  {
+   "code": "DU121",
+   "name": "Duese",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "CW013",
+   "name": "Camellia White",
+   "pricePerSqmTHB": 7500
+  },
+  {
+   "code": "E085",
+   "name": "Everest",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "GC714",
+   "name": "Glalet Crystals",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "GI017",
+   "name": "Glalet Ice",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "GG884",
+   "name": "Glalet Grey",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "MB025",
+   "name": "Mist Beech",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "MC016",
+   "name": "Mist Concrete",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "GE118",
+   "name": "Glalet Ebony",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "GT010",
+   "name": "Grigio Terrazzo",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "BT010",
+   "name": "Basalt Terrazzo",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "BR816O",
+   "name": "Black River",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "KZ802",
+   "name": "Zen Autumn",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "KZ802N",
+   "name": "Zen Autumn New",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "MS112",
+   "name": "Mahogany Stone",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VW213",
+   "name": "Vena White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "RW316",
+   "name": "River White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "CO521M",
+   "name": "Cloud Onyx",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "CS532M",
+   "name": "Cascade Slope",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "HJ524M",
+   "name": "Honey Jade",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "JG532M",
+   "name": "Jade Golddust",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "SW534M",
+   "name": "Starry White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "VW050",
+   "name": "Vene White",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "WH112",
+   "name": "Witch Hazel",
+   "pricePerSqmTHB": 9500
+  },
+  {
+   "code": "ME642",
+   "name": "Mist Egg",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "AP100",
+   "name": "Apex",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "NA160",
+   "name": "Navis",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "NB091",
+   "name": "Neo Black",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "AI612",
+   "name": "Aspen Iceberg",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "AA625",
+   "name": "Aspen Alder",
+   "pricePerSqmTHB": 8500
+  },
+  {
+   "code": "QS822N",
+   "name": "Quarry Starred",
+   "pricePerSqmTHB": 8500
+  }
+ ],
+ "basins": [
+  {
+   "sku": "KF001",
+   "colorCode": "VS311",
+   "colorName": "Shine",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF002",
+   "colorCode": "VS351",
+   "colorName": "Soft",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF003",
+   "colorCode": "RW316",
+   "colorName": "River White",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF004",
+   "colorCode": "VW050",
+   "colorName": "Vene White",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF005",
+   "colorCode": "HJ524M",
+   "colorName": "Honey Jade",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF006",
+   "colorCode": "RW316",
+   "colorName": "River White",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF007",
+   "colorCode": "VL343",
+   "colorName": "Latte Cream",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF008",
+   "colorCode": "SI414",
+   "colorName": "Sanded Icicle",
+   "priceTHB": 17000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF009",
+   "colorCode": "NB091",
+   "colorName": "Neo Black",
+   "priceTHB": 17000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF010",
+   "colorCode": "NA160",
+   "colorName": "Navis",
+   "priceTHB": 17000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "350 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF011",
+   "colorCode": "VD382",
+   "colorName": "Drift",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF012",
+   "colorCode": "CS532M",
+   "colorName": "Cascade Slope",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF013",
+   "colorCode": "VR322",
+   "colorName": "Rotor Cloud",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF014",
+   "colorCode": "EG501",
+   "colorName": "Glaring White",
+   "priceTHB": 17000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF015",
+   "colorCode": "GG884",
+   "colorName": "Glalet Grey",
+   "priceTHB": 20000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF016",
+   "colorCode": "KZ802",
+   "colorName": "Zen Autumn",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF017",
+   "colorCode": "KZ802N",
+   "colorName": "Zen Autumn New",
+   "priceTHB": 19000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF018",
+   "colorCode": "GI017",
+   "colorName": "Glalet Ice",
+   "priceTHB": 17000,
+   "category": "counter basin",
+   "dimensions": "600 × 800 × 200 mm",
+   "basinDimensions": "400 × 500 × 130 mm"
+  },
+  {
+   "sku": "KF019",
+   "colorCode": "VD345",
+   "colorName": "Dusk",
+   "priceTHB": 24000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "350 × 350 × 150 mm"
+  },
+  {
+   "sku": "KF020",
+   "colorCode": "VS385",
+   "colorName": "Slate",
+   "priceTHB": 24000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "350 × 350 × 150 mm"
+  },
+  {
+   "sku": "KF021",
+   "colorCode": "KZ802N",
+   "colorName": "Zen Autumn New",
+   "priceTHB": 25000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "350 × 350 × 150 mm"
+  },
+  {
+   "sku": "KF022",
+   "colorCode": "NW013",
+   "colorName": "Neo White",
+   "priceTHB": 24000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "350 × 350 × 150 mm"
+  },
+  {
+   "sku": "KF023",
+   "colorCode": "WH112",
+   "colorName": "Witch Hazel",
+   "priceTHB": 26000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "Ø350 × 150 mm"
+  },
+  {
+   "sku": "KF024",
+   "colorCode": "VW342",
+   "colorName": "Aria Whisper",
+   "priceTHB": 25000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "Ø350 × 150 mm"
+  },
+  {
+   "sku": "KF025",
+   "colorCode": "NB091",
+   "colorName": "Neo Black",
+   "priceTHB": 24000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "Ø350 × 150 mm"
+  },
+  {
+   "sku": "KF026",
+   "colorCode": "NW013",
+   "colorName": "Neo White",
+   "priceTHB": 24000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 850 mm",
+   "basinDimensions": "Ø350 × 150 mm"
+  },
+  {
+   "sku": "KF027",
+   "colorCode": "SW534M",
+   "colorName": "Starry White",
+   "priceTHB": 28000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 600 × 850 mm",
+   "basinDimensions": "370 × 570 × 150 mm"
+  },
+  {
+   "sku": "KF028",
+   "colorCode": "VV351",
+   "colorName": "Veil",
+   "priceTHB": 32000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 600 × 850 mm",
+   "basinDimensions": "370 × 570 × 150 mm"
+  },
+  {
+   "sku": "KF029",
+   "colorCode": "EG595",
+   "colorName": "Metallic Galaxy",
+   "priceTHB": 16000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 1000 mm",
+   "basinDimensions": null
+  },
+  {
+   "sku": "KF030",
+   "colorCode": "GT010",
+   "colorName": "Grigio Terrazzo",
+   "priceTHB": 16000,
+   "category": "tall vertical washbasin",
+   "dimensions": "400 × 400 × 1000 mm",
+   "basinDimensions": null
+  }
+ ]
+}
