@@ -3,7 +3,7 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { PRODUCTS, STONE_COLORS } from "../../../knight-basins/src/data/catalog";
 import { canonicalMediaUrl, normalizeBasinFields, withBasinCategory, withBasinMedia, withStoneMedia } from "../lib/catalog-media";
-import { withBasinBowlShape } from "../lib/basin-bowl-shape";
+import { catalogOrderNotes, withBasinBowlShape } from "../lib/basin-bowl-shape";
 import { withBasinProductType } from "../lib/basin-product-type";
 import { commercialConstants, sheetTierPrices } from "../lib/commercial-constants";
 
@@ -105,7 +105,8 @@ router.get("/catalog", async (_req, res, next) => {
     // Never let an intermediary replay an older active/archived catalog response.
     res.setHeader("Cache-Control", "no-store, max-age=0");
     // Job 405-C: the trade constants the app prices with ride along, so the knowledge base can follow the app. Added keys only.
-    res.json({ ...(await getCatalogData(true)), ...commercialConstants() });
+    // Job 447-C: one catalogue-level line about the overflow hole (a made-to-order option), so the web never types it.
+    res.json({ ...(await getCatalogData(true)), ...commercialConstants(), ...catalogOrderNotes() });
   } catch (error) {
     next(error);
   }

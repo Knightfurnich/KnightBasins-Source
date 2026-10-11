@@ -128,3 +128,16 @@ export function parseBowlShapeInput(body: unknown):
   }
   return { ok: true, value: { bowlShape } };
 }
+
+/**
+ * job 447-C (item C): one line for the whole catalogue, sent by GET /api/catalog as `basinOverflowNote`. The overflow
+ * hole is a made-to-order option, not a spec of a model, so no card says "with" or "without" — this note is the only place
+ * the subject is named, and the web prints it from the API instead of typing it (one place to edit). Wording approved by
+ * the owner on 11 Oct 2026.
+ */
+export const BASIN_OVERFLOW_NOTE = "อ่างทุกรุ่นสั่งทำได้ทั้งแบบมีและไม่มีรูน้ำล้น (ปกติโรงงานทำให้แบบไม่มี) — ถ้าต้องการแบบมี แจ้งทีมขายได้";
+
+/** The catalogue-level notes GET /api/catalog adds next to the rows. Added keys only. */
+export function catalogOrderNotes(): { basinOverflowNote: string } {
+  return { basinOverflowNote: BASIN_OVERFLOW_NOTE };
+}
