@@ -34,7 +34,7 @@
 ---
 
 ## ฟรีบัฟ (Freebuff) — เจ้าของ `src/pages/**`
-**งานที่ถืออยู่: 1 ใบ — 452-F** (แถบหมวดผลงาน /portfolio ที่ 390/360 + เป้าแตะในหน้า pages)
+**งานที่ถืออยู่: 2 ใบ (เต็มลิมิต)** — ① **452-F** (แถบหมวดผลงาน /portfolio + เป้าแตะ) → ② **455-F** (รวม header ของหน้าเดี่ยวให้เป็นระบบเดียว · **บอสอนุมัติแล้ว** รวมการแตะ header ของ `/price-guide` เฉพาะส่วนหัว)
 **สถานะ: ⏸ ยังเริ่มไม่ได้** — workspace ยังไม่ต่อรีโป
 **ต้องทำก่อน:** ต่อ GitHub Connection → `Knightfurnich/KnightBasins-Source` (private) แล้วตรวจ 3 ข้อ:
 `git remote -v` เห็น origin · `git rev-parse origin/main` = `dc467ca` หรือใหม่กว่า · `git ls-files | wc -l` ≈ 1,452
