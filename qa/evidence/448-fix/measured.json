@@ -1,0 +1,85 @@
+{
+ "job": "448-B",
+ "run": "chromium headless บน production build ของ feat/web-overflow-note-448b",
+ "data": "GET /api/catalog (knightbasins.com, 11 ต.ค. 69) เสริมผ่าน harness อ่านอย่างเดียว ห้ามเขียนทุกวิธี",
+ "noteTextFromApi": "อ่างทุกรุ่นสั่งทำได้ทั้งแบบมีและไม่มีรูน้ำล้น (ปกติโรงงานทำให้แบบไม่มี) — ถ้าต้องการแบบมี แจ้งทีมขายได้",
+ "rows": [
+  {
+   "viewportCss": 1425,
+   "pageOverflowPx": 0,
+   "notePresent": true,
+   "noteTextEqualsApi": true,
+   "noteBox": {
+    "w": 1281,
+    "h": 22,
+    "right": 1353
+   },
+   "lines": 1,
+   "fontSize": "14px",
+   "lineHeight": "22.4px",
+   "overflowWrap": "normal",
+   "innerOverflowPx": 0,
+   "cards": 30,
+   "bowlShapeLines": 25,
+   "chips": [
+    "ทั้งหมด 30",
+    "อ่างที่เลือก 0",
+    "เคาน์เตอร์ 18",
+    "ทรงสูง 10"
+   ]
+  },
+  {
+   "viewportCss": 375,
+   "pageOverflowPx": 0,
+   "notePresent": true,
+   "noteTextEqualsApi": true,
+   "noteBox": {
+    "w": 336,
+    "h": 45,
+    "right": 356
+   },
+   "lines": 2,
+   "fontSize": "14px",
+   "lineHeight": "22.4px",
+   "overflowWrap": "normal",
+   "innerOverflowPx": 0,
+   "cards": 30,
+   "bowlShapeLines": 25,
+   "chips": [
+    "ทั้งหมด 30",
+    "อ่างที่เลือก 0",
+    "เคาน์เตอร์ 18",
+    "ทรงสูง 10"
+   ]
+  },
+  {
+   "viewportCss": 345,
+   "pageOverflowPx": 0,
+   "notePresent": true,
+   "noteTextEqualsApi": true,
+   "noteBox": {
+    "w": 309,
+    "h": 45,
+    "right": 327
+   },
+   "lines": 2,
+   "fontSize": "14px",
+   "lineHeight": "22.4px",
+   "overflowWrap": "normal",
+   "innerOverflowPx": 0,
+   "cards": 30,
+   "bowlShapeLines": 25,
+   "chips": [
+    "ทั้งหมด 30",
+    "อ่างที่เลือก 0",
+    "เคาน์เตอร์ 18",
+    "ทรงสูง 10"
+   ]
+  }
+ ],
+ "shots": [
+  "overflow-note-1440.png",
+  "overflow-note-390.png",
+  "overflow-note-360.png"
+ ]
+}
