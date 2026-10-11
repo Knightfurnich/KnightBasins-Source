@@ -331,7 +331,12 @@ function Header({ cartCount }: { cartCount: number }) {
         /* the strip scrolls sideways here -- say so (job 431-B H3) */
         .site-header > .main-nav::after { content: "→"; flex: 0 0 auto; align-self: center; color: var(--ink-soft); font-size: 13px; }
         .site-header > .main-nav .quote-link { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; }
+        /* job 453-B D: the header cart link measured 42x19 px; WCAG 2.5.5 / team target is 44 px tall */
+        .site-header .mobile-cart { min-width: 44px; min-height: 44px; justify-content: center; }
       }
+      /* job 453-B A: the idle menu links were var(--ink-soft) = 4.43:1 on the header, just under AA 4.5:1.
+         Mixing 30% of the full ink in keeps the same hue family in both themes without touching index.css. */
+      .site-header > .main-nav a:not(.is-active):not(:hover) { color: color-mix(in srgb, var(--ink-soft) 70%, var(--ink)); }
     `}</style>
     <Link href="/" className="brand" data-testid="link-brand"><img className="brand-logo brand-logo--png" src={knightFurnichLogo} alt="Knight Furnich" /><span className="brand-copy"><strong>KNIGHT FURNICH</strong><small>SOLID SURFACE / BASINS</small></span></Link>
     <nav className="main-nav" aria-label="หลัก">
@@ -340,6 +345,7 @@ function Header({ cartCount }: { cartCount: number }) {
       <Link href="/sketch" className={location === "/sketch" ? "is-active" : ""} data-testid="link-sketch">ส่งแบบร่าง</Link>
       <Link href="/portfolio" className={location === "/portfolio" ? "is-active" : ""} data-testid="link-portfolio">📸 ผลงานจริง</Link>
       <Link href="/site-prep" className={location === "/site-prep" ? "is-active" : ""} data-testid="link-site-prep">📐 เตรียมหน้างาน</Link>
+      <Link href="/price-guide" className={location === "/price-guide" ? "is-active" : ""} data-testid="link-price-guide">คู่มือราคา</Link>
       <Link href="/quote" className={`quote-link ${location === "/quote" ? "is-active" : ""}`} data-testid="link-quote">ใบเสนอราคา <span>{cartCount}</span></Link>
     </nav>
     <div className="header-actions">
