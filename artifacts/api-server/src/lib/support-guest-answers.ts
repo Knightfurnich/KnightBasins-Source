@@ -4,6 +4,7 @@
 // Rule for this file: a figure is never typed here. Prices come from the catalogue the caller passes in, VAT and fees from
 // `commercialConstants()` (lib/commercial-constants.ts), phone lines from lib/contact-info.ts.
 
+import { STORAGE_CATEGORY } from "./basin-product-type.ts";
 import { commercialConstants } from "./commercial-constants.ts";
 import { SUPPORT_PHONE_PRIMARY, SUPPORT_PHONES_TEXT } from "./contact-info.ts";
 import { shoppingTopic } from "./support-signals.ts";
@@ -105,7 +106,8 @@ export function serviceAreaReply(): string {
 
 function basinPurchaseReply(catalog: GuestCatalog, askedAboutInstall: boolean): string {
   const counter = catalog.basins.filter((item) => item.category === "counter basin");
-  const standing = catalog.basins.filter((item) => item.category !== "counter basin");
+  // job 440-C: the storage pillars (KF029 / KF030) are not wash basins, so they never count as "อ่างตั้งพื้น".
+  const standing = catalog.basins.filter((item) => item.category !== "counter basin" && item.category !== STORAGE_CATEGORY);
   const parts = [
     { label: "อ่างวางเคาน์เตอร์", items: counter },
     { label: "อ่างตั้งพื้น", items: standing },
