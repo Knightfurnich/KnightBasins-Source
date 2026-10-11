@@ -846,3 +846,8 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - **#543 ปิดเป็น "โอนงาน"** (คอมเมนต์อธิบายแล้ว) — ไม่ทิ้งงานที่บอยทำไว้
 - **454-C ออกใหม่ (ชัย · 9/9)** — ข้อเสนอของชัย: mapper ส่ง `categoryLabel` ผ่าน model แล้วลบ cache ฝั่ง UI (ทำหลัง 453-B · WIP 2)
 - **คิว R3:** ชัย = 453-B → 454-C · บอย = 0 ใบ · ฟรีบัฟ = 452-F (รอต่อรีโป)
+
+### 11 ต.ค. 69 — ตรวจ CI gate ตามที่บอส "อนุมัติ" (ไม่ต้องออกใบใหม่)
+- ตรวจเอง: `release-validation.yml` บน main **มี Unit tests + Validate release contents และยิงบน `pull_request` แล้ว** · สาขา `ci/chai-test-gate-and-host-path-decouple` merge ไปแล้ว (PR #162 · behind 797 / ahead 0)
+- **หลักฐาน:** check-runs ของ #541 · #551 · #554 = Unit tests success + Validate release contents success ทุกใบ ⇒ ด่านเทสต์อัตโนมัติมีจริง (ลดงานตรวจซ้ำได้ตามที่บอสต้องการ)
+- **คงเหลือ:** ยืนยันว่า branch protection **บังคับ** check หรือไม่ (token เดวิดอ่าน settings ไม่ได้) ⇒ บอสดู Settings → Branches
