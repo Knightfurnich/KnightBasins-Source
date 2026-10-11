@@ -1,0 +1,148 @@
+{
+ "job": "441-B v2 (UI only)",
+ "baseline": "main@65e866d (Linux, node v22.23.3, chromium headless, รันโดยบอย)",
+ "how": "production build ของ branch นี้ เสิร์ฟผ่าน harness อ่านอย่างเดียว: กรณີ api-off = /api/catalog ตอบ 500 (จำลองตอนก่อนโหลด/crawler เจอสำเนา static), กรณี api-on = เสิร์ฟ GET /api/catalog สดจาก knightbasins.com (11 ต.ค. 69)",
+ "chipWidths": {
+  "api-on@390": {
+   "pageOverflowPx": 0,
+   "chipsRowOverflowPx": 0,
+   "chipsH": 141,
+   "shelf": "เสาวางของตั้งพื้น 2",
+   "tall": "ทรงสูง 10"
+  },
+  "api-on@360": {
+   "pageOverflowPx": 0,
+   "chipsRowOverflowPx": 0,
+   "chipsH": 165,
+   "shelf": "เสาวางของตั้งพื้น 2",
+   "tall": "ทรงสูง 10"
+  },
+  "api-on@320": {
+   "pageOverflowPx": 0,
+   "chipsRowOverflowPx": 0,
+   "chipsH": 139,
+   "shelf": "เสาวางของตั้งพื้น 2",
+   "tall": "ทรงสูง 10"
+  },
+  "api-off@390": {
+   "pageOverflowPx": 0,
+   "chipsRowOverflowPx": 0,
+   "chipsH": 116,
+   "shelf": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2",
+   "tall": "ทรงสูง 10"
+  },
+  "api-off@360": {
+   "pageOverflowPx": 0,
+   "chipsRowOverflowPx": 0,
+   "chipsH": 116,
+   "shelf": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2",
+   "tall": "ทรงสูง 10"
+  },
+  "api-off@320": {
+   "pageOverflowPx": 0,
+   "chipsRowOverflowPx": 0,
+   "chipsH": 139,
+   "shelf": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2",
+   "tall": "ทรงสูง 10"
+  }
+ },
+ "detail": {
+  "noApi_firstClientRender": {
+   "w1440": {
+    "chips": [
+     "button-filter-all=ทั้งหมด 30",
+     "button-filter-selected=อ่างที่เลือก 0",
+     "button-filter-counter=เคาน์เตอร์ 18",
+     "button-filter-tall=ทรงสูง 10",
+     "button-filter-category-storage=เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2"
+    ],
+    "cards": 30,
+    "tallChip": "ทรงสูง 10",
+    "storageChip": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2",
+    "pill29": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป)",
+    "pageOverflowPx": 0,
+    "chipsRowOverflowPx": 0
+   },
+   "w360": {
+    "chips": [
+     "button-filter-all=ทั้งหมด 30",
+     "button-filter-selected=อ่างที่เลือก 0",
+     "button-filter-counter=เคาน์เตอร์ 18",
+     "button-filter-tall=ทรงสูง 10",
+     "button-filter-category-storage=เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2"
+    ],
+    "cards": 30,
+    "tallChip": "ทรงสูง 10",
+    "storageChip": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป) 2",
+    "pill29": "เสาวางของตั้งพื้น (ชุดสำเร็จรูป)",
+    "pageOverflowPx": 7,
+    "chipsRowOverflowPx": 25
+   }
+  },
+  "withApi": {
+   "w1440": {
+    "chips": [
+     "button-filter-all=ทั้งหมด 30",
+     "button-filter-selected=อ่างที่เลือก 0",
+     "button-filter-counter=เคาน์เตอร์ 18",
+     "button-filter-tall=ทรงสูง 10",
+     "button-filter-category-storage=เสาวางของตั้งพื้น 2"
+    ],
+    "cards": 30,
+    "tallChip": "ทรงสูง 10",
+    "storageChip": "เสาวางของตั้งพื้น 2",
+    "pill29": "เสาวางของตั้งพื้น",
+    "pageOverflowPx": 0,
+    "chipsRowOverflowPx": 0
+   },
+   "w360": {
+    "chips": [
+     "button-filter-all=ทั้งหมด 30",
+     "button-filter-selected=อ่างที่เลือก 0",
+     "button-filter-counter=เคาน์เตอร์ 18",
+     "button-filter-tall=ทรงสูง 10",
+     "button-filter-category-storage=เสาวางของตั้งพื้น 2"
+    ],
+    "cards": 30,
+    "tallChip": "ทรงสูง 10",
+    "storageChip": "เสาวางของตั้งพื้น 2",
+    "pill29": "เสาวางของตั้งพื้น",
+    "pageOverflowPx": 0,
+    "chipsRowOverflowPx": 0
+   }
+  },
+  "search": [
+   {
+    "q": "เสา",
+    "n": 2,
+    "none": false
+   },
+   {
+    "q": "พื้ น",
+    "n": 0,
+    "none": true
+   },
+   {
+    "q": "ทรงสูง",
+    "n": 10,
+    "none": false
+   },
+   {
+    "q": "storage",
+    "n": 2,
+    "none": false
+   }
+  ],
+  "storageChipClick": {
+   "n": 2,
+   "skus": [
+    "KF029",
+    "KF030"
+   ]
+  },
+  "shots": [
+   "chips-with-api-1440.png",
+   "chips-with-api-360.png"
+  ]
+ }
+}
