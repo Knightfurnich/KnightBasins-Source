@@ -140,3 +140,70 @@ describe("the UI does not read the static bowl-shape table (441-B ข้อ C)",
       "the database wording is searchable, so typing เสา finds KF029/KF030");
   });
 });
+
+describe("no raw machine id reaches the customer, in any mode (441-B v2 C2)", () => {
+  const RAW_IDS = ["storage", "counter basin", "tall vertical washbasin"];
+  const isRaw = (text: string) => RAW_IDS.some((id) => text.toLowerCase().includes(id));
+
+  const worlds: Array<[string, CatalogueFacts, ReadonlyArray<string>, ReadonlyArray<BasinProduct>]> = [
+    ["before the API answers", EMPTY_CATALOGUE_FACTS, [], models],
+    ["offline, table known but facts missing", EMPTY_CATALOGUE_FACTS, tableCategories, models],
+    ["API answered", FACTS, tableCategories, models],
+    ["API answered, table lists all three ids", FACTS, [...tableCategories, "storage"], models],
+    ["API answered but no product is shown", FACTS, [...tableCategories, "storage"], []],
+    ["no facts and no product", EMPTY_CATALOGUE_FACTS, [...tableCategories, "storage"], []],
+  ];
+
+  for (const [name, facts, table, products] of worlds) {
+    it(`chips: ${name}`, () => {
+      const chips = buildCatalogueChips(products, table, productCategoryLabel, facts);
+      for (const chip of chips) {
+        assert.ok(chip.label.trim(), `empty label for ${chip.value}`);
+        assert.ok(!isRaw(chip.label), `raw id printed on a chip: "${chip.label}" (${chip.value})`);
+      }
+    });
+  }
+
+  it("an empty group is shown in Thai, not by its id", () => {
+    const labels = new Map(buildCatalogueChips([], ["counter basin", "tall vertical washbasin", "storage"], productCategoryLabel, EMPTY_CATALOGUE_FACTS).map((chip) => [chip.value, chip.label]));
+    assert.equal(labels.get("counter basin"), "เคาน์เตอร์");
+    assert.equal(labels.get("tall vertical washbasin"), "ทรงสูง");
+    assert.equal(labels.get("storage"), "เสาวางของตั้งพื้น");
+  });
+
+  it("an English-only name nobody translated gets no chip; a Thai name keeps its own", () => {
+    const chips = buildCatalogueChips([], ["wall basin", "อ่างติดผนัง", "Storage"], productCategoryLabel, EMPTY_CATALOGUE_FACTS);
+    assert.deepEqual(chips.map((chip) => chip.value), ["อ่างติดผนัง", "Storage"], "wall basin is hidden; Storage maps to its Thai wording");
+    assert.equal(chips[0].label, "อ่างติดผนัง");
+    assert.equal(chips[1].label, "เสาวางของตั้งพื้น");
+  });
+
+  it("a row whose label is the raw id is not trusted as wording", () => {
+    const dirty = indexCatalogueRowFacts([{ sku: "KF029", category: "storage", categoryLabel: "storage" }]);
+    const label = catalogueGroupLabel(pillar, productCategoryLabel, dirty);
+    assert.ok(!isRaw(label), `got "${label}"`);
+    assert.equal(label, "เสาวางของตั้งพื้น");
+    const rawCounter = indexCatalogueRowFacts([{ sku: "KF003", category: "counter basin", categoryLabel: "Counter Basin" }]);
+    assert.equal(catalogueGroupLabel(counter, productCategoryLabel, rawCounter), "เคาน์เตอร์");
+  });
+
+  it("every card pill that shows wording is Thai (all 30 live rows, both worlds)", () => {
+    for (const facts of [EMPTY_CATALOGUE_FACTS, FACTS]) {
+      for (const model of models) {
+        const text = catalogueGroupLabel(model, productCategoryLabel, facts);
+        assert.ok(!isRaw(text), `${model.sku}: "${text}"`);
+        assert.match(text, /[฀-๿]/, `${model.sku} wording is not Thai`);
+      }
+    }
+  });
+
+  it("App.tsx has no helper that falls back to the raw name, and chips print item.label only", () => {
+    const app = codeOnly("../src/App.tsx");
+    assert.doesNotMatch(app, /legacyCategoryLabels/, "the `?? name` fallback helper must stay deleted");
+    assert.doesNotMatch(app, /function categoryLabel\(/);
+    assert.match(app, /\{item\.label\} \{categoryCounts\.get\(item\.value\)/, "the chip text is the resolved wording");
+    const tabs = app.slice(app.indexOf('className="filter-tabs'), app.indexOf('className="sort-field"'));
+    assert.ok(tabs.includes("catalogueChips.map"), "the chip row is the one built by buildCatalogueChips");
+    assert.doesNotMatch(tabs, /[>\s]\{item\.(value|name)\}|categoryLabel\(/, "a chip never prints its id");
+  });
+});

@@ -1,4 +1,4 @@
-import { isFreestandingPillarProduct, productCategoryLabel, type BasinProduct } from "../data/catalog.ts";
+import { isFreestandingPillarProduct, STORAGE_CATEGORY_LABEL, type BasinProduct } from "../data/catalog.ts";
 
 /**
  * job 441-B — the row-level category facts of the storefront.
@@ -74,13 +74,50 @@ export function catalogueGroupValue(product: BasinProduct, facts: CatalogueFacts
   return product.category;
 }
 
-/** The Thai chip/card wording: `categoryLabel` from the row, else the data layer's own label. */
+/**
+ * job 441-B v2 / C2 — machine category ids are not wording. The three the catalogue files rows
+ * under are mapped to the Thai text the data layer / API already uses; nothing is invented here.
+ */
+const MACHINE_CATEGORY_WORDING: Readonly<Record<string, string>> = {
+  "counter basin": "เคาน์เตอร์",
+  "tall vertical washbasin": "ทรงสูง",
+  [SHELF_SET_ROW_CATEGORY]: STORAGE_CATEGORY_LABEL,
+};
+
+const THAI_LETTER = /[฀-๿]/;
+
+function knownWording(name: string): string | undefined {
+  const key = name.trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(MACHINE_CATEGORY_WORDING, key) ? MACHINE_CATEGORY_WORDING[key] : undefined;
+}
+
+/** True for the raw ids (`storage`, `counter basin`, `tall vertical washbasin`) in any letter case. */
+export function isMachineCategoryId(text: string): boolean {
+  return knownWording(text) !== undefined;
+}
+
+/**
+ * The wording a customer may read for a category *name* that has no product under it: the Thai
+ * text of a known id, or the name itself when it is already Thai. Anything else (an English-only
+ * name nobody translated) is `null` - the caller hides it instead of printing the raw word.
+ */
+export function customerCategoryWording(name: string): string | null {
+  return knownWording(name) ?? (THAI_LETTER.test(name) ? name.trim() : null);
+}
+
+/**
+ * The Thai chip/card wording: `categoryLabel` from the row, else the data layer's own label.
+ * A label that is just a raw machine id is not wording (C2) and is replaced by its Thai text.
+ */
 export function catalogueGroupLabel(
   product: BasinProduct,
   fallback: (product: BasinProduct) => string,
   facts: CatalogueFacts,
 ): string {
-  return catalogueRowFacts(product.sku, facts)?.categoryLabel || fallback(product);
+  const fromRow = catalogueRowFacts(product.sku, facts)?.categoryLabel;
+  if (fromRow && !isMachineCategoryId(fromRow)) return fromRow;
+  const fromModel = fallback(product);
+  return knownWording(fromModel) ?? knownWording(fromRow ?? "") ?? fromModel;
 }
 
 export type CatalogueChip = {
@@ -118,9 +155,12 @@ export function buildCatalogueChips(
     if (seen.has(value)) return;
     const members = grouped.get(value) ?? [];
     seen.add(value);
+    // C2: a group with no product used to print its raw id. It now prints Thai wording, or no chip.
+    const label = members.length ? catalogueGroupLabel(members[0], fallback, facts) : customerCategoryWording(value);
+    if (!label) return;
     chips.push({
       value,
-      label: members.length ? catalogueGroupLabel(members[0], fallback, facts) : value,
+      label,
       count: members.length,
       fromRowsOnly,
     });
