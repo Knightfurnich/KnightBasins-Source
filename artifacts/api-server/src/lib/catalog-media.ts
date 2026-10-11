@@ -53,13 +53,16 @@ export function basinImageUrl(sku: string) {
 }
 
 /**
- * job 437-C: main photos the owner has confirmed show a room, not the basin. The database row is not touched (the owner
+ * job 437-C / 444-C: main photos the owner has confirmed show a room, not the basin. The database row is not touched (the owner
  * rules out writes to production); the API swaps the photo on the way out, and only while the row still holds exactly
  * this upload — an upload saved in the admin later replaces it and wins. The replacement is the basin's own HD picture.
  * One entry per model, and only after the owner confirmed that model.
  */
 const CONFIRMED_WRONG_MAIN_IMAGE_UPLOADS: Readonly<Record<string, string>> = {
   KF003: "catalog-mua05rff-0a5b2aa03a5e73f7.jpg",
+  // job 444-C: both main photos are staged rooms (a gallery, a garden), the HD picture shows the product itself.
+  KF029: "catalog-mua0uv6t-6faac953cb2afa8f.jpg",
+  KF030: "catalog-mua0v6co-ad9c127a613b9d23.jpg",
 };
 
 function isConfirmedWrongMainImage(sku: string, storedUrl: string) {
