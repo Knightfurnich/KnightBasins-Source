@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { contactPhonesCommaText } from "@/data/contact-channels";
 import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, MessageCircle, Search, X } from "lucide-react";
@@ -316,7 +317,7 @@ export function PortfolioPage() {
         )}
 
         <p className="text-center text-xs text-[var(--ink-soft)] border-t border-[var(--line)] pt-5">
-          ภาพทั้งหมดเป็นผลงานติดตั้งจริงของ บริษัท ไนท์ เฟอร์นิช จำกัด · สอบถามงานสั่งผลิต โทร 094-496-1949, 089-762-2209
+          ภาพทั้งหมดเป็นผลงานติดตั้งจริงของ บริษัท ไนท์ เฟอร์นิช จำกัด · สอบถามงานสั่งผลิต โทร {contactPhonesCommaText()}
         </p>
       </main>
 

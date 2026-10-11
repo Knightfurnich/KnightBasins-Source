@@ -1,4 +1,15 @@
 /**
+ * A quotation's price stands for QUOTE_PRICE_VALID_DAYS; the saved link keeps
+ * opening for QUOTE_LINK_VALID_DAYS. Both were printed to customers (30 in the
+ * quote screens, 45 on the expired screen) so the pair lives here (job 431-B F).
+ */
+export const QUOTE_PRICE_VALID_DAYS = 30;
+export const QUOTE_LINK_VALID_DAYS = 45;
+
+/** Collecting work at the plant runs on its own clock -- not sales hours. */
+export const PLANT_PICKUP_HOURS = "จันทร์–ศุกร์ 08:30–16:30 · เสาร์ 08:30–11:30 (ติดต่อล่วงหน้า)";
+
+/**
  * job 422-B C: every phone number a customer can *read* on the storefront comes from here.
  *
  * Rules this file enforces (measured by test/customer-facing-consistency.test.ts):
@@ -32,6 +43,11 @@ export function telHref(displayPhone: string): string {
 /** One string for a line of copy: "094-496-1949 · 091-978-2292 · 089-762-2209". */
 export function contactPhonesText(phones: readonly string[] = CONTACT_PHONES): string {
   return phones.join(" · ");
+}
+
+/** Same three numbers, comma separated, for places whose copy already used "tel A, tel B". */
+export function contactPhonesCommaText(phones: readonly string[] = CONTACT_PHONES): string {
+  return phones.join(", ");
 }
 
 /**

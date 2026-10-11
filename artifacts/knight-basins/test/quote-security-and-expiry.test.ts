@@ -4,6 +4,7 @@ import { stripTypeScriptTypes } from "node:module";
 import { test } from "node:test";
 
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+const channelsSource = readFileSync(new URL("../src/data/contact-channels.ts", import.meta.url), "utf8");
 // SavedQuotePage takes the live stone list as a prop since job-210, so match its name rather than an empty "()".
 const savedQuoteStart = appSource.indexOf("function SavedQuotePage(");
 const savedQuoteEnd = appSource.indexOf("function ", savedQuoteStart + "function SavedQuotePage(".length);
@@ -18,7 +19,8 @@ test("saved customer quote only prints and displays the formal quote", () => {
   assert.doesNotMatch(savedQuoteSource, /quote-sheet-type-switch/);
   assert.doesNotMatch(savedQuoteSource, /WorkshopProductionSheet/);
   assert.match(savedQuoteSource, /<FormalQuote\b/);
-  assert.match(savedQuoteSource, /ใช้ได้ถึง \{formatQuoteDate\(expiryDate\)\} · 30 วัน/);
+  assert.match(savedQuoteSource, /ใช้ได้ถึง \{formatQuoteDate\(expiryDate\)\} · \{QUOTE_PRICE_VALID_DAYS\} วัน/);
+  assert.match(channelsSource, /export const QUOTE_PRICE_VALID_DAYS = 30;/);
 });
 
 test("the public quote builder does not expose workshop production documents", () => {
@@ -37,6 +39,10 @@ test("expired quote API errors show the expiration notice and sales contact acti
   assert.match(savedQuoteSource, /button-contact-expired-quote-line/);
   assert.match(savedQuoteSource, /button-contact-expired-quote-phone/);
   assert.match(savedQuoteSource, /เกิน 45 วัน/);
+  // 45 stays a boss-approved literal; pin it against the shared constant so the two
+  // cannot drift apart (job 431-B F).
+  assert.match(channelsSource, /export const QUOTE_LINK_VALID_DAYS = 45;/);
+  assert.match(channelsSource, /export const QUOTE_PRICE_VALID_DAYS = 30;/);
 });
 
 // ---------------------------------------------------------------------------------------------------------

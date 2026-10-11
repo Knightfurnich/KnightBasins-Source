@@ -72,7 +72,7 @@ describe("StonePage wiring (static source inspection)", () => {
   it("is mounted at the end of StonePage's page-wrap, right after the source-note", () => {
     assert.match(
       appSource,
-      /source-note">.*ราคายังไม่รวม VAT 7%<\/div><StoneComparisonTable \/><\/div>;/,
+      /source-note">.*(?:VAT \{VAT_PERCENT_LABEL\}|VAT 7%)<\/div><StoneComparisonTable \/><\/div>;/
     );
   });
 });
