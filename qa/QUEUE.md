@@ -2,7 +2,7 @@
 
 > **ฉบับ:** **R6.3** · 11 ต.ค. 69 · เจ้าของไฟล์: เดวิด · **แก้ไฟล์นี้แทนการส่งข้อความแยกหลายครั้ง**
 > **วิธีใช้:** ผู้รับงานอ่านไฟล์นี้เป็น "คำสั่งที่ใช้จริง" · บอสส่ง **ลิงก์/ข้อความเดียวต่อคนต่อรอบ** · **ถ้าข้อความในแชทขัดกับไฟล์นี้ ให้ยึดไฟล์นี้**
-> **สถานะกระดาน:** **ไม่มี PR เปิดค้าง** · main ล่าสุด `7e47912e` (audit ใบซ้ำ)
+> **สถานะกระดาน:** **ไม่มี PR เปิดค้าง** · main ล่าสุด `a00284a` (QUEUE R6.3) · **baseline วัดสด (Linux):** api 1,329/1,329/0 · web 1,399/1,357/0/ข้าม 42
 
 ---
 
@@ -10,7 +10,8 @@
 
 ### 1) **458-B — บอย (Qwen)** · 🟡 กำลังทำ · จะส่งรอบนี้
 **เรื่อง:** รวม header ของหน้าเดี่ยวให้เป็นระบบเดียว — `/readme` · `/site-prep` · `/portfolio` · `/price-guide`
-**ขอบเขต (ฉบับแก้ 1):** บล็อกที่แชร์วางใน `src/components/**` · แตะ `src/components/SalesGuide.tsx` เฉพาะ header/nav · `src/pages/{SitePrepPage,PortfolioPage,PriceGuidePage}.tsx`
+**ขอบเขต (ใบฉบับ 2 — รวมฉบับแก้ 1):** บล็อกที่แชร์วางใน `src/components/**` · แตะ `src/components/SalesGuide.tsx` เฉพาะ header/nav · `src/pages/{SitePrepPage,PortfolioPage,PriceGuidePage}.tsx` (PortfolioPage = เฉพาะ header)
+**ข้อ F (ใหม่):** ห้ามทำของ #554/#551 ถอยหลัง (คอนทราสต์ ≥4.5:1 · `/price-guide` ในเมนูหลัก · ตะกร้า ≥44px · ชิปไม่มีคำอังกฤษดิบ)
 **ห้ามแตะ:** `src/App.tsx` · `src/index.css` · เนื้อหาราคา/`.pg-*` ของ `/price-guide` · `src/data/**` · `artifacts/api-server/**`
 **ต้องแนบ:** ตารางวัด 390/360/768/1440 (`scrollWidth − clientWidth = 0`) + ความสูง header เท่ากันทุกหน้า · ภาพก่อน/หลัง 8 ใบ (`qa/images/boy-round25/`) · เทสต์ล็อก shared header + พิสูจน์สองทาง · tsc 0 · `qa/report-boy-round25-shared-header-20261011.md` ผ่าน PR
 **รายละเอียดเต็ม:** `qa/job-458-boy-shared-header.md`
