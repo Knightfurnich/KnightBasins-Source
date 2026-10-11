@@ -336,7 +336,7 @@ export function TechnicianTeamsManager() {
         {teamsQuery.isLoading ? (
           <div className="space-y-2" aria-label="กำลังโหลดรายชื่อทีม" data-testid="status-technician-team-loading">
             {[0, 1, 2].map((item) => (
-              <div key={item} className="grid min-h-16 grid-cols-3 items-center gap-4 border border-[var(--line)] bg-[var(--card-paper)] p-4 rounded-none">
+              <div key={item} className="grid min-h-16 grid-cols-1 items-center gap-1 min-[820px]:grid-cols-3 min-[820px]:gap-0 items-stretch min-[820px]:items-center gap-4 border border-[var(--line)] bg-[var(--card-paper)] p-4 rounded-none">
                 <span className="h-3 w-2/3 animate-pulse bg-[var(--line)]" />
                 <span className="h-3 w-1/2 animate-pulse bg-[var(--line)]" />
                 <span className="ml-auto h-8 w-24 animate-pulse bg-[var(--line)]" />

@@ -789,7 +789,7 @@ export function TechnicianCalendarPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] space-y-5" data-testid="technician-calendar-page">
+    <div className="admin-calendar-shell mx-auto w-full max-w-[1500px] space-y-5" data-testid="technician-calendar-page">
       <header className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[12px] font-medium uppercase tracking-[0.2em] text-[var(--brand-blue)]">Dispatch / calendar</p>
@@ -1025,7 +1025,7 @@ export function TechnicianCalendarPage() {
 
           {viewMode === "month" ? (
             <>
-              <div className="grid grid-cols-7 border-b border-[var(--line)] bg-[var(--paper)]" aria-label="วันในสัปดาห์">
+              <div className="admin-week-grid grid grid-cols-7 border-b border-[var(--line)] bg-[var(--paper)]" aria-label="วันในสัปดาห์">
                 {WEEKDAYS.map((weekday, index) => (
                   <div
                     key={weekday}
@@ -1038,7 +1038,7 @@ export function TechnicianCalendarPage() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-px bg-[var(--line)]" data-testid="calendar-month-grid">
+              <div className="admin-week-grid grid grid-cols-7 gap-px bg-[var(--line)]" data-testid="calendar-month-grid">
                 {calendarCells.map((day, cellIndex) => {
                   if (!day) {
                     return <div key={`empty-${cellIndex}`} className="min-h-[96px] bg-[var(--card-paper)] sm:min-h-[136px]" aria-hidden="true" />;

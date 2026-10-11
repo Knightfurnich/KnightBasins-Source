@@ -418,7 +418,7 @@ function BasinFormDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col overflow-hidden">
             <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="admin-form-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <FormField control={form.control} name="sku" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">SKU</FormLabel>
@@ -460,7 +460,7 @@ function BasinFormDialog({
                 )} />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="admin-form-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <FormField control={form.control} name="colorCode" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">รหัสสี</FormLabel>
@@ -477,7 +477,7 @@ function BasinFormDialog({
                 )} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="admin-form-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <FormField control={form.control} name="priceTHB" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ราคา (บาท)</FormLabel>
@@ -495,7 +495,7 @@ function BasinFormDialog({
                 )} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="admin-form-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <FormField control={form.control} name="dimensions" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">ขนาดโดยรวม</FormLabel>
