@@ -118,6 +118,53 @@ const emptyCustomer: CustomerDetails = {
 };
 const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
 
+/**
+ * job 439-B — the bowl-shape line on a basin card (so KF003 and KF006 stop
+ * looking like the same product).
+ *
+ * The wording is the catalogue's to own, not ours: job 438-C (Chai) adds the
+ * field, so every read goes through this one accessor. `bowlShapeText` is the
+ * name I asked David/Chai to confirm; the extra candidates are tolerated while
+ * the name is still open. Crucially, **an unknown key resolves to nothing** -- a
+ * model whose shape we have no data for must render no line at all, never a
+ * sentence we guessed (FORBIDDEN: no hard-coded shape wording, no invented data).
+ */
+const BOWL_SHAPE_KEYS = ["bowlShapeText", "bowlShape", "bowlShapeTH"] as const;
+
+/**
+ * `basinProductFromCatalog` (src/data/catalog.ts, owned by job 438-C) rebuilds each
+ * card model from an explicit field list, so a *new* catalogue column would be
+ * dropped on the way in. We therefore keep our own copy read from the raw
+ * `/api/catalog` rows -- the same rows the field is added to -- and never from a
+ * mapped object. Resynced on every catalogue load, so nothing sticks around when a
+ * value disappears.
+ */
+const bowlShapeBySku = new Map<string, string>();
+
+export function syncBowlShapesFromCatalog(rows: unknown): void {
+  bowlShapeBySku.clear();
+  if (!Array.isArray(rows)) return;
+  for (const row of rows) {
+    const sku = typeof (row as { sku?: unknown })?.sku === "string" ? (row as { sku: string }).sku : "";
+    const label = bowlShapeLabel(row);
+    if (sku && label) bowlShapeBySku.set(sku, label);
+  }
+}
+
+export function bowlShapeForSku(sku: string): string {
+  return bowlShapeBySku.get(sku) ?? "";
+}
+
+export function bowlShapeLabel(product: unknown): string {
+  if (typeof product !== "object" || product === null) return "";
+  const record = product as Record<string, unknown>;
+  for (const key of BOWL_SHAPE_KEYS) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
 function formatStonePrice(price: number | null) {
   return price === null ? "—" : formatTHB(price);
 }
@@ -500,6 +547,10 @@ function ProductCard({ sku, cart, onToggle, onRequestQuote }: { sku: string; car
        <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} hoverImageUrl={product.quoteImageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isPillarSet ? "READY-MADE PILLAR SET" : isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{galleryImages.length > 1 && <BasinGalleryTrigger images={galleryImages} alt={`${product.sku} ${product.colorName}`} />}{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
        <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3>{isPillarSet && <p className="eyebrow" data-testid={`label-product-category-${sku}`}>{productCategoryLabel(product)}</p>}</div></div>
        <div className="product-specs"><span>{product.dimensions}</span><span>{productSpecLabel(product)}</span></div>
+      {/* Only ever rendered from catalogue data (see bowlShapeLabel); empty => no node. */}
+      {bowlShapeForSku(product.sku) && (
+        <p className="mt-1 truncate text-xs text-[var(--ink-soft)]" title={bowlShapeForSku(product.sku)} data-testid="text-basin-bowl-shape">{bowlShapeForSku(product.sku)}</p>
+      )}
        <strong className="product-price">{formatTHB(product.priceTHB)}<small className="product-price-unit"> / ชุด</small></strong>
         <div className="product-card-actions" role="group" aria-label={`ตัวเลือกการสั่งซื้อ ${product.sku}`}>
           <button
@@ -1972,6 +2023,7 @@ function Storefront() {
     const catalogChanged = lastCatalogFingerprint.current !== null && lastCatalogFingerprint.current !== catalogFingerprint;
     lastCatalogFingerprint.current = catalogFingerprint;
     PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
+    syncBowlShapesFromCatalog(remoteCatalog.basins);
     const wholeSheet = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "whole-sheet");
     const installed = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "installed");
     const all = stoneColorsFromCatalog(remoteCatalog.installedStones, remoteCatalog.sheetStones);
