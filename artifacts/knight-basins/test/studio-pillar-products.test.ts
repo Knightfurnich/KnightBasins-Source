@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   addBasinToQuote,
+  basinProductFromCatalog,
   isFreestandingPillarProduct,
   PILLAR_PRODUCT_LABEL,
   PILLAR_PRODUCT_PURCHASE_NOTE,
@@ -25,11 +26,13 @@ test("the catalog keeps both ready-made pillar sets at 16,000 THB and labels the
     assert.equal(product.priceTHB, 16000);
     // job 441-B: the database files both sets under category "storage" and sends the wording itself
     assert.equal(product.category, "storage");
-    assert.equal(product.categoryLabel, "เสาวางของตั้งพื้น");
+    assert.equal(product.categoryLabel, undefined, "the built-in rows carry the machine category only - no wording invented in code");
     assert.equal(isFreestandingPillarProduct(product), true);
-    assert.equal(productCategoryLabel(product), "เสาวางของตั้งพื้น");
-    assert.equal(productCategoryLabel({ ...product, categoryLabel: undefined }), PILLAR_PRODUCT_LABEL,
-      "without the API wording the built-in label is still accurate");
+    // no wording from the API yet => the copy this repo has carried since job-279
+    assert.equal(productCategoryLabel(product), PILLAR_PRODUCT_LABEL);
+    // once the API answers, its text wins verbatim (job 440-C sends categoryLabel per row)
+    const apiRow = basinProductFromCatalog({ ...product, category: "storage", categoryLabel: "เสาวางของตั้งพื้น" } as never);
+    assert.equal(productCategoryLabel(apiRow), "เสาวางของตั้งพื้น", "the card prints what the database says");
     assert.equal(productSpecLabel(product), PILLAR_PRODUCT_PURCHASE_NOTE);
     assert.match(productQuoteDescription(product), /เสาวางของตั้งพื้น \(ชุดสำเร็จรูป\).*ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์/);
     assert.doesNotMatch(productCategoryLabel(product), /ทรงสูง/, "a pillar set is never sold as a tall basin");
@@ -60,7 +63,7 @@ test("2D Studio excludes the freestanding pillar sets and dimensionless tall pro
   assert.equal(isFreestandingPillarProduct(dimensionlessCounterBasin), false);
 
   // job 441-B: a pillar row the built-in list has never heard of is still detected from the database category
-  const unknownStorageRow = { sku: "KF031", colorCode: "ZZ001", colorName: "New Pillar", priceTHB: 16000, category: "storage", categoryLabel: "เสาวางของตั้งพื้น", dimensions: "400 × 400 × 1000 mm", basinDimensions: undefined, imageTone: "#717779" };
+  const unknownStorageRow = { sku: "KF031", colorCode: "ZZ001", colorName: "New Pillar", priceTHB: 16000, category: "storage", dimensions: "400 × 400 × 1000 mm", basinDimensions: undefined, imageTone: "#717779" };
   assert.equal(isFreestandingPillarProduct(unknownStorageRow), true);
   assert.equal(studioCutoutBasinProducts([...PRODUCTS, unknownStorageRow]).some((p) => p.sku === "KF031"), false);
 });

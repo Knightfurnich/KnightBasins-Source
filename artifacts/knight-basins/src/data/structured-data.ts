@@ -1,5 +1,5 @@
 import type { PortfolioCategory, PortfolioPhoto } from "@/pages/PortfolioPage";
-import type { BasinProduct } from "@/data/catalog";
+import { productCategoryLabel, type BasinProduct } from "./catalog.ts";
 import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
 const SITE = "https://knightbasins.com";
@@ -403,7 +403,14 @@ export function buildBasinProductsJsonLd(products: ReadonlyArray<BasinProduct>):
       "@id": `${SITE}/#product-${product.sku}`,
       name: `Knight Basins ${product.sku}`,
       sku: product.sku,
-      description: `อ่างล้างหน้าหินสังเคราะห์ Knight Basins รุ่น ${product.sku} สี ${product.colorName} (${product.colorCode}) ขนาดเคาน์เตอร์ ${product.dimensions}${product.basinDimensions ? ` หลุมอ่าง ${product.basinDimensions}` : ""}`,
+      /**
+       * job 441-B: the sentence used to start with "อ่างล้างหน้าหินสังเคราะห์" for every row, which told
+       * Google and every AI crawler that KF029 / KF030 — a freestanding shelf the owner does not sell as a basin —
+       * was a wash basin. The kind is now whatever `productCategoryLabel` reads out of the catalogue, and the size
+       * is no longer called "ขนาดเคาน์เตอร์" on models that are not counter basins.
+       */
+      description: `${productCategoryLabel(product)} · หินสังเคราะห์ Knight Basins รุ่น ${product.sku} สี ${product.colorName} (${product.colorCode}) ขนาดรวม ${product.dimensions}${product.basinDimensions ? ` หลุมอ่าง ${product.basinDimensions}` : ""}`,
+      category: productCategoryLabel(product),
       ...(product.imageUrl ? { image: absoluteImageUrl(product.imageUrl) } : {}),
       offers: {
         "@type": "Offer",

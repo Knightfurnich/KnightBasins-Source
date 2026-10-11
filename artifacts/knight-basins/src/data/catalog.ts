@@ -637,29 +637,29 @@ const tallProducts: Array<[string, string, string, number, string, string | unde
 ];
 
 /**
- * job 441-B: the two ready-made pillar sets are not basins. The database files them under category `storage` and sends
- * the wording "เสาวางของตั้งพื้น", so the built-in rows now say the same thing instead of `tall vertical washbasin`
- * (which is why the live catalogue counted KF029 / KF030 inside the "ทรงสูง" chip).
+ * job 441-B: the two ready-made pillar sets are not basins, and the database files them under category `storage`.
+ * The built-in rows carry that *machine* value only — the Thai wording is never written in code here: `GET /api/catalog`
+ * sends `categoryLabel` and `productCategoryLabel` prints exactly what the catalogue said (the job FORBIDS inventing
+ * category copy). Until the API answers, a pillar set reads through `PILLAR_PRODUCT_LABEL`, the copy this repo has
+ * used since job-279, and the live catalogue count stops folding them into "ทรงสูง".
  */
-const PILLAR_PRODUCT_CATALOG_FIELDS: Record<string, Pick<BasinProduct, "category" | "categoryLabel">> = {
-  KF029: { category: "storage", categoryLabel: "เสาวางของตั้งพื้น" },
-  KF030: { category: "storage", categoryLabel: "เสาวางของตั้งพื้น" },
-};
+function pillarCatalogFields(sku: string): { category?: string } {
+  return pillarProductSkuSet.has(sku.toUpperCase()) ? { category: PILLAR_PRODUCT_CATEGORY } : {};
+}
 
-export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, colorName, priceTHB, dimensions, basinDimensions], index) => {
-  const pillarFields = PILLAR_PRODUCT_CATALOG_FIELDS[sku];
-  return {
-    sku,
-    colorCode,
-    colorName,
-    priceTHB,
-    category: pillarFields?.category ?? "tall vertical washbasin",
-    categoryLabel: pillarFields?.categoryLabel,
-    dimensions,
-    basinDimensions,
-    imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
-  };
-});;
+export const TALL_PRODUCTS: BasinProduct[] = tallProducts.map(([sku, colorCode, colorName, priceTHB, dimensions, basinDimensions], index) => ({
+  sku,
+  colorCode,
+  colorName,
+  priceTHB,
+  category: "tall vertical washbasin",
+  dimensions,
+  basinDimensions,
+  imageTone: ["#717779", "#dfe0d7", "#a59b84", "#e6e2d5", "#4d5050", "#cac9c0"][index % 6],
+  ...pillarCatalogFields(sku),
+}));
+
+;
 ;
 
 /**

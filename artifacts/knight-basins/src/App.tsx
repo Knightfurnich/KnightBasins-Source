@@ -657,8 +657,8 @@ function HomePage({ cart, setCart, categories, products = PRODUCTS, onRequestQuo
   const categoryWordings = useMemo(() => {
     const wording = new Map<string, string>();
     for (const product of products) {
-      const label = product.categoryLabel?.trim();
-      if (label && !wording.has(product.category)) wording.set(product.category, label);
+      // job 441-B: the same helper that labels the card names the chip, so the two can never disagree
+      if (!wording.has(product.category)) wording.set(product.category, productCategoryLabel(product));
     }
     return wording;
   }, [products]);

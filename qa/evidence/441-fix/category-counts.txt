@@ -1,0 +1,5 @@
+# ตัวนับหมวด (จำนวนแถวจริง ไม่ใช่ตัวเลขตกแต่ง)
+# ก่อนแก้ = แถวที่มากับโค้ด (main@59950f7): {"counter basin":18,"tall vertical washbasin":12}
+# หลังแก้ = แถวที่มากับโค้ด (branch นี้):        {"counter basin":18,"tall vertical washbasin":10,"storage":2}
+# API วันนี้ (30 แถว):                {"counter basin":18,"tall vertical washbasin":10,"storage":2}
+# หัวข้อ chip จึงเป็น: อ่างวางเคาน์เตอร์ 18 · อ่างทรงสูง 10 · เสาวางของตั้งพื้น 2
