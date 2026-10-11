@@ -4134,9 +4134,9 @@ export function createAdminRouter(
     }
   });
 
-  // job 445-C: bowl shape / overflow hole of one basin. Its own route so the generic basin edit (which the form sends
-  // whole) can never blank these columns by accident. Both keys are required; null = "not specified" (the built-in table
-  // then answers). Every change is written to the audit trail with who made it.
+  // job 445-C: the bowl shape of one basin. Its own route so the generic basin edit (which the form sends whole) can
+  // never blank this column by accident. The shape key is required; null = "not specified" (the built-in table then
+  // answers). Every change is written to the audit trail with who made it.
   router.put("/admin/basins/:id/bowl-shape", requireAdminPermission("basins", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid basin id");

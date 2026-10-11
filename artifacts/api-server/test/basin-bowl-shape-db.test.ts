@@ -16,112 +16,126 @@ import {
 import { PRODUCTS } from "../../knight-basins/src/data/catalog.ts";
 import { importTypeScriptModule } from "./route-harness.ts";
 
-// job 445-C: bowl shape / overflow hole as two nullable columns on basin_prices, edited by the admin.
+// job 445-C (revision 2): bowl shape as ONE nullable column on basin_prices, edited by the admin. The overflow hole is a
+// made-to-order option, not a spec of the model: no column, no label wording, `bowlOverflowHole` is an always-null key.
 // Customer-visible values before and after the migration must be identical: an empty column means "ask the built-in table".
-// Names for Boy (446-B): columns bowl_shape + bowl_overflow_hole · API fields bowlShape + bowlOverflowHole (+ bowlShapeLabel, read-only)
-// · save with PUT /api/admin/basins/:id/bowl-shape  { "bowlShape": "oval" | null, "bowlOverflowHole": true | false | null }.
+// Names for Boy (446-B): column bowl_shape · API fields bowlShape (+ bowlShapeLabel, read-only; bowlOverflowHole always null)
+// · save with PUT /api/admin/basins/:id/bowl-shape  { "bowlShape": "oval" | null }.
 
 const migrationSql = readFileSync(new URL("../../../deploy/hostinger/migrations/025_basin_bowl_shape.sql", import.meta.url), "utf8");
 const codeOnly = migrationSql.split("\n").filter((line) => !line.trim().startsWith("--")).join("\n");
 
 describe("migration 025", () => {
-  it("is additive: two nullable columns, IF NOT EXISTS, nothing dropped, truncated or deleted", () => {
+  it("is additive: one nullable column, IF NOT EXISTS, nothing dropped, truncated or deleted", () => {
     assert.match(codeOnly, /ALTER TABLE basin_prices ADD COLUMN IF NOT EXISTS bowl_shape varchar\(24\);/);
-    assert.match(codeOnly, /ALTER TABLE basin_prices ADD COLUMN IF NOT EXISTS bowl_overflow_hole boolean;/);
-    assert.ok(!/\b(DROP|TRUNCATE|DELETE)\b/i.test(codeOnly), "no destructive statement");
-    assert.ok(!/NOT NULL/i.test(codeOnly), "the columns stay nullable");
-    assert.ok(!/\bDEFAULT\b/i.test(codeOnly), "no default: an empty column means 'not specified'");
+    assert.ok(!/bowl_overflow_hole|overflow/i.test(codeOnly), "no overflow-hole column (it is not a spec of the model)");
+    assert.ok(!/(DROP|TRUNCATE|DELETE)/i.test(codeOnly), "no destructive statement");
+    assert.ok(!/NOT NULL/i.test(codeOnly), "the column stays nullable");
+    assert.ok(!/DEFAULT/i.test(codeOnly), "no default: an empty column means 'not specified'");
+    assert.equal((codeOnly.match(/ADD COLUMN/g) ?? []).length, 1, "exactly one column");
   });
 
   it("seeds only KF003, KF006 and KF025, each guarded so an admin edit or a second run is never overwritten", () => {
     const updates = [...codeOnly.matchAll(/UPDATE basin_prices SET ([^;]+?)\s+WHERE ([^;]+);/gs)];
     assert.deepEqual(updates.map((m) => /sku = '(KF\d{3})'/.exec(m[2]!)?.[1]), ["KF003", "KF006", "KF025"]);
-    for (const m of updates) assert.match(m[2]!, /bowl_shape IS NULL AND bowl_overflow_hole IS NULL/, "guarded");
+    for (const m of updates) assert.match(m[2]!, /AND bowl_shape IS NULL$/, "guarded");
   });
 
   it("the seeded values equal what the built-in table says for those three models (customer sees the same before and after)", () => {
-    for (const m of codeOnly.matchAll(/UPDATE basin_prices SET ([^;]+?)\s+WHERE sku = '(KF\d{3})'/gs)) {
-      const sku = m[2]!;
-      const shape = /bowl_shape = '([a-z-]+)'/.exec(m[1]!)?.[1];
-      const holeText = /bowl_overflow_hole = (true|false)/.exec(m[1]!)?.[1];
-      const seeded = resolveBowlShape({ sku, bowlShape: shape, bowlOverflowHole: holeText === undefined ? null : holeText === "true" });
-      assert.equal(seeded.source, "database", sku);
-      assert.deepEqual(seeded.fields, bowlShapeFields(sku), sku);
+    const seeded = [...codeOnly.matchAll(/UPDATE basin_prices SET bowl_shape = '([a-z-]+)' WHERE sku = '(KF\d{3})'/g)];
+    assert.equal(seeded.length, 3);
+    for (const m of seeded) {
+      const out = resolveBowlShape({ sku: m[2]!, bowlShape: m[1] });
+      assert.equal(out.source, "database", m[2]);
+      assert.deepEqual(out.fields, bowlShapeFields(m[2]!), m[2]);
     }
   });
 
-  it("the schema names the columns bowl_shape and bowl_overflow_hole", () => {
+  it("the schema has the column bowl_shape and no overflow-hole column", () => {
     assert.equal(basinPrices.bowlShape.name, "bowl_shape");
-    assert.equal(basinPrices.bowlOverflowHole.name, "bowl_overflow_hole");
+    assert.ok(!("bowlOverflowHole" in basinPrices), "no bowlOverflowHole column in the schema");
   });
 });
 
 describe("what the customer sees (resolveBowlShape / withBasinBowlShape)", () => {
-  it("a database value wins over the built-in table, and the label is built from it", () => {
-    const out = resolveBowlShape({ sku: "KF002", bowlShape: "oval", bowlOverflowHole: true });
+  it("a database value wins over the built-in table, and the label is built from it in code", () => {
+    const out = resolveBowlShape({ sku: "KF002", bowlShape: "oval" });
     assert.equal(out.source, "database");
-    assert.deepEqual(out.fields, { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี มีรูน้ำล้น", bowlOverflowHole: true });
+    assert.deepEqual(out.fields, { bowlShape: "oval", bowlShapeLabel: "หลุมวงรี", bowlOverflowHole: null });
   });
 
   it("works for a model the built-in table does not know (the admin can specify KF007)", () => {
-    const out = withBasinBowlShape({ sku: "KF007", bowlShape: "oval", bowlOverflowHole: null });
-    assert.equal(out.bowlShape, "oval");
-    assert.equal(out.bowlShapeLabel, "หลุมวงรี");
+    const out = withBasinBowlShape({ sku: "KF007", bowlShape: "round" });
+    assert.equal(out.bowlShape, "round");
+    assert.equal(out.bowlShapeLabel, "หลุมกลม");
     assert.equal(out.bowlOverflowHole, null);
   });
 
   it("an empty column falls back to the built-in table; no table entry means nothing (null), never an error", () => {
-    assert.equal(resolveBowlShape({ sku: "KF002", bowlShape: null, bowlOverflowHole: null }).source, "builtin");
-    assert.deepEqual(resolveBowlShape({ sku: "KF002", bowlShape: null, bowlOverflowHole: null }).fields, bowlShapeFields("KF002"));
+    assert.equal(resolveBowlShape({ sku: "KF002", bowlShape: null }).source, "builtin");
+    assert.deepEqual(resolveBowlShape({ sku: "KF002", bowlShape: null }).fields, bowlShapeFields("KF002"));
     assert.deepEqual(resolveBowlShape({ sku: "KF007" }).fields, { bowlShape: null, bowlShapeLabel: null, bowlOverflowHole: null });
     assert.equal(resolveBowlShape({ sku: "KF007" }).source, "none");
     assert.equal(resolveBowlShape({ sku: "KF029", bowlShape: null }).source, "none");
   });
 
-  it("a value nobody should have written (unknown shape, hole without a shape) is ignored, not shown", () => {
-    assert.deepEqual(resolveBowlShape({ sku: "KF002", bowlShape: "triangle", bowlOverflowHole: true }).fields, bowlShapeFields("KF002"));
-    assert.equal(resolveBowlShape({ sku: "KF007", bowlShape: null, bowlOverflowHole: true }).source, "none");
+  it("a value nobody should have written (unknown shape) is ignored, not shown", () => {
+    assert.deepEqual(resolveBowlShape({ sku: "KF002", bowlShape: "triangle" }).fields, bowlShapeFields("KF002"));
+    assert.equal(resolveBowlShape({ sku: "KF007", bowlShape: "triangle" }).source, "none");
   });
 
-  it("BEFORE = AFTER: for all 30 models, a row before the migration (no columns), after it (only the 3 seeds) and with every column empty give the identical text", () => {
-    const seeds: Record<string, { bowlShape: string; bowlOverflowHole: boolean | null }> = {
-      KF003: { bowlShape: "rounded-rectangle", bowlOverflowHole: false },
-      KF006: { bowlShape: "oval", bowlOverflowHole: true },
-      KF025: { bowlShape: "round", bowlOverflowHole: null },
-    };
+  it("no label for any shape, any model and any database value says anything about an overflow hole; bowlOverflowHole is always null", () => {
+    for (const shape of BOWL_SHAPES) {
+      const out = withBasinBowlShape({ sku: "KF007", bowlShape: shape });
+      assert.ok(out.bowlShapeLabel && /^หลุม/.test(out.bowlShapeLabel), shape);
+      assert.ok(!/น้ำล้น/.test(out.bowlShapeLabel!), `${shape}: no overflow wording`);
+      assert.equal(out.bowlOverflowHole, null, shape);
+    }
+    for (const product of PRODUCTS) {
+      const out = withBasinBowlShape({ sku: product.sku, bowlShape: null });
+      assert.ok(!/น้ำล้น/.test(out.bowlShapeLabel ?? ""), product.sku);
+      assert.equal(out.bowlOverflowHole, null, product.sku);
+    }
+  });
+
+  it("BEFORE = AFTER: for all 30 models, a row before the migration (no column), after it (only the 3 seeds) and with the column empty give the identical text", () => {
+    const seeds: Record<string, string> = { KF003: "rounded-rectangle", KF006: "oval", KF025: "round" };
     assert.equal(PRODUCTS.length, 30);
     for (const product of PRODUCTS) {
       const triple = (o: { bowlShape: unknown; bowlShapeLabel: unknown; bowlOverflowHole: unknown }) => [o.bowlShape, o.bowlShapeLabel, o.bowlOverflowHole];
       const before = triple(withBasinBowlShape({ sku: product.sku }));
-      const afterSeeded = triple(withBasinBowlShape({ sku: product.sku, ...(seeds[product.sku] ?? { bowlShape: null, bowlOverflowHole: null }) }));
-      const afterEmpty = triple(withBasinBowlShape({ sku: product.sku, bowlShape: null, bowlOverflowHole: null }));
+      const afterSeeded = triple(withBasinBowlShape({ sku: product.sku, bowlShape: seeds[product.sku] ?? null }));
+      const afterEmpty = triple(withBasinBowlShape({ sku: product.sku, bowlShape: null }));
       assert.deepEqual(afterSeeded, before, `${product.sku} after the seed`);
-      assert.deepEqual(afterEmpty, before, `${product.sku} with empty columns`);
+      assert.deepEqual(afterEmpty, before, `${product.sku} with the column empty`);
       assert.deepEqual(before, triple(bowlShapeFields(product.sku)), `${product.sku} equals the built-in table`);
     }
   });
 
   it("adds nothing but the three keys: price, size, name, code, order and media of the row are untouched", () => {
-    const row = { sku: "KF003", colorCode: "RW316", priceTHB: 19000, dimensions: "600 × 800 × 200 mm", sortOrder: 2, imageUrl: "x", bowlShape: "rounded-rectangle", bowlOverflowHole: false };
+    const row = { sku: "KF003", colorCode: "RW316", priceTHB: 19000, dimensions: "600 × 800 × 200 mm", sortOrder: 2, imageUrl: "x", bowlShape: "rounded-rectangle" };
     const { bowlShape, bowlShapeLabel, bowlOverflowHole, ...rest } = withBasinBowlShape(row);
     assert.deepEqual(rest, { sku: "KF003", colorCode: "RW316", priceTHB: 19000, dimensions: "600 × 800 × 200 mm", sortOrder: 2, imageUrl: "x" });
     assert.equal(bowlShape, "rounded-rectangle");
-    assert.equal(bowlShapeLabel, "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น");
-    assert.equal(bowlOverflowHole, false);
+    assert.equal(bowlShapeLabel, "หลุมสี่เหลี่ยมมุมมน");
+    assert.equal(bowlOverflowHole, null);
   });
 });
 
 describe("parseBowlShapeInput", () => {
-  it("accepts every known shape with true / false / null, and null with null", () => {
-    for (const shape of BOWL_SHAPES) for (const hole of [true, false, null]) {
-      assert.deepEqual(parseBowlShapeInput({ bowlShape: shape, bowlOverflowHole: hole }), { ok: true, value: { bowlShape: shape, bowlOverflowHole: hole } });
-    }
-    assert.deepEqual(parseBowlShapeInput({ bowlShape: null, bowlOverflowHole: null }), { ok: true, value: { bowlShape: null, bowlOverflowHole: null } });
+  it("accepts every known shape, and null (clears the column)", () => {
+    for (const shape of BOWL_SHAPES) assert.deepEqual(parseBowlShapeInput({ bowlShape: shape }), { ok: true, value: { bowlShape: shape } });
+    assert.deepEqual(parseBowlShapeInput({ bowlShape: null }), { ok: true, value: { bowlShape: null } });
+  });
+
+  it("an older client may still send bowlOverflowHole: null, but never a value", () => {
+    assert.deepEqual(parseBowlShapeInput({ bowlShape: "oval", bowlOverflowHole: null }), { ok: true, value: { bowlShape: "oval" } });
+    assert.equal(parseBowlShapeInput({ bowlShape: "oval", bowlOverflowHole: true }).ok, false);
+    assert.equal(parseBowlShapeInput({ bowlShape: "oval", bowlOverflowHole: false }).ok, false);
   });
 
   it("rejects what would put a wrong value in the database", () => {
-    for (const bad of [null, "oval", [], {}, { bowlShape: "oval" }, { bowlOverflowHole: true }, { bowlShape: "triangle", bowlOverflowHole: null },
-      { bowlShape: "oval", bowlOverflowHole: "yes" }, { bowlShape: null, bowlOverflowHole: true }, { bowlShape: undefined, bowlOverflowHole: null }]) {
+    for (const bad of [null, "oval", [], {}, { bowlOverflowHole: null }, { bowlShape: "triangle" }, { bowlShape: 3 }, { bowlShape: undefined }]) {
       assert.equal(parseBowlShapeInput(bad).ok, false, JSON.stringify(bad));
     }
   });
@@ -187,7 +201,7 @@ function basinRow(id: number, sku: string, extra: Record<string, unknown> = {}):
     id, sku, colorCode: "WHT", colorName: "White", priceTHB: 19000, category: "counter basin", categoryId: null,
     dimensions: "600 × 800 × 200 mm", basinDimensions: "350 × 500 × 130 mm", bowlMm: "350 × 500 × 130 mm", imageTone: "light",
     imageUrl: "https://knightbasins.com/x.jpg", galleryImageUrls: [], quoteImageUrl: null, videoUrl: null, topViewImageUrl: null,
-    active: true, sortOrder: id, createdAt: now, updatedAt: now, bowlShape: null, bowlOverflowHole: null, ...extra,
+    active: true, sortOrder: id, createdAt: now, updatedAt: now, bowlShape: null, ...extra,
   };
 }
 
@@ -230,13 +244,13 @@ describe("PUT /admin/basins/:id/bowl-shape and GET /admin/basins", () => {
   it("needs a signed-in admin", async () => {
     const server = await start(fakeDatabase([basinRow(1, "KF001")]));
     try {
-      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, null, { bowlShape: "oval", bowlOverflowHole: true })).status, 401);
+      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, null, { bowlShape: "oval" })).status, 401);
     } finally { await server.close(); }
   });
 
   it("GET shows what the customer sees and where it comes from (database / builtin / none)", async () => {
     const server = await start(fakeDatabase([
-      basinRow(1, "KF003", { bowlShape: "rounded-rectangle", bowlOverflowHole: false }),
+      basinRow(1, "KF003", { bowlShape: "rounded-rectangle" }),
       basinRow(2, "KF002"),
       basinRow(3, "KF007"),
     ]));
@@ -244,8 +258,8 @@ describe("PUT /admin/basins/:id/bowl-shape and GET /admin/basins", () => {
     try {
       const list = await (await fetch(`${server.url}/api/admin/basins`, { headers: { cookie } })).json() as Array<Record<string, unknown>>;
       assert.deepEqual(list.map((b) => [b["sku"], b["bowlShape"], b["bowlShapeLabel"], b["bowlOverflowHole"], b["bowlShapeSource"]]), [
-        ["KF003", "rounded-rectangle", "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", false, "database"],
-        ["KF002", "rounded-rectangle", "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น", false, "builtin"],
+        ["KF003", "rounded-rectangle", "หลุมสี่เหลี่ยมมุมมน", null, "database"],
+        ["KF002", "rounded-rectangle", "หลุมสี่เหลี่ยมมุมมน", null, "builtin"],
         ["KF007", null, null, null, "none"],
       ]);
     } finally { await server.close(); }
@@ -256,10 +270,11 @@ describe("PUT /admin/basins/:id/bowl-shape and GET /admin/basins", () => {
     const server = await start(db);
     const cookie = `knight_admin_session=${createAdminToken()}`;
     try {
-      const response = await put(`${server.url}/api/admin/basins/3/bowl-shape`, cookie, { bowlShape: "oval", bowlOverflowHole: true });
+      const response = await put(`${server.url}/api/admin/basins/3/bowl-shape`, cookie, { bowlShape: "oval" });
       assert.equal(response.status, 200);
-      assert.deepEqual(await response.json(), { id: 3, sku: "KF007", bowlShape: "oval", bowlShapeLabel: "หลุมวงรี มีรูน้ำล้น", bowlOverflowHole: true, bowlShapeSource: "database" });
-      assert.deepEqual([db.rows[0]!["bowlShape"], db.rows[0]!["bowlOverflowHole"]], ["oval", true]);
+      assert.deepEqual(await response.json(), { id: 3, sku: "KF007", bowlShape: "oval", bowlShapeLabel: "หลุมวงรี", bowlOverflowHole: null, bowlShapeSource: "database" });
+      assert.equal(db.rows[0]!["bowlShape"], "oval");
+      assert.ok(!("bowlOverflowHole" in db.rows[0]!), "nothing about an overflow hole is written");
       assert.equal(db.rows[0]!["priceTHB"], 19000, "price is not touched");
       const list = await (await fetch(`${server.url}/api/admin/basins`, { headers: { cookie } })).json() as Array<Record<string, unknown>>;
       assert.equal(list[0]!["bowlShape"], "oval");
@@ -269,21 +284,21 @@ describe("PUT /admin/basins/:id/bowl-shape and GET /admin/basins", () => {
       assert.equal(audit!["targetId"], "KF007");
       assert.equal(audit!["actorType"], "admin");
       assert.ok(String(audit!["actorName"]).length > 0, "it says who");
-      assert.deepEqual((audit!["details"] as { changes: unknown }).changes, { bowlShape: { from: null, to: "oval" }, bowlOverflowHole: { from: null, to: true } });
+      assert.deepEqual((audit!["details"] as { changes: unknown }).changes, { bowlShape: { from: null, to: "oval" } });
     } finally { await server.close(); }
   });
 
   it("null / null clears the columns and the built-in table answers again (null is saved as null)", async () => {
-    const db = fakeDatabase([basinRow(1, "KF006", { bowlShape: "round", bowlOverflowHole: false })]);
+    const db = fakeDatabase([basinRow(1, "KF006", { bowlShape: "round" })]);
     const server = await start(db);
     const cookie = `knight_admin_session=${createAdminToken()}`;
     try {
-      const response = await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: null, bowlOverflowHole: null });
+      const response = await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: null });
       assert.equal(response.status, 200);
       const body = await response.json() as Record<string, unknown>;
       assert.equal(body["bowlShapeSource"], "builtin");
       assert.equal(body["bowlShape"], "oval");
-      assert.deepEqual([db.rows[0]!["bowlShape"], db.rows[0]!["bowlOverflowHole"]], [null, null]);
+      assert.equal(db.rows[0]!["bowlShape"], null);
     } finally { await server.close(); }
   });
 
@@ -292,12 +307,12 @@ describe("PUT /admin/basins/:id/bowl-shape and GET /admin/basins", () => {
     const server = await start(db);
     const cookie = `knight_admin_session=${createAdminToken()}`;
     try {
-      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: "triangle", bowlOverflowHole: null })).status, 400);
-      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: "oval" })).status, 400);
-      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: null, bowlOverflowHole: true })).status, 400);
-      assert.equal((await put(`${server.url}/api/admin/basins/abc/bowl-shape`, cookie, { bowlShape: "oval", bowlOverflowHole: null })).status, 400);
-      assert.equal((await put(`${server.url}/api/admin/basins/99/bowl-shape`, cookie, { bowlShape: "oval", bowlOverflowHole: null })).status, 404);
-      assert.deepEqual([db.rows[0]!["bowlShape"], db.rows[0]!["bowlOverflowHole"]], [null, null]);
+      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: "triangle" })).status, 400);
+      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, {})).status, 400);
+      assert.equal((await put(`${server.url}/api/admin/basins/1/bowl-shape`, cookie, { bowlShape: "oval", bowlOverflowHole: true })).status, 400);
+      assert.equal((await put(`${server.url}/api/admin/basins/abc/bowl-shape`, cookie, { bowlShape: "oval" })).status, 400);
+      assert.equal((await put(`${server.url}/api/admin/basins/99/bowl-shape`, cookie, { bowlShape: "oval" })).status, 404);
+      assert.equal(db.rows[0]!["bowlShape"], null);
     } finally { await server.close(); }
   });
 
@@ -305,6 +320,6 @@ describe("PUT /admin/basins/:id/bowl-shape and GET /admin/basins", () => {
     const source = readFileSync(new URL("../src/routes/admin-router.ts", import.meta.url), "utf8");
     const generic = source.slice(source.indexOf('router.put("/admin/basins/:id", '), source.indexOf('router.put("/admin/basins/:id/bowl-shape"'));
     assert.ok(generic.length > 200);
-    assert.ok(!/bowlShape|bowlOverflowHole/.test(generic), "the generic PUT does not mention the bowl columns");
+    assert.ok(!/bowlShape|bowlOverflowHole|bowl_shape/.test(generic), "the generic PUT does not mention the bowl columns");
   });
 });
