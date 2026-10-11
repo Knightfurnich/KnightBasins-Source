@@ -70,7 +70,7 @@ describe("bowl shape fields sent by GET /api/catalog (job 438-C)", () => {
 
   it("the route sends it: getCatalogData wraps every basin (read from the source)", () => {
     const source = readFileSync(new URL("../src/routes/catalog.ts", import.meta.url), "utf8");
-    assert.match(source, /basins: basins\.map\(\(basin\) => withBasinBowlShape\(withBasinCategory\(withBasinMedia\(basin\), categories\)\)\)/);
+    assert.match(source, /basins: basins\.map\(\(basin\) => withBasinBowlShape\(withBasinProductType\(withBasinCategory\(withBasinMedia\(basin\), categories\)\)\)\)/);
   });
 
   it("the built-in copy in the web bundle says the same for every model, and has nothing for the others", () => {
