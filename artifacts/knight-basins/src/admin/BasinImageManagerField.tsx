@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, ImagePlus, Loader2, Star, X } from "lucide-react";
 import { uploadImageFile } from "./imageUploadClient";
+import {
+  isBelowStandard,
+  loadImageSize,
+  pendingImageSummary,
+  probeStandardHdImage,
+  sizeWarningText,
+  standardHdImageUrl,
+  type ImageSize,
+} from "./uploadSafety";
 import { nextQuoteImageUrl, nextTopViewImageUrl } from "./basinImageRoles";
 
 type BasinImageManagerFieldProps = {
@@ -11,6 +20,8 @@ type BasinImageManagerFieldProps = {
   onQuoteImageChange: (url: string | null) => void;
   onTopViewImageChange?: (url: string | null) => void;
   max?: number;
+  /** job 443-B: the model these photos belong to — shown next to every pending image. */
+  sku?: string | null;
 };
 
 export function BasinImageManagerField({
@@ -21,7 +32,12 @@ export function BasinImageManagerField({
   onQuoteImageChange,
   onTopViewImageChange,
   max = 5,
+  sku,
 }: BasinImageManagerFieldProps) {
+  // A picked file is held here, previewed beside the SKU and only sent when the
+  // editor confirms it (job 443-B) — the missing step behind the KF003 kitchen photo.
+  const [pending, setPending] = useState<{ src: string; label: string; size: ImageSize | null; kind: "file" | "standard"; file?: File } | null>(null);
+  const [standardHdState, setStandardHdState] = useState<"idle" | "checking" | "missing">("idle");
   const images = imagesProp ?? [];
   const imagesRef = useRef(images);
   useEffect(() => {
@@ -32,17 +48,72 @@ export function BasinImageManagerField({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFile = async (file: File) => {
+  const dropPending = (current?: typeof pending) => {
+    if (current?.src.startsWith("blob:")) URL.revokeObjectURL(current.src);
+  };
+
+  useEffect(() => () => dropPending(pending), [pending]);
+
+  const stageFile = async (file: File) => {
     setError(null);
+    setStandardHdState("idle");
+    const src = URL.createObjectURL(file);
+    const size = await loadImageSize(src);
+    setPending((previous) => {
+      dropPending(previous ?? undefined);
+      return { src, label: file.name, size, kind: "file", file };
+    });
+  };
+
+  const useStandardHd = async () => {
+    const url = standardHdImageUrl(sku);
+    if (!url) {
+      setError("ยังระบุ SKU ของรุ่นนี้ไม่ได้ จึงไม่สามารถเลือกภาพ HD มาตรฐานให้เองได้ (เราไม่ใส่ภาพของรุ่นอื่นแทน)");
+      return;
+    }
+    setError(null);
+    setStandardHdState("checking");
+    const found = await probeStandardHdImage(url);
+    if (!found) {
+      setStandardHdState("missing");
+      return;
+    }
+    const size = await loadImageSize(url);
+    setStandardHdState("idle");
+    setPending((previous) => {
+      dropPending(previous ?? undefined);
+      return { src: url, label: `ภาพ HD มาตรฐานของ ${String(sku).toUpperCase()}`, size, kind: "standard" };
+    });
+  };
+
+  const commitPending = async () => {
+    if (!pending) return;
+    const chosen = pending;
+    setPending(null);
+    setStandardHdState("idle");
+    if (chosen.kind === "standard") {
+      if (!imagesRef.current.includes(chosen.src)) onImagesChange([...imagesRef.current, chosen.src]);
+      return;
+    }
+    if (!chosen.file) return;
     setIsUploading(true);
     try {
-      const uploadedUrl = await uploadImageFile(file);
+      const uploadedUrl = await uploadImageFile(chosen.file);
       onImagesChange([...imagesRef.current, uploadedUrl]);
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "อัปโหลดรูปภาพไม่สำเร็จ");
     } finally {
+      dropPending(chosen);
       setIsUploading(false);
     }
+  };
+
+  const cancelPending = () => {
+    setPending((current) => {
+      dropPending(current ?? undefined);
+      return null;
+    });
+    setStandardHdState("idle");
   };
 
   const removeAt = (index: number) => {
@@ -291,12 +362,82 @@ export function BasinImageManagerField({
         type="file"
         accept="image/png,image/jpeg,image/webp,image/gif"
         className="sr-only"
+        data-testid="input-basin-image-file"
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) void handleFile(file);
+          if (file) void stageFile(file);
           event.target.value = "";
         }}
       />
+
+      {pending && (
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-label="ยืนยันภาพก่อนบันทึก"
+          className="admin-basin-image-confirm flex flex-wrap items-center gap-3 rounded-md border border-[var(--brand-blue)] bg-[var(--card-paper)] p-3"
+          data-testid="dialog-confirm-basin-image"
+        >
+          <img
+            src={pending.src}
+            alt={`${sku || "รุ่นนี้"} ภาพกำลังจะบันทึก`}
+            className="h-20 w-28 shrink-0 rounded border border-[var(--line)] bg-[var(--paper)] object-contain"
+            data-testid="img-basin-pending-thumbnail"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold" data-testid="text-basin-pending-summary">
+              {pendingImageSummary({ sku, label: pending.label, size: pending.size })}
+            </p>
+            {isBelowStandard(pending.size) || !pending.size ? (
+              <p className="mt-1 text-[11px] leading-snug text-[#a24439]" data-testid="text-basin-image-size-warning">
+                {sizeWarningText(pending.size)}
+              </p>
+            ) : (
+              <p className="mt-1 text-[11px] text-[var(--ink-soft)]">ขนาดภาพผ่านเกณฑ์ขั้นต่ำ {`600`} px ขึ้นไป</p>
+            )}
+            <p className="mt-1 text-[11px] leading-snug text-[var(--ink-soft)]">
+              ตรวจให้ตรงกับรหัส <strong className="font-mono">{sku || "—"}</strong> ก่อนบันทึก — ระบบยังไม่เขียนทับจนกว่าคุณจะกดยืนยัน
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void commitPending()}
+              disabled={isUploading}
+              className="rounded-sm border border-[var(--brand-blue)] bg-[var(--brand-blue)] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+              data-testid="button-confirm-basin-image"
+            >
+              {isUploading ? "กำลังอัปโหลด..." : "ยืนยันบันทึกภาพนี้"}
+            </button>
+            <button
+              type="button"
+              onClick={cancelPending}
+              className="rounded-sm border border-[var(--line)] px-3 py-2 text-xs hover:bg-[var(--paper)]"
+              data-testid="button-cancel-basin-image"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => void useStandardHd()}
+          disabled={standardHdState === "checking"}
+          className="admin-basin-standard-hd inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--line)] px-3 py-2 text-xs font-semibold hover:border-[var(--brand-blue)] disabled:opacity-60"
+          data-testid="button-basin-standard-hd"
+        >
+          {standardHdState === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-3.5 w-3.5" />}
+          ใช้ภาพ HD มาตรฐานของรุ่นนี้{sku ? ` (${String(sku).toUpperCase()})` : ""}
+        </button>
+        {standardHdState === "missing" && (
+          <p className="text-[11px] text-[var(--ink-soft)]" data-testid="text-basin-standard-hd-missing">
+            ไม่พบภาพ HD มาตรฐานของรุ่นนี้ ({`/kb/images/basin-hd/${String(sku ?? "").toUpperCase()}.jpg`}) — ดาวน์โหลดไฟล์มาอัปโหลดเองได้
+          </p>
+        )}
+      </div>
       {error && <p className="text-xs text-[#a24439]">{error}</p>}
     </div>
   );
