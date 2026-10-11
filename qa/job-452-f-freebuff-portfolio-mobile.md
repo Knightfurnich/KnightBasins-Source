@@ -46,8 +46,8 @@ FORBIDDEN:
   - ห้าม commit เข้า main ตรง · ห้าม merge PR เอง · ห้ามลบสาขากู้
 
 EVIDENCE (ต้องแนบผลจริง — คำสั่ง/ผลรัน/ตัวเลข/ภาพ):
-  ขั้น 1: 0) `git push -u origin rescue/452f-portfolio-cue-fix-wip` + `git ls-remote --heads origin | grep rescue` (มี ref จริง) 1) ลิงก์ PR เอกสาร + `git format-patch` ที่แนบ
-  ขั้น 2: 2) **baseline + หลังแก้** (commit + OS + ผู้รัน + คำสั่ง) · 3) ตารางวัด 390/360/768/1440 ทุกหน้า · 4) ตาราง "ชิปล้นแนวนอน" วัดสด ก่อน/หลัง · 5) ภาพก่อน/หลัง 8 ใบ · 6) เทสต์เป็นตัวเลข (tests/pass/fail) + `tsc --noEmit` = 0 · 7) **พิสูจน์สองทาง** · 8) เวลาไทย + hash
+  ขั้น 1: 0) `git push -u origin rescue/452f-portfolio-cue-fix-wip` + `git ls-remote --heads origin | grep rescue` (ต้องเห็น ref จริง) 1) ลิงก์ PR เอกสาร + ไฟล์ `git format-patch` ที่แนบ
+  ขั้น 2: 2) **baseline + หลังแก้** (commit + OS + ผู้รัน + คำสั่ง `cd artifacts/knight-basins && npm test` · `npx tsc --noEmit`) · 3) ตารางวัด 390/360/768/1440 ทุกหน้า (สคริปต์ `node` แนบคำสั่ง) · 4) ตาราง "ชิปล้นแนวนอน" วัดสด ก่อน/หลัง · 5) ภาพก่อน/หลัง 8 ใบ · 6) เทสต์เป็นตัวเลข (tests/pass/fail) + `npx tsc --noEmit` = 0 · 7) **พิสูจน์สองทาง** · 8) เวลาไทย + hash
 
 OUTPUT:
   - ขั้น 1: PR เอกสาร 1 ใบ (รายงานกู้ + patch) · สาขากู้อยู่บน origin
