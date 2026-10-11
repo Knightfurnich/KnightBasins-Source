@@ -11,6 +11,8 @@ import {
   productQuoteDescription,
   productSpecLabel,
   PRODUCTS,
+  STORAGE_CATEGORY,
+  STORAGE_CATEGORY_LABEL,
   studioCutoutBasinProducts,
 } from "../src/data/catalog.ts";
 
@@ -23,7 +25,9 @@ test("the catalog keeps both ready-made pillar sets at 16,000 THB and labels the
     const product = PRODUCTS.find((candidate) => candidate.sku === sku);
     assert.ok(product, `${sku} remains in the main catalog`);
     assert.equal(product.priceTHB, 16000);
-    assert.equal(product.category, "tall vertical washbasin");
+    // job 451-C: like GET /api/catalog since 440-C, the offline copy files the pillars as storage, not as wash basins
+    assert.equal(product.category, STORAGE_CATEGORY);
+    assert.equal(product.categoryLabel, STORAGE_CATEGORY_LABEL);
     assert.equal(isFreestandingPillarProduct(product), true);
     assert.equal(productCategoryLabel(product), PILLAR_PRODUCT_LABEL);
     assert.equal(productSpecLabel(product), PILLAR_PRODUCT_PURCHASE_NOTE);
