@@ -57,12 +57,17 @@ type InquiryFormValues = z.infer<typeof inquirySchema>;
  * line.me/R/oaMessage -> line.me/ti/p -> https://www.line.me/en/), i.e. the
  * customer is thrown out of the storefront into an ad page. So:
  *   - touch / narrow viewport      -> keep the deep link (it works, best UX)
- *   - desktop (wide + fine pointer) -> stay on-site and show an in-page dialog
- *     with the OA QR, a link to the correct desktop "add friend" page, and a
- *     copy-button carrying the same summary text.
- * Breakpoint = (width >= 1024px AND pointer: fine): a laptop/monitor is the only
- * place the deep link is broken; phones and tablets (a landscape tablet at
- * 1024px+ still has a coarse pointer) keep working exactly as before.
+ *   - anything that is not proven to be a phone -> stay on-site and show the
+ *     in-page dialog (OA QR + the correct desktop "add friend" link + copy button).
+ *
+ * job 416-B inverted the test on purpose. The old rule asked
+ * "(min-width:1024px) and (pointer:fine)" and defaulted to the deep link, so every
+ * environment that cannot report `pointer` (no `matchMedia`, a headless/older
+ * browser, a device that answers "none") silently fell back to `oaMessage` -- the
+ * link that bounces a desktop browser to LINE's ad page. Devices are now asked the
+ * question they can answer honestly: "are you a phone?" -> `(max-width: 1023px),
+ * (pointer: coarse)`. Only a *yes* unlocks the deep link; unknown = on-site panel,
+ * which always still carries the QR, the add-friend link and the copy button.
  * ------------------------------------------------------------------------- */
 export const LINE_OA_MENTION = "@789gcnhq";
 export const LINE_OA_DEEPLINK_BASE = "https://line.me/R/oaMessage/%40789gcnhq/?text=";
@@ -70,16 +75,28 @@ export const LINE_OA_QR_URL = "https://qr-official.line.me/sid/L/789gcnhq.png";
 export const LINE_OA_ADD_FRIEND_URL = "https://line.me/R/ti/p/@789gcnhq";
 export const LINE_LOGIN_PATH = "/api/auth/line/login";
 export const LINE_STATUS_PATH = "/api/auth/line/status";
-export const DESKTOP_LINE_BREAKPOINT_PX = 1024;
-export const DESKTOP_LINE_MEDIA_QUERY = "(min-width: 1024px) and (pointer: fine)";
+/** Above this width we are not on a phone-shaped viewport (416-B). */
+export const MOBILE_LINE_MAX_WIDTH_PX = 1023;
+/** A device has to *prove* it is a phone to get the mobile deep link. */
+export const MOBILE_LINE_MEDIA_QUERY = `(max-width: ${MOBILE_LINE_MAX_WIDTH_PX}px), (pointer: coarse)`;
+/** @deprecated kept so older call sites/notes still compile; use MOBILE_LINE_MAX_WIDTH_PX */
+export const DESKTOP_LINE_BREAKPOINT_PX = MOBILE_LINE_MAX_WIDTH_PX + 1;;
 export const DESKTOP_LINE_HINT = "บนคอมพิวเตอร์ ให้สแกน QR ด้วยมือถือ LINE หรือคัดลอกข้อความไปส่งในแชท";
 
 export type LineAccount = { userId?: string; displayName?: string | null; pictureUrl?: string | null };
 export type LineStatus = { configured: boolean; authenticated: boolean; user?: LineAccount | null };
 
-export function lineContactModeForViewport(width: number, hasFinePointer: boolean): "dialog" | "deeplink" {
-  if (!Number.isFinite(width) || width <= 0) return "deeplink";
-  return width >= DESKTOP_LINE_BREAKPOINT_PX && hasFinePointer ? "dialog" : "deeplink";
+/**
+ * `pointer` is deliberately tri-state: `true` (fine), `false` (coarse) or
+ * `null` = the device did not tell us. Unknown is treated as NOT a phone, so an
+ * environment that cannot report `pointer` lands on the on-site panel instead of
+ * the deep link that is broken there.
+ */
+export function lineContactModeForViewport(width: number, pointer?: "fine" | "coarse" | null): "dialog" | "deeplink" {
+  const knownWidth = Number.isFinite(width) && width > 0;
+  if (pointer === "coarse") return "deeplink";
+  if (knownWidth && width <= MOBILE_LINE_MAX_WIDTH_PX) return "deeplink";
+  return "dialog";
 }
 
 export function buildLineDeepLink(message: string): string {
@@ -137,14 +154,18 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
   // "not signed in", so a browser without matchMedia, a blocked /status call or a
   // server without LINE Login configured all keep the deep link + phone paths.
   const [lineStatus, setLineStatus] = useState<LineStatus | null>(null);
-  const [desktopMode, setDesktopMode] = useState(false);
+  // 416-B: the safe default is the on-site panel (QR + add-friend + copy button).
+  const [onSitePanel, setOnSitePanel] = useState(true);
   const [linePanelOpen, setLinePanelOpen] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia(DESKTOP_LINE_MEDIA_QUERY);
-    const apply = () => setDesktopMode(media.matches);
+    if (typeof window.matchMedia !== "function") return; // no way to know -> keep the panel
+    const media = window.matchMedia(MOBILE_LINE_MEDIA_QUERY);
+    // A phone says yes to the query; everything else (including a browser that
+    // cannot evaluate `pointer`) keeps the panel.
+    const apply = () => setOnSitePanel(!media.matches);
     apply();
     media.addEventListener?.("change", apply);
     return () => media.removeEventListener?.("change", apply);
@@ -473,7 +494,7 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
                 </div>
               )}
 
-              {!desktopMode && (
+              {!onSitePanel && (
                 <a
                   href={lineHref}
                   target="_blank"
@@ -486,7 +507,7 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
                 </a>
               )}
 
-              {desktopMode && !linePanelOpen && (
+              {onSitePanel && !linePanelOpen && (
                 <button
                   type="button"
                   onClick={() => setLinePanelOpen(true)}
@@ -499,7 +520,7 @@ export function PortfolioInquiryModal(props: PortfolioInquiryModalProps) {
                 </button>
               )}
 
-              {desktopMode && linePanelOpen && (
+              {onSitePanel && linePanelOpen && (
                 <div
                   role="dialog"
                   aria-modal="false"
