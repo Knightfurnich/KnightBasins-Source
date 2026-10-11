@@ -158,19 +158,50 @@ describe("closed stones reach nobody: no row, no price, no lookup (job 429-C D)"
   });
 });
 
-describe("one name per colour code (job 429-C C)", () => {
+describe("the built-in catalogue equals what the app sends (job 436-C)", () => {
+  // Owner ruling: follow the web page. The admin / database spells these four stones "Glalet …" and the built-in copy
+  // must say the same. Rename them in the admin first; only then change this copy (and the snapshot) to match.
+  const snapshot = JSON.parse(readFileSync(new URL("./fixtures/app-catalog-snapshot.json", import.meta.url), "utf8")) as {
+    sheetStones: Array<{ code: string; name: string; basePriceTHB: number }>;
+    installedStones: Array<{ code: string; name: string; pricePerSqmTHB: number }>;
+    basins: Array<{ sku: string; colorCode: string; colorName: string; priceTHB: number; category: string; dimensions: string; basinDimensions: string | null }>;
+  };
   const nameOf = (code: string) => ALL_STONE_COLORS.find((color) => color.code === code)?.name;
 
-  it("the four codes the owner corrected carry the Galet spelling, in the stone list and on the basins that use them", () => {
+  it("the four stones the app spells Glalet carry that spelling, in the stone list and on the basins that use them", () => {
     assert.deepEqual(
       ["GC714", "GE118", "GG884", "GI017"].map(nameOf),
-      ["Galet Crystals", "Galet Ebony", "Galet Grey", "Galet Ice"],
+      ["Glalet Crystals", "Glalet Ebony", "Glalet Grey", "Glalet Ice"],
     );
-    assert.equal(nameOf("GG884(N)"), "Galet Grey (N)");
-    assert.equal(PRODUCTS.find((p) => p.sku === "KF015")?.colorName, "Galet Grey");
-    assert.equal(PRODUCTS.find((p) => p.sku === "KF018")?.colorName, "Galet Ice");
-    assert.ok(!ALL_STONE_COLORS.some((color) => /Glalet/.test(color.name)), "no built-in name still says Glalet");
-    assert.ok(!PRODUCTS.some((product) => /Glalet/.test(product.colorName)), "no basin still says Glalet");
+    assert.equal(nameOf("GG884(N)"), "Glalet Grey (N)");
+    assert.equal(PRODUCTS.find((p) => p.sku === "KF015")?.colorName, "Glalet Grey");
+    assert.equal(PRODUCTS.find((p) => p.sku === "KF018")?.colorName, "Glalet Ice");
+    assert.ok(!ALL_STONE_COLORS.some((color) => /Galet/.test(color.name)), "no built-in name says Galet");
+  });
+
+  it("every stone name, sheet price and installed price equals the app's, and the visible list is exactly the app's list", () => {
+    const sheet = new Map(snapshot.sheetStones.map((s) => [s.code, s]));
+    const installed = new Map(snapshot.installedStones.map((s) => [s.code, s]));
+    const appCodes = new Set([...sheet.keys(), ...installed.keys()]);
+    assert.deepEqual(STONE_COLORS.map((c) => c.code).sort(), [...appCodes].sort(), "visible built-in stones = stones the app sells");
+    for (const color of STONE_COLORS) {
+      const appName = (sheet.get(color.code) ?? installed.get(color.code))!.name;
+      assert.equal(color.name, appName, `${color.code} name`);
+      assert.equal(color.sheetPriceTHB, sheet.get(color.code)?.basePriceTHB ?? null, `${color.code} sheet price`);
+      assert.equal(color.installedPriceTHB, installed.get(color.code)?.pricePerSqmTHB ?? null, `${color.code} installed price`);
+    }
+  });
+
+  it("every basin's stone name, price and sizes equal the app's", () => {
+    assert.deepEqual(PRODUCTS.map((p) => p.sku).sort(), snapshot.basins.map((b) => b.sku).sort());
+    for (const basin of snapshot.basins) {
+      const own = PRODUCTS.find((p) => p.sku === basin.sku)!;
+      assert.deepEqual(
+        { colorCode: own.colorCode, colorName: own.colorName, priceTHB: own.priceTHB, category: own.category, dimensions: own.dimensions, basinDimensions: own.basinDimensions ?? null },
+        { colorCode: basin.colorCode, colorName: basin.colorName, priceTHB: basin.priceTHB, category: basin.category, dimensions: basin.dimensions, basinDimensions: basin.basinDimensions },
+        basin.sku,
+      );
+    }
   });
 
   it("every basin names its stone the way the stone list does", () => {
@@ -179,19 +210,19 @@ describe("one name per colour code (job 429-C C)", () => {
     }
   });
 
-  it("the old spelling and the code still find the stone, so nobody searching the way they used to gets 'not found'", () => {
-    const expected: Array<[string, string]> = [["GC714", "Glalet Crystals"], ["GE118", "Glalet Ebony"], ["GG884", "Glalet Grey"], ["GI017", "Glalet Ice"]];
-    for (const [code, oldName] of expected) {
+  it("both spellings find the stone, so nobody searching the way they used to gets 'not found'", () => {
+    const pairs: Array<[string, string, string]> = [["GC714", "Glalet Crystals", "Galet Crystals"], ["GE118", "Glalet Ebony", "Galet Ebony"], ["GG884", "Glalet Grey", "Galet Grey"], ["GI017", "Glalet Ice", "Galet Ice"]];
+    for (const [code, appName, altName] of pairs) {
       assert.equal(findStoneColor(code)?.code, code, `${code} by code`);
-      assert.equal(findStoneColor(oldName)?.code, code, `${code} by the old name "${oldName}"`);
-      assert.equal(findStoneColor(nameOf(code)!)?.code, code, `${code} by the new name`);
+      assert.equal(findStoneColor(appName)?.code, code, `${code} by "${appName}"`);
+      assert.equal(findStoneColor(altName)?.code, code, `${code} by "${altName}"`);
     }
   });
 
-  it("the other names stay as they were: Honey Jade keeps its old typos as aliases, and the two awaiting a ruling are untouched", () => {
-    assert.equal(nameOf("HJ524M"), "Honey Jade");
-    assert.equal(findStoneColor("Honer Jade")?.code, "HJ524M");
+  it("the two codes that were awaiting a ruling follow the admin value: MU010 Evermoin, VD175 Dandelion; Honey Jade keeps its typos as aliases", () => {
     assert.equal(nameOf("MU010"), "Evermoin Ultra Bright");
     assert.equal(nameOf("VD175"), "Dandelion");
+    assert.equal(nameOf("HJ524M"), "Honey Jade");
+    assert.equal(findStoneColor("Honer Jade")?.code, "HJ524M");
   });
 });
