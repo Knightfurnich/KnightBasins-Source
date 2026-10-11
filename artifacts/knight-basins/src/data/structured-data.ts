@@ -1,5 +1,6 @@
 import type { PortfolioCategory, PortfolioPhoto } from "@/pages/PortfolioPage";
-import type { BasinProduct } from "@/data/catalog";
+import type { BasinProduct } from "./catalog.ts";
+import { isFreestandingPillarProduct, STORAGE_CATEGORY, STORAGE_CATEGORY_LABEL } from "./catalog.ts";
 import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
 const SITE = "https://knightbasins.com";
@@ -384,9 +385,9 @@ export function buildStudioGuideStructuredData(): Record<string, unknown> {
 }
 
 /**
- * Builds the JSON-LD @graph of Product+Offer nodes for every basin SKU, so
- * an AI shopping assistant can cite a specific model's price/size directly
- * instead of only the category-level OfferCatalog on the Organization node.
+ * Builds the JSON-LD @graph of Product+Offer nodes for every basin SKU (see
+ * `buildBasinProductsJsonLd` below), so an AI shopping assistant can cite a specific model's
+ * price/size directly instead of only the category-level OfferCatalog on the Organization node.
  *
  * Takes the live product list as a parameter (same shape as
  * buildPortfolioStructuredData's categories/total) rather than importing
@@ -394,7 +395,24 @@ export function buildStudioGuideStructuredData(): Record<string, unknown> {
  * is actually showing (static fallback or the remote-admin-edited one) and
  * never drifts into hardcoded prices. `image` is only included when the
  * product actually has one -- never a fabricated placeholder URL.
+ *
+ * job 457-C: the wording of each description is decided by the machine type, never by a name typed
+ * here. The owner ruled (11 Oct 2026) that KF029/KF030 are floor-standing storage pillars, so the
+ * kind is read from the row's own `category`/`categoryLabel` and a storage row can never be
+ * advertised as a wash basin again. Wash basins keep exactly the wording they had; the
+ * counter-sized phrasing stays only for them, and the fallback label is the same Thai text the API
+ * sends.
  */
+function basinProductJsonLdDescription(product: BasinProduct): string {
+  const isPillar = product.category === STORAGE_CATEGORY || isFreestandingPillarProduct(product);
+  const kind = isPillar
+    ? product.categoryLabel?.trim() || STORAGE_CATEGORY_LABEL
+    : "อ่างล้างหน้าหินสังเคราะห์";
+  const size = isPillar ? `ขนาด ${product.dimensions}` : `ขนาดเคาน์เตอร์ ${product.dimensions}`;
+  const bowl = !isPillar && product.basinDimensions ? ` หลุมอ่าง ${product.basinDimensions}` : "";
+  return `${kind} Knight Basins รุ่น ${product.sku} สี ${product.colorName} (${product.colorCode}) ${size}${bowl}`;
+}
+
 export function buildBasinProductsJsonLd(products: ReadonlyArray<BasinProduct>): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
@@ -403,7 +421,7 @@ export function buildBasinProductsJsonLd(products: ReadonlyArray<BasinProduct>):
       "@id": `${SITE}/#product-${product.sku}`,
       name: `Knight Basins ${product.sku}`,
       sku: product.sku,
-      description: `อ่างล้างหน้าหินสังเคราะห์ Knight Basins รุ่น ${product.sku} สี ${product.colorName} (${product.colorCode}) ขนาดเคาน์เตอร์ ${product.dimensions}${product.basinDimensions ? ` หลุมอ่าง ${product.basinDimensions}` : ""}`,
+      description: basinProductJsonLdDescription(product),
       ...(product.imageUrl ? { image: absoluteImageUrl(product.imageUrl) } : {}),
       offers: {
         "@type": "Offer",
