@@ -1,67 +1,84 @@
-# รายงาน 439-B (บอย = Qwen) —แสดงคำบอกรูปทรงหลุมบนการ์ดอ่างตามฟิลด์จาก 438-C
+# รายงาน 439-B (บอย = Qwen) — การ์ดอ่างแสดง “รูปทรงหลุม” จากข้อมูลของ 438-C (KF003 ≠ KF006 แล้ว)
 
-**สถานะ:** ⛔ **หยุดตาม STOP rule** — “ถ้ายังไม่มีฟิลด์จากใบ 438-C →หยุดและแจ้งเดวิด (ห้าม hardcode แทน)”
-**ผลตรวจสอบ:** ฟิลด์รูปทรงหลุม **ยังไม่มี** ใน API, ใน `src/data/**`, และ **ไม่มี PR/สาขาใดของชัยที่ทำฟิลด์นี้** ⇒ผมไม่ใส่ข้อความคำทรงแปลงในโค้ด (FORBIDDEN) และไม่เคยดัดอะไรที่เป็นการสมมติ interface
-**ไฟล์ที่แก้ใน PR นี้:** 1 ไฟล์ = รายงานนี้ (`qa/report-boy-round17-bowl-shape-ui-20261010.md`) — **ไม่มีการแตะโค้ด/เทสต์/KB/src/data/api-server/`/price-guide`**
-**เวลาที่ทำ:** 11 ต.ค. 69 ~22:1x–22:4x น. (ไทย) ·วัดบน production `https://knightbasins.com/` (asset `index-CZmvh_D4.js`) · local main = `6ef5fff`
+**ผู้ทำ:** บอย (Qwen) · **PR ใหม่:** `fix/web: show the bowl shape on the basin card so KF003 and KF006 differ` (branch `fix/web/bowl-shape-card-v2`, base `origin/main = 5623fe4`) — แทน **#510** (ซึ่งทำบน `6ef5fff` ตอนยังไม่รู้ว่าชัยใช้ชื่ออะไร; ปิดพร้อมเหตุผลแล้ว, งานทั้งหมดถูกรีเพลย์ที่นี่)
+**เวลาไทยที่ทำ:** 11 ต.ค. 69 ~09:55–10:35 น. (commit `274f440` 08:49 น.; รอบแก้สัญญา+wrap 09:5x–10:3x น.)
+**ไฟล์ที่แตะ (3):** `artifacts/knight-basins/src/App.tsx` · `artifacts/knight-basins/test/basin-bowl-shape-card.test.ts` (ใหม่) · รายงานนี้
+**ไม่แตะ:** `src/data/**` และ `api-server/**` (ของชัย) · KB/ราคา/สี/ขนาด · `/price-guide` · ไม่มี `overflow-x:hidden` ที่ html/body · `git status --short` ก่อนเริ่ม = 0
 
-## 1) หลักฐานว่า “ยังไม่มีฟิลด์” (3 ชั้น)
+## A — ใช้สัญญาณจริงของ 438-C ไม่ใช่ชื่อที่ผมเดา
+PR #510 (เวอร์ชันแรก) ระบุคีย์ที่ “รอคอนเฟิร์ม” — ชัย merge **#507** แล้ว สัญญาจริงคือ
+`bowlShapeLabel` (ข้อความที่แสดง) คู่กับ `bowlShape` (`"rounded-rectangle"|"oval"|null`) และ `bowlOverflowHole` (boolean|null) ซึ่งเป็น **ค่า machine → ห้ามพิมพ์ตรงๆ**
+ผมจึง (1) ลด `BOWL_SHAPE_KEYS` เหลือ `["bowlShapeLabel"]` (เลิกเดา) (2) เทสต์ล็อกว่าถ้าันไปอ่าน `bowlShape` ต้อง fail
+ค่าจริงที่ production API ส่งมา (วัดผ่าน proxy `http://localhost:3340/api/catalog` → `https://knightbasins.com/api/catalog`):
 ```
-$ curl -s https://knightbasins.com/api/catalog | python3 (keys ของ basins[])
-  ['active','basinDimensions','bowlMm','category','categoryId','colorCode','colorName','createdAt',
-   'dimensions','galleryImageUrls','id','imageTone','imageUrl','priceTHB','quoteImageUrl','sku',
-   'sortOrder','topViewImageUrl','updatedAt','uploadedVideoUrl','videoUrl']
-  →ชั้นข้อมูลที่มีคำว่า bowl = 'bowlMm' อย่างเดียว (ไม่มีชื่อบอกรูปทรง)
-  KF003 = {'bowlMm': '350 × 500 × 130 mm'} | KF006 = {'bowlMm': '350 × 500 × 130 mm'}  ←เท่ากัน
-
-$ grep -rniE "bowlshape|bowl_shape|shapetext|bowlshapeTH" artifacts lib   → 0 รายการ (ไม่พบในรีโป)
-$ git ls-remote --heads origin | grep -iE "bowl|shape|438|439"
-  →ไม่มี branch ของชัยที่ทำเรื่องนี้ (PR #499 = docs/ใบงานเท่านั้น, merged = 2904f71 "docs: 438-C/439-B")
-  →ชื่อยังไม่ถูกระบุใน 438-C (ใบเขียนว่าข้อ 5 “ระบุชื่อฟิลด์ที่บอยต้องใช้” = ยังไม่ได้ให้)
+KF003  bowlShapeLabel = "หลุมสี่เหลี่ยมมุมมน ไม่มีรูน้ำล้น"   (bowlShape="rounded-rectangle", bowlOverflowHole=false)
+KF006  bowlShapeLabel = "หลุมวงรี มีรูน้ำล้น"               (bowlShape="oval",                bowlOverflowHole=true)
+KF021  bowlShapeLabel = None      → การ์ดไม่ต่อท้ายอะไรเลย (รุ่นตรวจไม่ได้ = ว่าง)
 ```
-⇒ถ้าผมเดาชื่อฟิลด์ (เช่น `bowlShape`) และ render มันออกการ์ด →วันทีชังเปลี่ยนชื่อเป็น `bowlShapeText`/`cutoutShape` UI จะ **ว่างทั้ง 2 รุ่นโดยไม่มี error** = silent defect ตรงกับข้อห้าม “ห้ามแสดงคำให้รุ่นที่ไม่มีข้อมูล/ห้าม hardcode”ผมจึงไม่เสี่ยงและแจ้งให้สั่ง/เเจ้งชื่อมาก่อน
+### ช่องว่างที่เจอและวิธีปิดโดยไม่แตะไฟล์ชัย
+การ์ดถูก compose ด้วย `remoteCatalog.basins.map(basinProductFromCatalog)` (`src/App.tsx:1908,1999`) และ **`basinProductFromCatalog` ประกอบอ็อบเจกต์จากรายชื่อฟิลด์ที่กำหนดไว้ตายตัว** ⇒ `bowlShapeLabel` ถูกทิ้งก่อนถึงการ์ด (ค่าอื่นที่ผ่านคือ `bowlMm/dimensions/price…`)
+**ทางออก:** helper 3 ตัวอ่านจาก **raw rows** (`syncBowlShapesFromCatalog(remoteCatalog.basins)` ชวน cache ตาม `sku`, rebuild ทุกครั้งที่โหลดแคตตาล็อก ⇒ ไม่มีค่าค้าง) และ `bowlShapeText(product)` ตอบ **model ก่อน → แล้วค่อย cache** (ครอบคลุมทั้งข้อมูล built-in `PRODUCTS` ที่ชัยใส่ `BASIN_BOWL_SHAPES` ไว้ และเส้น API) — ยังไม่แตะไฟล์ของชัย 1บรรทัด และถ้าชัยส่งฟิลด์ผ่าน mapper ในอนาคต เทสต์ยังเขียว (ไม่กระทบ)
 
-## 2) หลักฐาน “ก่อนแก้” (ตามที่ใบให้แนบ)
-**การ์ดสองใบเหมือนทุกบรรทัด —ต่างแค่รหัส SKU** (ดึง `innerText` จาก DOM จริง, Chromium):
+## B — จุดที่แสดง + เลย์เอาต์ (การ์ด 390/360 ต้องไม่เสียหาย)
+บรรทัดย่อยใต้สเปกเดิม: `mt-1 text-xs leading-snug text-[var(--ink-soft)] line-clamp-2 [overflow-wrap:anywhere]` + `title` เต็ม
+> ระหว่างทางผม **เจอที่ตัวเองแก้ไม่ถูก**: ตอนแรกใส่ `truncate` → วัดจริงที่ 390/360 คือ **ถูกตัด (clipped=true, scrollW 166 > clientW 139/126)** ซึ่งบังคำสำคัญ (“ไม่มีรูน้ำล้น” vs “มีรูน้ำล้น”) ที่ใบนี้ต้องการแสดง → เปลี่ยนเป็น wraps + `line-clamp-2` แล้ววัดซ้ำ: `clipped=false`, `lines=2`, `h(KF003)=39px / h(KF006)=19px`
+ล้นแนวนอน (build ของ branchนี้ + API จริงผ่าน proxy): `390 → iw390|cw375|sw375 over=0` · `360 → iw360|cw345|sw345 over=0` · `768 → iw768|cw753|sw753 over=0` · `1440 → over=0`
+
+## C — ถ้อยคำ = ตามข้อมูล ไม่ thêm คำโฆษณา
+ไม่มีข้อความรูปทรงอยู่ในโค้ด: `grep -rn "หลุมสี่เหลี่ยม|หลุมวงรี|รูปทรงหลุม" src/App.tsx src/components src/pages` = **0**
+คำที่เห็นใน UI มาจาก `bowlShapeLabel` ของชัย (`src/data/catalog.ts` `BASIN_BOWL_SHAPES` = ที่เก็บข้อมูลจริง (ไฟล์ชัย)) และ fixtures ในเทสต์ใช้คำปลอม `TEST-LABEL-A/B` เท่านั้น (ไม่เลียนแบบ copy จริงให้เป็น test oracle)
+
+## D — ตัวเลขเทสต์จริง (บน tree นี้)
 ```
-KF003 | COUNTER SERIES | 3 ภาพ | 3D 360° | RW316 | River White | 600 × 800 × 200 mm |
-      หลุมอ่าง 350 × 500 × 130 mm | ฿19,000 / ชุด | 🛒ซื้อเฉพาะอ่าง | ✨สั่งผลิตพร้อมท็อปเคาน์เตอร์ |
-      📸ดูภาพงานจริง | สอบถามรุ่นนี้ | คัดลอกสเปก
-KF006 | COUNTER SERIES | 3 ภาพ | 3D 360° | RW316 | River White | 600 × 800 × 200 mm |
-      หลุมอ่าง 350 × 500 × 130 mm | ฿19,000 / ชุด | … (เหมือนกันทุกบรรทัดถัดไป)
+node --experimental-strip-types --test test/*.test.ts
+  baseline (ไม่รวมไฟล์ใหม่ของฉัน):  # tests 1302 · pass 1260 · fail 0 · skipped 42
+  รวมไฟล์ใหม่ (หลังแก้):           # tests 1314 · pass 1272 · fail 0 · skipped 42      (+12 = ไฟล์ใหม่)
+  เทสต์ใหม่ 12 เคสผ่านหมด
+node --experimental-strip-types --test test/basin-bowl-shape-card.test.ts → # tests 12 · pass 12 · fail 0
+npx tsc -p tsconfig.json --noEmit → exit 0
+node scripts/verify-production-assets.mjs (ผ่าน pnpm build) → OK
 ```
-**การล้นแนวนอนบน production (baseline ที่จะใช้เทียบหลังแก้):**
-| viewport | innerWidth | clientWidth | scrollWidth | ล้น |
-|---|---|---|---|---|
-| 1440×900 | 1440 | 1425 | 1425 | **0** |
-| 390×844 | 390 | 375 | 375 | **0** |
-| 360×800 | 360 | 345 | 345 | **0** |
-**หลักฐานภาพ (4 ไฟล์, sha256 10 ตัวแรก):** `20-KF003-1440.png` `6d9bd28509` · `21-KF006-1440.png` `f605e2d652` · `22-KF003-390.png` `31eed93b62` · `23-KF006-390.png` `bc583d6bc7` (ไฟล์ png อยู่ใน sandbox ผู้ตรวจ —แจ้งได้ถ้าต้องการให้แปะเป็น attachment)
-**grep ข้อความรูปทรงในโค้ด (ต้องเป็น 0 ตอนนี้และหลังเเก้):** `grep -rn "หลุมสี่เหลี่ยม\|หลุมวงรี" artifacts/knight-basins/src` → **0 รายการ** ✓
+**ครอบคลุม 4 กรณีที่ชัอย้ำในใบ 438 ข้อ 8** (ไม่มีข้อมูล → ว่าง / label ผ่าน `bowlShapeLabel` อย่างเดียว / re-sync แล้วค่าหาย → ต้องล้าง / sku ไม่รู้จัก → ว่าง)
 
-## 3) baseline เครื่องมือ (บน `main = 6ef5fff`)
+## พิสูจน์สองทาง (ทุกข้อที่แก้ ต้องตกเมื่อถอน)
 ```
-$ cd artifacts/knight-basins && node --experimental-strip-types --test test/*.test.ts   (= npm test)
-  # tests 1300 · # suites 214 · # pass 1258 · # fail 0 · # skipped 42
-$ npx tsc -p tsconfig.json --noEmit → exit 0
+1) ถอด syncBowlShapesFromCatalog(remoteCatalog.basins) (เส้น API)
+   → not ok "feeds the cache from the raw rows on every catalogue load"          (11 pass / 1 fail)
+2) สลับคีย์เป็นตัว machine ("bowlShape") แทน "bowlShapeLabel"
+   → not ok "reads bowlShapeLabel verbatim and trims it" (actual: '')
+   → not ok "prints none of the machine fields"          (actual: 'rounded-rectangle')
+   → not ok "no shape sentence is hard-coded in the app"                         (fail หลายเคส)
+3) ให้ accessor แต่งคำเองเมื่อไม่มีข้อมูล (return "INVENTED-PLACEHOLDER")
+   → not ok "prints none of the machine fields" / "nothing at all when the row has no label"
+   → not ok "falls back to the raw /api/catalog rows…" / "resync clears stale labels…"
+4) คืนโค้ดทั้งหมด → 12/12 pass · เต็มชุด fail 0
 ```
-⚠️ **ต่างจากที่ใบระบุ** (ใบบอก 1,289 → 1,247/0/42) เพราะ `431-B`+`416-B` เข้าไปแล้วมีเทสต์เพิ่ม —ตัวเลขที่ผมอ้างคือวัดจาก main จริงณ เวลาที่ทำ (1,300/1,258) ไม่ใช่ตัวเลขจากรายงานเก่า
-`git status --short` = 0 (ก่อนเริ่ม clean; หลังพิมพ์รายงานนี้มีแค่ไฟล์รายงานนี้) ·ไม่มีข้อมูลลูกค้า/ค่าลับในรายงาน ·ไม่มีการกดส่งฟอร์ม/สร้างลีด/ล็อกอิน
 
-## 4) สิ่งที่ผมจะทำทันทีที่ได้ชื่อฟิลด์ (พร้อมใช้ 10 นาที —ยังไม่แก้อะไรตอนนี้)
-1. `src/App.tsx` → `ProductCard`: ต่อท้ายบรรทัดสเปกปัจจุบันด้วยการอ่าน **ฟิลด์เดียวจากข้อมูล** (ไม่มี literal รูปทรงในโค้ด) รูปแบบข้อความประมาณ `หลุมอ่าง {size}` + `{shapeText}` เมื่อ `shapeText` มีค่า; **ถ้าว่าง/ไม่มีคีย์ →ไม่ render** (ห้าม fallback เป็นคำตัวอย่าง) และ `data-testid="text-basin-bowl-shape"`
-2. ถ้า 438-C ตั้งชื่อเป็น optional แต่ **ยังไม่มีใน type `Basin`** ( type นี้อยู่ใน `src/data/catalog.ts` = ไฟล์ชัย) ผมจะอ้าง type ผ่านการอ่านค่า runtime (`(product as Partial<Record<KnownShapeField,string>>)[field]`) + cast ในไฟล์เดียวของผม **โดยไม่แตะไฟล์ชัย** —หรือถ้าชัยเพิ่ม type เสร็จแล้วจะ clean ที่สุด
-3. Position: ใส่เป็น “บรรทัดย่อยใต้ `product-specs`” (บรรทัดเดียว, ความยาว ≤~28 ตัวอักษร) เพื่อไม่ให้การ์ด 390 ยาว/ล้น —วัด overflow 390/360 อีกรอบ (เกณฑ์ 0)
-4. `test/basin-bowl-shape-card.test.ts` (4 เคส + สองทาง): (ก) การ์ดที่มี shape แสดงคำนั้น (ข) การ์ดที่ shape ว่าง →ไม่มี `text-basin-bowl-shape` (ค) ไม่มี literal `หลุมสี่เหลี่ยม/หลุมวงรี` ใน `src/` (ง) 2 รายการข้อมูล test ที่ shim ผ่าน `basinFromCatalog` → 2 ข้อความต่างกันชัด
-   พิสูจน์สองทาง: 1) ปิดบรรทัด render → (ก)(ง) ตก 2) ใส่ `" "` หรือ field ที่ข้อมูลไม่มีให้ test → (ข) ต้องยังว่าง
-5. PR: `fix(web): show the bowl shape on the basin card so KF003 and KF006 differ`
+## หลักฐานภาพ (local build ของ branch นี้ + proxy ไป `https://knightbasins.com/api/*` → ค่าจริงจาก 438-C)
+| ไฟล์ (sha256 12 ตัวแรก) | เห็นอะไร |
+|---|---|
+| `41-KF003-1440.png` `cdd569a8a8b9` | การ์ด `KF003` ใต้สเปก: บรรทัด “หลุมสี่เหลี่ยมมุมมน ไม่มีรูน ้ำล้น” (1 บรรทัด, `279px`, ไม่ถูกตัด) |
+| `42-KF006-1440.png` `200b9783366d` | การ์ด `KF006`: “หลุมวงรี มีรูน้ำล้น” — **ต่างจาก KF003 ชัดเจน** |
+| `44-KF003-390-wrap.png` `7d729abfbd05` | 390×844: ข้อความเต็ม 2 บรรทัด สูง `39px`, `clipped=false` |
+| `44-KF006-390-wrap.png` `2a4a43ed7463` | 390×844: 1 บรรทัด สูง `19px`, `clipped=false` |
+| `45-overflow-360.png` `a2ce22277ce1` | 360×800 ไม่มีล้น: `cw=345 sw=345 over=0` |
+| `20-KF003-1440.png` `6d9bd285098e` · `23-KF006-390.png` `bc583d6bc753` | **baseline ก่อนแก้ (production)**: สองการ์ดเหมือนทุกบรรทัด ต่างแค่รหัส |
+(เก็บไฟล์ไว้ที่ `output/evidence-job439-B/` ใน sandbox ของผู้ตรวจ — ส่งเข้ากลุ่มไม่ได้ แจ้งถ้าต้องการให้แนบเป็น attachment)
 
-## 5) คำถามถึงเดวิด (ต้องการคำตอบ 1 ข้อก็เริ่มต่อได้)
-- **(ก)** ยืนยันชื่อฟิลด์ + ค่าที่ชัยจะใช้กับ 438-C (ใบระบุข้อ 5 ไว้ว่า “ระบุชื่อฟิลด์ที่บอยต้องใช้” —ตอนนี้ยังไม่มีในรีโป/PR) **หรือ** (ข) ถ้าต้องการให้ผมเปิดทางให้ **อ่านทุกคีย์ที่ขึ้นต้นด้วย `bowl`+`Shape`** (schema drift-tolerant) บอกได้ผมทำให้ได้แต่จะเป็นการเดา interface ร่วม —ไม่แนะนำถ้า (จริง) ชัยไม่ทันอาจเลื่อน 439-B ไว้ก่อนได้ (ตอนนี้ 0 ผลกระทบกับผู้ใช้เพราะไม่มีการแก้อะไร)
+## ตรวจไม่ได้ (พร้อมเหตุผล — ไม่เดา)
+1. **ภาพบน production domain จริง** — ต้อง merge + deploy ก่อน (ภาพทังหมดวดจาก local build ของ branch + proxy ไป API จริง)
+2. **ถ้อยคำถูกต้องตามสินค้าจริง** — เป็นสัญญาของ 438-C (ชัยตรวจภาพจริง+437-C) ผมไม่ยืนยันซ้ำเพราะไม่เห็นภาพถ่ายจริงด้วยตัวเอง
+3. **หน้า admin ที่บันทึก/แกค่านี้ใน DB** — ห้าม login (FORBIDDEN) และ API path อ่านจาก `lib/basin-bowl-shape.ts` ของชัย
+4. **การ์ดหน้าอื่นทไี่ ม่ใช่ Storefront card** (หน้าผลงงาน/กล่องสอบถาม/สตูดิโอ ยังไม่แสดงคำถทยมถ้าไม่ได้สั ง — ใบน้ีกำหนดเฉพาะการ์ด); ต้องการใหไ่ ปทุกหน้า = เปิดใงานถยใหม่
+5. **Safari/iOS** — sandbox มี Chromium
 
-## สรุป 5 บรรทัด
-1. **แก้อะไร:** ไม่แก้อะไรเลย —หยุดตาม STOP เพราะฟิลด์รูปทรงหลุมยังไม่มีใน API/ type/รีโปและชื่อยังไม่ถูกกำหนดใน 438-C; PR นี้มีไฟล์รายงาน 1 ไฟล์
-2. **เทสต์ผ่าน/ไม่ผ่าน:** baseline `main=6ef5fff` = **1,300 tests / pass 1,258 / fail 0 / skip 42** (ใบเก่าเขียน 1,289/1,247 —เลื่อนไปแล้วตาม 431-B/416-B) · `tsc --noEmit = 0` · grep ข้อความรูปทรงในโค้ด = 0
-3. **ตรวจไม่ได้:** ผลลัพธ์จริงบนการ์ดหลังมีฟิลด์ + ว่าค่า KF003 = “หลุมสี่เหลี่ยมมุมมนไม่มีรูน้ำล้น” / KF006 = “หลุมวงรีมีรูน้ำล้น”ตรงกับของจริงไหม (ข้อมูลจริงยังไมเข้าระบบ) ·หน้าจอ admin ที่บันทึกข้อมูลนี้ (ห้ามล็อกอิน)
-4. **ความเสี่ยง:** ถ้าข้ามขั้นแล้วเดาชื่อฟิลด์ → UI ว่างเงียบ 2 รุ่น (ตรวจไม่เจอในเทสต์ถ้าไม่ล็อกชื่อฟิลด์ร่วม); ถ้า hardcode คำ →ลูกค้าเห็นข้อความที่ไม่มีที่มา (ขัด FORBIDDEN ตรงๆ)
-5. **ข้อเสนอ:** ให้ชัยสรุปชื่อฟิลด์ใน 438-C (1 บรรทัด) แล้ว rebase onto `feat/chai-bowl-shape-field` —ผม implement + พิสูจน์สองทาง + วัด 390/360 ต่อได้ทันภายในรอบงานเดียว (พร้อมส่ง PR `fix(web): show the bowl shape on the basin card…`)
+## ความเสี่ยง
+- Cache `sku→label` เป็น state ต่อโมดูล ถูก refresh ทุกครั้งที่โหลดแคตตาล็อก ⇒ เสี่ยง “ค่าค้าง” ต่ำ แต่ **ถ้าโหลด API ล้มเหลว ฉันคงค่าชุดล่าสุด** (ไม clear) — มองว่าถูก (ข้อมูลล่าสุดทนี่่าเชื่อถือ) ถ้าตองการให้เห็นว่างทนที บอกได้
+- คัดลอกฟิลด์ใน App เทาั นั้ น = ถ้า API เปลี่ยนชื่ อ (`bowlShapeLabel` → เช่น `bowlShapeDisplay`) จะ **ว่างเงียบ** (ไม่ error) — เทสต์ 1 เคสจับไว้แลวถ้าืนชื่อในไฟล์ชัย
+- `line-clamp-2` อาจปัดการ์ดบางรุ่นสูงขึ้ น ~20px (วัดแล้วไม่ล้น) — ควรดูถาพรวมก่อน deploy
+- ถ้าชัยส่ง `bowlShapeLabel` ผ่าน `basinProductFromCatalog` ภายหลัง cache ของฉนั จะ redundancy แต่ไม่ conflict
+
+## ข้อเสนอ (ใบตอ่ ไป — 3 ข้อ)
+1. ให้ **436-C/438-C move `bowlShapeLabel` onto `BasinProduct` via `basinProductFromCatalog`** (1 บรรทัด) → ผมลบ cache+sync (~25 บรรทัด) ให้งานบางลง
+2. เพิ่มคำนี้ **บนหน้า product + กล่องสอบถาม + LINE brief** ถ้าบอสต้องการให้ลูกค้เห็นทุก touchpoint (ตองแก API copy ของชัย)
+3. เพิ่ม UI test ที่ validate ว่า label ไม่ถูก truncate บน 360/390/768 (ตอนนี้ lock ผ่าน source assertions + ฉันวดมื อด้วย CDP แลว)

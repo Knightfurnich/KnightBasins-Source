@@ -118,6 +118,59 @@ const emptyCustomer: CustomerDetails = {
 };
 const defaultStone: StoneConfig = { enabled: false, mode: "whole-sheet", color: "BW010", quantity: 1, widthCm: 60, lengthCm: 120, areaSqM: 0.72, unitPrice: stoneSheetUnitPrice("BW010", 1) ?? 0, installationPrice: 0 };
 
+/**
+ * job 439-B — the bowl-shape line on a basin card, so KF003 and KF006 stop
+ * looking like the same product.
+ *
+ * The wording belongs to the catalogue, not to us: job 438-C (Chai) ships
+ * `bowlShapeLabel` (display text) next to `bowlShape` / `bowlOverflowHole`, which
+ * are machine values and must never be printed raw. Every read goes through the
+ * helpers below, and **no label means no line** — we never write a sentence about
+ * a bowl we have no data for (FORBIDDEN: no hard-coded shape wording, no invented data).
+ */
+const BOWL_SHAPE_KEYS = ["bowlShapeLabel"] as const;
+
+/**
+ * Two sources, one answer:
+ *  · the card model itself (`BasinProduct.bowlShapeLabel`) — the built-in catalogue
+ *    copy applies `BASIN_BOWL_SHAPES`, so this works before/without a network call;
+ *  · the **raw** `/api/catalog` rows — `basinProductFromCatalog` rebuilds its object
+ *    from an explicit field list and does not (yet) pass `bowlShapeLabel` through, so
+ *    on the API path the value would otherwise vanish one row before the card.
+ * The cache is rebuilt on every catalogue load, so a value that disappears really
+ * disappears instead of lingering on screen.
+ */
+const bowlShapeBySku = new Map<string, string>();
+
+export function syncBowlShapesFromCatalog(rows: unknown): void {
+  bowlShapeBySku.clear();
+  if (!Array.isArray(rows)) return;
+  for (const row of rows) {
+    const sku = typeof (row as { sku?: unknown })?.sku === "string" ? (row as { sku: string }).sku : "";
+    const label = bowlShapeFromModel(row);
+    if (sku && label) bowlShapeBySku.set(sku, label);
+  }
+}
+
+export function bowlShapeForSku(sku: string): string {
+  return bowlShapeBySku.get(sku) ?? "";
+}
+
+/** What the card prints: the model's own label first, else the raw-row cache. */
+export function bowlShapeText(product: { sku?: string } & unknown): string {
+  return bowlShapeFromModel(product) || bowlShapeForSku(String((product as { sku?: string })?.sku ?? ""));
+}
+
+export function bowlShapeFromModel(product: unknown): string {
+  if (typeof product !== "object" || product === null) return "";
+  const record = product as Record<string, unknown>;
+  for (const key of BOWL_SHAPE_KEYS) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
 function formatStonePrice(price: number | null) {
   return price === null ? "—" : formatTHB(price);
 }
@@ -500,6 +553,16 @@ function ProductCard({ sku, cart, onToggle, onRequestQuote }: { sku: string; car
        <div className="product-art"><span className="product-index">{sku}</span><BasinVisual tone={product.imageTone} imageUrl={product.imageUrl} hoverImageUrl={product.quoteImageUrl} alt={`${product.sku} ${product.colorName}`} tall={isTall} /><span className="art-note">{isPillarSet ? "READY-MADE PILLAR SET" : isTall ? "VERTICAL SERIES" : "COUNTER SERIES"}</span>{galleryImages.length > 1 && <BasinGalleryTrigger images={galleryImages} alt={`${product.sku} ${product.colorName}`} />}{product.videoUrl && <a className="product-video-link" href={product.videoUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><PlayCircle size={13} /> 3D 360°</a>}</div>
        <div className="product-info"><div><p className="eyebrow">{product.colorCode}</p><h3>{product.colorName}</h3>{isPillarSet && <p className="eyebrow" data-testid={`label-product-category-${sku}`}>{productCategoryLabel(product)}</p>}</div></div>
        <div className="product-specs"><span>{product.dimensions}</span><span>{productSpecLabel(product)}</span></div>
+      {/* Only ever rendered from catalogue data (see bowlShapeLabel); empty => no node. */}
+      {bowlShapeText(product) && (
+        <p
+        className="mt-1 text-xs leading-snug text-[var(--ink-soft)] line-clamp-2 [overflow-wrap:anywhere]"
+        title={bowlShapeText(product)}
+        data-testid="text-basin-bowl-shape"
+        >
+        {bowlShapeText(product)}
+        </p>
+      )}
        <strong className="product-price">{formatTHB(product.priceTHB)}<small className="product-price-unit"> / ชุด</small></strong>
         <div className="product-card-actions" role="group" aria-label={`ตัวเลือกการสั่งซื้อ ${product.sku}`}>
           <button
@@ -1972,6 +2035,7 @@ function Storefront() {
     const catalogChanged = lastCatalogFingerprint.current !== null && lastCatalogFingerprint.current !== catalogFingerprint;
     lastCatalogFingerprint.current = catalogFingerprint;
     PRODUCTS.splice(0, PRODUCTS.length, ...remoteCatalog.basins.map(basinProductFromCatalog));
+    syncBowlShapesFromCatalog(remoteCatalog.basins);
     const wholeSheet = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "whole-sheet");
     const installed = stoneColorsForMode(remoteCatalog.installedStones, remoteCatalog.sheetStones, "installed");
     const all = stoneColorsFromCatalog(remoteCatalog.installedStones, remoteCatalog.sheetStones);
