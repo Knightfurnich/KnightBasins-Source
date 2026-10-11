@@ -196,7 +196,7 @@ describe("one source: nobody re-types the figures", () => {
   });
 
   it("the endpoint adds the blocks after the catalogue and never replaces a catalogue key", () => {
-    assert.match(route, /res\.json\(\{ \.\.\.\(await getCatalogData\(true\)\), \.\.\.commercialConstants\(\) \}\)/);
+    assert.match(route, /res\.json\(\{ \.\.\.\(await getCatalogData\(true\)\), \.\.\.commercialConstants\(\)(, \.\.\.catalogOrderNotes\(\))? \}\)/); // 447-C added the catalogue note after the trade constants
   });
 
   it("the quote terms and the price guide print the same night hours and fee as the exported rule", () => {
