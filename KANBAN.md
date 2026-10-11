@@ -851,3 +851,6 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - ตรวจเอง: `release-validation.yml` บน main **มี Unit tests + Validate release contents และยิงบน `pull_request` แล้ว** · สาขา `ci/chai-test-gate-and-host-path-decouple` merge ไปแล้ว (PR #162 · behind 797 / ahead 0)
 - **หลักฐาน:** check-runs ของ #541 · #551 · #554 = Unit tests success + Validate release contents success ทุกใบ ⇒ ด่านเทสต์อัตโนมัติมีจริง (ลดงานตรวจซ้ำได้ตามที่บอสต้องการ)
 - **คงเหลือ:** ยืนยันว่า branch protection **บังคับ** check หรือไม่ (token เดวิดอ่าน settings ไม่ได้) ⇒ บอสดู Settings → Branches
+### 11 ต.ค. 69 — รวมเอกสารที่ค้างเป็นรอบเดียว (แก้ปัญหาที่เดวิดเปิด PR เอกสารหลายใบจนไฟล์ชนกัน)
+- **บทเรียนของเดวิดเอง:** เปิด PR เอกสาร 6 ใบพร้อมกัน (แต่ละใบแก้ `KANBAN.md`/`qa/QUEUE.md`) ⇒ ชนกันเอง 5 ใบ ต้องมารวมใหม่ ⇒ **kติกาใหม่: เอกสารใช้ PR เดียวต่อรอบ อัปเดตทับไปเรื่อย ๆ** (บันทึกใน `qa/WORKFLOW.md`)
+- ใบที่ค้างทั้งหมดถูกรวมไว้ที่นี่แล้ว: 455-F (header หน้าเดี่ยว · ฟรีบัฟ) · 457-C (JSON-LD · ชัย) · QUEUE R5 · 456-B (บอยเก็บหลักฐานเข้า qa/)
