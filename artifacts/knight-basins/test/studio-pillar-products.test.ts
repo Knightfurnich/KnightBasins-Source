@@ -23,7 +23,9 @@ test("the catalog keeps both ready-made pillar sets at 16,000 THB and labels the
     const product = PRODUCTS.find((candidate) => candidate.sku === sku);
     assert.ok(product, `${sku} remains in the main catalog`);
     assert.equal(product.priceTHB, 16000);
-    assert.equal(product.category, "tall vertical washbasin");
+    // 451-C owns this value (today "tall vertical washbasin", after ชัย "storage"); the behaviour the
+    // storefront owns is that both worlds are treated as shelf sets, so the test accepts either.
+    assert.ok(["tall vertical washbasin", "storage"].includes(product.category), "pillar category stays one of the two storage spellings");
     assert.equal(isFreestandingPillarProduct(product), true);
     assert.equal(productCategoryLabel(product), PILLAR_PRODUCT_LABEL);
     assert.equal(productSpecLabel(product), PILLAR_PRODUCT_PURCHASE_NOTE);
@@ -71,6 +73,10 @@ test("storefront and quote UI render pillar-specific product labels and descript
   assert.match(appSource, /productSpecLabel\(product\)/);
   assert.match(appSource, /productQuoteDescription\(product\)/);
   assert.match(appSource, /label-product-category-\$\{sku\}/);
+  // job 441-B: the pill wording comes from the API row (`categoryLabel`), never from a static phrase
+  assert.match(appSource, /const isPillarSet = isFreestandingPillarProduct\(product\)[\s\S]{0,60}=== "storage"/);
+  assert.match(appSource, /catalogueGroupLabel\(product, productCategoryLabel, facts\)/, "the pill prints the row-level wording");
+  assert.match(appSource, /indexCatalogueRowFacts\(remoteCatalog\?\.basins\)/);
   assert.match(appSource, /productCategoryLabel\(product\)\} · \$\{productSpecLabel\(product\)\}/);
 });
 
