@@ -1,19 +1,26 @@
 /**
- * What the bowl of a basin looks like (shape only). job 438-C added KF003 / KF006 (same stone, outside size, bowl size and
- * price, so the cards read the same); job 442-C surveyed the other models from their HD pictures
- * (`/kb/images/basin-hd/<SKU>.jpg`, cross-checked against the main photo), never guessed:
- *  - a shape is filled in only when the outline of the bowl is clear in the picture;
- *  - anything the picture does not settle stays `null` ("ภาพไม่ชัด") — see test/fixtures/bowl-shape-survey.json for the
- *    reason, per model.
- * KF029 / KF030 are not wash basins (owner ruling, job 442-C): they never get a value.
+ * What the bowl of a basin looks like (shape only).
  *
- * job 445-C (revision 2): the value lives in ONE editable column, `basin_prices.bowl_shape`, and the Thai label is built
- * here from the shape code — never stored. The overflow hole is NOT a spec of a model (every basin can be ordered with or
- * without one), so no label says anything about it and `bowlOverflowHole` stays in the contract only as an always-`null`
- * key, so nothing on the web side breaks; no code may decide anything from it.
+ * THE DATABASE IS THE SOURCE OF TRUTH (job 449-C). The value lives in `basin_prices.bowl_shape` and is edited in the
+ * admin. `NULL` there means "not specified": the card prints no line and `bowlShapeLabel` is `null`. Clearing a value in
+ * the admin hides it — nothing falls back to anything.
  *
- * The same built-in table sits in `knight-basins/src/data/catalog.ts` (BASIN_BOWL_SHAPES);
- * test/basin-bowl-shape.test.ts fails if the two drift apart or if a model leaves the surveyed list.
+ * The table `SEED_BOWL_SHAPES` below is NOT read when a customer is answered. It is the reference the two migrations were
+ * written from (025 seeded KF003 / KF006 / KF025, 026 the other 22) and the oracle the tests compare the database values
+ * against, so "what customers see before and after the move is identical" stays checkable. Do not import it from a route.
+ *
+ * History: job 438-C added KF003 / KF006 (same stone, outside size, bowl size and price, so the cards read the same);
+ * job 442-C surveyed the other models from their HD pictures (`/kb/images/basin-hd/<SKU>.jpg`, cross-checked against the
+ * main photo), never guessed: a shape is filled in only when the outline of the bowl is clear; anything the picture does
+ * not settle stays `null` ("ภาพไม่ชัด" — KF007, KF009, KF010) and KF029 / KF030 are not wash basins (owner ruling).
+ * See test/fixtures/bowl-shape-survey.json for the reason, per model.
+ *
+ * The overflow hole is NOT a spec of a model (every basin can be ordered with or without one), so no label says anything
+ * about it and `bowlOverflowHole` stays in the contract only as an always-`null` key. The Thai label is built here from
+ * the shape code and never stored.
+ *
+ * The same table sits in `knight-basins/src/data/catalog.ts` (BASIN_BOWL_SHAPES) for the web's offline copy;
+ * test/basin-bowl-shape.test.ts fails if the two drift apart.
  */
 export type BowlShape = "rounded-rectangle" | "oval" | "round" | "rectangle" | "square" | "rounded-square";
 
@@ -35,7 +42,7 @@ const SHAPE_TEXT: Readonly<Record<BowlShape, string>> = {
   "rounded-square": "หลุมสี่เหลี่ยมจัตุรัสมุมมน",
 };
 
-/** The built-in table: what the API answers when the row's own column is empty. A model that is not listed has no value. */
+/** Seed reference only (see the header): never read on the customer path. A model that is not listed has no value. */
 const CHECKED_BOWLS: Readonly<Record<string, BowlShape>> = {
   KF001: "rounded-rectangle",
   KF002: "rounded-rectangle",
@@ -72,8 +79,11 @@ const fieldsFor = (shape: BowlShape | null): BasinBowlShapeFields => ({
   bowlOverflowHole: null,
 });
 
-/** The built-in table only (no database): what the API answered before job 445-C, and the fallback now. */
-export function bowlShapeFields(sku: string): BasinBowlShapeFields {
+/**
+ * The seed table's answer for a model — what the migrations put into the database. For tests and tooling only: a route
+ * must answer from the row (`resolveBowlShape`), never from here.
+ */
+export function seedBowlShapeFields(sku: string): BasinBowlShapeFields {
   return fieldsFor(CHECKED_BOWLS[sku.trim().toUpperCase()] ?? null);
 }
 
@@ -83,28 +93,27 @@ export function isBowlShape(value: unknown): value is BowlShape {
   return typeof value === "string" && (BOWL_SHAPES as ReadonlyArray<string>).includes(value);
 }
 
-export type BowlShapeSource = "database" | "builtin" | "none";
+export type BowlShapeSource = "database" | "none";
 
 /**
- * job 445-C: the value a customer sees. The row's own column (`bowl_shape`, edited in the admin) wins when it holds a known
- * shape; a row whose column is empty (or holds something unknown, e.g. typed by hand in SQL) falls back to the built-in
- * table, so a card never loses its line and nothing errors.
+ * The value a customer sees, from the row alone: a known shape in `bowl_shape` is shown; an empty column — or something
+ * unknown typed by hand in SQL — means "not specified" (no line, nothing invented, nothing falls back).
  */
-export function resolveBowlShape(row: { sku: string; bowlShape?: unknown }): { fields: BasinBowlShapeFields; source: BowlShapeSource } {
-  if (isBowlShape(row.bowlShape)) return { fields: fieldsFor(row.bowlShape), source: "database" };
-  const builtin = bowlShapeFields(row.sku);
-  return { fields: builtin, source: builtin.bowlShape === null ? "none" : "builtin" };
+export function resolveBowlShape(row: { sku?: string; bowlShape?: unknown }): { fields: BasinBowlShapeFields; source: BowlShapeSource } {
+  return isBowlShape(row.bowlShape)
+    ? { fields: fieldsFor(row.bowlShape), source: "database" }
+    : { fields: fieldsFor(null), source: "none" };
 }
 
 export function withBasinBowlShape<T extends { sku: string }>(basin: T): T & BasinBowlShapeFields {
   return { ...basin, ...resolveBowlShape(basin).fields };
 }
 
-export const CHECKED_BOWL_SKUS: ReadonlyArray<string> = Object.keys(CHECKED_BOWLS);
+/** The models the seed table (and so the migrations) give a value to. */
+export const SEEDED_BOWL_SKUS: ReadonlyArray<string> = Object.keys(CHECKED_BOWLS);
 
 /**
- * Body of PUT /admin/basins/:id/bowl-shape — `bowlShape` is required; `null` clears the column (the built-in table then
- * answers). A leftover `bowlOverflowHole` key is accepted only as `null` (an older client), never as a value.
+ * Body of PUT /admin/basins/:id/bowl-shape — `bowlShape` is required; `null` clears the column (the column is emptied: no line). A leftover `bowlOverflowHole` key is accepted only as `null` (an older client), never as a value.
  */
 export function parseBowlShapeInput(body: unknown):
   | { ok: true; value: { bowlShape: BowlShape | null } }

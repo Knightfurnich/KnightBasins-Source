@@ -4066,7 +4066,7 @@ export function createAdminRouter(
       const categories = typeof database.select === "function" ? await basinCategoryRows(database) : [];
       res.json(basins.map((basin: any) => {
         const bowl = resolveBowlShape(basin);
-        // job 445-C: the shape the customer sees (database value, else the built-in table) and where it comes from.
+        // job 445-C / 449-C: the shape the customer sees (the database value; none when the column is empty) and where it comes from.
         return { ...withBasinCategory(withBasinMedia(basin), categories), ...bowl.fields, bowlShapeSource: bowl.source };
       }));
     } catch (error) { return next(error); }
@@ -4135,8 +4135,8 @@ export function createAdminRouter(
   });
 
   // job 445-C: the bowl shape of one basin. Its own route so the generic basin edit (which the form sends whole) can
-  // never blank this column by accident. The shape key is required; null = "not specified" (the built-in table then
-  // answers). Every change is written to the audit trail with who made it.
+  // never blank this column by accident. The shape key is required; null = "not specified" (the card then
+  // prints no line: the database is the source of truth, job 449-C). Every change is written to the audit trail with who made it.
   router.put("/admin/basins/:id/bowl-shape", requireAdminPermission("basins", "edit"), async (req, res, next) => {
     const id = idFrom(req.params.id);
     if (!id) return invalid(res, "Invalid basin id");
