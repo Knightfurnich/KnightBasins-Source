@@ -3,7 +3,6 @@ import { usePortfolioTotal } from "@/components/InstallationShowcase";
 import { SALES_WORKING_HOURS, contactPhonesCommaText } from "@/data/contact-channels";
 import { InstallationShowcase } from "@/components/InstallationShowcase";
 import {
-  ArrowLeft,
   ArrowRight,
   ShoppingBag,
   Ruler,
@@ -28,31 +27,16 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { knightFurnichLogo } from "@/data/assets";
+import { StandalonePageHeader } from "@/components/StandalonePageHeader";
 
 export default function SalesGuide() {
   const portfolioTotal = usePortfolioTotal();
   return (
     <div className="sales-guide sales-guide-page min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-      {/* Header */}
-      <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
-          <div>
-            <strong className="block text-sm tracking-widest leading-none text-[#003366]">KNIGHT BASINS</strong>
-            <small className="block text-[var(--ink-soft)] font-mono text-[12px] tracking-widest mt-1">
-              คู่มือมาตรฐานระบบบริการและสเปกวัสดุ · SYSTEM & MATERIAL GUIDE
-            </small>
-          </div>
-        </div>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink-soft)] hover:text-[#003366]"
-          data-testid="link-guide-back-to-store"
-        >
-          <ArrowLeft size={15} /> กลับสู่หน้าร้าน
-        </Link>
-      </header>
+      <StandalonePageHeader
+        page="guide"
+        subtitle="คู่มือมาตรฐานระบบบริการและสเปกวัสดุ · SYSTEM & MATERIAL GUIDE"
+      />
 
       <main className="max-w-[880px] mx-auto px-6 py-10 space-y-10">
         {/* Section 1: Welcome & Brand Authority */}

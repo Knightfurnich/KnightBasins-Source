@@ -94,9 +94,19 @@ describe("C - standalone page headers (453-B, documented difference)", () => {
     ["pages/UpdatesPage.tsx", "/updates"],
     ["pages/PriceGuidePage.tsx", "/price-guide"],
   ];
+  // job 458-B moved four of these headers into one shared block, so "the page has a link home" is now
+  // a property of the *composition*: accept the link in the page itself, or in the header it renders.
+  const SHARED_HEADER = "../src/components/StandalonePageHeader.tsx";
   for (const [file, route] of pages) {
     it(`${route} header links back to the storefront`, () => {
-      assert.match(read(`../src/${file}`), /href="\/"/, `${file} lost its link home`);
+      const source = read(`../src/${file}`);
+      const usesSharedHeader = /<StandalonePageHeader\b/.test(source);
+      const place = usesSharedHeader ? read(SHARED_HEADER) : source;
+      assert.match(place, /href="\/"/, `${file} lost its link home${usesSharedHeader ? " (via the shared header)" : ""}`);
+      if (usesSharedHeader) {
+        assert.match(read(SHARED_HEADER), /data-testid=\{`link-\$\{page\}-back-to-store`\}/,
+          "the shared block must also keep the named back-to-store link, not only the brand link");
+      }
     });
   }
 });

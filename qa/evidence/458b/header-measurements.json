@@ -1,0 +1,2598 @@
+{
+ "job": "458-B - one shared header for the standalone pages",
+ "measuredAt": "11 Oct 2026 (Asia/Bangkok) by Boy (Qwen)",
+ "environment": "Linux sandbox · node v22.23.3 · chromium 145.0.7632.18 headless · production build of each tree served read-only (tmp458/srv458.cjs, /api/* -> 500 so the wording comes from the build alone)",
+ "commands": [
+  "cd artifacts/knight-basins && PORT=3000 NODE_ENV=production pnpm run build",
+  "python3 tmp458/measure458.py before-main /tmp/qwenwork/before-dist m458-before.json",
+  "python3 tmp458/measure458.py after  artifacts/knight-basins/dist/public m458-after.json",
+  "python3 tmp458/storefront-guard.py  (numbers of ข้อ F, stored in this file under regressionF)"
+ ],
+ "before": {
+  "label": "before-main",
+  "dist": "/tmp/qwenwork/before-dist",
+  "headerHeights": {
+   "/readme": {
+    "390px": 120,
+    "360px": 120,
+    "768px": 74,
+    "1440px": 74
+   },
+   "/site-prep": {
+    "390px": 65,
+    "360px": 65,
+    "768px": 65,
+    "1440px": 65
+   },
+   "/portfolio": {
+    "390px": 91,
+    "360px": 91,
+    "768px": 71,
+    "1440px": 71
+   },
+   "/price-guide": {
+    "390px": 81,
+    "360px": 81,
+    "768px": 61,
+    "1440px": 61
+   }
+  },
+  "sameHeightOnEveryPage": {
+   "390px": false,
+   "360px": false,
+   "768px": false,
+   "1440px": false
+  },
+  "pageErrors": [],
+  "pages": {
+   "/readme@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 120,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 51,
+      "h": 60
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 51,
+      "h": 60
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 60
+     }
+    ],
+    "minTapHeight": 60,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/readme@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 120,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 47,
+      "h": 60
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 47,
+      "h": 60
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 60
+     }
+    ],
+    "minTapHeight": 60,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/readme@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 74,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/readme@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 74,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/site-prep@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 65,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/site-prep@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 65,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/site-prep@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 65,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/site-prep@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 65,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/portfolio@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 91,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 92,
+      "h": 40
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 92,
+      "h": 40
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 40
+     }
+    ],
+    "minTapHeight": 40,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/portfolio@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 91,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 84,
+      "h": 40
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 84,
+      "h": 40
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 40
+     }
+    ],
+    "minTapHeight": 40,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/portfolio@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 71,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/portfolio@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 71,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between",
+    "homeLink": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 99,
+      "h": 20
+     }
+    },
+    "menuItems": [
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 20
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/price-guide@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 81,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8",
+    "homeLink": {
+     "text": "KF KNIGHT FURNICH",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 155,
+      "h": 40
+     }
+    },
+    "backToStore": null,
+    "menuItems": [
+     {
+      "text": "KF KNIGHT FURNICH",
+      "h": 40
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 40
+     },
+     {
+      "text": "ผลงานจริง",
+      "h": 0
+     },
+     {
+      "text": "ขอใบเสนอราคา",
+      "h": 56
+     }
+    ],
+    "minTapHeight": 0,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/price-guide@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 81,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8",
+    "homeLink": {
+     "text": "KF KNIGHT FURNICH",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 141,
+      "h": 40
+     }
+    },
+    "backToStore": null,
+    "menuItems": [
+     {
+      "text": "KF KNIGHT FURNICH",
+      "h": 40
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 40
+     },
+     {
+      "text": "ผลงานจริง",
+      "h": 0
+     },
+     {
+      "text": "ขอใบเสนอราคา",
+      "h": 56
+     }
+    ],
+    "minTapHeight": 0,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/price-guide@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 61,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8",
+    "homeLink": {
+     "text": "KF KNIGHT FURNICH",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 160,
+      "h": 24
+     }
+    },
+    "backToStore": null,
+    "menuItems": [
+     {
+      "text": "KF KNIGHT FURNICH",
+      "h": 24
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 20
+     },
+     {
+      "text": "ผลงานจริง",
+      "h": 20
+     },
+     {
+      "text": "ขอใบเสนอราคา",
+      "h": 36
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   },
+   "/price-guide@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 61,
+    "headerTop": 0,
+    "headerTestid": null,
+    "headerClasses": "sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8",
+    "homeLink": {
+     "text": "KF KNIGHT FURNICH",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 160,
+      "h": 24
+     }
+    },
+    "backToStore": null,
+    "menuItems": [
+     {
+      "text": "KF KNIGHT FURNICH",
+      "h": 24
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 20
+     },
+     {
+      "text": "ผลงานจริง",
+      "h": 20
+     },
+     {
+      "text": "ขอใบเสนอราคา",
+      "h": 36
+     }
+    ],
+    "minTapHeight": 20,
+    "menuScrolls": null,
+    "menuCue": null,
+    "bodyHasPriceGuideNav": false,
+    "tapTargets": null,
+    "contrast": null
+   }
+  },
+  "headerClasses": {
+   "/readme": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+   "/site-prep": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between",
+   "/portfolio": "border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between",
+   "/price-guide": "sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8"
+  }
+ },
+ "after": {
+  "label": "after",
+  "dist": "kbsrc/artifacts/knight-basins/dist/public",
+  "headerHeights": {
+   "/readme": {
+    "390px": 101,
+    "360px": 101,
+    "768px": 78,
+    "1440px": 78
+   },
+   "/site-prep": {
+    "390px": 101,
+    "360px": 101,
+    "768px": 78,
+    "1440px": 78
+   },
+   "/portfolio": {
+    "390px": 101,
+    "360px": 101,
+    "768px": 78,
+    "1440px": 78
+   },
+   "/price-guide": {
+    "390px": 101,
+    "360px": 101,
+    "768px": 78,
+    "1440px": 78
+   }
+  },
+  "sameHeightOnEveryPage": {
+   "390px": true,
+   "360px": true,
+   "768px": true,
+   "1440px": true
+  },
+  "pageErrors": [],
+  "pages": {
+   "/readme@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/readme@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/readme@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 108,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 56,
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 61,
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 53,
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 69,
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 87,
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 45,
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 59,
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 108,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/readme@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-guide-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 67,
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 74,
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 63,
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 83,
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 104,
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 54,
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 71,
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/site-prep@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-site-prep-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/site-prep@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-site-prep-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/site-prep@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-site-prep-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 108,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 56,
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 61,
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 53,
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 69,
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 87,
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 45,
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 59,
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 108,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/site-prep@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-site-prep-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-site-prep-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 67,
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 74,
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 63,
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 83,
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 104,
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 54,
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 71,
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/portfolio@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-portfolio-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/portfolio@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-portfolio-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/portfolio@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-portfolio-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 108,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 56,
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 61,
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 53,
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 69,
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 87,
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 45,
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 59,
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 108,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/portfolio@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-portfolio-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-portfolio-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 67,
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 74,
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 63,
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 83,
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 104,
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 54,
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 71,
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/price-guide@390": {
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-price-guide-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/price-guide@360": {
+    "clientWidth": 360,
+    "scrollWidth": 360,
+    "overflowPx": 0,
+    "headerHeight": 101,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-price-guide-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 82,
+      "h": 44
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 88,
+      "h": 44
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 79,
+      "h": 44
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 97,
+      "h": 44
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 117,
+      "h": 44
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 70,
+      "h": 44
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 86,
+      "h": 44
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": true,
+    "menuCue": "\"→\"",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/price-guide@768": {
+    "clientWidth": 768,
+    "scrollWidth": 768,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-price-guide-back-to-store",
+     "box": {
+      "w": 108,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 56,
+      "h": 46
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 61,
+      "h": 46
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 53,
+      "h": 46
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 69,
+      "h": 46
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 87,
+      "h": 46
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 45,
+      "h": 46
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 59,
+      "h": 46
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 108,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   },
+   "/price-guide@1440": {
+    "clientWidth": 1440,
+    "scrollWidth": 1440,
+    "overflowPx": 0,
+    "headerHeight": 78,
+    "headerTop": 0,
+    "headerTestid": "standalone-page-header",
+    "headerClasses": "site-header standalone-page-header",
+    "homeLink": {
+     "text": "",
+     "testid": "link-price-guide-home",
+     "box": {
+      "w": 48,
+      "h": 48
+     }
+    },
+    "backToStore": {
+     "text": "กลับสู่หน้าร้าน",
+     "testid": "link-price-guide-back-to-store",
+     "box": {
+      "w": 124,
+      "h": 44
+     }
+    },
+    "menuItems": [
+     {
+      "text": "แคตตาล็อก",
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "h": 44
+     }
+    ],
+    "tapTargets": [
+     {
+      "text": "",
+      "w": 48,
+      "h": 48
+     },
+     {
+      "text": "แคตตาล็อก",
+      "w": 67,
+      "h": 76
+     },
+     {
+      "text": "หินสังเคราะห์",
+      "w": 74,
+      "h": 76
+     },
+     {
+      "text": "ส่งแบบร่าง",
+      "w": 63,
+      "h": 76
+     },
+     {
+      "text": "📸 ผลงานจริง",
+      "w": 83,
+      "h": 76
+     },
+     {
+      "text": "📐 เตรียมหน้างาน",
+      "w": 104,
+      "h": 76
+     },
+     {
+      "text": "คู่มือราคา",
+      "w": 54,
+      "h": 76
+     },
+     {
+      "text": "ใบเสนอราคา",
+      "w": 71,
+      "h": 76
+     },
+     {
+      "text": "กลับสู่หน้าร้าน",
+      "w": 124,
+      "h": 44
+     }
+    ],
+    "minTapHeight": 44,
+    "menuScrolls": false,
+    "menuCue": "none",
+    "contrast": {
+     "linkText": "แคตตาล็อก",
+     "ratio": 20.88,
+     "linkColor": "color(srgb 0.281961 0.410588 0.524314)",
+     "headerBackground": "rgba(255, 255, 255, 0.92)"
+    },
+    "bodyHasPriceGuideNav": true
+   }
+  },
+  "headerClasses": {
+   "/readme": "site-header standalone-page-header",
+   "/site-prep": "site-header standalone-page-header",
+   "/portfolio": "site-header standalone-page-header",
+   "/price-guide": "site-header standalone-page-header"
+  }
+ },
+ "regressionF": {
+  "why": "ข้อ F: what #554 (453-B) and #551 (441-B v2 C2) promised must still be true after this job. Measured on the storefront of the AFTER build.",
+  "menuLinkHeightsPx": [
+   44,
+   44,
+   44,
+   44,
+   44,
+   44,
+   44
+  ],
+  "priceGuideStillInMainNav": true,
+  "mobileCartBox": {
+   "w": 44,
+   "h": 44
+  },
+  "catalogueChips": [
+   "ทั้งหมด 30",
+   "อ่างที่เลือก 0",
+   "เคาน์เตอร์ 18",
+   "ทรงสูง 10",
+   "เสาวางของตั้งพื้น 2"
+  ],
+  "rawCategoryWordsVisible": []
+ },
+ "reading": {
+  "before": "four different header heights (65/81/91/120 px at 390 px and 61/65/71/74 px at 1440 px), smallest tap 0-40 px, no site menu at all on the guide pages",
+  "after": "one height everywhere (101 px at 390/360, 78 px at 768/1440), nothing under 44 px, the same six links plus the basket on every standalone page, horizontal scroll only inside the menu strip and only with the arrow cue"
+ }
+}
