@@ -76,11 +76,21 @@ before(() => {
   harnessDirectory = mkdtempSync(join(appRoot, "node_modules", ".knight-price-guide-test-"));
   const tsconfigPath = join(harnessDirectory, "tsconfig.override.json");
   const harnessPath = join(harnessDirectory, "render.mjs");
+  // job 458-B: the page now renders the shared header, which shows the brand picture out of
+  // @/data/assets - a module that reads Vite's `import.meta.env`, which tsx's loader does not
+  // provide. test/site-prep-page.test.ts solved the same problem months ago with a stubbed module,
+  // so this harness borrows that trick rather than teaching the component to dodge the loader.
+  const stubAssetsPath = join(harnessDirectory, "stub-assets.ts").replace(/\\/g, "/");
+  writeFileSync(stubAssetsPath, 'export const knightFurnichLogo = "/knight-furnich-logo.png";\n', "utf8");
   writeFileSync(
     tsconfigPath,
     JSON.stringify({
       extends: join(appRoot, "tsconfig.json").replace(/\\/g, "/"),
-      compilerOptions: { jsx: "react-jsx" },
+      compilerOptions: {
+        jsx: "react-jsx",
+        baseUrl: appRoot.replace(/\\/g, "/"),
+        paths: { "@/data/assets": [stubAssetsPath], "@/*": ["./src/*"] },
+      },
     }),
   );
   writeFileSync(harnessPath, HARNESS_SCRIPT);

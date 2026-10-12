@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { contactPhonesCommaText } from "@/data/contact-channels";
 import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ArrowLeft, ChevronLeft, ChevronRight, Images, Loader2, MessageCircle, Search, X } from "lucide-react";
-import { knightFurnichLogo } from "@/data/assets";
+import { ChevronLeft, ChevronRight, Images, Loader2, MessageCircle, Search, X } from "lucide-react";
+import { StandalonePageHeader } from "@/components/StandalonePageHeader";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import PortfolioInquiryModal from "@/components/PortfolioInquiryModal";
 import { buildPortfolioStructuredData } from "@/data/structured-data";
@@ -146,24 +146,7 @@ export function PortfolioPage() {
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       <RouteStructuredData id="portfolio" data={structuredData} />
-      <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
-          <div>
-            <strong className="block text-sm tracking-widest leading-none text-[#003366]">KNIGHT BASINS</strong>
-            <small className="block text-[var(--ink-soft)] font-mono text-[12px] tracking-widest mt-1">
-              คลังผลงานติดตั้งจริง · PORTFOLIO
-            </small>
-          </div>
-        </div>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink-soft)] hover:text-[#003366]"
-          data-testid="link-portfolio-back-to-store"
-        >
-          <ArrowLeft size={15} /> กลับสู่หน้าร้าน
-        </Link>
-      </header>
+            <StandalonePageHeader page="portfolio" subtitle="ผลงานติดตั้งจริง · PORTFOLIO" />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-10 space-y-7">
         <section className="space-y-3">

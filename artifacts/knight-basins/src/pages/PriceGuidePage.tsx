@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ArrowLeft, ArrowRight, BookOpen, Ruler, Sparkles } from "lucide-react";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
+import { StandalonePageHeader } from "@/components/StandalonePageHeader";
 import { ROUTE_META } from "@/components/RouteMeta.logic";
 import {
   formatTHB,
@@ -104,36 +105,7 @@ function PriceGuidePage() {
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       <RouteStructuredData id="price-guide" data={buildPriceGuideJsonLd(PRICE_GUIDE_SCHEMA_PRICES, PRICE_GUIDE_SCHEMA_IMAGE)} />
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.94)] px-5 py-3 backdrop-blur-md sm:px-8">
-        <Link
-          href="/"
-          className="flex items-center gap-3"
-          aria-label="Knight Furnich กลับหน้าแคตตาล็อก"
-          data-testid="link-price-guide-home"
-        >
-          <span className="rounded bg-[var(--ink)] px-2 py-1 text-xs font-bold text-white">
-            KF
-          </span>
-          <span className="text-sm font-semibold tracking-wide">
-            KNIGHT FURNICH
-          </span>
-        </Link>
-        <nav aria-label="เมนูคู่มือราคา" className="flex items-center gap-3 sm:gap-6">
-          <Link href="/stone" className="text-sm font-medium hover:underline" data-testid="link-price-guide-stone-nav">
-            หินสังเคราะห์
-          </Link>
-          <Link href="/portfolio" className="hidden text-sm font-medium hover:underline sm:inline" data-testid="link-price-guide-portfolio-nav">
-            ผลงานจริง
-          </Link>
-          <Link
-            href="/quote"
-            className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-            data-testid="link-price-guide-quote-nav"
-          >
-            ขอใบเสนอราคา
-          </Link>
-        </nav>
-      </header>
+            <StandalonePageHeader page="price-guide" subtitle="คู่มือราคาและขั้นตอน · PRICE GUIDE" />
 
       <main aria-labelledby="price-guide-title" data-testid="price-guide-content">
         <article className="mx-auto max-w-6xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16">

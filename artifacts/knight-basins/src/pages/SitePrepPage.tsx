@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, Link2, MessageCircle } from "lucide-react";
+import { Check, Link2, MessageCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { knightFurnichLogo } from "@/data/assets";
+import { StandalonePageHeader } from "@/components/StandalonePageHeader";
 import { RouteStructuredData } from "@/components/RouteStructuredData";
 import { buildSitePrepStructuredData } from "@/data/structured-data";
 
@@ -74,16 +74,7 @@ export function SitePrepPage() {
   return (
     <div className="site-prep-page min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       <RouteStructuredData id="site-prep" data={sitePrepStructuredData} />
-      <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink-soft)] hover:text-[#003366]"
-          data-testid="link-site-prep-back-to-store"
-        >
-          <ArrowLeft size={15} /> กลับสู่หน้าร้าน
-        </Link>
-      </header>
+            <StandalonePageHeader page="site-prep" subtitle="คู่มือเตรียมหน้างาน · SITE PREP" />
 
       <main className="max-w-[880px] mx-auto px-6 py-10 space-y-10">
         <section className="space-y-3 text-center" data-testid="section-site-prep-hero">
