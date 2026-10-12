@@ -90,6 +90,10 @@ describe("index.css 465-C block pins the C-H causes", () => {
   it("G: Maps button on amber has dark text", () => {
     assert.match(block, /\[data-testid="link-google-maps-factory"\] \{ color: #0f172a !important; \}/);
   });
+  it("blind spot: footer and Studio sketch banner lose their pale gradient in the dark theme (the probe skips text over a background-image)", () => {
+    assert.match(themeStyles, /\[data-theme="dark"\] \.site-footer \{ background-image: none !important; background-color: #0b1324 !important; \}/);
+    assert.match(themeStyles, /\[data-theme="dark"\] \.studio-sketch-bridge-banner \{ background-image: none !important; background-color: var\(--card-paper\) !important; \}/);
+  });
   it("H: studio pale panels follow the theme; canvas and material tiles are not touched", () => {
     for (const cls of ["studio-piece-card", "studio-selector-trigger", "studio-edge-select", "studio-edge-finish-option", "studio-draft-banner"]) {
       assert.ok(block.includes(`.${cls}`), cls);
@@ -128,10 +132,21 @@ describe("colour pairs introduced by 465-C clear WCAG AA by arithmetic", () => {
     ["light h2 sub-title", "#5b6663", "#f6fbfe", 4.5],
     ["light preset active", "#0f6ea8", "#ffffff", 4.5],
     ["light track kicker", "#8a4f0f", "#ffffff", 4.5],
+    ["--ink-soft token on the page paper", "#577186", "#f6fbfe", 4.5],
+    ["--ink-soft token on the palest measured fill", "#577186", "#f5fbfe", 4.5],
+    ["--ink-soft token on white", "#577186", "#ffffff", 4.5],
+    ["--ink-soft token on the quote-format panel fill", "#577186", "#f5fbfe", 4.5],
   ];
   for (const [name, fg, bg, min] of pairs) {
     it(`${name}: ${fg} on ${bg}`, () => assert.ok(ratio(fg, bg) >= min, `${ratio(fg, bg).toFixed(2)} < ${min}`));
   }
+  it("the light --ink-soft token is the darkened one (it was 4.26-4.44, the cause of ~97% of the remaining light failures)", () => {
+    assert.match(css, /--ink-soft: #577186;/);
+    assert.doesNotMatch(css, /--ink-soft: #5f7b92;/);
+    assert.ok(ratio("#5f7b92", "#f6fbfe") < 4.5, "the old value really was under AA");
+    assert.match(css, /\.hero-copy \{ color: var\(--ink-soft\); \}/, "hero copy follows the token (its own #5a7890 was 4.45)");
+    assert.doesNotMatch(css, /color: #5a7890/);
+  });
   it("every listed colour is actually written in the source it claims", () => {
     const all = css + priceGuide + updates + network + themeStyles;
     for (const c of ["#020617", "#bfdbfe", "#7dd3fc", "#3b556e", "#1f2937", "#ff9b8d", "#4f6a80", "#5b6663", "#0f6ea8", "#8a4f0f", "#0b1324"]) {

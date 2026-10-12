@@ -496,6 +496,11 @@ export const STOREFRONT_THEME_STYLES = `
 /* navy #003366 text on the dark page (/portfolio eyebrow + count badge, /readme link rows + badge); white cards excluded */
 [data-theme="dark"] [class*="text-[#003366]"]:not([class*="bg-white"] *) { color: var(--brand-blue) !important; }
 
+/* qa/tools/contrast-probe.js cannot measure text over a background-image, and these two kept a pale gradient on top of
+   their dark fill: the footer (every page: phone, hours, address were pale ink on pale blue) and the Studio sketch banner */
+[data-theme="dark"] .site-footer { background-image: none !important; background-color: #0b1324 !important; }
+[data-theme="dark"] .studio-sketch-bridge-banner { background-image: none !important; background-color: var(--card-paper) !important; }
+
 /* H · /studio: required-field red #c64d3f = 3.44 on the dark card */
 [data-theme="dark"] .studio-contact-grid label span { color: #ff9b8d !important; }
 `;

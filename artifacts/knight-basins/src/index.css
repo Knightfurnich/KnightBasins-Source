@@ -1474,7 +1474,7 @@ h1, h2, h3 { color: var(--ink); }
   --card-paper: #ffffff;
   --line: #d8e7f0;
   --ink: #123e69;
-  --ink-soft: #5f7b92;
+  --ink-soft: #577186; /* job 465-C: was #5f7b92 = 4.26-4.44 on the page / white (WCAG 4.5); 4.54 on the palest fill */
   --deep: #0e355b;
   --brand-blue: #1268b3;
   --brand-sky: #e8f5fb;
@@ -1531,7 +1531,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   background: linear-gradient(90deg, transparent, #a8cee2);
   pointer-events: none;
 }
-.hero-copy { color: #5a7890; }
+.hero-copy { color: var(--ink-soft); } /* job 465-C: was #5a7890 = 4.45 on the page */
 .catalog-toolbar { border-bottom: 1px solid var(--line); }
 .catalog-controls { align-items: stretch; }
 .search-field, .sort-field {
