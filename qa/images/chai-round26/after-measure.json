@@ -1,0 +1,163 @@
+{
+  "label": "after",
+  "baseline": "http://localhost:5173",
+  "at": "2026-10-12T14:46:36.654Z",
+  "desktop1440": {
+    "viewport": 1440,
+    "docClient": 1425,
+    "docScroll": 1425,
+    "sheet": {
+      "w": 1120,
+      "scrollW": 1118,
+      "clientW": 1118
+    },
+    "bank": {
+      "parentClass": "formal-quote-sheet formal-quote-sheet--us",
+      "left": 25,
+      "top": 1367,
+      "w": 1070,
+      "h": 65,
+      "fontSize": "14px",
+      "children": [
+        {
+          "text": "บัญชีรับเงิน",
+          "fontSize": "14px",
+          "fontWeight": "800"
+        },
+        {
+          "text": "ธ.กรุงศรีอยุธยา สาขาปตท. ติวานนท์",
+          "fontSize": "14px",
+          "fontWeight": "400"
+        },
+        {
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด",
+          "fontSize": "14px",
+          "fontWeight": "400"
+        },
+        {
+          "text": "574-1-18925-4",
+          "fontSize": "16px",
+          "fontWeight": "800"
+        }
+      ],
+      "belowNotes": true,
+      "insideSheet": true,
+      "widthShareOfSheet": 96
+    },
+    "totals": {
+      "left": 806,
+      "w": 289,
+      "text": "รวมก่อนส่วนลด฿83,000ส่วนลด / สิทธิ์ติดตั้งฟรี—รวมหลังส่วนลด฿83,000ภาษีมูลค่าเพิ่ม 7% ฿5,810จำนวนเงินสุทธิ฿88,810แปดหมื่นแปดพันแปดร้อยสิบบาทถ้วน"
+    },
+    "pickupLine": "• เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30",
+    "footerLine": "LINE@789gcnhq (KnightBasins)",
+    "placeholderAnywhere": false
+  },
+  "footerLineText": "LINE@789gcnhq (KnightBasins)",
+  "mobile390": {
+    "viewport": 390,
+    "docClient": 390,
+    "docScroll": 390,
+    "sheet": {
+      "w": 351,
+      "scrollW": 349,
+      "clientW": 349
+    },
+    "bank": {
+      "parentClass": "formal-quote-sheet formal-quote-sheet--us",
+      "left": 11,
+      "top": 3107,
+      "w": 329,
+      "h": 90,
+      "fontSize": "14px",
+      "children": [
+        {
+          "text": "บัญชีรับเงิน",
+          "fontSize": "14px",
+          "fontWeight": "800"
+        },
+        {
+          "text": "ธ.กรุงศรีอยุธยา สาขาปตท. ติวานนท์",
+          "fontSize": "14px",
+          "fontWeight": "400"
+        },
+        {
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด",
+          "fontSize": "14px",
+          "fontWeight": "400"
+        },
+        {
+          "text": "574-1-18925-4",
+          "fontSize": "16px",
+          "fontWeight": "800"
+        }
+      ],
+      "belowNotes": true,
+      "insideSheet": true,
+      "widthShareOfSheet": 94
+    },
+    "totals": {
+      "left": 11,
+      "w": 89,
+      "text": "รวมก่อนส่วนลด฿83,000ส่วนลด / สิทธิ์ติดตั้งฟรี—รวมหลังส่วนลด฿83,000ภาษีมูลค่าเพิ่ม 7% ฿5,810จำนวนเงินสุทธิ฿88,810แปดหมื่นแปดพันแปดร้อยสิบบาทถ้วน"
+    },
+    "pickupLine": "• เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30",
+    "footerLine": "LINE@789gcnhq (KnightBasins)",
+    "placeholderAnywhere": false
+  },
+  "printA4": {
+    "viewport": 794,
+    "docClient": 794,
+    "docScroll": 794,
+    "sheet": {
+      "w": 794,
+      "scrollW": 794,
+      "clientW": 794
+    },
+    "bank": {
+      "parentClass": "formal-quote-sheet formal-quote-sheet--us",
+      "left": 0,
+      "top": 908,
+      "w": 794,
+      "h": 65,
+      "fontSize": "14px",
+      "children": [
+        {
+          "text": "บัญชีรับเงิน",
+          "fontSize": "14px",
+          "fontWeight": "800"
+        },
+        {
+          "text": "ธ.กรุงศรีอยุธยา สาขาปตท. ติวานนท์",
+          "fontSize": "14px",
+          "fontWeight": "400"
+        },
+        {
+          "text": "บริษัท ไนท์ เฟอร์นิช จำกัด",
+          "fontSize": "14px",
+          "fontWeight": "400"
+        },
+        {
+          "text": "574-1-18925-4",
+          "fontSize": "16px",
+          "fontWeight": "800"
+        }
+      ],
+      "belowNotes": true,
+      "insideSheet": true,
+      "widthShareOfSheet": 100
+    },
+    "totals": {
+      "left": 580,
+      "w": 214,
+      "text": "รวมก่อนส่วนลด฿83,000ส่วนลด / สิทธิ์ติดตั้งฟรี—รวมหลังส่วนลด฿83,000ภาษีมูลค่าเพิ่ม 7% ฿5,810จำนวนเงินสุทธิ฿88,810แปดหมื่นแปดพันแปดร้อยสิบบาทถ้วน"
+    },
+    "pickupLine": "• เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30",
+    "footerLine": "LINE@789gcnhq (KnightBasins)",
+    "placeholderAnywhere": false
+  },
+  "pdf": {
+    "bytes": 793135,
+    "pages": 2
+  }
+}

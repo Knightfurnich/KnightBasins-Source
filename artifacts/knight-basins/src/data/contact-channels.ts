@@ -6,9 +6,6 @@
 export const QUOTE_PRICE_VALID_DAYS = 30;
 export const QUOTE_LINK_VALID_DAYS = 45;
 
-/** Collecting work at the plant runs on its own clock -- not sales hours. */
-export const PLANT_PICKUP_HOURS = "จันทร์–ศุกร์ 08:30–16:30 · เสาร์ 08:30–11:30 (ติดต่อล่วงหน้า)";
-
 /**
  * job 422-B C: every phone number a customer can *read* on the storefront comes from here.
  *

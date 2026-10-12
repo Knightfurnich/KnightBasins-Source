@@ -10,7 +10,6 @@ import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJs
 import {
   CONTACT_PHONE_BACKUP_SALES,
   CONTACT_PHONE_PRIMARY,
-  PLANT_PICKUP_HOURS,
   QUOTE_LINK_VALID_DAYS,
   QUOTE_PRICE_VALID_DAYS,
   SALES_WORKING_HOURS,
@@ -384,12 +383,12 @@ function Footer() {
               <strong className="footer-company-name">บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
               <div className="footer-address">
                 <div>โชว์รูม: 35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000</div>
-                <div>โรงงานผลิต: 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+                <div>สำนักงานใหญ่ (ที่อยู่ออกใบกำกับภาษี): 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
               </div>
             </div>
           </div>
 
-          <div className="footer-action-row">
+          <div className="footer-action-row" style={{ display: "flex", flexWrap: "wrap", columnGap: 8 }}>
             <a
               className="footer-maps-link"
               href="https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5"
@@ -398,6 +397,16 @@ function Footer() {
               data-testid="link-footer-maps"
             >
               <span aria-hidden="true">🗺️</span> นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่
+            </a>
+            {/* job 463-C (E): the map pin of the showroom (35/633 ซอยร่วมสุข 8/1), the same link the bot's KB uses */}
+            <a
+              className="footer-maps-link"
+              href="https://maps.app.goo.gl/o47RDTQAWZTfB4HYA"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="link-footer-map"
+            >
+              <span aria-hidden="true">📍</span> แผนที่ / นำทาง
             </a>
           </div>
 
@@ -408,10 +417,10 @@ function Footer() {
             </div>
             <div className="footer-contact-item">
               <span className="footer-contact-key">LINE</span>
-              <span><strong>@789gcnhq</strong> (KnightBot)</span>
+              <span><strong>@789gcnhq</strong> (KnightBasins)</span>
             </div>
             <div className="footer-contact-item">
-              <span className="footer-contact-key">เว็บไซต์</span>
+              <span className="footer-contact-key">เครือข่ายเว็บไซต์</span>
               <span><a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer">www.knightfurnich.com</a></span>
             </div>
             <div className="footer-contact-item">
@@ -1133,7 +1142,7 @@ const LATEST_UPDATE_VERSION = UPDATE_RELEASES[0]?.version ?? "";
 const COMPANY_DETAILS = {
   name: "บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่)",
   taxId: "0-1355-53014-11-4",
-  address: "โรงงาน / สำนักงานใหญ่ ปทุมธานี",
+  address: "35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000",
   phones: contactPhonesText(),
   email: "info@knightfurnich.com",
   bankName: "ธ.กรุงศรีอยุธยา",
@@ -1151,7 +1160,7 @@ const QUOTE_PRODUCT_DETAILS = [
   "หินสังเคราะห์โทนสีเข้ม สีดำ เป็นรอย ขีด ข่วน ได้ง่ายต้องระวังการใช้งานเป็นพิเศษ",
   "สินค้า ในแต่ละสี มีการจำหน่ายทุกวัน กรุณาตรวจสอบสินค้าก่อนทำการสั่งซื้อทุกครั้ง",
   "ใบเสนอราคาระบุเงื่อนไขการชำระเงิน กรุณาตรวจสอบก่อนทำการสั่งซื้อ",
-  "เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): ${PLANT_PICKUP_HOURS} · เสาร์ 08:30–11:30",
+  "เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30",
 ] as const;
 
 const QUOTE_NOTE_DETAILS = [
@@ -1284,13 +1293,20 @@ function FormalQuote({
           <div><span>ภาษีมูลค่าเพิ่ม 7% {vat ? "" : "(ยังไม่คิด)"}</span><strong>{formatTHB(vatAmount)}</strong></div>
           <div className="formal-grand-total"><span>จำนวนเงินสุทธิ</span><strong>{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div>
         </div>
-        <div className="formal-bank-details">
-          <strong>บัญชีรับเงิน</strong>
-          <span>{COMPANY_DETAILS.bankName} {COMPANY_DETAILS.bankBranch}</span>
-          <span>{COMPANY_DETAILS.bankAccountName}</span>
-          <span>{COMPANY_DETAILS.bankAccountNumber}</span>
-        </div>
       </div>
+    </div>
+    {/* job 463-C: the bank box sits under the details, full width, in a size the account number can be read at.
+        Inline style on purpose: src/index.css is frozen, and its `.formal-quote-bottom--of/--us .formal-bank-details`
+        widths no longer apply outside `.formal-quote-bottom`. */}
+    <div
+      className="formal-bank-details"
+      data-testid="formal-bank-details"
+      style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 28px", width: "100%", marginLeft: 0, marginTop: 10, padding: "8px 12px", fontSize: 14, lineHeight: 1.45, breakInside: "avoid" }}
+    >
+      <strong style={{ flex: "0 0 100%", fontSize: 14 }}>บัญชีรับเงิน</strong>
+      <span style={{ fontSize: 14 }}>{COMPANY_DETAILS.bankName} {COMPANY_DETAILS.bankBranch}</span>
+      <span style={{ fontSize: 14 }}>{COMPANY_DETAILS.bankAccountName}</span>
+      <span data-testid="formal-bank-account-number" style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.02em", color: "#123f67" }}>{COMPANY_DETAILS.bankAccountNumber}</span>
     </div>
       <footer className="formal-quote-signature"><span>ผู้เสนอราคา<br /><b>{COMPANY_DETAILS.salesRepresentative}</b><small>{COMPANY_DETAILS.salesPhone}</small></span><span className="formal-signature-block">ผู้มีอำนาจอนุมัติสั่งซื้อ / ลูกค้า<span className="formal-signature-line" /><b>ลงชื่อ / ประทับตราบริษัท (ถ้ามี)</b></span></footer>
   </section>;
