@@ -429,12 +429,35 @@ function Footer() {
 }
 
 function NetworkFooterLinks() {
+  /*
+   * job 461-B (Chai's measurement in job 460-C step 0, main 034858d): the three sister-site links at
+   * the bottom of every page were 23.1 px tall. Re-measured on a production build of main in this
+   * sandbox: 23.1 px at 390 / 360 / 768 / 1440 (the first one shows 46.2 because its label wraps to
+   * two 23.1 px lines). A thumb needs more.
+   *
+   * The size is set on the element: `src/index.css` is frozen for this job, and an inline style needs
+   * no guesswork about which frozen rule wins. Measured on the built page, each link computes to
+   * `line-height: 44px` and is 44 px tall.
+   * What grows the box is `lineHeight`: these links are block-level flex items whose height is their
+   * text, so 44 px of line height makes each one 44 px tall (the first, whose label wraps to two
+   * lines, becomes two 44 px lines = 88 px). `minHeight` states the same floor for the box itself.
+   * 44 px = WCAG 2.5.5 and the number job 453-B used for the header menu, so the AA minimum of 24 px
+   * (WCAG 2.2 / 2.5.8) is passed with room and the spacing exception is not needed - each line grows
+   * with its target, so nothing overlaps.
+   * `display` is deliberately left alone: the whole point of GOAL C is that the footer keeps the
+   * arrangement it has today, and measured, it does (same widths, same x columns, same number of
+   * lines at 390/360/768/1440 - only the footer gets taller).
+   * Widths and x/y columns are unchanged by what is used here; the footer only grows taller
+   * (measured 623 -> 706 px at 390, 314 -> 335 px at 1440, scrollWidth - clientWidth still 0).
+   */
+  const FOOTER_TAP_TARGET = { minHeight: 44, lineHeight: "44px" } as const;
+
   return (
     <div className="footer-contact-item" data-testid="footer-network-links">
       <span className="footer-contact-key">เครือ Knight Furnich</span>
       <span className="flex flex-wrap gap-x-4 gap-y-1">
         <a
-          className="footer-owner-link"
+          className="footer-owner-link" style={FOOTER_TAP_TARGET}
           href="https://www.knightfurnich.com/"
           target="_blank"
           rel="noopener"
@@ -443,7 +466,7 @@ function NetworkFooterLinks() {
           Knight Furnich — เว็บบริษัท (ประสบการณ์ 20 ปี)
         </a>
         <a
-          className="footer-owner-link"
+          className="footer-owner-link" style={FOOTER_TAP_TARGET}
           href="https://xn--42cf7czb6aef3bfnp2mrg.com/"
           target="_blank"
           rel="noopener"
@@ -452,7 +475,7 @@ function NetworkFooterLinks() {
           ความรู้เรื่องหินสังเคราะห์
         </a>
         <Link
-          className="footer-owner-link"
+          className="footer-owner-link" style={FOOTER_TAP_TARGET}
           href="/price-guide"
           data-testid="link-network-footer-price-guide"
         >
