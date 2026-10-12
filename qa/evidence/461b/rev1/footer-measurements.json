@@ -1,0 +1,1303 @@
+{
+ "before": {
+  "390": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 88,
+     "widthPx": 216,
+     "xPx": 156,
+     "yPx": 14206,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 156,
+     "yPx": 14298,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 156,
+     "yPx": 14346,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 17,
+     "widthPx": 93,
+     "xPx": 18,
+     "yPx": 14455,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 17,
+     "widthPx": 126,
+     "xPx": 121,
+     "yPx": 14455,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 17,
+     "widthPx": 83,
+     "xPx": 258,
+     "yPx": 14455,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 17,
+     "widthPx": 132,
+     "xPx": 18,
+     "yPx": 14482,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 17,
+     "widthPx": 101,
+     "xPx": 160,
+     "yPx": 14482,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 23.1,
+     "widthPx": 121,
+     "xPx": 18,
+     "yPx": 14509,
+     "lineHeightPx": "23.1px",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    23.1
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 14455,
+     "xPx": [
+      18,
+      121,
+      258
+     ],
+     "heightPx": [
+      17
+     ]
+    },
+    {
+     "yPx": 14482,
+     "xPx": [
+      18,
+      160
+     ],
+     "heightPx": [
+      17
+     ]
+    },
+    {
+     "yPx": 14509,
+     "xPx": [
+      18
+     ],
+     "heightPx": [
+      23.1
+     ]
+    }
+   ],
+   "metaBarLines": 3,
+   "allAtLeast44": false,
+   "minHeightPx": 17,
+   "footerHeightPx": 706,
+   "pageOverflowPx": 0
+  },
+  "360": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 88,
+     "widthPx": 186,
+     "xPx": 156,
+     "yPx": 14334,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 156,
+     "yPx": 14426,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 156,
+     "yPx": 14474,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 17,
+     "widthPx": 93,
+     "xPx": 18,
+     "yPx": 14583,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 17,
+     "widthPx": 126,
+     "xPx": 121,
+     "yPx": 14583,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 17,
+     "widthPx": 83,
+     "xPx": 258,
+     "yPx": 14583,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 17,
+     "widthPx": 132,
+     "xPx": 18,
+     "yPx": 14610,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 17,
+     "widthPx": 101,
+     "xPx": 160,
+     "yPx": 14610,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 23.1,
+     "widthPx": 121,
+     "xPx": 18,
+     "yPx": 14637,
+     "lineHeightPx": "23.1px",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    23.1
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 14583,
+     "xPx": [
+      18,
+      121,
+      258
+     ],
+     "heightPx": [
+      17
+     ]
+    },
+    {
+     "yPx": 14610,
+     "xPx": [
+      18,
+      160
+     ],
+     "heightPx": [
+      17
+     ]
+    },
+    {
+     "yPx": 14637,
+     "xPx": [
+      18
+     ],
+     "heightPx": [
+      23.1
+     ]
+    }
+   ],
+   "metaBarLines": 3,
+   "allAtLeast44": false,
+   "minHeightPx": 17,
+   "footerHeightPx": 762,
+   "pageOverflowPx": 0
+  },
+  "768": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 44,
+     "widthPx": 277,
+     "xPx": 161,
+     "yPx": 9556,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 454,
+     "yPx": 9556,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 161,
+     "yPx": 9604,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 17,
+     "widthPx": 93,
+     "xPx": 299,
+     "yPx": 9802,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 17,
+     "widthPx": 126,
+     "xPx": 408,
+     "yPx": 9802,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 17,
+     "widthPx": 83,
+     "xPx": 550,
+     "yPx": 9802,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 17,
+     "widthPx": 132,
+     "xPx": 23,
+     "yPx": 9827,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 17,
+     "widthPx": 101,
+     "xPx": 171,
+     "yPx": 9827,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 23.1,
+     "widthPx": 121,
+     "xPx": 23,
+     "yPx": 9854,
+     "lineHeightPx": "23.1px",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    23.1
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 9802,
+     "xPx": [
+      299,
+      408,
+      550
+     ],
+     "heightPx": [
+      17
+     ]
+    },
+    {
+     "yPx": 9827,
+     "xPx": [
+      23,
+      171
+     ],
+     "heightPx": [
+      17
+     ]
+    },
+    {
+     "yPx": 9854,
+     "xPx": [
+      23
+     ],
+     "heightPx": [
+      23.1
+     ]
+    }
+   ],
+   "metaBarLines": 3,
+   "allAtLeast44": false,
+   "minHeightPx": 17,
+   "footerHeightPx": 601,
+   "pageOverflowPx": 0
+  },
+  "1440": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 44,
+     "widthPx": 277,
+     "xPx": 178,
+     "yPx": 7951,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 471,
+     "yPx": 7951,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 621,
+     "yPx": 7951,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 17,
+     "widthPx": 93,
+     "xPx": 324,
+     "yPx": 8036,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 17,
+     "widthPx": 126,
+     "xPx": 437,
+     "yPx": 8036,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 17,
+     "widthPx": 83,
+     "xPx": 583,
+     "yPx": 8036,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 17,
+     "widthPx": 132,
+     "xPx": 687,
+     "yPx": 8036,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 17,
+     "widthPx": 101,
+     "xPx": 839,
+     "yPx": 8036,
+     "lineHeightPx": "normal",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 23.1,
+     "widthPx": 121,
+     "xPx": 1279,
+     "yPx": 8033,
+     "lineHeightPx": "23.1px",
+     "display": "block",
+     "sized": "no",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    23.1
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 8033,
+     "xPx": [
+      324,
+      437,
+      583,
+      687,
+      839,
+      1279
+     ],
+     "heightPx": [
+      17,
+      23.1
+     ]
+    }
+   ],
+   "metaBarLines": 1,
+   "allAtLeast44": false,
+   "minHeightPx": 17,
+   "footerHeightPx": 335,
+   "pageOverflowPx": 0
+  }
+ },
+ "after": {
+  "390": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 88,
+     "widthPx": 216,
+     "xPx": 156,
+     "yPx": 14206,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 156,
+     "yPx": 14298,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 156,
+     "yPx": 14346,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 44,
+     "widthPx": 93,
+     "xPx": 18,
+     "yPx": 14455,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 126,
+     "xPx": 121,
+     "yPx": 14455,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 44,
+     "widthPx": 83,
+     "xPx": 258,
+     "yPx": 14455,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 44,
+     "widthPx": 132,
+     "xPx": 18,
+     "yPx": 14509,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 44,
+     "widthPx": 101,
+     "xPx": 160,
+     "yPx": 14509,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 44,
+     "widthPx": 121,
+     "xPx": 18,
+     "yPx": 14563,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    44,
+    44,
+    44,
+    44,
+    44,
+    44
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 14455,
+     "xPx": [
+      18,
+      121,
+      258
+     ],
+     "heightPx": [
+      44
+     ]
+    },
+    {
+     "yPx": 14509,
+     "xPx": [
+      18,
+      160
+     ],
+     "heightPx": [
+      44
+     ]
+    },
+    {
+     "yPx": 14563,
+     "xPx": [
+      18
+     ],
+     "heightPx": [
+      44
+     ]
+    }
+   ],
+   "metaBarLines": 3,
+   "allAtLeast44": true,
+   "minHeightPx": 44,
+   "footerHeightPx": 781,
+   "pageOverflowPx": 0
+  },
+  "360": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 88,
+     "widthPx": 186,
+     "xPx": 156,
+     "yPx": 14334,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 156,
+     "yPx": 14426,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 156,
+     "yPx": 14474,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 44,
+     "widthPx": 93,
+     "xPx": 18,
+     "yPx": 14583,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 126,
+     "xPx": 121,
+     "yPx": 14583,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 44,
+     "widthPx": 83,
+     "xPx": 258,
+     "yPx": 14583,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 44,
+     "widthPx": 132,
+     "xPx": 18,
+     "yPx": 14637,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 44,
+     "widthPx": 101,
+     "xPx": 160,
+     "yPx": 14637,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 44,
+     "widthPx": 121,
+     "xPx": 18,
+     "yPx": 14691,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    44,
+    44,
+    44,
+    44,
+    44,
+    44
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 14583,
+     "xPx": [
+      18,
+      121,
+      258
+     ],
+     "heightPx": [
+      44
+     ]
+    },
+    {
+     "yPx": 14637,
+     "xPx": [
+      18,
+      160
+     ],
+     "heightPx": [
+      44
+     ]
+    },
+    {
+     "yPx": 14691,
+     "xPx": [
+      18
+     ],
+     "heightPx": [
+      44
+     ]
+    }
+   ],
+   "metaBarLines": 3,
+   "allAtLeast44": true,
+   "minHeightPx": 44,
+   "footerHeightPx": 837,
+   "pageOverflowPx": 0
+  },
+  "768": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 44,
+     "widthPx": 277,
+     "xPx": 161,
+     "yPx": 9556,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 454,
+     "yPx": 9556,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 161,
+     "yPx": 9604,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 44,
+     "widthPx": 93,
+     "xPx": 299,
+     "yPx": 9802,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 126,
+     "xPx": 408,
+     "yPx": 9802,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 44,
+     "widthPx": 83,
+     "xPx": 550,
+     "yPx": 9802,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 44,
+     "widthPx": 132,
+     "xPx": 23,
+     "yPx": 9854,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 44,
+     "widthPx": 101,
+     "xPx": 171,
+     "yPx": 9854,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 44,
+     "widthPx": 121,
+     "xPx": 23,
+     "yPx": 9908,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    44,
+    44,
+    44,
+    44,
+    44,
+    44
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 9802,
+     "xPx": [
+      299,
+      408,
+      550
+     ],
+     "heightPx": [
+      44
+     ]
+    },
+    {
+     "yPx": 9854,
+     "xPx": [
+      23,
+      171
+     ],
+     "heightPx": [
+      44
+     ]
+    },
+    {
+     "yPx": 9908,
+     "xPx": [
+      23
+     ],
+     "heightPx": [
+      44
+     ]
+    }
+   ],
+   "metaBarLines": 3,
+   "allAtLeast44": true,
+   "minHeightPx": 44,
+   "footerHeightPx": 676,
+   "pageOverflowPx": 0
+  },
+  "1440": {
+   "links": [
+    {
+     "href": "https://www.knightfurnich.com/",
+     "testid": "link-footer-knightfurnich",
+     "label": "Knight Furnich — เว็บบริษัท (ประสบ",
+     "heightPx": 44,
+     "widthPx": 277,
+     "xPx": 178,
+     "yPx": 7951,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "https://xn--42cf7czb6aef3bfnp2mrg.com/",
+     "testid": "link-footer-hinsangkhro",
+     "label": "ความรู้เรื่องหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 133,
+     "xPx": 471,
+     "yPx": 7951,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-network-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 161,
+     "xPx": 621,
+     "yPx": 7951,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": false
+    },
+    {
+     "href": "/portfolio",
+     "testid": null,
+     "label": "คลังผลงานติดตั้งจริง",
+     "heightPx": 44,
+     "widthPx": 93,
+     "xPx": 324,
+     "yPx": 8033,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/price-guide",
+     "testid": "link-footer-price-guide",
+     "label": "ราคาและวิธีเลือกหินสังเคราะห์",
+     "heightPx": 44,
+     "widthPx": 126,
+     "xPx": 437,
+     "yPx": 8033,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/site-prep",
+     "testid": null,
+     "label": "คู่มือเตรียมหน้างาน",
+     "heightPx": 44,
+     "widthPx": 83,
+     "xPx": 583,
+     "yPx": 8033,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/updates",
+     "testid": "link-footer-updates",
+     "label": "บันทึกการอัปเดต (v2.2.1)",
+     "heightPx": 44,
+     "widthPx": 132,
+     "xPx": 687,
+     "yPx": 8033,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/network",
+     "testid": null,
+     "label": "เครือข่ายเว็บไซต์ของเรา",
+     "heightPx": 44,
+     "widthPx": 101,
+     "xPx": 839,
+     "yPx": 8033,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    },
+    {
+     "href": "/?workbench=1",
+     "testid": null,
+     "label": "Private Workbench",
+     "heightPx": 44,
+     "widthPx": 121,
+     "xPx": 1279,
+     "yPx": 8033,
+     "lineHeightPx": "44px",
+     "display": "block",
+     "sized": "yes",
+     "inMetaBar": true
+    }
+   ],
+   "metaBarHeightsPx": [
+    44,
+    44,
+    44,
+    44,
+    44,
+    44
+   ],
+   "metaBarRows": [
+    {
+     "yPx": 8033,
+     "xPx": [
+      324,
+      437,
+      583,
+      687,
+      839,
+      1279
+     ],
+     "heightPx": [
+      44
+     ]
+    }
+   ],
+   "metaBarLines": 1,
+   "allAtLeast44": true,
+   "minHeightPx": 44,
+   "footerHeightPx": 356,
+   "pageOverflowPx": 0
+  }
+ }
+}
