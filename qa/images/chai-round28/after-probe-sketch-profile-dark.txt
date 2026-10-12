@@ -1,0 +1,9 @@
+URL: http://localhost:5173/sketch   ธีม: dark   ตรวจ: 119 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/profile   ธีม: dark   ตรวจ: 45 จุด   ต่ำกว่าเกณฑ์: 2 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 14px | section.page-wrap > div.profile-lock-card > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+

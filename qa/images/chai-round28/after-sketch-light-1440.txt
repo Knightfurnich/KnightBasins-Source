@@ -1,0 +1,16 @@
+
+=== /sketch#initial  theme=light  checked=119  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  -- gradient / photo surfaces carrying text (3):
+     gradient| worst ratio 10.53 | 1 text(s) | main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner] | linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))
+     gradient| worst ratio 4.89  | 6 text(s) | section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch] | linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)
+     gradient| worst ratio 4.55  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /sketch#upload  theme=light  checked=169  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  -- gradient / photo surfaces carrying text (3):
+     gradient| worst ratio 10.53 | 1 text(s) | main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner] | linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))
+     gradient| worst ratio 4.9   | 6 text(s) | section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch] | linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)
+     gradient| worst ratio 4.51  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))

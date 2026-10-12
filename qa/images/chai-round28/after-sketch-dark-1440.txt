@@ -1,0 +1,16 @@
+
+=== /sketch#initial  theme=dark  checked=119  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /sketch#upload  theme=dark  checked=169  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /sketch#cutout  theme=dark  checked=170  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /sketch#form  theme=dark  checked=169  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"

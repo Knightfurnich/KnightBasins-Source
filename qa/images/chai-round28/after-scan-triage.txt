@@ -1,0 +1,226 @@
+## dark /  groups=65
+   1.04  x1   gradient fg[170, 185, 204] bg~[125, 128, 123] | span.art-note | surf le[card-product-KF004] > div.product-art | COUNTER SERIES
+   1.04  x1   gradient fg[170, 185, 204] bg~[212, 206, 195] | span.product-index | surf le[card-product-KF007] > div.product-art | KF007
+   1.08  x1   gradient fg[170, 185, 204] bg~[189, 176, 164] | span.art-note | surf le[card-product-KF001] > div.product-art | COUNTER SERIES
+   1.08  x1   gradient fg[170, 185, 204] bg~[220, 220, 219] | span.art-note | surf le[card-product-KF003] > div.product-art | COUNTER SERIES
+   1.1   x1   solid    fg[255, 255, 255] bg~[224, 227, 231] | span.absolute | surf _new_043] > div.relative > span.absolute | # 2
+   1.1   x1   solid    fg[255, 255, 255] bg~[233, 236, 240] | span.absolute | surf _new_052] > div.relative > span.absolute | # 3
+   1.1   x1   solid    fg[255, 255, 255] bg~[224, 227, 231] | span.absolute | surf _new_057] > div.relative > span.absolute | # 4
+   1.1   x1   solid    fg[255, 255, 255] bg~[224, 227, 231] | span.absolute | surf _new_111] > div.relative > span.absolute | # 5
+   1.12  x1   gradient fg[170, 185, 204] bg~[160, 142, 116] | span.product-index | surf le[card-product-KF008] > div.product-art | KF008
+   1.19  x1   gradient fg[170, 185, 204] bg~[90, 79, 69] | span.art-note | surf le[card-product-KF002] > div.product-art | COUNTER SERIES
+   1.21  x1   gradient fg[170, 185, 204] bg~[149, 148, 143] | span.product-index | surf le[card-product-KF006] > div.product-art | KF006
+   1.25  x1   solid    fg[96, 165, 250] bg~[103, 114, 129] | em | surf body > div > div.storefront-theme-root | อ่างล้างหน้า by ไนท์ เฟอร์นิช
+   1.27  x1   gradient fg[170, 185, 204] bg~[150, 144, 133] | span.art-note | surf le[card-product-KF007] > div.product-art | COUNTER SERIES
+   1.29  x1   solid    fg[56, 189, 248] bg~[132, 145, 158] | p.eyebrow | surf body > div > div.storefront-theme-root | KNIGHT BASINS / 2026
+   1.3   x1   gradient fg[170, 185, 204] bg~[129, 119, 107] | span.art-note | surf le[card-product-KF008] > div.product-art | COUNTER SERIES
+   1.32  x1   gradient fg[170, 185, 204] bg~[132, 113, 96] | span.art-note | surf le[card-product-KF005] > div.product-art | COUNTER SERIES
+   1.6   x1   solid    fg[122, 185, 251] bg~[123, 135, 149] | a[] | surf body > div > div.storefront-theme-root | ดูวัสดุหินสังเคราะห์
+   1.67  x1   gradient fg[170, 185, 204] bg~[157, 125, 93] | span.product-index | surf le[card-product-KF005] > div.product-art | KF005
+   1.71  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF029] > div.product-art | READY-MADE PILLAR SET
+   1.71  x1   gradient fg[170, 185, 204] bg~[226, 242, 249] | span.art-note | surf le[card-product-KF030] > div.product-art | READY-MADE PILLAR SET
+   1.72  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF022] > div.product-art | VERTICAL SERIES
+   1.72  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF024] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF009] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF010] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF011] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF012] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF013] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF014] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF015] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF016] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF017] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF018] > div.product-art | COUNTER SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF019] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF020] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF021] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF023] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF025] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF026] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF027] > div.product-art | VERTICAL SERIES
+   1.73  x1   gradient fg[170, 185, 204] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF028] > div.product-art | VERTICAL SERIES
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF009] > div.product-art | KF009
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF011] > div.product-art | KF011
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF014] > div.product-art | KF014
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF016] > div.product-art | KF016
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF018] > div.product-art | KF018
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF020] > div.product-art | KF020
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF021] > div.product-art | KF021
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF023] > div.product-art | KF023
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF026] > div.product-art | KF026
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF028] > div.product-art | KF028
+   1.89  x1   gradient fg[170, 185, 204] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF030] > div.product-art | KF030
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF010] > div.product-art | KF010
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF012] > div.product-art | KF012
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF013] > div.product-art | KF013
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF015] > div.product-art | KF015
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF017] > div.product-art | KF017
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF019] > div.product-art | KF019
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF022] > div.product-art | KF022
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF024] > div.product-art | KF024
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF025] > div.product-art | KF025
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF027] > div.product-art | KF027
+   1.91  x1   gradient fg[170, 185, 204] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF029] > div.product-art | KF029
+   2.32  x1   gradient fg[170, 185, 204] bg~[111, 107, 101] | span.art-note | surf le[card-product-KF006] > div.product-art | COUNTER SERIES
+   2.71  x1   solid    fg[226, 232, 240] bg~[110, 122, 136] | p.hero-copy | surf body > div > div.storefront-theme-root | อ่างล้างหน้าหินสังเคราะห์ที่คั
+   2.9   x1   solid    fg[255, 255, 255] bg~[124, 136, 150] | h1 | surf body > div > div.storefront-theme-root | Knight Basins
+## dark /stone  groups=4
+   1.22  x1   solid    fg[56, 189, 248] bg~[134, 147, 159] | p.eyebrow | surf body > div > div.storefront-theme-root | MATERIAL / CONFIGURATOR
+   2.57  x1   solid    fg[226, 232, 240] bg~[116, 128, 142] | p.hero-copy | surf body > div > div.storefront-theme-root | สั่งทำท็อปเคาน์เตอร์ครัวและเคา
+   2.9   x1   solid    fg[255, 255, 255] bg~[105, 116, 131] | h1 | surf body > div > div.storefront-theme-root | ท็อปครัว & เคาน์เตอร์หินสังเคร
+   2.97  x1   solid    fg[255, 255, 255] bg~[113, 125, 139] | em | surf body > div > div.storefront-theme-root | สั่งตัดตามพื้นที่ของคุณ
+## dark /studio  groups=1
+   4.23  x1   gradient fg[85, 113, 138] bg~[234, 234, 231] | span.studio-canvas-label | surf piece-canvas-column > div[studio-canvas] | ชิ้นงาน 1
+## dark /quote  groups=7
+   1.18  x1   solid    fg[56, 189, 248] bg~[136, 150, 164] | p.eyebrow | surf main] > div.page-wrap > div.quote-editor | เลขที่เอกสาร Oct 26 / US / 228
+   1.44  x1   gradient fg[15, 23, 42] bg~[13, 54, 93] | strong | surf > div.quote-layout > aside.quote-summary | หมายเหตุจากแคตตาล็อก
+   1.73  x2   gradient fg[230, 172, 145] bg~[123, 140, 159] | p[] | surf > div.quote-layout > aside.quote-summary | 💡 กรุณากรอกเลขประจำตัวผู้เสียภ
+   2.28  x1   solid    fg[232, 239, 248] bg~[136, 150, 164] | h1 | surf main] > div.page-wrap > div.quote-editor | จากรายการ
+   2.39  x1   solid    fg[226, 232, 240] bg~[123, 137, 152] | p.hero-copy | surf main] > div.page-wrap > div.quote-editor | ตรวจสอบรายการ ปรับรายละเอียด แ
+   2.42  x1   solid    fg[232, 239, 248] bg~[125, 139, 154] | em | surf main] > div.page-wrap > div.quote-editor | สู่ตัวเลขที่ชัดเจน
+   4.1   x1   gradient fg[157, 170, 164] bg~[17, 69, 115] | small | surf > div.quote-layout > aside.quote-summary | 0 ชุด
+## dark /studio-guide  groups=18
+   1.16  x1   solid    fg[232, 239, 248] bg~[255, 255, 255] | h2.text-lg | surf eps] > article[card-studio-guide-step-1] | เลือกสีหินก่อน
+   1.16  x1   solid    fg[232, 239, 248] bg~[255, 255, 255] | p.text-sm | surf eps] > article[card-studio-guide-step-1] | กดปุ่ม “สีหิน” บนแถบด้านบน แล้
+   1.16  x1   solid    fg[232, 239, 248] bg~[255, 255, 255] | h2.text-lg | surf eps] > article[card-studio-guide-step-2] | เลือกทรงและกรอกขนาดแผ่นจริง
+   1.16  x1   solid    fg[232, 239, 248] bg~[255, 255, 255] | p.text-sm | surf eps] > article[card-studio-guide-step-2] | เลือกทรงเคาน์เตอร์ (ทรงตรง I /
+   1.16  x1   solid    fg[232, 239, 248] bg~[255, 255, 255] | h2.text-lg | surf eps] > article[card-studio-guide-step-3] | ระบุขอบ 4 สถานะ แล้วประกอบผัง
+   1.16  x1   solid    fg[232, 239, 248] bg~[255, 255, 255] | p.text-sm | surf eps] > article[card-studio-guide-step-3] | กำหนดสถานะขอบของแต่ละแผ่น (ด้า
+   1.16  x4   solid    fg[232, 239, 248] bg~[255, 255, 255] | summary.cursor-pointer | surf aq] > div.space-y-2 > details.rounded-xl | เปลี่ยนรูปทรงแล้ว ขอบที่ตั้งไว
+   1.75  x1   solid    fg[122, 185, 251] bg~[236, 236, 238] | a[] | surf  div.studio-guide-page > header.border-b | เปิด 2D Studio
+   2     x3   solid    fg[170, 185, 204] bg~[255, 255, 255] | span | surf eps] > article[card-studio-guide-step-1] | กรองตามเรตราคาได้ทันที: ฿7,500
+   2     x3   solid    fg[170, 185, 204] bg~[255, 255, 255] | span | surf eps] > article[card-studio-guide-step-2] | ทรง I มี 1 แผ่น · ทรง L มี 2 แ
+   2     x6   solid    fg[170, 185, 204] bg~[255, 255, 255] | span | surf eps] > article[card-studio-guide-step-3] | ติดบัว ▲ — ด้านที่ชนผนังปูนและ
+   2     x1   solid    fg[170, 185, 204] bg~[255, 255, 255] | p[] | surf ide-gallery] > div[studio-guide-gallery] | เคาน์เตอร์หินพร้อมอ่างล้างหน้า
+   2     x4   solid    fg[170, 185, 204] bg~[175, 178, 184] | p.mt-2 | surf aq] > div.space-y-2 > details.rounded-xl | ไม่หายครับ เมื่อคุณตั้งค่าขอบด
+   2.05  x1   solid    fg[30, 64, 175] bg~[15, 23, 42] | td.py-2.5 | surf front-theme-root > div.studio-guide-page | ขอบปิด ⊞
+   3.01  x1   solid    fg[138, 90, 0] bg~[15, 23, 42] | td.py-2.5 | surf front-theme-root > div.studio-guide-page | ติดบัว ▲
+   3.11  x1   solid    fg[18, 104, 179] bg~[15, 23, 42] | td.py-2.5 | surf front-theme-root > div.studio-guide-page | ชิดผนัง ║
+   3.34  x1   solid    fg[15, 122, 82] bg~[15, 23, 42] | td.py-2.5 | surf front-theme-root > div.studio-guide-page | ขอบเปิด ⊗
+   3.75  x1   solid    fg[100, 116, 139] bg~[15, 23, 42] | td.py-2.5 | surf front-theme-root > div.studio-guide-page | 🔗 รอยต่อชนแผ่น
+## light /  groups=81
+   1.01  x1   gradient fg[92, 130, 151] bg~[150, 144, 133] | span.art-note | surf le[card-product-KF007] > div.product-art | COUNTER SERIES
+   1.03  x1   gradient fg[92, 130, 151] bg~[132, 113, 96] | span.art-note | surf le[card-product-KF005] > div.product-art | COUNTER SERIES
+   1.04  x1   solid    fg[255, 255, 255] bg~[246, 251, 254] | span.absolute | surf _new_072] > div.relative > span.absolute | # 1
+   1.05  x1   gradient fg[92, 130, 151] bg~[157, 125, 93] | span.product-index | surf le[card-product-KF005] > div.product-art | KF005
+   1.05  x1   gradient fg[92, 130, 151] bg~[160, 142, 116] | span.product-index | surf le[card-product-KF008] > div.product-art | KF008
+   1.08  x1   gradient fg[92, 130, 151] bg~[129, 119, 107] | span.art-note | surf le[card-product-KF008] > div.product-art | COUNTER SERIES
+   1.1   x1   solid    fg[255, 255, 255] bg~[224, 227, 231] | span.absolute | surf _new_043] > div.relative > span.absolute | # 2
+   1.1   x1   solid    fg[255, 255, 255] bg~[233, 236, 240] | span.absolute | surf _new_052] > div.relative > span.absolute | # 3
+   1.1   x1   solid    fg[255, 255, 255] bg~[224, 227, 231] | span.absolute | surf _new_057] > div.relative > span.absolute | # 4
+   1.1   x1   solid    fg[255, 255, 255] bg~[224, 227, 231] | span.absolute | surf _new_111] > div.relative > span.absolute | # 5
+   1.11  x1   gradient fg[92, 130, 151] bg~[104, 112, 108] | span.art-note | surf le[card-product-KF004] > div.product-art | COUNTER SERIES
+   1.12  x1   gradient fg[92, 130, 151] bg~[111, 107, 101] | span.art-note | surf le[card-product-KF006] > div.product-art | COUNTER SERIES
+   1.35  x1   gradient fg[92, 130, 151] bg~[90, 79, 69] | span.art-note | surf le[card-product-KF002] > div.product-art | COUNTER SERIES
+   1.37  x1   gradient fg[92, 130, 151] bg~[149, 148, 143] | span.product-index | surf le[card-product-KF006] > div.product-art | KF006
+   1.63  x1   gradient fg[92, 130, 151] bg~[189, 176, 164] | span.art-note | surf le[card-product-KF001] > div.product-art | COUNTER SERIES
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_001] | อ่างล้างหน้าหล่อเข้าเคาน์เตอร์
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf lex > button[showcase-photo-counter_018] | เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อ
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf lex > button[showcase-photo-kitchen_003] | ท็อปครัวหินสังเคราะห์ขาว พร้อม
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-dining_table_003] | โต๊ะอาหารหินสังเคราะห์ ฐานไม้ 
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf flex > button[showcase-photo-design_040] | ชั้นวางของโค้งไร้รอยต่อ ห้องน้
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_072] | เคาน์เตอร์อ่างคู่ หล่อไร้รอยต่
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_043] | อ่างล้างหน้าโค้งรูปคลื่น ลอยตั
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_052] | เคาน์เตอร์อ่างคู่หินสังเคราะห์
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_057] | เคาน์เตอร์อ่างยาว 4 หลุม ไร้รอ
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_111] | เคาน์เตอร์อ่างหลายหลุม งานห้อง
+   2.05  x1   gradient fg[92, 130, 151] bg~[212, 206, 195] | span.product-index | surf le[card-product-KF007] > div.product-art | KF007
+   2.23  x1   gradient fg[92, 130, 151] bg~[220, 220, 219] | span.art-note | surf le[card-product-KF003] > div.product-art | COUNTER SERIES
+   3.52  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF029] > div.product-art | READY-MADE PILLAR SET
+   3.52  x1   gradient fg[92, 130, 151] bg~[226, 242, 249] | span.art-note | surf le[card-product-KF030] > div.product-art | READY-MADE PILLAR SET
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF009] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF010] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF011] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF012] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF013] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF014] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF015] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF016] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF017] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 243, 249] | span.art-note | surf le[card-product-KF018] > div.product-art | COUNTER SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF019] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF020] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF021] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF022] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF023] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF024] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF025] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF026] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF027] > div.product-art | VERTICAL SERIES
+   3.56  x1   gradient fg[92, 130, 151] bg~[227, 242, 249] | span.art-note | surf le[card-product-KF028] > div.product-art | VERTICAL SERIES
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF009] > div.product-art | KF009
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF011] > div.product-art | KF011
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF014] > div.product-art | KF014
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF016] > div.product-art | KF016
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF018] > div.product-art | KF018
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF020] > div.product-art | KF020
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF021] > div.product-art | KF021
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 250, 253] | span.product-index | surf le[card-product-KF023] > div.product-art | KF023
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF026] > div.product-art | KF026
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF028] > div.product-art | KF028
+   3.91  x1   gradient fg[92, 130, 151] bg~[244, 251, 253] | span.product-index | surf le[card-product-KF030] > div.product-art | KF030
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF010] > div.product-art | KF010
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF012] > div.product-art | KF012
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF013] > div.product-art | KF013
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF015] > div.product-art | KF015
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF017] > div.product-art | KF017
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF019] > div.product-art | KF019
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF022] > div.product-art | KF022
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 254] | span.product-index | surf le[card-product-KF024] > div.product-art | KF024
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF025] > div.product-art | KF025
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF027] > div.product-art | KF027
+   3.94  x1   gradient fg[92, 130, 151] bg~[245, 251, 253] | span.product-index | surf le[card-product-KF029] > div.product-art | KF029
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_001] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf lex > button[showcase-photo-counter_018] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf lex > button[showcase-photo-kitchen_003] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-dining_table_003] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf flex > button[showcase-photo-design_040] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_072] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_043] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_052] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_057] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_111] | หินสังเคราะห์แท้ ไร้รอยต่อ
+## light /stone  groups=2
+   2.19  x1   solid    fg[87, 113, 134] bg~[89, 122, 151] | button[] | surf on.config-main > div.stone-price-filters | ฿12,000
+   3.78  x1   gradient fg[142, 154, 150] bg~[15, 60, 102] | small | surf div.config-layout > aside.config-summary | 0.76 × 3.60 m · หนา 12 mm
+## light /portfolio  groups=11
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | span.opacity-70 | surf ] > button[portfolio-tab-veined_pattern] | ( 1 )
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | button[] | surf bs] > button[portfolio-tab-dining_table] | 🪑  งานโต๊ะกินข้าว
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | span.opacity-70 | surf bs] > button[portfolio-tab-dining_table] | ( 6 )
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | button[] | surf s] > button[portfolio-tab-meeting_table] | 👥  งานโต๊ะประชุม
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | span.opacity-70 | surf s] > button[portfolio-tab-meeting_table] | ( 8 )
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | button[] | surf ry-tabs] > button[portfolio-tab-shelves] | 📦  งานที่วางของและชั้นวาง
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | span.opacity-70 | surf ry-tabs] > button[portfolio-tab-shelves] | ( 8 )
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | button[] | surf tabs] > button[portfolio-tab-door_frame] | 🚪  งานวงกบและธรณีประตู
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | span.opacity-70 | surf tabs] > button[portfolio-tab-door_frame] | ( 2 )
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | button[] | surf -tabs] > button[portfolio-tab-site_prep] | 📐  การเตรียมหน้างานและการติดตั
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | span.opacity-70 | surf -tabs] > button[portfolio-tab-site_prep] | ( 59 )
+## light /studio  groups=1
+   4.24  x1   gradient fg[87, 113, 134] bg~[234, 234, 231] | span.studio-canvas-label | surf piece-canvas-column > div[studio-canvas] | ชิ้นงาน 1
+## light /quote  groups=3
+   1.73  x2   gradient fg[230, 172, 145] bg~[123, 140, 159] | p[] | surf > div.quote-layout > aside.quote-summary | 💡 กรุณากรอกเลขประจำตัวผู้เสียภ
+   1.88  x1   gradient fg[87, 113, 134] bg~[18, 70, 117] | p.eyebrow | surf > div.quote-layout > aside.quote-summary | 04 / TOTAL
+   4.1   x1   gradient fg[157, 170, 164] bg~[17, 69, 115] | small | surf > div.quote-layout > aside.quote-summary | 0 ชุด
+## light /readme  groups=22
+   1.04  x1   solid    fg[255, 255, 255] bg~[246, 251, 254] | span.absolute | surf _new_072] > div.relative > span.absolute | # 1
+   1.04  x1   solid    fg[255, 255, 255] bg~[246, 251, 254] | span.absolute | surf _new_057] > div.relative > span.absolute | # 4
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_111] | เคาน์เตอร์อ่างหลายหลุม งานห้อง
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_001] | อ่างล้างหน้าหล่อเข้าเคาน์เตอร์
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf lex > button[showcase-photo-counter_018] | เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อ
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf lex > button[showcase-photo-kitchen_003] | ท็อปครัวหินสังเคราะห์ขาว พร้อม
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-dining_table_003] | โต๊ะอาหารหินสังเคราะห์ ฐานไม้ 
+   1.92  x2   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf flex > button[showcase-photo-design_040] | ชั้นวางของโค้งไร้รอยต่อ ห้องน้
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_072] | เคาน์เตอร์อ่างคู่ หล่อไร้รอยต่
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_043] | อ่างล้างหน้าโค้งรูปคลื่น ลอยตั
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_052] | เคาน์เตอร์อ่างคู่หินสังเคราะห์
+   1.92  x1   solid    fg[18, 62, 105] bg~[0, 0, 0] | p.text-xs | surf  button[showcase-photo-bathroom_new_057] | เคาน์เตอร์อ่างยาว 4 หลุม ไร้รอ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_111] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_001] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf lex > button[showcase-photo-counter_018] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf lex > button[showcase-photo-kitchen_003] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-dining_table_003] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x2   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf flex > button[showcase-photo-design_040] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_072] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_043] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_052] | หินสังเคราะห์แท้ ไร้รอยต่อ
+   4.11  x1   solid    fg[87, 113, 134] bg~[0, 0, 0] | span.text-[] | surf  button[showcase-photo-bathroom_new_057] | หินสังเคราะห์แท้ ไร้รอยต่อ

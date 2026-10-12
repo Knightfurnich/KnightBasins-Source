@@ -1,0 +1,192 @@
+
+=== /  theme=dark  checked=625  failing(p10 ratio < threshold)=66
+  1.04  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(125,128,123) | 14px | article[card-product-KF004] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.04  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(212,206,195) | 14px | article[card-product-KF007] > div.product-art > span.product-index | "KF007"
+  1.08  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(189,176,164) | 14px | article[card-product-KF001] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.08  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(220,220,219) | 14px | article[card-product-KF003] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(224,227,231) | 11px | button[showcase-photo-bathroom_new_043] > div.relative > span.absolute | "# 2"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(233,236,240) | 11px | button[showcase-photo-bathroom_new_052] > div.relative > span.absolute | "# 3"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(224,227,231) | 11px | button[showcase-photo-bathroom_new_057] > div.relative > span.absolute | "# 4"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(224,227,231) | 11px | button[showcase-photo-bathroom_new_111] > div.relative > span.absolute | "# 5"
+  1.12  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(160,142,116) | 14px | article[card-product-KF008] > div.product-art > span.product-index | "KF008"
+  1.19  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(90,79,69) | 14px | article[card-product-KF002] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.21  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(149,148,143) | 14px | article[card-product-KF006] > div.product-art > span.product-index | "KF006"
+  1.25  | need 3 | solid   | text rgb(96,165,250) on bg~rgb(103,114,129) | 44px | div > h1 > em | "อ่างล้างหน้า by ไนท์ เฟอร์นิช"
+  1.27  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(150,144,133) | 14px | article[card-product-KF007] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.29  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(132,145,158) | 14px | section.catalog-hero > div > p.eyebrow | "KNIGHT BASINS / 2026"
+  1.3   | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(129,119,107) | 14px | article[card-product-KF008] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.32  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(132,113,96) | 14px | article[card-product-KF005] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.6   | need 4.5 | solid   | text rgb(122,185,251) on bg~rgb(123,135,149) | 14px | section.catalog-hero > div > a[link-hero-stone] | "ดูวัสดุหินสังเคราะห์"
+  1.67  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(157,125,93) | 14px | article[card-product-KF005] > div.product-art > span.product-index | "KF005"
+  1.71  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF029] > div.product-art > span.art-note | "READY-MADE PILLAR SET"
+  1.71  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(226,242,249) | 14px | article[card-product-KF030] > div.product-art > span.art-note | "READY-MADE PILLAR SET"
+  1.72  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF022] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.72  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF024] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF009] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF010] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF011] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF012] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,243,249) | 14px | article[card-product-KF013] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,243,249) | 14px | article[card-product-KF014] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,243,249) | 14px | article[card-product-KF015] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,243,249) | 14px | article[card-product-KF016] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,243,249) | 14px | article[card-product-KF017] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,243,249) | 14px | article[card-product-KF018] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF019] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF020] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF021] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF023] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF025] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF026] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF027] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.73  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(227,242,249) | 14px | article[card-product-KF028] > div.product-art > span.art-note | "VERTICAL SERIES"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,250,253) | 14px | article[card-product-KF009] > div.product-art > span.product-index | "KF009"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,250,253) | 14px | article[card-product-KF011] > div.product-art > span.product-index | "KF011"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF014] > div.product-art > span.product-index | "KF014"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF016] > div.product-art > span.product-index | "KF016"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF018] > div.product-art > span.product-index | "KF018"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF020] > div.product-art > span.product-index | "KF020"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,250,253) | 14px | article[card-product-KF021] > div.product-art > span.product-index | "KF021"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,250,253) | 14px | article[card-product-KF023] > div.product-art > span.product-index | "KF023"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF026] > div.product-art > span.product-index | "KF026"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF028] > div.product-art > span.product-index | "KF028"
+  1.89  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(244,251,253) | 14px | article[card-product-KF030] > div.product-art > span.product-index | "KF030"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,254) | 14px | article[card-product-KF010] > div.product-art > span.product-index | "KF010"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,254) | 14px | article[card-product-KF012] > div.product-art > span.product-index | "KF012"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF013] > div.product-art > span.product-index | "KF013"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF015] > div.product-art > span.product-index | "KF015"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF017] > div.product-art > span.product-index | "KF017"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF019] > div.product-art > span.product-index | "KF019"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,254) | 14px | article[card-product-KF022] > div.product-art > span.product-index | "KF022"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,254) | 14px | article[card-product-KF024] > div.product-art > span.product-index | "KF024"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF025] > div.product-art > span.product-index | "KF025"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF027] > div.product-art > span.product-index | "KF027"
+  1.91  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(245,251,253) | 14px | article[card-product-KF029] > div.product-art > span.product-index | "KF029"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.32  | need 4.5 | gradient| text rgb(170,185,204) on bg~rgb(111,107,101) | 14px | article[card-product-KF006] > div.product-art > span.art-note | "COUNTER SERIES"
+  2.71  | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(110,122,136) | 14px | section.catalog-hero > div > p.hero-copy | "อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่"
+  2.9   | need 3 | solid   | text rgb(255,255,255) on bg~rgb(124,136,150) | 44px | section.catalog-hero > div > h1 | "Knight Basins"
+  -- gradient / photo surfaces carrying text (30):
+     gradient| worst ratio 1.08  | 1 text(s) | section.product-grid > article[card-product-KF001] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.19  | 1 text(s) | section.product-grid > article[card-product-KF002] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.08  | 1 text(s) | section.product-grid > article[card-product-KF003] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.04  | 1 text(s) | section.product-grid > article[card-product-KF004] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.32  | 2 text(s) | section.product-grid > article[card-product-KF005] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.21  | 2 text(s) | section.product-grid > article[card-product-KF006] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.04  | 2 text(s) | section.product-grid > article[card-product-KF007] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.12  | 2 text(s) | section.product-grid > article[card-product-KF008] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF009] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF010] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF011] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF012] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF013] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF014] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF015] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF016] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF017] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF018] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF019] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF020] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF021] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.72  | 2 text(s) | section.product-grid > article[card-product-KF022] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF023] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.72  | 2 text(s) | section.product-grid > article[card-product-KF024] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF025] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF026] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF027] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.73  | 2 text(s) | section.product-grid > article[card-product-KF028] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.71  | 2 text(s) | section.product-grid > article[card-product-KF029] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.71  | 2 text(s) | section.product-grid > article[card-product-KF030] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+
+=== /stone  theme=dark  checked=392  failing(p10 ratio < threshold)=5
+  1.22  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(134,147,159) | 14px | section.stone-hero > div > p.eyebrow | "MATERIAL / CONFIGURATOR"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.57  | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(116,128,142) | 14px | section.stone-hero > div > p.hero-copy | "สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส"
+  2.9   | need 3 | solid   | text rgb(255,255,255) on bg~rgb(105,116,131) | 44px | section.stone-hero > div > h1 | "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์"
+  2.97  | need 3 | solid   | text rgb(255,255,255) on bg~rgb(113,125,139) | 44px | div > h1 > em | "สั่งตัดตามพื้นที่ของคุณ"
+
+=== /price-guide  theme=dark  checked=132  failing(p10 ratio < threshold)=0
+
+=== /portfolio  theme=dark  checked=104  failing(p10 ratio < threshold)=0
+
+=== /updates  theme=dark  checked=108  failing(p10 ratio < threshold)=0
+
+=== /studio  theme=dark  checked=130  failing(p10 ratio < threshold)=2
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  4.23  | need 4.5 | gradient| text rgb(85,113,138) on bg~rgb(234,234,231) | 14px | div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label | "ชิ้นงาน 1"
+  -- gradient / photo surfaces carrying text (2):
+     gradient| worst ratio 10.36 | 1 text(s) | div[studio-canvas] > div.studio-canvas-stage > div.studio-piece-rectangle | radial-gradient(circle at 20% 26%, rgba(255, 255, 255, 0.54) 0px, rgba(255, 255, 255, 0.54
+     gradient| worst ratio 4.23  | 2 text(s) | div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas] | linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(
+
+=== /site-prep  theme=dark  checked=23  failing(p10 ratio < threshold)=0
+
+=== /network  theme=dark  checked=60  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /handover  theme=dark  checked=10  failing(p10 ratio < threshold)=0
+
+=== /track  theme=dark  checked=11  failing(p10 ratio < threshold)=0
+
+=== /quote  theme=dark  checked=118  failing(p10 ratio < threshold)=9
+  1.18  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(136,150,164) | 14px | section.quote-heading > div > p.eyebrow | "เลขที่เอกสาร Oct 26 / US / 2287"
+  1.44  | need 4.5 | gradient| text rgb(15,23,42) on bg~rgb(13,54,93) | 14px | aside.quote-summary > div.quote-terms > strong | "หมายเหตุจากแคตตาล็อก"
+  1.73  | need 4.5 | gradient| text rgb(230,172,145) on bg~rgb(123,140,159) | 14px | div.quote-layout > aside.quote-summary > p[status-quote-vat-tax-id] | "💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไ"
+  1.77  | need 4.5 | gradient| text rgb(230,172,145) on bg~rgb(123,138,155) | 14px | div.quote-layout > aside.quote-summary > p[status-quote-cart-validation] | "ยังไม่มีรายการในใบเสนอราคา — เลือกอ่างล้างหน้าอย"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.28  | need 3 | solid   | text rgb(232,239,248) on bg~rgb(136,150,164) | 44px | section.quote-heading > div > h1 | "จากรายการ"
+  2.39  | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(123,137,152) | 14px | section.quote-heading > div > p.hero-copy | "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง"
+  2.42  | need 3 | solid   | text rgb(232,239,248) on bg~rgb(125,139,154) | 44px | div > h1 > em | "สู่ตัวเลขที่ชัดเจน"
+  4.1   | need 4.5 | gradient| text rgb(157,170,164) on bg~rgb(17,69,115) | 14px | div > span > small | "0 ชุด"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 1.44  | 13 text(s) | div.quote-editor > div.quote-layout > aside.quote-summary | linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))
+
+=== /readme  theme=dark  checked=151  failing(p10 ratio < threshold)=0
+
+=== /sketch  theme=dark  checked=119  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /studio-guide  theme=dark  checked=72  failing(p10 ratio < threshold)=33
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 21px | div.min-w-0 > div > h2.text-lg | "เลือกสีหินก่อน"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.flex > div.min-w-0 > p.text-sm | "กดปุ่ม “สีหิน” บนแถบด้านบน แล้วเลือกสีที่ต้องการ"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 21px | div.min-w-0 > div > h2.text-lg | "เลือกทรงและกรอกขนาดแผ่นจริง"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.flex > div.min-w-0 > p.text-sm | "เลือกทรงเคาน์เตอร์ (ทรงตรง I / ฉาก L-ซ้าย / ฉาก "
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 21px | div.min-w-0 > div > h2.text-lg | "ระบุขอบ 4 สถานะ แล้วประกอบผัง"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.flex > div.min-w-0 > p.text-sm | "กำหนดสถานะขอบของแต่ละแผ่น (ด้านชนผนัง / ด้านหน้า"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.space-y-2 > details.rounded-xl > summary.cursor-pointer | "เปลี่ยนรูปทรงแล้ว ขอบที่ตั้งไว้จะหายไหม?"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.space-y-2 > details.rounded-xl > summary.cursor-pointer | "ราคาที่เห็นบนผังเป็นราคาจริงไหม?"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.space-y-2 > details.rounded-xl > summary.cursor-pointer | "ต้องเลือกสีหรืออ่างให้ครบไหมก่อนขอใบเสนอราคา?"
+  1.16  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(255,255,255) | 14px | div.space-y-2 > details.rounded-xl > summary.cursor-pointer | "ส่งแบบให้ช่างได้ไหม?"
+  1.75  | need 4.5 | solid   | text rgb(122,185,251) on bg~rgb(236,236,238) | 14px | div.studio-guide-page > header.border-b > a[link-studio-guide-open-studio] | "เปิด 2D Studio"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "กรองตามเรตราคาได้ทันที: ฿7,500 / ฿8,500 / ฿9,500"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "พิมพ์ค้นหาได้ทั้งชื่อสีและรหัสสี เช่น “White” หร"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "เลือกเสร็จถาดจะพับเก็บเอง และผังบนกระดานจะเปลี่ย"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "ทรง I มี 1 แผ่น · ทรง L มี 2 แผ่น · ทรง U มี 3 แ"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "กรอกความยาวและหน้ากว้าง/ความลึก (มม.) แยกอิสระตา"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "วางอ่างล้างหน้าลงบนผังได้เลย ระบบเว้นระยะขอบปลอด"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "ติดบัว ▲ — ด้านที่ชนผนังปูนและต้องมีบัวกันน้ำ"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "ชิดผนัง ║ — ด้านที่แนบผนัง แต่ไม่ต้องมีบัว"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "ขอบเปิด ⊗ — ด้านที่โชว์ลอย ต้องขัดขอบให้เนียน"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "ขอบปิด ⊞ — ด้านที่โชว์ปิดขอบให้เนียน (บังหน้า/ขอ"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "ด้านที่เป็นรอยต่อระหว่างแผ่น ระบบจะล็อกอัตโนมัติ"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | ul.space-y-1.5 > li.flex > span | "เมื่อตั้งค่าครบแล้ว กดปุ่ม [ 🎨 ประกอบผังลงกระดา"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | div[studio-guide-gallery] > div.flex > p[studio-guide-gallery-caption] | "เคาน์เตอร์หินพร้อมอ่างล้างหน้าในเนื้อหิน · ยาวตร"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(175,178,184) | 14px | div.space-y-2 > details.rounded-xl > p.mt-2 | "ไม่หายครับ เมื่อคุณตั้งค่าขอบด้วยตัวเองแล้ว ระบบ"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | div.space-y-2 > details.rounded-xl > p.mt-2 | "เป็นราคาประมาณการที่คำนวณจากพื้นที่จริง บวกค่าบั"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(255,255,255) | 14px | div.space-y-2 > details.rounded-xl > p.mt-2 | "เลือกสีหินก่อนครับ เพราะราคาคิดตามเรตของสีที่เลื"
+  2     | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(175,178,184) | 14px | div.space-y-2 > details.rounded-xl > p.mt-2 | "ได้ครับ กด “บันทึกผังเป็นรูปภาพ (PNG)” เพื่อส่งใ"
+  2.05  | need 4.5 | solid   | text rgb(30,64,175) on bg~rgb(15,23,42) | 14px | tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5 | "ขอบปิด ⊞"
+  3.01  | need 4.5 | solid   | text rgb(138,90,0) on bg~rgb(15,23,42) | 14px | tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5 | "ติดบัว ▲"
+  3.11  | need 4.5 | solid   | text rgb(18,104,179) on bg~rgb(15,23,42) | 14px | tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5 | "ชิดผนัง ║"
+  3.34  | need 4.5 | solid   | text rgb(15,122,82) on bg~rgb(15,23,42) | 14px | tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5 | "ขอบเปิด ⊗"
+  3.75  | need 4.5 | solid   | text rgb(100,116,139) on bg~rgb(15,23,42) | 14px | tbody.text-[var(--ink-soft)] > tr > td.py-2.5 | "🔗 รอยต่อชนแผ่น"
+
+=== /profile  theme=dark  checked=45  failing(p10 ratio < threshold)=2
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 14px | div.profile-lock-card > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /quote/view  theme=dark  checked=43  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+
+=== /admin  theme=light  checked=8  failing(p10 ratio < threshold)=0
+
+=== /admin/ai-cost  theme=light  checked=8  failing(p10 ratio < threshold)=0
