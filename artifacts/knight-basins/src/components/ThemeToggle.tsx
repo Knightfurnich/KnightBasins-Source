@@ -460,6 +460,44 @@ export const STOREFRONT_THEME_STYLES = `
   background: var(--brand-blue);
   color: #ffffff;
 }
+
+/* ─── job 465-C · dark theme: readable text (C-H). Colours and fills only; no token value assigned. ───────────────────
+   --brand-blue turns into the light #7ab9fb here, so every fill that used it with white text fell to ~2.07, and several
+   components kept pale fixed fills whose text already uses dark-theme tokens. Plain rules because a { color: inherit }
+   and h1,h2,h3 { color: var(--ink) } (index.css) outrank Tailwind utilities. */
+
+/* C · /quote share box */
+[data-theme="dark"] .quote-share { background: var(--card-paper) !important; border-color: var(--line) !important; }
+[data-theme="dark"] .quote-share strong,
+[data-theme="dark"] .quote-share p { color: var(--ink) !important; }
+
+/* white label on the light-blue brand fill (2.07) -> dark label */
+[data-theme="dark"] :is(
+  .product-card-action--quote, .button--accent, .button--dark, .studio-sketch-bridge-cta,
+  .knight-support-trigger, .knight-support-trigger span,
+  .stone-price-filters button.is-active, button[data-testid^="button-studio-mode-"].is-active,
+  .quote-format-switch button.is-active, .quote-format-switch button.is-active small
+) { color: #0b1324 !important; }
+
+/* D · home: studio / pillar-quote actions kept a pale fill with the light dark-theme blue text (1.97) */
+[data-theme="dark"] .product-card-action--studio { background: var(--brand-sky) !important; border-color: var(--line) !important; color: var(--brand-blue) !important; }
+[data-theme="dark"] .product-card-action--studio:hover { background: #223f5f !important; }
+
+/* pale fixed fills (their text already uses dark-theme tokens): the surface follows the theme */
+[data-theme="dark"] :is(
+  .sort-field, .quote-format-panel, .quote-empty, .quantity-editor.large,
+  .quote-format-switch button:not(.is-active),
+  .studio-piece-card, .studio-selector-trigger, .studio-rectangle-editor, .studio-draft-banner,
+  .studio-edge-finish-toolbar, .studio-edge-select, .studio-edge-finish-option
+) { background: var(--card-paper) !important; }
+
+/* E · /portfolio category tabs: white pill with pale --ink text (1.16); the active tab stays navy / white */
+[data-theme="dark"] button[data-testid^="portfolio-tab-"][class*="bg-white"] { background: var(--card-paper) !important; }
+/* navy #003366 text on the dark page (/portfolio eyebrow + count badge, /readme link rows + badge); white cards excluded */
+[data-theme="dark"] [class*="text-[#003366]"]:not([class*="bg-white"] *) { color: var(--brand-blue) !important; }
+
+/* H · /studio: required-field red #c64d3f = 3.44 on the dark card */
+[data-theme="dark"] .studio-contact-grid label span { color: #ff9b8d !important; }
 `;
 
 export type StorefrontThemeValue = {

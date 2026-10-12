@@ -1,23 +1,44 @@
 import { Link } from "wouter";
 
+
+/**
+ * job 465-C (B): this page used fixed slate/sky/white utilities, so the dark theme put pale `--ink` (global
+ * `h1,h2,h3 { color: var(--ink) }`) on white cards (1.16) and dark-blue `--ink` links (`a { color: inherit }`
+ * beats utilities) on the dark page (1.63). Same light colours as before; plain class rules win over both globals.
+ */
+const NETWORK_THEME_CSS = `
+.nw-accent { color: #0369a1; }
+.nw-title { color: #0f172a; }
+.nw-muted { color: #475569; }
+.nw-card { background: #ffffff; border-color: #e2e8f0; }
+.nw-rule { border-color: #e2e8f0; }
+[data-theme="dark"] .nw-accent { color: #7dd3fc; }
+[data-theme="dark"] .nw-title { color: var(--ink); }
+[data-theme="dark"] .nw-muted { color: #cbd5e1; }
+[data-theme="dark"] .nw-card { background: var(--card-paper); border-color: var(--line); }
+[data-theme="dark"] .nw-rule { border-color: var(--line); }
+`;
+
 export function NetworkPage() {
   return (
+    <>
+    <style>{NETWORK_THEME_CSS}</style>
     <section
       className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16"
       aria-labelledby="network-title"
       data-testid="network-page"
     >
       <header className="mb-9 max-w-3xl">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] nw-accent">
           KNIGHT FURNICH NETWORK
         </p>
         <h1
           id="network-title"
-          className="text-3xl font-bold leading-tight text-slate-900 md:text-4xl"
+          className="text-3xl font-bold leading-tight nw-title md:text-4xl"
         >
           เครือข่ายของเรา
         </h1>
-        <p className="mt-4 text-base leading-7 text-slate-600">
+        <p className="mt-4 text-base leading-7 nw-muted">
           ทำความรู้จักกับบริษัท Knight Furnich, ระบบเลือกอ่างและหิน Knight Basins
           และแหล่งความรู้เรื่องหินสังเคราะห์ที่เราดูแลร่วมกัน
         </p>
@@ -25,20 +46,20 @@ export function NetworkPage() {
 
       <div className="grid gap-5 md:grid-cols-3" aria-label="เว็บไซต์ในเครือ">
         <article
-          className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="flex flex-col rounded-xl border nw-card p-6 shadow-sm"
           data-testid="network-card-knight-furnich"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+          <p className="text-xs font-semibold uppercase tracking-wide nw-accent">
             บริษัทแม่
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
+          <h2 className="mt-2 text-xl font-semibold nw-title">
             Knight Furnich
           </h2>
-          <p className="mt-3 flex-1 leading-7 text-slate-600">
+          <p className="mt-3 flex-1 leading-7 nw-muted">
             โรงงานผลิตและติดตั้งงานหินสังเคราะห์ พร้อมประสบการณ์ด้านวัสดุและงานตกแต่งมากกว่า 20 ปี
           </p>
           <a
-            className="mt-5 font-semibold text-sky-700 underline underline-offset-4"
+            className="mt-5 font-semibold nw-accent underline underline-offset-4"
             href="https://www.knightfurnich.com/"
             target="_blank"
             rel="noopener"
@@ -48,7 +69,7 @@ export function NetworkPage() {
           </a>
           <nav className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm" aria-label="ช่องทางของ Knight Furnich">
             <a
-              className="font-semibold text-sky-700 underline underline-offset-4"
+              className="font-semibold nw-accent underline underline-offset-4"
               href="https://line.me/R/ti/p/@789gcnhq"
               target="_blank"
               rel="noopener"
@@ -57,7 +78,7 @@ export function NetworkPage() {
               LINE OA @789gcnhq
             </a>
             <a
-              className="font-semibold text-sky-700 underline underline-offset-4"
+              className="font-semibold nw-accent underline underline-offset-4"
               href="https://www.facebook.com/knightfurnich"
               target="_blank"
               rel="noopener"
@@ -69,20 +90,20 @@ export function NetworkPage() {
         </article>
 
         <article
-          className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="flex flex-col rounded-xl border nw-card p-6 shadow-sm"
           data-testid="network-card-knight-basins"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+          <p className="text-xs font-semibold uppercase tracking-wide nw-accent">
             ระบบออนไลน์
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
+          <h2 className="mt-2 text-xl font-semibold nw-title">
             Knight Basins
           </h2>
-          <p className="mt-3 flex-1 leading-7 text-slate-600">
+          <p className="mt-3 flex-1 leading-7 nw-muted">
             เลือกชมอ่างล้างหน้าและสีหิน เปรียบเทียบผลงาน และจัดทำใบเสนอราคาสำหรับโครงการของคุณ
           </p>
           <Link
-            className="mt-5 font-semibold text-sky-700 underline underline-offset-4"
+            className="mt-5 font-semibold nw-accent underline underline-offset-4"
             href="/quote"
             data-testid="link-network-quote"
           >
@@ -91,20 +112,20 @@ export function NetworkPage() {
         </article>
 
         <article
-          className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="flex flex-col rounded-xl border nw-card p-6 shadow-sm"
           data-testid="network-card-hinsangkhro"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+          <p className="text-xs font-semibold uppercase tracking-wide nw-accent">
             ศูนย์ความรู้
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
+          <h2 className="mt-2 text-xl font-semibold nw-title">
             หินสังเคราะห์.com
           </h2>
-          <p className="mt-3 flex-1 leading-7 text-slate-600">
+          <p className="mt-3 flex-1 leading-7 nw-muted">
             รวมความรู้เกี่ยวกับหินสังเคราะห์ การเลือกวัสดุ และการดูแลรักษาสำหรับเจ้าของบ้านและผู้ทำงานก่อสร้าง
           </p>
           <a
-            className="mt-5 font-semibold text-sky-700 underline underline-offset-4"
+            className="mt-5 font-semibold nw-accent underline underline-offset-4"
             href="https://xn--42cf7czb6aef3bfnp2mrg.com/"
             target="_blank"
             rel="noopener"
@@ -116,25 +137,25 @@ export function NetworkPage() {
       </div>
 
       <nav
-        className="mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t border-slate-200 pt-6"
+        className="mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t nw-rule pt-6"
         aria-label="สำรวจ Knight Basins"
       >
         <Link
-          className="font-semibold text-sky-700 underline underline-offset-4"
+          className="font-semibold nw-accent underline underline-offset-4"
           href="/stone"
           data-testid="link-network-stone"
         >
           เลือกชมสีหินสังเคราะห์
         </Link>
         <Link
-          className="font-semibold text-sky-700 underline underline-offset-4"
+          className="font-semibold nw-accent underline underline-offset-4"
           href="/portfolio"
           data-testid="link-network-portfolio"
         >
           ดูผลงานติดตั้งจริง
         </Link>
         <Link
-          className="font-semibold text-sky-700 underline underline-offset-4"
+          className="font-semibold nw-accent underline underline-offset-4"
           href="/quote"
           data-testid="link-network-quote-footer"
         >
@@ -142,6 +163,7 @@ export function NetworkPage() {
         </Link>
       </nav>
     </section>
+    </>
   );
 }
 
