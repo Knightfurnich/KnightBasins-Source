@@ -10,7 +10,6 @@ import { breadcrumbItemsForPath, buildBasinProductsJsonLd, buildBreadcrumbListJs
 import {
   CONTACT_PHONE_BACKUP_SALES,
   CONTACT_PHONE_PRIMARY,
-  PLANT_PICKUP_HOURS,
   QUOTE_LINK_VALID_DAYS,
   QUOTE_PRICE_VALID_DAYS,
   SALES_WORKING_HOURS,
@@ -408,7 +407,7 @@ function Footer() {
             </div>
             <div className="footer-contact-item">
               <span className="footer-contact-key">LINE</span>
-              <span><strong>@789gcnhq</strong> (KnightBot)</span>
+              <span><strong>@789gcnhq</strong> (KnightBasins)</span>
             </div>
             <div className="footer-contact-item">
               <span className="footer-contact-key">เว็บไซต์</span>
@@ -1151,7 +1150,7 @@ const QUOTE_PRODUCT_DETAILS = [
   "หินสังเคราะห์โทนสีเข้ม สีดำ เป็นรอย ขีด ข่วน ได้ง่ายต้องระวังการใช้งานเป็นพิเศษ",
   "สินค้า ในแต่ละสี มีการจำหน่ายทุกวัน กรุณาตรวจสอบสินค้าก่อนทำการสั่งซื้อทุกครั้ง",
   "ใบเสนอราคาระบุเงื่อนไขการชำระเงิน กรุณาตรวจสอบก่อนทำการสั่งซื้อ",
-  "เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): ${PLANT_PICKUP_HOURS} · เสาร์ 08:30–11:30",
+  "เวลารับสินค้าที่โรงงาน (ไม่ใช่เวลาทำการ): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30",
 ] as const;
 
 const QUOTE_NOTE_DETAILS = [
@@ -1284,13 +1283,20 @@ function FormalQuote({
           <div><span>ภาษีมูลค่าเพิ่ม 7% {vat ? "" : "(ยังไม่คิด)"}</span><strong>{formatTHB(vatAmount)}</strong></div>
           <div className="formal-grand-total"><span>จำนวนเงินสุทธิ</span><strong>{formatTHB(total)}</strong><small>{thaiNumberText(total)}</small></div>
         </div>
-        <div className="formal-bank-details">
-          <strong>บัญชีรับเงิน</strong>
-          <span>{COMPANY_DETAILS.bankName} {COMPANY_DETAILS.bankBranch}</span>
-          <span>{COMPANY_DETAILS.bankAccountName}</span>
-          <span>{COMPANY_DETAILS.bankAccountNumber}</span>
-        </div>
       </div>
+    </div>
+    {/* job 463-C: the bank box sits under the details, full width, in a size the account number can be read at.
+        Inline style on purpose: src/index.css is frozen, and its `.formal-quote-bottom--of/--us .formal-bank-details`
+        widths no longer apply outside `.formal-quote-bottom`. */}
+    <div
+      className="formal-bank-details"
+      data-testid="formal-bank-details"
+      style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 28px", width: "100%", marginLeft: 0, marginTop: 10, padding: "8px 12px", fontSize: 14, lineHeight: 1.45, breakInside: "avoid" }}
+    >
+      <strong style={{ flex: "0 0 100%", fontSize: 14 }}>บัญชีรับเงิน</strong>
+      <span style={{ fontSize: 14 }}>{COMPANY_DETAILS.bankName} {COMPANY_DETAILS.bankBranch}</span>
+      <span style={{ fontSize: 14 }}>{COMPANY_DETAILS.bankAccountName}</span>
+      <span data-testid="formal-bank-account-number" style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.02em", color: "#123f67" }}>{COMPANY_DETAILS.bankAccountNumber}</span>
     </div>
       <footer className="formal-quote-signature"><span>ผู้เสนอราคา<br /><b>{COMPANY_DETAILS.salesRepresentative}</b><small>{COMPANY_DETAILS.salesPhone}</small></span><span className="formal-signature-block">ผู้มีอำนาจอนุมัติสั่งซื้อ / ลูกค้า<span className="formal-signature-line" /><b>ลงชื่อ / ประทับตราบริษัท (ถ้ามี)</b></span></footer>
   </section>;

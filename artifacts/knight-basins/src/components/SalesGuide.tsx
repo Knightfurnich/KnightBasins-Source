@@ -352,7 +352,7 @@ export default function SalesGuide() {
               </div>
               <div className="flex items-center gap-2">
                 <MessageSquare size={15} className="text-amber-300 shrink-0" />
-                <span><strong>LINE Official :</strong> @789gcnhq (KnightBot)</span>
+                <span><strong>LINE Official :</strong> @789gcnhq (KnightBasins)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Globe size={15} className="text-amber-300 shrink-0" />
