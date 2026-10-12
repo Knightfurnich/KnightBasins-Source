@@ -329,7 +329,7 @@ export default function SalesGuide() {
               </CardTitle>
             </div>
             <p className="text-white/90 text-sm leading-relaxed">
-              35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ตำบลบ้านใหม่ อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000
+              โชว์รูม: 35/633 ซอยร่วมสุข 8/1 ตำบลบ้านใหม่ อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000
             </p>
 
             {/* Google Maps Button */}
@@ -356,7 +356,7 @@ export default function SalesGuide() {
               </div>
               <div className="flex items-center gap-2">
                 <Globe size={15} className="text-amber-300 shrink-0" />
-                <span><strong>เว็บไซต์หลัก :</strong> <a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer" className="underline hover:text-amber-200">www.knightfurnich.com</a></span>
+                <span><strong>เครือข่ายเว็บไซต์ :</strong> <a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer" className="underline hover:text-amber-200">www.knightfurnich.com</a></span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={15} className="text-amber-300 shrink-0" />

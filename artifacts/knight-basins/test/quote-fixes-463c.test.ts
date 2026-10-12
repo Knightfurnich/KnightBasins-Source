@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 /**
+ * job 463-C rev.1-2 (D website label, E map link, F address roles) are at the end of this file.
  * job 463-C (owner's three notes on the quote, 12 Oct 2026):
  *   A  the LINE OA is called "KnightBasins", not "KnightBot" - everywhere in the app code and public files
  *   B  the factory-hours line printed the literal text `${PLANT_PICKUP_HOURS}` (a plain string, not a template)
@@ -131,5 +132,65 @@ describe("463-C · C · bank box under the details", () => {
     assert.doesNotMatch(css, /463-C/);
     assert.match(css, /\.formal-quote-bottom--of \.formal-bank-details \{ width: 54\.8387%; \}/);
     assert.match(css, /\.formal-quote-bottom--us \.formal-bank-details \{ width: 66\.6667%; \}/);
+  });
+});
+
+const pricePage = read("src/pages/PriceGuidePage.tsx");
+const MAP_URL = "https://maps.app.goo.gl/o47RDTQAWZTfB4HYA";
+const REGISTERED = "35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000";
+
+describe("463-C · D · website label", () => {
+  it("the guide and the footer call the site list 'เครือข่ายเว็บไซต์', not 'เว็บไซต์หลัก'", () => {
+    assert.match(guide, /<strong>เครือข่ายเว็บไซต์ :<\/strong> <a href="https:\/\/www\.knightfurnich\.com"/);
+    assert.match(app, /<span className="footer-contact-key">เครือข่ายเว็บไซต์<\/span>\s*<span><a href="https:\/\/www\.knightfurnich\.com"/);
+    assert.doesNotMatch(app + guide, /เว็บไซต์หลัก/);
+  });
+});
+
+describe("463-C · E · map link", () => {
+  it("the footer has a 'แผนที่ / นำทาง' link to the shared map pin, in a new tab", () => {
+    const m = app.match(/<a[^>]*data-testid="link-footer-map"[^>]*>[\s\S]*?<\/a>/) ?? app.match(/<a[\s\S]{0,300}data-testid="link-footer-map"[\s\S]*?<\/a>/);
+    assert.ok(m, "link-footer-map not found");
+    assert.ok(m[0].includes(`href="${MAP_URL}"`));
+    assert.match(m[0], /target="_blank"/);
+    assert.match(m[0], /rel="noreferrer"/);
+    assert.match(m[0], /แผนที่ \/ นำทาง/);
+  });
+
+  it("/price-guide has the same link, in a new tab", () => {
+    const m = pricePage.match(/<a[\s\S]{0,400}data-testid="link-price-guide-map"[\s\S]*?<\/a>/);
+    assert.ok(m, "link-price-guide-map not found");
+    assert.ok(m[0].includes(`href="${MAP_URL}"`));
+    assert.match(m[0], /target="_blank"/);
+    assert.match(m[0], /rel="noreferrer"/);
+    assert.match(m[0], /แผนที่ \/ นำทาง/);
+    assert.match(m[0], /min-h-11/, "tap target");
+  });
+
+  it("the existing Google Maps link in the footer is kept", () => {
+    assert.match(app, /data-testid="link-footer-maps"/);
+  });
+});
+
+describe("463-C · F · address roles (showroom 8/1, head office 8/13)", () => {
+  it("the footer labels 8/13 as the head office / tax-invoice address, not the factory", () => {
+    assert.ok(app.includes(`สำนักงานใหญ่ (ที่อยู่ออกใบกำกับภาษี): ${REGISTERED}`));
+    assert.doesNotMatch(app, /โรงงานผลิต: 35\/170/);
+    assert.match(app, /โชว์รูม: 35\/633 ซอยร่วมสุข 8\/1 /);
+  });
+
+  it("/readme shows the showroom (8/1), no longer 8/13", () => {
+    assert.match(guide, /โชว์รูม: 35\/633 ซอยร่วมสุข 8\/1 ตำบลบ้านใหม่/);
+    assert.doesNotMatch(guide, /ซอยร่วมสุข 8\/13/);
+  });
+
+  it("the quote header prints the full registered address (8/13)", () => {
+    assert.ok(app.includes(`address: "${REGISTERED}",`));
+    assert.match(app, /<p>\{COMPANY_DETAILS\.address\} · \{COMPANY_DETAILS\.phones\}<\/p>/);
+    assert.doesNotMatch(app, /address: "โรงงาน \/ สำนักงานใหญ่ ปทุมธานี"/);
+  });
+
+  it("the constant that contradicted the owner's hours is gone", () => {
+    assert.doesNotMatch(read("src/data/contact-channels.ts"), /PLANT_PICKUP_HOURS/);
   });
 });

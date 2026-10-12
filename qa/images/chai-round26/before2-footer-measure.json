@@ -1,0 +1,53 @@
+{
+  "label": "before2",
+  "baseline": "http://localhost:5173",
+  "at": "2026-10-12T14:44:29.736Z",
+  "footer1440": {
+    "addressLines": [
+      "โชว์รูม: 35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000",
+      "โรงงานผลิต: 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000"
+    ],
+    "websiteKeys": [
+      "เว็บไซต์www.knightfurnich.com"
+    ],
+    "mapLink": null,
+    "oldMapsLink": {
+      "text": "🗺️ นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่",
+      "href": "https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5",
+      "target": "_blank",
+      "rel": "noreferrer",
+      "w": 308,
+      "h": 36
+    },
+    "overflowX": 0,
+    "footerH": 356
+  },
+  "priceGuide1440": {
+    "mapLink": null,
+    "overflowX": 0
+  },
+  "footer390": {
+    "addressLines": [
+      "โชว์รูม: 35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000",
+      "โรงงานผลิต: 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000"
+    ],
+    "websiteKeys": [
+      "เว็บไซต์www.knightfurnich.com"
+    ],
+    "mapLink": null,
+    "oldMapsLink": {
+      "text": "🗺️ นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่",
+      "href": "https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5",
+      "target": "_blank",
+      "rel": "noreferrer",
+      "w": 308,
+      "h": 36
+    },
+    "overflowX": 0,
+    "footerH": 781
+  },
+  "priceGuide390": {
+    "mapLink": null,
+    "overflowX": 0
+  }
+}

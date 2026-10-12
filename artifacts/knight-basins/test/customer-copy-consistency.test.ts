@@ -48,7 +48,8 @@ describe("one set of contact facts (431-B B + C)", () => {
     assert.match(app, /"เวลารับสินค้าที่โรงงาน \(ไม่ใช่เวลาทำการ\): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30"/);
     assert.doesNotMatch(app, /เวลารับสินค้าที่โรงงาน[^\n"]*\$\{/);
     assert.match(channels, /export const SALES_WORKING_HOURS = "จันทร์-ศุกร์ 08:00–17:00 · เสาร์ 08:00–12:00"/);
-    assert.match(channels, /export const PLANT_PICKUP_HOURS = "จันทร์–ศุกร์ 08:30–16:30/);
+    // job 463-C: PLANT_PICKUP_HOURS (08:30-16:30) contradicted the owner's ruling and nothing used it - removed.
+    assert.doesNotMatch(channels, /PLANT_PICKUP_HOURS/);
     assert.ok(!/08:30 – 16:30 น\./.test(guide), "/readme must not print the old hours");
   });
 });

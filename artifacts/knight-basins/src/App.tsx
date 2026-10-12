@@ -383,12 +383,12 @@ function Footer() {
               <strong className="footer-company-name">บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่และโรงงานผลิต)</strong>
               <div className="footer-address">
                 <div>โชว์รูม: 35/633 ซอยร่วมสุข 8/1 ต.บ้านใหม่ อำเภอเมือง ปทุมธานี 12000</div>
-                <div>โรงงานผลิต: 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
+                <div>สำนักงานใหญ่ (ที่อยู่ออกใบกำกับภาษี): 35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000</div>
               </div>
             </div>
           </div>
 
-          <div className="footer-action-row">
+          <div className="footer-action-row" style={{ display: "flex", flexWrap: "wrap", columnGap: 8 }}>
             <a
               className="footer-maps-link"
               href="https://www.google.com/maps/search/?api=1&query=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B9%80%E0%B8%9F%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%B4%E0%B8%8A+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94+%E0%B8%9B%E0%B8%97%E0%B8%B8%E0%B8%A1%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5"
@@ -397,6 +397,16 @@ function Footer() {
               data-testid="link-footer-maps"
             >
               <span aria-hidden="true">🗺️</span> นำทาง Google Maps มายังโรงงาน / สำนักงานใหญ่
+            </a>
+            {/* job 463-C (E): the map pin of the showroom (35/633 ซอยร่วมสุข 8/1), the same link the bot's KB uses */}
+            <a
+              className="footer-maps-link"
+              href="https://maps.app.goo.gl/o47RDTQAWZTfB4HYA"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="link-footer-map"
+            >
+              <span aria-hidden="true">📍</span> แผนที่ / นำทาง
             </a>
           </div>
 
@@ -410,7 +420,7 @@ function Footer() {
               <span><strong>@789gcnhq</strong> (KnightBasins)</span>
             </div>
             <div className="footer-contact-item">
-              <span className="footer-contact-key">เว็บไซต์</span>
+              <span className="footer-contact-key">เครือข่ายเว็บไซต์</span>
               <span><a href="https://www.knightfurnich.com" target="_blank" rel="noreferrer">www.knightfurnich.com</a></span>
             </div>
             <div className="footer-contact-item">
@@ -1132,7 +1142,7 @@ const LATEST_UPDATE_VERSION = UPDATE_RELEASES[0]?.version ?? "";
 const COMPANY_DETAILS = {
   name: "บริษัท ไนท์ เฟอร์นิช จำกัด (สำนักงานใหญ่)",
   taxId: "0-1355-53014-11-4",
-  address: "โรงงาน / สำนักงานใหญ่ ปทุมธานี",
+  address: "35/170, 35/267 หมู่ที่ 1 ซอยร่วมสุข 8/13 ถนนติวานนท์-แจ้งวัฒนะ ต.บ้านใหม่ อ.เมือง จ.ปทุมธานี 12000",
   phones: contactPhonesText(),
   email: "info@knightfurnich.com",
   bankName: "ธ.กรุงศรีอยุธยา",

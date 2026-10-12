@@ -294,7 +294,9 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.equal(quote.hasQrHeader, true);
     assert.equal(quote.languageButtons, 0);
     assert.match(quote.notes, /หินสังเคราะห์คุณภาพสูง Acrylic Solid Surface 100% รับประกันสีไม่เปลี่ยน/);
-    assert.match(quote.notes, /กำหนดรับสินค้า \( จันทร์-ศุกร์ เวลา 08\.30-16\.30\) , \( เสาร์ 08\.30-11\.30\)/);
+    // job 463-C: the factory-hours line prints the real hours (it used to print the placeholder `${PLANT_PICKUP_HOURS}`)
+    assert.match(quote.notes, /เวลารับสินค้าที่โรงงาน \(ไม่ใช่เวลาทำการ\): จันทร์–ศุกร์ 08:00–17:00 · เสาร์ 08:30–11:30/);
+    assert.doesNotMatch(quote.notes, /\$\{/);
     assert.match(quote.notes, /50% เมื่อเซ็นต์อนุมัติสั่งซื้อ \/ ก่อนวัดพื้นที่ \/ ก่อนผลิตงาน/);
     assert.match(quote.notes, /ยอดสั่งซื้อสินค้าไม่เกิน 40,000 บาท ชำระ 100%/);
     const quoteDetails = await browser.page.evaluate(`(() => ({
@@ -306,6 +308,20 @@ describe("long formal quote print flow", { concurrency: false }, () => {
     assert.match(quoteDetails.customer, /224\/26 ถนนติวานนท์ จังหวัดปทุมธานี 12000/);
     assert.match(quoteDetails.bank, /สาขาปตท\. ติวานนท์/);
     assert.match(quoteDetails.bank, /574-1-18925-4/);
+    // job 463-C: the bank box sits under the notes/totals row, full width, outside the two-column row
+    const bankLayout = await browser.page.evaluate(`(() => {
+      const bank = document.querySelector('.formal-bank-details');
+      const row = document.querySelector('.formal-quote-bottom');
+      const sheet = document.querySelector('[data-testid="formal-quote-sheet"]');
+      if (!bank || !row || !sheet) return null;
+      const b = bank.getBoundingClientRect(), r = row.getBoundingClientRect(), sh = sheet.getBoundingClientRect();
+      return { outsideRow: !row.contains(bank), belowRow: b.top >= r.bottom - 0.5, widthShare: b.width / sh.width, accountPx: parseFloat(getComputedStyle(bank.querySelector('[data-testid="formal-bank-account-number"]')).fontSize) };
+    })()`);
+    assert.ok(bankLayout, "bank box, row or sheet missing");
+    assert.equal(bankLayout.outsideRow, true);
+    assert.equal(bankLayout.belowRow, true);
+    assert.ok(bankLayout.widthShare > 0.85, `bank box width share ${bankLayout.widthShare}`);
+    assert.ok(bankLayout.accountPx >= 15, `account number ${bankLayout.accountPx}px`);
     assert.match(quoteDetails.signature, /อุไรวรรณ/);
     await browser.page.evaluate("window.__savedQuotePrintTitle = ''; window.print = () => { window.__savedQuotePrintTitle = document.title; }");
     await clickTestId(browser.page, "button-print-saved-quote");

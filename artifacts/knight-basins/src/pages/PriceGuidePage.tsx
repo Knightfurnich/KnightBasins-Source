@@ -415,6 +415,15 @@ function PriceGuidePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-200">NEXT STEP</p>
               <h2 className="mt-2 text-2xl font-bold">พร้อมเช็กราคาให้ตรงกับหน้างาน</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-200">เลือกสี ดูผลงาน และส่งขนาดที่มี เพื่อให้ทีมงานช่วยสรุปรายละเอียดสำหรับใบเสนอราคา</p>
+              <a
+                href="https://maps.app.goo.gl/o47RDTQAWZTfB4HYA"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-100 underline underline-offset-4 hover:text-white"
+                data-testid="link-price-guide-map"
+              >
+                <span aria-hidden="true">📍</span> แผนที่ / นำทาง
+              </a>
             </div>
             <Link href="/quote" className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-blue-50 sm:mt-0" data-testid="link-price-guide-final-quote">
               ไปหน้าขอใบเสนอราคา <ArrowRight size={16} />

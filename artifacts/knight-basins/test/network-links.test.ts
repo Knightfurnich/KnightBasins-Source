@@ -133,7 +133,8 @@ test("network links appear in shared and standalone public footers", () => {
     );
   }
   assert.match(appSource, /โชว์รูม: 35\/633 ซอยร่วมสุข 8\/1/);
-  assert.match(appSource, /โรงงานผลิต: 35\/170, 35\/267/);
+  // job 463-C (F): 8/13 is the head office / tax-invoice address, no longer labelled "โรงงานผลิต"
+  assert.match(appSource, /สำนักงานใหญ่ \(ที่อยู่ออกใบกำกับภาษี\): 35\/170, 35\/267/);
 });
 
 test("the public /network page has three cards and all required links", () => {
