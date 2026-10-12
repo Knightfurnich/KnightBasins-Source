@@ -1,0 +1,483 @@
+{
+ "job": "461-B - footer tap targets",
+ "measuredAt": "12 Oct 2026 (Asia/Bangkok) by Boy (Qwen)",
+ "environment": "Linux sandbox, node v22.23.3, chromium 145.0.7632.18 headless",
+ "how": "read-only harness qa/evidence/461b/srv461.cjs serves a production build of each tree with /api/* -> 500, so the footer measured is the one the build ships; qa/evidence/461b/measure461.py opens the homepage in chromium and reads the three links by data-testid (the ids exist in both trees) and reports getBoundingClientRect() height/width/x/y + getComputedStyle().lineHeight + display, the number of lines the three links occupy, the footer height and scrollWidth - clientWidth.",
+ "commands": [
+  "cd artifacts/knight-basins && PORT=3000 NODE_ENV=production pnpm run build   # each tree",
+  "python3 qa/evidence/461b/measure461.py"
+ ],
+ "links": [
+  "link-footer-knightfurnich",
+  "link-footer-hinsangkhro",
+  "link-network-footer-price-guide"
+ ],
+ "first_link_note": "link-footer-knightfurnich carries the longest label and already wraps to two lines at 390/360 px, which is why its box reads 46.2 px before (2 x 23.1) and 88 px after (2 x 44) - the same two lines, taller.",
+ "results": {
+  "before": {
+   "390": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 46.2,
+      "widthPx": 216,
+      "xPx": 156,
+      "yPx": 14206,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 23.1,
+      "widthPx": 133,
+      "xPx": 156,
+      "yPx": 14256,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 23.1,
+      "widthPx": 161,
+      "xPx": 156,
+      "yPx": 14283,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 3,
+    "footerHeightPx": 623,
+    "pageOverflowPx": 0
+   },
+   "360": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 46.2,
+      "widthPx": 186,
+      "xPx": 156,
+      "yPx": 14334,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 23.1,
+      "widthPx": 133,
+      "xPx": 156,
+      "yPx": 14384,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 23.1,
+      "widthPx": 161,
+      "xPx": 156,
+      "yPx": 14411,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 3,
+    "footerHeightPx": 679,
+    "pageOverflowPx": 0
+   },
+   "768": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 23.1,
+      "widthPx": 277,
+      "xPx": 161,
+      "yPx": 9556,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 23.1,
+      "widthPx": 133,
+      "xPx": 454,
+      "yPx": 9556,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 23.1,
+      "widthPx": 161,
+      "xPx": 161,
+      "yPx": 9583,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 2,
+    "footerHeightPx": 559,
+    "pageOverflowPx": 0
+   },
+   "1440": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 23.1,
+      "widthPx": 277,
+      "xPx": 178,
+      "yPx": 7951,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 23.1,
+      "widthPx": 133,
+      "xPx": 471,
+      "yPx": 7951,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 23.1,
+      "widthPx": 161,
+      "xPx": 621,
+      "yPx": 7951,
+      "lineHeightPx": "23.1px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 1,
+    "footerHeightPx": 314,
+    "pageOverflowPx": 0
+   }
+  },
+  "after": {
+   "390": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 88,
+      "widthPx": 216,
+      "xPx": 156,
+      "yPx": 14206,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 44,
+      "widthPx": 133,
+      "xPx": 156,
+      "yPx": 14298,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 44,
+      "widthPx": 161,
+      "xPx": 156,
+      "yPx": 14346,
+      "lineHeightPx": "44px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 3,
+    "footerHeightPx": 706,
+    "pageOverflowPx": 0
+   },
+   "360": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 88,
+      "widthPx": 186,
+      "xPx": 156,
+      "yPx": 14334,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 44,
+      "widthPx": 133,
+      "xPx": 156,
+      "yPx": 14426,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 44,
+      "widthPx": 161,
+      "xPx": 156,
+      "yPx": 14474,
+      "lineHeightPx": "44px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 3,
+    "footerHeightPx": 762,
+    "pageOverflowPx": 0
+   },
+   "768": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 44,
+      "widthPx": 277,
+      "xPx": 161,
+      "yPx": 9556,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 44,
+      "widthPx": 133,
+      "xPx": 454,
+      "yPx": 9556,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 44,
+      "widthPx": 161,
+      "xPx": 161,
+      "yPx": 9604,
+      "lineHeightPx": "44px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 2,
+    "footerHeightPx": 601,
+    "pageOverflowPx": 0
+   },
+   "1440": {
+    "found": 3,
+    "targets": [
+     {
+      "testid": "link-footer-knightfurnich",
+      "heightPx": 44,
+      "widthPx": 277,
+      "xPx": 178,
+      "yPx": 7951,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-footer-hinsangkhro",
+      "heightPx": 44,
+      "widthPx": 133,
+      "xPx": 471,
+      "yPx": 7951,
+      "lineHeightPx": "44px",
+      "display": "block"
+     },
+     {
+      "testid": "link-network-footer-price-guide",
+      "heightPx": 44,
+      "widthPx": 161,
+      "xPx": 621,
+      "yPx": 7951,
+      "lineHeightPx": "44px",
+      "display": "block"
+     }
+    ],
+    "linesUsed": 1,
+    "footerHeightPx": 335,
+    "pageOverflowPx": 0
+   }
+  }
+ },
+ "reading": {
+  "before": {
+   "390": {
+    "heightsPx": [
+     46.2,
+     23.1,
+     23.1
+    ],
+    "lineHeight": "23.1px",
+    "linesUsed": 3,
+    "widthsPx": [
+     216,
+     133,
+     161
+    ],
+    "xPx": [
+     156,
+     156,
+     156
+    ],
+    "footerHeightPx": 623,
+    "pageOverflowPx": 0
+   },
+   "360": {
+    "heightsPx": [
+     46.2,
+     23.1,
+     23.1
+    ],
+    "lineHeight": "23.1px",
+    "linesUsed": 3,
+    "widthsPx": [
+     186,
+     133,
+     161
+    ],
+    "xPx": [
+     156,
+     156,
+     156
+    ],
+    "footerHeightPx": 679,
+    "pageOverflowPx": 0
+   },
+   "768": {
+    "heightsPx": [
+     23.1,
+     23.1,
+     23.1
+    ],
+    "lineHeight": "23.1px",
+    "linesUsed": 2,
+    "widthsPx": [
+     277,
+     133,
+     161
+    ],
+    "xPx": [
+     161,
+     454,
+     161
+    ],
+    "footerHeightPx": 559,
+    "pageOverflowPx": 0
+   },
+   "1440": {
+    "heightsPx": [
+     23.1,
+     23.1,
+     23.1
+    ],
+    "lineHeight": "23.1px",
+    "linesUsed": 1,
+    "widthsPx": [
+     277,
+     133,
+     161
+    ],
+    "xPx": [
+     178,
+     471,
+     621
+    ],
+    "footerHeightPx": 314,
+    "pageOverflowPx": 0
+   }
+  },
+  "after": {
+   "390": {
+    "heightsPx": [
+     88,
+     44,
+     44
+    ],
+    "lineHeight": "44px",
+    "linesUsed": 3,
+    "widthsPx": [
+     216,
+     133,
+     161
+    ],
+    "xPx": [
+     156,
+     156,
+     156
+    ],
+    "footerHeightPx": 706,
+    "pageOverflowPx": 0
+   },
+   "360": {
+    "heightsPx": [
+     88,
+     44,
+     44
+    ],
+    "lineHeight": "44px",
+    "linesUsed": 3,
+    "widthsPx": [
+     186,
+     133,
+     161
+    ],
+    "xPx": [
+     156,
+     156,
+     156
+    ],
+    "footerHeightPx": 762,
+    "pageOverflowPx": 0
+   },
+   "768": {
+    "heightsPx": [
+     44,
+     44,
+     44
+    ],
+    "lineHeight": "44px",
+    "linesUsed": 2,
+    "widthsPx": [
+     277,
+     133,
+     161
+    ],
+    "xPx": [
+     161,
+     454,
+     161
+    ],
+    "footerHeightPx": 601,
+    "pageOverflowPx": 0
+   },
+   "1440": {
+    "heightsPx": [
+     44,
+     44,
+     44
+    ],
+    "lineHeight": "44px",
+    "linesUsed": 1,
+    "widthsPx": [
+     277,
+     133,
+     161
+    ],
+    "xPx": [
+     178,
+     471,
+     621
+    ],
+    "footerHeightPx": 335,
+    "pageOverflowPx": 0
+   }
+  }
+ },
+ "conclusion": {
+  "tap_height": "23.1 px -> 44.0 px on every one of the three links, at every width",
+  "layout": "widths and x columns identical before/after and the same number of lines (3 at 390/360, 2 at 768, 1 at 1440) - only the footer grows taller",
+  "overflow": "scrollWidth - clientWidth = 0 px before and after, with no overflow-x masking",
+  "wcag": "44 px = WCAG 2.5.5 (also the floor job 453-B set for the menu); the AA minimum 24 px (WCAG 2.2 / 2.5.8) is exceeded, so the conditional fallback to 24 px was not needed"
+ },
+ "images": "qa/images/boy-round26/ (BEFORE/AFTER x four viewports x footer crop)"
+}
