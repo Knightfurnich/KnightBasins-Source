@@ -1,0 +1,21 @@
+{
+  "label": "before2",
+  "base": "https://knightbasins.com",
+  "at": "2026-10-12T16:27:31.240Z",
+  "shots": [
+    {
+      "file": "before2-stone-swatch-dark-1440.png",
+      "route": "/stone",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "before2-stone-swatch-dark-390.png",
+      "route": "/stone",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    }
+  ]
+}

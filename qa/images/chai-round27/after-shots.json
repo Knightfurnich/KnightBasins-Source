@@ -1,0 +1,77 @@
+{
+  "label": "after",
+  "base": "http://localhost:5173",
+  "at": "2026-10-12T16:21:50.078Z",
+  "shots": [
+    {
+      "file": "after-price-guide-dark-1440.png",
+      "route": "/price-guide",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "after-price-guide-light-1440.png",
+      "route": "/price-guide",
+      "theme": "light",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "after-quote-light-1440.png",
+      "route": "/quote",
+      "theme": "light",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "after-home-dark-1440.png",
+      "route": "/",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "after-studio-dark-1440.png",
+      "route": "/studio",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "after-price-guide-dark-390.png",
+      "route": "/price-guide",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "after-price-guide-light-390.png",
+      "route": "/price-guide",
+      "theme": "light",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "after-quote-light-390.png",
+      "route": "/quote",
+      "theme": "light",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "after-home-dark-390.png",
+      "route": "/",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "after-studio-dark-390.png",
+      "route": "/studio",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    }
+  ]
+}

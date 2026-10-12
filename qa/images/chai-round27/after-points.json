@@ -1,0 +1,242 @@
+[
+ {
+  "point": "A1 CARE card text",
+  "route": "/price-guide",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 12.63,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(30,41,59)"
+ },
+ {
+  "point": "A1 CARE card text",
+  "route": "/price-guide",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 9.99,
+  "threshold": 4.5,
+  "fg": "rgb(18,62,105)",
+  "bg": "rgb(241,245,249)"
+ },
+ {
+  "point": "A2 NEXT STEP h2",
+  "route": "/price-guide",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 18.54,
+  "threshold": 4.5,
+  "fg": "rgb(255,255,255)",
+  "bg": "rgb(11,19,36)"
+ },
+ {
+  "point": "A2 NEXT STEP h2",
+  "route": "/price-guide",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 12.51,
+  "threshold": 4.5,
+  "fg": "rgb(255,255,255)",
+  "bg": "rgb(14,53,91)"
+ },
+ {
+  "point": "A2 NEXT STEP kicker",
+  "route": "/price-guide",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 13.05,
+  "threshold": 4.5,
+  "fg": "rgb(191,219,254)",
+  "bg": "rgb(11,19,36)"
+ },
+ {
+  "point": "A2 NEXT STEP kicker",
+  "route": "/price-guide",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 8.8,
+  "threshold": 4.5,
+  "fg": "rgb(191,219,254)",
+  "bg": "rgb(14,53,91)"
+ },
+ {
+  "point": "A3 CTA button",
+  "route": "/price-guide",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 20.17,
+  "threshold": 4.5,
+  "fg": "rgb(2,6,23)",
+  "bg": "rgb(255,255,255)"
+ },
+ {
+  "point": "A3 CTA button",
+  "route": "/price-guide",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 20.17,
+  "threshold": 4.5,
+  "fg": "rgb(2,6,23)",
+  "bg": "rgb(255,255,255)"
+ },
+ {
+  "point": "B1 /updates back link",
+  "route": "/updates",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 15.42,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(18,24,31 alpha 0.92)"
+ },
+ {
+  "point": "B2 /network card title",
+  "route": "/network",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 13.74,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "B2 /network bottom menu",
+  "route": "/network",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 10.71,
+  "threshold": 4.5,
+  "fg": "rgb(125,211,252)",
+  "bg": "rgb(15,23,42)"
+ },
+ {
+  "point": "C /quote share title",
+  "route": "/quote",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 10.94,
+  "threshold": 4.5,
+  "fg": "rgb(18,62,105)",
+  "bg": "rgb(255,255,255)"
+ },
+ {
+  "point": "C /quote share title",
+  "route": "/quote",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 13.74,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "C /quote generate button",
+  "route": "/quote",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 6.97,
+  "threshold": 4.5,
+  "fg": "rgb(11,19,36)",
+  "bg": "rgb(66,169,216)"
+ },
+ {
+  "point": "D home studio action",
+  "route": "/",
+  "theme": "dark",
+  "matched": 28,
+  "ratio": 6.5,
+  "threshold": 4.5,
+  "fg": "rgb(122,185,251)",
+  "bg": "rgb(26,48,73)"
+ },
+ {
+  "point": "D home basin-only button",
+  "route": "/",
+  "theme": "dark",
+  "matched": 30,
+  "ratio": 8.97,
+  "threshold": 4.5,
+  "fg": "rgb(11,19,36)",
+  "bg": "rgb(122,185,251)"
+ },
+ {
+  "point": "E /portfolio tab",
+  "route": "/portfolio",
+  "theme": "dark",
+  "matched": 2,
+  "ratio": 13.74,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "F /stone swatch label",
+  "route": "/stone",
+  "theme": "dark",
+  "matched": 0,
+  "ratio": null,
+  "threshold": null,
+  "fg": null,
+  "bg": null
+ },
+ {
+  "point": "G /readme maps button",
+  "route": "/readme",
+  "theme": "light",
+  "matched": 1,
+  "ratio": 10.36,
+  "threshold": 4.5,
+  "fg": "rgb(15,23,42)",
+  "bg": "rgb(255,185,0)"
+ },
+ {
+  "point": "G /readme click card",
+  "route": "/readme",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 7.7,
+  "threshold": 4.5,
+  "fg": "rgb(122,185,251)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "H /studio edge 'ปกติ'",
+  "route": "/studio",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 13.74,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "H /studio edge toolbar",
+  "route": "/studio",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 13.74,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "H /studio piece heading",
+  "route": "/studio",
+  "theme": "dark",
+  "matched": 1,
+  "ratio": 13.74,
+  "threshold": 4.5,
+  "fg": "rgb(232,239,248)",
+  "bg": "rgb(22,34,56)"
+ },
+ {
+  "point": "footer contact text",
+  "route": "/",
+  "theme": "dark",
+  "matched": 0,
+  "ratio": null,
+  "threshold": null,
+  "fg": null,
+  "bg": null
+ }
+]

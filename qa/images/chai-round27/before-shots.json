@@ -1,0 +1,77 @@
+{
+  "label": "before",
+  "base": "https://knightbasins.com",
+  "at": "2026-10-12T16:08:18.445Z",
+  "shots": [
+    {
+      "file": "before-price-guide-dark-1440.png",
+      "route": "/price-guide",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "before-price-guide-light-1440.png",
+      "route": "/price-guide",
+      "theme": "light",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "before-quote-light-1440.png",
+      "route": "/quote",
+      "theme": "light",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "before-home-dark-1440.png",
+      "route": "/",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "before-studio-dark-1440.png",
+      "route": "/studio",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "before-price-guide-dark-390.png",
+      "route": "/price-guide",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "before-price-guide-light-390.png",
+      "route": "/price-guide",
+      "theme": "light",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "before-quote-light-390.png",
+      "route": "/quote",
+      "theme": "light",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "before-home-dark-390.png",
+      "route": "/",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    },
+    {
+      "file": "before-studio-dark-390.png",
+      "route": "/studio",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    }
+  ]
+}
