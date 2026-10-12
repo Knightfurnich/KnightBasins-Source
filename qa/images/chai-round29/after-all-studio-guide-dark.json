@@ -1,0 +1,2386 @@
+[
+ {
+  "target": "/studio-guide#faq",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 72,
+  "failing": 0,
+  "rows": [
+   {
+    "selector": "div.min-w-0 > div > p.text-xs",
+    "hero": false,
+    "text": "ขั้นตอนที่ 1",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 427.71875,
+      "w": 56.109375,
+      "h": 17
+     },
+     {
+      "x": 435.109375,
+      "y": 427.71875,
+      "w": 6.46875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 7.7,
+    "ratioMin": 7.7,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > h2.text-lg",
+    "hero": false,
+    "text": "เลือกสีหินก่อน",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 444.71875,
+      "w": 113.953125,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 7.7,
+    "ratioMin": 7.7,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > p.text-xs",
+    "hero": false,
+    "text": "ขั้นตอนที่ 2",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 724.859375,
+      "w": 56.109375,
+      "h": 17
+     },
+     {
+      "x": 435.109375,
+      "y": 724.859375,
+      "w": 8.359375,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 7.7,
+    "ratioMin": 7.7,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > h2.text-lg",
+    "hero": false,
+    "text": "เลือกทรงและกรอกขนาดแผ่นจริง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 741.859375,
+      "w": 265.078125,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 7.7,
+    "ratioMin": 7.7,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > p.text-xs",
+    "hero": false,
+    "text": "ขั้นตอนที่ 3",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 1022,
+      "w": 56.109375,
+      "h": 17
+     },
+     {
+      "x": 435.109375,
+      "y": 1022,
+      "w": 8.1875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.7,
+    "ratioMin": 7.7,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > h2.text-lg",
+    "hero": false,
+    "text": "ระบุขอบ 4 สถานะ แล้วประกอบผัง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 1039,
+      "w": 260.515625,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.7,
+    "ratioMin": 7.7,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "กรองตามเรตราคาได้ทันที: ฿7,500 / ฿8,500 / ฿9,500",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 521.859375,
+      "w": 446.515625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "พิมพ์ค้นหาได้ทั้งชื่อสีและรหัสสี เช่น “White” หร",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 550.609375,
+      "w": 320.234375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "เลือกเสร็จถาดจะพับเก็บเอง และผังบนกระดานจะเปลี่ย",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 579.359375,
+      "w": 354.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "ทรง I มี 1 แผ่น · ทรง L มี 2 แผ่น · ทรง U มี 3 แ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 819,
+      "w": 263.109375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "กรอกความยาวและหน้ากว้าง/ความลึก (มม.) แยกอิสระตา",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 847.75,
+      "w": 393.546875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "วางอ่างล้างหน้าลงบนผังได้เลย ระบบเว้นระยะขอบปลอด",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 876.5,
+      "w": 376.09375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "ติดบัว ▲ — ด้านที่ชนผนังปูนและต้องมีบัวกันน้ำ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1116.140625,
+      "w": 256.15625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "ชิดผนัง ║ — ด้านที่แนบผนัง แต่ไม่ต้องมีบัว",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1144.890625,
+      "w": 233,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "ขอบเปิด ⊗ — ด้านที่โชว์ลอย ต้องขัดขอบให้เนียน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1173.640625,
+      "w": 262.453125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "ขอบปิด ⊞ — ด้านที่โชว์ปิดขอบให้เนียน (บังหน้า/ขอ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1202.390625,
+      "w": 307.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "ด้านที่เป็นรอยต่อระหว่างแผ่น ระบบจะล็อกอัตโนมัติ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1231.140625,
+      "w": 391.953125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "hero": false,
+    "text": "เมื่อตั้งค่าครบแล้ว กดปุ่ม [ 🎨 ประกอบผังลงกระดา",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1259.890625,
+      "w": 448.671875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-guide-gallery] > div.flex > p[studio-guide-gallery-caption]",
+    "hero": false,
+    "text": "เคาน์เตอร์หินพร้อมอ่างล้างหน้าในเนื้อหิน · ยาวตร",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2109.90625,
+      "w": 325.875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-gallery] > div[studio-guide-gallery]",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > p.mt-2",
+    "hero": false,
+    "text": "ไม่หายครับ เมื่อคุณตั้งค่าขอบด้วยตัวเองแล้ว ระบบ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2632.5625,
+      "w": 655.921875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > p.mt-2",
+    "hero": false,
+    "text": "เป็นราคาประมาณการที่คำนวณจากพื้นที่จริง บวกค่าบั",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2709.3125,
+      "w": 814.6875,
+      "h": 19
+     },
+     {
+      "x": 311,
+      "y": 2732.0625,
+      "w": 140.203125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > p.mt-2",
+    "hero": false,
+    "text": "เลือกสีหินก่อนครับ เพราะราคาคิดตามเรตของสีที่เลื",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2808.8125,
+      "w": 759.96875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > p.mt-2",
+    "hero": false,
+    "text": "ได้ครับ กด “บันทึกผังเป็นรูปภาพ (PNG)” เพื่อส่งใ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2885.5625,
+      "w": 617.75,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 7.97,
+    "ratioMin": 7.97,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.sg-tip",
+    "hero": false,
+    "text": "💡 สีที่แสดงทั้งหมดคือสีที่มีในแคตตาล็อกของ ไนท์",
+    "fg": [
+     147,
+     197,
+     253,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 393,
+      "y": 624.109375,
+      "w": 22.03125,
+      "h": 19
+     },
+     {
+      "x": 415.03125,
+      "y": 624.109375,
+      "w": 341.578125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.flex > div.min-w-0 > p.sg-tip",
+    "surfImage": "",
+    "ratio": 8.05,
+    "ratioMin": 8.05,
+    "bg": [
+     23,
+     42,
+     66
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.sg-tip",
+    "hero": false,
+    "text": "💡 ระยะขอบหลุมเจาะปลอดภัยขั้นต่ำ 100 มม. ระบบจะเ",
+    "fg": [
+     147,
+     197,
+     253,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 393,
+      "y": 921.25,
+      "w": 22.03125,
+      "h": 19
+     },
+     {
+      "x": 415.03125,
+      "y": 921.25,
+      "w": 427.328125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.flex > div.min-w-0 > p.sg-tip",
+    "surfImage": "",
+    "ratio": 8.05,
+    "ratioMin": 8.05,
+    "bg": [
+     23,
+     42,
+     66
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.sg-tip",
+    "hero": false,
+    "text": "💡 ระบบจะไม่คำนวณราคาสดระหว่างพิมพ์ขนาด ต้องกดปุ",
+    "fg": [
+     147,
+     197,
+     253,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 393,
+      "y": 1304.640625,
+      "w": 22.03125,
+      "h": 19
+     },
+     {
+      "x": 415.03125,
+      "y": 1304.640625,
+      "w": 502.3125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.flex > div.min-w-0 > p.sg-tip",
+    "surfImage": "",
+    "ratio": 8.05,
+    "ratioMin": 8.05,
+    "bg": [
+     23,
+     42,
+     66
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-hero] > p.text-xs",
+    "hero": false,
+    "text": "LAYOUT STUDIO · วิธีใช้งาน",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 634.359375,
+      "y": 104,
+      "w": 171.28125,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[section-studio-guide-hero] > div.flex > a[link-studio-guide-line]",
+    "hero": false,
+    "text": "ให้ทีมงานช่วยวางผัง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 754.171875,
+      "y": 333.8125,
+      "w": 100.921875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[section-studio-guide-gallery] > div.flex > h2.text-lg",
+    "hero": false,
+    "text": "ไอเดียผังเคาน์เตอร์ & อ่างหิน",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 320,
+      "y": 1401.390625,
+      "w": 227.1875,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[section-studio-guide-edge-legend] > div.flex > h2.text-lg",
+    "hero": false,
+    "text": "ความหมายของป้ายขอบทั้ง 4 สถานะ",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 320,
+      "y": 2230.78125,
+      "w": 283.5,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ชิดผนัง ║",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2364.171875,
+      "w": 55.6875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-faq] > h2.text-lg",
+    "hero": false,
+    "text": "คำถามที่พบบ่อย",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2557.171875,
+      "w": 129.59375,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > div.pt-2 > a[link-studio-guide-back-home]",
+    "hero": false,
+    "text": "กลับสู่หน้าร้าน",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 315,
+      "y": 3182.453125,
+      "w": 77.703125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.64,
+    "ratioMin": 8.64,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr > td.py-2.5",
+    "hero": false,
+    "text": "🔗 รอยต่อชนแผ่น",
+    "fg": [
+     169,
+     184,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2487.171875,
+      "w": 107,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.85,
+    "ratioMin": 8.85,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-hero] > p.text-[var(--ink-soft)]",
+    "hero": false,
+    "text": "ไม่ต้องมีพื้นฐานเขียนแบบ ไม่ต้องติดตั้งโปรแกรมอะ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 403.859375,
+      "y": 253.53125,
+      "w": 632.28125,
+      "h": 19
+     },
+     {
+      "x": 643.15625,
+      "y": 276.625,
+      "w": 153.671875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-gallery] > p.text-xs",
+    "hero": false,
+    "text": "ภาพตัวอย่างเพื่อดูแนวทางผังและวัสดุ · ถ้ามีแบบหน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2172.28125,
+      "w": 501.296875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ด้านที่ชนผนังปูน และต้องมีบัวกันน้ำยกขึ้นตามแนวผ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 447.71875,
+      "y": 2323.171875,
+      "w": 297.5625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "คิดค่าบัวตามความยาวของด้านนั้น",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 916.078125,
+      "y": 2323.171875,
+      "w": 183.953125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ด้านที่แนบผนัง แต่ไม่ต้องมีบัวกันน้ำ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 447.71875,
+      "y": 2364.171875,
+      "w": 193.515625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ไม่คิดเพิ่ม (รวมในเรต ตร.ม. แล้ว)",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 916.078125,
+      "y": 2364.171875,
+      "w": 181.3125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ด้านที่โชว์ลอย ไม่มีผนังบัง ต้องขัดขอบให้เนียน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 447.71875,
+      "y": 2405.171875,
+      "w": 249.375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ไม่คิดเพิ่ม (รวมในเรต ตร.ม. แล้ว)",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 916.078125,
+      "y": 2405.171875,
+      "w": 181.3125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ด้านที่โชว์ปิดขอบให้เนียน เช่น งานบังหน้า หรือปิ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 447.71875,
+      "y": 2446.171875,
+      "w": 301.84375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "โรงงานปิดขอบเนียนตามแบบ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 916.078125,
+      "y": 2446.171875,
+      "w": 158.984375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr > td.py-2.5",
+    "hero": false,
+    "text": "ด้านที่แผ่นหินชนกัน (รอยต่อของทรง L หรือ U) ระบบ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 447.71875,
+      "y": 2487.171875,
+      "w": 358.75,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr > td.py-2.5",
+    "hero": false,
+    "text": "ไม่คิดค่าขอบ/บัวซ้ำซ้อน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 916.078125,
+      "y": 2487.171875,
+      "w": 127.15625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 8.94,
+    "ratioMin": 8.94,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-guide-page > header.border-b > a[link-studio-guide-open-studio]",
+    "hero": false,
+    "text": "เปิด 2D Studio",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1306.9375,
+      "y": 22,
+      "w": 88.0625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.storefront-theme-root > div.studio-guide-page > header.border-b",
+    "surfImage": "",
+    "ratio": 8.97,
+    "ratioMin": 8.97,
+    "bg": [
+     11,
+     19,
+     36
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > a > span[button-studio-guide-start]",
+    "hero": false,
+    "text": "เริ่มออกแบบเลย",
+    "fg": [
+     11,
+     19,
+     36,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 606.90625,
+      "y": 333.8125,
+      "w": 81.265625,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.flex > a > span[button-studio-guide-start]",
+    "surfImage": "",
+    "ratio": 8.97,
+    "ratioMin": 8.79,
+    "bg": [
+     122,
+     185,
+     251
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-main-info > div[footer-network-links] > span.footer-contact-key",
+    "hero": false,
+    "text": "เครือ Knight Furnich",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 40,
+      "y": 3291.046875,
+      "w": 130.328125,
+      "h": 14
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "",
+    "ratio": 8.97,
+    "ratioMin": 8.97,
+    "bg": [
+     11,
+     19,
+     36
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[footer-network-links] > span.flex > a[link-footer-knightfurnich]",
+    "hero": false,
+    "text": "Knight Furnich — เว็บบริษัท (ประสบการณ์ 20 ปี)",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 178.328125,
+      "y": 3287.046875,
+      "w": 277.0625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "",
+    "ratio": 8.97,
+    "ratioMin": 8.97,
+    "bg": [
+     11,
+     19,
+     36
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[footer-network-links] > span.flex > a[link-footer-hinsangkhro]",
+    "hero": false,
+    "text": "ความรู้เรื่องหินสังเคราะห์",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 471.390625,
+      "y": 3287.046875,
+      "w": 133.359375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "",
+    "ratio": 8.97,
+    "ratioMin": 8.97,
+    "bg": [
+     11,
+     19,
+     36
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[footer-network-links] > span.flex > a[link-network-footer-price-guide]",
+    "hero": false,
+    "text": "ราคาและวิธีเลือกหินสังเคราะห์",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 620.75,
+      "y": 3287.046875,
+      "w": 160.640625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "",
+    "ratio": 8.97,
+    "ratioMin": 8.97,
+    "bg": [
+     11,
+     19,
+     36
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-contact] > p.text-sm",
+    "hero": false,
+    "text": "ถ้าติดตรงไหน หรืออยากให้ทีมงานช่วยวางผังและประเม",
+    "fg": [
+     255,
+     255,
+     255,
+     0.8509803921568627
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 318,
+      "y": 3030.703125,
+      "w": 495.546875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-guide-page > main.max-w-[900px] > section[section-studio-guide-contact]",
+    "surfImage": "",
+    "ratio": 9.51,
+    "ratioMin": 9.51,
+    "bg": [
+     0,
+     51,
+     102
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ขอบปิด ⊞",
+    "fg": [
+     147,
+     197,
+     253,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2446.171875,
+      "w": 59.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 9.9,
+    "ratioMin": 9.9,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ขอบเปิด ⊗",
+    "fg": [
+     74,
+     222,
+     128,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2405.171875,
+      "w": 63.921875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 10.25,
+    "ratioMin": 10.25,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "hero": false,
+    "text": "ติดบัว ▲",
+    "fg": [
+     251,
+     191,
+     36,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2323.171875,
+      "w": 50.3125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 10.69,
+    "ratioMin": 10.69,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-guide-gallery] > div.relative > span.absolute",
+    "hero": false,
+    "text": "ทรงตรง I",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 319,
+      "y": 1462.78125,
+      "w": 46.484375,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-guide-gallery] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 12.61,
+    "ratioMin": 12.61,
+    "bg": [
+     0,
+     51,
+     102
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-contact] > h2.studio-guide-contact-title",
+    "hero": false,
+    "text": "ให้ทีมงานช่วยเหลือ",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 318,
+      "y": 2984.3125,
+      "w": 149.640625,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-guide-page > main.max-w-[900px] > section[section-studio-guide-contact]",
+    "surfImage": "",
+    "ratio": 12.61,
+    "ratioMin": 12.61,
+    "bg": [
+     0,
+     51,
+     102
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[section-studio-guide-contact] > div.flex > a[link-studio-guide-contact-line]",
+    "hero": false,
+    "text": "LINE: @789gcnhq",
+    "fg": [
+     0,
+     51,
+     102,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 357,
+      "y": 3079.453125,
+      "w": 115.875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-contact] > div.flex > a[link-studio-guide-contact-line]",
+    "surfImage": "",
+    "ratio": 12.61,
+    "ratioMin": 12.61,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[section-studio-guide-contact] > div.flex > a[link-studio-guide-contact-phone-primary]",
+    "hero": false,
+    "text": "โทร 094-496-1949",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 517.875,
+      "y": 3079.453125,
+      "w": 23.421875,
+      "h": 19
+     },
+     {
+      "x": 541.296875,
+      "y": 3079.453125,
+      "w": 94.90625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-guide-page > main.max-w-[900px] > section[section-studio-guide-contact]",
+    "surfImage": "",
+    "ratio": 12.61,
+    "ratioMin": 12.61,
+    "bg": [
+     0,
+     51,
+     102
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[section-studio-guide-contact] > div.flex > a[link-studio-guide-contact-phone-secondary]",
+    "hero": false,
+    "text": "โทร 089-762-2209",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 682.203125,
+      "y": 3079.453125,
+      "w": 23.421875,
+      "h": 19
+     },
+     {
+      "x": 705.625,
+      "y": 3079.453125,
+      "w": 96.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-guide-page > main.max-w-[900px] > section[section-studio-guide-contact]",
+    "surfImage": "",
+    "ratio": 12.61,
+    "ratioMin": 12.61,
+    "bg": [
+     0,
+     51,
+     102
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.text-sm",
+    "hero": false,
+    "text": "กดปุ่ม “สีหิน” บนแถบด้านบน แล้วเลือกสีที่ต้องการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 487.109375,
+      "w": 383.53125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.text-sm",
+    "hero": false,
+    "text": "เลือกทรงเคาน์เตอร์ (ทรงตรง I / ฉาก L-ซ้าย / ฉาก ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 784.25,
+      "w": 568.421875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.text-sm",
+    "hero": false,
+    "text": "กำหนดสถานะขอบของแต่ละแผ่น (ด้านชนผนัง / ด้านหน้า",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 1081.390625,
+      "w": 529.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > summary.cursor-pointer",
+    "hero": false,
+    "text": "เปลี่ยนรูปทรงแล้ว ขอบที่ตั้งไว้จะหายไหม?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2611.5625,
+      "w": 232.578125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > summary.cursor-pointer",
+    "hero": false,
+    "text": "ราคาที่เห็นบนผังเป็นราคาจริงไหม?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2688.3125,
+      "w": 195.515625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > summary.cursor-pointer",
+    "hero": false,
+    "text": "ต้องเลือกสีหรืออ่างให้ครบไหมก่อนขอใบเสนอราคา?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2787.8125,
+      "w": 288.65625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.sg-card > summary.cursor-pointer",
+    "hero": false,
+    "text": "ส่งแบบให้ช่างได้ไหม?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2864.5625,
+      "w": 119.8125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.sg-card",
+    "surfImage": "",
+    "ratio": 13.74,
+    "ratioMin": 13.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "main.max-w-[900px] > section[section-studio-guide-hero] > h1[studio-guide-heading]",
+    "hero": false,
+    "text": "ออกแบบเคาน์เตอร์หินสังเคราะห์ด้วยตัวเอง ใน 3 ขั้",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 312.03125,
+      "y": 139,
+      "w": 815.921875,
+      "h": 44
+     },
+     {
+      "x": 655.140625,
+      "y": 188.265625,
+      "w": 129.71875,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 15.42,
+    "ratioMin": 15.42,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "thead > tr.text-left > th.py-2",
+    "hero": false,
+    "text": "ป้ายสถานะขอบ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2284.171875,
+      "w": 84.8125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 15.42,
+    "ratioMin": 15.42,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "thead > tr.text-left > th.py-2",
+    "hero": false,
+    "text": "ความหมายเชิงกายภาพ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 447.71875,
+      "y": 2284.171875,
+      "w": 130.59375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 15.42,
+    "ratioMin": 15.42,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "thead > tr.text-left > th.py-2",
+    "hero": false,
+    "text": "ผลต่อราคาและการผลิต",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 916.078125,
+      "y": 2284.171875,
+      "w": 132.65625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 15.42,
+    "ratioMin": 15.42,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ }
+]

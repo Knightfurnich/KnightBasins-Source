@@ -126,7 +126,7 @@ function GuideGallery() {
         <h2 className="text-lg font-bold text-[#003366]">ไอเดียผังเคาน์เตอร์ & อ่างหิน</h2>
       </div>
       <div
-        className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-sm"
+        className="sg-card overflow-hidden rounded-2xl border border-[var(--line)] shadow-sm"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocus={() => setPaused(true)}
@@ -172,11 +172,8 @@ function GuideGallery() {
                 data-testid={`button-studio-guide-gallery-dot-${index}`}
               >
                 <span
-                  className="block h-2.5 rounded-full transition-all"
-                  style={{
-                    width: index === active ? "1.75rem" : "0.625rem",
-                    background: index === active ? "#003366" : "rgba(0,51,102,0.28)",
-                  }}
+                  className={`block h-2.5 rounded-full transition-all ${index === active ? "sg-dot sg-dot--on" : "sg-dot"}`}
+                  style={{ width: index === active ? "1.75rem" : "0.625rem" }}
                 />
               </button>
             ))}
@@ -190,12 +187,44 @@ function GuideGallery() {
   );
 }
 
+/**
+ * job 467-C — the page is built from Tailwind utilities with a fixed white fill (bg-white) under text that uses the
+ * theme tokens (--ink / --ink-soft). In the dark theme that is pale text on a white card (1.16 / 2.00). These classes keep
+ * the light theme byte-for-byte the same colours and follow the theme tokens in the dark theme only (no `dark:` utilities:
+ * they never fire here because the theme is a data-theme attribute).
+ */
+const STUDIO_GUIDE_THEME_CSS = `
+.sg-card { background-color: #ffffff; }
+.sg-header { background-color: rgba(255, 255, 255, 0.92); }
+.sg-tip { background-color: #e5f3fa; color: #1268B3; }
+.sg-check { color: #0f7a52; }
+.sg-edge-ridge { color: #8a5a00; }
+.sg-edge-wall { color: #1268B3; }
+.sg-edge-open { color: #0f7a52; }
+.sg-edge-closed { color: #1e40af; }
+.sg-edge-joint { color: #64748b; }
+.sg-dot { background: rgba(0, 51, 102, 0.28); }
+.sg-dot--on { background: #003366; }
+[data-theme="dark"] .sg-card { background-color: var(--card-paper); }
+[data-theme="dark"] .sg-header { background-color: rgba(11, 19, 36, 0.92); }
+[data-theme="dark"] .sg-tip { background-color: #172a42; color: #93c5fd; }
+[data-theme="dark"] .sg-check { color: #4ade80; }
+[data-theme="dark"] .sg-edge-ridge { color: #fbbf24; }
+[data-theme="dark"] .sg-edge-wall { color: #7ab9fb; }
+[data-theme="dark"] .sg-edge-open { color: #4ade80; }
+[data-theme="dark"] .sg-edge-closed { color: #93c5fd; }
+[data-theme="dark"] .sg-edge-joint { color: #a9b8cc; }
+[data-theme="dark"] .sg-dot { background: rgba(232, 239, 248, 0.34); }
+[data-theme="dark"] .sg-dot--on { background: #7ab9fb; }
+`;
+
 export function StudioGuidePage() {
   const structuredData = buildStudioGuideStructuredData();
   return (
     <div className="studio-guide-page min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+      <style>{STUDIO_GUIDE_THEME_CSS}</style>
       <RouteStructuredData id="studio-guide" data={structuredData} />
-      <header className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-[var(--line)] sg-header backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
         <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
         <Link
           href="/studio"
@@ -240,7 +269,7 @@ export function StudioGuidePage() {
             return (
               <article
                 key={step.index}
-                className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm"
+                className="sg-card rounded-2xl border border-[var(--line)] p-6 shadow-sm"
                 data-testid={`card-studio-guide-step-${step.index}`}
               >
                 <div className="flex items-start gap-4">
@@ -256,13 +285,13 @@ export function StudioGuidePage() {
                     <ul className="space-y-1.5">
                       {step.points.map((point) => (
                         <li key={point} className="flex items-start gap-2 text-sm leading-relaxed text-[var(--ink-soft)]">
-                          <Check size={15} className="mt-0.5 shrink-0 text-[#0f7a52]" aria-hidden="true" />
+                          <Check size={15} className="sg-check mt-0.5 shrink-0" aria-hidden="true" />
                           <span>{point}</span>
                         </li>
                       ))}
                     </ul>
                     {step.tip && (
-                      <p className="text-sm leading-relaxed rounded-lg bg-[#e5f3fa] px-3.5 py-2.5 text-[#1268B3]">
+                      <p className="sg-tip text-sm leading-relaxed rounded-lg px-3.5 py-2.5">
                         💡 {step.tip}
                       </p>
                     )}
@@ -291,27 +320,27 @@ export function StudioGuidePage() {
               </thead>
               <tbody className="text-[var(--ink-soft)]">
                 <tr className="border-b border-[var(--line)]/60">
-                  <td className="py-2.5 pr-4 font-semibold text-[#8a5a00]">ติดบัว ▲</td>
+                  <td className="py-2.5 pr-4 sg-edge-ridge font-semibold">ติดบัว ▲</td>
                   <td className="py-2.5 pr-4">ด้านที่ชนผนังปูน และต้องมีบัวกันน้ำยกขึ้นตามแนวผนัง</td>
                   <td className="py-2.5">คิดค่าบัวตามความยาวของด้านนั้น</td>
                 </tr>
                 <tr className="border-b border-[var(--line)]/60">
-                  <td className="py-2.5 pr-4 font-semibold text-[#1268B3]">ชิดผนัง ║</td>
+                  <td className="py-2.5 pr-4 sg-edge-wall font-semibold">ชิดผนัง ║</td>
                   <td className="py-2.5 pr-4">ด้านที่แนบผนัง แต่ไม่ต้องมีบัวกันน้ำ</td>
                   <td className="py-2.5">ไม่คิดเพิ่ม (รวมในเรต ตร.ม. แล้ว)</td>
                 </tr>
                 <tr className="border-b border-[var(--line)]/60">
-                  <td className="py-2.5 pr-4 font-semibold text-[#0f7a52]">ขอบเปิด ⊗</td>
+                  <td className="py-2.5 pr-4 sg-edge-open font-semibold">ขอบเปิด ⊗</td>
                   <td className="py-2.5 pr-4">ด้านที่โชว์ลอย ไม่มีผนังบัง ต้องขัดขอบให้เนียน</td>
                   <td className="py-2.5">ไม่คิดเพิ่ม (รวมในเรต ตร.ม. แล้ว)</td>
                 </tr>
                 <tr className="border-b border-[var(--line)]/60">
-                  <td className="py-2.5 pr-4 font-semibold text-[#1e40af]">ขอบปิด ⊞</td>
+                  <td className="py-2.5 pr-4 sg-edge-closed font-semibold">ขอบปิด ⊞</td>
                   <td className="py-2.5 pr-4">ด้านที่โชว์ปิดขอบให้เนียน เช่น งานบังหน้า หรือปิดข้างโชว์</td>
                   <td className="py-2.5">โรงงานปิดขอบเนียนตามแบบ</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-[#64748b]">🔗 รอยต่อชนแผ่น</td>
+                  <td className="py-2.5 pr-4 sg-edge-joint font-semibold">🔗 รอยต่อชนแผ่น</td>
                   <td className="py-2.5 pr-4">ด้านที่แผ่นหินชนกัน (รอยต่อของทรง L หรือ U) ระบบล็อกอัตโนมัติ</td>
                   <td className="py-2.5">ไม่คิดค่าขอบ/บัวซ้ำซ้อน</td>
                 </tr>
@@ -324,7 +353,7 @@ export function StudioGuidePage() {
           <h2 className="text-lg font-bold text-[#003366]">คำถามที่พบบ่อย</h2>
           <div className="space-y-2">
             {FAQS.map((faq) => (
-              <details key={faq.q} className="rounded-xl border border-[var(--line)] bg-white px-4 py-3">
+              <details key={faq.q} className="sg-card rounded-xl border border-[var(--line)] px-4 py-3">
                 <summary className="cursor-pointer text-sm font-semibold">{faq.q}</summary>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">{faq.a}</p>
               </details>

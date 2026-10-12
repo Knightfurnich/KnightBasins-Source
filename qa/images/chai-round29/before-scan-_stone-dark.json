@@ -1,0 +1,183 @@
+[
+ {
+  "target": "/stone",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 392,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "section.stone-hero > div > p.eyebrow",
+    "text": "MATERIAL / CONFIGURATOR",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 252.625,
+      "w": 228.625,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.22,
+    "ratioMin": 1.16,
+    "bg": [
+     134,
+     147,
+     159
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > p.hero-copy",
+    "text": "สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 417,
+      "w": 383.453125,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 442.890625,
+      "w": 374.265625,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 468.78125,
+      "w": 118.953125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.57,
+    "ratioMin": 2.35,
+    "bg": [
+     116,
+     128,
+     142
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > h1",
+    "text": "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 276.625,
+      "w": 555.53125,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.54,
+    "bg": [
+     105,
+     116,
+     131
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "div > h1 > em",
+    "text": "สั่งตัดตามพื้นที่ของคุณ",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 340.890625,
+      "w": 395,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.97,
+    "ratioMin": 2.7,
+    "bg": [
+     113,
+     125,
+     139
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": []
+ }
+]

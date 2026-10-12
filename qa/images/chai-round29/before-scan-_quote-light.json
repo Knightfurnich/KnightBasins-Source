@@ -1,0 +1,210 @@
+[
+ {
+  "target": "/quote",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 118,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "div.quote-layout > aside.quote-summary > p[status-quote-vat-tax-id]",
+    "text": "💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไ",
+    "fg": [
+     230,
+     172,
+     145,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1021.53125,
+      "y": 1174.296875,
+      "w": 264.375,
+      "h": 19
+     },
+     {
+      "x": 1021.53125,
+      "y": 1196.6875,
+      "w": 223.09375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 1.73,
+    "ratioMin": 1.73,
+    "bg": [
+     123,
+     140,
+     159
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.quote-layout > aside.quote-summary > p[status-quote-cart-validation]",
+    "text": "ยังไม่มีรายการในใบเสนอราคา — เลือกอ่างล้างหน้าอย",
+    "fg": [
+     230,
+     172,
+     145,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1021.53125,
+      "y": 1431.5625,
+      "w": 298.75,
+      "h": 19
+     },
+     {
+      "x": 1021.53125,
+      "y": 1453.953125,
+      "w": 290.390625,
+      "h": 19
+     },
+     {
+      "x": 1021.53125,
+      "y": 1476.34375,
+      "w": 167.125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 1.77,
+    "ratioMin": 1.77,
+    "bg": [
+     123,
+     138,
+     155
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.quote-layout > aside.quote-summary > p.eyebrow",
+    "text": "04 / TOTAL",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1008.53125,
+      "y": 832.4375,
+      "w": 99.40625,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 1.88,
+    "ratioMin": 1.87,
+    "bg": [
+     18,
+     70,
+     117
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div > span > small",
+    "text": "0 ชุด",
+    "fg": [
+     157,
+     170,
+     164,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1008.53125,
+      "y": 961.921875,
+      "w": 8.546875,
+      "h": 19
+     },
+     {
+      "x": 1017.078125,
+      "y": 961.921875,
+      "w": 19.125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 4.1,
+    "ratioMin": 4.1,
+    "bg": [
+     17,
+     69,
+     115
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 13,
+    "worst": 1.73
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.51
+   }
+  ]
+ }
+]

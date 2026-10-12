@@ -1,0 +1,40 @@
+sitemap https://knightbasins.com/sitemap.xml: 12 routes -> / /portfolio /stone /price-guide /site-prep /studio-guide /quote /studio /sketch /readme /updates /network
+outside the sitemap: /profile /handover /track /quote/view /quote#cart
+
+theme route           checked probe scan  LINE hero#449 REAL overflow worst real row
+dark  /               554     1     7     1    5        1    0px      1.78 article[card-product-KF004] > div.product-art > span.art-note "COUNTER SERIES"
+dark  /portfolio      79      0     0     0    0        0    0px      
+dark  /stone          381     1     5     1    4        0    0px      
+dark  /price-guide    128     0     0     0    0        0    0px      
+dark  /site-prep      23      0     0     0    0        0    0px      
+dark  /studio-guide   69      0     0     0    0        0    0px      
+dark  /quote          118     1     5     1    4        0    0px      
+dark  /studio         126     1     3     1    0        2    0px      1 section.studio-panel > div.studio-panel-heading > span "1 / 3 ชิ้นงาน"
+dark  /sketch         119     1     1     1    0        0    0px      
+dark  /readme         91      0     0     0    0        0    0px      
+dark  /updates        108     0     0     0    0        0    0px      
+dark  /network        60      1     1     1    0        0    0px      
+dark  /profile        45      2     2     2    0        0    0px      
+dark  /handover       10      0     0     0    0        0    0px      
+dark  /track          11      0     0     0    0        0    0px      
+dark  /quote/view     43      1     1     1    0        0    0px      
+dark  /quote#cart     130     -     5     1    4        0    0px      
+light /               554     1     46    1    0        45   0px      1.11 article[card-product-KF004] > div.product-art > span.art-note "COUNTER SERIES"
+light /portfolio      79      0     0     0    0        0    0px      
+light /stone          381     1     1     1    0        0    0px      
+light /price-guide    128     0     0     0    0        0    0px      
+light /site-prep      23      0     0     0    0        0    0px      
+light /studio-guide   69      0     0     0    0        0    0px      
+light /quote          118     1     1     1    0        0    0px      
+light /studio         130     1     2     1    0        1    0px      4.24 div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label "ชิ้นงาน 1"
+light /sketch         119     1     1     1    0        0    0px      
+light /readme         91      0     0     0    0        0    0px      
+light /updates        108     0     0     0    0        0    0px      
+light /network        60      1     1     1    0        0    0px      
+light /profile        45      2     2     2    0        0    0px      
+light /handover       10      0     0     0    0        0    0px      
+light /track          11      0     0     0    0        0    0px      
+light /quote/view     43      1     1     1    0        0    0px      
+light /quote#cart     130     -     1     1    0        0    0px      
+
+FAIL: 4 route/theme pair(s) with failing text outside the LINE button and the frozen hero blocks (or horizontal overflow)

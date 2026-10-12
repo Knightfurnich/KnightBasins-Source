@@ -1,0 +1,8 @@
+1 remove: /studio-guide step card back to bg-white: exit=1 FAILS: ✖ failing tests:; ✖ /studio-guide has no fixed bg-white surface and no dark: utility (they never fire) (1.5542ms)
+2 remove: dark .sg-card rule: exit=1 FAILS: ✖ failing tests:; ✖ /studio-guide cards, FAQ and gallery use the theme-following .sg-card (light keeps #ffffff, dark uses --card-paper) (2.6613ms)
+3 remove: dark .quote-terms strong colour: exit=1 FAILS: ✖ failing tests:; ✖ summary panels: dark theme text follows the light paper colour; the strong note too (1.3543ms)
+4 remove: pinned .summary-warning colour: exit=1 FAILS: ✖ failing tests:; ✖ summary panels: pinned colours for the warning, the TOTAL eyebrow, the small grey lines and 'ฟรี' (both themes) (5.825ms)
+5 remove: product label chip fill: exit=1 FAILS: ✖ failing tests:; ✖ product-card labels get a dark chip in the dark theme only (1.4712ms)
+6 remove: pinned 'free' colour: exit=1 FAILS: ✖ failing tests:; ✖ summary panels: pinned colours for the warning, the TOTAL eyebrow, the small grey lines and 'ฟรี' (both themes) (1.0361ms)
+7 break: sweep exit code: exit=1 FAILS: ✖ failing tests:; ✖ the sweep script reads the sitemap, covers both themes and both tools, and exits non-zero on a failing route (3.2407ms)
+restored: exit 0 ['ℹ pass 70', 'ℹ fail 0']

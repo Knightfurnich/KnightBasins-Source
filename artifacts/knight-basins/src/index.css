@@ -6597,3 +6597,11 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 /* job 466-C · light theme, /sketch + /studio: two greys / reds that sat just under 4.5 on the pale page (fills untouched) */
 [data-theme="light"] .studio-page--sketch .studio-sketch-no-cutouts { color: #55697a !important; }   /* #687c88 = 4.19-4.35 */
 [data-theme="light"] .studio-contact-grid label span { color: #b8412f; }                              /* required-field red #c64d3f = 4.44 on the paper */
+
+/* job 467-C · summary panels (/quote aside.quote-summary, /stone aside.config-summary): they sit on a dark blue gradient in BOTH themes,
+   so these colours are pinned (not tokens). Measured on the real gradient pixels: .summary-warning #e6ac91 on its own peach tint
+   (rgba(255,236,224,.45) over the blue = rgb(123,140,159)) = 1.73; "04 / TOTAL" ink-soft on blue = 1.88; the small grey lines 3.78-4.11. */
+.quote-summary .summary-warning { color: #0b1324; }                    /* 1.73 -> 5+ on the peach tint */
+.quote-summary .eyebrow { color: #cbd5e1; }                            /* ink-soft #577186 = 1.88 on the blue */
+.quote-summary .total-rows small, .config-summary .summary-row small { color: #b8c3bf; }   /* #9daaa4 = 4.1 / #8e9a96 = 3.78 */
+.quote-summary .total-rows .free-text { color: #7cc7ea; }                 /* "ฟรี" saffron #44a9d4 on the blue = 4.0 */

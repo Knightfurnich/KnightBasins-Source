@@ -1,0 +1,2391 @@
+[
+ {
+  "target": "/",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 554,
+  "failing": 46,
+  "rows": [
+   {
+    "selector": "article[card-product-KF004] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.11,
+    "ratioMin": 1,
+    "bg": [
+     104,
+     112,
+     108
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 6072.890625,
+      "w": 18,
+      "h": 202.875
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.52,
+    "ratioMin": 2.97,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 6072.890625,
+      "w": 18,
+      "h": 202.875
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.52,
+    "ratioMin": 2.97,
+    "bg": [
+     226,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF009",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF011",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF014",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF016",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF018",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF020",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF021",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF023",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF026",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF028",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF030",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 6072.890625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF010",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF012",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF013",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF015",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF017",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF019",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF022",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF024",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF025",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF027",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF029",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 6072.890625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.11
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.52
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.52
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ },
+ {
+  "target": "/portfolio",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 79,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.06
+   }
+  ]
+ },
+ {
+  "target": "/stone",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 381,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.page-wrap > div.config-layout > aside.config-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 8,
+    "worst": 4.52
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ },
+ {
+  "target": "/price-guide",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 128,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.06
+   }
+  ]
+ },
+ {
+  "target": "/site-prep",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 23,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.06
+   }
+  ]
+ },
+ {
+  "target": "/studio-guide",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 69,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.07
+   }
+  ]
+ },
+ {
+  "target": "/quote",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 118,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 13,
+    "worst": 4.73
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.51
+   }
+  ]
+ },
+ {
+  "target": "/studio",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 130,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label",
+    "hero": false,
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 137,
+      "y": 1615.140625,
+      "w": 54.875,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 4.24,
+    "ratioMin": 3.26,
+    "bg": [
+     234,
+     234,
+     231
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[studio-sketch-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(241, 248, 252), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 10.22
+   },
+   {
+    "surface": "div[studio-canvas] > div.studio-canvas-stage > div.studio-piece-rectangle",
+    "kind": "gradient",
+    "image": "radial-gradient(circle at 20% 26%, rgba(255, 255, 255, 0.54) 0px, rgba(255, 255, 255, 0.54",
+    "texts": 1,
+    "worst": 10.36
+   },
+   {
+    "surface": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "kind": "gradient",
+    "image": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "texts": 2,
+    "worst": 4.24
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ },
+ {
+  "target": "/sketch",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 119,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 10.53
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 4.89
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ },
+ {
+  "target": "/readme",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 91,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.07
+   }
+  ]
+ },
+ {
+  "target": "/updates",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 108,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.06
+   }
+  ]
+ },
+ {
+  "target": "/network",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 60,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.54
+   }
+  ]
+ },
+ {
+  "target": "/profile",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 45,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 671.109375,
+      "y": 380.1875,
+      "w": 33.609375,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.1,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ },
+ {
+  "target": "/handover",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 10,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > div[page-digital-handover]",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(229, 244, 251, 0.88), rgba(0, 0, 0, 0) 34%), none",
+    "texts": 3,
+    "worst": 4.69
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.07
+   }
+  ]
+ },
+ {
+  "target": "/track",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 11,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > div[page-customer-tracking]",
+    "kind": "gradient",
+    "image": "linear-gradient(130deg, rgba(229, 244, 251, 0.74), rgba(0, 0, 0, 0) 36%), none",
+    "texts": 4,
+    "worst": 4.7
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.07
+   }
+  ]
+ },
+ {
+  "target": "/quote/view",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 43,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.54
+   }
+  ]
+ },
+ {
+  "target": "/quote#cart",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 130,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 17,
+    "worst": 4.74
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.51
+   }
+  ]
+ }
+]
