@@ -1,6 +1,6 @@
 import type { PortfolioCategory, PortfolioPhoto } from "@/pages/PortfolioPage";
 import type { BasinProduct } from "./catalog.ts";
-import { isFreestandingPillarProduct, STORAGE_CATEGORY, STORAGE_CATEGORY_LABEL } from "./catalog.ts";
+import { COUNTER_CATEGORY, customerCategoryLabel, isFreestandingPillarProduct, STORAGE_CATEGORY, STORAGE_CATEGORY_LABEL } from "./catalog.ts";
 import { KNIGHT_FAQ_ITEMS, type FAQItem } from "./faq-data.ts";
 
 const SITE = "https://knightbasins.com";
@@ -402,13 +402,17 @@ export function buildStudioGuideStructuredData(): Record<string, unknown> {
  * advertised as a wash basin again. Wash basins keep exactly the wording they had; the
  * counter-sized phrasing stays only for them, and the fallback label is the same Thai text the API
  * sends.
+ *
+ * job 459-C: (A) a `categoryLabel` that is just a raw machine id ("storage") is not wording - it goes through the
+ * shared `customerCategoryLabel()` of the data layer (the same rule the catalogue chips use), so it falls back to the
+ * Thai label; (B) only a counter basin says "ขนาดเคาน์เตอร์" - a tall basin or a storage pillar says "ขนาด".
  */
 function basinProductJsonLdDescription(product: BasinProduct): string {
   const isPillar = product.category === STORAGE_CATEGORY || isFreestandingPillarProduct(product);
   const kind = isPillar
-    ? product.categoryLabel?.trim() || STORAGE_CATEGORY_LABEL
+    ? customerCategoryLabel(product.categoryLabel, STORAGE_CATEGORY_LABEL)
     : "อ่างล้างหน้าหินสังเคราะห์";
-  const size = isPillar ? `ขนาด ${product.dimensions}` : `ขนาดเคาน์เตอร์ ${product.dimensions}`;
+  const size = !isPillar && product.category === COUNTER_CATEGORY ? `ขนาดเคาน์เตอร์ ${product.dimensions}` : `ขนาด ${product.dimensions}`;
   const bowl = !isPillar && product.basinDimensions ? ` หลุมอ่าง ${product.basinDimensions}` : "";
   return `${kind} Knight Basins รุ่น ${product.sku} สี ${product.colorName} (${product.colorCode}) ${size}${bowl}`;
 }

@@ -65,12 +65,16 @@ describe("job 457-C · Product JSON-LD wording follows the row type", () => {
   });
 
   it("leaves a real wash basin exactly as it was", () => {
-    for (const sku of ["KF003", "KF006", "KF025"]) {
+    // job 459-C: the counter wording stays for the counter basins (KF003 / KF006); a tall basin (KF025) is still a
+    // wash basin but no longer "ขนาดเคาน์เตอร์" - see jsonld-guard-459c.test.ts.
+    for (const sku of ["KF003", "KF006"]) {
       const text = descriptionOf(sku);
       assert.ok(text.includes("อ่างล้างหน้าหินสังเคราะห์"), `${sku} must stay a wash basin: ${text}`);
       assert.ok(text.includes("ขนาดเคาน์เตอร์"), `${sku} keeps the counter wording: ${text}`);
       assert.ok(text.includes("Knight Basins"), text);
     }
+    const tall = descriptionOf("KF025");
+    assert.ok(tall.includes("อ่างล้างหน้าหินสังเคราะห์"), `KF025 must stay a wash basin: ${tall}`);
     // A basin with a bowl size still prints it; the pillars (no bowl) never do.
     assert.ok(descriptionOf("KF003").includes("หลุมอ่าง"), descriptionOf("KF003"));
     assert.ok(!descriptionOf("KF029").includes("หลุมอ่าง"), descriptionOf("KF029"));

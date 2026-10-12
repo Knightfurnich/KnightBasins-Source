@@ -32,6 +32,53 @@ export const STORAGE_CATEGORY_LABEL = "เสาวางของตั้ง�
 const COUNTER_CATEGORY_LABEL = "เคาน์เตอร์";
 const TALL_CATEGORY_LABEL = "ทรงสูง";
 
+/** The machine id the database files wash basins for a counter under (the other two are tall and storage). */
+export const COUNTER_CATEGORY = "counter basin";
+
+/**
+ * jobs 441-B v2 / 454-C / 459-C - the ONE place that knows which category words are machine ids and what Thai text
+ * stands for them. Every customer-facing reader (the catalogue chips and card pill, the JSON-LD descriptions) goes
+ * through these; nothing may keep its own copy of this table.
+ *
+ * Rule that must not break: no data => no wording. A machine id is never wording, and nothing here invents a name:
+ * the three known ids map to the Thai text this module already uses.
+ */
+const MACHINE_CATEGORY_WORDING: Readonly<Record<string, string>> = {
+  [COUNTER_CATEGORY]: COUNTER_CATEGORY_LABEL,
+  "tall vertical washbasin": TALL_CATEGORY_LABEL,
+  [STORAGE_CATEGORY]: STORAGE_CATEGORY_LABEL,
+};
+
+const THAI_LETTER = /[฀-๿]/;
+
+/** The Thai text of a known machine id (any letter case), else `undefined`. */
+export function knownCategoryWording(name: string): string | undefined {
+  const key = name.trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(MACHINE_CATEGORY_WORDING, key) ? MACHINE_CATEGORY_WORDING[key] : undefined;
+}
+
+/** True for the raw ids (`storage`, `counter basin`, `tall vertical washbasin`) in any letter case. */
+export function isMachineCategoryId(text: string): boolean {
+  return knownCategoryWording(text) !== undefined;
+}
+
+/**
+ * The wording a customer may read for a category *name* that has no product under it: the Thai text of a known id, or
+ * the name itself when it is already Thai. Anything else (an English-only name nobody translated) is `null`.
+ */
+export function customerCategoryWording(name: string): string | null {
+  return knownCategoryWording(name) ?? (THAI_LETTER.test(name) ? name.trim() : null);
+}
+
+/**
+ * The text of a row's `categoryLabel` that a customer may read: the trimmed label, unless it is empty or just a raw
+ * machine id, in which case `fallback`. (Used by the JSON-LD; the chips apply the same rule in catalogueGroupLabel.)
+ */
+export function customerCategoryLabel(label: string | null | undefined, fallback: string): string {
+  const text = label?.trim();
+  return text && !isMachineCategoryId(text) ? text : fallback;
+}
+
 export const PILLAR_PRODUCT_SKUS = ["KF029", "KF030"] as const;
 export const PILLAR_PRODUCT_LABEL = "เสาวางของตั้งพื้น (ชุดสำเร็จรูป)";
 export const PILLAR_PRODUCT_PURCHASE_NOTE = "ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์";

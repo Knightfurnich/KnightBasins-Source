@@ -1,4 +1,11 @@
-import { isFreestandingPillarProduct, STORAGE_CATEGORY, STORAGE_CATEGORY_LABEL, type BasinProduct } from "../data/catalog.ts";
+import {
+  customerCategoryWording,
+  isFreestandingPillarProduct,
+  isMachineCategoryId,
+  knownCategoryWording,
+  STORAGE_CATEGORY,
+  type BasinProduct,
+} from "../data/catalog.ts";
 
 /**
  * Catalogue index grouping (chips, card pill, search) - jobs 441-B v2 and 454-C.
@@ -20,36 +27,9 @@ export function catalogueGroupValue(product: BasinProduct): string {
   return product.category;
 }
 
-/**
- * job 441-B v2 / C2 - machine category ids are not wording. The three the catalogue files rows
- * under are mapped to the Thai text the data layer / API already uses; nothing is invented here.
- */
-const MACHINE_CATEGORY_WORDING: Readonly<Record<string, string>> = {
-  "counter basin": "เคาน์เตอร์",
-  "tall vertical washbasin": "ทรงสูง",
-  [SHELF_SET_ROW_CATEGORY]: STORAGE_CATEGORY_LABEL,
-};
-
-const THAI_LETTER = /[฀-๿]/;
-
-function knownWording(name: string): string | undefined {
-  const key = name.trim().toLowerCase();
-  return Object.prototype.hasOwnProperty.call(MACHINE_CATEGORY_WORDING, key) ? MACHINE_CATEGORY_WORDING[key] : undefined;
-}
-
-/** True for the raw ids (`storage`, `counter basin`, `tall vertical washbasin`) in any letter case. */
-export function isMachineCategoryId(text: string): boolean {
-  return knownWording(text) !== undefined;
-}
-
-/**
- * The wording a customer may read for a category *name* that has no product under it: the Thai
- * text of a known id, or the name itself when it is already Thai. Anything else (an English-only
- * name nobody translated) is `null` - the caller hides it instead of printing the raw word.
- */
-export function customerCategoryWording(name: string): string | null {
-  return knownWording(name) ?? (THAI_LETTER.test(name) ? name.trim() : null);
-}
+// job 459-C: the machine-id table and its helpers moved to the data layer (src/data/catalog.ts) so the JSON-LD shares
+// them; they are re-exported here so every existing import keeps working and the behaviour is unchanged.
+export { isMachineCategoryId, customerCategoryWording };
 
 /**
  * The Thai chip/card wording: the model's `categoryLabel`, else the data layer's own label.
@@ -62,7 +42,7 @@ export function catalogueGroupLabel(
   const fromModel = product.categoryLabel?.trim();
   if (fromModel && !isMachineCategoryId(fromModel)) return fromModel;
   const fallbackText = fallback(product);
-  return knownWording(fallbackText) ?? knownWording(fromModel ?? "") ?? fallbackText;
+  return knownCategoryWording(fallbackText) ?? knownCategoryWording(fromModel ?? "") ?? fallbackText;
 }
 
 /** A shelf set: a row filed under `storage`, or one the built-in predicate names. */
