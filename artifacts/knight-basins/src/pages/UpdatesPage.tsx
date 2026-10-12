@@ -255,6 +255,21 @@ export async function copyUpdatesPageLink(
   }
 }
 
+
+/**
+ * job 465-C (B): the storefront theme is `data-theme="dark"` on `.storefront-theme-root`; Tailwind `dark:` never
+ * fires here. The sticky header kept its white 92% fill in the dark theme (pale `--ink` text on white = 1.16), and the
+ * release badges put white text on the dark-theme brand blue (#7ab9fb = 2.07). Same light colours as before.
+ */
+const UPDATES_THEME_CSS = `
+.up-header { background: rgba(255, 255, 255, 0.92); }
+.up-badge { background: var(--brand-blue); color: #ffffff; }
+.up-card { background: rgba(255, 255, 255, 0.75); }
+[data-theme="dark"] .up-header { background: rgba(18, 24, 32, 0.92); }
+[data-theme="dark"] .up-badge { color: #0b1324; }
+[data-theme="dark"] .up-card { background: rgba(255, 255, 255, 0.04); }
+`;
+
 export function UpdatesPage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const { toast } = useToast();
@@ -284,7 +299,8 @@ export function UpdatesPage() {
       className="min-h-screen bg-[var(--paper)] text-[var(--ink)]"
       data-testid="page-updates"
     >
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[rgba(255,255,255,0.92)] px-4 py-4 backdrop-blur-md dark:bg-[rgba(18,24,32,0.92)] sm:px-6">
+      <style>{UPDATES_THEME_CSS}</style>
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] up-header px-4 py-4 backdrop-blur-md sm:px-6">
         <img className="h-8 w-auto" src={knightFurnichLogo} alt="Knight Furnich" />
         <Link
           href="/"
@@ -353,7 +369,7 @@ export function UpdatesPage() {
               >
                 {releaseIndex === 0 && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
               </span>
-              <article className="rounded-xl border border-[var(--line)] bg-white/75 p-5 shadow-sm dark:bg-white/[0.04] sm:p-7">
+              <article className="rounded-xl border border-[var(--line)] up-card p-5 shadow-sm sm:p-7">
                 <header className="mb-5 flex flex-col gap-3 border-b border-[var(--line)] pb-5 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-soft)]">
@@ -364,7 +380,7 @@ export function UpdatesPage() {
                     </h2>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-[var(--brand-blue)] px-3 py-1 text-sm font-semibold text-white">
+                    <span className="up-badge rounded-full px-3 py-1 text-sm font-semibold">
                       {release.version}
                     </span>
                     <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs font-medium text-[var(--ink-soft)]">

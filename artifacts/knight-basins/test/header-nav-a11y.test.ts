@@ -29,7 +29,8 @@ const mix = (soft: number[], ink: number[], inkPercent: number) => soft.map((v, 
 describe("A - idle menu link contrast (453-B)", () => {
   // the light-theme tokens the measurement used; if index.css moves them this test must be re-read
   const INK = "#123e69";
-  const INK_SOFT = "#5f7b92";
+  const INK_SOFT = "#577186"; // job 465-C darkened the token (was #5f7b92)
+  const OLD_INK_SOFT = "#5f7b92";
   // the header paints rgba(255,255,255,.9) over the page; the browser measured 254,255,255
   const HEADER_BG = [254, 255, 255];
 
@@ -38,7 +39,7 @@ describe("A - idle menu link contrast (453-B)", () => {
   });
 
   it("the old colour (ink-soft alone) was below AA - the reason for the override", () => {
-    assert.ok(contrast(hex(INK_SOFT), HEADER_BG) < 4.5);
+    assert.ok(contrast(hex(OLD_INK_SOFT), HEADER_BG) < 4.5);
   });
 
   it("the override keeps idle links at 4.5:1 or better", () => {

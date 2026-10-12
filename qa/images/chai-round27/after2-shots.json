@@ -1,0 +1,21 @@
+{
+  "label": "after2",
+  "base": "http://localhost:5173",
+  "at": "2026-10-12T16:27:48.504Z",
+  "shots": [
+    {
+      "file": "after2-stone-swatch-dark-1440.png",
+      "route": "/stone",
+      "theme": "dark",
+      "viewport": "1440",
+      "overflowX": 0
+    },
+    {
+      "file": "after2-stone-swatch-dark-390.png",
+      "route": "/stone",
+      "theme": "dark",
+      "viewport": "390",
+      "overflowX": 0
+    }
+  ]
+}

@@ -1474,7 +1474,7 @@ h1, h2, h3 { color: var(--ink); }
   --card-paper: #ffffff;
   --line: #d8e7f0;
   --ink: #123e69;
-  --ink-soft: #5f7b92;
+  --ink-soft: #577186; /* job 465-C: was #5f7b92 = 4.26-4.44 on the page / white (WCAG 4.5); 4.54 on the palest fill */
   --deep: #0e355b;
   --brand-blue: #1268b3;
   --brand-sky: #e8f5fb;
@@ -1531,7 +1531,7 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   background: linear-gradient(90deg, transparent, #a8cee2);
   pointer-events: none;
 }
-.hero-copy { color: #5a7890; }
+.hero-copy { color: var(--ink-soft); } /* job 465-C: was #5a7890 = 4.45 on the page */
 .catalog-toolbar { border-bottom: 1px solid var(--line); }
 .catalog-controls { align-items: stretch; }
 .search-field, .sort-field {
@@ -6553,3 +6553,38 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
   /* ตัวเลข/ข้อคามยาวๆ ห้ามล้นกรอบ */
   .admin-app .admin-main :where(td, th) { overflow-wrap: anywhere; }
 }
+
+/* ─── job 465-C · readable text on every storefront page, both themes (light + shared rules) ────────────────────────
+   Colours only; no size / spacing / layout change, no colour-token value assigned, hero rule #449 untouched.
+   The dark-theme half lives in STOREFRONT_THEME_STYLES (components/ThemeToggle.tsx): a test keeps every
+   dark-theme rule out of this frozen stylesheet. The global `a { color: inherit }` and
+   `h1,h2,h3 { color: var(--ink) }` are unlayered and beat Tailwind utilities, so these are plain class rules.
+   Measured with qa/tools/contrast-probe.js (4.5 body text, 3.0 large). */
+
+/* C · /quote share box: white 72% on the navy summary left pale text on a pale fill (light 1.04) */
+.quote-share { background: #ffffff !important; border-color: #b9d6e7 !important; }
+.quote-share strong { color: #123e69 !important; }
+.quote-share p { color: #3b556e !important; }
+
+/* F · /stone: name + code printed on the bright hero swatch (the tile stays bright in both themes). The pale
+   --ink-soft of the dark theme (1.80) and the grey-blue of the light theme sat on a light photo; dark text on it reads in both. */
+.material-swatch > span,
+.material-swatch > span strong,
+.material-swatch > span small { color: #1f2937 !important; }
+
+/* G · /readme: Google Maps button is amber-400 with text that `a { color: inherit }` turned white (light 1.72) */
+[data-testid="link-google-maps-factory"] { color: #0f172a !important; }
+
+/* H · /studio: white label on the amber "ติดบัว" edge marker (#b07a12 = 3.72); the green marker was already fine */
+.studio-edge-marker--upstand,
+.studio-edge-marker--upstand .studio-edge-marker-action { color: #0b1324 !important; }
+
+/* light theme: colours that fell under 4.5 on the pale page (fills untouched) */
+[data-theme="light"] .price-note { color: #4f6a80 !important; }                          /* #a9b3af = 2.07 */
+[data-theme="light"] h2 span { color: #5b6663; }                                          /* #89908e italic sub-title = 3.13 */
+[data-theme="light"] .studio-preset-button.is-active span { color: #0f6ea8 !important; }  /* #2a9bd0 on white = 3.14 */
+[data-theme="light"] .customer-track-kicker { color: #8a4f0f !important; }                /* #c48638 = 3.08 */
+[data-theme="light"] [data-testid="section-stone-comparison-table"] .muted { color: #4f6a80 !important; } /* #a9b3af = 2.15 */
+/* white label on the sky-blue (#42a9d8) primary buttons = 2.66 in both themes */
+[data-testid="button-generate-quote"],
+[data-testid="link-stone-to-quote"] { color: #0b1324 !important; }

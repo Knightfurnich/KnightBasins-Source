@@ -1,0 +1,41 @@
+URL: http://localhost:5173/   ธีม: light   ตรวจ: 542 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/stone   ธีม: light   ตรวจ: 357 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/price-guide   ธีม: light   ตรวจ: 129 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/portfolio   ธีม: light   ตรวจ: 100 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/updates   ธีม: light   ตรวจ: 104 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/studio   ธีม: light   ตรวจ: 99 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/site-prep   ธีม: light   ตรวจ: 19 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/network   ธีม: light   ตรวจ: 33 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/handover   ธีม: light   ตรวจ: 3 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/track   ธีม: light   ตรวจ: 3 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/quote   ธีม: light   ตรวจ: 78 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/readme   ธีม: light   ตรวจ: 147 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+

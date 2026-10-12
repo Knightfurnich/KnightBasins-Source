@@ -1,0 +1,517 @@
+URL: http://localhost:5173/   ธีม: light   ตรวจ: 542 จุด   ต่ำกว่าเกณฑ์: 166 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.07  | 4.5   | rgb(169,179,175) บน rgb(246,251,254) | 14px | div.page-wrap > section.catalog-toolbar > div > p[data-testid="text-price-terms-note"] | ราคาต่อชุด · ยังไม่รวม VAT 7%
+  2.07  | 4.5   | rgb(169,179,175) บน rgb(246,251,254) | 14px | main[data-testid="storefront-main"] > div.page-wrap > p[data-testid="text-basin-overflow-note"] > span.[overflow-wrap:anywhere] | อ่างทุกรุ่นสั่งทำได้ทั้งแบบมีและไม่มีรูน
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+  3.13  | 4.5   | rgb(137,144,142) บน rgb(246,251,254) | 15.2px | section.catalog-toolbar > div > h2 > span | / เลือกได้ชัดเจน
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | section.catalog-toolbar > div.catalog-controls > div.filter-tabs > button[data-testid="button-filter-selected"] | อ่างที่เลือก 0
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | section.catalog-toolbar > div.catalog-controls > div.filter-tabs > button[data-testid="button-filter-counter"] | เคาน์เตอร์  18
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | section.catalog-toolbar > div.catalog-controls > div.filter-tabs > button[data-testid="button-filter-tall"] | ทรงสูง  10
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | section.catalog-toolbar > div.catalog-controls > div.filter-tabs > button[data-testid="button-filter-category-storage"] | เสาวางของตั้งพื้น  2
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.catalog-hero > div.catalog-hero-art > div.hero-index > span | 30 SKU
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.page-wrap > section.catalog-toolbar > div > p.eyebrow | THE BASIN INDEX
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | section[data-testid="installation-showcase"] > div.installation-showcase-heading > div > p.eyebrow | REAL INSTALLATIONS · 100% SEAMLESS
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 13px | section[data-testid="installation-showcase"] > div.installation-showcase-heading > div > p.installation-showcase-sub | ภาพถ่ายจริงจากบ้าน คอนโดหรู และโครงการที
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | div.storefront-theme-root > main[data-testid="storefront-main"] > section[data-testid="installation-showcase"] > p.installation-showcase-foot | ✨ เลื่อนภาพเพื่อชมตัวอย่างงานจริง · คลิก
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 13px | section[data-testid="quick-faq"] > div.quick-faq-list > div.quick-faq-item > p[data-testid="faq-answer-0"] | ราคาเคาน์เตอร์หินสังเคราะห์พร้อมติดตั้งข
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-studio"] > strong | ออกแบบใน 2D Studio
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-studio"] > small | กำหนดขนาดและจัดวางอ่าง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-sketch"] > strong | ส่งแบบร่างด้วยมือ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-sketch"] > small | แนบภาพให้ทีมขายช่วยดูแบบ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 12px | div.catalog-controls > label.sort-field > span.sort-field-content > span[data-testid="text-sort-help"] | เป็นการเรียงลำดับ ไม่ใช่ตัวกรอง · รวมทุก
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF001"] > div.product-info > div > p.eyebrow | VS311
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF001"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF001"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF001"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF002"] > div.product-info > div > p.eyebrow | VS351
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF002"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF002"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF002"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF003"] > div.product-info > div > p.eyebrow | RW316
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF003"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF003"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF003"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF004"] > div.product-info > div > p.eyebrow | VW050
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF004"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF004"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF004"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF005"] > div.product-info > div > p.eyebrow | HJ524M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF005"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF005"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF005"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF006"] > div.product-info > div > p.eyebrow | RW316
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF006"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF006"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF006"] > p[data-testid="text-basin-bowl-shape"] | หลุมวงรี
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF007"] > div.product-info > div > p.eyebrow | VL343
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF007"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF007"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF008"] > div.product-info > div > p.eyebrow | SI414
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF008"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF008"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF008"] > p[data-testid="text-basin-bowl-shape"] | หลุมวงรี
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF009"] > div.product-info > div > p.eyebrow | NB091
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF009"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF009"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF010"] > div.product-info > div > p.eyebrow | NA160
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF010"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF010"] > div.product-specs > span | หลุมอ่าง 350 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF011"] > div.product-info > div > p.eyebrow | VD382
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF011"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF011"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF011"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF012"] > div.product-info > div > p.eyebrow | CS532M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF012"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF012"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF012"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF013"] > div.product-info > div > p.eyebrow | VR322
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF013"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF013"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF013"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF014"] > div.product-info > div > p.eyebrow | EG501
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF014"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF014"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF014"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF015"] > div.product-info > div > p.eyebrow | GG884
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF015"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF015"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF015"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF016"] > div.product-info > div > p.eyebrow | KZ802
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF016"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF016"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF016"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF017"] > div.product-info > div > p.eyebrow | KZ802N
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF017"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF017"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF017"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF018"] > div.product-info > div > p.eyebrow | GI017
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF018"] > div.product-specs > span | 600 × 800 × 200 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF018"] > div.product-specs > span | หลุมอ่าง 400 × 500 × 130 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF018"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF019"] > div.product-info > div > p.eyebrow | VD345
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF019"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF019"] > div.product-specs > span | หลุมอ่าง 350 × 350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF019"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF020"] > div.product-info > div > p.eyebrow | VS385
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF020"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF020"] > div.product-specs > span | หลุมอ่าง 350 × 350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF020"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF021"] > div.product-info > div > p.eyebrow | KZ802N
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF021"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF021"] > div.product-specs > span | หลุมอ่าง 350 × 350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF021"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมจัตุรัสมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF022"] > div.product-info > div > p.eyebrow | NW013
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF022"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF022"] > div.product-specs > span | หลุมอ่าง 350 × 350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF022"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมจัตุรัสมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF023"] > div.product-info > div > p.eyebrow | WH112
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF023"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF023"] > div.product-specs > span | หลุมอ่าง Ø350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF023"] > p[data-testid="text-basin-bowl-shape"] | หลุมกลม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF024"] > div.product-info > div > p.eyebrow | VW342
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF024"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF024"] > div.product-specs > span | หลุมอ่าง Ø350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF024"] > p[data-testid="text-basin-bowl-shape"] | หลุมกลม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF025"] > div.product-info > div > p.eyebrow | NB091
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF025"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF025"] > div.product-specs > span | หลุมอ่าง Ø350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF025"] > p[data-testid="text-basin-bowl-shape"] | หลุมกลม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF026"] > div.product-info > div > p.eyebrow | NW013
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF026"] > div.product-specs > span | 400 × 400 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF026"] > div.product-specs > span | หลุมอ่าง Ø350 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF026"] > p[data-testid="text-basin-bowl-shape"] | หลุมกลม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF027"] > div.product-info > div > p.eyebrow | SW534M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF027"] > div.product-specs > span | 400 × 600 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF027"] > div.product-specs > span | หลุมอ่าง 370 × 570 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF027"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมเหลี่ยม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF028"] > div.product-info > div > p.eyebrow | VV351
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF028"] > div.product-specs > span | 400 × 600 × 850 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF028"] > div.product-specs > span | หลุมอ่าง 370 × 570 × 150 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | div.page-wrap > section.product-grid > article[data-testid="card-product-KF028"] > p[data-testid="text-basin-bowl-shape"] | หลุมสี่เหลี่ยมมุมมน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF029"] > div.product-info > div > p.eyebrow | EG595
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF029"] > div.product-info > div > p[data-testid="label-product-category-KF029"] | เสาวางของตั้งพื้น
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF029"] > div.product-specs > span | 400 × 400 × 1000 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF029"] > div.product-specs > span | ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF030"] > div.product-info > div > p.eyebrow | GT010
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | article[data-testid="card-product-KF030"] > div.product-info > div > p[data-testid="label-product-category-KF030"] | เสาวางของตั้งพื้น
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF030"] > div.product-specs > span | 400 × 400 × 1000 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.88) | 14px | section.product-grid > article[data-testid="card-product-KF030"] > div.product-specs > span | ชุดสำเร็จรูป ไม่ต้องเจาะเคาน์เตอร์
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | section[data-testid="installation-showcase"] > div.installation-showcase-heading > div.flex > button[data-testid="button-showcase-open-all"] | 10 ผลงานเด่น (คลิกดูภาพขยาย)
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_072"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_043"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_052"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_057"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_111"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_001"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-counter_018"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-kitchen_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-dining_table_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-design_040"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_072"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_043"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_052"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_057"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_111"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-bathroom_new_001"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-counter_018"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-kitchen_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-dining_table_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.flex > button[data-testid="showcase-photo-design_040"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.grid > div.flex > div > p.mt-1 | ดูแลคุณภาพหลังการขายโดยทีมงาน Knight Fur
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.grid > div.flex > div > p.mt-1 | กันน้ำ 100% ไม่บวม ไม่ซึมคราบฝังลึก ไม่เ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.grid > div.flex > div > p.mt-1 | ทีมช่างติดตั้งมืออาชีพ 10 ทีมของบริษัท ไ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.grid > div.flex > div > p.mt-1 | ออกแบบผัง 2 มิติเสมือนจริง เป๊ะตามขนาดพื
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | main[data-testid="storefront-main"] > section[data-testid="quick-faq"] > div.quick-faq-heading > p.eyebrow | QUESTIONS
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 13px | main[data-testid="storefront-main"] > section[data-testid="quick-faq"] > div.quick-faq-heading > p.quick-faq-sub | รวมข้อสงสัยที่ลูกค้าถามบ่อยที่สุดก่อนตัด
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span | คุยกับน้องไนท์ได้ทันที
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span.footer-line-qr-id | @789gcnhq
+  4.45  | 4.5   | rgb(90,120,144) บน rgb(246,251,254) | 14px | div.page-wrap > section.catalog-hero > div > p.hero-copy | อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่
+
+URL: http://localhost:5173/stone   ธีม: light   ตรวจ: 357 จุด   ต่ำกว่าเกณฑ์: 101 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.15  | 4.5   | rgb(169,179,175) บน rgb(255,255,255) | 14px | main[data-testid="storefront-main"] > div.page-wrap > section[data-testid="section-stone-comparison-table"] > p.muted | ข้อมูลคุณสมบัติทางกายภาพและมาตรฐานความปล
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+  2.66  | 4.5   | rgb(255,255,255) บน rgb(66,169,216) | 12px | div.page-wrap > div.config-layout > aside.config-summary > a[data-testid="link-stone-to-quote"] | ดูใบเสนอราคา
+  3.13  | 4.5   | rgb(137,144,142) บน rgb(246,251,254) | 15.2px | div.section-heading > div > h2 > span | / เลือกได้หลายสี
+  3.13  | 4.5   | rgb(137,144,142) บน rgb(246,251,254) | 15.2px | div.section-heading > div > h2 > span | / กำลังแก้ไข ยังไม่ได้เลือกสี
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-selected"] | สีที่เลือก
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-4900"] | ฿4,900
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-5900"] | ฿5,900
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-7000"] | ฿7,000
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-7500"] | ฿7,500
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-8000"] | ฿8,000
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-8500"] | ฿8,500
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-9000"] | ฿9,000
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-9500"] | ฿9,500
+  3.93  | 4.5   | rgb(95,123,146) บน rgb(231,243,249) | 14px | div.config-layout > section.config-main > div.stone-price-filters > button[data-testid="button-stone-price-filter-12000"] | ฿12,000
+  3.99  | 4.5   | rgb(95,123,146) บน rgb(245,243,235) | 14px | section.stone-hero > div[data-testid="stone-hero-media"] > span > strong | BW010
+  3.99  | 4.5   | rgb(95,123,146) บน rgb(245,243,235) | 14px | section.stone-hero > div[data-testid="stone-hero-media"] > span > small | Bright White
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.config-main > div.section-heading > div > p.eyebrow | CHOOSE FORMAT
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.config-main > div.section-heading > div > p.eyebrow | SURFACE TONE
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.config-layout > section.config-main > div.stone-search-row > span | 0 สีที่เลือก · 64 / 64 รายการ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.config-layout > section.config-main > div.stone-price-legend > span | ราคาขายแผ่น (บาท / แผ่น)
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.config-main > div.section-heading > div > p.eyebrow | SIZE & QUANTITY
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | div.storefront-theme-root > main[data-testid="storefront-main"] > div.page-wrap > div.source-note | ราคาขายแผ่นและราคารวมติดตั้งตามเอกสารราค
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-studio"] > strong | ออกแบบใน 2D Studio
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-studio"] > small | กำหนดขนาดและจัดวางอ่าง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-sketch"] > strong | ส่งแบบร่างด้วยมือ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 12px | main[data-testid="storefront-main"] > div.order-mode-tabs > button[data-testid="button-order-mode-sketch"] > small | แนบภาพให้ทีมขายช่วยดูแบบ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.config-main > div.mode-switch > button[data-testid="button-stone-whole-sheet"] > small | ราคาขายส่งต่อแผ่น ขนาด 0.76 × 3.60 ม.
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | section.config-main > div.mode-switch > button[data-testid="button-stone-installed"] > small | ราคาต่อ ตร.ม. พร้อมติดตั้งและวัดหน้างาน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-BW010"] > small | BW010
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-MU010"] > small | MU010
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-EG501"] > small | EG501
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-AL645"] > small | AL645
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-AS610"] > small | AS610
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SO423"] > small | SO423
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SH428"] > small | SH428
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SG420"] > small | SG420
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SI414"] > small | SI414
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SS440"] > small | SS440
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SC457"] > small | SC457
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SV430"] > small | SV430
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-EG595"] > small | EG595
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-NT970"] > small | NT970
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-PS820"] > small | PS820
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-QS822N"] > small | QS822N
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VC110"] > small | VC110
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VL343"] > small | VL343
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VR322"] > small | VR322
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VO171"] > small | VO171
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VF113"] > small | VF113
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VL312"] > small | VL312
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VM114"] > small | VM114
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VF345"] > small | VF345
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VA311"] > small | VA311
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VD175"] > small | VD175
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VV375"] > small | VV375
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VD382"] > small | VD382
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VS311"] > small | VS311
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VS351"] > small | VS351
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VS385"] > small | VS385
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VD345"] > small | VD345
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VV351"] > small | VV351
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-PT857"] > small | PT857
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-NW013"] > small | NW013
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-DU121"] > small | DU121
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-NB091F"] > small | NB091F
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-CW013"] > small | CW013
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-E085"] > small | E085
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-GC714"] > small | GC714
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-GI017"] > small | GI017
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-GG884"] > small | GG884
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-MB025"] > small | MB025
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-MC016"] > small | MC016
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-GE118"] > small | GE118
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-GT010"] > small | GT010
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-BT010"] > small | BT010
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-BR816O"] > small | BR816O
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-KZ802"] > small | KZ802
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-KZ802N"] > small | KZ802N
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-MS112"] > small | MS112
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VW213"] > small | VW213
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-RW316"] > small | RW316
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-CO521M"] > small | CO521M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-CS532M"] > small | CS532M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-HJ524M"] > small | HJ524M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-JG532M"] > small | JG532M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-SW534M"] > small | SW534M
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-VW050"] > small | VW050
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-WH112"] > small | WH112
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-MM541"] > small | MM541
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-ME642"] > small | ME642
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-AP100"] > small | AP100
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.82) | 14px | div.stone-colors > div > button[data-testid="button-stone-color-NA160"] > small | NA160
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.config-main > section[data-testid="stone-worktop-highlights"] > article > p | สัมผัสอาหารปลอดภัย
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.config-main > section[data-testid="stone-worktop-highlights"] > article > p | ผิวต่อเนื่อง ทำความสะอาดง่าย ไม่ซึมคราบ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.config-main > section[data-testid="stone-worktop-highlights"] > article > p | ฟื้นผิวให้กลับมาสวยได้ตลอดอายุการใช้งาน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.config-layout > section.config-main > div.quantity-editor > span | แผ่นมาตรฐาน / 760 × 3680 mm
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section[data-testid="section-stone-comparison-table"] > div.section-heading > div > p.eyebrow | MATERIAL DATA
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span | คุยกับน้องไนท์ได้ทันที
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span.footer-line-qr-id | @789gcnhq
+  4.45  | 4.5   | rgb(90,120,144) บน rgb(246,251,254) | 14px | div.page-wrap > section.stone-hero > div > p.hero-copy | สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้อ
+
+URL: http://localhost:5173/price-guide   ธีม: light   ตรวจ: 129 จุด   ต่ำกว่าเกณฑ์: 2 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  1     | 4.5   | rgb(18,62,105) บน rgb(18,62,105) | 19.092px | article.mx-auto > section.rounded-2xl > div > h2.mt-2 | พร้อมเช็กราคาให้ตรงกับหน้างาน
+  1     | 4.5   | rgb(255,255,255) บน rgb(255,255,255) | 14px | main[data-testid="price-guide-content"] > article.mx-auto > section.rounded-2xl > a[data-testid="link-price-guide-final-quote"] | ไปหน้าขอใบเสนอราคา
+
+URL: http://localhost:5173/portfolio   ธีม: light   ตรวจ: 100 จุด   ต่ำกว่าเกณฑ์: 3 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.min-h-screen > main.max-w-[1280px] > section.space-y-3 > p.max-w-3xl | รวมภาพถ่ายผลงานจริงจากบ้าน คอนโด และโครง
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | div.min-h-screen > main.max-w-[1280px] > div.flex > p.text-xs | แสดง 60 จาก 333 ภาพ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | div.storefront-theme-root > div.min-h-screen > main.max-w-[1280px] > p.text-center | ภาพทั้งหมดเป็นผลงานติดตั้งจริงของ บริษัท
+
+URL: http://localhost:5173/updates   ธีม: light   ตรวจ: 104 จุด   ต่ำกว่าเกณฑ์: 53 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 16px | div[data-testid="page-updates"] > main.mx-auto > section.mx-auto > p.mx-auto | จากแคตตาล็อกและเครื่องคำนวณราคา สู่ระบบอ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | 4 ตุลาคม 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | ระบบเสถียรและเลขใบเสนอราคา — รุ่นล่าสุด
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 18px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-0-0"] > span.mt-0.5 | 🛠️
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-0-0"] > p | — ให้ Support Chat ตอบต่อเนื่องแม้มีใบเส
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-0-1"] > p | — ออกเลขฝั่งเซิร์ฟเวอร์แบบ atomic ตามเดื
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | 3 ตุลาคม 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | ราคาและความปลอดภัยระบบ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-0"] > p | — ตรวจราคาจากฐานข้อมูลก่อนบันทึกใบเสนอรา
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-1"] > p | — ผู้มีสิทธิ์ leads:edit ปรับส่วนลดหรือร
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 18px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-2"] > span.mt-0.5 | 🛡️
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-2"] > p | — จำกัดการลองซ้ำแม้สลับ User-Agent และปิ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-3"] > p | — ปฏิเสธคำขอที่ไม่มีข้อมูลผังเคาน์เตอร์ห
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-4"] > p | — จำกัดการบันทึกแบบร่าง และลบแบบร่างที่ห
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-1-5"] > p | — แก้การตรวจราคาขอบเปิดที่กรอกไม่ได้ใน S
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | 3 ตุลาคม 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | Studio ภาพสินค้าและระบบติดตั้ง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-0"] > p | — รองรับแผ่นขาแนวตั้งของเคาน์เตอร์ทรง L/
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 18px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-1"] > span.mt-0.5 | 🖼️
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-1"] > p | — แปลงภาพอ่าง 30 รุ่นเป็น WebP โปร่งใส ล
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-2"] > p | — แยกเสาวางของตั้งพื้น (KF029/030) ออกจา
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-3"] > p | — ตรวจอายุลิงก์ 45 วันทุกจุด รวมการส่งสล
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-4"] > p | — ปรับฐานข้อมูลบน VPS อัตโนมัติผ่าน GitH
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-2-5"] > p | — แจ้ง Telegram เมื่อเกิดข้อผิดพลาดสลิป 
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | 3 ตุลาคม 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | Stone Visual Experience Suite
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-3-0"] > p | — ปุ่มดูภาพเต็มแผ่นบนหน้าร้าน /stone และ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-3-1"] > p | — ภาพตัวอย่างหินสังเคราะห์แสดงคู่กับรายก
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-3-2"] > p | — แจ้งเตือนงานขายเข้า Telegram อัตโนมัติ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | 30 กันยายน 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | Logistics & Financial Safety Suite
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-4-0"] > p | — ถอดรหัสพิกัดหน้างานอัตโนมัติจากทุกลิงก
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-4-1"] > p | — ระบบตรวจจับประวัติลูกค้าและเบอร์โทรซ้ำ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-4-2"] > p | — ปุ่มสร้างการ์ดงานช่างส่งเข้า LINE คัดล
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-4-3"] > p | — ถอดแบบกฎเหล็ก KRAKEN ล็อกความปลอดภัยปิ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | 27 ก.ย. 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | Official Launch
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-5-0"] > p | — ออกแบบทรง I/L/U, เจาะอ่าง 30 รุ่น, หมุ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-5-1"] > p | — Google Cloud Vertex AI Singapore วิเคร
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-5-2"] > p | — ค้นหาอัจฉริยะ, กรอง 30 วันและข้ามปี พ.
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-5-3"] > p | — แดชบอร์ดสถานะฐานข้อมูลเรียลไทม์, สำรอง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | กลางเดือนกันยายน 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | Studio & Edge Revolution
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-6-0"] > p | — ติดบัว ▲ · ชิดผนัง ║ · ขอบเปิด ⊗ · ขอบ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 18px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-6-1"] > span.mt-0.5 | 🖼️
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-6-1"] > p | — คลังภาพผลงานติดตั้งจริง 360 ภาพ แยก 17
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-6-2"] > p | — เช็คลิสต์ 5 ด้านพร้อมภาพหน้างานจริง 59
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | ul.space-y-4 > li[data-testid="item-update-6-2"] > p > a.font-medium | เปิดคู่มือ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | header.mb-5 > div > p.text-xs > time | สิงหาคม 2569
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 12px | article.rounded-xl > header.mb-5 > div.flex > span.rounded-full | Foundation
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-7-0"] > p | — เลือกดูสินค้าได้ครบ 30 รุ่น
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 18px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-7-1"] > span.mt-0.5 | 🏷️
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.75) | 16px | article.rounded-xl > ul.space-y-4 > li[data-testid="item-update-7-1"] > p | — สูตรคำนวณราคาหินสังเคราะห์ตามตารางราคา
+
+URL: http://localhost:5173/studio   ธีม: light   ตรวจ: 99 จุด   ต่ำกว่าเกณฑ์: 49 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+  3.14  | 4.5   | rgb(42,155,208) บน rgb(255,255,255) | 14px | div.studio-shape-wizard > div.studio-preset-actions > button[data-testid="button-studio-shape-i"] > span | 📐 ทรงตรง (I)
+  3.72  | 4.5   | rgb(255,255,255) บน rgb(176,122,18) | 14px | div.studio-canvas-stage > div.studio-piece-rectangle > div.studio-edge-marker > button[data-testid="studio-edge-marker-rectangle-1791818764854-0-top"] | ติดบัว
+  4.13  | 4.5   | rgb(95,123,146) บน rgb(240,248,252) | 14px | div.page-wrap > div[data-testid="studio-draft-banner"] > div > small | แบบร่างนี้อยู่ในเบราว์เซอร์เครื่องนี้
+  4.21  | 4.5   | rgb(95,123,146) บน rgb(243,250,255) | 14px | div.studio-piece-workspace > div.studio-piece-canvas-column > div[data-testid="studio-edge-toolbar-piece-1791818764854-0"] > p | คลิกขอบบนผังเพื่อเปลี่ยน/เอาออก หรือลากก
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.page-wrap > ol.studio-progress > li.studio-progress-step > span | เลือกอ่าง
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | ol.studio-progress > li.studio-progress-step > span > small | (ไม่บังคับ)
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.page-wrap > ol.studio-progress > li.studio-progress-step > span | จัดผังเคาน์เตอร์
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.page-wrap > ol.studio-progress > li.studio-progress-step > span | ข้อมูลติดต่อ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.page-wrap > div.studio-draft-toolbar > div > p.eyebrow | DRAFT WORKSPACE
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | div.page-wrap > div.studio-draft-toolbar > div > span[data-testid="status-studio-draft-autosave"] | บันทึกอัตโนมัติล่าสุด 12 ต.ค. 2569 22:26
+  4.35  | 4.5   | rgb(95,123,146) บน rgb(251,253,254) | 14px | div.studio-inspector-section > div.studio-rectangle-editor > div.studio-rectangle-inputs > label | กว้าง (มม.)
+  4.35  | 4.5   | rgb(95,123,146) บน rgb(251,253,254) | 14px | div.studio-inspector-section > div.studio-rectangle-editor > div.studio-rectangle-inputs > label | ยาว (มม.)
+  4.35  | 4.5   | rgb(95,123,146) บน rgb(251,253,254) | 14px | aside.studio-inspector > div.studio-inspector-section > div.studio-rectangle-editor > p.studio-helper | ติดบัว = ชิดผนังปูน / ขอบเปิด = โชว์ลอยใ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | main[data-testid="storefront-main"] > div.page-wrap > div[data-testid="studio-mode-switch"] > button[data-testid="button-studio-mode-detailed"] | โหมดละเอียด
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.studio-selector-anchor > button[data-testid="button-open-studio-stone-popover"] > span > small | สีหิน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.studio-selector-anchor > button[data-testid="button-open-studio-stone-popover"] > span > span | ฿0 บ./ตร.ม.
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.studio-selector-anchor > button[data-testid="button-open-studio-basin-popover"] > span > small | อ่างล้างหน้า
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-panel > div.studio-panel-heading > div > p.eyebrow | 03 / RECTANGLE WORKPIECES
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-panel > div.studio-active-piece-controls > div.studio-piece-shape-section > p.studio-helper | เลือกรูปทรงและกำหนดขนาดกับขอบของแต่ละแผ่
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-piece-card > div.studio-piece-dimension-inputs > label > span | ความยาว (มม.)
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-piece-card > div.studio-piece-dimension-inputs > label > span | ความลึก (มม.)
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-piece-card > div.studio-piece-edge-row > div.studio-piece-edge-control > span | ด้านชนผนัง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-piece-card > div.studio-piece-edge-row > div.studio-piece-edge-control > span | ด้านหน้า (คนยืน)
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-piece-card > div.studio-piece-edge-row > div.studio-piece-edge-control > span | ด้านข้างซ้าย
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-piece-card > div.studio-piece-edge-row > div.studio-piece-edge-control > span | ด้านข้างขวา
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.studio-piece-shape-section > div.studio-custom-shape-panel > div.studio-custom-shape-actions > small | พื้นที่และราคาจะคำนวณหลังจากประกอบผังเท่
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | aside[data-testid="studio-estimate-not-ready"] > div.studio-panel-heading > div > p.eyebrow | LIVE ESTIMATE
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.page-wrap > div.studio-design-layout > aside[data-testid="studio-estimate-not-ready"] > p[data-testid="status-studio-estimate-locked"] | กด “ประกอบผังลงกระดาน” เพื่อคำนวณพื้นที่
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.studio-panel > div.studio-panel-heading > div > p.eyebrow | 04 / PROJECT DETAILS
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | ชื่อผู้ติดต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | บริษัท
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | โทรศัพท์
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | อีเมล
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | ชื่อโครงการ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.studio-panel > div.studio-contact-grid > div.studio-contact-wide > p.text-[12px] | ที่อยู่ที่พิมพ์จะถูกบันทึก ส่วนตำแหน่งที
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | LINE สำหรับติดต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | ช่องทางติดต่อที่สะดวก
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | บทบาทลูกค้า
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | ประเภทสถานที่
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | วันที่คาดว่าจะติดตั้ง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | ชื่อสำหรับใบกำกับภาษี
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | เลขประจำตัวผู้เสียภาษี 13 หลัก
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label | สาขา
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.studio-layout-bottom > div.studio-panel > div.studio-contact-grid > label.studio-contact-wide | ที่อยู่สำหรับใบกำกับภาษี
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.page-wrap > section.studio-layout-bottom > div.studio-panel > label.studio-select-label | พื้นที่ติดตั้ง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span | คุยกับน้องไนท์ได้ทันที
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span.footer-line-qr-id | @789gcnhq
+  4.45  | 4.5   | rgb(90,120,144) บน rgb(246,251,254) | 14px | div.page-wrap > section.studio-hero > div > p.hero-copy | เพิ่มชิ้นงานและสี่เหลี่ยม กำหนดทิศทาง จั
+
+URL: http://localhost:5173/site-prep   ธีม: light   ตรวจ: 19 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.site-prep-page > main.max-w-[880px] > section[data-testid="section-site-prep-hero"] > p.text-[var(--ink-soft)] | ส่งลิงก์นี้ให้ผู้รับเหมาหรือช่างโครงการเ
+
+URL: http://localhost:5173/network   ธีม: light   ตรวจ: 33 จุด   ต่ำกว่าเกณฑ์: 3 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span | คุยกับน้องไนท์ได้ทันที
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span.footer-line-qr-id | @789gcnhq
+
+URL: http://localhost:5173/handover   ธีม: light   ตรวจ: 3 จุด   ต่ำกว่าเกณฑ์: 2 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.70) | 10px | div.handover-shell > main.handover-main > section[data-testid="status-digital-handover-no-token"] > p.handover-state-kicker | PRIVATE HANDOVER RECORD
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.70) | 13px | div.handover-shell > main.handover-main > section[data-testid="status-digital-handover-no-token"] > p | ลิงก์เอกสารของคุณจะมีรหัสเฉพาะหลังคำว่า 
+
+URL: http://localhost:5173/track   ธีม: light   ตรวจ: 3 จุด   ต่ำกว่าเกณฑ์: 2 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  3.08  | 4.5   | rgb(196,134,56) บน rgb(255,255,255 alpha 0.68) | 10px | div.storefront-theme-root > div[data-testid="page-customer-tracking"] > section[data-testid="status-customer-tracking-no-token"] > p.customer-track-kicker | PRIVATE JOB PORTAL
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.68) | 13px | div.storefront-theme-root > div[data-testid="page-customer-tracking"] > section[data-testid="status-customer-tracking-no-token"] > p | ลิงก์ติดตามงานของคุณจะมีรหัสเฉพาะหลังคำว
+
+URL: http://localhost:5173/quote   ธีม: light   ตรวจ: 78 จุด   ต่ำกว่าเกณฑ์: 45 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  1.04  | 4.5   | rgb(246,251,254) บน rgb(255,255,255 alpha 0.72) | 14px | div.quote-layout > aside.quote-summary > div.quote-share > strong | ยืนยันแบบ / ขอให้ทีมงานติดต่อกลับ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+  2.66  | 4.5   | rgb(255,255,255) บน rgb(66,169,216) | 14px | div.quote-editor > div.quote-layout > aside.quote-summary > button[data-testid="button-generate-quote"] | ออกใบเสนอราคาทางการ
+  4.25  | 4.5   | rgb(95,123,146) บน rgb(245,251,254) | 14px | div.quote-editor > section.quote-format-panel > div > p.eyebrow | รูปแบบเอกสาร
+  4.25  | 4.5   | rgb(95,123,146) บน rgb(245,251,254) | 14px | div.quote-editor > section.quote-format-panel > div > small | US สรุปตามพื้นที่/แผ่น · OF แยกรายห้อง/จ
+  4.25  | 4.5   | rgb(95,123,146) บน rgb(245,251,254) | 14px | section.quote-main > div.quote-block > div[data-testid="status-quote-empty"] > p | ยังไม่มีสินค้าในใบเสนอราคา
+  4.25  | 4.5   | rgb(95,123,146) บน rgb(245,251,254) | 14px | section.quote-main > div.quote-block > div[data-testid="status-stone-empty"] > p | ยังไม่ได้เลือกหินสังเคราะห์
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-editor > section.quote-heading > div.quote-date > span | วันที่ออกเอกสาร
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-editor > section.quote-heading > div.quote-date > small | ใช้ได้ถึง 11 พ.ย. 2569 · 30 วัน
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.block-header > div > p.eyebrow | 01 / BASINS
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.block-header > div > p.eyebrow | 02 / STONE
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.block-header > div > p.eyebrow | 03 / CUSTOMER
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.block-header > div > p.customer-intro | กรอกเท่าที่มีได้เลยครับ ข้อมูลลูกค้ายังไ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > div.customer-group-title > small | ชื่อและที่อยู่ช่วยให้ทีมขายจัดทำเอกสารได
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | ชื่อผู้ติดต่อ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | บริษัท / นิติบุคคล
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.span-2 > div.studio-contact-wide > label.grid > span | ที่อยู่ / สถานที่ติดตั้ง
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.customer-grid > div.span-2 > div.studio-contact-wide > p.text-[12px] | ที่อยู่ที่พิมพ์จะถูกบันทึก ส่วนตำแหน่งที
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > div.customer-group-title > strong | 2 / ช่องทางติดต่อ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > div.customer-group-title > small | กรอกช่องทางที่สะดวกอย่างน้อยหนึ่งช่องทาง
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | เบอร์โทรศัพท์
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | LINE สำหรับติดต่อ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | อีเมล
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | ช่องทางติดต่อที่สะดวก
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > div.customer-group-title > strong | 3 / ข้อมูลใบกำกับภาษี (ไม่บังคับ)
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > div.customer-group-title > small | กรอกเมื่อขอใบกำกับภาษีในนามบริษัทหรือนิต
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | ชื่อสำหรับใบกำกับภาษี
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | เลขประจำตัวผู้เสียภาษี
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | สาขา
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > label.span-2 > span | ที่อยู่สำหรับใบกำกับภาษี
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.quote-block > div.customer-grid > div.customer-group-title > small | ช่วยให้ทีมงานประเมินงานและนัดหมายได้ตรงจ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | โลเคชันหน้างาน
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | ประเภทสถานที่
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | วันที่คาดว่าจะติดตั้ง
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label | บทบาทลูกค้า
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section.quote-main > div.quote-block > div.customer-grid > label.span-2 | หมายเหตุเพิ่มเติม
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.page-wrap > div[data-testid="section-quote-project-details"] > div > p.eyebrow | PROJECT DETAILS / ข้อมูลหน้างาน
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | main[data-testid="storefront-main"] > div.page-wrap > div[data-testid="section-quote-project-details"] > label | ชื่อโครงการ
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | main[data-testid="storefront-main"] > div.page-wrap > div[data-testid="section-quote-project-details"] > label | ฝ่ายจัดซื้อ / บัญชี
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 12px | div.storefront-theme-root > main[data-testid="storefront-main"] > div.page-wrap > div.source-note | ข้อมูลสินค้าจาก Knight Basins Catalogue 
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.quote-format-panel > div.quote-format-switch > button[data-testid="button-quote-format-of"] > small | รายห้อง / จุด
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255 alpha 0.72) | 14px | div.quote-layout > aside.quote-summary > div.quote-share > p | กดคัดลอกข้อความสำหรับส่งทาง LINE หรือเปิ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 11px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span | คุยกับน้องไนท์ได้ทันที
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 12px | div.footer-inner > div[data-testid="footer-line-qr"] > div.footer-line-qr-text > span.footer-line-qr-id | @789gcnhq
+  4.45  | 4.5   | rgb(90,120,144) บน rgb(246,251,254) | 14px | div.quote-editor > section.quote-heading > div > p.hero-copy | ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสน
+
+URL: http://localhost:5173/readme   ธีม: light   ตรวจ: 147 จุด   ต่ำกว่าเกณฑ์: 54 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  1.72  | 4.5   | rgb(255,255,255) บน rgb(255,185,0) | 12px | div.rounded-xl > div.flex > div > a[data-testid="link-google-maps-factory"] | นำทาง Google Maps มายังโรงงาน ไนท์ เฟอร์
+  3.13  | 4.5   | rgb(137,144,142) บน rgb(246,251,254) | 15.2px | main.max-w-[880px] > section.space-y-4 > h2.font-semibold > span | 🛍️
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | div.sales-guide > main.max-w-[880px] > section.space-y-5 > p.text-sm | ไนท์ เฟอร์นิช (Knight Furnich) มุ่งมั่นย
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section[data-testid="installation-showcase"] > div.installation-showcase-heading > div > p.eyebrow | REAL INSTALLATIONS · 100% SEAMLESS
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | section[data-testid="installation-showcase"] > div.installation-showcase-heading > div > p.installation-showcase-sub | ภาพถ่ายจริงจากบ้าน คอนโดหรู และโครงการที
+  4.26  | 4.5   | rgb(95,123,146) บน rgb(246,251,254) | 14px | main.max-w-[880px] > section[data-testid="guide-section-showcase"] > section[data-testid="installation-showcase"] > p.installation-showcase-foot | ✨ เลื่อนภาพเพื่อชมตัวอย่างงานจริง · คลิก
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-5 > div.grid > div.rounded-lg > p.text-[11px] | Seamless Joint ผิวเนียนสนิท ผ่านมาตรฐาน 
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-5 > div.grid > div.rounded-lg > p.text-[11px] | เนื้อหินตัน ผ่านมาตรฐาน ASTM G22 ป้องกัน
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-5 > div.grid > div.rounded-lg > p.text-[11px] | ผ่านมาตรฐาน LC 50 ปลอดภัยต่ออาหาร และ NE
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-5 > div.grid > div.rounded-lg > p.text-[11px] | หากเกิดรอยขีดข่วน สามารถขัดลบรอยให้กลับม
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-channel-catalog"] > div.rounded-xl > div.flex > div.text-xs | Catalog Quick Order
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-channel-catalog"] > div.rounded-xl > div.p-6 > p | สำหรับอ่างล้างหน้าสำเร็จรูป 30 รุ่นมาตรฐ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-channel-studio"] > div.rounded-xl > div.flex > div.text-xs | Custom Countertop
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-channel-studio"] > div.rounded-xl > div.p-6 > p | สำหรับเคาน์เตอร์หินสั่งตัดพร้อมอ่าง ระบุ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-channel-sketch"] > div.rounded-xl > div.flex > div.text-xs | Custom Sketch
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-channel-sketch"] > div.rounded-xl > div.p-6 > p | ถ่ายรูปสดจากกล้องหน้างาน หรือแนบภาพสเก็ต
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-4 > div.p-5 > div.flex > p | ระบบออกแบบจะช่วยตรวจสอบระยะขอบปลอดภัยอย่
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-4 > div.p-5 > div.flex > p | หลังลูกค้ายืนยันคำสั่งซื้อ ทีมช่างจะนัดห
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-4 > div.p-5 > div.flex > p | แผ่นหินสังเคราะห์แท้หนา 12 มม. พร้อมเสริ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.p-5 > div.pt-2 > a.inline-flex > span | 📐 เปิดดูคู่มือการเตรียมหน้างานและการติด
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-4 > div.p-5 > div.flex > p | เอกสารออกอย่างโปร่งใส ระบุรายการสินค้า ข
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > div.space-y-1 > ul.list-disc > li | ชำระมัดจำ เมื่อเซ็นอนุมัติสั่งซื้อ เพื่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.space-y-1 > ul.list-disc > li > strong | 50%
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > div.space-y-1 > ul.list-disc > li | ชำระส่วนที่เหลือ ก่อนวันเข้าติดตั้งอย่าง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.space-y-1 > ul.list-disc > li > strong | 50%
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > div.space-y-1 > ul.list-disc > li | กรณียอดสั่งซื้อไม่เกิน 40,000 บาท ชำระ 1
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > div.space-y-1 > ul.list-disc > li | รองรับการออกใบกำกับภาษี (VAT 7%) ถูกต้อง
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-4 > div.p-5 > div.flex > p | ดำเนินการติดตั้งโดยทีมช่างผู้ชำนาญการของ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section.space-y-4 > div.p-5 > div.flex > p | ดูแลความเรียบร้อยของโครงสร้าง รอยต่อ และ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | section[data-testid="installation-showcase"] > div.installation-showcase-heading > div.flex > button[data-testid="button-showcase-open-all"] | 10 ผลงานเด่น (คลิกดูภาพขยาย)
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_072"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_043"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_052"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_057"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_111"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_001"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-counter_018"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-kitchen_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-dining_table_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-design_040"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_072"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_043"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_052"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_057"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_111"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-bathroom_new_001"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-counter_018"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-kitchen_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-dining_table_003"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | div.flex > button[data-testid="showcase-photo-design_040"] > div.p-3 > span.text-[11px] | หินสังเคราะห์แท้ ไร้รอยต่อ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-hub-portfolio"] > div.p-4 > div > p.text-xs | ชมภาพถ่ายงานติดตั้งจริง 333 ภาพคัดสรร แย
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-hub-site-prep"] > div.p-4 > div > p.text-xs | สเปกท่อน้ำดี-น้ำทิ้ง ระยะบล็อกปูน และการ
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-hub-studio-guide"] > div.p-4 > div > p.text-xs | 3 ขั้นตอนการออกแบบผังเคาน์เตอร์ เลือกลาย
+  4.44  | 4.5   | rgb(95,123,146) บน rgb(255,255,255) | 14px | a[data-testid="link-guide-hub-updates"] > div.p-4 > div > p.text-xs | ประวัติเวอร์ชันและฟีเจอร์ใหม่ ติดตามความ
+

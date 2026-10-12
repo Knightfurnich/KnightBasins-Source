@@ -1,0 +1,41 @@
+URL: http://localhost:5173/   ธีม: dark   ตรวจ: 569 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/stone   ธีม: dark   ตรวจ: 392 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/price-guide   ธีม: dark   ตรวจ: 133 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/portfolio   ธีม: dark   ตรวจ: 104 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/updates   ธีม: dark   ตรวจ: 108 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/studio   ธีม: dark   ตรวจ: 127 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/site-prep   ธีม: dark   ตรวจ: 23 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/network   ธีม: dark   ตรวจ: 60 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/handover   ธีม: dark   ตรวจ: 10 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/track   ธีม: dark   ตรวจ: 11 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
+URL: http://localhost:5173/quote   ธีม: dark   ตรวจ: 105 จุด   ต่ำกว่าเกณฑ์: 1 จุด
+  ratio | เกณฑ์ | สีตัวอักษร บน พื้นหลัง | ขนาด | selector | ข้อความ
+  2.26  | 4.5   | rgb(255,255,255) บน rgb(6,199,85) | 12px | header.site-header > div.header-actions > button[data-testid="button-line-login"] > span.line-logo-mark | LINE
+
+URL: http://localhost:5173/readme   ธีม: dark   ตรวจ: 151 จุด   ต่ำกว่าเกณฑ์: 0 จุด
+  ✅ ไม่มีจุดที่ต่ำกว่าเกณฑ์
+
