@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { contactPhonesCommaText } from "@/data/contact-channels";
 import { Link } from "wouter";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -121,6 +121,22 @@ export function PortfolioPage() {
         : categories.find((c) => c.slug === activeCategory)?.count ?? 0)
     : 0;
 
+  // job 460-C: the category strip scrolls sideways; the two edge cues say there is more on that side.
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [stripCue, setStripCue] = useState({ start: false, end: false });
+  const updateStripCue = useCallback(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const start = el.scrollLeft > 1;
+    const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setStripCue((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
+  }, []);
+  useEffect(() => {
+    updateStripCue();
+    window.addEventListener("resize", updateStripCue);
+    return () => window.removeEventListener("resize", updateStripCue);
+  }, [updateStripCue, categories.length]);
+
   const zoomIndex = useMemo(
     () => (zoomId ? photos.findIndex((p) => p.id === zoomId) : -1),
     [zoomId, photos],
@@ -174,12 +190,14 @@ export function PortfolioPage() {
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="ค้นหาผลงาน เช่น อ่างคู่, ครัว, ผนัง, เคาน์เตอร์..."
             aria-label="ค้นหาผลงาน"
+            className="min-h-11"
             data-testid="input-portfolio-search"
           />
           {searchQuery && (
             <button
               type="button"
               className="portfolio-search-clear"
+              style={{ width: 44, height: 44 }}
               onClick={() => setSearchQuery("")}
               aria-label="ล้างคำค้นหา"
               data-testid="button-clear-portfolio-search"
@@ -190,11 +208,17 @@ export function PortfolioPage() {
         </div>
 
         {/* Category tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1" data-testid="portfolio-category-tabs">
+        <div className="relative">
+        <div
+          ref={stripRef}
+          onScroll={updateStripCue}
+          className="flex gap-2 overflow-x-auto pb-1"
+          data-testid="portfolio-category-tabs"
+        >
           <button
             type="button"
             onClick={() => setActiveCategory(ALL_CATEGORIES)}
-            className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+            className={`min-h-11 shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
               activeCategory === ALL_CATEGORIES
                 ? "border-[#003366] bg-[#003366] text-white"
                 : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[#003366]"
@@ -207,7 +231,7 @@ export function PortfolioPage() {
               key={c.slug}
               type="button"
               onClick={() => setActiveCategory(c.slug)}
-              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`min-h-11 shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeCategory === c.slug
                   ? "border-[#003366] bg-[#003366] text-white"
                   : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[#003366]"
@@ -217,6 +241,25 @@ export function PortfolioPage() {
               {c.icon} {c.name} <span className="opacity-70">({c.count})</span>
             </button>
           ))}
+        </div>
+        <div
+          aria-hidden="true"
+          data-testid="portfolio-category-cue-start"
+          className={`pointer-events-none absolute bottom-1 left-0 top-0 flex w-10 items-center justify-start bg-gradient-to-r from-[var(--paper)] via-[var(--paper)]/80 to-transparent text-[#003366] transition-opacity duration-200 ${
+            stripCue.start ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <ChevronLeft size={16} />
+        </div>
+        <div
+          aria-hidden="true"
+          data-testid="portfolio-category-cue-end"
+          className={`pointer-events-none absolute bottom-1 right-0 top-0 flex w-10 items-center justify-end bg-gradient-to-l from-[var(--paper)] via-[var(--paper)]/80 to-transparent text-[#003366] transition-opacity duration-200 ${
+            stripCue.end ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <ChevronRight size={16} />
+        </div>
         </div>
 
         {/* Grid */}
@@ -289,7 +332,7 @@ export function PortfolioPage() {
                 type="button"
                 onClick={() => void query.fetchNextPage()}
                 disabled={query.isFetchingNextPage}
-                className="inline-flex items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#002244] disabled:opacity-60"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#003366] bg-[#003366] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#002244] disabled:opacity-60"
                 data-testid="button-portfolio-load-more"
               >
                 {query.isFetchingNextPage ? <Loader2 className="animate-spin" size={15} /> : null}
