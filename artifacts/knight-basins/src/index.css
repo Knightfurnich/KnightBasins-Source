@@ -6580,7 +6580,8 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .studio-edge-marker--upstand .studio-edge-marker-action { color: #0b1324 !important; }
 
 /* light theme: colours that fell under 4.5 on the pale page (fills untouched) */
-[data-theme="light"] .price-note { color: #4f6a80 !important; }                          /* #a9b3af = 2.07 */
+[data-theme="light"] .price-note { color: #4f6a80 !important; }
+[data-theme="light"] .config-summary .price-note { color: #a9b3af !important; }   /* 466-C: the note inside the navy summary panel keeps its pale colour (the rule above made it 2.09 there) */                          /* #a9b3af = 2.07 */
 [data-theme="light"] h2 span { color: #5b6663; }                                          /* #89908e italic sub-title = 3.13 */
 [data-theme="light"] .studio-preset-button.is-active span { color: #0f6ea8 !important; }  /* #2a9bd0 on white = 3.14 */
 [data-theme="light"] .customer-track-kicker { color: #8a4f0f !important; }                /* #c48638 = 3.08 */
@@ -6588,3 +6589,11 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 /* white label on the sky-blue (#42a9d8) primary buttons = 2.66 in both themes */
 [data-testid="button-generate-quote"],
 [data-testid="link-stone-to-quote"] { color: #0b1324 !important; }
+
+/* job 466-C · /sketch: the validation warning inside a dimension field inherited .studio-sketch-dim-field small { color: var(--ink-soft) }
+   over its own pale-red fill (#fff1ef): 1.81 in the dark theme, ~4.4 in the light one. Its own red (#a83f37 = 5.9 on that fill) wins in both. */
+.studio-sketch-dim-field small.studio-warning { color: #a83f37 !important; }
+
+/* job 466-C · light theme, /sketch + /studio: two greys / reds that sat just under 4.5 on the pale page (fills untouched) */
+[data-theme="light"] .studio-page--sketch .studio-sketch-no-cutouts { color: #55697a !important; }   /* #687c88 = 4.19-4.35 */
+[data-theme="light"] .studio-contact-grid label span { color: #b8412f; }                              /* required-field red #c64d3f = 4.44 on the paper */
