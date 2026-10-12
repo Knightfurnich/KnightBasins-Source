@@ -961,3 +961,10 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - **C.** ย้ายกล่อง `formal-bank-details` (บัญชีรับเงิน) จาก `formal-summary-sidebar` → ใต้ `formal-notes` **เต็มความกว้าง** + ตัวเลขบัญชีใหญ่ขึ้นอ่านชัด · **inline style เท่านั้น ห้ามแตะ `src/index.css`** · งานพิมพ์ A4 ต้องไม่ล้น
 - **ยกเว้นขอบเขตให้ชัย** (ปกติ 2 ไฟล์นี้เป็นของบอย): เฉพาะบรรทัด LINE ใน footer · ข้อความใบเสนอราคา ~1142–1160 · บล็อก `formal-quote-*` · บรรทัด LINE ใน `SalesGuide.tsx`
 - **เดวิดทำเอง (KB/Hermes side):** อัปเดต `company.md`/`PENDING.md`/`TEAM.md`/persona + trigger ของบอทให้รับชื่อใหม่ · **บอสต้องเปลี่ยนชื่อ OA จริงใน LINE Official Account Manager เอง** (ทำผ่าน API ไม่ได้)
+
+### 12 ต.ค. 69 — เปลี่ยนชื่อ LINE OA `KnightBot` → `KnightBasins` (บอสสั่ง "ทุกจุด ทุกที่") — ฝั่งเดวิดเสร็จ
+- **รีโปแอป (โค้ดที่ลูกค้าเห็น):** อยู่ในใบ **463-C (ชัย)** — `App.tsx` footer ~411 + `SalesGuide.tsx` ~355
+- **KB (เดวิดทำเอง):** `company.md` · `PENDING.md` · `HANDOFF.md` (3 จุด) · `TEAM.md` · `persona-line.md` (2 จุด) → สำรอง `_bak-*-line-rename-*` แล้ว · **`sync-kb.py` รันแล้ว** ⇒ `platform_hints.line.append = 39,420 chars` · `config.yaml` แสดง `LINE Official Account: KnightBasins (@789gcnhq)`
+- **Trigger ของบอท (Hermes side):** แก้ `bin/fix_line_trigger_gate.py` ให้ regex = `Knight(?:Basins|Bot)` (รับชื่อใหม่ + ชื่อเดิม เพื่อไม่ให้ของเดิมพัง) + เพิ่ม upgrade path ให้สคริปต์อัปเดตของที่ติดตั้งอยู่แล้ว · **apply ผ่านโฮสต์ (`docker exec -u 0`) สำเร็จ** · `bin/test_line_trigger_gate.py` = **ALL PASS**
+- **เอกสารของเดวิด:** `CLAUDE.md` (บรรทัด trigger) · skill `chat-archive-intake/references/knight-line-team-group.md` · skill `hermes-messaging-connect` (SKILL.md + references/line.md) · `bin/set_line_hint.py`
+- **⏳ บอสต้องทำเอง (ทำผ่าน API ไม่ได้):** เปลี่ยน **ชื่อที่แสดงของ OA** ใน LINE Official Account Manager → `KnightBasins` (รหัส `@789gcnhq` คงเดิม)
