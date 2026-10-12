@@ -968,3 +968,9 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - **Trigger ของบอท (Hermes side):** แก้ `bin/fix_line_trigger_gate.py` ให้ regex = `Knight(?:Basins|Bot)` (รับชื่อใหม่ + ชื่อเดิม เพื่อไม่ให้ของเดิมพัง) + เพิ่ม upgrade path ให้สคริปต์อัปเดตของที่ติดตั้งอยู่แล้ว · **apply ผ่านโฮสต์ (`docker exec -u 0`) สำเร็จ** · `bin/test_line_trigger_gate.py` = **ALL PASS**
 - **เอกสารของเดวิด:** `CLAUDE.md` (บรรทัด trigger) · skill `chat-archive-intake/references/knight-line-team-group.md` · skill `hermes-messaging-connect` (SKILL.md + references/line.md) · `bin/set_line_hint.py`
 - **⏳ บอสต้องทำเอง (ทำผ่าน API ไม่ได้):** เปลี่ยน **ชื่อที่แสดงของ OA** ใน LINE Official Account Manager → `KnightBasins` (รหัส `@789gcnhq` คงเดิม)
+
+### 12 ต.ค. 69 — 463-C ฉบับแก้ 1 (บอสตอบ "ก"): เพิ่มป้าย "เครือข่ายเว็บไซต์" + ลิงก์ "แผนที่/นำทาง"
+- **D:** เปลี่ยนป้าย `เว็บไซต์หลัก : www.knightfurnich.com` → **`เครือข่ายเว็บไซต์ :`** (footer `App.tsx` ~415 + `SalesGuide.tsx` ~359)
+- **E:** เพิ่มลิงก์ **แผนที่/นำทาง** `https://maps.app.goo.gl/o47RDTQAWZTfB4HYA` ใน footer + หน้าคู่มือราคา (ป้าย "แผนที่ / นำทาง" · เปิดแท็บใหม่ · มี `data-testid`)
+- **KB ฝั่งเดวิดอัปเดตแล้ว:** `company.md` (ลิงก์แผนที่ + กติกา "บอกที่อยู่ + แนบลิงก์เสมอ") · `faq.md` (โชว์รูม + หัวข้อ "ขอพิกัด/โลเคชั่น") · `sync-kb.py` ⇒ `platform_hints.line = 40,576 chars`
+- **ค้างรอคำยืนยันบอส 1 เรื่อง:** ที่อยู่ 2 ชุดใน KB (`company.md` = 35/170, 35/267 ซอยร่วมสุข 8/13 · ปักแผนที่ = 35/633 ซอยร่วมสุข 8/1) — จะให้ใช้ 8/1 ทั้งหมดหรือเก็บ 8/13 เป็นที่อยู่เอกสาร
