@@ -353,6 +353,26 @@ function Header({ cartCount }: { cartCount: number }) {
   </header>;
 }
 
+/*
+ * job 461-B (+ ฉบับแก้ 1) - one 44 px tap-target size for every link at the bottom of the page.
+ *
+ * Round 1 fixed the three sister-site links in `NetworkFooterLinks` (Chai measured 23.1 px in job
+ * 460-C step 0, main 034858d; re-measured here on a build of main: 46.2 / 23.1 / 23.1 px at 390 px,
+ * the first being a two-line label). The six links in the footer's meta bar are the same defect -
+ * 17.4 - 23.1 px - and and David's re-measurement of them in the queue confirmed it, so they are raised with the same value.
+ *
+ * Why declared here: nine links in two footer components share it, and restating the object in each
+ * component is the drift this repo keeps hiring jobs to remove. `src/index.css` is frozen, so a class
+ * rule is off the table; an inline style needs no guessing about which frozen rule wins.
+ * Why `lineHeight` next to `minHeight`: these boxes are lines of text, so the line height is what
+ * grows the hit area (measured: 17.4 / 23.1 px -> 44 px, and 88 px where a label wraps to two lines).
+ * No `display` change anywhere: measured, `display: inline-flex` moved links between lines, and the
+ * footer must keep the arrangement it has today (GOAL C).
+ * 44 px = WCAG 2.5.5 and the number 453-B already uses for the header menu, so the WCAG 2.2 AA
+ * minimum (2.5.8, 24 px) is cleared with room and no spacing exception is relied on.
+ */
+const FOOTER_TAP_TARGET = { minHeight: 44, lineHeight: "44px" } as const;
+
 function Footer() {
   return (
     <footer className="site-footer">
@@ -416,13 +436,13 @@ function Footer() {
         <div className="footer-meta">
           <span>TH / 2026 COLLECTION</span>
           <span>ราคาสินค้ายังไม่รวม VAT</span>
-          <Link href="/portfolio" className="footer-owner-link">คลังผลงานติดตั้งจริง</Link>
-          <Link href="/price-guide" className="footer-owner-link" data-testid="link-footer-price-guide">ราคาและวิธีเลือกหินสังเคราะห์</Link>
-          <Link href="/site-prep" className="footer-owner-link">คู่มือเตรียมหน้างาน</Link>
-          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates">บันทึกการอัปเดต ({LATEST_UPDATE_VERSION})</Link>
-          <Link href="/network" className="footer-owner-link">เครือข่ายเว็บไซต์ของเรา</Link>
+          <Link href="/portfolio" className="footer-owner-link" style={FOOTER_TAP_TARGET}>คลังผลงานติดตั้งจริง</Link>
+          <Link href="/price-guide" className="footer-owner-link" data-testid="link-footer-price-guide" style={FOOTER_TAP_TARGET}>ราคาและวิธีเลือกหินสังเคราะห์</Link>
+          <Link href="/site-prep" className="footer-owner-link" style={FOOTER_TAP_TARGET}>คู่มือเตรียมหน้างาน</Link>
+          <Link href="/updates" className="footer-owner-link" data-testid="link-footer-updates" style={FOOTER_TAP_TARGET}>บันทึกการอัปเดต ({LATEST_UPDATE_VERSION})</Link>
+          <Link href="/network" className="footer-owner-link" style={FOOTER_TAP_TARGET}>เครือข่ายเว็บไซต์ของเรา</Link>
         </div>
-        <Link href="/?workbench=1" className="footer-owner-link">Private Workbench</Link>
+        <Link href="/?workbench=1" className="footer-owner-link" style={FOOTER_TAP_TARGET}>Private Workbench</Link>
       </div>
     </footer>
   );
@@ -450,7 +470,8 @@ function NetworkFooterLinks() {
    * Widths and x/y columns are unchanged by what is used here; the footer only grows taller
    * (measured 623 -> 706 px at 390, 314 -> 335 px at 1440, scrollWidth - clientWidth still 0).
    */
-  const FOOTER_TAP_TARGET = { minHeight: 44, lineHeight: "44px" } as const;
+  // sized by the module-level FOOTER_TAP_TARGET (job 461-B)
+
 
   return (
     <div className="footer-contact-item" data-testid="footer-network-links">
