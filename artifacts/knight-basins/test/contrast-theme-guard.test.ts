@@ -154,3 +154,61 @@ describe("colour pairs introduced by 465-C clear WCAG AA by arithmetic", () => {
     }
   });
 });
+
+/**
+ * job 466-C: /sketch in the dark theme. The upload panel, photo slots, AI result cards, workpiece cards and the bridge banner
+ * kept a fixed pale fill (a linear-gradient, #fff, #f8fbfd) under dark-theme text tokens. contrast-probe.js skips text over a
+ * background-image, so the numbers said 0; qa/tools/gradient-scan-465c.mjs samples the real pixels and found 9-18 points per state.
+ */
+describe("466-C /sketch dark theme", () => {
+  const sketchDark = themeStyles.slice(themeStyles.indexOf("job 466-C · /sketch in the dark theme"), themeStyles.indexOf("export type StorefrontThemeValue"));
+  it("the dark block exists and lives in STOREFRONT_THEME_STYLES, not in the frozen stylesheet", () => {
+    assert.ok(sketchDark.length > 800);
+    assert.ok(!css.includes('data-theme="dark"'));
+  });
+  it("upload panel, result cards and workpiece cards drop the pale gradient / fill in the dark theme", () => {
+    assert.match(sketchDark, /\.studio-page--sketch :is\(\.studio-sketch-dropzone, \.studio-sketch-analysis-card, \.studio-sketch-workpiece-card\) \{\s*background-image: none !important; background-color: var\(--card-paper\) !important; border-color: var\(--line\) !important;/);
+    assert.match(sketchDark, /\.studio-sketch-slot:not\(\.studio-sketch-slot--filled\) \{ background-color: var\(--brand-sky\) !important;/);
+    assert.match(sketchDark, /:is\(\.studio-sketch-bridge-banner, \.sketch-studio-bridge-banner\) \{ background-image: none !important; background-color: var\(--card-paper\) !important;/);
+  });
+  it("text that used fixed dark colours now follows the tokens, but the cut-out note keeps its own amber pair", () => {
+    assert.match(sketchDark, /\.studio-sketch-workpiece-section > strong/);
+    assert.match(sketchDark, /\.studio-sketch-analysis-copy p:not\(\.studio-sketch-cutout-note\)/);
+    assert.match(sketchDark, /\.studio-sketch-no-cutouts/);
+  });
+  it("the light theme keeps its gradient exactly (nothing in the dark block is unscoped)", () => {
+    assert.match(css, /background: linear-gradient\(135deg, #f8fcfe 0%, #eef7fb 100%\);/);
+    assert.match(css, /background: linear-gradient\(110deg, #f1f8fc, #fff\);/);
+    for (const line of sketchDark.split("\n").filter((l) => /\{/.test(l) && !l.trim().startsWith("/*") && !l.trim().startsWith("*"))) {
+      assert.match(line, /\[data-theme="dark"\]|^\s+background-image/, `unscoped selector: ${line.trim().slice(0, 60)}`);
+    }
+  });
+  it("465 regression closed: the light .price-note colour does not reach the note inside the navy summary panel", () => {
+    assert.match(css, /\[data-theme="light"\] \.config-summary \.price-note \{ color: #a9b3af !important; \}/);
+    assert.ok(ratio("#a9b3af", "#0e375e") >= 4.5, "pale note on the navy panel");
+  });
+  it("validation warning and the two light-theme greys / reds use their own readable colours", () => {
+    assert.match(css, /\.studio-sketch-dim-field small\.studio-warning \{ color: #a83f37 !important; \}/);
+    assert.match(css, /\[data-theme="light"\] \.studio-page--sketch \.studio-sketch-no-cutouts \{ color: #55697a !important; \}/);
+    assert.match(css, /\[data-theme="light"\] \.studio-contact-grid label span \{ color: #b8412f; \}/);
+  });
+  const pairs: Array<[string, string, string]> = [
+    ["dark: panel title / banner / rotate hint (--ink on --card-paper)", "#e8eff8", "#162238"],
+    ["dark: 'หรือเลือกไฟล์…' / 'เพิ่มรูป' / no-cut-outs (--ink-soft)", "#aab9cc", "#162238"],
+    ["dark: 'เพิ่มรูป' on the slot fill (--brand-sky)", "#aab9cc", "#1a3049"],
+    ["dark: 'แนบแล้ว' + camera / file buttons (--brand-blue)", "#7ab9fb", "#162238"],
+    ["light: no-cut-outs on white", "#55697a", "#ffffff"],
+    ["light: no-cut-outs on the workpiece card", "#55697a", "#f8fbfd"],
+    ["light: required red on the paper", "#b8412f", "#f6fbfe"],
+    ["warning text on its pale-red fill (both themes)", "#a83f37", "#fff1ef"],
+  ];
+  for (const [name, fg, bg] of pairs) it(`${name}: ${fg} on ${bg} >= 4.5`, () => assert.ok(ratio(fg, bg) >= 4.5, `${ratio(fg, bg).toFixed(2)}`));
+  it("the gradient-aware scanner exists and samples real pixels (the reason the probe's 0 was not trustworthy)", () => {
+    const scanner = read("../../../qa/tools/gradient-scan-465c.mjs");
+    assert.match(scanner, /captureScreenshot/);
+    assert.ok(scanner.includes("*{color:transparent!important"), "all text is made transparent before the background is sampled");
+    assert.match(scanner, /getImageData/);
+    assert.match(scanner, /elementFromPoint/);
+    assert.match(scanner, /#upload/);
+  });
+});

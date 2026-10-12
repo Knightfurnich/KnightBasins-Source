@@ -503,6 +503,23 @@ export const STOREFRONT_THEME_STYLES = `
 
 /* H · /studio: required-field red #c64d3f = 3.44 on the dark card */
 [data-theme="dark"] .studio-contact-grid label span { color: #ff9b8d !important; }
+
+/* ─── job 466-C · /sketch in the dark theme ─────────────────────────────────────────────────────────────────────────
+   The upload panel, its 3 photo slots, the AI result cards, the workpiece cards and the bridge banner kept a fixed pale
+   fill (a linear-gradient or #fff / #f8fbfd) while their text uses the dark-theme tokens (--ink / --ink-soft / --brand-blue):
+   pale text on a pale surface. contrast-probe.js skips text over a gradient, so it never reported it (qa/tools/gradient-scan-465c.mjs
+   samples the real pixels). The surfaces follow the theme here; the light theme is not touched. */
+[data-theme="dark"] .studio-page--sketch :is(.studio-sketch-dropzone, .studio-sketch-analysis-card, .studio-sketch-workpiece-card) {
+  background-image: none !important; background-color: var(--card-paper) !important; border-color: var(--line) !important;
+}
+[data-theme="dark"] .studio-page--sketch .studio-sketch-dropzone.is-dragging { background-color: #1e3a56 !important; border-color: var(--brand-blue) !important; }
+[data-theme="dark"] .studio-page--sketch .studio-sketch-slot:not(.studio-sketch-slot--filled) { background-color: var(--brand-sky) !important; border-color: var(--line) !important; }
+[data-theme="dark"] .studio-page--sketch .studio-sketch-slot--add:hover { background-color: #223f5f !important; border-color: var(--brand-blue) !important; }
+[data-theme="dark"] .studio-page--sketch .studio-sketch-dropzone-icon { background: var(--brand-sky) !important; color: var(--brand-blue) !important; }
+[data-theme="dark"] .studio-page--sketch .studio-sketch-dropzone-copy strong { color: var(--ink) !important; }
+[data-theme="dark"] .studio-page--sketch :is(.studio-sketch-workpiece-section > strong, .studio-sketch-analysis-title, .studio-sketch-workpieces-summary, .studio-sketch-workpiece-heading, .studio-sketch-workpiece-dimensions) { color: var(--ink) !important; }
+[data-theme="dark"] .studio-page--sketch :is(.studio-sketch-analysis-copy p:not(.studio-sketch-cutout-note), .studio-sketch-cutout-list, .studio-sketch-no-cutouts, .studio-sketch-workpiece-shape) { color: var(--ink-soft) !important; }
+[data-theme="dark"] :is(.studio-sketch-bridge-banner, .sketch-studio-bridge-banner) { background-image: none !important; background-color: var(--card-paper) !important; border-top-color: var(--line) !important; border-right-color: var(--line) !important; border-bottom-color: var(--line) !important; }
 `;
 
 export type StorefrontThemeValue = {

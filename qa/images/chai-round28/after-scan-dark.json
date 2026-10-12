@@ -1,0 +1,4193 @@
+[
+ {
+  "target": "/",
+  "theme": "dark",
+  "checked": 625,
+  "failing": 66,
+  "rows": [
+   {
+    "selector": "article[card-product-KF004] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.04,
+    "ratioMin": 1,
+    "bg": [
+     125,
+     128,
+     123
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF007] > div.product-art > span.product-index",
+    "text": "KF007",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.04,
+    "ratioMin": 1,
+    "bg": [
+     212,
+     206,
+     195
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF001] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF001] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.08,
+    "ratioMin": 1.02,
+    "bg": [
+     189,
+     176,
+     164
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF003] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.08,
+    "ratioMin": 1.02,
+    "bg": [
+     220,
+     220,
+     219
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_043] > div.relative > span.absolute",
+    "text": "# 2",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 254,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 264.171875,
+      "y": 7058.78125,
+      "w": 6.375,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_043] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     224,
+     227,
+     231
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_052] > div.relative > span.absolute",
+    "text": "# 3",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 590,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 600.171875,
+      "y": 7058.78125,
+      "w": 6.1875,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_052] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     233,
+     236,
+     240
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_057] > div.relative > span.absolute",
+    "text": "# 4",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 926,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 936.171875,
+      "y": 7058.78125,
+      "w": 6.5625,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_057] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     224,
+     227,
+     231
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_111] > div.relative > span.absolute",
+    "text": "# 5",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 1262,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 1272.171875,
+      "y": 7058.78125,
+      "w": 6.390625,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_111] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     224,
+     227,
+     231
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF008] > div.product-art > span.product-index",
+    "text": "KF008",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.12,
+    "ratioMin": 1,
+    "bg": [
+     160,
+     142,
+     116
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF002] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF002] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.19,
+    "ratioMin": 1,
+    "bg": [
+     90,
+     79,
+     69
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF006] > div.product-art > span.product-index",
+    "text": "KF006",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.21,
+    "ratioMin": 1.11,
+    "bg": [
+     149,
+     148,
+     143
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div > h1 > em",
+    "text": "อ่างล้างหน้า by ไนท์ เฟอร์นิช",
+    "fg": [
+     96,
+     165,
+     250,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 419.4375,
+      "w": 479.625,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.25,
+    "ratioMin": 1.13,
+    "bg": [
+     103,
+     114,
+     129
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "article[card-product-KF007] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.27,
+    "ratioMin": 1.02,
+    "bg": [
+     150,
+     144,
+     133
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > p.eyebrow",
+    "text": "KNIGHT BASINS / 2026",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 331.171875,
+      "w": 198.8125,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.29,
+    "ratioMin": 1.23,
+    "bg": [
+     132,
+     145,
+     158
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF008] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.3,
+    "ratioMin": 1.24,
+    "bg": [
+     129,
+     119,
+     107
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF005] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.32,
+    "ratioMin": 1,
+    "bg": [
+     132,
+     113,
+     96
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > a[link-hero-stone]",
+    "text": "ดูวัสดุหินสังเคราะห์",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 546.328125,
+      "w": 108.296875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.6,
+    "ratioMin": 1.57,
+    "bg": [
+     123,
+     135,
+     149
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF005] > div.product-art > span.product-index",
+    "text": "KF005",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.67,
+    "ratioMin": 1,
+    "bg": [
+     157,
+     125,
+     93
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.art-note",
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 6072.890625,
+      "w": 18,
+      "h": 202.875
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.71,
+    "ratioMin": 1.44,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.art-note",
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 6072.890625,
+      "w": 18,
+      "h": 202.875
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.71,
+    "ratioMin": 1.44,
+    "bg": [
+     226,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.72,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.72,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.73,
+    "ratioMin": 1.71,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.product-index",
+    "text": "KF009",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.product-index",
+    "text": "KF011",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.product-index",
+    "text": "KF014",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.product-index",
+    "text": "KF016",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.product-index",
+    "text": "KF018",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.product-index",
+    "text": "KF020",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.product-index",
+    "text": "KF021",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.product-index",
+    "text": "KF023",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.product-index",
+    "text": "KF026",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.product-index",
+    "text": "KF028",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.product-index",
+    "text": "KF030",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 6072.890625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.89,
+    "ratioMin": 1.88,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.product-index",
+    "text": "KF010",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.9,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.product-index",
+    "text": "KF012",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.9,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.product-index",
+    "text": "KF013",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.product-index",
+    "text": "KF015",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.product-index",
+    "text": "KF017",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.product-index",
+    "text": "KF019",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.product-index",
+    "text": "KF022",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.9,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.product-index",
+    "text": "KF024",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.9,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.product-index",
+    "text": "KF025",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.product-index",
+    "text": "KF027",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.product-index",
+    "text": "KF029",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 6072.890625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.91,
+    "ratioMin": 1.89,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF006] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 2.32,
+    "ratioMin": 1.68,
+    "bg": [
+     111,
+     107,
+     101
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > p.hero-copy",
+    "text": "อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 495.546875,
+      "w": 363.5,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 521.4375,
+      "w": 272.75,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.71,
+    "ratioMin": 2.51,
+    "bg": [
+     110,
+     122,
+     136
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > h1",
+    "text": "Knight Basins",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 355.171875,
+      "w": 260.296875,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.7,
+    "bg": [
+     124,
+     136,
+     150
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "section.product-grid > article[card-product-KF001] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.08
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF002] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.19
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.08
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.04
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.32
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.21
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.04
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.12
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.72
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.72
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.73
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.71
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.71
+   }
+  ]
+ },
+ {
+  "target": "/stone",
+  "theme": "dark",
+  "checked": 392,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "section.stone-hero > div > p.eyebrow",
+    "text": "MATERIAL / CONFIGURATOR",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 252.625,
+      "w": 228.625,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.22,
+    "ratioMin": 1.16,
+    "bg": [
+     134,
+     147,
+     159
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > p.hero-copy",
+    "text": "สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 417,
+      "w": 383.453125,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 442.890625,
+      "w": 374.265625,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 468.78125,
+      "w": 118.953125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.57,
+    "ratioMin": 2.35,
+    "bg": [
+     116,
+     128,
+     142
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > h1",
+    "text": "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 276.625,
+      "w": 555.53125,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.54,
+    "bg": [
+     105,
+     116,
+     131
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "div > h1 > em",
+    "text": "สั่งตัดตามพื้นที่ของคุณ",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 340.890625,
+      "w": 395,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.97,
+    "ratioMin": 2.7,
+    "bg": [
+     113,
+     125,
+     139
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/price-guide",
+  "theme": "dark",
+  "checked": 132,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/portfolio",
+  "theme": "dark",
+  "checked": 104,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/updates",
+  "theme": "dark",
+  "checked": 108,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/studio",
+  "theme": "dark",
+  "checked": 130,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label",
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     85,
+     113,
+     138,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 137,
+      "y": 1615.140625,
+      "w": 54.875,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 4.23,
+    "ratioMin": 3.25,
+    "bg": [
+     234,
+     234,
+     231
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div[studio-canvas] > div.studio-canvas-stage > div.studio-piece-rectangle",
+    "kind": "gradient",
+    "image": "radial-gradient(circle at 20% 26%, rgba(255, 255, 255, 0.54) 0px, rgba(255, 255, 255, 0.54",
+    "texts": 1,
+    "worst": 10.36
+   },
+   {
+    "surface": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "kind": "gradient",
+    "image": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "texts": 2,
+    "worst": 4.23
+   }
+  ]
+ },
+ {
+  "target": "/site-prep",
+  "theme": "dark",
+  "checked": 23,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/network",
+  "theme": "dark",
+  "checked": 60,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/handover",
+  "theme": "dark",
+  "checked": 10,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/track",
+  "theme": "dark",
+  "checked": 11,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/quote",
+  "theme": "dark",
+  "checked": 118,
+  "failing": 9,
+  "rows": [
+   {
+    "selector": "section.quote-heading > div > p.eyebrow",
+    "text": "เลขที่เอกสาร Oct 26 / US / 2287",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 257.09375,
+      "w": 97.484375,
+      "h": 18
+     },
+     {
+      "x": 169.484375,
+      "y": 257.09375,
+      "w": 178.921875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 1.18,
+    "ratioMin": 1.15,
+    "bg": [
+     136,
+     150,
+     164
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "aside.quote-summary > div.quote-terms > strong",
+    "text": "หมายเหตุจากแคตตาล็อก",
+    "fg": [
+     15,
+     23,
+     42,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1008.53125,
+      "y": 1737.921875,
+      "w": 140.171875,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 1.44,
+    "ratioMin": 1.43,
+    "bg": [
+     13,
+     54,
+     93
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.quote-layout > aside.quote-summary > p[status-quote-vat-tax-id]",
+    "text": "💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไ",
+    "fg": [
+     230,
+     172,
+     145,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1021.53125,
+      "y": 1174.296875,
+      "w": 264.375,
+      "h": 19
+     },
+     {
+      "x": 1021.53125,
+      "y": 1196.6875,
+      "w": 223.09375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 1.73,
+    "ratioMin": 1.73,
+    "bg": [
+     123,
+     140,
+     159
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.quote-layout > aside.quote-summary > p[status-quote-cart-validation]",
+    "text": "ยังไม่มีรายการในใบเสนอราคา — เลือกอ่างล้างหน้าอย",
+    "fg": [
+     230,
+     172,
+     145,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1021.53125,
+      "y": 1431.5625,
+      "w": 298.75,
+      "h": 19
+     },
+     {
+      "x": 1021.53125,
+      "y": 1453.953125,
+      "w": 290.390625,
+      "h": 19
+     },
+     {
+      "x": 1021.53125,
+      "y": 1476.34375,
+      "w": 167.125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 1.77,
+    "ratioMin": 1.77,
+    "bg": [
+     123,
+     138,
+     155
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > h1",
+    "text": "จากรายการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 283.09375,
+      "w": 187.9375,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.28,
+    "ratioMin": 2.15,
+    "bg": [
+     136,
+     150,
+     164
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.quote-heading > div > p.hero-copy",
+    "text": "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 423.46875,
+      "w": 380.828125,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 449.359375,
+      "w": 92.484375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.39,
+    "ratioMin": 2.28,
+    "bg": [
+     123,
+     137,
+     152
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div > h1 > em",
+    "text": "สู่ตัวเลขที่ชัดเจน",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 347.359375,
+      "w": 280.328125,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.42,
+    "ratioMin": 2.28,
+    "bg": [
+     125,
+     139,
+     154
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "div > span > small",
+    "text": "0 ชุด",
+    "fg": [
+     157,
+     170,
+     164,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1008.53125,
+      "y": 961.921875,
+      "w": 8.546875,
+      "h": 19
+     },
+     {
+      "x": 1017.078125,
+      "y": 961.921875,
+      "w": 19.125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 4.1,
+    "ratioMin": 4.1,
+    "bg": [
+     17,
+     69,
+     115
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 13,
+    "worst": 1.44
+   }
+  ]
+ },
+ {
+  "target": "/readme",
+  "theme": "dark",
+  "checked": 151,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/sketch",
+  "theme": "dark",
+  "checked": 119,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/studio-guide",
+  "theme": "dark",
+  "checked": 72,
+  "failing": 33,
+  "rows": [
+   {
+    "selector": "div.min-w-0 > div > h2.text-lg",
+    "text": "เลือกสีหินก่อน",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 444.71875,
+      "w": 113.953125,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.14,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.text-sm",
+    "text": "กดปุ่ม “สีหิน” บนแถบด้านบน แล้วเลือกสีที่ต้องการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 487.109375,
+      "w": 383.53125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.14,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > h2.text-lg",
+    "text": "เลือกทรงและกรอกขนาดแผ่นจริง",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 741.859375,
+      "w": 265.078125,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.14,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.text-sm",
+    "text": "เลือกทรงเคาน์เตอร์ (ทรงตรง I / ฉาก L-ซ้าย / ฉาก ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 784.25,
+      "w": 568.421875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.min-w-0 > div > h2.text-lg",
+    "text": "ระบุขอบ 4 สถานะ แล้วประกอบผัง",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 21,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 1039,
+      "w": 260.515625,
+      "h": 28
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.flex > div.min-w-0 > p.text-sm",
+    "text": "กำหนดสถานะขอบของแต่ละแผ่น (ด้านชนผนัง / ด้านหน้า",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 379,
+      "y": 1081.390625,
+      "w": 529.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > summary.cursor-pointer",
+    "text": "เปลี่ยนรูปทรงแล้ว ขอบที่ตั้งไว้จะหายไหม?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2611.5625,
+      "w": 232.578125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > summary.cursor-pointer",
+    "text": "ราคาที่เห็นบนผังเป็นราคาจริงไหม?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2665.5625,
+      "w": 195.515625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > summary.cursor-pointer",
+    "text": "ต้องเลือกสีหรืออ่างให้ครบไหมก่อนขอใบเสนอราคา?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2719.5625,
+      "w": 288.65625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > summary.cursor-pointer",
+    "text": "ส่งแบบให้ช่างได้ไหม?",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 325.828125,
+      "y": 2773.5625,
+      "w": 119.8125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-guide-page > header.border-b > a[link-studio-guide-open-studio]",
+    "text": "เปิด 2D Studio",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1306.9375,
+      "y": 22,
+      "w": 88.0625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.storefront-theme-root > div.studio-guide-page > header.border-b",
+    "surfImage": "",
+    "ratio": 1.75,
+    "ratioMin": 1.72,
+    "bg": [
+     236,
+     236,
+     238
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "กรองตามเรตราคาได้ทันที: ฿7,500 / ฿8,500 / ฿9,500",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 521.859375,
+      "w": 446.515625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "พิมพ์ค้นหาได้ทั้งชื่อสีและรหัสสี เช่น “White” หร",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 550.609375,
+      "w": 320.234375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "เลือกเสร็จถาดจะพับเก็บเอง และผังบนกระดานจะเปลี่ย",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 579.359375,
+      "w": 354.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-1]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "ทรง I มี 1 แผ่น · ทรง L มี 2 แผ่น · ทรง U มี 3 แ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 819,
+      "w": 263.109375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 1.96,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "กรอกความยาวและหน้ากว้าง/ความลึก (มม.) แยกอิสระตา",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 847.75,
+      "w": 393.546875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "วางอ่างล้างหน้าลงบนผังได้เลย ระบบเว้นระยะขอบปลอด",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 876.5,
+      "w": 376.09375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-2]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 1.96,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "ติดบัว ▲ — ด้านที่ชนผนังปูนและต้องมีบัวกันน้ำ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1116.140625,
+      "w": 256.15625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "ชิดผนัง ║ — ด้านที่แนบผนัง แต่ไม่ต้องมีบัว",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1144.890625,
+      "w": 233,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "ขอบเปิด ⊗ — ด้านที่โชว์ลอย ต้องขัดขอบให้เนียน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1173.640625,
+      "w": 262.453125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "ขอบปิด ⊞ — ด้านที่โชว์ปิดขอบให้เนียน (บังหน้า/ขอ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1202.390625,
+      "w": 307.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "ด้านที่เป็นรอยต่อระหว่างแผ่น ระบบจะล็อกอัตโนมัติ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1231.140625,
+      "w": 391.953125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "ul.space-y-1.5 > li.flex > span",
+    "text": "เมื่อตั้งค่าครบแล้ว กดปุ่ม [ 🎨 ประกอบผังลงกระดา",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 402,
+      "y": 1259.890625,
+      "w": 448.671875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-steps] > article[card-studio-guide-step-3]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-guide-gallery] > div.flex > p[studio-guide-gallery-caption]",
+    "text": "เคาน์เตอร์หินพร้อมอ่างล้างหน้าในเนื้อหิน · ยาวตร",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2109.90625,
+      "w": 325.875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main.max-w-[900px] > section[section-studio-guide-gallery] > div[studio-guide-gallery]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > p.mt-2",
+    "text": "ไม่หายครับ เมื่อคุณตั้งค่าขอบด้วยตัวเองแล้ว ระบบ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2632.5625,
+      "w": 655.921875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     175,
+     178,
+     184
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > p.mt-2",
+    "text": "เป็นราคาประมาณการที่คำนวณจากพื้นที่จริง บวกค่าบั",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2686.5625,
+      "w": 814.6875,
+      "h": 19
+     },
+     {
+      "x": 311,
+      "y": 2709.3125,
+      "w": 140.203125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > p.mt-2",
+    "text": "เลือกสีหินก่อนครับ เพราะราคาคิดตามเรตของสีที่เลื",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2740.5625,
+      "w": 759.96875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.space-y-2 > details.rounded-xl > p.mt-2",
+    "text": "ได้ครับ กด “บันทึกผังเป็นรูปภาพ (PNG)” เพื่อส่งใ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 311,
+      "y": 2794.5625,
+      "w": 617.75,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "section[section-studio-guide-faq] > div.space-y-2 > details.rounded-xl",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     175,
+     178,
+     184
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "text": "ขอบปิด ⊞",
+    "fg": [
+     30,
+     64,
+     175,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2446.171875,
+      "w": 59.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 2.05,
+    "ratioMin": 2.05,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "text": "ติดบัว ▲",
+    "fg": [
+     138,
+     90,
+     0,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2323.171875,
+      "w": 50.3125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 3.01,
+    "ratioMin": 3.01,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "text": "ชิดผนัง ║",
+    "fg": [
+     18,
+     104,
+     179,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2364.171875,
+      "w": 55.6875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 3.11,
+    "ratioMin": 3.11,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr.border-b > td.py-2.5",
+    "text": "ขอบเปิด ⊗",
+    "fg": [
+     15,
+     122,
+     82,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2405.171875,
+      "w": 63.921875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 3.34,
+    "ratioMin": 3.34,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "tbody.text-[var(--ink-soft)] > tr > td.py-2.5",
+    "text": "🔗 รอยต่อชนแผ่น",
+    "fg": [
+     100,
+     116,
+     139,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 294,
+      "y": 2487.171875,
+      "w": 107,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div > div.storefront-theme-root > div.studio-guide-page",
+    "surfImage": "",
+    "ratio": 3.75,
+    "ratioMin": 3.75,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/profile",
+  "theme": "dark",
+  "checked": 45,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 671.109375,
+      "y": 380.1875,
+      "w": 33.609375,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.1,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/quote/view",
+  "theme": "dark",
+  "checked": 43,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/admin",
+  "theme": "light",
+  "checked": 8,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/admin/ai-cost",
+  "theme": "light",
+  "checked": 8,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ }
+]

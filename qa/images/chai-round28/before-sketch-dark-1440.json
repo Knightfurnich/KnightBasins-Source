@@ -1,0 +1,2201 @@
+[
+ {
+  "target": "/sketch#initial",
+  "theme": "dark",
+  "checked": 119,
+  "failing": 9,
+  "rows": [
+   {
+    "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > p",
+    "text": "💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 94,
+      "y": 404.796875,
+      "w": 359,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "surfImage": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     255,
+     251,
+     242
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.studio-panel > div[dropzone-studio-sketch] > small[text-sketch-rotate-hint]",
+    "text": "ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ A",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 108,
+      "y": 667.6875,
+      "w": 298.484375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.11,
+    "ratioMin": 1.1,
+    "bg": [
+     246,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[grid-studio-sketch-slots] > button[button-add-studio-sketch-0] > small",
+    "text": "เพิ่มรูป",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 206.84375,
+      "y": 968.84375,
+      "w": 37.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div[grid-studio-sketch-slots] > button[button-add-studio-sketch-0]",
+    "surfImage": "",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > span",
+    "text": "หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 599.59375,
+      "w": 337.078125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.91,
+    "ratioMin": 1.9,
+    "bg": [
+     246,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-file]",
+    "text": "เลือกภาพจากเครื่อง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 983.390625,
+      "y": 735.234375,
+      "w": 115.21875,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.93,
+    "ratioMin": 1.93,
+    "bg": [
+     242,
+     249,
+     252
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-camera]",
+    "text": "ถ่ายรูปจากกล้องทันที",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 362.578125,
+      "y": 735.234375,
+      "w": 122.84375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.97,
+    "ratioMin": 1.96,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > small[text-sketch-file-count]",
+    "text": "แนบแล้ว 0 / 3 รูป",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 626.59375,
+      "w": 54.140625,
+      "h": 19
+     },
+     {
+      "x": 222.140625,
+      "y": 626.59375,
+      "w": 9.21875,
+      "h": 19
+     },
+     {
+      "x": 231.359375,
+      "y": 626.59375,
+      "w": 11.671875,
+      "h": 19
+     },
+     {
+      "x": 243.03125,
+      "y": 626.59375,
+      "w": 8.15625,
+      "h": 19
+     },
+     {
+      "x": 251.1875,
+      "y": 626.59375,
+      "w": 18.953125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.98,
+    "ratioMin": 1.95,
+    "bg": [
+     247,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-0] > small.studio-sketch-no-cutouts",
+    "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 1785.578125,
+      "w": 411.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-basin] > div[card-sketch-basin-0]",
+    "surfImage": "",
+    "ratio": 3.66,
+    "ratioMin": 3.66,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 1.11
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 1.11
+   }
+  ]
+ },
+ {
+  "target": "/sketch#upload",
+  "theme": "dark",
+  "checked": 169,
+  "failing": 18,
+  "rows": [
+   {
+    "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > p",
+    "text": "💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 94,
+      "y": 404.796875,
+      "w": 359,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "surfImage": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     255,
+     251,
+     242
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.studio-panel > div[dropzone-studio-sketch] > small[text-sketch-rotate-hint]",
+    "text": "ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ A",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 108,
+      "y": 667.6875,
+      "w": 298.484375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     247,
+     252,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-0] > div.studio-sketch-workpiece-heading > strong",
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 1810.984375,
+      "w": 49.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-0]",
+    "surfImage": "",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div.studio-sketch-workpiece-heading > strong",
+    "text": "ชิ้นงาน 2",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2111.171875,
+      "w": 51.703125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > strong.studio-sketch-analysis-title",
+    "text": "test-sketch.png",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1625.984375,
+      "w": 109.78125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > strong.studio-sketch-workpieces-summary",
+    "text": "พบ 2 ชิ้นงานในภาพนี้",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1770.984375,
+      "w": 21.859375,
+      "h": 19
+     },
+     {
+      "x": 142.859375,
+      "y": 1770.984375,
+      "w": 8.34375,
+      "h": 19
+     },
+     {
+      "x": 151.203125,
+      "y": 1770.984375,
+      "w": 91.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[card-sketch-piece-0] > div[list-sketch-panels-0] > strong",
+    "text": "แผ่นหิน (Panels) — พื้นที่คิดจากแผ่นทั้งหมดรวมกั",
+    "fg": [
+     52,
+     75,
+     89,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 2706.4375,
+      "w": 304.03125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-dimensions] > div[card-sketch-piece-0]",
+    "surfImage": "",
+    "ratio": 1.74,
+    "ratioMin": 1.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[grid-studio-sketch-slots] > button[button-add-studio-sketch-1] > small",
+    "text": "เพิ่มรูป",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 454.03125,
+      "y": 968.859375,
+      "w": 37.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div[grid-studio-sketch-slots] > button[button-add-studio-sketch-1]",
+    "surfImage": "",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > span",
+    "text": "หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 599.59375,
+      "w": 337.078125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.91,
+    "ratioMin": 1.91,
+    "bg": [
+     247,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-file]",
+    "text": "เลือกภาพจากเครื่อง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 983.390625,
+      "y": 735.234375,
+      "w": 115.21875,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.96,
+    "ratioMin": 1.96,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-camera]",
+    "text": "ถ่ายรูปจากกล้องทันที",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 362.578125,
+      "y": 735.234375,
+      "w": 122.84375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.98,
+    "ratioMin": 1.98,
+    "bg": [
+     246,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > small[text-sketch-file-count]",
+    "text": "แนบแล้ว 1 / 3 รูป",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 626.59375,
+      "w": 54.140625,
+      "h": 19
+     },
+     {
+      "x": 222.140625,
+      "y": 626.59375,
+      "w": 6.140625,
+      "h": 19
+     },
+     {
+      "x": 228.28125,
+      "y": 626.59375,
+      "w": 11.671875,
+      "h": 19
+     },
+     {
+      "x": 239.953125,
+      "y": 626.59375,
+      "w": 8.15625,
+      "h": 19
+     },
+     {
+      "x": 248.109375,
+      "y": 626.59375,
+      "w": 18.953125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.99,
+    "ratioMin": 1.95,
+    "bg": [
+     247,
+     252,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > span",
+    "text": "ความมั่นใจ: สูง",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1685.984375,
+      "w": 65.03125,
+      "h": 19
+     },
+     {
+      "x": 186.03125,
+      "y": 1685.984375,
+      "w": 15.53125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > span",
+    "text": "ขนาดที่อ่านได้: 2400 × 600 มม.",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1712.984375,
+      "w": 175.875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > button[button-rotate-sketch-0]",
+    "text": "หมุน 90°",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 705.09375,
+      "y": 1589.484375,
+      "w": 53.8125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2.07,
+    "ratioMin": 2.07,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-1] > small.studio-sketch-no-cutouts",
+    "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 3773.796875,
+      "w": 411.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-basin] > div[card-sketch-basin-1]",
+    "surfImage": "",
+    "ratio": 3.66,
+    "ratioMin": 3.66,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div[section-sketch-cutouts-0-1] > span.studio-sketch-no-cutouts",
+    "text": "ไม่พบจุดเจาะที่ระบุ",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2322.359375,
+      "w": 97.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 4.19,
+    "ratioMin": 4.19,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 1.11
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 1.11
+   }
+  ]
+ },
+ {
+  "target": "/sketch#cutout",
+  "theme": "dark",
+  "checked": 170,
+  "failing": 18,
+  "rows": [
+   {
+    "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > p",
+    "text": "💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 94,
+      "y": 404.796875,
+      "w": 359,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "surfImage": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     255,
+     251,
+     242
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.studio-panel > div[dropzone-studio-sketch] > small[text-sketch-rotate-hint]",
+    "text": "ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ A",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 108,
+      "y": 667.6875,
+      "w": 298.484375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     247,
+     252,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-0] > div.studio-sketch-workpiece-heading > strong",
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 1810.984375,
+      "w": 49.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-0]",
+    "surfImage": "",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div.studio-sketch-workpiece-heading > strong",
+    "text": "ชิ้นงาน 2",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2111.171875,
+      "w": 51.703125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > strong.studio-sketch-analysis-title",
+    "text": "test-sketch.png",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1625.984375,
+      "w": 109.78125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > strong.studio-sketch-workpieces-summary",
+    "text": "พบ 2 ชิ้นงานในภาพนี้",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1770.984375,
+      "w": 21.859375,
+      "h": 19
+     },
+     {
+      "x": 142.859375,
+      "y": 1770.984375,
+      "w": 8.34375,
+      "h": 19
+     },
+     {
+      "x": 151.203125,
+      "y": 1770.984375,
+      "w": 91.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[card-sketch-piece-0] > div[list-sketch-panels-0] > strong",
+    "text": "แผ่นหิน (Panels) — พื้นที่คิดจากแผ่นทั้งหมดรวมกั",
+    "fg": [
+     52,
+     75,
+     89,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 2706.4375,
+      "w": 304.03125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-dimensions] > div[card-sketch-piece-0]",
+    "surfImage": "",
+    "ratio": 1.74,
+    "ratioMin": 1.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[grid-studio-sketch-slots] > button[button-add-studio-sketch-1] > small",
+    "text": "เพิ่มรูป",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 454.03125,
+      "y": 968.859375,
+      "w": 37.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div[grid-studio-sketch-slots] > button[button-add-studio-sketch-1]",
+    "surfImage": "",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > span",
+    "text": "หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 599.59375,
+      "w": 337.078125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.91,
+    "ratioMin": 1.91,
+    "bg": [
+     247,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-file]",
+    "text": "เลือกภาพจากเครื่อง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 983.390625,
+      "y": 735.234375,
+      "w": 115.21875,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.96,
+    "ratioMin": 1.96,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-camera]",
+    "text": "ถ่ายรูปจากกล้องทันที",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 362.578125,
+      "y": 735.234375,
+      "w": 122.84375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.98,
+    "ratioMin": 1.98,
+    "bg": [
+     246,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > small[text-sketch-file-count]",
+    "text": "แนบแล้ว 1 / 3 รูป",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 626.59375,
+      "w": 54.140625,
+      "h": 19
+     },
+     {
+      "x": 222.140625,
+      "y": 626.59375,
+      "w": 6.140625,
+      "h": 19
+     },
+     {
+      "x": 228.28125,
+      "y": 626.59375,
+      "w": 11.671875,
+      "h": 19
+     },
+     {
+      "x": 239.953125,
+      "y": 626.59375,
+      "w": 8.15625,
+      "h": 19
+     },
+     {
+      "x": 248.109375,
+      "y": 626.59375,
+      "w": 18.953125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.99,
+    "ratioMin": 1.95,
+    "bg": [
+     247,
+     252,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > span",
+    "text": "ความมั่นใจ: สูง",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1685.984375,
+      "w": 65.03125,
+      "h": 19
+     },
+     {
+      "x": 186.03125,
+      "y": 1685.984375,
+      "w": 15.53125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > span",
+    "text": "ขนาดที่อ่านได้: 2400 × 600 มม.",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1712.984375,
+      "w": 175.875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > button[button-rotate-sketch-0]",
+    "text": "หมุน 90°",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 705.09375,
+      "y": 1589.484375,
+      "w": 53.8125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2.07,
+    "ratioMin": 2.07,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-1] > small.studio-sketch-no-cutouts",
+    "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 3821.890625,
+      "w": 411.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-basin] > div[card-sketch-basin-1]",
+    "surfImage": "",
+    "ratio": 3.66,
+    "ratioMin": 3.66,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div[section-sketch-cutouts-0-1] > span.studio-sketch-no-cutouts",
+    "text": "ไม่พบจุดเจาะที่ระบุ",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2322.359375,
+      "w": 97.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 4.19,
+    "ratioMin": 4.19,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 1.11
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 1.11
+   }
+  ]
+ },
+ {
+  "target": "/sketch#form",
+  "theme": "dark",
+  "checked": 169,
+  "failing": 18,
+  "rows": [
+   {
+    "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > p",
+    "text": "💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 94,
+      "y": 404.796875,
+      "w": 359,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "surfImage": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     255,
+     251,
+     242
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.studio-panel > div[dropzone-studio-sketch] > small[text-sketch-rotate-hint]",
+    "text": "ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ A",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 108,
+      "y": 667.6875,
+      "w": 298.484375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     247,
+     252,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-0] > div.studio-sketch-workpiece-heading > strong",
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 1810.984375,
+      "w": 49.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-0]",
+    "surfImage": "",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div.studio-sketch-workpiece-heading > strong",
+    "text": "ชิ้นงาน 2",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2111.171875,
+      "w": 51.703125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 1.11,
+    "ratioMin": 1.11,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > strong.studio-sketch-analysis-title",
+    "text": "test-sketch.png",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1625.984375,
+      "w": 109.78125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > strong.studio-sketch-workpieces-summary",
+    "text": "พบ 2 ชิ้นงานในภาพนี้",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1770.984375,
+      "w": 21.859375,
+      "h": 19
+     },
+     {
+      "x": 142.859375,
+      "y": 1770.984375,
+      "w": 8.34375,
+      "h": 19
+     },
+     {
+      "x": 151.203125,
+      "y": 1770.984375,
+      "w": 91.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.16,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[card-sketch-piece-0] > div[list-sketch-panels-0] > strong",
+    "text": "แผ่นหิน (Panels) — พื้นที่คิดจากแผ่นทั้งหมดรวมกั",
+    "fg": [
+     52,
+     75,
+     89,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 2706.4375,
+      "w": 304.03125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-dimensions] > div[card-sketch-piece-0]",
+    "surfImage": "",
+    "ratio": 1.74,
+    "ratioMin": 1.74,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[grid-studio-sketch-slots] > button[button-add-studio-sketch-1] > small",
+    "text": "เพิ่มรูป",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 454.03125,
+      "y": 968.859375,
+      "w": 37.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div[grid-studio-sketch-slots] > button[button-add-studio-sketch-1]",
+    "surfImage": "",
+    "ratio": 1.89,
+    "ratioMin": 1.89,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > span",
+    "text": "หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP ",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 599.59375,
+      "w": 337.078125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.91,
+    "ratioMin": 1.91,
+    "bg": [
+     247,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-file]",
+    "text": "เลือกภาพจากเครื่อง",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 983.390625,
+      "y": 735.234375,
+      "w": 115.21875,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.96,
+    "ratioMin": 1.96,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-camera]",
+    "text": "ถ่ายรูปจากกล้องทันที",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 362.578125,
+      "y": 735.234375,
+      "w": 122.84375,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.98,
+    "ratioMin": 1.98,
+    "bg": [
+     246,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > small[text-sketch-file-count]",
+    "text": "แนบแล้ว 1 / 3 รูป",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 168,
+      "y": 626.59375,
+      "w": 54.140625,
+      "h": 19
+     },
+     {
+      "x": 222.140625,
+      "y": 626.59375,
+      "w": 6.140625,
+      "h": 19
+     },
+     {
+      "x": 228.28125,
+      "y": 626.59375,
+      "w": 11.671875,
+      "h": 19
+     },
+     {
+      "x": 239.953125,
+      "y": 626.59375,
+      "w": 8.15625,
+      "h": 19
+     },
+     {
+      "x": 248.109375,
+      "y": 626.59375,
+      "w": 18.953125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "surfImage": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "ratio": 1.99,
+    "ratioMin": 1.95,
+    "bg": [
+     247,
+     252,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > span",
+    "text": "ความมั่นใจ: สูง",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1685.984375,
+      "w": 65.03125,
+      "h": 19
+     },
+     {
+      "x": 186.03125,
+      "y": 1685.984375,
+      "w": 15.53125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > span",
+    "text": "ขนาดที่อ่านได้: 2400 × 600 มม.",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 121,
+      "y": 1712.984375,
+      "w": 175.875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2,
+    "ratioMin": 2,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-sketch-analysis-0] > div.studio-sketch-analysis-copy > button[button-rotate-sketch-0]",
+    "text": "หมุน 90°",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 705.09375,
+      "y": 1589.484375,
+      "w": 53.8125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[dropzone-studio-sketch] > div.studio-sketch-analysis-list > article[card-sketch-analysis-0]",
+    "surfImage": "",
+    "ratio": 2.07,
+    "ratioMin": 2.07,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-1] > small.studio-sketch-no-cutouts",
+    "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 3773.796875,
+      "w": 411.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-basin] > div[card-sketch-basin-1]",
+    "surfImage": "",
+    "ratio": 3.66,
+    "ratioMin": 3.66,
+    "bg": [
+     22,
+     34,
+     56
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div[section-sketch-cutouts-0-1] > span.studio-sketch-no-cutouts",
+    "text": "ไม่พบจุดเจาะที่ระบุ",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2322.359375,
+      "w": 97.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 4.19,
+    "ratioMin": 4.19,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 1.11
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 1.11
+   }
+  ]
+ }
+]

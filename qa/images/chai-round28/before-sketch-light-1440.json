@@ -1,0 +1,219 @@
+[
+ {
+  "target": "/sketch#initial",
+  "theme": "light",
+  "checked": 119,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-0] > small.studio-sketch-no-cutouts",
+    "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 1785.578125,
+      "w": 411.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-basin] > div[card-sketch-basin-0]",
+    "surfImage": "",
+    "ratio": 4.35,
+    "ratioMin": 4.35,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 10.53
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 4.89
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ },
+ {
+  "target": "/sketch#upload",
+  "theme": "light",
+  "checked": 169,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[card-sketch-workpiece-0-1] > div[section-sketch-cutouts-0-1] > span.studio-sketch-no-cutouts",
+    "text": "ไม่พบจุดเจาะที่ระบุ",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 132,
+      "y": 2322.359375,
+      "w": 97.25,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-sketch-analysis-copy > div[list-sketch-workpieces-0] > section[card-sketch-workpiece-0-1]",
+    "surfImage": "",
+    "ratio": 4.19,
+    "ratioMin": 4.19,
+    "bg": [
+     248,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-1] > small.studio-sketch-no-cutouts",
+    "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา",
+    "fg": [
+     104,
+     124,
+     136,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 93,
+      "y": 3773.796875,
+      "w": 411.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div[studio-sketch-flow] > section[step-studio-sketch-basin] > div[card-sketch-basin-1]",
+    "surfImage": "",
+    "ratio": 4.35,
+    "ratioMin": 4.35,
+    "bg": [
+     255,
+     255,
+     255
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 10.53
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 4.9
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.51
+   }
+  ]
+ }
+]

@@ -1,0 +1,372 @@
+[
+ {
+  "item": "1 หัวข้อในแผง",
+  "before": {
+   "ratio": 12.11,
+   "fg": [
+    23,
+    54,
+    74,
+    1
+   ],
+   "bg": [
+    247,
+    251,
+    254
+   ],
+   "kind": "gradient",
+   "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > strong",
+   "text": "ลากภาพแบบร่างหรือรูปถ่ายหน้างานมาวางที่นี่"
+  },
+  "after": {
+   "ratio": 13.74,
+   "fg": [
+    232,
+    239,
+    248,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > strong",
+   "text": "ลากภาพแบบร่างหรือรูปถ่ายหน้างานมาวางที่นี่"
+  }
+ },
+ {
+  "item": "2 หรือเลือกไฟล์…",
+  "before": {
+   "ratio": 1.91,
+   "fg": [
+    170,
+    185,
+    204,
+    1
+   ],
+   "bg": [
+    246,
+    251,
+    253
+   ],
+   "kind": "gradient",
+   "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > span",
+   "text": "หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP "
+  },
+  "after": {
+   "ratio": 7.97,
+   "fg": [
+    170,
+    185,
+    204,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > span",
+   "text": "หรือเลือกไฟล์จากอุปกรณ์ · รองรับ JPG, PNG, WEBP "
+  }
+ },
+ {
+  "item": "3 แนบแล้ว 0 / 3",
+  "before": {
+   "ratio": 1.98,
+   "fg": [
+    122,
+    185,
+    251,
+    1
+   ],
+   "bg": [
+    247,
+    251,
+    254
+   ],
+   "kind": "gradient",
+   "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > small[text-sketch-file-count]",
+   "text": "แนบแล้ว 0 / 3 รูป"
+  },
+  "after": {
+   "ratio": 7.7,
+   "fg": [
+    122,
+    185,
+    251,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "div.studio-sketch-dropzone-intro > div.studio-sketch-dropzone-copy > small[text-sketch-file-count]",
+   "text": "แนบแล้ว 0 / 3 รูป"
+  }
+ },
+ {
+  "item": "4 ภาพเอียง?",
+  "before": {
+   "ratio": 1.11,
+   "fg": [
+    232,
+    239,
+    248,
+    1
+   ],
+   "bg": [
+    246,
+    251,
+    254
+   ],
+   "kind": "gradient",
+   "selector": "section.studio-panel > div[dropzone-studio-sketch] > small[text-sketch-rotate-hint]",
+   "text": "ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ A"
+  },
+  "after": {
+   "ratio": 13.74,
+   "fg": [
+    232,
+    239,
+    248,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "section.studio-panel > div[dropzone-studio-sketch] > small[text-sketch-rotate-hint]",
+   "text": "ภาพเอียง? กดปุ่ม 'หมุน 90°' ที่การ์ดภาพก่อนให้ A"
+  }
+ },
+ {
+  "item": "5a ถ่ายรูปจากกล้อง",
+  "before": {
+   "ratio": 1.97,
+   "fg": [
+    122,
+    185,
+    251,
+    1
+   ],
+   "bg": [
+    245,
+    251,
+    253
+   ],
+   "kind": "gradient",
+   "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-camera]",
+   "text": "ถ่ายรูปจากกล้องทันที"
+  },
+  "after": {
+   "ratio": 7.7,
+   "fg": [
+    122,
+    185,
+    251,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-camera]",
+   "text": "ถ่ายรูปจากกล้องทันที"
+  }
+ },
+ {
+  "item": "5b เลือกภาพจากเครื่อง",
+  "before": {
+   "ratio": 1.93,
+   "fg": [
+    122,
+    185,
+    251,
+    1
+   ],
+   "bg": [
+    242,
+    249,
+    252
+   ],
+   "kind": "gradient",
+   "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-file]",
+   "text": "เลือกภาพจากเครื่อง"
+  },
+  "after": {
+   "ratio": 7.7,
+   "fg": [
+    122,
+    185,
+    251,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "div[dropzone-studio-sketch] > div.studio-sketch-actions > button[button-sketch-file]",
+   "text": "เลือกภาพจากเครื่อง"
+  }
+ },
+ {
+  "item": "6 เพิ่มรูป",
+  "before": {
+   "ratio": 1.89,
+   "fg": [
+    170,
+    185,
+    204,
+    1
+   ],
+   "bg": [
+    242,
+    250,
+    253
+   ],
+   "kind": "solid",
+   "selector": "div[grid-studio-sketch-slots] > button[button-add-studio-sketch-0] > small",
+   "text": "เพิ่มรูป"
+  },
+  "after": {
+   "ratio": 6.73,
+   "fg": [
+    170,
+    185,
+    204,
+    1
+   ],
+   "bg": [
+    26,
+    48,
+    73
+   ],
+   "kind": "solid",
+   "selector": "div[grid-studio-sketch-slots] > button[button-add-studio-sketch-0] > small",
+   "text": "เพิ่มรูป"
+  }
+ },
+ {
+  "item": "7 แบนเนอร์ 💡",
+  "before": {
+   "ratio": 1.11,
+   "fg": [
+    232,
+    239,
+    248,
+    1
+   ],
+   "bg": [
+    255,
+    251,
+    242
+   ],
+   "kind": "gradient",
+   "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > p",
+   "text": "💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง"
+  },
+  "after": {
+   "ratio": 13.74,
+   "fg": [
+    232,
+    239,
+    248,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > p",
+   "text": "💡 ต้องการลองประกอบแผ่นจริงและคำนวณราคาด้วยตนเอง"
+  }
+ },
+ {
+  "item": "7b ปุ่ม เข้าสู่ 2D Studio",
+  "before": {
+   "ratio": 5.11,
+   "fg": [
+    255,
+    255,
+    255,
+    1
+   ],
+   "bg": [
+    137,
+    105,
+    37
+   ],
+   "kind": "solid",
+   "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > a[link-sketch-to-studio]",
+   "text": "✨ เข้าสู่ 2D Studio"
+  },
+  "after": {
+   "ratio": 5.11,
+   "fg": [
+    255,
+    255,
+    255,
+    1
+   ],
+   "bg": [
+    137,
+    105,
+    37
+   ],
+   "kind": "solid",
+   "selector": "div.page-wrap > section[sketch-studio-bridge-banner] > a[link-sketch-to-studio]",
+   "text": "✨ เข้าสู่ 2D Studio"
+  }
+ },
+ {
+  "item": "8 ไม่พบช่องเจาะอ่าง",
+  "before": {
+   "ratio": 3.66,
+   "fg": [
+    104,
+    124,
+    136,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-0] > small.studio-sketch-no-cutouts",
+   "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา"
+  },
+  "after": {
+   "ratio": 7.97,
+   "fg": [
+    170,
+    185,
+    204,
+    1
+   ],
+   "bg": [
+    22,
+    34,
+    56
+   ],
+   "kind": "solid",
+   "selector": "section[step-studio-sketch-basin] > div[card-sketch-basin-0] > small.studio-sketch-no-cutouts",
+   "text": "ไม่พบช่องเจาะอ่างในชิ้นงานนี้ — กด “เพิ่มช่องเจา"
+  }
+ }
+]

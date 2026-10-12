@@ -1,0 +1,270 @@
+
+=== /  theme=light  checked=625  failing(p10 ratio < threshold)=92
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  1.01  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(150,144,133) | 14px | article[card-product-KF007] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.03  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(132,113,96) | 14px | article[card-product-KF005] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.04  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(246,251,254) | 11px | button[showcase-photo-bathroom_new_072] > div.relative > span.absolute | "# 1"
+  1.05  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(157,125,93) | 14px | article[card-product-KF005] > div.product-art > span.product-index | "KF005"
+  1.05  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(160,142,116) | 14px | article[card-product-KF008] > div.product-art > span.product-index | "KF008"
+  1.08  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(129,119,107) | 14px | article[card-product-KF008] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(224,227,231) | 11px | button[showcase-photo-bathroom_new_043] > div.relative > span.absolute | "# 2"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(233,236,240) | 11px | button[showcase-photo-bathroom_new_052] > div.relative > span.absolute | "# 3"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(224,227,231) | 11px | button[showcase-photo-bathroom_new_057] > div.relative > span.absolute | "# 4"
+  1.1   | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(224,227,231) | 11px | button[showcase-photo-bathroom_new_111] > div.relative > span.absolute | "# 5"
+  1.11  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(104,112,108) | 14px | article[card-product-KF004] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.12  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(111,107,101) | 14px | article[card-product-KF006] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.35  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(90,79,69) | 14px | article[card-product-KF002] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.37  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(149,148,143) | 14px | article[card-product-KF006] > div.product-art > span.product-index | "KF006"
+  1.63  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(189,176,164) | 14px | article[card-product-KF001] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_001] > div.p-3 > p.text-xs | "อ่างล้างหน้าหล่อเข้าเคาน์เตอร์ ไร้ขอบนูน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-counter_018] > div.p-3 > p.text-xs | "เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อมไฟ LED ใต้ฐาน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-kitchen_003] > div.p-3 > p.text-xs | "ท็อปครัวหินสังเคราะห์ขาว พร้อมอ่างล้างจาน ตู้ไม้"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-dining_table_003] > div.p-3 > p.text-xs | "โต๊ะอาหารหินสังเคราะห์ ฐานไม้ วิวทะเลสาบ"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-design_040] > div.p-3 > p.text-xs | "ชั้นวางของโค้งไร้รอยต่อ ห้องน้ำโครงการวรรณศิริ"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_072] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างคู่ หล่อไร้รอยต่อ ผนังลายหินอ่อน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_043] > div.p-3 > p.text-xs | "อ่างล้างหน้าโค้งรูปคลื่น ลอยตัว พร้อมก๊อกโครเมีย"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_052] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างคู่หินสังเคราะห์ขาว ผนังไม้โทนอุ่น"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_057] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างยาว 4 หลุม ไร้รอยต่อ สไตล์โมเดิร์น"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_111] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างหลายหลุม งานห้องน้ำส่วนกลาง"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-bathroom_new_001] > div.p-3 > p.text-xs | "อ่างล้างหน้าหล่อเข้าเคาน์เตอร์ ไร้ขอบนูน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-counter_018] > div.p-3 > p.text-xs | "เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อมไฟ LED ใต้ฐาน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-kitchen_003] > div.p-3 > p.text-xs | "ท็อปครัวหินสังเคราะห์ขาว พร้อมอ่างล้างจาน ตู้ไม้"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-dining_table_003] > div.p-3 > p.text-xs | "โต๊ะอาหารหินสังเคราะห์ ฐานไม้ วิวทะเลสาบ"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 12px | button[showcase-photo-design_040] > div.p-3 > p.text-xs | "ชั้นวางของโค้งไร้รอยต่อ ห้องน้ำโครงการวรรณศิริ"
+  2.05  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(212,206,195) | 14px | article[card-product-KF007] > div.product-art > span.product-index | "KF007"
+  2.23  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(220,220,219) | 14px | article[card-product-KF003] > div.product-art > span.art-note | "COUNTER SERIES"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  3.52  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF029] > div.product-art > span.art-note | "READY-MADE PILLAR SET"
+  3.52  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(226,242,249) | 14px | article[card-product-KF030] > div.product-art > span.art-note | "READY-MADE PILLAR SET"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF009] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF010] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF011] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF012] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF013] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF014] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF015] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF016] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF017] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF018] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF019] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF020] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF021] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF022] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF023] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF024] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF025] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF026] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF027] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF028] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF009] > div.product-art > span.product-index | "KF009"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF011] > div.product-art > span.product-index | "KF011"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF014] > div.product-art > span.product-index | "KF014"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF016] > div.product-art > span.product-index | "KF016"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF018] > div.product-art > span.product-index | "KF018"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF020] > div.product-art > span.product-index | "KF020"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF021] > div.product-art > span.product-index | "KF021"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF023] > div.product-art > span.product-index | "KF023"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF026] > div.product-art > span.product-index | "KF026"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF028] > div.product-art > span.product-index | "KF028"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF030] > div.product-art > span.product-index | "KF030"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF010] > div.product-art > span.product-index | "KF010"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF012] > div.product-art > span.product-index | "KF012"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF013] > div.product-art > span.product-index | "KF013"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF015] > div.product-art > span.product-index | "KF015"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF017] > div.product-art > span.product-index | "KF017"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF019] > div.product-art > span.product-index | "KF019"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF022] > div.product-art > span.product-index | "KF022"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF024] > div.product-art > span.product-index | "KF024"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF025] > div.product-art > span.product-index | "KF025"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF027] > div.product-art > span.product-index | "KF027"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF029] > div.product-art > span.product-index | "KF029"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_001] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-counter_018] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-kitchen_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-dining_table_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-design_040] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_072] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_043] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_052] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_057] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_111] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-bathroom_new_001] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-counter_018] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-kitchen_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-dining_table_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 11px | button[showcase-photo-design_040] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  -- gradient / photo surfaces carrying text (31):
+     gradient| worst ratio 1.63  | 1 text(s) | section.product-grid > article[card-product-KF001] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.35  | 1 text(s) | section.product-grid > article[card-product-KF002] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 2.23  | 1 text(s) | section.product-grid > article[card-product-KF003] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.11  | 1 text(s) | section.product-grid > article[card-product-KF004] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.03  | 2 text(s) | section.product-grid > article[card-product-KF005] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.12  | 2 text(s) | section.product-grid > article[card-product-KF006] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.01  | 2 text(s) | section.product-grid > article[card-product-KF007] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.05  | 2 text(s) | section.product-grid > article[card-product-KF008] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF009] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF010] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF011] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF012] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF013] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF014] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF015] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF016] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF017] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF018] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF019] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF020] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF021] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF022] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF023] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF024] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF025] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF026] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF027] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF028] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.52  | 2 text(s) | section.product-grid > article[card-product-KF029] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.52  | 2 text(s) | section.product-grid > article[card-product-KF030] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 4.55  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /stone  theme=light  checked=392  failing(p10 ratio < threshold)=3
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.19  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(89,122,151) | 14px | section.config-main > div.stone-price-filters > button[button-stone-price-filter-12000] | "฿12,000"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  3.78  | need 4.5 | gradient| text rgb(142,154,150) on bg~rgb(15,60,102) | 14px | div.summary-row > span > small | "0.76 × 3.60 m · หนา 12 mm"
+  -- gradient / photo surfaces carrying text (2):
+     gradient| worst ratio 3.78  | 8 text(s) | div.page-wrap > div.config-layout > aside.config-summary | linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))
+     gradient| worst ratio 4.55  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /price-guide  theme=light  checked=132  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.06  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /portfolio  theme=light  checked=104  failing(p10 ratio < threshold)=11
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div[portfolio-category-tabs] > button[portfolio-tab-veined_pattern] > span.opacity-70 | "( 1 )"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div.relative > div[portfolio-category-tabs] > button[portfolio-tab-dining_table] | "🪑  งานโต๊ะกินข้าว"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div[portfolio-category-tabs] > button[portfolio-tab-dining_table] > span.opacity-70 | "( 6 )"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div.relative > div[portfolio-category-tabs] > button[portfolio-tab-meeting_table] | "👥  งานโต๊ะประชุม"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div[portfolio-category-tabs] > button[portfolio-tab-meeting_table] > span.opacity-70 | "( 8 )"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div.relative > div[portfolio-category-tabs] > button[portfolio-tab-shelves] | "📦  งานที่วางของและชั้นวาง"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div[portfolio-category-tabs] > button[portfolio-tab-shelves] > span.opacity-70 | "( 8 )"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div.relative > div[portfolio-category-tabs] > button[portfolio-tab-door_frame] | "🚪  งานวงกบและธรณีประตู"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div[portfolio-category-tabs] > button[portfolio-tab-door_frame] > span.opacity-70 | "( 2 )"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div.relative > div[portfolio-category-tabs] > button[portfolio-tab-site_prep] | "📐  การเตรียมหน้างานและการติดตั้ง"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | div[portfolio-category-tabs] > button[portfolio-tab-site_prep] > span.opacity-70 | "( 59 )"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.06  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /updates  theme=light  checked=108  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.06  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /studio  theme=null  checked=0  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+
+=== /site-prep  theme=light  checked=23  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.06  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /network  theme=light  checked=60  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 4.54  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /handover  theme=light  checked=10  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (2):
+     gradient| worst ratio 4.69  | 3 text(s) | div > div.storefront-theme-root > div[page-digital-handover] | linear-gradient(145deg, rgba(229, 244, 251, 0.88), rgba(0, 0, 0, 0) 34%), none
+     gradient| worst ratio 5.07  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /track  theme=light  checked=11  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (2):
+     gradient| worst ratio 4.7   | 4 text(s) | div > div.storefront-theme-root > div[page-customer-tracking] | linear-gradient(130deg, rgba(229, 244, 251, 0.74), rgba(0, 0, 0, 0) 36%), none
+     gradient| worst ratio 5.07  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /quote  theme=light  checked=118  failing(p10 ratio < threshold)=5
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  1.73  | need 4.5 | gradient| text rgb(230,172,145) on bg~rgb(123,140,159) | 14px | div.quote-layout > aside.quote-summary > p[status-quote-vat-tax-id] | "💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไ"
+  1.77  | need 4.5 | gradient| text rgb(230,172,145) on bg~rgb(123,138,155) | 14px | div.quote-layout > aside.quote-summary > p[status-quote-cart-validation] | "ยังไม่มีรายการในใบเสนอราคา — เลือกอ่างล้างหน้าอย"
+  1.88  | need 4.5 | gradient| text rgb(87,113,134) on bg~rgb(18,70,117) | 14px | div.quote-layout > aside.quote-summary > p.eyebrow | "04 / TOTAL"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  4.1   | need 4.5 | gradient| text rgb(157,170,164) on bg~rgb(17,69,115) | 14px | div > span > small | "0 ชุด"
+  -- gradient / photo surfaces carrying text (2):
+     gradient| worst ratio 1.73  | 13 text(s) | div.quote-editor > div.quote-layout > aside.quote-summary | linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))
+     gradient| worst ratio 4.51  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /readme  theme=light  checked=151  failing(p10 ratio < threshold)=34
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  1.04  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(246,251,254) | 14px | button[showcase-photo-bathroom_new_072] > div.relative > span.absolute | "# 1"
+  1.04  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(246,251,254) | 14px | button[showcase-photo-bathroom_new_057] > div.relative > span.absolute | "# 4"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_111] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างหลายหลุม งานห้องน้ำส่วนกลาง"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_001] > div.p-3 > p.text-xs | "อ่างล้างหน้าหล่อเข้าเคาน์เตอร์ ไร้ขอบนูน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-counter_018] > div.p-3 > p.text-xs | "เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อมไฟ LED ใต้ฐาน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-kitchen_003] > div.p-3 > p.text-xs | "ท็อปครัวหินสังเคราะห์ขาว พร้อมอ่างล้างจาน ตู้ไม้"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-dining_table_003] > div.p-3 > p.text-xs | "โต๊ะอาหารหินสังเคราะห์ ฐานไม้ วิวทะเลสาบ"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-design_040] > div.p-3 > p.text-xs | "ชั้นวางของโค้งไร้รอยต่อ ห้องน้ำโครงการวรรณศิริ"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_072] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างคู่ หล่อไร้รอยต่อ ผนังลายหินอ่อน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_043] > div.p-3 > p.text-xs | "อ่างล้างหน้าโค้งรูปคลื่น ลอยตัว พร้อมก๊อกโครเมีย"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_052] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างคู่หินสังเคราะห์ขาว ผนังไม้โทนอุ่น"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_057] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างยาว 4 หลุม ไร้รอยต่อ สไตล์โมเดิร์น"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_111] > div.p-3 > p.text-xs | "เคาน์เตอร์อ่างหลายหลุม งานห้องน้ำส่วนกลาง"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_001] > div.p-3 > p.text-xs | "อ่างล้างหน้าหล่อเข้าเคาน์เตอร์ ไร้ขอบนูน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-counter_018] > div.p-3 > p.text-xs | "เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อมไฟ LED ใต้ฐาน"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-kitchen_003] > div.p-3 > p.text-xs | "ท็อปครัวหินสังเคราะห์ขาว พร้อมอ่างล้างจาน ตู้ไม้"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-dining_table_003] > div.p-3 > p.text-xs | "โต๊ะอาหารหินสังเคราะห์ ฐานไม้ วิวทะเลสาบ"
+  1.92  | need 4.5 | solid   | text rgb(18,62,105) on bg~rgb(0,0,0) | 14px | button[showcase-photo-design_040] > div.p-3 > p.text-xs | "ชั้นวางของโค้งไร้รอยต่อ ห้องน้ำโครงการวรรณศิริ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_111] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_001] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-counter_018] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-kitchen_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-dining_table_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-design_040] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_072] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_043] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_052] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_057] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_111] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-bathroom_new_001] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-counter_018] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-kitchen_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-dining_table_003] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  4.11  | need 4.5 | solid   | text rgb(87,113,134) on bg~rgb(0,0,0) | 14px | button[showcase-photo-design_040] > div.p-3 > span.text-[11px] | "หินสังเคราะห์แท้ ไร้รอยต่อ"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.07  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /sketch  theme=light  checked=119  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  -- gradient / photo surfaces carrying text (3):
+     gradient| worst ratio 10.53 | 1 text(s) | main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner] | linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))
+     gradient| worst ratio 4.89  | 6 text(s) | section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch] | linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)
+     gradient| worst ratio 4.55  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /studio-guide  theme=light  checked=72  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.07  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /profile  theme=light  checked=45  failing(p10 ratio < threshold)=2
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 14px | div.profile-lock-card > button[button-line-login] > span.line-logo-mark | "LINE"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 4.55  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /quote/view  theme=light  checked=43  failing(p10 ratio < threshold)=1
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 4.54  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /admin  theme=light  checked=8  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+
+=== /admin/ai-cost  theme=light  checked=8  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px

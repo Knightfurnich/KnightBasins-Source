@@ -1,0 +1,182 @@
+[
+ {
+  "target": "/sketch#initial",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 115,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/sketch#upload",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 165,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/sketch#cutout",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 166,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/sketch#form",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 165,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ }
+]
