@@ -110,17 +110,33 @@ const COLLECT = `(() => {
     out.push({ selector: label(el), productLabel: el.matches(".product-index,.art-note"), hero: !!el.closest('.catalog-hero,.stone-hero,.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), shadow:s.textShadow, size, large, rects,
       kind: surf.kind, surf: label(surf.node), surfImage: surf.kind === "solid" ? "" : getComputedStyle(surf.node).backgroundImage.slice(0, 90) });
   });
-  // drop text that is covered by something else at its first box (pop-overs, sticky bars): the customer cannot see it there
-  const keep = out.map((row, i) => { const q = row.rects[0]; window.scrollTo(0, Math.max(0, q.y - 300)); const top = document.elementFromPoint(q.x + q.w / 2 - scrollX, q.y + q.h / 2 - scrollY); return row.productLabel || !top || els[i] === top || els[i].contains(top) || top.contains(els[i]); });
+   // Geometric evidence, not a selector exemption: test nine points in EACH own-text box.
+   // Keep every row in the artifact. Only fully occluded text is excluded from REAL.
+   out.forEach((row, i) => {
+     const points = [];
+     for (const q of row.rects) {
+       window.scrollTo(0, Math.max(0, q.y - 300));
+       for (const fx of [0.2, 0.5, 0.8]) for (const fy of [0.2, 0.5, 0.8]) {
+         const x = q.x + q.w * fx - scrollX, y = q.y + q.h * fy - scrollY;
+         if (x < 0 || x >= innerWidth || y < 0 || y >= innerHeight) continue;
+         const top = document.elementFromPoint(x, y);
+         const visible = !!top && (els[i] === top || els[i].contains(top));
+         points.push({ x: Math.round(x + scrollX), y: Math.round(y + scrollY), visible,
+           coveringElement: top ? label(top) : null });
+       }
+     }
+     row.visibilitySamples = points;
+     row.occluded = points.length > 0 && points.every(p => !p.visible && p.coveringElement);
+     row.coveringElements = [...new Set(points.filter(p => !p.visible).map(p => p.coveringElement).filter(Boolean))];
+   });
   window.scrollTo(0, 0);
-  const visible = out.filter((_, i) => keep[i]);
   // job 467-C: a sticky box (the quote / config summary asides) is drawn at a shifted place by a beyond-viewport capture, so the pixels
   // behind its text were read from the page behind it. At scrollY=0 a sticky box sits at its natural spot: pin it there as relative.
   document.querySelectorAll("body *").forEach((n) => { if (getComputedStyle(n).position === "sticky") { n.style.setProperty("position", "relative", "important"); n.style.setProperty("top", "auto", "important"); } });
   const style = document.createElement("style"); style.id = "scan-hide-text";
   style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:var(--contrast-original-shadow,none)!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
   document.head.appendChild(style);
-  return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: visible, covered: out.length - visible.length, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
+   return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: out, covered: out.filter(r => r.occluded).length, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
 })()`;
 
 // ---- page-side: sample pixels behind each element ----
@@ -153,6 +169,7 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
   };
   const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   return rows.map((row) => {
+     if (row.occluded) return { ...row, ratio: null };
     if (!painted(row)) return { ...row, ratio: null, unpainted: true };
     const ratios = []; let sr = 0, sg = 0, sb = 0, n = 0;
     for (const rc of row.rects) {
@@ -289,18 +306,21 @@ for (const target of targets) {
   }
   const coverage={heroes:rows.filter(r=>r.hero).length,productLabels:rows.filter(r=>r.productLabel).length};
   const requiredLabels = route === "/" ? REQUIRED_LABELS_BY_WIDTH[viewport].map(sku=>`article[card-product-${sku}] > div.product-art > span.art-note`) : [];
-  const requiredMissing = [...sampled.filter(r=>r.hero&&r.ratio==null).map(r=>r.selector),
-    ...requiredLabels.filter(selector=>!rows.some(r=>r.selector===selector)&&!unpainted.some(r=>r.selector===selector))];
+   const occluded = sampled.filter(r=>r.occluded);
+   const requiredMissing = [...sampled.filter(r=>r.hero&&r.ratio==null).map(r=>r.selector),
+     ...requiredLabels.filter(selector=>!rows.some(r=>r.selector===selector)&&!unpainted.some(r=>r.selector===selector)&&!occluded.some(r=>r.selector===selector))];
   const unmeasurable = sampled.filter(r=>r.ratio==null).map(r=>({
     selector:r.selector,text:r.text,width:viewport,theme:collected.theme,required:r.hero||requiredLabels.includes(r.selector),
-    status:"NOT MEASURABLE / วัดไม่ได้",
-    reason:r.unpainted ? "Visible and hidden pixels identical: text covered by photo/overlay; no painted text pixels detected" :
+     status:r.occluded ? "occluded / มองไม่เห็น" : "NOT MEASURABLE / วัดไม่ได้",
+     coveringElements:r.coveringElements,visibilitySamples:r.visibilitySamples,
+     reason:r.occluded ? "document.elementFromPoint: every sampled own-text point is covered by " + r.coveringElements.join("; ") :
+       r.unpainted ? "Visible and hidden pixels identical: text covered by photo/overlay; no painted text pixels detected" :
       "Visible/hidden pixel difference detected, but no reliable glyph-interior samples at this viewport width",
   }));
-  for(const row of unmeasurable)console.log(`  NOT MEASURABLE / วัดไม่ได้ @${viewport}: ${row.selector} — ${row.reason}`);
+   for(const row of unmeasurable)console.log(`  ${row.status} @${viewport}: ${row.selector} "${row.text}" — ${row.reason}`);
   all.push({ target, theme: collected.theme, width:viewport, overflow: collected.ov, checked: rows.length, failing: failing.length,
     coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
-    exclusions:{covered:collected.covered,moving:collected.moving,unpainted}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
+     exclusions:{covered:collected.covered,moving:collected.moving,unpainted,occluded}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
   if(jsonOut)writeFileSync(jsonOut, JSON.stringify(all,null,1));
   if((["/","/stone","/quote"].includes(route)&&!coverage.heroes)||requiredMissing.length){socket.close();proc.kill();throw new Error(`${target}: required hero/product-label pixels were NOT checked: ${JSON.stringify({width:viewport,coverage,missing:requiredMissing})}`);}
 }

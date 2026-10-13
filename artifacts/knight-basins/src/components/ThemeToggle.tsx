@@ -378,6 +378,12 @@ export const STOREFRONT_THEME_STYLES = `
   background-image: linear-gradient(#dcecf3 1px, transparent 1px), linear-gradient(90deg, #dcecf3 1px, transparent 1px);
 }
 
+/* The drawing/material surface stays pale in both themes; change text only. */
+[data-theme="light"] .studio-canvas-label,
+[data-theme="dark"] .studio-canvas-label {
+  color: #173f6b;
+}
+
 [data-theme="dark"] .studio-stone-choice,
 [data-theme="dark"] .studio-basin-choice {
   border-color: #d7e5ef;
