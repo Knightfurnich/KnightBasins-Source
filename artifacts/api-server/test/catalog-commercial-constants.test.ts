@@ -206,10 +206,10 @@ describe("one source: nobody re-types the figures", () => {
     assert.ok(quote.includes(`(${NIGHT_WORK_START} น. - ${NIGHT_WORK_END} น.) คิดค่าดำเนินการเพิ่มต่างหาก ${baht} บาท/คืน`), "quote terms: night hours/fee drifted from NIGHT_WORK_*");
     assert.ok(guide.includes(`const NIGHT_WORK_START = "${NIGHT_WORK_START.replace(".", ":")}";`), "price guide: night start drifted");
     assert.ok(guide.includes(`const NIGHT_WORK_END = "${NIGHT_WORK_END.replace(".", ":")}";`), "price guide: night end drifted");
-    // The guide has no night-fee constant of its own: it prints INSTALLATION_PRICE next to "/ คืน". Until it gets one, the two
-    // fees can only agree, and this line is where a change to either one is noticed.
-    assert.match(guide, /NIGHT_WORK_END\}: เพิ่ม\{" "\}\s*<strong[^>]*>\{formatTHB\(INSTALLATION_PRICE\)\} \/ คืน/);
-    assert.equal(NIGHT_WORK_FEE, INSTALLATION_PRICE);
+    // Night work and basin installation are independent commercial rules, even when today's figures coincide.
+    assert.match(guide, /import \{[^}]*\bNIGHT_WORK_FEE\b[^}]*\} from "@\/data\/catalog"/);
+    assert.match(guide, /NIGHT_WORK_END\}: เพิ่ม\{" "\}\s*<strong[^>]*>\{formatTHB\(NIGHT_WORK_FEE\)\} \/ คืน/);
+    assert.doesNotMatch(guide, /formatTHB\(INSTALLATION_PRICE\)\} \/ คืน/);
   });
 
   it("each storefront constant is declared once, in catalog.ts, and the calculators import it", () => {

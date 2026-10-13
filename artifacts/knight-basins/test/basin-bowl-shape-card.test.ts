@@ -16,6 +16,21 @@ const appAst = ts.createSourceFile(fileURLToPath(appUrl), appSource, ts.ScriptTa
 
 const wanted = new Set(["bowlShapeFromModel", "syncBowlShapesFromCatalog", "bowlShapeForSku", "bowlShapeText"]);
 
+describe("468-R KF003/KF006 API labels stay independent", () => {
+  it("prints the API labels, hides a cleared label and ignores overflow-hole metadata", () => {
+    const helpers = loadHelpers();
+    helpers.syncBowlShapesFromCatalog([
+      { sku: "KF003", bowlShapeLabel: "หลุมสี่เหลี่ยมมุมมน", bowlOverflowHole: true },
+      { sku: "KF006", bowlShapeLabel: "หลุมวงรี", bowlOverflowHole: false },
+    ]);
+    assert.equal(helpers.bowlShapeText({ sku: "KF003" }), "หลุมสี่เหลี่ยมมุมมน");
+    assert.equal(helpers.bowlShapeText({ sku: "KF006" }), "หลุมวงรี");
+    helpers.syncBowlShapesFromCatalog([{ sku: "KF003", bowlShapeLabel: null }, { sku: "KF006", bowlShapeLabel: null }]);
+    assert.equal(helpers.bowlShapeText({ sku: "KF003" }), "");
+    assert.equal(helpers.bowlShapeText({ sku: "KF006" }), "");
+  });
+});
+
 function loadHelpers() {
   const fns = appAst.statements.filter(
     (st): st is ts.FunctionDeclaration => ts.isFunctionDeclaration(st) && Boolean(st.name) && wanted.has(st.name!.text),

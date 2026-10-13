@@ -533,6 +533,11 @@ export const STOREFRONT_THEME_STYLES = `
 [data-theme="dark"] .product-index,
 [data-theme="dark"] .art-note { color: #e8eff8; background-color: rgba(11, 19, 36, 0.88); border-radius: 4px; padding: 2px 6px; }
 [data-theme="dark"] .art-note { padding: 6px 2px; }
+/* job 468-R · hero rule #449: text colours and shadows only; artwork and geometry stay unchanged. */
+[data-theme="dark"] :is(.catalog-hero, .stone-hero, .quote-heading) :is(h1, h1 em, .eyebrow, .hero-index, .hero-index span, .hero-copy, .quote-date, .quote-date span, .quote-date strong, .quote-date button, a) {
+  color: #ffffff !important;
+  text-shadow: 0 0 2px #07111f, 0 0 4px #07111f, 0 1px 6px #07111f, 0 2px 12px #07111f;
+}
 `;
 
 export type StorefrontThemeValue = {
