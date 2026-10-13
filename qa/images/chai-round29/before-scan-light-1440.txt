@@ -1,0 +1,93 @@
+
+=== /studio-guide#faq  theme=light  checked=72  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 5.07  | 4 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /quote#cart  theme=light  checked=130  failing(p10 ratio < threshold)=5
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  1.73  | need 4.5 | gradient| text rgb(230,172,145) on bg~rgb(123,140,158) | 14px | div.quote-layout > aside.quote-summary > p[status-quote-vat-tax-id] | "💡 กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักในโปรไ"
+  1.88  | need 4.5 | gradient| text rgb(87,113,134) on bg~rgb(18,70,117) | 14px | div.quote-layout > aside.quote-summary > p.eyebrow | "04 / TOTAL"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  4.01  | need 4.5 | gradient| text rgb(65,169,216) on bg~rgb(16,63,106) | 14px | div.total-rows > div > strong.free-text | "ฟรี"
+  4.11  | need 4.5 | gradient| text rgb(157,170,164) on bg~rgb(17,68,114) | 14px | div > span > small | "3 ชุด"
+  -- gradient / photo surfaces carrying text (2):
+     gradient| worst ratio 1.73  | 17 text(s) | div.quote-editor > div.quote-layout > aside.quote-summary | linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))
+     gradient| worst ratio 4.51  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))
+
+=== /  theme=light  checked=554  failing(p10 ratio < threshold)=46
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  excluded: 11 text(s) not painted (identical pixels with the text shown and hidden: covered by a photo/overlay) e.g. span.art-note, span.product-index
+  excluded: 13 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  1.11  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(104,112,108) | 14px | article[card-product-KF004] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.3   | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(64,76,84) | 14px | article[card-product-KF009] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.39  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(158,163,167) | 14px | article[card-product-KF001] > div.product-art > span.art-note | "COUNTER SERIES"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  3.52  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF029] > div.product-art > span.art-note | "READY-MADE PILLAR SET"
+  3.52  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(226,242,249) | 14px | article[card-product-KF030] > div.product-art > span.art-note | "READY-MADE PILLAR SET"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF010] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF011] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF012] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF013] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF014] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF015] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF016] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF017] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,243,249) | 14px | article[card-product-KF018] > div.product-art > span.art-note | "COUNTER SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF019] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF020] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF021] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF022] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF023] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF024] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF025] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF026] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF027] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.56  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(227,242,249) | 14px | article[card-product-KF028] > div.product-art > span.art-note | "VERTICAL SERIES"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF011] > div.product-art > span.product-index | "KF011"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF014] > div.product-art > span.product-index | "KF014"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF016] > div.product-art > span.product-index | "KF016"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF018] > div.product-art > span.product-index | "KF018"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF020] > div.product-art > span.product-index | "KF020"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF021] > div.product-art > span.product-index | "KF021"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,250,253) | 14px | article[card-product-KF023] > div.product-art > span.product-index | "KF023"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF026] > div.product-art > span.product-index | "KF026"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF028] > div.product-art > span.product-index | "KF028"
+  3.91  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(244,251,253) | 14px | article[card-product-KF030] > div.product-art > span.product-index | "KF030"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF010] > div.product-art > span.product-index | "KF010"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF012] > div.product-art > span.product-index | "KF012"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF013] > div.product-art > span.product-index | "KF013"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF015] > div.product-art > span.product-index | "KF015"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF017] > div.product-art > span.product-index | "KF017"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF019] > div.product-art > span.product-index | "KF019"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF022] > div.product-art > span.product-index | "KF022"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,254) | 14px | article[card-product-KF024] > div.product-art > span.product-index | "KF024"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF025] > div.product-art > span.product-index | "KF025"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF027] > div.product-art > span.product-index | "KF027"
+  3.94  | need 4.5 | gradient| text rgb(92,130,151) on bg~rgb(245,251,253) | 14px | article[card-product-KF029] > div.product-art > span.product-index | "KF029"
+  -- gradient / photo surfaces carrying text (25):
+     gradient| worst ratio 1.39  | 1 text(s) | section.product-grid > article[card-product-KF001] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.11  | 1 text(s) | section.product-grid > article[card-product-KF004] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 1.3   | 1 text(s) | section.product-grid > article[card-product-KF009] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF010] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF011] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF012] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF013] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF014] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF015] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF016] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF017] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF018] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF019] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF020] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF021] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF022] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF023] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF024] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF025] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF026] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF027] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.56  | 2 text(s) | section.product-grid > article[card-product-KF028] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.52  | 2 text(s) | section.product-grid > article[card-product-KF029] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 3.52  | 2 text(s) | section.product-grid > article[card-product-KF030] > div.product-art | linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(
+     gradient| worst ratio 4.55  | 27 text(s) | div > div.storefront-theme-root > footer.site-footer | linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))

@@ -1,0 +1,124 @@
+[
+ {
+  "target": "/stone",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 392,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "section.config-main > div.stone-price-filters > button[button-stone-price-filter-12000]",
+    "text": "฿12,000",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 975.703125,
+      "y": 983.734375,
+      "w": 53.3125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.config-layout > section.config-main > div.stone-price-filters",
+    "surfImage": "",
+    "ratio": 2.19,
+    "ratioMin": 2.19,
+    "bg": [
+     89,
+     122,
+     151
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.summary-row > span > small",
+    "text": "0.76 × 3.60 m · หนา 12 mm",
+    "fg": [
+     142,
+     154,
+     150,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1021.296875,
+      "y": 919.25,
+      "w": 157.46875,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.page-wrap > div.config-layout > aside.config-summary",
+    "surfImage": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "ratio": 3.78,
+    "ratioMin": 3.78,
+    "bg": [
+     15,
+     60,
+     102
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.page-wrap > div.config-layout > aside.config-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 8,
+    "worst": 3.78
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ }
+]

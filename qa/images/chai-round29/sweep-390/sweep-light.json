@@ -1,0 +1,3462 @@
+[
+ {
+  "target": "/",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 554,
+  "failing": 59,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 8143,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.55,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 8904.453125,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.55,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 9665.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.55,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 9665.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.55,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 10408.109375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.55,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 11150.3125,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.55,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF003] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 2224.625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF004] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 2224.625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF005] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 2966.828125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF006] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 2966.828125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF007] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 3709.03125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF008] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 3709.03125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 4451.234375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 4451.234375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 5174.1875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 5174.1875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 5916.390625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 5916.390625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 6658.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 6658.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 7400.796875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 7400.796875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     228,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 8143,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 8904.453125,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 10408.109375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 11150.3125,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.52,
+    "bg": [
+     229,
+     243,
+     250
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 145,
+      "y": 11892.515625,
+      "w": 18,
+      "h": 164.234375
+     },
+     {
+      "x": 127,
+      "y": 11892.515625,
+      "w": 18,
+      "h": 28.984375
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.6,
+    "ratioMin": 3.52,
+    "bg": [
+     234,
+     246,
+     251
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 329.5,
+      "y": 11892.515625,
+      "w": 18,
+      "h": 164.234375
+     },
+     {
+      "x": 311.5,
+      "y": 11892.515625,
+      "w": 18,
+      "h": 28.984375
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.6,
+    "ratioMin": 3.52,
+    "bg": [
+     234,
+     246,
+     251
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF003] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF003",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 2224.625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF005] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF005",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 2966.828125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF008] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF008",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 3709.03125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF010",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 4451.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF012",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 5174.1875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF014",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 5916.390625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF015",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 6658.59375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF017",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 7400.796875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF020",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 8143,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF022",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 8904.453125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF023",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 9665.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF026",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 10408.109375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF028",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 11150.3125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     242,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF029",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 11892.515625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.87,
+    "ratioMin": 3.83,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF004] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF004",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 2224.625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.89,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF006] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF006",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 2966.828125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.89,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF016",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 6658.59375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.89,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF018",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 7400.796875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.89,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF024",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 9665.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.89,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF030",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 227,
+      "y": 11892.515625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.89,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF007] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF007",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 3709.03125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF009",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 4451.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF011",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 5174.1875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF013",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 5916.390625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF019",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 8143,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF021",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 8904.453125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF025",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 10408.109375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.product-index",
+    "hero": false,
+    "text": "KF027",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 42.5,
+      "y": 11150.3125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.9,
+    "ratioMin": 3.86,
+    "bg": [
+     243,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 15431,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 15431.5,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.55
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.55
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.55
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.55
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.55
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.55
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.6
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.6
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/portfolio",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 72,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 5.01
+   }
+  ]
+ },
+ {
+  "target": "/stone",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 333,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 11292.796875,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 11293.296875,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.page-wrap > div.config-layout > aside.config-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 8,
+    "worst": 4.52
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/price-guide",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 100,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/site-prep",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 16,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/studio-guide",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 71,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/quote",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 107,
+  "failing": 4,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[section-quote-project-details] > div > p.eyebrow",
+    "hero": false,
+    "text": "PROJECT DETAILS / ข้อมูลหน้างาน",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 35.5,
+      "y": 5078.890625,
+      "w": 270.875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body",
+    "surfImage": "",
+    "ratio": 4.04,
+    "ratioMin": 4.04,
+    "bg": [
+     228,
+     236,
+     242
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 6150.453125,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 6150.953125,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 13,
+    "worst": 4.73
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/studio",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 119,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-joint-note",
+    "hero": false,
+    "text": "ต่อแผ่นแล้วต้องได้ฉาก 90°",
+    "fg": [
+     112,
+     79,
+     0,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 161.1875,
+      "y": 2824.09375,
+      "w": 151.3125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 1.64,
+    "ratioMin": 1.03,
+    "bg": [
+     145,
+     182,
+     161
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label",
+    "hero": false,
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 77.5,
+      "y": 2582.09375,
+      "w": 54.875,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 4.16,
+    "ratioMin": 3.23,
+    "bg": [
+     233,
+     233,
+     230
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 5091.96875,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 5092.46875,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[studio-sketch-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(241, 248, 252), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 10.28
+   },
+   {
+    "surface": "div[studio-canvas] > div.studio-canvas-stage > div.studio-piece-rectangle",
+    "kind": "gradient",
+    "image": "radial-gradient(circle at 20% 26%, rgba(255, 255, 255, 0.54) 0px, rgba(255, 255, 255, 0.54",
+    "texts": 1,
+    "worst": 10.26
+   },
+   {
+    "surface": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "kind": "gradient",
+    "image": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "texts": 2,
+    "worst": 1.64
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/sketch",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 108,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 5457.234375,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 5457.734375,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "main[storefront-main] > div.page-wrap > section[sketch-studio-bridge-banner]",
+    "kind": "gradient",
+    "image": "linear-gradient(110deg, rgb(255, 250, 240), rgb(255, 255, 255))",
+    "texts": 1,
+    "worst": 10.6
+   },
+   {
+    "surface": "section[step-studio-sketch-upload] > section.studio-panel > div[dropzone-studio-sketch]",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(248, 252, 254) 0%, rgb(238, 247, 251) 100%)",
+    "texts": 6,
+    "worst": 4.85
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/readme",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 84,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/updates",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 108,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/network",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 49,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 1813.53125,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 1814.03125,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/profile",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 34,
+  "failing": 4,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 146.109375,
+      "y": 411.640625,
+      "w": 33.609375,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.18,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 1277.90625,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 1278.40625,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/handover",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 9,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > div[page-digital-handover]",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(229, 244, 251, 0.88), rgba(0, 0, 0, 0) 34%), none",
+    "texts": 2,
+    "worst": 4.78
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/track",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 10,
+  "failing": 0,
+  "rows": [],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > div[page-customer-tracking]",
+    "kind": "gradient",
+    "image": "linear-gradient(130deg, rgba(229, 244, 251, 0.74), rgba(0, 0, 0, 0) 36%), none",
+    "texts": 3,
+    "worst": 4.7
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 4,
+    "worst": 4.98
+   }
+  ]
+ },
+ {
+  "target": "/quote/view",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 32,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 1077.90625,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 1078.40625,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ },
+ {
+  "target": "/quote#cart",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 119,
+  "failing": 4,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[section-quote-project-details] > div > p.eyebrow",
+    "hero": false,
+    "text": "PROJECT DETAILS / ข้อมูลหน้างาน",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 35.5,
+      "y": 5186.46875,
+      "w": 270.875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body",
+    "surfImage": "",
+    "ratio": 4.08,
+    "ratioMin": 4.08,
+    "bg": [
+     229,
+     237,
+     243
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "ราคาสินค้ายังไม่รวม VAT",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 160,
+      "y": 6258.03125,
+      "w": 111.796875,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.43,
+    "ratioMin": 4.43,
+    "bg": [
+     228,
+     242,
+     248
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.footer-meta-bar > div.footer-meta > span",
+    "hero": false,
+    "text": "TH / 2026 COLLECTION",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 18,
+      "y": 6258.53125,
+      "w": 132,
+      "h": 14
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div > div.storefront-theme-root > footer.site-footer",
+    "surfImage": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "ratio": 4.46,
+    "ratioMin": 4.46,
+    "bg": [
+     229,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 17,
+    "worst": 4.73
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.43
+   }
+  ]
+ }
+]

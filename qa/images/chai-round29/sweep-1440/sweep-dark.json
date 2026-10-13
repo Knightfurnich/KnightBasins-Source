@@ -1,0 +1,1283 @@
+[
+ {
+  "target": "/",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 554,
+  "failing": 7,
+  "rows": [
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "อ่างล้างหน้า by ไนท์ เฟอร์นิช",
+    "fg": [
+     96,
+     165,
+     250,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 419.4375,
+      "w": 479.625,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.25,
+    "ratioMin": 1.13,
+    "bg": [
+     103,
+     114,
+     129
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.catalog-hero > div > p.eyebrow",
+    "hero": true,
+    "text": "KNIGHT BASINS / 2026",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 331.171875,
+      "w": 198.8125,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.29,
+    "ratioMin": 1.23,
+    "bg": [
+     132,
+     145,
+     158
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > a[link-hero-stone]",
+    "hero": true,
+    "text": "ดูวัสดุหินสังเคราะห์",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 546.328125,
+      "w": 108.296875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.6,
+    "ratioMin": 1.57,
+    "bg": [
+     123,
+     135,
+     149
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF004] > div.product-art > span.art-note",
+    "hero": false,
+    "text": "COUNTER SERIES",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1321,
+      "y": 854.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "solid",
+    "surf": "article[card-product-KF004] > div.product-art > span.art-note",
+    "surfImage": "",
+    "ratio": 1.78,
+    "ratioMin": 1.65,
+    "bg": [
+     117,
+     115,
+     104
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > p.hero-copy",
+    "hero": true,
+    "text": "อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 495.546875,
+      "w": 363.5,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 521.4375,
+      "w": 272.75,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.71,
+    "ratioMin": 2.51,
+    "bg": [
+     110,
+     122,
+     136
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > h1",
+    "hero": true,
+    "text": "Knight Basins",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 355.171875,
+      "w": 260.296875,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.7,
+    "bg": [
+     124,
+     136,
+     150
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/portfolio",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 79,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/stone",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 381,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "section.stone-hero > div > p.eyebrow",
+    "hero": true,
+    "text": "MATERIAL / CONFIGURATOR",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 252.625,
+      "w": 228.625,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.22,
+    "ratioMin": 1.16,
+    "bg": [
+     134,
+     147,
+     159
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > p.hero-copy",
+    "hero": true,
+    "text": "สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 417,
+      "w": 383.453125,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 442.890625,
+      "w": 374.265625,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 468.78125,
+      "w": 118.953125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.57,
+    "ratioMin": 2.35,
+    "bg": [
+     116,
+     128,
+     142
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > h1",
+    "hero": true,
+    "text": "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 276.625,
+      "w": 555.53125,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.54,
+    "bg": [
+     105,
+     116,
+     131
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "สั่งตัดตามพื้นที่ของคุณ",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 340.890625,
+      "w": 395,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.97,
+    "ratioMin": 2.7,
+    "bg": [
+     113,
+     125,
+     139
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/price-guide",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 128,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/site-prep",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 23,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/studio-guide",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 69,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/quote",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 118,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "section.quote-heading > div > p.eyebrow",
+    "hero": true,
+    "text": "เลขที่เอกสาร Oct 26 / US / 4715",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 257.09375,
+      "w": 97.484375,
+      "h": 18
+     },
+     {
+      "x": 169.484375,
+      "y": 257.09375,
+      "w": 178.921875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 1.18,
+    "ratioMin": 1.15,
+    "bg": [
+     136,
+     150,
+     164
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > h1",
+    "hero": true,
+    "text": "จากรายการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 283.09375,
+      "w": 187.9375,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.28,
+    "ratioMin": 2.15,
+    "bg": [
+     136,
+     150,
+     164
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.quote-heading > div > p.hero-copy",
+    "hero": true,
+    "text": "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 423.46875,
+      "w": 380.828125,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 449.359375,
+      "w": 92.484375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.39,
+    "ratioMin": 2.28,
+    "bg": [
+     123,
+     137,
+     152
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "สู่ตัวเลขที่ชัดเจน",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 347.359375,
+      "w": 280.328125,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.42,
+    "ratioMin": 2.28,
+    "bg": [
+     125,
+     139,
+     154
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 13,
+    "worst": 4.73
+   }
+  ]
+ },
+ {
+  "target": "/studio",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 126,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "section.studio-panel > div.studio-panel-heading > span",
+    "hero": false,
+    "text": "1 / 3 ชิ้นงาน",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1254.515625,
+      "y": 855.171875,
+      "w": 8.40625,
+      "h": 18
+     },
+     {
+      "x": 1262.921875,
+      "y": 855.171875,
+      "w": 25.203125,
+      "h": 18
+     },
+     {
+      "x": 1288.125,
+      "y": 855.171875,
+      "w": 8.40625,
+      "h": 18
+     },
+     {
+      "x": 1296.53125,
+      "y": 855.171875,
+      "w": 46.46875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.studio-design-layout > div.studio-canvas-column > section.studio-panel",
+    "surfImage": "",
+    "ratio": 1,
+    "ratioMin": 1,
+    "bg": [
+     33,
+     51,
+     77
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label",
+    "hero": false,
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     85,
+     113,
+     138,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 137,
+      "y": 1532.953125,
+      "w": 54.875,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 4.19,
+    "ratioMin": 3.23,
+    "bg": [
+     233,
+     233,
+     230
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div[studio-canvas] > div.studio-canvas-stage > div.studio-piece-rectangle",
+    "kind": "gradient",
+    "image": "radial-gradient(circle at 20% 26%, rgba(255, 255, 255, 0.54) 0px, rgba(255, 255, 255, 0.54",
+    "texts": 1,
+    "worst": 10.36
+   },
+   {
+    "surface": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "kind": "gradient",
+    "image": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "texts": 2,
+    "worst": 4.19
+   }
+  ]
+ },
+ {
+  "target": "/sketch",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 119,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/readme",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 91,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/updates",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 108,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/network",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 60,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/profile",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 45,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 671.109375,
+      "y": 380.1875,
+      "w": 33.609375,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.1,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/handover",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 10,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/track",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 11,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/quote/view",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 43,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/quote#cart",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 130,
+  "failing": 5,
+  "rows": [
+   {
+    "selector": "section.quote-heading > div > p.eyebrow",
+    "hero": true,
+    "text": "เลขที่เอกสาร Oct 26 / US / 4715",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 257.09375,
+      "w": 97.484375,
+      "h": 18
+     },
+     {
+      "x": 169.484375,
+      "y": 257.09375,
+      "w": 178.921875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 1.18,
+    "ratioMin": 1.15,
+    "bg": [
+     136,
+     150,
+     164
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > h1",
+    "hero": true,
+    "text": "จากรายการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 283.09375,
+      "w": 187.9375,
+      "h": 60
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.28,
+    "ratioMin": 2.15,
+    "bg": [
+     136,
+     150,
+     164
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.quote-heading > div > p.hero-copy",
+    "hero": true,
+    "text": "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 72,
+      "y": 423.46875,
+      "w": 380.828125,
+      "h": 19
+     },
+     {
+      "x": 72,
+      "y": 449.359375,
+      "w": 92.484375,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.39,
+    "ratioMin": 2.28,
+    "bg": [
+     123,
+     137,
+     152
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "สู่ตัวเลขที่ชัดเจน",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 44,
+    "large": true,
+    "rects": [
+     {
+      "x": 72,
+      "y": 347.359375,
+      "w": 280.328125,
+      "h": 44
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.42,
+    "ratioMin": 2.28,
+    "bg": [
+     125,
+     139,
+     154
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 17,
+    "worst": 4.74
+   }
+  ]
+ }
+]

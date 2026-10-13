@@ -1,0 +1,31 @@
+
+=== /studio-guide#faq  theme=dark  checked=72  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=390 clientWidth=390 scrollWidth=390 -> 0px
+
+=== /quote#cart  theme=dark  checked=119  failing(p10 ratio < threshold)=9
+  overflow: innerWidth=390 clientWidth=390 scrollWidth=390 -> 0px
+  excluded: 4 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  1.16  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(113,127,143) | 14px | section.quote-heading > div > p.eyebrow | "เลขที่เอกสาร Oct 26 / US / 5873"
+  2.2   | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(94,108,125) | 14px | section.quote-heading > div.quote-date > span | "วันที่ออกเอกสาร"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.28  | need 3 | solid   | text rgb(232,239,248) on bg~rgb(126,140,155) | 30px | section.quote-heading > div > h1 | "จากรายการ"
+  2.58  | need 3 | solid   | text rgb(232,239,248) on bg~rgb(107,120,137) | 30px | div > h1 > em | "สู่ตัวเลขที่ชัดเจน"
+  2.73  | need 4.5 | solid   | text rgb(170,185,204) on bg~rgb(67,80,99) | 14px | section.quote-heading > div.quote-date > small | "ใช้ได้ถึง 12 พ.ย. 2569 · 30 วัน"
+  2.9   | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(89,102,120) | 14px | section.quote-heading > div > p.hero-copy | "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง"
+  3.66  | need 4.5 | solid   | text rgb(122,185,251) on bg~rgb(51,64,84) | 14px | section.quote-heading > div.quote-date > button[button-view-quote-history] | "ดูใบเสนอราคาก่อนหน้า"
+  4.12  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(86,99,117) | 14px | section.quote-heading > div.quote-date > strong | "13 ต.ค. 2569"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 4.73  | 17 text(s) | div.quote-editor > div.quote-layout > aside.quote-summary | linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))
+
+=== /  theme=dark  checked=554  failing(p10 ratio < threshold)=8
+  overflow: innerWidth=390 clientWidth=390 scrollWidth=390 -> 0px
+  excluded: 4 text(s) not painted (identical pixels with the text shown and hidden: covered by a photo/overlay) e.g. span.product-index, span.art-note
+  excluded: 8 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  1.17  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(119,131,144) | 14px | section.catalog-hero > div > p.eyebrow | "KNIGHT BASINS / 2026"
+  1.28  | need 3 | solid   | text rgb(96,165,250) on bg~rgb(77,87,103) | 30px | div > h1 > em | "อ่างล้างหน้า by ไนท์ เฟอร์นิช"
+  1.31  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(174,175,176) | 14px | article[card-product-KF001] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.78  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(105,108,110) | 14px | article[card-product-KF009] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.87  | need 4.5 | solid   | text rgb(122,185,251) on bg~rgb(101,112,127) | 14px | section.catalog-hero > div > a[link-hero-stone] | "ดูวัสดุหินสังเคราะห์"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.74  | need 3 | solid   | text rgb(255,255,255) on bg~rgb(115,127,141) | 30px | section.catalog-hero > div > h1 | "Knight Basins"
+  3.18  | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(66,75,92) | 14px | section.catalog-hero > div > p.hero-copy | "อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่"

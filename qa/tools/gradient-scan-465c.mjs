@@ -11,7 +11,7 @@
  *
  *   node qa/tools/gradient-scan-465c.mjs <baseUrl> <theme: light|dark> <route[#state]> [route[#state] ...]
  *     [--json out.json] [--all]        --all prints every row of the named routes, not only failures
- *   states (only for /sketch): #initial (default) #upload (a generated test PNG is attached; needs the mock API fixture
+ *   states: /quote#cart (two basin lines in the cart: totals / VAT row / grand total are shown) - and, only for /sketch: #initial (default) #upload (a generated test PNG is attached; needs the mock API fixture
  *   qa/tools/mock-api-466c.mjs for POST /api/sketch/analyze) #cutout (clicks the first "add basin cut-out") #form
  *
  * Read-only against the app; the test image is a generated grey PNG, no customer data.
@@ -71,7 +71,7 @@ const COLLECT = `(() => {
     while (n) { const s = getComputedStyle(n); if (s.backgroundImage && s.backgroundImage !== "none" && !img) img = n; const c = rgba(s.backgroundColor); if (c[3] > 0.5 && !img) return { node: n, kind: "solid" }; if (img) return { node: img, kind: /url\\(/.test(getComputedStyle(img).backgroundImage) ? "image" : "gradient" }; n = n.parentElement; }
     return { node: document.body, kind: "solid" };
   };
-  const out = []; const els = [];
+  const out = []; const els = []; let moving = 0;
   document.querySelectorAll("body *").forEach((el) => {
     const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(" ").trim();
     if (own.length < 3) return;
@@ -87,28 +87,61 @@ const COLLECT = `(() => {
     const rects = [];
     for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim().length) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 1 && q.height > 1) rects.push({ x: q.left + scrollX, y: q.top + scrollY, w: q.width, h: q.height }); }
     if (!rects.length) return;
+    // job 467-C: text scrolled out of an overflow:hidden/auto ancestor (the marquee track, a carousel) is not on screen - skip it
+    const q0 = rects[0], cxm = q0.x - scrollX + q0.w / 2, cym = q0.y - scrollY + q0.h / 2; let clipped = false;
+    for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) { const cs = getComputedStyle(n); if (cs.overflowX === "visible" && cs.overflowY === "visible") continue; const nb = n.getBoundingClientRect(); if ((cs.overflowX !== "visible" && (cxm < nb.left || cxm > nb.right)) || (cs.overflowY !== "visible" && (cym < nb.top || cym > nb.bottom))) { clipped = true; break; } }
+    if (clipped) return;
+    // a horizontally auto-scrolling track (the installation marquee moves between this pass and the screenshot): its rows are
+    // reported as "moving" and checked by arithmetic in the report instead of by pixels
+    for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) { const cs = getComputedStyle(n); if ((cs.overflowX === "auto" || cs.overflowX === "scroll") && n.scrollWidth > n.clientWidth + 2) { moving++; return; } }
     els.push(el);
-    out.push({ selector: label(el), text: own.slice(0, 48), fg: rgba(s.color), size, large, rects,
+    out.push({ selector: label(el), hero: !!el.closest('[class*="-hero"],[class*="hero-"],.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), size, large, rects,
       kind: surf.kind, surf: label(surf.node), surfImage: surf.kind === "solid" ? "" : getComputedStyle(surf.node).backgroundImage.slice(0, 90) });
   });
   // drop text that is covered by something else at its first box (pop-overs, sticky bars): the customer cannot see it there
   const keep = out.map((row, i) => { const q = row.rects[0]; window.scrollTo(0, Math.max(0, q.y - 300)); const top = document.elementFromPoint(q.x + q.w / 2 - scrollX, q.y + q.h / 2 - scrollY); return !top || els[i] === top || els[i].contains(top) || top.contains(els[i]); });
   window.scrollTo(0, 0);
   const visible = out.filter((_, i) => keep[i]);
+  // job 467-C: a sticky box (the quote / config summary asides) is drawn at a shifted place by a beyond-viewport capture, so the pixels
+  // behind its text were read from the page behind it. At scrollY=0 a sticky box sits at its natural spot: pin it there as relative.
+  document.querySelectorAll("body *").forEach((n) => { if (getComputedStyle(n).position === "sticky") { n.style.setProperty("position", "relative", "important"); n.style.setProperty("top", "auto", "important"); } });
   const style = document.createElement("style"); style.id = "scan-hide-text";
-  style.textContent = "*{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
+  style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
   document.head.appendChild(style);
-  return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: visible, covered: out.length - visible.length, height: Math.min(document.documentElement.scrollHeight, 15000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
+  return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: visible, covered: out.length - visible.length, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
 })()`;
 
 // ---- page-side: sample pixels behind each element ----
-const SAMPLE = (b64, rows) => `(async () => {
+// job 467-C: a single Page.captureScreenshot taller than ~16k px comes back blank (black) below that, which made rows low on
+// the home page read "bg rgb(0,0,0)". The page is therefore captured in 4000px tiles and stitched on one canvas before sampling.
+const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
   const rows = ${JSON.stringify(rows)};
-  const img = new Image(); img.src = "data:image/png;base64,${b64}"; await img.decode();
-  const cv = document.createElement("canvas"); cv.width = img.width; cv.height = img.height;
-  const cx = cv.getContext("2d", { willReadFrequently: true }); cx.drawImage(img, 0, 0);
+  const tiles = ${JSON.stringify(tiles)};
+  const visTiles = ${JSON.stringify(visTiles)};
+  const first = new Image(); first.src = "data:image/png;base64," + tiles[0].b64; await first.decode();
+  const cv = document.createElement("canvas"); cv.width = first.width; cv.height = ${totalHeight};
+  const cx = cv.getContext("2d", { willReadFrequently: true });
+  for (const tl of tiles) { const im = new Image(); im.src = "data:image/png;base64," + tl.b64; await im.decode(); cx.drawImage(im, 0, tl.y); }
+  const img = { width: cv.width, height: cv.height };
+  // the same page with the text SHOWN: a text whose pixels are identical with and without its colour is not painted at all
+  // (covered by a photo / an overlay with pointer-events:none) - the customer cannot see it, so it is not a contrast failure
+  const cv2 = document.createElement("canvas"); cv2.width = first.width; cv2.height = ${totalHeight};
+  const cx2 = cv2.getContext("2d", { willReadFrequently: true });
+  for (const tl of visTiles) { const im = new Image(); im.src = "data:image/png;base64," + tl.b64; await im.decode(); cx2.drawImage(im, 0, tl.y); }
+  const painted = (row) => {
+    let diff = 0;
+    for (const rc of row.rects) {
+      const x0 = Math.max(0, Math.floor(rc.x)), y0 = Math.max(0, Math.floor(rc.y));
+      const w = Math.max(1, Math.min(img.width - x0, Math.ceil(rc.w))), h = Math.max(1, Math.min(img.height - y0, Math.ceil(rc.h)));
+      if (y0 >= img.height) continue;
+      const a = cx.getImageData(x0, y0, w, h).data, b = cx2.getImageData(x0, y0, w, h).data;
+      for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) > 6 || Math.abs(a[i + 1] - b[i + 1]) > 6 || Math.abs(a[i + 2] - b[i + 2]) > 6) diff++;
+    }
+    return diff >= 25;
+  };
   const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   return rows.map((row) => {
+    if (!painted(row)) return { ...row, ratio: null, unpainted: true };
     const ratios = []; let sr = 0, sg = 0, sb = 0, n = 0;
     for (const rc of row.rects) {
       const inset = rc.w > 14 && rc.h > 14 ? 1 : 0;
@@ -133,6 +166,12 @@ const SAMPLE = (b64, rows) => `(async () => {
 
 async function applyState(state) {
   if (!state || state === "initial") return;
+  if (state === "faq") { await ev(`document.querySelectorAll("details").forEach((d) => { d.open = true; })`); await sleep(500); return; } // /studio-guide with every FAQ open
+  if (state === "cart") { // /quote with two basin lines in the cart (the summary aside shows totals, VAT row, grand total)
+    await ev(`localStorage.setItem("knight-cart", JSON.stringify([{ sku: "KF001", quantity: 2, installationSelected: true }, { sku: "KF009", quantity: 1, installationSelected: false }])); location.reload();`);
+    await sleep(4000);
+    return;
+  }
   if (state === "upload" || state === "cutout" || state === "form") {
     const { root } = await cdp("DOM.getDocument", { depth: -1 });
     const found = await cdp("DOM.querySelectorAll", { nodeId: root.nodeId, selector: 'input[type="file"]' });
@@ -167,15 +206,28 @@ for (const target of targets) {
     const vis = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: viewport, height: h, scale: 1 } });
     writeFileSync(`${shotPrefix}-${route.replace(/\//g, "") || "home"}-${state ?? "initial"}-${theme}-${viewport}.png`, Buffer.from(vis.data, "base64"));
   }
+  const visTiles = [];
+  const hVis = await ev("Math.min(document.documentElement.scrollHeight, 60000)");
+  for (let y = 0; y < hVis; y += 4000) {
+    const part = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y, width: viewport, height: Math.min(4000, hVis - y), scale: 1 } });
+    visTiles.push({ y, b64: part.data });
+  }
   const collected = await ev(COLLECT);
   await sleep(300);
-  const shot = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: collected.width, height: collected.height, scale: 1 } });
-  if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(shot.data, "base64")); // debug: the background-only render the pixels are sampled from
-  const sampled = await ev(SAMPLE(shot.data, collected.rows));
+  const tiles = [];
+  for (let y = 0; y < collected.height; y += 4000) {
+    const part = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y, width: collected.width, height: Math.min(4000, collected.height - y), scale: 1 } });
+    tiles.push({ y, b64: part.data });
+  }
+  if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
+  const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
+  const unpainted = sampled.filter((r) => r.unpainted);
   const rows = sampled.filter((r) => r.ratio != null).map((r) => ({ ...r, threshold: r.large ? 3 : 4.5 }));
   const failing = rows.filter((r) => r.ratio < r.threshold).sort((a, b) => a.ratio - b.ratio);
   console.log(`\n=== ${target}  theme=${collected.theme}  checked=${rows.length}  failing(p10 ratio < threshold)=${failing.length}`);
   console.log(`  overflow: innerWidth=${collected.ov.innerWidth} clientWidth=${collected.ov.clientWidth} scrollWidth=${collected.ov.scrollWidth} -> ${collected.ov.scrollWidth - collected.ov.clientWidth}px`);
+  if (unpainted.length) console.log(`  excluded: ${unpainted.length} text(s) not painted (identical pixels with the text shown and hidden: covered by a photo/overlay) e.g. ${[...new Set(unpainted.map((r) => r.selector.split(" > ").pop()))].slice(0, 4).join(", ")}`);
+  if (collected.moving) console.log(`  excluded: ${collected.moving} text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic`);
   for (const r of (showAll ? rows.sort((a, b) => a.ratio - b.ratio) : failing)) {
     console.log(`  ${String(r.ratio).padEnd(6)}| need ${r.threshold} | ${r.kind.padEnd(8)}| text rgb(${r.fg.slice(0, 3).join(",")}) on bg~rgb(${r.bg.join(",")}) | ${r.size}px | ${r.selector} | "${r.text}"`);
   }

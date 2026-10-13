@@ -1,0 +1,3116 @@
+[
+ {
+  "target": "/",
+  "theme": "light",
+  "overflow": {
+   "innerWidth": 1440,
+   "clientWidth": 1440,
+   "scrollWidth": 1440
+  },
+  "checked": 625,
+  "failing": 92,
+  "rows": [
+   {
+    "selector": "article[card-product-KF007] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.01,
+    "ratioMin": 1,
+    "bg": [
+     150,
+     144,
+     133
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF005] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.03,
+    "ratioMin": 1,
+    "bg": [
+     132,
+     113,
+     96
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_072] > div.relative > span.absolute",
+    "text": "# 1",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": -85,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": -74.828125,
+      "y": 7058.78125,
+      "w": 4.46875,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_072] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.04,
+    "ratioMin": 1.04,
+    "bg": [
+     246,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF005] > div.product-art > span.product-index",
+    "text": "KF005",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.05,
+    "ratioMin": 1.01,
+    "bg": [
+     157,
+     125,
+     93
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF008] > div.product-art > span.product-index",
+    "text": "KF008",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.05,
+    "ratioMin": 1,
+    "bg": [
+     160,
+     142,
+     116
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF008] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.08,
+    "ratioMin": 1.01,
+    "bg": [
+     129,
+     119,
+     107
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_043] > div.relative > span.absolute",
+    "text": "# 2",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 251,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 261.171875,
+      "y": 7058.78125,
+      "w": 6.375,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_043] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     224,
+     227,
+     231
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_052] > div.relative > span.absolute",
+    "text": "# 3",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 587,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 597.171875,
+      "y": 7058.78125,
+      "w": 6.1875,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_052] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     233,
+     236,
+     240
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_057] > div.relative > span.absolute",
+    "text": "# 4",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 923,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 933.171875,
+      "y": 7058.78125,
+      "w": 6.5625,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_057] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     224,
+     227,
+     231
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_111] > div.relative > span.absolute",
+    "text": "# 5",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 1259,
+      "y": 7058.78125,
+      "w": 10.171875,
+      "h": 15
+     },
+     {
+      "x": 1269.171875,
+      "y": 7058.78125,
+      "w": 6.390625,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "button[showcase-photo-bathroom_new_111] > div.relative > span.absolute",
+    "surfImage": "",
+    "ratio": 1.1,
+    "ratioMin": 1.1,
+    "bg": [
+     224,
+     227,
+     231
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF004] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.11,
+    "ratioMin": 1,
+    "bg": [
+     104,
+     112,
+     108
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF006] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 1594.921875,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.12,
+    "ratioMin": 1,
+    "bg": [
+     111,
+     107,
+     101
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF002] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF002] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.35,
+    "ratioMin": 1.06,
+    "bg": [
+     90,
+     79,
+     69
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF006] > div.product-art > span.product-index",
+    "text": "KF006",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.37,
+    "ratioMin": 1.03,
+    "bg": [
+     149,
+     148,
+     143
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF001] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF001] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 1.63,
+    "ratioMin": 1.53,
+    "bg": [
+     189,
+     176,
+     164
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_001] > div.p-3 > p.text-xs",
+    "text": "อ่างล้างหน้าหล่อเข้าเคาน์เตอร์ ไร้ขอบนูน",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1589,
+      "y": 7296.78125,
+      "w": 192.375,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_001]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-counter_018] > div.p-3 > p.text-xs",
+    "text": "เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อมไฟ LED ใต้ฐาน",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1925,
+      "y": 7296.78125,
+      "w": 237.5625,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-counter_018]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-kitchen_003] > div.p-3 > p.text-xs",
+    "text": "ท็อปครัวหินสังเคราะห์ขาว พร้อมอ่างล้างจาน ตู้ไม้",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 2261,
+      "y": 7296.78125,
+      "w": 233.078125,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-kitchen_003]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-dining_table_003] > div.p-3 > p.text-xs",
+    "text": "โต๊ะอาหารหินสังเคราะห์ ฐานไม้ วิวทะเลสาบ",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 2597,
+      "y": 7296.78125,
+      "w": 199.5,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-dining_table_003]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-design_040] > div.p-3 > p.text-xs",
+    "text": "ชั้นวางของโค้งไร้รอยต่อ ห้องน้ำโครงการวรรณศิริ",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 2933,
+      "y": 7296.78125,
+      "w": 238.65625,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-design_040]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_072] > div.p-3 > p.text-xs",
+    "text": "เคาน์เตอร์อ่างคู่ หล่อไร้รอยต่อ ผนังลายหินอ่อน",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 3269,
+      "y": 7296.78125,
+      "w": 224.96875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_072]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_043] > div.p-3 > p.text-xs",
+    "text": "อ่างล้างหน้าโค้งรูปคลื่น ลอยตัว พร้อมก๊อกโครเมีย",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 3605,
+      "y": 7296.78125,
+      "w": 246.875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_043]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_052] > div.p-3 > p.text-xs",
+    "text": "เคาน์เตอร์อ่างคู่หินสังเคราะห์ขาว ผนังไม้โทนอุ่น",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 3941,
+      "y": 7296.78125,
+      "w": 226.109375,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_052]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_057] > div.p-3 > p.text-xs",
+    "text": "เคาน์เตอร์อ่างยาว 4 หลุม ไร้รอยต่อ สไตล์โมเดิร์น",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 4277,
+      "y": 7296.78125,
+      "w": 232.421875,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_057]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_111] > div.p-3 > p.text-xs",
+    "text": "เคาน์เตอร์อ่างหลายหลุม งานห้องน้ำส่วนกลาง",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 4613,
+      "y": 7296.78125,
+      "w": 218.8125,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_111]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_001] > div.p-3 > p.text-xs",
+    "text": "อ่างล้างหน้าหล่อเข้าเคาน์เตอร์ ไร้ขอบนูน",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 4949,
+      "y": 7296.78125,
+      "w": 192.375,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_001]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-counter_018] > div.p-3 > p.text-xs",
+    "text": "เคาน์เตอร์ทรงกลมไร้รอยต่อ พร้อมไฟ LED ใต้ฐาน",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 5285,
+      "y": 7296.78125,
+      "w": 237.5625,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-counter_018]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-kitchen_003] > div.p-3 > p.text-xs",
+    "text": "ท็อปครัวหินสังเคราะห์ขาว พร้อมอ่างล้างจาน ตู้ไม้",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 5621,
+      "y": 7296.78125,
+      "w": 233.078125,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-kitchen_003]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-dining_table_003] > div.p-3 > p.text-xs",
+    "text": "โต๊ะอาหารหินสังเคราะห์ ฐานไม้ วิวทะเลสาบ",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 5957,
+      "y": 7296.78125,
+      "w": 199.5,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-dining_table_003]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-design_040] > div.p-3 > p.text-xs",
+    "text": "ชั้นวางของโค้งไร้รอยต่อ ห้องน้ำโครงการวรรณศิริ",
+    "fg": [
+     18,
+     62,
+     105,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 6293,
+      "y": 7296.78125,
+      "w": 238.65625,
+      "h": 17
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-design_040]",
+    "surfImage": "",
+    "ratio": 1.92,
+    "ratioMin": 1.92,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF007] > div.product-art > span.product-index",
+    "text": "KF007",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 1594.921875,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 2.05,
+    "ratioMin": 1.86,
+    "bg": [
+     212,
+     206,
+     195
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF003] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 848.59375,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 2.23,
+    "ratioMin": 2.11,
+    "bg": [
+     220,
+     220,
+     219
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 1286.609375,
+      "y": 30.484375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.art-note",
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 6072.890625,
+      "w": 18,
+      "h": 202.875
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.52,
+    "ratioMin": 2.97,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.art-note",
+    "text": "READY-MADE PILLAR SET",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 6072.890625,
+      "w": 18,
+      "h": 202.875
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.52,
+    "ratioMin": 2.97,
+    "bg": [
+     226,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 2341.25,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 3087.578125,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.art-note",
+    "text": "COUNTER SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 135.25
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     243,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 3833.90625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 4580.234375,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 337.5,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 666,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 994.5,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.art-note",
+    "text": "VERTICAL SERIES",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1323,
+      "y": 5326.5625,
+      "w": 18,
+      "h": 144.90625
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.56,
+    "ratioMin": 3.53,
+    "bg": [
+     227,
+     242,
+     249
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF009] > div.product-art > span.product-index",
+    "text": "KF009",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF011] > div.product-art > span.product-index",
+    "text": "KF011",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF014] > div.product-art > span.product-index",
+    "text": "KF014",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF016] > div.product-art > span.product-index",
+    "text": "KF016",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF018] > div.product-art > span.product-index",
+    "text": "KF018",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF020] > div.product-art > span.product-index",
+    "text": "KF020",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF021] > div.product-art > span.product-index",
+    "text": "KF021",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF023] > div.product-art > span.product-index",
+    "text": "KF023",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.9,
+    "bg": [
+     244,
+     250,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF026] > div.product-art > span.product-index",
+    "text": "KF026",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF028] > div.product-art > span.product-index",
+    "text": "KF028",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF030] > div.product-art > span.product-index",
+    "text": "KF030",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 6072.890625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.91,
+    "ratioMin": 3.87,
+    "bg": [
+     244,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF010] > div.product-art > span.product-index",
+    "text": "KF010",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF012] > div.product-art > span.product-index",
+    "text": "KF012",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 2341.25,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF013] > div.product-art > span.product-index",
+    "text": "KF013",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF015] > div.product-art > span.product-index",
+    "text": "KF015",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 3087.578125,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF017] > div.product-art > span.product-index",
+    "text": "KF017",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF019] > div.product-art > span.product-index",
+    "text": "KF019",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 3833.90625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF022] > div.product-art > span.product-index",
+    "text": "KF022",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 427.5,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF024] > div.product-art > span.product-index",
+    "text": "KF024",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 1084.5,
+      "y": 4580.234375,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.93,
+    "bg": [
+     245,
+     251,
+     254
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF025] > div.product-art > span.product-index",
+    "text": "KF025",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF027] > div.product-art > span.product-index",
+    "text": "KF027",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 756,
+      "y": 5326.5625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "article[card-product-KF029] > div.product-art > span.product-index",
+    "text": "KF029",
+    "fg": [
+     92,
+     130,
+     151,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 99,
+      "y": 6072.890625,
+      "w": 48.3125,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "surfImage": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "ratio": 3.94,
+    "ratioMin": 3.91,
+    "bg": [
+     245,
+     251,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_001] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 1589,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_001]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-counter_018] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 1925,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-counter_018]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-kitchen_003] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 2261,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-kitchen_003]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-dining_table_003] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 2597,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-dining_table_003]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-design_040] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 2933,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-design_040]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_072] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 3269,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_072]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_043] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 3605,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_043]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_052] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 3941,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_052]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_057] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 4277,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_057]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_111] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 4613,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_111]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-bathroom_new_001] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 4949,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-bathroom_new_001]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-counter_018] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 5285,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-counter_018]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-kitchen_003] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 5621,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-kitchen_003]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-dining_table_003] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 5957,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-dining_table_003]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "button[showcase-photo-design_040] > div.p-3 > span.text-[11px]",
+    "text": "หินสังเคราะห์แท้ ไร้รอยต่อ",
+    "fg": [
+     87,
+     113,
+     134,
+     1
+    ],
+    "size": 11,
+    "large": false,
+    "rects": [
+     {
+      "x": 6293,
+      "y": 7316.78125,
+      "w": 110.578125,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.relative > div.flex > button[showcase-photo-design_040]",
+    "surfImage": "",
+    "ratio": 4.11,
+    "ratioMin": 4.11,
+    "bg": [
+     0,
+     0,
+     0
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "section.product-grid > article[card-product-KF001] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.63
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF002] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.35
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF003] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 2.23
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF004] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 1,
+    "worst": 1.11
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF005] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.03
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF006] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.12
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF007] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.01
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF008] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 1.05
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF009] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF010] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF011] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF012] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF013] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF014] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF015] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF016] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF017] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF018] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF019] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF020] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF021] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF022] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF023] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF024] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF025] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF026] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF027] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF028] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.56
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF029] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.52
+   },
+   {
+    "surface": "section.product-grid > article[card-product-KF030] > div.product-art",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(0, 0, 0, 0) 48%), linear-gradient(",
+    "texts": 2,
+    "worst": 3.52
+   },
+   {
+    "surface": "div > div.storefront-theme-root > footer.site-footer",
+    "kind": "gradient",
+    "image": "linear-gradient(135deg, rgb(234, 246, 251), rgb(225, 240, 247))",
+    "texts": 27,
+    "worst": 4.55
+   }
+  ]
+ }
+]

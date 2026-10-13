@@ -520,6 +520,19 @@ export const STOREFRONT_THEME_STYLES = `
 [data-theme="dark"] .studio-page--sketch :is(.studio-sketch-workpiece-section > strong, .studio-sketch-analysis-title, .studio-sketch-workpieces-summary, .studio-sketch-workpiece-heading, .studio-sketch-workpiece-dimensions) { color: var(--ink) !important; }
 [data-theme="dark"] .studio-page--sketch :is(.studio-sketch-analysis-copy p:not(.studio-sketch-cutout-note), .studio-sketch-cutout-list, .studio-sketch-no-cutouts, .studio-sketch-workpiece-shape) { color: var(--ink-soft) !important; }
 [data-theme="dark"] :is(.studio-sketch-bridge-banner, .sketch-studio-bridge-banner) { background-image: none !important; background-color: var(--card-paper) !important; border-top-color: var(--line) !important; border-right-color: var(--line) !important; border-bottom-color: var(--line) !important; }
+
+/* ─── job 467-C · dark theme: summary panels + product-card labels ──────────────────────────────────────────────────
+   B) .quote-summary / .config-summary are a dark-blue panel with color: var(--paper). --paper is the DARK page colour in this theme
+      (#0f172a), so every line without its own colour (and .quote-terms strong) became dark text on dark blue (1.44). The panel text
+      follows the light-theme paper colour (#f4f9fd) here; the light theme is untouched.
+   C) .product-index ("KF001") / .art-note sit on .product-art: a pale gradient + product photo that stay light in the dark theme
+      (the page-level #1e293b is overridden by the later linear-gradient). Pale text on it = 1.04-1.73, measured on the rendered pixels
+      (qa/tools/gradient-scan-465c.mjs). The labels get their own dark chip so they read on any photo. */
+[data-theme="dark"] :is(.quote-summary, .config-summary) { color: #f4f9fd; }
+[data-theme="dark"] .quote-terms strong { color: #f4f9fd; }
+[data-theme="dark"] .product-index,
+[data-theme="dark"] .art-note { color: #e8eff8; background-color: rgba(11, 19, 36, 0.88); border-radius: 4px; padding: 2px 6px; }
+[data-theme="dark"] .art-note { padding: 6px 2px; }
 `;
 
 export type StorefrontThemeValue = {

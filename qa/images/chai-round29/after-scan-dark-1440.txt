@@ -1,0 +1,27 @@
+
+=== /studio-guide#faq  theme=dark  checked=72  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+
+=== /quote#cart  theme=dark  checked=130  failing(p10 ratio < threshold)=5
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  1.18  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(136,150,164) | 14px | section.quote-heading > div > p.eyebrow | "เลขที่เอกสาร Oct 26 / US / 4832"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.28  | need 3 | solid   | text rgb(232,239,248) on bg~rgb(136,150,164) | 44px | section.quote-heading > div > h1 | "จากรายการ"
+  2.39  | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(123,137,152) | 14px | section.quote-heading > div > p.hero-copy | "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง"
+  2.42  | need 3 | solid   | text rgb(232,239,248) on bg~rgb(125,139,154) | 44px | div > h1 > em | "สู่ตัวเลขที่ชัดเจน"
+  -- gradient / photo surfaces carrying text (1):
+     gradient| worst ratio 4.74  | 17 text(s) | div.quote-editor > div.quote-layout > aside.quote-summary | linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))
+
+=== /  theme=dark  checked=554  failing(p10 ratio < threshold)=9
+  overflow: innerWidth=1440 clientWidth=1440 scrollWidth=1440 -> 0px
+  excluded: 11 text(s) not painted (identical pixels with the text shown and hidden: covered by a photo/overlay) e.g. span.art-note, span.product-index
+  excluded: 12 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  1.23  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(179,177,176) | 14px | article[card-product-KF001] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.25  | need 3 | solid   | text rgb(96,165,250) on bg~rgb(103,114,129) | 44px | div > h1 > em | "อ่างล้างหน้า by ไนท์ เฟอร์นิช"
+  1.29  | need 4.5 | solid   | text rgb(56,189,248) on bg~rgb(132,145,158) | 14px | section.catalog-hero > div > p.eyebrow | "KNIGHT BASINS / 2026"
+  1.6   | need 4.5 | solid   | text rgb(122,185,251) on bg~rgb(123,135,149) | 14px | section.catalog-hero > div > a[link-hero-stone] | "ดูวัสดุหินสังเคราะห์"
+  1.78  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(117,115,104) | 14px | article[card-product-KF004] > div.product-art > span.art-note | "COUNTER SERIES"
+  1.78  | need 4.5 | solid   | text rgb(232,239,248) on bg~rgb(78,84,87) | 14px | article[card-product-KF009] > div.product-art > span.art-note | "COUNTER SERIES"
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  2.71  | need 4.5 | solid   | text rgb(226,232,240) on bg~rgb(110,122,136) | 14px | section.catalog-hero > div > p.hero-copy | "อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่"
+  2.9   | need 3 | solid   | text rgb(255,255,255) on bg~rgb(124,136,150) | 44px | section.catalog-hero > div > h1 | "Knight Basins"

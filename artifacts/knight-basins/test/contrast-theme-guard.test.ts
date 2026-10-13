@@ -206,9 +206,70 @@ describe("466-C /sketch dark theme", () => {
   it("the gradient-aware scanner exists and samples real pixels (the reason the probe's 0 was not trustworthy)", () => {
     const scanner = read("../../../qa/tools/gradient-scan-465c.mjs");
     assert.match(scanner, /captureScreenshot/);
-    assert.ok(scanner.includes("*{color:transparent!important"), "all text is made transparent before the background is sampled");
+    assert.ok(scanner.includes("color:transparent!important"), "all text is made transparent before the background is sampled");
     assert.match(scanner, /getImageData/);
     assert.match(scanner, /elementFromPoint/);
     assert.match(scanner, /#upload/);
+  });
+});
+
+/**
+ * job 467-C: /studio-guide in the dark theme, the summary panels that print `color: var(--paper)`, the product-card labels.
+ */
+describe("467-C /studio-guide, summary panels, product labels", () => {
+  const guide = read("../src/pages/StudioGuidePage.tsx");
+  const dark467 = themeStyles.slice(themeStyles.indexOf("job 467-C · dark theme"), themeStyles.indexOf("export type StorefrontThemeValue"));
+  const css467 = css.slice(css.indexOf("job 467-C · summary panels"));
+  it("/studio-guide has no fixed bg-white surface and no dark: utility (they never fire)", () => {
+    const classes = classStrings(guide).join(" ");
+    const surfaces = classStrings(guide).filter((c) => c.includes("border-[var(--line)]"));
+    assert.ok(surfaces.length >= 4 && surfaces.every((c) => !/(^|\s)bg-white(\s|$)/.test(c)), "bg-white under theme-token text = pale on pale in the dark theme");
+    assert.ok(!/(^|\s)dark:/.test(classes));
+    assert.ok(!/bg-\[rgba\(255,255,255,0\.92\)\]/.test(classes));
+  });
+  it("/studio-guide cards, FAQ and gallery use the theme-following .sg-card (light keeps #ffffff, dark uses --card-paper)", () => {
+    assert.equal((guide.match(/className="sg-card/g) ?? []).length === 3, true);
+    assert.match(guide, /\.sg-card \{ background-color: #ffffff; \}/);
+    assert.match(guide, /\[data-theme="dark"\] \.sg-card \{ background-color: var\(--card-paper\); \}/);
+    assert.match(guide, /\.sg-header \{ background-color: rgba\(255, 255, 255, 0\.92\); \}/);
+  });
+  it("/studio-guide edge-legend labels, tip box and check marks keep their light colours and have dark ones", () => {
+    for (const [cls, light] of [["ridge", "#8a5a00"], ["wall", "#1268B3"], ["open", "#0f7a52"], ["closed", "#1e40af"], ["joint", "#64748b"]] as const) {
+      assert.ok(guide.includes(`.sg-edge-${cls} { color: ${light}; }`), cls);
+      assert.ok(guide.includes(`[data-theme="dark"] .sg-edge-${cls}`), cls);
+    }
+    assert.match(guide, /\.sg-tip \{ background-color: #e5f3fa; color: #1268B3; \}/);
+  });
+  it("summary panels: dark theme text follows the light paper colour; the strong note too", () => {
+    assert.match(dark467, /\[data-theme="dark"\] :is\(\.quote-summary, \.config-summary\) \{ color: #f4f9fd; \}/);
+    assert.match(dark467, /\[data-theme="dark"\] \.quote-terms strong \{ color: #f4f9fd; \}/);
+    assert.ok(ratio("#f4f9fd", "#0e375e") >= 4.5);
+  });
+  it("summary panels: pinned colours for the warning, the TOTAL eyebrow, the small grey lines and 'ฟรี' (both themes)", () => {
+    assert.match(css467, /\.quote-summary \.summary-warning \{ color: #0b1324; \}/);
+    assert.match(css467, /\.quote-summary \.eyebrow \{ color: #cbd5e1; \}/);
+    assert.match(css467, /\.quote-summary \.total-rows small, \.config-summary \.summary-row small \{ color: #b8c3bf; \}/);
+    assert.match(css467, /\.quote-summary \.total-rows \.free-text \{ color: #7cc7ea; \}/);
+    assert.ok(ratio("#0b1324", "#7b8c9f") >= 4.5, "warning on its peach tint over the blue (measured bg rgb(123,140,159))");
+    assert.ok(ratio("#cbd5e1", "#124678") >= 4.5);
+    assert.ok(ratio("#b8c3bf", "#0f3c66") >= 4.5);
+    assert.ok(ratio("#7cc7ea", "#103f6a") >= 4.5);
+  });
+  it("product-card labels get a dark chip in the dark theme only", () => {
+    assert.match(dark467, /\[data-theme="dark"\] \.product-index,\n\[data-theme="dark"\] \.art-note \{ color: #e8eff8; background-color: rgba\(11, 19, 36, 0\.88\)/);
+    assert.ok(!/\.art-note[^{]*\{[^}]*rgba\(11, 19, 36/.test(css467), "not in the shared stylesheet");
+    assert.ok(ratio("#e8eff8", "#373d4b") >= 4.5, "worst case: the 88% chip over a white pixel");
+  });
+  it("no colour token value was assigned and the frozen index.css stays free of dark-theme rules", () => {
+    assert.ok(!/--(ink|ink-soft|paper|card-paper|line|deep|brand-[a-z]+)\s*:/.test(css467 + dark467 + guide.slice(guide.indexOf("STUDIO_GUIDE_THEME_CSS"))));
+    assert.ok(!css.includes('data-theme="dark"'));
+  });
+  it("the sweep script reads the sitemap, covers both themes and both tools, and exits non-zero on a failing route", () => {
+    const sweep = read("../../../qa/tools/sweep-467c.mjs");
+    assert.match(sweep, /sitemap\.xml/);
+    assert.match(sweep, /\["dark", "light"\]/);
+    assert.match(sweep, /contrast-probe\.js/);
+    assert.match(sweep, /gradient-scan-465c\.mjs/);
+    assert.match(sweep, /process\.exit\(bad\.length \? 1 : 0\)/);
   });
 });

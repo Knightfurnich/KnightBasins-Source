@@ -1,0 +1,1487 @@
+[
+ {
+  "target": "/",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 554,
+  "failing": 6,
+  "rows": [
+   {
+    "selector": "section.catalog-hero > div > p.eyebrow",
+    "hero": true,
+    "text": "KNIGHT BASINS / 2026",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 404.828125,
+      "w": 198.8125,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.17,
+    "ratioMin": 1.06,
+    "bg": [
+     119,
+     131,
+     144
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "อ่างล้างหน้า by ไนท์ เฟอร์นิช",
+    "fg": [
+     96,
+     165,
+     250,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 474.421875,
+      "w": 326,
+      "h": 30
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.28,
+    "ratioMin": 1.05,
+    "bg": [
+     77,
+     87,
+     103
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.catalog-hero > div > a[link-hero-stone]",
+    "hero": true,
+    "text": "ดูวัสดุหินสังเคราะห์",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 587.59375,
+      "w": 108.296875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.87,
+    "ratioMin": 1.72,
+    "bg": [
+     101,
+     112,
+     127
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.catalog-hero > div > h1",
+    "hero": true,
+    "text": "Knight Basins",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 430.828125,
+      "w": 177.46875,
+      "h": 41
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.74,
+    "ratioMin": 2.41,
+    "bg": [
+     115,
+     127,
+     141
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.catalog-hero > div > p.hero-copy",
+    "hero": true,
+    "text": "อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 536.8125,
+      "w": 335.90625,
+      "h": 19
+     },
+     {
+      "x": 19.5,
+      "y": 562.703125,
+      "w": 303.15625,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 3.18,
+    "ratioMin": 2.54,
+    "bg": [
+     66,
+     75,
+     92
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/portfolio",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 72,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/stone",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 333,
+  "failing": 4,
+  "rows": [
+   {
+    "selector": "section.stone-hero > div > p.eyebrow",
+    "hero": true,
+    "text": "MATERIAL / CONFIGURATOR",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 404.828125,
+      "w": 228.625,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 1.22,
+    "ratioMin": 1.07,
+    "bg": [
+     109,
+     121,
+     135
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.stone-hero > div > h1",
+    "hero": true,
+    "text": "ท็อปครัว & เคาน์เตอร์หินสังเคราะห์",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 430.828125,
+      "w": 269.96875,
+      "h": 41
+     },
+     {
+      "x": 19.5,
+      "y": 464.421875,
+      "w": 108.8125,
+      "h": 41
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.46,
+    "bg": [
+     107,
+     119,
+     133
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.stone-hero > div > p.hero-copy",
+    "hero": true,
+    "text": "สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 570.40625,
+      "w": 331.75,
+      "h": 19
+     },
+     {
+      "x": 19.5,
+      "y": 596.296875,
+      "w": 345.625,
+      "h": 19
+     },
+     {
+      "x": 19.5,
+      "y": 622.1875,
+      "w": 196.5,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div > div.storefront-theme-root",
+    "surfImage": "",
+    "ratio": 3.7,
+    "ratioMin": 2.85,
+    "bg": [
+     62,
+     72,
+     88
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/price-guide",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 100,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/site-prep",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 16,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/studio-guide",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 71,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/quote",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 107,
+  "failing": 9,
+  "rows": [
+   {
+    "selector": "section.quote-heading > div > p.eyebrow",
+    "hero": true,
+    "text": "เลขที่เอกสาร Oct 26 / US / 5140",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 254.09375,
+      "w": 97.484375,
+      "h": 18
+     },
+     {
+      "x": 116.984375,
+      "y": 254.09375,
+      "w": 178.921875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.06,
+    "bg": [
+     113,
+     127,
+     143
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > span",
+    "hero": true,
+    "text": "วันที่ออกเอกสาร",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 505.859375,
+      "w": 89.421875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.2,
+    "ratioMin": 2.05,
+    "bg": [
+     94,
+     108,
+     125
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > h1",
+    "hero": true,
+    "text": "จากรายการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 282.09375,
+      "w": 128.140625,
+      "h": 41
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.28,
+    "ratioMin": 2.08,
+    "bg": [
+     126,
+     140,
+     155
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "สู่ตัวเลขที่ชัดเจน",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 325.6875,
+      "w": 191.140625,
+      "h": 30
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.58,
+    "ratioMin": 2.29,
+    "bg": [
+     107,
+     120,
+     137
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > small",
+    "hero": true,
+    "text": "ใช้ได้ถึง 12 พ.ย. 2569 · 30 วัน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 567.953125,
+      "w": 43.078125,
+      "h": 19
+     },
+     {
+      "x": 62.578125,
+      "y": 567.953125,
+      "w": 77.484375,
+      "h": 19
+     },
+     {
+      "x": 140.0625,
+      "y": 567.953125,
+      "w": 43.328125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.73,
+    "ratioMin": 2.45,
+    "bg": [
+     67,
+     80,
+     99
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > p.hero-copy",
+    "hero": true,
+    "text": "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 388.078125,
+      "w": 343.625,
+      "h": 19
+     },
+     {
+      "x": 19.5,
+      "y": 413.96875,
+      "w": 129.671875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.51,
+    "bg": [
+     89,
+     102,
+     120
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > button[button-view-quote-history]",
+    "hero": true,
+    "text": "ดูใบเสนอราคาก่อนหน้า",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 690.140625,
+      "w": 131.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 3.66,
+    "ratioMin": 3.34,
+    "bg": [
+     51,
+     64,
+     84
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > strong",
+    "hero": true,
+    "text": "13 ต.ค. 2569",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 536.953125,
+      "w": 101.5,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 4.12,
+    "ratioMin": 3.84,
+    "bg": [
+     86,
+     99,
+     117
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 13,
+    "worst": 4.73
+   }
+  ]
+ },
+ {
+  "target": "/studio",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 119,
+  "failing": 3,
+  "rows": [
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-joint-note",
+    "hero": false,
+    "text": "ต่อแผ่นแล้วต้องได้ฉาก 90°",
+    "fg": [
+     112,
+     79,
+     0,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 161.1875,
+      "y": 2824.09375,
+      "w": 151.3125,
+      "h": 19
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 1.64,
+    "ratioMin": 1.03,
+    "bg": [
+     145,
+     182,
+     161
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div[studio-canvas] > div.studio-canvas-stage > span.studio-canvas-label",
+    "hero": false,
+    "text": "ชิ้นงาน 1",
+    "fg": [
+     85,
+     113,
+     138,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 77.5,
+      "y": 2582.09375,
+      "w": 54.875,
+      "h": 18
+     }
+    ],
+    "kind": "gradient",
+    "surf": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "surfImage": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "ratio": 4.16,
+    "ratioMin": 3.23,
+    "bg": [
+     233,
+     233,
+     230
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div[studio-canvas] > div.studio-canvas-stage > div.studio-piece-rectangle",
+    "kind": "gradient",
+    "image": "radial-gradient(circle at 20% 26%, rgba(255, 255, 255, 0.54) 0px, rgba(255, 255, 255, 0.54",
+    "texts": 1,
+    "worst": 10.26
+   },
+   {
+    "surface": "div.studio-piece-workspace > div.studio-piece-canvas-column > div[studio-canvas]",
+    "kind": "gradient",
+    "image": "linear-gradient(rgb(220, 236, 243) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgb(",
+    "texts": 2,
+    "worst": 1.64
+   }
+  ]
+ },
+ {
+  "target": "/sketch",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 108,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/readme",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 84,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/updates",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 108,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/network",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 49,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/profile",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 34,
+  "failing": 2,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 146.109375,
+      "y": 411.640625,
+      "w": 33.609375,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.profile-lock-card > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.18,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/handover",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 9,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/track",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 10,
+  "failing": 0,
+  "rows": [],
+  "surfaces": []
+ },
+ {
+  "target": "/quote/view",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 32,
+  "failing": 1,
+  "rows": [
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": []
+ },
+ {
+  "target": "/quote#cart",
+  "theme": "dark",
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 119,
+  "failing": 9,
+  "rows": [
+   {
+    "selector": "section.quote-heading > div > p.eyebrow",
+    "hero": true,
+    "text": "เลขที่เอกสาร Oct 26 / US / 5140",
+    "fg": [
+     56,
+     189,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 254.09375,
+      "w": 97.484375,
+      "h": 18
+     },
+     {
+      "x": 116.984375,
+      "y": 254.09375,
+      "w": 178.921875,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 1.16,
+    "ratioMin": 1.06,
+    "bg": [
+     113,
+     127,
+     143
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > span",
+    "hero": true,
+    "text": "วันที่ออกเอกสาร",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 505.859375,
+      "w": 89.421875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.2,
+    "ratioMin": 2.05,
+    "bg": [
+     94,
+     108,
+     125
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "hero": false,
+    "text": "LINE",
+    "fg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "size": 12,
+    "large": false,
+    "rects": [
+     {
+      "x": 228.203125,
+      "y": 23.984375,
+      "w": 28.8125,
+      "h": 16
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+    "surfImage": "",
+    "ratio": 2.26,
+    "ratioMin": 2.26,
+    "bg": [
+     6,
+     199,
+     85
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > h1",
+    "hero": true,
+    "text": "จากรายการ",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 282.09375,
+      "w": 128.140625,
+      "h": 41
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.28,
+    "ratioMin": 2.08,
+    "bg": [
+     126,
+     140,
+     155
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "div > h1 > em",
+    "hero": true,
+    "text": "สู่ตัวเลขที่ชัดเจน",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 325.6875,
+      "w": 191.140625,
+      "h": 30
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.58,
+    "ratioMin": 2.29,
+    "bg": [
+     107,
+     120,
+     137
+    ],
+    "threshold": 3
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > small",
+    "hero": true,
+    "text": "ใช้ได้ถึง 12 พ.ย. 2569 · 30 วัน",
+    "fg": [
+     170,
+     185,
+     204,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 567.953125,
+      "w": 43.078125,
+      "h": 19
+     },
+     {
+      "x": 62.578125,
+      "y": 567.953125,
+      "w": 77.484375,
+      "h": 19
+     },
+     {
+      "x": 140.0625,
+      "y": 567.953125,
+      "w": 43.328125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.73,
+    "ratioMin": 2.45,
+    "bg": [
+     67,
+     80,
+     99
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div > p.hero-copy",
+    "hero": true,
+    "text": "ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง",
+    "fg": [
+     226,
+     232,
+     240,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 388.078125,
+      "w": 343.625,
+      "h": 19
+     },
+     {
+      "x": 19.5,
+      "y": 413.96875,
+      "w": 129.671875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 2.9,
+    "ratioMin": 2.51,
+    "bg": [
+     89,
+     102,
+     120
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > button[button-view-quote-history]",
+    "hero": true,
+    "text": "ดูใบเสนอราคาก่อนหน้า",
+    "fg": [
+     122,
+     185,
+     251,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 690.140625,
+      "w": 131.28125,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 3.66,
+    "ratioMin": 3.34,
+    "bg": [
+     51,
+     64,
+     84
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "section.quote-heading > div.quote-date > strong",
+    "hero": true,
+    "text": "13 ต.ค. 2569",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 19.5,
+      "y": 536.953125,
+      "w": 101.5,
+      "h": 18
+     }
+    ],
+    "kind": "solid",
+    "surf": "main[storefront-main] > div.page-wrap > div.quote-editor",
+    "surfImage": "",
+    "ratio": 4.12,
+    "ratioMin": 3.84,
+    "bg": [
+     86,
+     99,
+     117
+    ],
+    "threshold": 4.5
+   }
+  ],
+  "surfaces": [
+   {
+    "surface": "div.quote-editor > div.quote-layout > aside.quote-summary",
+    "kind": "gradient",
+    "image": "linear-gradient(145deg, rgb(18, 72, 120), rgb(12, 49, 84))",
+    "texts": 17,
+    "worst": 4.73
+   }
+  ]
+ }
+]
