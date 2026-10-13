@@ -1,5 +1,48 @@
 # 468-R — รายงานบางส่วน / Draft — ยังไม่พร้อม merge
 
+## รอบติดตามล่าสุด — occlusion / Studio / A4 fixture
+
+รายงานส่วนเดิมด้านล่างเป็นประวัติ ไม่ใช่ผลรับรอง source ล่าสุด.
+
+- ตรวจ CI รอบ 03:06: [38340125259](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/38340125259).
+  Unit tests / release contents ผ่าน; coverage 1440 ผ่าน แต่เหลือ dark `/` KF029/KF030
+  และป้าย “ชิ้นงาน 1” ทั้งสองธีม.
+- Scanner สุ่ม 9 จุดต่อ own-text rectangle แล้วใช้ `document.elementFromPoint`.
+  ถ้าทุกจุดถูกทับ: บันทึก `occluded / มองไม่เห็น`, selector, text, theme, width,
+  covering elements และทุก sampled point ลง JSON/log/summary; ไม่เพิ่ม selector allowlist.
+  จุดที่เห็นจริงยังถูกวัด; hero ที่วัดไม่ได้ยัง fail. LINE allowlist เดิมไม่เปลี่ยน.
+- KF029/KF030 ถูกทับจริงโดย `div.basin-visual > img.basin-image` ตาม artifact
+  ของ [38357838329](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/38357838329).
+- ป้าย Studio ใช้ `#173f6b` ทั้งสองธีม; สีแคนวาส/วัสดุไม่เปลี่ยน.
+  CI รอบดังกล่าว dark 1440 = 8.89 และ dark 390 = 8.73 (เดิม 4.23/4.24).
+- พิสูจน์แดงบน test-only branch ไม่มี PR เพิ่ม/ไม่มี deploy:
+  [38357870452](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/38357870452).
+  เปลี่ยนเพียงป้าย Studio เป็น `#8b9dae`: 1440 แดงเฉพาะ `/studio` ทั้งสองธีมที่ 2.31;
+  unit tests/release contents ยังผ่าน. Source ของ #609 ไม่มีสีทดลองนี้.
+- รอบ 38357838329: sweep 1440 ผ่าน 34 route/theme pairs, REAL = 0, overflow = 0.
+  390 coverage ผ่าน แต่ยังแดง 8 pairs; ไม่อ้างว่าเป็น UI failures ทั้งหมด:
+  beyond-viewport capture อาจเปลี่ยน layout width และทำให้ sample ไม่ตรงข้อความ.
+- แก้ capture เป็น paired viewport screenshots ที่ตำแหน่งเลื่อนเดียวกัน โดยไม่ใช้
+  beyond-viewport clip; บันทึก viewport/layout widths และ actual tile positions.
+  Diagnostic เฉพาะหน้า 390: `/price-guide` และ `/portfolio` ไม่มีจุดตก;
+  ยังเหลือ PROJECT DETAILS (`#577186`, 4.08) และ Studio joint note (`#704f00`, 1.64).
+  ผล diagnostic ไม่ใช้แทน full CI acceptance; ยังไม่แก้สีจุดเพิ่มเติมนอกคำขอล่าสุด.
+- Occlusion fixture ทั้ง dark/light × 1440/390: 4/4 ผ่าน. แถวที่ถูกทับมีหลักฐาน
+  `div.photo`; visible bad control ยังตกที่ 2.79 และ visible good control ผ่าน 10.72.
+- A4 existing case บน CI เดิมผ่าน catalog แต่ timeout ตอน formal quote เพราะ read-only
+  API ไม่รับ POST. เพิ่ม fixture wrapper: local catalogue + in-memory leads/quotes
+  + explicit six-row print document (KF001/KF002/KF019/BW010/MU010/EG501).
+  ไม่ติดต่อ production API และไม่เปลี่ยน assert ของ original browser case.
+  Local Linux fixture: 1 pass / 0 fail / 0 skip รวม mobile layout, print CSS,
+  real PDF, `pdfinfo` และ `pdftotext` assertions.
+  **นี่คือ print-rendering proof ไม่ใช่ quote-editing/server-pricing acceptance.**
+- เทียบ print blocks กับ main `cf3fd0d088afddb00f1f74da001261a5efe6c2b2`:
+  index.css 5 blocks และ ThemeToggle 1 block เหมือนกัน byte-for-byte;
+  print block diff = **0 บรรทัด**. รอบติดตามไม่แก้ index.css/App.tsx.
+- Source guard ล่าสุด: 75/75; scanner syntax ผ่าน. ไม่แก้/ไม่รอ 7 local web failures/TTS.
+- **ยังคง Draft จนกว่าจะมี exact-head CI green + red proof ของ capture รุ่นล่าสุด,
+  full sweep และ A4 CI ครบ.** ถ้า CI ยืนยันจุดเพิ่มเติมจริง ต้องยืนยัน SCOPE ก่อนแก้สี.
+
 ## ติดตามหลังฉบับแก้ 2 — รับคำตรวจจากเดวิด
 
 - E ได้รับการรับรองจากผู้ตรวจแล้ว; ไม่เปลี่ยน E อีก และยังไม่แยก PR เพราะรอบนี้รับทำข้อ 3+5 ใน #609.

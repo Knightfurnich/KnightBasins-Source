@@ -140,8 +140,8 @@ const COLLECT = `(() => {
 })()`;
 
 // ---- page-side: sample pixels behind each element ----
-// job 467-C: a single Page.captureScreenshot taller than ~16k px comes back blank (black) below that, which made rows low on
-// the home page read "bg rgb(0,0,0)". The page is therefore captured in 4000px tiles and stitched on one canvas before sampling.
+// Stitch paired 900px viewport screenshots. Avoid giant captures (blank below ~16k)
+// and beyond-viewport clip reflow on classic-scrollbar layouts.
 const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
   const rows = ${JSON.stringify(rows)};
   const tiles = ${JSON.stringify(tiles)};
@@ -268,19 +268,25 @@ for (const target of targets) {
       if(box){const card=await cdp("Page.captureScreenshot",{format:"png",captureBeyondViewport:true,clip:box});writeFileSync(`${shotPrefix}-${sku}-${theme}-${viewport}.png`,Buffer.from(card.data,"base64"));}
     }
   }
-  const visTiles = [];
-  const hVis = await ev("Math.min(document.documentElement.scrollHeight, 60000)");
-  for (let y = 0; y < hVis; y += 4000) {
-    const part = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y, width: viewport, height: Math.min(4000, hVis - y), scale: 1 } });
-    visTiles.push({ y, b64: part.data });
-  }
   const collected = await ev(COLLECT);
   if(!collected?.rows?.length||collected.theme!==theme||collected.ov.innerWidth!==viewport){proc.kill();throw new Error(`${target}: missing text, wrong theme or viewport — contrast was NOT checked`);}
-  await sleep(300);
-  const tiles = [];
-  for (let y = 0; y < collected.height; y += 4000) {
-    const part = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y, width: collected.width, height: Math.min(4000, collected.height - y), scale: 1 } });
-    tiles.push({ y, b64: part.data });
+  // Paired viewport captures never change document width for a beyond-viewport
+  // clip. On classic-scrollbar mobile layouts a 390px clip can reflow 375px
+  // content, moving a label onto pixels belonging to a different element.
+  // Both images use the SAME scroll position/layout; record actual (clamped) y.
+  const visTiles = [], tiles = [];
+  for (let y = 0; y < collected.height; y += 900) {
+    const actualY = await ev(`(async () => {
+      document.getElementById("scan-hide-text").disabled = true;
+      scrollTo(0, ${y}); await new Promise(r => requestAnimationFrame(r));
+      return scrollY;
+    })()`);
+    const shown = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    await ev('document.getElementById("scan-hide-text").disabled = false');
+    const hidden = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    visTiles.push({ y: actualY, b64: shown.data });
+    tiles.push({ y: actualY, b64: hidden.data });
+    if (actualY + 900 >= collected.height) break;
   }
   if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
   const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
@@ -319,6 +325,7 @@ for (const target of targets) {
   }));
    for(const row of unmeasurable)console.log(`  ${row.status} @${viewport}: ${row.selector} "${row.text}" — ${row.reason}`);
   all.push({ target, theme: collected.theme, width:viewport, overflow: collected.ov, checked: rows.length, failing: failing.length,
+     capture:{method:"paired viewport screenshots, no beyond-viewport clip",viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y)},
     coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
      exclusions:{covered:collected.covered,moving:collected.moving,unpainted,occluded}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
   if(jsonOut)writeFileSync(jsonOut, JSON.stringify(all,null,1));
