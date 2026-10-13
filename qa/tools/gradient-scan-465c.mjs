@@ -31,6 +31,14 @@ const undo468 = args.includes("--undo468"); if (undo468) args.splice(args.indexO
 const [base, theme, ...targets] = args;
 const chrome = process.env.CHROME_BIN ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : "/usr/bin/google-chrome");
 const viewport = Number(process.env.SCAN_WIDTH ?? 1440);
+// Width-specific positive coverage, not a contrast allowlist. Every measurable row still counts.
+// Other product labels are behind photos, or have no recoverable glyph interior at this width;
+// they remain individually recorded as NOT MEASURABLE (with reason), never silently passed.
+const REQUIRED_LABELS_BY_WIDTH = {
+  1440: ["KF029", "KF030"],
+  390: ["KF019", "KF020", "KF021", "KF023", "KF025", "KF026", "KF028", "KF029", "KF030"],
+};
+if (!REQUIRED_LABELS_BY_WIDTH[viewport]) throw new Error(`No coverage contract for width ${viewport} — contrast was NOT checked`);
 if (!existsSync(chrome)) { console.error(`Chrome unavailable at ${chrome} — contrast was NOT checked`); process.exit(2); }
 
 // ---- tiny grey PNG for the upload state (no dependency) ----
@@ -280,9 +288,21 @@ for (const target of targets) {
     for (const s of surfaces.values()) console.log(`     ${s.kind.padEnd(8)}| worst ratio ${String(s.worst).padEnd(6)}| ${s.texts} text(s) | ${s.surface} | ${s.image}`);
   }
   const coverage={heroes:rows.filter(r=>r.hero).length,productLabels:rows.filter(r=>r.productLabel).length};
-  const requiredMissing=sampled.filter(r=>(r.hero||r.productLabel)&&r.ratio==null&&!r.unpainted);
-  if((["/","/stone","/quote"].includes(route)&&!coverage.heroes)||(route==="/"&&!coverage.productLabels)||requiredMissing.length){proc.kill();throw new Error(`${target}: required hero/product-label pixels were NOT checked: ${JSON.stringify({coverage,missing:requiredMissing.map(r=>r.selector)})}`);}
-  all.push({ target, theme: collected.theme, overflow: collected.ov, checked: rows.length, failing: failing.length, coverage, exclusions:{covered:collected.covered,moving:collected.moving,unpainted}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
+  const requiredLabels = route === "/" ? REQUIRED_LABELS_BY_WIDTH[viewport].map(sku=>`article[card-product-${sku}] > div.product-art > span.art-note`) : [];
+  const requiredMissing = [...sampled.filter(r=>r.hero&&r.ratio==null).map(r=>r.selector),
+    ...requiredLabels.filter(selector=>!rows.some(r=>r.selector===selector)&&!unpainted.some(r=>r.selector===selector))];
+  const unmeasurable = sampled.filter(r=>r.ratio==null).map(r=>({
+    selector:r.selector,text:r.text,width:viewport,theme:collected.theme,required:r.hero||requiredLabels.includes(r.selector),
+    status:"NOT MEASURABLE / วัดไม่ได้",
+    reason:r.unpainted ? "Visible and hidden pixels identical: text covered by photo/overlay; no painted text pixels detected" :
+      "Visible/hidden pixel difference detected, but no reliable glyph-interior samples at this viewport width",
+  }));
+  for(const row of unmeasurable)console.log(`  NOT MEASURABLE / วัดไม่ได้ @${viewport}: ${row.selector} — ${row.reason}`);
+  all.push({ target, theme: collected.theme, width:viewport, overflow: collected.ov, checked: rows.length, failing: failing.length,
+    coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
+    exclusions:{covered:collected.covered,moving:collected.moving,unpainted}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
+  if(jsonOut)writeFileSync(jsonOut, JSON.stringify(all,null,1));
+  if((["/","/stone","/quote"].includes(route)&&!coverage.heroes)||requiredMissing.length){socket.close();proc.kill();throw new Error(`${target}: required hero/product-label pixels were NOT checked: ${JSON.stringify({width:viewport,coverage,missing:requiredMissing})}`);}
 }
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify(all, null, 1));
 socket.close(); proc.kill(); process.exit(0);

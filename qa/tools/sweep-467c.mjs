@@ -58,7 +58,7 @@ for (const theme of ["dark", "light"]) {
     const line = failures.filter((x) => ALLOWLIST.some((entry) => entry.matches(x)));
     const real = failures.filter((x) => !ALLOWLIST.some((entry) => entry.matches(x)));
     const hero = real.filter((x) => x.hero);
-    const v = { theme, target: r.target, checked: r.checked, coverage: r.coverage, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
+    const v = { theme, target: r.target, checked: r.checked, coverage: r.coverage, unmeasurable:r.unmeasurable, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
     verdict.push(v);
     if (!r.target.includes("#")) probeTasks.push(async () => {
       const output = await new Promise((resolve, reject) => {

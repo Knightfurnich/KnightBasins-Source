@@ -85,6 +85,9 @@ describe("468-R hero, labels and independent night-work fee", () => {
     assert.match(sweep, /if \(!existsSync\(chrome\)\)/);
     assert.match(sweep, /Expected 12 sitemap routes/);
     assert.match(scanner, /required hero\/product-label pixels were NOT checked/);
+    assert.match(scanner, /REQUIRED_LABELS_BY_WIDTH/);
+    assert.match(scanner, /NOT MEASURABLE \/ วัดไม่ได้/);
+    assert.match(scanner, /sampled\.filter\(r=>r\.hero&&r\.ratio==null\)/, "no unmeasurable hero exemption");
   });
 });
 const classStrings = (src: string) => [...src.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2] ?? "");

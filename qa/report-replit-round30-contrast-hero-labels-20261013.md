@@ -1,5 +1,29 @@
 # 468-R — รายงานบางส่วน / Draft — ยังไม่พร้อม merge
 
+## ติดตามหลังฉบับแก้ 2 — รับคำตรวจจากเดวิด
+
+- E ได้รับการรับรองจากผู้ตรวจแล้ว; ไม่เปลี่ยน E อีก และยังไม่แยก PR เพราะรอบนี้รับทำข้อ 3+5 ใน #609.
+- D เป็น no-op ตาม production ที่เดวิดยืนยัน; App.tsx ไม่แก้.
+- ยึด CI เป็นหลัก: [Release validation / original #609](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/38337180395)
+  Unit tests และ Validate release contents **success**. ไม่แก้/ไม่รอ local web failures หรือ TTS.
+  ตาราง local ด้านล่างเป็นบันทึกประวัติ ไม่ใช่ตัวบล็อกการตรวจรับอีกแล้ว.
+- เพิ่ม candidate width-aware coverage: 1440 require visible `.art-note` KF029/KF030;
+  390 require visible `.art-note` KF019/KF020/KF021/KF023/KF025/KF026/KF028/KF029/KF030.
+  ทุก measured row ยังถูกตรวจ ratio แม้ไม่ได้อยู่ใน mandatory list; ไม่เพิ่ม contrast allowlist.
+  Hero ทุก sampled row ที่วัดไม่ได้เป็น error; ไม่มี hero exemption.
+  บันทึก nullable rows ทุกแถวเป็น `NOT MEASURABLE / วัดไม่ได้`, selector/ข้อความ/width/theme/เหตุผล
+  ลง JSON และ stdout รวมถึงแถวที่ไม่ถูกวาดเพราะภาพ/overlay. รายการถูกส่งต่อใน sweep summary.
+- ลองจัดลำดับ capture, คง content width และ capture ทีละ viewport เพื่อแยกปัญหาพิกเซล
+  แต่ยังได้ค่าต่ำที่ขัดกับ backing chip และแถวที่วัดไม่ได้. **ไม่ใช้ผลทดลองเป็นคำรับรองว่า UI ตกจริง**.
+  คืนวิธี capture เดิมแล้ว; เก็บเพียง width-aware/reporting change เป็น candidate.
+  `coverage-dark-*.json/log` และ `width-fixed-*` เป็น experimental traces ไม่ใช่ validation ของ final source.
+- A4: รัน existing browser case “keeps every basin and stone row readable on mobile and across print pages”
+  กับ isolated build; **fail** ก่อนขั้น print, `Timed out waiting for catalog cards`.
+  ดู `a4-proof.log`; ไม่มี PDF ที่ผ่าน และไม่อ้างว่า A4 ผ่านจาก computed CSS.
+- ยังไม่มี green gate, intentional-red gate, complete sweep หรือ A4 pass ในรอบติดตามนี้.
+  **ยังคง Draft.** รายการส่งงานข้อ 3+5 ยังไม่เสร็จ; ต้องแก้ความน่าเชื่อถือของ pixel capture
+  และตรวจ A4 ใน runtime ที่ตรงกับ CI ก่อนเปลี่ยนเป็นพร้อม merge.
+
 วันที่ 13 ตุลาคม 2026 · ผู้รัน: Replit Agent · Linux / Node 24.13.0 · เวลาไทยประมาณ 08:30–09:30
 
 Baseline: `ea03f9517cf0484ce734f43bf62fbed83ed4ad78`.
