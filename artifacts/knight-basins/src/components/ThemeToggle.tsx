@@ -381,7 +381,7 @@ export const STOREFRONT_THEME_STYLES = `
 /* The drawing/material surface stays pale in both themes; change text only. */
 [data-theme="light"] .studio-canvas-label,
 [data-theme="dark"] .studio-canvas-label {
-  color: #173f6b;
+  color: #8b9dae;
 }
 
 [data-theme="dark"] .studio-stone-choice,
