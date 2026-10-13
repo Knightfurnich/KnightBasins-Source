@@ -1,0 +1,8 @@
+file:///home/runner/workspace/.local/knight468-work/qa/tools/gradient-scan-465c.mjs:256
+  if(!collected?.rows?.length||collected.theme!==theme||collected.ov.innerWidth!==viewport){proc.kill();throw new Error(`${target}: missing text, wrong theme or viewport — contrast was NOT checked`);}
+                                                                                                              ^
+
+Error: /: missing text, wrong theme or viewport — contrast was NOT checked
+    at file:///home/runner/workspace/.local/knight468-work/qa/tools/gradient-scan-465c.mjs:256:111
+
+Node.js v24.13.0

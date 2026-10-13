@@ -6605,3 +6605,9 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 .quote-summary .eyebrow { color: #cbd5e1; }                            /* ink-soft #577186 = 1.88 on the blue */
 .quote-summary .total-rows small, .config-summary .summary-row small { color: #b8c3bf; }   /* #9daaa4 = 4.1 / #8e9a96 = 3.78 */
 .quote-summary .total-rows .free-text { color: #7cc7ea; }                 /* "ฟรี" saffron #44a9d4 on the blue = 4.0 */
+
+/* job 468-R · pinned text colours only; no token, fill or geometry changes. */
+[data-theme="light"] .product-index,
+[data-theme="light"] .art-note { color: #34495b; }
+[data-theme="light"] .quote-main .eyebrow { color: #4b6276; }
+[data-theme="light"] .footer-meta { color: #4b6276; }

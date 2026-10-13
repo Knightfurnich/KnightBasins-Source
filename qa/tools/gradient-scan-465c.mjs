@@ -17,7 +17,7 @@
  * Read-only against the app; the test image is a generated grey PNG, no customer data.
  */
 import { spawn } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import zlib from "node:zlib";
@@ -27,9 +27,19 @@ const flag = (n) => { const i = args.indexOf(n); if (i < 0) return null; const v
 const jsonOut = flag("--json");
 const shotPrefix = flag("--shot"); // e.g. qa/images/chai-round28/after  -> <prefix>-<route>-<state>-<theme>-<width>.png (taken with the text visible)
 const showAll = args.includes("--all"); if (showAll) args.splice(args.indexOf("--all"), 1);
+const undo468 = args.includes("--undo468"); if (undo468) args.splice(args.indexOf("--undo468"), 1);
 const [base, theme, ...targets] = args;
-const chrome = process.env.CHROME_BIN ?? "C:/Program Files/Google/Chrome/Application/chrome.exe";
+const chrome = process.env.CHROME_BIN ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : "/usr/bin/google-chrome");
 const viewport = Number(process.env.SCAN_WIDTH ?? 1440);
+// Width-specific positive coverage, not a contrast allowlist. Every measurable row still counts.
+// Other product labels are behind photos, or have no recoverable glyph interior at this width;
+// they remain individually recorded as NOT MEASURABLE (with reason), never silently passed.
+const REQUIRED_LABELS_BY_WIDTH = {
+  1440: ["KF029", "KF030"],
+  390: ["KF019", "KF020", "KF021", "KF023", "KF025", "KF026", "KF028", "KF029", "KF030"],
+};
+if (!REQUIRED_LABELS_BY_WIDTH[viewport]) throw new Error(`No coverage contract for width ${viewport} — contrast was NOT checked`);
+if (!existsSync(chrome)) { console.error(`Chrome unavailable at ${chrome} — contrast was NOT checked`); process.exit(2); }
 
 // ---- tiny grey PNG for the upload state (no dependency) ----
 function makePng(w = 240, h = 160) {
@@ -44,7 +54,7 @@ const pngPath = join(mkdtempSync(join(tmpdir(), "scan466-")), "test-sketch.png")
 writeFileSync(pngPath, makePng());
 
 const port = 9000 + Math.floor(Math.random() * 300);
-const proc = spawn(chrome, [`--remote-debugging-port=${port}`, "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars", `--user-data-dir=${mkdtempSync(join(tmpdir(), "chai-466c-"))}`, "about:blank"], { stdio: "ignore" });
+const proc = spawn(chrome, [`--remote-debugging-port=${port}`, "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-features=OverlayScrollbar", `--user-data-dir=${mkdtempSync(join(tmpdir(), "chai-466c-"))}`, "about:blank"], { stdio: "ignore" });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws = "";
 for (let i = 0; i < 60 && !ws; i++) {
@@ -59,7 +69,8 @@ socket.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.
 const cdp = (method, params = {}) => new Promise((res) => { const i = ++id; waiting.set(i, res); socket.send(JSON.stringify({ id: i, method, params })); });
 const ev = async (expression) => (await cdp("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result?.value;
 await cdp("Page.enable"); await cdp("DOM.enable");
-await cdp("Emulation.setDeviceMetricsOverride", { width: viewport, height: 900, deviceScaleFactor: 1, mobile: viewport < 768 });
+await cdp("Emulation.setDeviceMetricsOverride", { width: viewport, height: 900, deviceScaleFactor: 1, mobile: false });
+await cdp("Emulation.setEmulatedMedia", { features: [{name:"prefers-reduced-motion",value:"reduce"}] });
 
 // ---- page-side: collect text elements (before text is hidden) ----
 const COLLECT = `(() => {
@@ -95,25 +106,42 @@ const COLLECT = `(() => {
     // reported as "moving" and checked by arithmetic in the report instead of by pixels
     for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) { const cs = getComputedStyle(n); if ((cs.overflowX === "auto" || cs.overflowX === "scroll") && n.scrollWidth > n.clientWidth + 2) { moving++; return; } }
     els.push(el);
-    out.push({ selector: label(el), hero: !!el.closest('[class*="-hero"],[class*="hero-"],.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), size, large, rects,
+    el.style.setProperty("--contrast-original-shadow", s.textShadow);
+    out.push({ selector: label(el), productLabel: el.matches(".product-index,.art-note"), hero: !!el.closest('.catalog-hero,.stone-hero,.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), shadow:s.textShadow, size, large, rects,
       kind: surf.kind, surf: label(surf.node), surfImage: surf.kind === "solid" ? "" : getComputedStyle(surf.node).backgroundImage.slice(0, 90) });
   });
-  // drop text that is covered by something else at its first box (pop-overs, sticky bars): the customer cannot see it there
-  const keep = out.map((row, i) => { const q = row.rects[0]; window.scrollTo(0, Math.max(0, q.y - 300)); const top = document.elementFromPoint(q.x + q.w / 2 - scrollX, q.y + q.h / 2 - scrollY); return !top || els[i] === top || els[i].contains(top) || top.contains(els[i]); });
+   // Geometric evidence, not a selector exemption: test nine points in EACH own-text box.
+   // Keep every row in the artifact. Only fully occluded text is excluded from REAL.
+   out.forEach((row, i) => {
+     const points = [];
+     for (const q of row.rects) {
+       window.scrollTo(0, Math.max(0, q.y - 300));
+       for (const fx of [0.2, 0.5, 0.8]) for (const fy of [0.2, 0.5, 0.8]) {
+         const x = q.x + q.w * fx - scrollX, y = q.y + q.h * fy - scrollY;
+         if (x < 0 || x >= innerWidth || y < 0 || y >= innerHeight) continue;
+         const top = document.elementFromPoint(x, y);
+         const visible = !!top && (els[i] === top || els[i].contains(top));
+         points.push({ x: Math.round(x + scrollX), y: Math.round(y + scrollY), visible,
+           coveringElement: top ? label(top) : null });
+       }
+     }
+     row.visibilitySamples = points;
+     row.occluded = points.length > 0 && points.every(p => !p.visible && p.coveringElement);
+     row.coveringElements = [...new Set(points.filter(p => !p.visible).map(p => p.coveringElement).filter(Boolean))];
+   });
   window.scrollTo(0, 0);
-  const visible = out.filter((_, i) => keep[i]);
   // job 467-C: a sticky box (the quote / config summary asides) is drawn at a shifted place by a beyond-viewport capture, so the pixels
   // behind its text were read from the page behind it. At scrollY=0 a sticky box sits at its natural spot: pin it there as relative.
   document.querySelectorAll("body *").forEach((n) => { if (getComputedStyle(n).position === "sticky") { n.style.setProperty("position", "relative", "important"); n.style.setProperty("top", "auto", "important"); } });
   const style = document.createElement("style"); style.id = "scan-hide-text";
-  style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
+  style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:var(--contrast-original-shadow,none)!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
   document.head.appendChild(style);
-  return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: visible, covered: out.length - visible.length, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
+   return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: out, covered: out.filter(r => r.occluded).length, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
 })()`;
 
 // ---- page-side: sample pixels behind each element ----
-// job 467-C: a single Page.captureScreenshot taller than ~16k px comes back blank (black) below that, which made rows low on
-// the home page read "bg rgb(0,0,0)". The page is therefore captured in 4000px tiles and stitched on one canvas before sampling.
+// Stitch paired 900px viewport screenshots. Avoid giant captures (blank below ~16k)
+// and beyond-viewport clip reflow on classic-scrollbar layouts.
 const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
   const rows = ${JSON.stringify(rows)};
   const tiles = ${JSON.stringify(tiles)};
@@ -141,6 +169,7 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
   };
   const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   return rows.map((row) => {
+     if (row.occluded) return { ...row, ratio: null };
     if (!painted(row)) return { ...row, ratio: null, unpainted: true };
     const ratios = []; let sr = 0, sg = 0, sb = 0, n = 0;
     for (const rc of row.rects) {
@@ -149,9 +178,12 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
       if (y0 >= img.height) continue;
       const w = Math.max(1, Math.min(img.width - x0, Math.floor(rc.w) - 2 * inset)), h = Math.max(1, Math.min(img.height - y0, Math.floor(rc.h) - 2 * inset));
       const data = cx.getImageData(x0, y0, w, h).data;
-      const step = Math.max(1, Math.floor(Math.sqrt((w * h) / 150)));
+      const visible = row.hero || row.productLabel ? cx2.getImageData(x0,y0,w,h).data : null;
+      const step = visible ? 1 : Math.max(1, Math.floor(Math.sqrt((w * h) / 150)));
       for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
         const o = (y * w + x) * 4; const r = data[o], g = data[o + 1], b = data[o + 2];
+        if (visible && (Math.max(Math.abs(visible[o]-r),Math.abs(visible[o+1]-g),Math.abs(visible[o+2]-b)) <= 6 ||
+          Math.max(Math.abs(visible[o]-row.fg[0]),Math.abs(visible[o+1]-row.fg[1]),Math.abs(visible[o+2]-row.fg[2])) > 24)) continue;
         sr += r; sg += g; sb += b; n++;
         const a = row.fg[3]; const fr = row.fg[0] * a + r * (1 - a), fg = row.fg[1] * a + g * (1 - a), fb = row.fg[2] * a + b * (1 - a);
         const l1 = lum(fr, fg, fb), l2 = lum(r, g, b);
@@ -201,23 +233,60 @@ for (const target of targets) {
   await ev(`localStorage.setItem("knight-storefront-theme","${theme}"); location.reload();`);
   await sleep(3500);
   await applyState(state);
+  // Settle lazy images and reveal observers before BOTH captures, not only the hidden capture.
+  await ev(`(async () => {
+    await document.fonts.ready;
+    const style=document.createElement("style"); style.textContent="*{animation:none!important;transition:none!important;scroll-behavior:auto!important}"; document.head.appendChild(style);
+    document.querySelectorAll("img").forEach((im)=>{im.loading="eager";});
+    for(let y=0;y<document.documentElement.scrollHeight;y+=700){scrollTo(0,y);await new Promise(r=>requestAnimationFrame(r));}
+    scrollTo(0,0);
+    await Promise.race([Promise.all([...document.images].map(im=>im.decode().catch(()=>{}))),new Promise(r=>setTimeout(r,2500))]);
+    document.querySelectorAll("body *").forEach(n=>{if(getComputedStyle(n).position==="sticky"){n.style.setProperty("position","relative","important");n.style.setProperty("top","auto","important");}});
+  })()`);
+  await sleep(300);
+  if (undo468) {
+    const removed = await ev(`(() => {
+      let count=0;
+      for(const sheet of document.styleSheets){
+        let rules;try{rules=sheet.cssRules;}catch{continue;}
+        for(let i=rules.length-1;i>=0;i--){
+          const r=rules[i];if(!r.selectorText||!r.style)continue;const sel=r.selectorText,color=r.style.color;
+          if(sel.includes('[data-theme="light"]')&&(sel.includes('.product-index')&&color==='rgb(52, 73, 91)'||(sel.includes('.quote-main .eyebrow')||sel.includes('.footer-meta'))&&color==='rgb(75, 98, 118)')||
+            sel.includes('[data-theme="dark"]')&&sel.includes('.catalog-hero, .stone-hero, .quote-heading')&&r.style.textShadow.includes('rgb(7, 17, 31)')){sheet.deleteRule(i);count++;}
+        }
+      }
+      return count;
+    })()`);
+    if(!removed){proc.kill();throw new Error("Reversal removed no rules — baseline was NOT checked");}
+  }
   if (shotPrefix) {
-    const h = await ev("Math.min(document.documentElement.scrollHeight, 15000)");
+    const h = await ev("Math.min(document.documentElement.scrollHeight, 900)");
     const vis = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: viewport, height: h, scale: 1 } });
     writeFileSync(`${shotPrefix}-${route.replace(/\//g, "") || "home"}-${state ?? "initial"}-${theme}-${viewport}.png`, Buffer.from(vis.data, "base64"));
-  }
-  const visTiles = [];
-  const hVis = await ev("Math.min(document.documentElement.scrollHeight, 60000)");
-  for (let y = 0; y < hVis; y += 4000) {
-    const part = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y, width: viewport, height: Math.min(4000, hVis - y), scale: 1 } });
-    visTiles.push({ y, b64: part.data });
+    if (route === "/") for (const sku of ["KF003", "KF006"]) {
+      const box = await ev(`(() => {const el=document.querySelector('[data-testid="card-product-${sku}"]');if(!el)return null;const r=el.getBoundingClientRect();return{x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height,scale:1};})()`);
+      if(box){const card=await cdp("Page.captureScreenshot",{format:"png",captureBeyondViewport:true,clip:box});writeFileSync(`${shotPrefix}-${sku}-${theme}-${viewport}.png`,Buffer.from(card.data,"base64"));}
+    }
   }
   const collected = await ev(COLLECT);
-  await sleep(300);
-  const tiles = [];
-  for (let y = 0; y < collected.height; y += 4000) {
-    const part = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y, width: collected.width, height: Math.min(4000, collected.height - y), scale: 1 } });
-    tiles.push({ y, b64: part.data });
+  if(!collected?.rows?.length||collected.theme!==theme||collected.ov.innerWidth!==viewport){proc.kill();throw new Error(`${target}: missing text, wrong theme or viewport — contrast was NOT checked`);}
+  // Paired viewport captures never change document width for a beyond-viewport
+  // clip. On classic-scrollbar mobile layouts a 390px clip can reflow 375px
+  // content, moving a label onto pixels belonging to a different element.
+  // Both images use the SAME scroll position/layout; record actual (clamped) y.
+  const visTiles = [], tiles = [];
+  for (let y = 0; y < collected.height; y += 900) {
+    const actualY = await ev(`(async () => {
+      document.getElementById("scan-hide-text").disabled = true;
+      scrollTo(0, ${y}); await new Promise(r => requestAnimationFrame(r));
+      return scrollY;
+    })()`);
+    const shown = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    await ev('document.getElementById("scan-hide-text").disabled = false');
+    const hidden = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    visTiles.push({ y: actualY, b64: shown.data });
+    tiles.push({ y: actualY, b64: hidden.data });
+    if (actualY + 900 >= collected.height) break;
   }
   if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
   const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
@@ -241,7 +310,26 @@ for (const target of targets) {
     console.log(`  -- gradient / photo surfaces carrying text (${surfaces.size}):`);
     for (const s of surfaces.values()) console.log(`     ${s.kind.padEnd(8)}| worst ratio ${String(s.worst).padEnd(6)}| ${s.texts} text(s) | ${s.surface} | ${s.image}`);
   }
-  all.push({ target, theme: collected.theme, overflow: collected.ov, checked: rows.length, failing: failing.length, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
+  const coverage={heroes:rows.filter(r=>r.hero).length,productLabels:rows.filter(r=>r.productLabel).length};
+  const requiredLabels = route === "/" ? REQUIRED_LABELS_BY_WIDTH[viewport].map(sku=>`article[card-product-${sku}] > div.product-art > span.art-note`) : [];
+   const occluded = sampled.filter(r=>r.occluded);
+   const requiredMissing = [...sampled.filter(r=>r.hero&&r.ratio==null).map(r=>r.selector),
+     ...requiredLabels.filter(selector=>!rows.some(r=>r.selector===selector)&&!unpainted.some(r=>r.selector===selector)&&!occluded.some(r=>r.selector===selector))];
+  const unmeasurable = sampled.filter(r=>r.ratio==null).map(r=>({
+    selector:r.selector,text:r.text,width:viewport,theme:collected.theme,required:r.hero||requiredLabels.includes(r.selector),
+     status:r.occluded ? "occluded / มองไม่เห็น" : "NOT MEASURABLE / วัดไม่ได้",
+     coveringElements:r.coveringElements,visibilitySamples:r.visibilitySamples,
+     reason:r.occluded ? "document.elementFromPoint: every sampled own-text point is covered by " + r.coveringElements.join("; ") :
+       r.unpainted ? "Visible and hidden pixels identical: text covered by photo/overlay; no painted text pixels detected" :
+      "Visible/hidden pixel difference detected, but no reliable glyph-interior samples at this viewport width",
+  }));
+   for(const row of unmeasurable)console.log(`  ${row.status} @${viewport}: ${row.selector} "${row.text}" — ${row.reason}`);
+  all.push({ target, theme: collected.theme, width:viewport, overflow: collected.ov, checked: rows.length, failing: failing.length,
+     capture:{method:"paired viewport screenshots, no beyond-viewport clip",viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y)},
+    coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
+     exclusions:{covered:collected.covered,moving:collected.moving,unpainted,occluded}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
+  if(jsonOut)writeFileSync(jsonOut, JSON.stringify(all,null,1));
+  if((["/","/stone","/quote"].includes(route)&&!coverage.heroes)||requiredMissing.length){socket.close();proc.kill();throw new Error(`${target}: required hero/product-label pixels were NOT checked: ${JSON.stringify({width:viewport,coverage,missing:requiredMissing})}`);}
 }
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify(all, null, 1));
 socket.close(); proc.kill(); process.exit(0);

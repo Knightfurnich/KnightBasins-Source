@@ -1,0 +1,39 @@
+
+> @workspace/knight-basins@0.0.0 build /home/runner/workspace/.local/knight468-work/artifacts/knight-basins
+> vite build --config vite.config.ts && node scripts/prerender.mjs && pnpm run verify:production-assets
+
+vite v7.3.6 building client environment for production...
+transforming...
+src/components/ui/select.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+src/components/ui/label.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+src/components/ui/sheet.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+✓ 1972 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/public/index.html                    21.44 kB │ gzip:   4.58 kB
+dist/public/assets/index-BgFiGp3t.css    517.59 kB │ gzip:  82.34 kB
+dist/public/assets/index-fh--wZdR.js   1,839.06 kB │ gzip: 478.59 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.03s
+[prerender] / -> dist/public/index.html (167467 bytes; 1934 words)
+[prerender] /portfolio -> dist/public/portfolio/index.html (38853 bytes; 96 words)
+[prerender] /stone -> dist/public/stone/index.html (97303 bytes; 1007 words)
+[prerender] /price-guide -> dist/public/price-guide/index.html (66871 bytes; 1040 words)
+[prerender] /site-prep -> dist/public/site-prep/index.html (47432 bytes; 77 words)
+[prerender] /studio-guide -> dist/public/studio-guide/index.html (63191 bytes; 683 words)
+[prerender] /quote -> dist/public/quote/index.html (59934 bytes; 571 words)
+[prerender] /studio -> dist/public/studio/index.html (117874 bytes; 1258 words)
+[prerender] /sketch -> dist/public/sketch/index.html (62683 bytes; 1030 words)
+[prerender] /readme -> dist/public/readme/index.html (69385 bytes; 806 words)
+[prerender] /updates -> dist/public/updates/index.html (59152 bytes; 833 words)
+[prerender] /network -> dist/public/network/index.html (45078 bytes; 128 words)
+[prerender] OK: 12 public pages rendered; no admin route was included.
+
+> @workspace/knight-basins@0.0.0 verify:production-assets /home/runner/workspace/.local/knight468-work/artifacts/knight-basins
+> node scripts/verify-production-assets.mjs
+
+[production-assets] OK: /home/runner/workspace/.local/knight468-work/artifacts/knight-basins/dist/public/index.html references /assets/index-fh--wZdR.js, /assets/index-BgFiGp3t.css
