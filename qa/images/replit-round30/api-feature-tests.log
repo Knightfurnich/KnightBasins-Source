@@ -1,0 +1,35 @@
+▶ commercialConstants: shape
+  ✔ has the blocks and nothing the app cannot vouch for (1.208071ms)
+  ✔ never collides with the catalogue's own keys, so nothing existing is overwritten (0.146324ms)
+  ✔ installation.rules: scope/condition/unit are strings and charge is a number or null (0.18296ms)
+  ✔ discount_tiers: contiguous from 1, the last is open-ended, amount only where it applies (0.154074ms)
+  ✔ addons: id, label, unit are strings and price is a non-negative number (0.120939ms)
+  ✔ is JSON-safe and does not share state between calls (0.25595ms)
+✔ commercialConstants: shape (2.885896ms)
+▶ commercialConstants: agrees with the feed value for value (no number changed by job 405-C)
+  ✔ vat, sheet size, exclusions (0.119894ms)
+  ✔ installation rules, discount tiers, add-ons (0.122435ms)
+✔ commercialConstants: agrees with the feed value for value (no number changed by job 405-C) (0.392588ms)
+▶ commercialConstants: the SAME value the app prices with
+  ✔ small-job fees and minimum areas are the storefront constants (0.268963ms)
+  ✔ the night-work rule is the storefront constants: every area, the fee and the hours the pages print (job 429-C) (0.266899ms)
+  ✔ add-on prices, VAT and sheet size are the storefront constants (0.18309ms)
+  ✔ the discount tiers describe exactly what the catalogue seed computes, for every real sheet price (0.373538ms)
+  ✔ sheetTierPrices still equals the expression the seed used before job 405-C (0.248556ms)
+  ✔ sheet size is left out, not guessed, when the storefront strings stop being readable (0.122354ms)
+✔ commercialConstants: the SAME value the app prices with (1.747852ms)
+▶ one source: nobody re-types the figures
+  ✔ the exporter holds no copy of a fee or a price (0.169763ms)
+  ✔ the seed applies the shared function and keeps no private discount maths (0.225324ms)
+  ✔ the endpoint adds the blocks after the catalogue and never replaces a catalogue key (0.08814ms)
+  ✔ the quote terms and the price guide print the same night hours and fee as the exported rule (10.727431ms)
+  ✔ each storefront constant is declared once, in catalog.ts, and the calculators import it (3.287844ms)
+✔ one source: nobody re-types the figures (14.759264ms)
+ℹ tests 19
+ℹ suites 4
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129.522951

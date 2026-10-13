@@ -6,6 +6,7 @@ import { ROUTE_META } from "@/components/RouteMeta.logic";
 import {
   formatTHB,
   INSTALLATION_PRICE,
+  NIGHT_WORK_FEE,
   PRODUCTS,
   STONE_COLORS,
   STONE_SHEET_SIZE,
@@ -354,7 +355,7 @@ function PriceGuidePage() {
                   </li>
                   <li>
                     เข้าทำงานช่วง {NIGHT_WORK_START}–{NIGHT_WORK_END}: เพิ่ม{" "}
-                    <strong className="text-[var(--ink)]">{formatTHB(INSTALLATION_PRICE)} / คืน</strong>
+                    <strong className="text-[var(--ink)]">{formatTHB(NIGHT_WORK_FEE)} / คืน</strong>
                   </li>
                 </ul>
                 <p className="mt-4 border-t border-[var(--line)] pt-4 text-sm leading-6">

@@ -1,0 +1,29 @@
+A dark hero: removed fix -> exit 1; restored -> exit 0
+  ✖ all three dark heroes, headings/emphasis, small copy and links get white text and a dark shadow (1.351859ms)
+✖ 468-R hero, labels and independent night-work fee (31.444162ms)
+✖ failing tests:
+✖ all three dark heroes, headings/emphasis, small copy and links get white text and a dark shadow (1.351859ms)
+
+B light product labels: removed fix -> exit 1; restored -> exit 0
+  ✖ light product labels are pinned without changing dark chips or label geometry (0.637565ms)
+✖ 468-R hero, labels and independent night-work fee (12.906874ms)
+✖ failing tests:
+✖ light product labels are pinned without changing dark chips or label geometry (0.637565ms)
+
+C PROJECT DETAILS/footer: removed fix -> exit 1; restored -> exit 0
+  ✖ PROJECT DETAILS and footer meta use readable light-theme text without changing colour tokens (0.83241ms)
+✖ 468-R hero, labels and independent night-work fee (14.045696ms)
+✖ failing tests:
+✖ PROJECT DETAILS and footer meta use readable light-theme text without changing colour tokens (0.83241ms)
+
+E independent night fee: removed fix -> exit 1; restored -> exit 0
+  ✖ the price guide imports NIGHT_WORK_FEE and never couples the night charge to installation (1.380777ms)
+✖ 468-R hero, labels and independent night-work fee (4.078549ms)
+✖ failing tests:
+✖ the price guide imports NIGHT_WORK_FEE and never couples the night charge to installation (1.380777ms)
+
+F CI sweep removed: removed fix -> exit 1; restored -> exit 0
+  ✖ CI builds then sweeps both widths, fails without Chrome, and allowlists only the unchanged LINE green (0.881168ms)
+✖ 468-R hero, labels and independent night-work fee (14.024058ms)
+✖ failing tests:
+✖ CI builds then sweeps both widths, fails without Chrome, and allowlists only the unchanged LINE green (0.881168ms)
