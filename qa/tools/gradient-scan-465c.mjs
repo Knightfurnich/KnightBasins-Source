@@ -107,28 +107,14 @@ const COLLECT = `(() => {
     for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) { const cs = getComputedStyle(n); if ((cs.overflowX === "auto" || cs.overflowX === "scroll") && n.scrollWidth > n.clientWidth + 2) { moving++; return; } }
     els.push(el);
     el.style.setProperty("--contrast-original-shadow", s.textShadow);
-    out.push({ selector: label(el), productLabel: el.matches(".product-index,.art-note"), hero: !!el.closest('.catalog-hero,.stone-hero,.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), shadow:s.textShadow, size, large, rects,
+     let fixed = false;
+     for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).position === "fixed") { fixed = true; break; }
+     out.push({ selector: label(el), fixed, productLabel: el.matches(".product-index,.art-note"), hero: !!el.closest('.catalog-hero,.stone-hero,.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), shadow:s.textShadow, size, large, rects,
       kind: surf.kind, surf: label(surf.node), surfImage: surf.kind === "solid" ? "" : getComputedStyle(surf.node).backgroundImage.slice(0, 90) });
   });
-   // Geometric evidence, not a selector exemption: test nine points in EACH own-text box.
-   // Keep every row in the artifact. Only fully occluded text is excluded from REAL.
-   out.forEach((row, i) => {
-     const points = [];
-     for (const q of row.rects) {
-       window.scrollTo(0, Math.max(0, q.y - 300));
-       for (const fx of [0.2, 0.5, 0.8]) for (const fy of [0.2, 0.5, 0.8]) {
-         const x = q.x + q.w * fx - scrollX, y = q.y + q.h * fy - scrollY;
-         if (x < 0 || x >= innerWidth || y < 0 || y >= innerHeight) continue;
-         const top = document.elementFromPoint(x, y);
-         const visible = !!top && (els[i] === top || els[i].contains(top));
-         points.push({ x: Math.round(x + scrollX), y: Math.round(y + scrollY), visible,
-           coveringElement: top ? label(top) : null });
-       }
-     }
-     row.visibilitySamples = points;
-     row.occluded = points.length > 0 && points.every(p => !p.visible && p.coveringElement);
-     row.coveringElements = [...new Set(points.filter(p => !p.visible).map(p => p.coveringElement).filter(Boolean))];
-   });
+   // Retain node identity for hit tests at the ACTUAL capture scroll position.
+   // A probe at an unrelated scroll position misses floating overlays.
+   window.__contrastTextEls = els;
   window.scrollTo(0, 0);
   // job 467-C: a sticky box (the quote / config summary asides) is drawn at a shifted place by a beyond-viewport capture, so the pixels
   // behind its text were read from the page behind it. At scrollY=0 a sticky box sits at its natural spot: pin it there as relative.
@@ -136,7 +122,7 @@ const COLLECT = `(() => {
   const style = document.createElement("style"); style.id = "scan-hide-text";
   style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:var(--contrast-original-shadow,none)!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
   document.head.appendChild(style);
-   return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: out, covered: out.filter(r => r.occluded).length, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
+    return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: out, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
 })()`;
 
 // ---- page-side: sample pixels behind each element ----
@@ -156,19 +142,26 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
   const cv2 = document.createElement("canvas"); cv2.width = first.width; cv2.height = ${totalHeight};
   const cx2 = cv2.getContext("2d", { willReadFrequently: true });
   for (const tl of visTiles) { const im = new Image(); im.src = "data:image/png;base64," + tl.b64; await im.decode(); cx2.drawImage(im, 0, tl.y); }
+  // Fixed text belongs to the first viewport, not a later tile's page backdrop.
+  const fixedCv = document.createElement("canvas"); fixedCv.width = first.width; fixedCv.height = first.height;
+  const fixedCx = fixedCv.getContext("2d", { willReadFrequently: true }); fixedCx.drawImage(first, 0, 0);
+  const fixedShown = new Image(); fixedShown.src = "data:image/png;base64," + visTiles[0].b64; await fixedShown.decode();
+  const fixedVisCv = document.createElement("canvas"); fixedVisCv.width = first.width; fixedVisCv.height = first.height;
+  const fixedVisCx = fixedVisCv.getContext("2d", { willReadFrequently: true }); fixedVisCx.drawImage(fixedShown, 0, 0);
+  const masks = tiles.map(t => new Set(t.blocked));
   const painted = (row) => {
     let diff = 0;
     for (const rc of row.rects) {
       const x0 = Math.max(0, Math.floor(rc.x)), y0 = Math.max(0, Math.floor(rc.y));
       const w = Math.max(1, Math.min(img.width - x0, Math.ceil(rc.w))), h = Math.max(1, Math.min(img.height - y0, Math.ceil(rc.h)));
       if (y0 >= img.height) continue;
-      const a = cx.getImageData(x0, y0, w, h).data, b = cx2.getImageData(x0, y0, w, h).data;
+      const a = (row.fixed ? fixedCx : cx).getImageData(x0, y0, w, h).data, b = (row.fixed ? fixedVisCx : cx2).getImageData(x0, y0, w, h).data;
       for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) > 6 || Math.abs(a[i + 1] - b[i + 1]) > 6 || Math.abs(a[i + 2] - b[i + 2]) > 6) diff++;
     }
     return diff >= 25;
   };
   const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
-  return rows.map((row) => {
+  return rows.map((row, rowIndex) => {
      if (row.occluded) return { ...row, ratio: null };
     if (!painted(row)) return { ...row, ratio: null, unpainted: true };
     const ratios = []; let sr = 0, sg = 0, sb = 0, n = 0;
@@ -177,10 +170,13 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
       const x0 = Math.max(0, Math.floor(rc.x) + inset), y0 = Math.max(0, Math.floor(rc.y) + inset);
       if (y0 >= img.height) continue;
       const w = Math.max(1, Math.min(img.width - x0, Math.floor(rc.w) - 2 * inset)), h = Math.max(1, Math.min(img.height - y0, Math.floor(rc.h) - 2 * inset));
-      const data = cx.getImageData(x0, y0, w, h).data;
-      const visible = row.hero || row.productLabel ? cx2.getImageData(x0,y0,w,h).data : null;
+      const data = (row.fixed ? fixedCx : cx).getImageData(x0, y0, w, h).data;
+      const visible = row.hero || row.productLabel ? (row.fixed ? fixedVisCx : cx2).getImageData(x0,y0,w,h).data : null;
       const step = visible ? 1 : Math.max(1, Math.floor(Math.sqrt((w * h) / 150)));
       for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
+        let tile = 0;
+        if (!row.fixed) for (let i = tiles.length - 1; i >= 0; i--) if (y0 + y >= tiles[i].y && y0 + y < tiles[i].y + 900) { tile = i; break; }
+        if (masks[tile].has(rowIndex + ":" + (x0 + x) + ":" + (y0 + y))) continue;
         const o = (y * w + x) * 4; const r = data[o], g = data[o + 1], b = data[o + 2];
         if (visible && (Math.max(Math.abs(visible[o]-r),Math.abs(visible[o+1]-g),Math.abs(visible[o+2]-b)) <= 6 ||
           Math.max(Math.abs(visible[o]-row.fg[0]),Math.abs(visible[o+1]-row.fg[1]),Math.abs(visible[o+2]-row.fg[2])) > 24)) continue;
@@ -194,6 +190,43 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
     ratios.sort((p, q) => p - q);
     return { ...row, ratio: Math.round(ratios[Math.floor(ratios.length * 0.1)] * 100) / 100, ratioMin: Math.round(ratios[0] * 100) / 100, bg: [Math.round(sr / n), Math.round(sg / n), Math.round(sb / n)] };
   });
+})()`;
+
+// Hit-test the exact pixels the sampler will use, in the same viewport as its
+// paired images. Partial occlusion must not turn an overlay into text backing.
+// Nine own-text probes remain explicit evidence for every fully covered row.
+const HIT_TEST = (rows, width) => `(() => {
+  const rows = ${JSON.stringify(rows)}, width = ${width};
+  const blocked = [], probes = [], covers = {};
+  const label = el => { const p=[]; for(let n=el;n&&n.tagName!=="HTML"&&p.length<3;n=n.parentElement){let s=n.tagName.toLowerCase();if(n.dataset?.testid)s+="["+n.dataset.testid+"]";else if(typeof n.className==="string"&&n.className.trim())s+="."+n.className.trim().split(/\\s+/)[0];p.unshift(s);}return p.join(" > "); };
+  rows.forEach((row,i) => {
+    if(row.fixed && scrollY!==0)return;
+    const el=window.__contrastTextEls[i];
+    const hit=(x,y)=>{const top=document.elementFromPoint(x,y-scrollY);return {visible:!!top&&(top===el||el.contains(top)),coveringElement:top?label(top):null};};
+    row.rects.forEach((rc,ri)=>{
+      for(const fx of [.2,.5,.8])for(const fy of [.2,.5,.8]){
+        const x=rc.x+rc.w*fx,y=rc.y+rc.h*fy;
+        if(x<0||x>=innerWidth||y<scrollY||y>=scrollY+innerHeight)continue;
+        probes.push({row:i,key:ri+":"+fx+":"+fy,x,y,...hit(x,y)});
+      }
+      const inset=rc.w>14&&rc.h>14?1:0;
+      const x0=Math.max(0,Math.floor(rc.x)+inset),y0=Math.max(0,Math.floor(rc.y)+inset);
+      const w=Math.max(1,Math.min(width-x0,Math.floor(rc.w)-2*inset));
+      const h=Math.max(1,Math.floor(rc.h)-2*inset);
+      const step=row.hero||row.productLabel?1:Math.max(1,Math.floor(Math.sqrt(w*h/150)));
+      for(let y=0;y<h;y+=step)for(let x=0;x<w;x+=step){
+        const px=x0+x,py=y0+y;
+        if(py<scrollY||py>=scrollY+innerHeight)continue;
+        const result=hit(px+.5,py+.5);
+        if(!result.visible){
+          blocked.push(i+":"+px+":"+py);
+          const key=result.coveringElement||"outside viewport";
+          covers[key]=(covers[key]||0)+1;
+        }
+      }
+    });
+  });
+  return {blocked,probes,covers};
 })()`;
 
 async function applyState(state) {
@@ -282,12 +315,21 @@ for (const target of targets) {
       return scrollY;
     })()`);
     const shown = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    const hit = await ev(HIT_TEST(collected.rows, viewport));
     await ev('document.getElementById("scan-hide-text").disabled = false');
     const hidden = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
     visTiles.push({ y: actualY, b64: shown.data });
-    tiles.push({ y: actualY, b64: hidden.data });
+     tiles.push({ y: actualY, b64: hidden.data, ...hit });
     if (actualY + 900 >= collected.height) break;
   }
+  const probeMaps = collected.rows.map(() => new Map());
+  for (const tile of tiles) for (const p of tile.probes) probeMaps[p.row].set(p.key, p);
+  collected.rows.forEach((row, i) => {
+    row.visibilitySamples = [...probeMaps[i].values()];
+    row.occluded = row.visibilitySamples.length > 0 && row.visibilitySamples.every(p => !p.visible && p.coveringElement);
+    row.coveringElements = [...new Set(row.visibilitySamples.filter(p => !p.visible).map(p => p.coveringElement).filter(Boolean))];
+  });
+  collected.covered = collected.rows.filter(r => r.occluded).length;
   if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
   const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
   const unpainted = sampled.filter((r) => r.unpainted);
@@ -325,7 +367,8 @@ for (const target of targets) {
   }));
    for(const row of unmeasurable)console.log(`  ${row.status} @${viewport}: ${row.selector} "${row.text}" — ${row.reason}`);
   all.push({ target, theme: collected.theme, width:viewport, overflow: collected.ov, checked: rows.length, failing: failing.length,
-     capture:{method:"paired viewport screenshots, no beyond-viewport clip",viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y)},
+     capture:{method:"paired viewport screenshots with capture-position elementFromPoint pixel masks",viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y),
+       pixelOcclusion:tiles.map(t=>({y:t.y,blocked:t.blocked,coveringElements:t.covers}))},
     coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
      exclusions:{covered:collected.covered,moving:collected.moving,unpainted,occluded}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
   if(jsonOut)writeFileSync(jsonOut, JSON.stringify(all,null,1));

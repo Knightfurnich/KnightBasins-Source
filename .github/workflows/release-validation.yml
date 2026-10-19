@@ -124,7 +124,9 @@ jobs:
           echo "::error::Preview unavailable — contrast was NOT checked"
           exit 2
       - name: Sweep 12 sitemap routes and non-sitemap routes in both themes
-        run: node qa/tools/sweep-467c.mjs http://127.0.0.1:5173 --sitemap http://127.0.0.1:5173/sitemap.xml --out qa/images/replit-round30/ci-${{ matrix.width }}
+        run: |
+          node qa/tools/test-gradient-occlusion.mjs
+          node qa/tools/sweep-467c.mjs http://127.0.0.1:5173 --sitemap http://127.0.0.1:5173/sitemap.xml --out qa/images/replit-round30/ci-${{ matrix.width }}
       - name: A4 quote regression on Linux (existing browser case)
         if: always() && matrix.width == 1440
         env:

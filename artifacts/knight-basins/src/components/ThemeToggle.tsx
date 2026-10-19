@@ -384,6 +384,15 @@ export const STOREFRONT_THEME_STYLES = `
   color: #173f6b;
 }
 
+/* Text-only contrast corrections; canvas/material and print rules stay intact. */
+[data-theme="light"] .studio-joint-note,
+[data-theme="dark"] .studio-joint-note {
+  color: #000000;
+}
+[data-theme="light"] [data-testid="section-quote-project-details"] .eyebrow {
+  color: #4b6276;
+}
+
 [data-theme="dark"] .studio-stone-choice,
 [data-theme="dark"] .studio-basin-choice {
   border-color: #d7e5ef;

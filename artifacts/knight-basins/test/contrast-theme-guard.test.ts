@@ -54,6 +54,12 @@ describe("468-R hero, labels and independent night-work fee", () => {
     assert.doesNotMatch(light468 + dark468, /--[\w-]+\s*:/);
     assert.doesNotMatch(dark468, /dark:/);
   });
+  it("the actual project-details container gets the approved text-only light override", () => {
+    assert.match(themeStyles, /\[data-theme="light"\] \[data-testid="section-quote-project-details"\] \.eyebrow \{\s*color: #4b6276;\s*\}/);
+  });
+  it("joint-note text has the same approved dark foreground on the pale canvas in both themes", () => {
+    assert.match(themeStyles, /\[data-theme="light"\] \.studio-joint-note,\s*\[data-theme="dark"\] \.studio-joint-note \{\s*color: #000000;\s*\}/);
+  });
   it("the price guide imports NIGHT_WORK_FEE and never couples the night charge to installation", () => {
     assert.match(priceGuide, /import \{[^}]*\bNIGHT_WORK_FEE\b[^}]*\} from "@\/data\/catalog"/);
     assert.match(priceGuide, /formatTHB\(NIGHT_WORK_FEE\)\} \/ คืน/);
