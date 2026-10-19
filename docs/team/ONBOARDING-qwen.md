@@ -45,6 +45,35 @@
 - **ถ้ายังไม่มี token (ไม่บล็อกงาน):** ใช้เส้นทางเดิมได้ทันที — ทำบนเครื่องบอส/เครื่องตัวเอง → ส่ง **รายงาน + ไฟล์** ให้บอสหรือเดวิด → **เดวิดเป็นคน commit และเปิด PR ให้** · ให้ระบุในรายงานว่าใช้เส้นทางไหน
 - **ห้าม** push ตรงเข้า `main` · **ห้าม** merge PR เอง · **ห้าม** deploy เอง (merge เป็นหน้าที่เดวิดเมื่อหลักฐานครบและ CI เขียว)
 
+## 2.1 · วิธีรับ token อย่างปลอดภัย (สำหรับบอส/เดวิด → Qwen)
+
+> กฎเหล็ก: **ห้ามส่งค่า token ในแชท/กลุ่ม/รายงาน/commit** — ผู้รับ (Qwen) ต้องไม่มีค่าอยู่ใน transcript
+> และ **Qwen ส่ง token ให้ตัวเองไม่ได้** (คนที่ออก token คือ **บอส** ซึ่งเป็นเจ้าของบัญชี GitHub)
+
+**ขั้นตอนสำหรับบอส (ครั้งเดียว ~4 นาที · ทำใน GitHub ของบอส)**
+1. GitHub → Settings → Developer settings → **Personal access tokens → Fine-grained tokens → Generate new token**
+2. Name: `qwen-knightbasins` · Expiration: ตั้งตามที่บอสต้องการ (แนะนำ 90 วัน แล้วหมุนรอบ)
+3. Repository access: **Only select repositories → `Knightfurnich/KnightBasins-Source`**
+4. Permissions (Repository): **Contents: Read and write** · **Pull requests: Read and write** · (ไม่ต้องให้สิทธิ์อื่น)
+5. Generate แล้ว **คัดลอกค่า** — GitHub จะแสดงครั้งเดียว
+
+**วิธีส่งถึง Qwen แบบไม่ให้ค่าหลุดในแชท (เลือกอย่างใดอย่างหนึ่ง)**
+- **ก (แนะนำ):** เขียนค่าลง **ไฟล์บนเครื่องที่ Qwen รันอยู่** แล้วให้ Qwen อ่านไฟล์นั้น เช่น `~/.knight/qwen-token` (หรือที่อยู่ที่ตกลงกัน) — Qwen จะอ่านด้วยคำสั่งที่ไม่ echo:
+  ```bash
+  export KB_TOKEN=$(cat ~/.knight/qwen-token)   # ห้าม echo $KB_TOKEN
+  ```
+- **ข:** ตั้งเป็น **environment variable ของโปรเซสที่รัน Qwen** (ไม่ผ่านแชท)
+- **ค:** วางผ่าน secret manager/vault ที่ทั้งสองฝ่ายเข้าถึง
+
+**หลังได้ค่า — Qwen ทดสอบเอง (อย่าแนบค่าในรายงาน · แนบแค่ผล):**
+```bash
+git ls-remote https://github.com/Knightfurnich/KnightBasins-Source.git >/dev/null && echo "read OK"
+printf '#!/bin/sh\ncase "$1" in *Username*) echo x-access-token;; *) echo "$KB_TOKEN";; esac\n' > /tmp/askpass.sh && chmod +x /tmp/askpass.sh
+GIT_ASKPASS=/tmp/askpass.sh GIT_TERMINAL_PROMPT=0 git push --dry-run https HEAD:refs/heads/qwen-token-check   # ควรผ่าน (ไม่สร้างสาขาจริง)
+```
+- ถ้า push ไม่ผ่าน (401/403) ⇒ **แจ้งเดวิด/บอสทันที** ห้ามลองซ้ำหลายครั้ง และ **ห้ามพิมพ์ค่าเพื่อดีบัก**
+- ถ้าสงสัยว่าค่าหลุด ⇒ แจ้งบอสเพื่อ revoke + ออกใหม่ทันที
+
 ## 3 · เอกสารที่ต้องอ่านก่อนเริ่ม (เรียงลำดับ)
 
 **อ่านจากใน repo เท่านั้น** (ถ้าเปิดไม่เจอ ให้บอกเดวิด — เขาจะให้ *path ในรีโป*; ห้ามขอสิทธิ์เข้าเครื่อง Hermes):

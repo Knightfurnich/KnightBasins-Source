@@ -1137,3 +1137,9 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - **ตอบคำถามเทสต์ (Qwen รายงาน web 9 ตก + api 5 ตก บน Windows):** เดวิดรันเทียบที่ Linux = web **1,533/1,524/0/ข้าม 9** · api **1,329/1,329/0** ⇒ **artifact ของสภาพแวดล้อม/ไม่ได้ build ไม่ใช่ drift** ⇒ ไม่ต้องแก้
 - **ยังขาด:** ไฟล์ภาพหลักฐาน `qa/images/qwen-round35/*` (ได้เฉพาะ .md) · token `qwen-knightbasins` (บอสส่งทางส่วนตัว)
 - **เกร็ดที่ได้:** ข้อจำกัด "ข้อความ 1–2 ตัวอักษร" ถูกยืนยันด้วยบรรทัดจริงในโค้ด ⇒ ใบ 471-R ฉบับแก้ 1/2 (ตัวกวาดนับ short text) ตรงจุด
+
+### 19 ต.ค. 69 — **473-Q ปิดสมบูรณ์ (หลักฐานครบ + เดวิดตรวจไฟล์เอง) + เพิ่มวิธีรับ token อย่างปลอดภัย (ONBOARDING-qwen §2.1)**
+- **ไฟล์หลักฐานของ Qwen (บอสส่งให้) — เดวิดตรวจเองก่อน commit (merge #629 `8fce171`):** `c1-quote-row-dark-1440.png` (แถว KF001/VS311 โหมดมืด · กล่องจำนวนพืดขาว ตัวเลข `2` + ไอคอน −/+ จางจริง ✓ ตรงกับ 1.16) · `c1-line-quantity-dark-1440.png` · `c2-gradient-scan-dark-quote.json` + `c2-gradient-scan-stdout.txt` (**checked=128 · ไม่มีแถว `.line-quantity` เลย** · `failing=1`=ปุ่ม LINE · คำว่า line-quantity ใน stdout 0 ครั้ง ✓)
+- **สแกนความลับในทุกไฟล์ = 0** (ghp_/github_pat_/sk-/PRIVATE KEY) · สคริปต์ `c1-probe.mjs` ของ Qwen อยู่นอก SCOPE ⇒ ไม่รวมในรีโป
+- **เพิ่ม `ONBOARDING-qwen.md` §2.1 "วิธีรับ token อย่างปลอดภัย":** บอสออก token (Fine-grained · repo เดียว · Contents + Pull requests · แนะนำหมดอายุ 90 วัน) → ส่งแบบ **out-of-band** (ไฟล์/env/vault) ไม่ผ่านแชท → Qwen อ่านด้วย `export KB_TOKEN=$(cat ~/.knight/qwen-token)` โดยไม่ echo → ทดสอบด้วย `git push --dry-run` แล้วรายงานแค่ผล · ถ้าหลุด ⇒ revoke ทันที
+- **บริบท:** Qwen แจ้งถูกต้องว่า "ส่ง token ให้ตัวเองไม่ได้" (ผู้ออก token คือเจ้าของบัญชี GitHub = บอส) และไม่ควรวางค่าในแชท
