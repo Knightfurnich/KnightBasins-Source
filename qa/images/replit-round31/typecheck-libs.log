@@ -1,0 +1,4 @@
+
+> workspace@0.0.0 typecheck:libs /home/runner/workspace/.local/knight469-work
+> tsc --build
+

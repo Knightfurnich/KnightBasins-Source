@@ -1,0 +1,35 @@
+Read-only check at 2026-10-19T06:49:11.230Z
+path | repo lastmod | live lastmod | HTTP
+/ | 2026-10-12 | 2026-10-10 | 200 MISMATCH
+/portfolio | 2026-09-25 | 2026-09-25 | 200
+/stone | 2026-10-13 | 2026-10-10 | 200 MISMATCH
+/price-guide | 2026-10-13 | 2026-10-10 | 200 MISMATCH
+/site-prep | 2026-09-25 | 2026-09-25 | 200
+/studio-guide | 2026-10-13 | 2026-09-25 | 200 MISMATCH
+/quote | 2026-10-13 | 2026-09-25 | 200 MISMATCH
+/studio | 2026-09-25 | 2026-09-25 | 200
+/sketch | 2026-10-13 | 2026-09-25 | 200 MISMATCH
+/readme | 2026-10-12 | 2026-09-25 | 200 MISMATCH
+/updates | 2026-10-02 | 2026-10-02 | 200
+/network | 2026-10-05 | 2026-10-05 | 200
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: 7 rows differ: production does not match this repository snapshot; do not claim post-deploy acceptance
+
+7 !== 0
+
+    at file:///home/runner/workspace/.local/knight469-work/qa/tools/check-sitemap-production.mjs:31:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 7,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.13.0

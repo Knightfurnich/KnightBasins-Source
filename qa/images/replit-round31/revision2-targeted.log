@@ -1,0 +1,33 @@
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (1.172837ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (0.955258ms)
+✔ customer is told what happens next after submitting (422-B A) (6.674085ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.824485ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (0.948034ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.197863ms)
+✔ one source for contact details (422-B C) (2.229882ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.27654ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.438442ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.856717ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (0.369506ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (1.387411ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✔ the three originally covered pages carry their exact confirmed deployment date (17.721762ms)
+✔ sitemap lastmod tracks what actually shipped (422-B E) (18.011703ms)
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.195375ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (32.219218ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.895385ms)
+  ✔ requires a sitemap review when the declared release changes (0.775486ms)
+✔ sitemap lastmod freshness (37.72599ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 336.736646

@@ -1,0 +1,433 @@
+
+=== candidate passes: exit 0 ===
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (0.816173ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (0.252794ms)
+✔ customer is told what happens next after submitting (422-B A) (1.84696ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.784449ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (0.797816ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.187177ms)
+✔ one source for contact details (422-B C) (2.057805ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.228368ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.355819ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.145767ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (0.911973ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (1.220963ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✔ the three originally covered pages carry their exact confirmed deployment date (6.777941ms)
+✔ sitemap lastmod tracks what actually shipped (422-B E) (6.935798ms)
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.011039ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (16.34448ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.682758ms)
+  ✔ requires a sitemap review when the declared release changes (1.331737ms)
+✔ sitemap lastmod freshness (21.926196ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 293.018118
+
+
+=== restore the stale home date: MUST FAIL: exit 1 ===
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (0.73772ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (0.233701ms)
+✔ customer is told what happens next after submitting (422-B A) (1.749695ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.577852ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (0.83544ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.186404ms)
+✔ one source for contact details (422-B C) (3.109835ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.216573ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.337107ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.14657ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (0.242659ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (0.533283ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✖ the three originally covered pages carry their exact confirmed deployment date (11.189849ms)
+✖ sitemap lastmod tracks what actually shipped (422-B E) (11.884815ms)
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.181729ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (16.866094ms)
+  ✖ never predates the confirmed content change for each of the seven affected routes (0.953417ms)
+  ✔ requires a sitemap review when the declared release changes (1.161617ms)
+✖ sitemap lastmod freshness (22.48888ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 11
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.462466
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/customer-facing-consistency.test.ts:103:3
+✖ the three originally covered pages carry their exact confirmed deployment date (11.189849ms)
+  AssertionError [ERR_ASSERTION]: /: lastmod must equal its confirmed deployment date
+  + actual - expected
+  
+  + '2026-10-10'
+  - '2026-10-12'
+              ^
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/customer-facing-consistency.test.ts:114:14)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '2026-10-10',
+    expected: '2026-10-12',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:67:3
+✖ never predates the confirmed content change for each of the seven affected routes (0.953417ms)
+  AssertionError [ERR_ASSERTION]: /: stale lastmod 2026-10-10; confirmed change requires >= 2026-10-12
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:77:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== future date: MUST FAIL: exit 1 ===
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (1.126466ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (0.320661ms)
+✔ customer is told what happens next after submitting (422-B A) (2.628023ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.83386ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (1.190353ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.261209ms)
+✔ one source for contact details (422-B C) (3.752248ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.248015ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.453627ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.266019ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (0.299864ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (0.7986ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✖ the three originally covered pages carry their exact confirmed deployment date (13.374285ms)
+✖ sitemap lastmod tracks what actually shipped (422-B E) (14.418638ms)
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.686309ms)
+  ✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (22.244122ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.831007ms)
+  ✔ requires a sitemap review when the declared release changes (1.067579ms)
+✖ sitemap lastmod freshness (28.618515ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 11
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.076105
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/customer-facing-consistency.test.ts:103:3
+✖ the three originally covered pages carry their exact confirmed deployment date (13.374285ms)
+  AssertionError [ERR_ASSERTION]: /: lastmod must equal its confirmed deployment date
+  + actual - expected
+  
+  + '2027-01-01'
+  - '2026-10-12'
+        ^
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/customer-facing-consistency.test.ts:114:14)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '2027-01-01',
+    expected: '2026-10-12',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:54:3
+✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (22.244122ms)
+  AssertionError [ERR_ASSERTION]: https://knightbasins.com/: future lastmod 2027-01-01 > 2026-10-19 (Asia/Bangkok)
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:63:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== impossible calendar date: MUST FAIL: exit 1 ===
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (2.321468ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (0.299321ms)
+✔ customer is told what happens next after submitting (422-B A) (3.714607ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.554131ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (0.77552ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.462493ms)
+✔ one source for contact details (422-B C) (2.071468ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.225875ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.374622ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.183133ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (0.23849ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (0.589766ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✖ the three originally covered pages carry their exact confirmed deployment date (19.230182ms)
+✖ sitemap lastmod tracks what actually shipped (422-B E) (20.260484ms)
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (1.754699ms)
+  ✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (14.31284ms)
+  ✖ never predates the confirmed content change for each of the seven affected routes (0.402705ms)
+  ✔ requires a sitemap review when the declared release changes (0.560911ms)
+✖ sitemap lastmod freshness (18.105504ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 10
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.158193
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/customer-facing-consistency.test.ts:103:3
+✖ the three originally covered pages carry their exact confirmed deployment date (19.230182ms)
+  AssertionError [ERR_ASSERTION]: /: lastmod must equal its confirmed deployment date
+  + actual - expected
+  
+  + '2026-02-30'
+  - '2026-10-12'
+          ^
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/customer-facing-consistency.test.ts:114:14)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '2026-02-30',
+    expected: '2026-10-12',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:54:3
+✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (14.31284ms)
+  AssertionError [ERR_ASSERTION]: https://knightbasins.com/: impossible calendar date
+  + actual - expected
+  
+  + '2026-03-02'
+  - '2026-02-30'
+           ^
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:62:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '2026-03-02',
+    expected: '2026-02-30',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:67:3
+✖ never predates the confirmed content change for each of the seven affected routes (0.402705ms)
+  AssertionError [ERR_ASSERTION]: /: stale lastmod 2026-02-30; confirmed change requires >= 2026-10-12
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:77:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== missing URL: MUST FAIL: exit 1 ===
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (0.922639ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (1.288978ms)
+✔ customer is told what happens next after submitting (422-B A) (3.019081ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.729855ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (0.834958ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.278016ms)
+✔ one source for contact details (422-B C) (2.181602ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.262628ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.495058ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.268468ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (1.871505ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (2.400424ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✖ the three originally covered pages carry their exact confirmed deployment date (9.617289ms)
+✖ sitemap lastmod tracks what actually shipped (422-B E) (10.659052ms)
+▶ sitemap lastmod freshness
+  ✖ keeps the twelve real URLs, order, origin, frequency and priority (1.587822ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (16.024193ms)
+  ✖ never predates the confirmed content change for each of the seven affected routes (1.012828ms)
+  ✔ requires a sitemap review when the declared release changes (0.495951ms)
+✖ sitemap lastmod freshness (20.13846ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 10
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 150.544398
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/customer-facing-consistency.test.ts:103:3
+✖ the three originally covered pages carry their exact confirmed deployment date (9.617289ms)
+  AssertionError [ERR_ASSERTION]: /: expected exactly one sitemap entry
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/customer-facing-consistency.test.ts:110:14)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:44:3
+✖ keeps the twelve real URLs, order, origin, frequency and priority (1.587822ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 12
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:46:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at node:internal/test_runner/test:1516:71
+      at node:internal/per_context/primordials:466:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:435:3)
+      at node:internal/per_context/primordials:466:9
+      at Array.map (<anonymous>) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 12,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:67:3
+✖ never predates the confirmed content change for each of the seven affected routes (1.012828ms)
+  AssertionError [ERR_ASSERTION]: Missing confirmed route /
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:76:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== restore candidate: MUST PASS: exit 0 ===
+▶ customer is told what happens next after submitting (422-B A)
+  ✔ replaces the vague 'will contact soon' with a reply window, working hours and status paths (2.341903ms)
+  ✔ the window + hours are read from one module that already mirrors the site's own copy (0.3694ms)
+✔ customer is told what happens next after submitting (422-B A) (4.082189ms)
+▶ one source for contact details (422-B C)
+  ✔ customer-visible numbers are dashed, and the ordered list is primary then backups (0.842118ms)
+  ✔ the modal never hand-writes a phone number -- it renders from the module (1.238666ms)
+  ✔ retired/test numbers stay out of the storefront bundle (0.362256ms)
+✔ one source for contact details (422-B C) (2.934289ms)
+▶ no duplicate data-testid on the login button (422-B B)
+  ✔ the shared component keeps `button-line-login`, the inquiry modal opts out (0.3804ms)
+✔ no duplicate data-testid on the login button (422-B B) (0.608655ms)
+▶ floating assistant steps aside while a dialog is open (422-B D)
+  ✔ the dialog announces open/close on one shared window event (0.362605ms)
+  ✔ the launcher hides (not deletes) itself under an overlay, and keeps existing test ids (0.359222ms)
+✔ floating assistant steps aside while a dialog is open (422-B D) (0.9779ms)
+▶ sitemap lastmod tracks what actually shipped (422-B E)
+  ✔ the three originally covered pages carry their exact confirmed deployment date (12.133531ms)
+✔ sitemap lastmod tracks what actually shipped (422-B E) (12.405362ms)
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.067725ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (17.224546ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.407328ms)
+  ✔ requires a sitemap review when the declared release changes (0.501314ms)
+✔ sitemap lastmod freshness (21.541015ms)
+ℹ tests 13
+ℹ suites 6
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.188632
+
