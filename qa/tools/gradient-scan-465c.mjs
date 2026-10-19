@@ -26,6 +26,8 @@ const args = process.argv.slice(2);
 const flag = (n) => { const i = args.indexOf(n); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
 const jsonOut = flag("--json");
 const shotPrefix = flag("--shot"); // e.g. qa/images/chai-round28/after  -> <prefix>-<route>-<state>-<theme>-<width>.png (taken with the text visible)
+const readyTimeout = Number(flag("--ready-timeout") ?? process.env.SCAN_READY_TIMEOUT_MS ?? 30000);
+if (!Number.isFinite(readyTimeout) || readyTimeout < 500 || readyTimeout > 120000) throw new Error("Invalid readiness timeout");
 const showAll = args.includes("--all"); if (showAll) args.splice(args.indexOf("--all"), 1);
 const undo468 = args.includes("--undo468"); if (undo468) args.splice(args.indexOf("--undo468"), 1);
 const [base, theme, ...targets] = args;
@@ -69,6 +71,31 @@ socket.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.
 const cdp = (method, params = {}) => new Promise((res) => { const i = ++id; waiting.set(i, res); socket.send(JSON.stringify({ id: i, method, params })); });
 const ev = async (expression) => (await cdp("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result?.value;
 await cdp("Page.enable"); await cdp("DOM.enable");
+// Installed before React: do not confuse offline fallback cards, a failed query,
+// or a partially consumed JSON response with a completed catalogue.
+await cdp("Page.addScriptToEvaluateOnNewDocument", { source: `(() => {
+  try { localStorage.setItem("knight-storefront-theme", ${JSON.stringify(theme)}); } catch {}
+  const state = window.__contrastLoad = { pending: 0, responses: {}, data: {}, mutations: 0 };
+  const original = window.fetch.bind(window);
+  window.fetch = async (...args) => {
+    const url = new URL(args[0] instanceof Request ? args[0].url : args[0], location.href);
+    if (!url.pathname.startsWith("/api/")) return original(...args);
+    state.pending++;
+    try {
+      const response = await original(...args);
+      response.clone().text().then(text => {
+        if (["/api/catalog", "/api/portfolio"].includes(url.pathname)) state.data[url.pathname] = JSON.parse(text);
+        state.responses[url.pathname] = response.status;
+      }).catch(() => { state.responses[url.pathname] = 0; }).finally(() => { state.pending--; });
+      return response;
+    } catch (error) {
+      state.responses[url.pathname] = 0; state.pending--; throw error;
+    }
+  };
+  addEventListener("DOMContentLoaded", () => {
+    new MutationObserver(() => { state.mutations++; }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }, { once: true });
+})();` });
 await cdp("Emulation.setDeviceMetricsOverride", { width: viewport, height: 900, deviceScaleFactor: 1, mobile: false });
 await cdp("Emulation.setEmulatedMedia", { features: [{name:"prefers-reduced-motion",value:"reduce"}] });
 
@@ -260,13 +287,68 @@ async function applyState(state) {
   }
 }
 
+function notReady(target, detail) {
+  console.error(`ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: ${target}) — ${detail}`);
+  socket.close(); proc.kill(); process.exit(2);
+}
+
+// Two consecutive unchanged observations are necessary, but never sufficient:
+// required API success, actual cards, loaded fonts/images and no pending fetches
+// are also mandatory. A stable error/empty fallback must not pass.
+async function waitReady(target) {
+  const route = target.split("#")[0];
+  const storefront = ["/", "/stone", "/portfolio", "/price-guide", "/site-prep", "/studio-guide", "/quote", "/studio", "/sketch", "/readme", "/updates", "/network", "/profile", "/handover", "/track", "/quote/view"].includes(route);
+  const deadline = Date.now() + readyTimeout;
+  let previous = "", stable = 0, last;
+  while (Date.now() < deadline) {
+    last = await ev(`(() => {
+      const state = window.__contrastLoad;
+      const count = selector => document.querySelectorAll(selector).length;
+      const root = document.querySelector(".storefront-theme-root");
+      const apiOK = path => state?.responses[path] >= 200 && state.responses[path] < 300;
+      const catalog = state?.data["/api/catalog"];
+      const products = count(".product-card"), colors = count(".stone-colors button:has(> .stone-card-prices)"), prices = count(".stone-card-prices");
+      const gallery = count('[data-testid^="portfolio-photo-"]');
+      const actualCodes = [...document.querySelectorAll(".stone-colors button > small:not(.stone-card-prices)")].map(n=>n.textContent.trim()).sort();
+      const matchingStoneSet = ["sheetStones", "installedStones"].some(key => {
+        const codes = catalog?.[key]?.filter(x=>x.active !== false).map(x=>x.code).sort();
+        return codes?.length > 0 && JSON.stringify(codes) === JSON.stringify(actualCodes);
+      });
+      const loading = /กำลังโหลดคลังภาพ|โหลดคลังภาพไม่สำเร็จ/.test(document.body?.innerText ?? "");
+      const routeOK = ${JSON.stringify(route)} === "/" ? products > 0 && products === catalog?.basins?.filter(x=>x.active !== false).length :
+        ${JSON.stringify(route)} === "/stone" ? colors > 0 && prices === colors && matchingStoneSet :
+        ${JSON.stringify(route)} === "/portfolio" ? apiOK("/api/portfolio") && !loading &&
+          gallery === state?.data["/api/portfolio"]?.items?.length &&
+          (gallery > 0 || /ยังไม่มีภาพในหมวดนี้/.test(document.body?.innerText ?? "")) : true;
+      document.querySelectorAll("img").forEach(im => { im.loading = "eager"; });
+      const ok = document.readyState === "complete" && !!state && state.pending === 0 &&
+        document.fonts.status === "loaded" && [...document.images].every(im => im.complete) &&
+        (!${storefront} || !!root && apiOK("/api/catalog")) && routeOK;
+      return { ok, pending: state?.pending, responses: state?.responses, products, colors, prices, gallery,
+        signature: JSON.stringify([state?.mutations, products, colors, prices, gallery, document.body?.textContent?.length, document.documentElement.scrollHeight]) };
+    })()`);
+    if (last?.ok && last.signature === previous) stable++; else stable = 0;
+    if (stable >= 2) return { ...last, stableObservations: stable, timeoutMs: readyTimeout };
+    previous = last?.signature;
+    await sleep(200);
+  }
+  notReady(target, JSON.stringify(last));
+}
+
 const all = [];
 for (const target of targets) {
   const [route, state] = target.split("#");
   await cdp("Page.navigate", { url: base + route });
-  await sleep(2500);
-  await ev(`localStorage.setItem("knight-storefront-theme","${theme}"); location.reload();`);
-  await sleep(3500);
+  // Page.navigate returns before document replacement. Wait for the new route,
+  // not the previous page (or a transient null document during navigation).
+  const navigationDeadline = Date.now() + readyTimeout;
+  while (!(await ev(`location.pathname === ${JSON.stringify(route)} && document.readyState === "complete" && !!window.__contrastLoad`))) {
+    if (Date.now() >= navigationDeadline) notReady(target, "navigation timeout");
+    await sleep(100);
+  }
+  // Trigger all lazy images before readiness checks, not midway through sampling.
+  await ev(`document.querySelectorAll("img").forEach(im => { im.loading = "eager"; });`);
+  await waitReady(target);
   await applyState(state);
   // Settle lazy images and reveal observers before BOTH captures, not only the hidden capture.
   await ev(`(async () => {
@@ -275,10 +357,9 @@ for (const target of targets) {
     document.querySelectorAll("img").forEach((im)=>{im.loading="eager";});
     for(let y=0;y<document.documentElement.scrollHeight;y+=700){scrollTo(0,y);await new Promise(r=>requestAnimationFrame(r));}
     scrollTo(0,0);
-    await Promise.race([Promise.all([...document.images].map(im=>im.decode().catch(()=>{}))),new Promise(r=>setTimeout(r,2500))]);
     document.querySelectorAll("body *").forEach(n=>{if(getComputedStyle(n).position==="sticky"){n.style.setProperty("position","relative","important");n.style.setProperty("top","auto","important");}});
   })()`);
-  await sleep(300);
+  const readiness = await waitReady(target);
   if (undo468) {
     const removed = await ev(`(() => {
       let count=0;
@@ -334,6 +415,10 @@ for (const target of targets) {
   collected.covered = collected.rows.filter(r => r.occluded).length;
   if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
   const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
+  // React content must not change between collection and the paired captures.
+  const afterCapture = await ev("({ mutations: window.__contrastLoad?.mutations, pending: window.__contrastLoad?.pending })");
+  const beforeMutations = JSON.parse(readiness.signature)[0];
+  if (afterCapture?.mutations !== beforeMutations || afterCapture?.pending) notReady(target, "data changed during pixel capture");
   const unpainted = sampled.filter((r) => r.unpainted);
   const rows = sampled.filter((r) => r.ratio != null).map((r) => ({ ...r, threshold: r.large ? 3 : 4.5 }));
   const failing = rows.filter((r) => r.ratio < r.threshold).sort((a, b) => a.ratio - b.ratio);
@@ -368,7 +453,7 @@ for (const target of targets) {
       "Visible/hidden pixel difference detected, but no reliable glyph-interior samples at this viewport width",
   }));
    for(const row of unmeasurable)console.log(`  ${row.status} @${viewport}: ${row.selector} "${row.text}" — ${row.reason}`);
-  all.push({ target, theme: collected.theme, width:viewport, overflow: collected.ov, checked: rows.length, failing: failing.length,
+  all.push({ target, theme: collected.theme, width:viewport, readiness: { ...readiness, signature: undefined }, overflow: collected.ov, checked: rows.length, failing: failing.length,
      capture:{method:"paired viewport screenshots with capture-position elementFromPoint pixel masks",viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y),
        pixelOcclusion:tiles.map(t=>({y:t.y,blocked:t.blocked,coveringElements:t.covers}))},
     coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
