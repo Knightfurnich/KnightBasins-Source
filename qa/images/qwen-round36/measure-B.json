@@ -1,0 +1,94 @@
+{
+ "quote_dark": {
+  "theme": "dark",
+  "vars": {
+   "--ink": "#e8eff8",
+   "--ink-soft": "#aab9cc",
+   "--paper": "#0f172a",
+   "--card-paper": "#162238",
+   "--line": "#34445b",
+   "--deep": "#0b1324",
+   "--saffron": "#44a9d4"
+  },
+  "qtyBox": {
+   "w": 77,
+   "h": 30
+  },
+  "qtyBtn": {
+   "w": 25,
+   "h": 28
+  },
+  "qtyBg": "rgb(22,34,56)",
+  "firstPrice": "฿38,000",
+  "grandTotal": "฿58,850",
+  "vatUncheckedBorder": {
+   "fg": "rgb(122,143,168)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 4.79
+  },
+  "line": {
+   "tag": "span",
+   "cls": "line-logo-mark",
+   "text": "LINE",
+   "fg": "rgb(255,255,255)",
+   "bg": "rgb(6,199,85)",
+   "ratio": 2.26
+  }
+ },
+ "studio_dark": {
+  "theme": "dark",
+  "edgeMarker": {
+   "cls": "studio-edge-marker studio-edge-marker--t",
+   "text": "ติดบัว×",
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(176,122,18)",
+   "ratio": 4.98
+  }
+ },
+ "quote_light": {
+  "theme": "light",
+  "vars": {
+   "--ink": "#123e69",
+   "--ink-soft": "#577186",
+   "--paper": "#f6fbfe",
+   "--card-paper": "#fff",
+   "--line": "#d8e7f0",
+   "--deep": "#0e355b",
+   "--saffron": "#41a9d8"
+  },
+  "qtyBox": {
+   "w": 77,
+   "h": 30
+  },
+  "qtyBtn": {
+   "w": 25,
+   "h": 28
+  },
+  "qtyBg": "rgb(255,255,255)",
+  "firstPrice": "฿38,000",
+  "grandTotal": "฿58,850",
+  "vatUncheckedBorder": {
+   "fg": "rgb(216,231,240)",
+   "bg": "rgb(15,61,102)",
+   "ratio": 8.89
+  },
+  "line": {
+   "tag": "span",
+   "cls": "line-logo-mark",
+   "text": "LINE",
+   "fg": "rgb(255,255,255)",
+   "bg": "rgb(6,199,85)",
+   "ratio": 2.26
+  }
+ },
+ "studio_light": {
+  "theme": "light",
+  "edgeMarker": {
+   "cls": "studio-edge-marker studio-edge-marker--t",
+   "text": "ติดบัว×",
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(176,122,18)",
+   "ratio": 4.98
+  }
+ }
+}
