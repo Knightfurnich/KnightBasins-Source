@@ -476,6 +476,33 @@ export const STOREFRONT_THEME_STYLES = `
   color: #ffffff;
 }
 
+/* ─── job 474-C · remaining contrast points (colours only: no size, structure, text or token value is touched) ───────────
+   Criteria (David, 19 Oct): text / placeholder / numbers 4.5 · icons and UI component boundaries 3.0 · the LINE green button is the one
+   approved exception. Every pair below was measured in the browser (qa/images/chai-round35/points.mjs).
+   1  product card (role=checkbox): its border is the control boundary; the 1px line colour was 1.61 on the dark card face and 1.21 in the light theme
+   2/3 install + VAT check boxes: unticked border 1.61 (dark) / 1.21 (light); the tick was the dark theme text colour on the sky-blue fill = 2.30
+   4  number badge in the menu: white on the dark theme light-blue = 2.07
+   5  /studio undo / redo: a fixed white face with pale icons (2.00) and 0.35 opacity when disabled (1.49 dark, 1.60 light)
+   7  /studio progress step numbers: pale grey on a fixed #fbfdfe disc = 1.96
+   8  search field: a fixed 82% white fill under pale icon + typed text = 1.36 / 1.27
+   9/10 search placeholders: the browser default grey = 2.75 / 4.04 on the light fields */
+[data-theme="dark"] .product-card[aria-checked="false"] { border-color: #7a8fa8; }
+[data-theme="dark"] .product-card[aria-checked="false"]:hover { border-color: #a4b6c9; }
+[data-theme="light"] .product-card[aria-checked="false"],
+[data-theme="light"] .product-card[aria-checked="false"]:hover { border-color: #738a9e; }
+[data-theme="dark"] :is(.install-toggle, .vat-row label) input:not(:checked) + span { border-color: #7a8fa8; }
+[data-theme="light"] .install-toggle input:not(:checked) + span { border-color: #738a9e; }
+[data-theme="light"] .install-toggle input:checked + span { border-color: #1f6f98; }
+[data-theme="dark"] :is(.install-toggle, .vat-row label) input:checked + span::after { border-right-color: #0b1324; border-bottom-color: #0b1324; }
+[data-theme="dark"] :is(.quote-link, .mobile-cart) span { color: #0b1324; }
+[data-theme="dark"] .studio-draft-toolbar-actions .icon-button { background-color: var(--card-paper); }
+[data-theme="dark"] .studio-draft-toolbar-actions .icon-button:disabled { opacity: 0.6; }
+[data-theme="light"] .studio-draft-toolbar-actions .icon-button:disabled { opacity: 0.8; }
+[data-theme="dark"] .studio-progress-step:not(.is-done) .studio-progress-step-icon { background-color: var(--card-paper); }
+[data-theme="dark"] .search-field { background-color: var(--card-paper); }
+[data-theme="dark"] :is(.search-field, .portfolio-search-bar) input::placeholder,
+[data-theme="light"] :is(.search-field, .portfolio-search-bar) input::placeholder { color: var(--ink-soft); opacity: 1; }
+
 /* ─── job 472-C · dark theme: the quantity box of a quote line (- 1 +) ─────────────────────────────────────────────────
    index.css sets .line-quantity { background: white } (a fixed fill) while the number and the - / + icons (currentColor) use the dark
    theme text token --ink: #e8eff8 on #ffffff = 1.16. The box follows the card surface here; the number and icons are pinned to --ink

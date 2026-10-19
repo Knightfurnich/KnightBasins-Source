@@ -1,0 +1,59 @@
+/*
+ * points.mjs - job 474-C evidence tool. Measures the 12 listed points in the real browser (computed styles, opacity-aware, animations frozen):
+ *   node points.mjs _ <baseUrl> <light|dark> <width> <out.json>
+ * criteria: text / placeholder / numbers >= 4.5 · icons and UI component boundaries (WCAG 1.4.11) >= 3.0 · LINE green button = approved exception.
+ * Lives next to the evidence (qa/tools/** belongs to Replit).
+ */
+import { writeFileSync as wf } from "node:fs";
+const LIB = `(() => {
+  const cv = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const rgba = (c) => { cv.clearRect(0,0,1,1); cv.fillStyle = "#000"; cv.fillStyle = c; cv.fillRect(0,0,1,1); const d = cv.getImageData(0,0,1,1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+  const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const ratio = (a, b) => { const l1 = lum(a[0], a[1], a[2]), l2 = lum(b[0], b[1], b[2]); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); };
+  const over = (fg, bg, a) => [fg[0] * a + bg[0] * (1 - a), fg[1] * a + bg[1] * (1 - a), fg[2] * a + bg[2] * (1 - a), 1];
+  const opac = (n) => { let o = 1; for (; n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity); return o; };
+  const surface = (el, includeSelf) => { const layers = []; let n = includeSelf ? el : el.parentElement; while (n && n.nodeType === 1) { const s = getComputedStyle(n); if (s.backgroundImage !== "none") { const st = [...s.backgroundImage.matchAll(/rgba?[(]([0-9]+)[^0-9]+([0-9]+)[^0-9]+([0-9]+)/g)].map((m) => [+m[1], +m[2], +m[3]]); const mean = st.length ? [0, 1, 2].map((i) => st.reduce((x, y) => x + y[i], 0) / st.length) : [128, 128, 128]; layers.push([[mean[0], mean[1], mean[2], 1], opac(n)]); break; } const c = rgba(s.backgroundColor); const a = c[3] * opac(n); if (a > 0) layers.push([c, a]); if (c[3] >= 0.99 && opac(n) >= 0.99) break; n = n.parentElement; } let out = [255,255,255,1]; for (const [c, a] of layers.reverse()) out = over(c, out, a); return out; };
+  const effFg = (el, color, extraAlpha, bg) => { const c = rgba(color); return over(c, bg, c[3] * (extraAlpha ?? 1) * opac(el)); };
+  const R = (v) => Math.round(v * 100) / 100;
+  const rgbs = (c) => "rgb(" + c.slice(0, 3).map(Math.round).join(",") + ")";
+  const visible = (el) => !!el.getClientRects().length;
+  return { rgba, ratio, over, opac, surface, effFg, R, rgbs, visible };
+})()`;
+const P = (body) => `(() => { const L = ${LIB}; const { rgba, ratio, over, opac, surface, effFg, R, rgbs, visible } = L; const out = []; ${body}; return out; })()`;
+
+const ptsBody = {
+  // 1: product card (role=checkbox, unchecked): the card edge is the control boundary -> border vs outside AND inside surface
+  1: `for (const el of document.querySelectorAll('article.product-card[role="checkbox"]')) { if (!visible(el) || el.getAttribute("aria-checked") === "true") continue; const s = getComputedStyle(el); const outside = surface(el, false), inside = surface(el, true); const bc = effFg(el, s.borderTopColor, 1, outside); out.push({ id: el.dataset.testid, state: "unchecked", kind: "ui", fg: rgbs(bc), bg: rgbs(outside) + " / " + rgbs(inside), ratio: R(Math.min(ratio(bc, outside), ratio(bc, inside))), what: "card border vs page / vs card face" }); }`,
+  2: `for (const lab of document.querySelectorAll(".install-toggle")) { const inp = lab.querySelector("input"), sp = lab.querySelector("span"); if (!visible(sp)) continue; const s = getComputedStyle(sp); const surf = surface(sp, false); const fill = rgba(s.backgroundColor); const border = effFg(sp, s.borderTopColor, 1, surf); const face = fill[3] > 0.5 ? effFg(sp, s.backgroundColor, 1, surf) : null; const row = lab.closest("[data-testid^=row-quote]"); const id = row ? row.dataset.testid : "install"; if (inp.checked) { const mark = getComputedStyle(sp, "::after").borderRightColor; out.push({ id, state: "checked", kind: "ui", fg: rgbs(rgba(mark)) + " (check mark)", bg: rgbs(face ?? surf), ratio: R(ratio(rgba(mark), face ?? surf)), what: "check mark vs fill" }); out.push({ id, state: "checked", kind: "ui", fg: rgbs(face ?? border), bg: rgbs(surf), ratio: R(Math.max(ratio(face ?? border, surf), ratio(border, surf))), what: "box fill/border vs surface" }); } else out.push({ id, state: "unchecked", kind: "ui", fg: rgbs(border), bg: rgbs(surf), ratio: R(ratio(border, surf)), what: "box border vs surface" }); }`,
+  3: `for (const lab of document.querySelectorAll(".vat-row label")) { const inp = lab.querySelector("input"), sp = lab.querySelector("span"); if (!sp || !visible(sp)) continue; const s = getComputedStyle(sp); const surf = surface(sp, false); const fill = rgba(s.backgroundColor); const border = effFg(sp, s.borderTopColor, 1, surf); const face = fill[3] > 0.5 ? effFg(sp, s.backgroundColor, 1, surf) : null; if (inp.checked) { const mark = getComputedStyle(sp, "::after").borderRightColor; out.push({ id: "vat", state: "checked", kind: "ui", fg: rgbs(rgba(mark)) + " (check mark)", bg: rgbs(face ?? surf), ratio: R(ratio(rgba(mark), face ?? surf)), what: "check mark vs fill" }); out.push({ id: "vat", state: "checked", kind: "ui", fg: rgbs(face ?? border), bg: rgbs(surf), ratio: R(Math.max(ratio(face ?? border, surf), ratio(border, surf))), what: "box fill/border vs surface" }); } else out.push({ id: "vat", state: "unchecked", kind: "ui", fg: rgbs(border), bg: rgbs(surf), ratio: R(ratio(border, surf)), what: "box border vs surface" }); }`,
+  4: `for (const el of document.querySelectorAll('nav.main-nav a[data-testid="link-quote"] > span, a.mobile-cart > span')) { if (!visible(el)) continue; const bg = surface(el, true); const fg = effFg(el, getComputedStyle(el).color, 1, bg); out.push({ id: el.parentElement.dataset.testid || el.parentElement.className, state: "badge", kind: "text", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "badge number" }); }`,
+  5: `for (const b of document.querySelectorAll(".studio-draft-toolbar-actions .icon-button")) { if (!visible(b)) continue; const svg = b.querySelector("svg"); const bgEff = surface(b, true); const fg = effFg(svg, getComputedStyle(svg).stroke, 1, bgEff); out.push({ id: b.getAttribute("aria-label") || b.title, state: b.disabled ? "disabled" : "enabled", kind: "ui", fg: rgbs(fg), bg: rgbs(bgEff), ratio: R(ratio(fg, bgEff)), what: "icon vs button face (opacity applied)" }); }`,
+  7: `for (const li of document.querySelectorAll(".studio-progress-step")) { const ic = li.querySelector(".studio-progress-step-icon"); if (!ic || !visible(ic)) continue; if (!ic.textContent.trim()) continue; const bg = surface(ic, true); const fg = effFg(ic, getComputedStyle(ic).color, 1, bg); out.push({ id: "step " + ic.textContent.trim(), state: li.className.replace("studio-progress-step", "").trim() || "todo", kind: "text", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "step number" }); }`,
+  8: `for (const f of document.querySelectorAll(".search-field, .sort-field")) { if (!visible(f)) continue; const bg = surface(f, true); for (const svg of f.querySelectorAll("svg")) { const fg = effFg(svg, getComputedStyle(svg).stroke, 1, bg); out.push({ id: f.className + " " + svg.getAttribute("class"), state: "icon", kind: "ui", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "icon vs field" }); } const inp = f.querySelector("input"); if (inp) { const fg = effFg(inp, getComputedStyle(inp).color, 1, bg); out.push({ id: "search input text", state: "typed", kind: "text", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "typed text" }); } }`,
+  9: `for (const inp of document.querySelectorAll(".search-field input")) { if (!visible(inp)) continue; const bg = surface(inp, true); const ph = getComputedStyle(inp, "::placeholder"); const fg = effFg(inp, ph.color, parseFloat(ph.opacity), bg); out.push({ id: "search placeholder", state: "placeholder", kind: "text", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "placeholder " + inp.placeholder }); }`,
+  10: `for (const inp of document.querySelectorAll(".portfolio-search-bar input")) { if (!visible(inp)) continue; const bg = surface(inp, true); const ph = getComputedStyle(inp, "::placeholder"); const fg = effFg(inp, ph.color, parseFloat(ph.opacity), bg); out.push({ id: "portfolio placeholder", state: "placeholder", kind: "text", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "placeholder " + inp.placeholder }); const bar = inp.closest(".portfolio-search-bar"); const ic = bar.querySelector("svg"); if (ic) { const b2 = surface(bar, true); const f2 = effFg(ic, getComputedStyle(ic).stroke, 1, b2); out.push({ id: "portfolio search icon", state: "icon", kind: "ui", fg: rgbs(f2), bg: rgbs(b2), ratio: R(ratio(f2, b2)), what: "icon vs bar" }); } const tx = effFg(inp, getComputedStyle(inp).color, 1, bg); out.push({ id: "portfolio typed text", state: "typed", kind: "text", fg: rgbs(tx), bg: rgbs(bg), ratio: R(ratio(tx, bg)), what: "typed text" }); }`,
+  11: `for (const el of document.querySelectorAll(".studio-edge-marker--upstand")) { if (!visible(el)) continue; const bg = surface(el, true); const fg = effFg(el, getComputedStyle(el).color, 1, bg); out.push({ id: ".studio-edge-marker--upstand", state: "marker", kind: "ui", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "x mark vs marker fill (element's own stack)" }); }`,
+  12: `for (const el of document.querySelectorAll(".line-logo-mark")) { if (!visible(el)) continue; const bg = surface(el, true); const fg = effFg(el, getComputedStyle(el).color, 1, bg); out.push({ id: ".line-logo-mark", state: "LINE", kind: "exception", fg: rgbs(fg), bg: rgbs(bg), ratio: R(ratio(fg, bg)), what: "LINE green button (approved exception)" }); }`,
+};
+const plan = [
+  { route: "/", pts: [1, 4, 8, 9, 12], wait: "article.product-card" },
+  { route: "/quote#cart", pts: [2, 3, 4, 12], toggleVat: true, wait: ".vat-row label" },
+  { route: "/studio", pts: [4, 5, 7, 11], wait: ".studio-progress-step-icon" },
+  { route: "/stone", pts: [8, 9], wait: ".search-field input" },
+  { route: "/portfolio", pts: [10], wait: ".portfolio-search-bar input" },
+];
+const result = [];
+for (const step of plan) {
+  const [path, st] = step.route.split("#");
+  await open(path, st === "cart");
+  for (let i = 0; i < 25 && !(await ev(`!!document.querySelector(${JSON.stringify(step.wait)})`)); i++) await sleep(1000);
+  await sleep(500);
+  for (const n of step.pts) { const rows = await ev(P(ptsBody[n])); for (const r of rows) result.push({ point: n, route: step.route, ...r }); }
+  if (step.toggleVat) {
+    await ev(`(() => { const l = document.querySelector(".vat-row label"); if (l) l.click(); })()`); await sleep(500);
+    const rows = await ev(P(ptsBody[3])); for (const r of rows) result.push({ point: 3, route: step.route + " (VAT unticked)", ...r });
+  }
+}
+wf(outArg, JSON.stringify({ theme, width, base, rows: result }, null, 1));
+console.log(`theme=${theme} width=${width} rows=${result.length}`);
+socket.close(); proc.kill(); process.exit(0);
