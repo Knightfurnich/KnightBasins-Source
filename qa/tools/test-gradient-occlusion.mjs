@@ -24,6 +24,8 @@ const server = http.createServer((req, res) => {
     .overlay.good { bottom:15px;top:auto }
     .overlay.bad { bottom:75px;top:auto }
     .fixed-good { position:fixed;bottom:130px;left:30px;color:#173f6b;z-index:20 }
+    .boundary { top:890px;color:#eee }
+    .boundary-photo { position:absolute;top:865px;left:20px;width:340px;height:75px;background:#ddd;z-index:1 }
   </style></head><body><main class="storefront-theme-root">
     <span class="covered">COVERED LOW CONTRAST LABEL</span><div class="photo"></div>
     <span class="bad">VISIBLE LOW CONTRAST CONTROL</span>
@@ -32,7 +34,13 @@ const server = http.createServer((req, res) => {
     <span class="partial-bad">PARTIALLY COVERED FAILING CONTROL</span>
     <div class="overlay good"></div><div class="overlay bad"></div>
     <span class="fixed-good">FIXED PASSING CONTROL</span>
-  </main><script>document.querySelector('main').dataset.theme=localStorage.getItem('knight-storefront-theme')||'light';</script></body></html>`);
+    <span class="boundary">BOUNDARY COVERED CONTROL</span><div class="boundary-photo"></div>
+  </main><script>
+    document.querySelector('main').dataset.theme=localStorage.getItem('knight-storefront-theme')||'light';
+    const el=document.querySelector('.boundary'),range=document.createRange();
+    range.selectNodeContents(el);const box=range.getBoundingClientRect();
+    el.style.top=(890+899.75-box.top-box.height/2)+'px';
+  </script></body></html>`);
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 try {
@@ -55,6 +63,10 @@ try {
     assert.equal(covered?.status, "occluded / มองไม่เห็น");
     assert.equal(covered.visibilitySamples.length, 9);
     assert.ok(covered.visibilitySamples.every(point => !point.visible && point.coveringElement.endsWith("div.photo")));
+    const boundary = result.unmeasurable.find(row => row.text === "BOUNDARY COVERED CONTROL");
+    assert.equal(boundary?.status, "occluded / มองไม่เห็น");
+    assert.equal(boundary.visibilitySamples.length, 9);
+    assert.ok(boundary.visibilitySamples.every(point => !point.visible && point.coveringElement.endsWith("div.boundary-photo")));
     for (const text of ["VISIBLE LOW CONTRAST CONTROL", "PARTIALLY COVERED FAILING CONTROL"]) {
       const row = result.rows.find(row => row.text === text);
       assert.ok(row && row.ratio < 4.5 && !row.occluded, `${text} must still fail`);
