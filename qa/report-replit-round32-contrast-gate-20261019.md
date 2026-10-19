@@ -48,8 +48,11 @@ and **two consecutive unchanged DOM observations**:
   with no visible loading indicator.
 - Cart state and lazy-image settling are followed by the same readiness check.
 
-Content mutations or unfinished API work during paired pixel capture also
-fail closed. Failure prints **`ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: <เส้นทาง>)`** and
+Content mutations during paired pixel capture also fail closed. If a periodic
+refresh begins during capture, its response must finish and the original
+captured DOM must remain unchanged; a stuck refresh still times out. Paired
+controls prove both unchanged-refresh success and changed-content exit 2.
+Failure prints **`ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: <เส้นทาง>)`** and
 exits **2**; the sweep propagates 2, never a false success.
 
 The new browser controls deliver JSON late, then render one card before all
@@ -81,6 +84,11 @@ protects the actual price label instead of hiding it.
 Raw local browser controls and sampled RGBs: `qa/images/replit-round32/browser-controls.log`.
 The same controls run inside every contrast CI case. CI artifacts also retain
 per-route measured, occluded and unmeasurable counts and their existing reasons.
+
+Controlled-state screenshots (not production screenshots):
+`qa/images/replit-round32/pinned-470-colors-initial-dark-390.png` and
+`qa/images/replit-round32/pinned-470-colors-initial-light-390.png`;
+their `pinned-dark/light.json` and `.log` files preserve the actual sampled rows.
 
 ## C/E — same-commit repetition and genuine red proof
 

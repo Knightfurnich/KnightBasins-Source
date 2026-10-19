@@ -422,9 +422,17 @@ for (const target of targets) {
   if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
   const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
   // React content must not change between collection and the paired captures.
-  const afterCapture = await ev("({ mutations: window.__contrastLoad?.mutations, pending: window.__contrastLoad?.pending })");
+  const captureLoad = () => ev("({ mutations: window.__contrastLoad?.mutations, pending: window.__contrastLoad?.pending, responses: window.__contrastLoad?.responses })");
+  let afterCapture = await captureLoad();
+  // A periodic refresh can start after a ready capture begins. Wait for its
+  // consumed response, then accept only if the captured DOM never changed.
+  // A hung/failed refresh or any content mutation still fails closed.
+  if (afterCapture?.pending) {
+    await waitReady(target);
+    afterCapture = await captureLoad();
+  }
   const beforeMutations = JSON.parse(readiness.signature)[0];
-  if (afterCapture?.mutations !== beforeMutations || afterCapture?.pending) notReady(target, "data changed during pixel capture");
+  if (afterCapture?.mutations !== beforeMutations || afterCapture?.pending) notReady(target, `data changed during pixel capture: before=${beforeMutations}; after=${JSON.stringify(afterCapture)}`);
   const unpainted = sampled.filter((r) => r.unpainted);
   const rows = sampled.filter((r) => r.ratio != null).map((r) => ({ ...r, threshold: r.large ? 3 : 4.5 }));
   const failing = rows.filter((r) => r.ratio < r.threshold).sort((a, b) => a.ratio - b.ratio);
@@ -460,7 +468,7 @@ for (const target of targets) {
   }));
    for(const row of unmeasurable)console.log(`  ${row.status} @${viewport}: ${row.selector} "${row.text}" — ${row.reason}`);
   all.push({ target, theme: collected.theme, width:viewport, readiness: { ...readiness, signature: undefined }, overflow: collected.ov, checked: rows.length, failing: failing.length,
-     capture:{method:"paired viewport screenshots with capture-position elementFromPoint pixel masks",viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y),
+     capture:{method:"paired viewport screenshots with capture-position elementFromPoint pixel masks",settled:afterCapture,viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y),
        pixelOcclusion:tiles.map(t=>({y:t.y,blocked:t.blocked,coveringElements:t.covers}))},
     coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
      exclusions:{covered:collected.covered,moving:collected.moving,unpainted,occluded}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });

@@ -20,6 +20,19 @@ const cssName = readdirSync(assets).find(n=>n.endsWith(".css"));
 assert.ok(cssName, "Build the actual application CSS before browser controls");
 const compiledStyles = readFileSync(new URL(cssName, assets), "utf8");
 const server = http.createServer((req, res) => {
+  if (req.url === "/api/refresh-control") {
+    return setTimeout(()=>{res.writeHead(200,{"content-type":"application/json"});res.end("{}")},1000);
+  }
+  if (req.url === "/refresh-control" || req.url === "/refresh-change") {
+    res.writeHead(200,{"content-type":"text/html; charset=utf-8"});
+    return res.end(`<!doctype html><style>body{height:1400px;background:white;color:#173f6b;font:16px Arial}</style>
+      <main class="storefront-theme-root"><p>UNCHANGED REFRESH CONTROL</p></main>
+      <script>document.querySelector("main").dataset.theme=localStorage.getItem("knight-storefront-theme");
+      let started=false;new MutationObserver(()=>{if(!started&&document.getElementById("scan-hide-text")){
+      started=true;fetch("/api/refresh-control").then(r=>r.json()).then(()=>{
+      ${req.url==="/refresh-change" ? 'document.querySelector("p").textContent="CHANGED REFRESH CONTROL";' : ""}
+      })}}).observe(document.head,{childList:true});</script>`);
+  }
   if (req.url === "/api/portfolio") {
     res.writeHead(200, { "content-type":"application/json" });
     return res.end(JSON.stringify({items:[{id:1},{id:2}]}));
@@ -154,6 +167,18 @@ try {
   assert.equal(gallery.readiness.gallery,2);
   assert.equal(gallery.readiness.responses["/api/catalog"],undefined);
   console.log("PASS standalone portfolio: its own gallery API and two photos; no catalogue-hook requirement");
+  const refresh = await run("/refresh-control","refresh");
+  assert.equal(refresh.status,0,refresh.log);
+  const [refreshed] = JSON.parse(readFileSync(refresh.json,"utf8"));
+  assert.equal(refreshed.capture.settled.pending,0);
+  assert.equal(refreshed.capture.settled.responses["/api/refresh-control"],200);
+  assert.ok(refreshed.rows.some(r=>r.text==="UNCHANGED REFRESH CONTROL"&&r.ratio>=4.5));
+  console.log("PASS capture-time refresh: consumed successful response, unchanged captured DOM, pending=0");
+  const changed = await run("/refresh-change","refresh-change");
+  assert.equal(changed.status,2,changed.log);
+  assert.match(changed.log,/ยังไม่ได้ตรวจ.*data changed during pixel capture/);
+  assert.equal(existsSync(changed.json),false);
+  console.log("PASS capture-time content mutation: exit 2, no stale pixel result");
   fixtureMode = "blocked";
   const blocked = await run("/stone", "blocked", "1500");
   assert.equal(blocked.status, 2, blocked.log);

@@ -4,6 +4,8 @@ PASS dark 390: nine-point occlusion, partial good/bad, fixed text; ratios VISIBL
 PASS light 390: nine-point occlusion, partial good/bad, fixed text; ratios VISIBLE LOW CONTRAST CONTROL=2.79; PARTIALLY COVERED FAILING CONTROL=2.79; VISIBLE PASSING CONTROL=10.72; PARTIALLY COVERED PASSING CONTROL=10.72; FIXED PASSING CONTROL=10.72
 PASS delayed API + two-stage DOM: all 3 cards/prices measured, never the stable fallback or partial first card
 PASS standalone portfolio: its own gallery API and two photos; no catalogue-hook requirement
+PASS capture-time refresh: consumed successful response, unchanged captured DOM, pending=0
+PASS capture-time content mutation: exit 2, no stale pixel result
 PASS blocked /api/catalog: exit 2; ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: /stone) — {"ok":false,"pending":1,"responses":{},"products":0,"colors":1,"prices":1,"gallery":0,"signature":"[0,0,1,1,0,521,900]"}
 PASS full sweep blocked catalogue: exit 2, ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: /stone)
 PASS real app CSS fixture dark 390: โหลดคลังภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง; ratio=10.51; foreground=255,180,171,1; sampled background=15,23,42
