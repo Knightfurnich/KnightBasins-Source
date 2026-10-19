@@ -82,3 +82,66 @@ jobs:
         run: |
           files=$(find test -maxdepth 1 -name '*.test.ts' ! -name '*.browser.test.ts' | sort)
           node --experimental-strip-types --test $files
+
+  contrast-sweep:
+    name: Contrast sweep (${{ matrix.width }}px)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        width: [1440, 390]
+    env:
+      PORT: "5173"
+      BASE_PATH: "/"
+      CHROME_BIN: "/usr/bin/google-chrome"
+      SCAN_WIDTH: "${{ matrix.width }}"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require runner Chrome
+        run: |
+          test -x "$CHROME_BIN" || { echo "::error::Chrome unavailable — contrast was NOT checked"; exit 2; }
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck:libs
+      - name: Build storefront
+        run: pnpm --filter @workspace/knight-basins run build
+      - name: Serve built app and public read-only catalogue
+        run: |
+          node qa/tools/mock-api-466c.mjs > /tmp/contrast-api.log 2>&1 &
+          pnpm --filter @workspace/knight-basins run serve > /tmp/contrast-web.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5173/ > /dev/null && curl --fail --silent http://127.0.0.1:5173/api/catalog > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/contrast-api.log /tmp/contrast-web.log
+          echo "::error::Preview unavailable — contrast was NOT checked"
+          exit 2
+      - name: Sweep 12 sitemap routes and non-sitemap routes in both themes
+        run: |
+          node qa/tools/test-gradient-occlusion.mjs
+          node qa/tools/sweep-467c.mjs http://127.0.0.1:5173 --sitemap http://127.0.0.1:5173/sitemap.xml --out qa/images/replit-round30/ci-${{ matrix.width }}
+      - name: A4 quote regression on Linux (existing browser case)
+        if: always() && matrix.width == 1440
+        env:
+          BROWSER_TEST_BASE_URL: "http://127.0.0.1:5173"
+          CHROMIUM_BIN: "/usr/bin/google-chrome"
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y poppler-utils
+          set -o pipefail
+          node --experimental-strip-types --test --test-concurrency=1 --test-name-pattern="keeps every basin and stone row readable on mobile and across print pages" artifacts/knight-basins/test/quote-print-fixture.browser.test.ts 2>&1 | tee qa/images/replit-round30/ci-1440/a4-proof.log
+      - name: Retain raw contrast evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrast-${{ matrix.width }}
+          path: |
+            qa/images/replit-round30/ci-${{ matrix.width }}
+            /tmp/contrast-api.log
+            /tmp/contrast-web.log

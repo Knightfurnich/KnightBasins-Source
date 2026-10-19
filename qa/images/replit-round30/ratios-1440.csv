@@ -1,0 +1,91 @@
+route,theme,selector,text,before,after,threshold,measurement_note
+/,dark,article[card-product-KF029] > div.product-art > span.art-note,READY-MADE PILLAR SET,1.15,1.15,4.5,rectangle sampling; product rows provisional
+/,dark,article[card-product-KF030] > div.product-art > span.art-note,READY-MADE PILLAR SET,1.15,1.15,4.5,rectangle sampling; product rows provisional
+/,dark,section.catalog-hero > div > p.eyebrow,KNIGHT BASINS / 2026,1.28,16.06,4.5,glyph-interior
+/,dark,section.catalog-hero > div > a[link-hero-stone],ดูวัสดุหินสังเคราะห์,1.61,15.98,4.5,glyph-interior
+/,dark,div > h1 > em,อ่างล้างหน้า by ไนท์ เฟอร์นิช,1.77,17.98,3,glyph-interior
+/,dark,article[card-product-KF004] > div.product-art > span.art-note,COUNTER SERIES,1.78,1.78,4.5,rectangle sampling; product rows provisional
+/,dark,section.catalog-hero > div > p.hero-copy,อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่,3.45,13.53,4.5,glyph-interior
+/,dark,section.catalog-hero > div > h1,Knight Basins,4.36,18.48,3,glyph-interior
+/,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คลังผลงานติดตั้งจริง,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/,dark,div.footer-meta-bar > div.footer-meta > a[link-footer-price-guide],ราคาและวิธีเลือกหินสังเคราะห์,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คู่มือเตรียมหน้างาน,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/,dark,div.footer-meta-bar > div.footer-meta > a[link-footer-updates],บันทึกการอัปเดต ( v2.2.1 ),8.97,8.97,4.5,rectangle sampling; product rows provisional
+/,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,เครือข่ายเว็บไซต์ของเรา,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/,dark,div.catalog-hero-art > div.hero-index > span,30 SKU,9.04,19.32,4.5,glyph-interior
+/,dark,div.footer-meta-bar > div.footer-meta > span,TH / 2026 COLLECTION,9.29,9.29,4.5,rectangle sampling; product rows provisional
+/,dark,div.footer-meta-bar > div.footer-meta > span,ราคาสินค้ายังไม่รวม VAT,9.29,9.29,4.5,rectangle sampling; product rows provisional
+/stone,dark,section.stone-hero > div > p.eyebrow,MATERIAL / CONFIGURATOR,1.2,15.67,4.5,glyph-interior
+/stone,dark,section.stone-hero > div > h1,ท็อปครัว & เคาน์เตอร์หินสังเคราะห์,2.87,18.62,3,glyph-interior
+/stone,dark,div > h1 > em,สั่งตัดตามพื้นที่ของคุณ,2.97,17.84,3,glyph-interior
+/stone,dark,section.stone-hero > div > p.hero-copy,สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส,3.23,13.21,4.5,glyph-interior
+/stone,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คลังผลงานติดตั้งจริง,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/stone,dark,div.footer-meta-bar > div.footer-meta > a[link-footer-price-guide],ราคาและวิธีเลือกหินสังเคราะห์,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/stone,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คู่มือเตรียมหน้างาน,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/stone,dark,div.footer-meta-bar > div.footer-meta > a[link-footer-updates],บันทึกการอัปเดต ( v2.2.1 ),8.97,8.97,4.5,rectangle sampling; product rows provisional
+/stone,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,เครือข่ายเว็บไซต์ของเรา,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/stone,dark,div.footer-meta-bar > div.footer-meta > span,TH / 2026 COLLECTION,9.29,9.29,4.5,rectangle sampling; product rows provisional
+/stone,dark,div.footer-meta-bar > div.footer-meta > span,ราคาสินค้ายังไม่รวม VAT,9.29,9.29,4.5,rectangle sampling; product rows provisional
+/stone,dark,div[stone-hero-media] > span > strong,BW010,12.7,12.7,4.5,glyph-interior
+/stone,dark,div[stone-hero-media] > span > small,Bright White,12.73,12.73,4.5,glyph-interior
+/quote,dark,section.quote-heading > div > p.eyebrow,เลขที่เอกสาร Oct 26 / US / 3433,1.21,NOT CHECKED,4.5,glyph-interior
+/quote,dark,section.quote-heading > div > h1,จากรายการ,2.29,18.48,3,glyph-interior
+/quote,dark,div > h1 > em,สู่ตัวเลขที่ชัดเจน,2.42,17.67,3,glyph-interior
+/quote,dark,section.quote-heading > div > p.hero-copy,ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง,3.01,12.65,4.5,glyph-interior
+/quote,dark,section.quote-heading > div.quote-date > button[button-view-quote-history],ดูใบเสนอราคาก่อนหน้า,7.7,18.94,4.5,glyph-interior
+/quote,dark,section.quote-heading > div.quote-date > span,วันที่ออกเอกสาร,7.97,18.6,4.5,glyph-interior
+/quote,dark,section.quote-heading > div.quote-date > small,ใช้ได้ถึง 12 พ.ย. 2569 · 30 วัน,7.97,9.24,4.5,glyph-interior
+/quote,dark,section.quote-heading > div > button[button-inquire-fast-lane],💬 ให้ทีมโทรกลับ / ขอราคาเร็ว,8.97,8.97,4.5,glyph-interior
+/quote,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คลังผลงานติดตั้งจริง,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/quote,dark,div.footer-meta-bar > div.footer-meta > a[link-footer-price-guide],ราคาและวิธีเลือกหินสังเคราะห์,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/quote,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คู่มือเตรียมหน้างาน,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/quote,dark,div.footer-meta-bar > div.footer-meta > a[link-footer-updates],บันทึกการอัปเดต ( v2.2.1 ),8.97,8.97,4.5,rectangle sampling; product rows provisional
+/quote,dark,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,เครือข่ายเว็บไซต์ของเรา,8.97,8.97,4.5,rectangle sampling; product rows provisional
+/quote,dark,div.footer-meta-bar > div.footer-meta > span,TH / 2026 COLLECTION,9.29,9.29,4.5,rectangle sampling; product rows provisional
+/quote,dark,div.footer-meta-bar > div.footer-meta > span,ราคาสินค้ายังไม่รวม VAT,9.29,9.29,4.5,rectangle sampling; product rows provisional
+/quote,dark,section.quote-heading > div.quote-date > strong,13 ต.ค. 2569,13.74,18.45,4.5,glyph-interior
+/quote,dark,section.quote-heading > div.quote-date > button[button-print-quote],พิมพ์ใบเสนอราคา,13.74,18.71,4.5,glyph-interior
+/,light,article[card-product-KF004] > div.product-art > span.art-note,COUNTER SERIES,1.11,1.11,4.5,rectangle sampling; product rows provisional
+/,light,div.catalog-hero-art > div.hero-index > span,30 SKU,4.55,4.55,4.5,glyph-interior
+/,light,div.footer-meta-bar > div.footer-meta > span,TH / 2026 COLLECTION,4.55,5.66,4.5,rectangle sampling; product rows provisional
+/,light,div.footer-meta-bar > div.footer-meta > span,ราคาสินค้ายังไม่รวม VAT,4.55,5.66,4.5,rectangle sampling; product rows provisional
+/,light,section.catalog-hero > div > p.hero-copy,อ่างล้างหน้าหินสังเคราะห์ที่คัดสรรมาเพื่อพื้นที่,4.7,4.7,4.5,glyph-interior
+/,light,div.footer-meta-bar > div.footer-meta > a[link-footer-updates],บันทึกการอัปเดต ( v2.2.1 ),5.02,5.02,4.5,rectangle sampling; product rows provisional
+/,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,เครือข่ายเว็บไซต์ของเรา,5.02,5.02,4.5,rectangle sampling; product rows provisional
+/,light,div.footer-meta-bar > div.footer-meta > a[link-footer-price-guide],ราคาและวิธีเลือกหินสังเคราะห์,5.06,5.06,4.5,rectangle sampling; product rows provisional
+/,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คู่มือเตรียมหน้างาน,5.06,5.06,4.5,rectangle sampling; product rows provisional
+/,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คลังผลงานติดตั้งจริง,5.07,5.07,4.5,rectangle sampling; product rows provisional
+/,light,section.catalog-hero > div > p.eyebrow,KNIGHT BASINS / 2026,5.23,5.23,4.5,glyph-interior
+/,light,section.catalog-hero > div > a[link-hero-stone],ดูวัสดุหินสังเคราะห์,5.27,5.27,4.5,glyph-interior
+/,light,section.catalog-hero > div > h1,Knight Basins,10.04,10.04,3,glyph-interior
+/,light,div > h1 > em,อ่างล้างหน้า by ไนท์ เฟอร์นิช,10.05,10.05,3,glyph-interior
+/stone,light,div.footer-meta-bar > div.footer-meta > span,TH / 2026 COLLECTION,4.55,5.66,4.5,rectangle sampling; product rows provisional
+/stone,light,div.footer-meta-bar > div.footer-meta > span,ราคาสินค้ายังไม่รวม VAT,4.55,5.66,4.5,rectangle sampling; product rows provisional
+/stone,light,section.stone-hero > div > p.hero-copy,สั่งทำท็อปเคาน์เตอร์ครัวและเคาน์เตอร์ห้องน้ำหินส,4.69,4.69,4.5,glyph-interior
+/stone,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,เครือข่ายเว็บไซต์ของเรา,5.01,5.01,4.5,rectangle sampling; product rows provisional
+/stone,light,div.footer-meta-bar > div.footer-meta > a[link-footer-updates],บันทึกการอัปเดต ( v2.2.1 ),5.02,5.02,4.5,rectangle sampling; product rows provisional
+/stone,light,div.footer-meta-bar > div.footer-meta > a[link-footer-price-guide],ราคาและวิธีเลือกหินสังเคราะห์,5.06,5.06,4.5,rectangle sampling; product rows provisional
+/stone,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คู่มือเตรียมหน้างาน,5.06,5.06,4.5,rectangle sampling; product rows provisional
+/stone,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คลังผลงานติดตั้งจริง,5.12,5.12,4.5,rectangle sampling; product rows provisional
+/stone,light,section.stone-hero > div > p.eyebrow,MATERIAL / CONFIGURATOR,5.23,5.23,4.5,glyph-interior
+/stone,light,section.stone-hero > div > h1,ท็อปครัว & เคาน์เตอร์หินสังเคราะห์,10.04,10.04,3,glyph-interior
+/stone,light,div > h1 > em,สั่งตัดตามพื้นที่ของคุณ,10.05,10.05,3,glyph-interior
+/stone,light,div[stone-hero-media] > span > strong,BW010,12.7,12.7,4.5,glyph-interior
+/stone,light,div[stone-hero-media] > span > small,Bright White,12.73,12.73,4.5,glyph-interior
+/quote,light,div.footer-meta-bar > div.footer-meta > span,TH / 2026 COLLECTION,4.55,5.66,4.5,rectangle sampling; product rows provisional
+/quote,light,div.footer-meta-bar > div.footer-meta > span,ราคาสินค้ายังไม่รวม VAT,4.55,5.66,4.5,rectangle sampling; product rows provisional
+/quote,light,section.quote-heading > div > p.hero-copy,ตรวจสอบรายการ ปรับรายละเอียด และออกใบเสนอราคาทาง,4.69,4.69,4.5,glyph-interior
+/quote,light,section.quote-heading > div.quote-date > span,วันที่ออกเอกสาร,4.9,4.9,4.5,glyph-interior
+/quote,light,section.quote-heading > div.quote-date > small,ใช้ได้ถึง 12 พ.ย. 2569 · 30 วัน,4.9,4.9,4.5,glyph-interior
+/quote,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,เครือข่ายเว็บไซต์ของเรา,5.01,5.01,4.5,rectangle sampling; product rows provisional
+/quote,light,div.footer-meta-bar > div.footer-meta > a[link-footer-updates],บันทึกการอัปเดต ( v2.2.1 ),5.02,5.02,4.5,rectangle sampling; product rows provisional
+/quote,light,div.footer-meta-bar > div.footer-meta > a[link-footer-price-guide],ราคาและวิธีเลือกหินสังเคราะห์,5.06,5.06,4.5,rectangle sampling; product rows provisional
+/quote,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คู่มือเตรียมหน้างาน,5.06,5.06,4.5,rectangle sampling; product rows provisional
+/quote,light,div.footer-meta-bar > div.footer-meta > a.footer-owner-link,คลังผลงานติดตั้งจริง,5.12,5.12,4.5,rectangle sampling; product rows provisional
+/quote,light,section.quote-heading > div > p.eyebrow,เลขที่เอกสาร Oct 26 / US / 8555,5.23,NOT CHECKED,4.5,glyph-interior
+/quote,light,section.quote-heading > div > button[button-inquire-fast-lane],💬 ให้ทีมโทรกลับ / ขอราคาเร็ว,5.74,5.74,4.5,glyph-interior
+/quote,light,section.quote-heading > div > h1,จากรายการ,9.97,9.97,3,glyph-interior
+/quote,light,div > h1 > em,สู่ตัวเลขที่ชัดเจน,9.99,9.99,3,glyph-interior
+/quote,light,section.quote-heading > div.quote-date > strong,13 ต.ค. 2569,10.5,10.5,4.5,glyph-interior
+/quote,light,section.quote-heading > div.quote-date > button[button-print-quote],พิมพ์ใบเสนอราคา,10.5,10.5,4.5,glyph-interior
+/quote,light,section.quote-heading > div.quote-date > button[button-view-quote-history],ดูใบเสนอราคาก่อนหน้า,10.5,10.5,4.5,glyph-interior

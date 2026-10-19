@@ -1,0 +1,27 @@
+(node:1313) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/workspace/.local/knight468-a4-proof.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/runner/workspace/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ long formal quote print flow
+  ✖ keeps every basin and stone row readable on mobile and across print pages (15188.260924ms)
+✖ long formal quote print flow (16205.492221ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16462.351622
+
+✖ failing tests:
+
+test at .local/knight468-a4-proof.test.ts:219:3
+✖ keeps every basin and stone row readable on mobile and across print pages (15188.260924ms)
+  Error: Timed out waiting for catalog cards: false
+      at waitFor (file:///home/runner/workspace/.local/knight468-a4-proof.test.ts:142:9)
+      at async TestContext.<anonymous> (file:///home/runner/workspace/.local/knight468-a4-proof.test.ts:224:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)

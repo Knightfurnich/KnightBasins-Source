@@ -7,13 +7,12 @@
  *            (/profile /handover /track /quote/view, and /quote#cart = /quote with two basin lines in the cart)
  *   tools  = qa/tools/contrast-probe.js (David's: solid backgrounds only) and qa/tools/gradient-scan-465c.mjs (real pixels: sees
  *            gradients / photos / overlays). A route passes when the pixel scan has no failing text other than
- *            - the LINE green login button (boss decision, 2.26 kept), and
- *            - text inside a hero block (hero rule #449 is frozen: reported, not counted).
- *   output = a table on stdout + <out>/sweep-<theme>.json ; exit code 1 when any route has a failing text outside those two groups
- *            (so a CI job can run it; wiring it into .github/** needs David's separate approval and is NOT done here).
+ *            - only the unchanged white-on-green LINE login button (boss decision, 2.26 kept).
+ *   Heroes now count. Missing browser, route coverage, or measurements FAIL explicitly.
+ *   SCAN_WIDTH=1440/390: the CI job uses a two-width matrix, each case capped at ten minutes.
  */
-import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -21,38 +20,68 @@ const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); if (i < 0) return d; const v = args[i + 1]; args.splice(i, 2); return v; };
 const sitemapUrl = opt("--sitemap", "https://knightbasins.com/sitemap.xml");
-const outDir = opt("--out", "qa/images/chai-round29/sweep");
+const outDir = opt("--out", "qa/images/replit-round30/sweep");
 const extra = opt("--extra", "/profile,/handover,/track,/quote/view,/quote#cart").split(",").filter(Boolean);
 const base = (args[0] ?? "http://localhost:5173").replace(/\/$/, "");
+const chrome = process.env.CHROME_BIN ?? "/usr/bin/google-chrome";
+if (!existsSync(chrome)) { console.error(`Chrome unavailable at ${chrome} — contrast was NOT checked`); process.exit(2); }
 mkdirSync(outDir, { recursive: true });
 
-const xml = await (await fetch(sitemapUrl)).text();
+const response = await fetch(sitemapUrl);
+if (!response.ok) throw new Error(`Sitemap HTTP ${response.status} — contrast was NOT checked`);
+const xml = await response.text();
 const fromSitemap = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname || "/");
+if (fromSitemap.length !== 12) throw new Error(`Expected 12 sitemap routes, received ${fromSitemap.length} — contrast was NOT checked`);
 const routes = [...new Set([...fromSitemap, ...extra])];
 console.log(`sitemap ${sitemapUrl}: ${fromSitemap.length} routes -> ${fromSitemap.join(" ")}`);
 console.log(`outside the sitemap: ${extra.join(" ")}\n`);
 
-const env = { ...process.env, MSYS_NO_PATHCONV: "1" };
+const ALLOWLIST = [{
+  name: "Owner-approved LINE green login, white text on #06c755 (2.26)",
+  matches: (row) => /button\[button-line-login\](?: >|$)/.test(row.selector) &&
+    row.fg.slice(0, 3).every((c) => c === 255) &&
+    row.bg.every((c, i) => Math.abs(c - [6, 199, 85][i]) <= 2) && Math.abs(row.ratio - 2.26) <= 0.06,
+}];
+const env = { ...process.env, CHROME_BIN: chrome, MSYS_NO_PATHCONV: "1" };
 const verdict = [];
+const probeTasks = [];
 for (const theme of ["dark", "light"]) {
   const json = join(outDir, `sweep-${theme}.json`);
-  const scan = spawnSync("node", [join(here, "gradient-scan-465c.mjs"), base, theme, ...routes, "--json", json], { encoding: "utf8", env, maxBuffer: 1 << 28 });
+  const scan = spawnSync("node", [join(here, "gradient-scan-465c.mjs"), base, theme, ...routes, "--all", "--json", json], { encoding: "utf8", env, maxBuffer: 1 << 28, timeout: 240000 });
+  writeFileSync(join(outDir, `pixel-${theme}.log`), scan.stdout + scan.stderr);
   if (scan.status !== 0) { console.error(scan.stderr || scan.stdout); process.exit(2); }
   const results = JSON.parse(readFileSync(json, "utf8"));
+  if (results.length !== routes.length || results.some((r, i) => r.target !== routes[i] || r.theme !== theme || !r.checked)) throw new Error("Incomplete pixel coverage — contrast was NOT checked");
   for (const r of results) {
     const route = r.target.split("#")[0];
-    const probe = r.target.includes("#") ? null : spawnSync("node", [join(here, "contrast-probe.js"), base + route, theme], { encoding: "utf8", env: { ...env, CHROME_BIN: process.env.CHROME_BIN ?? "C:/Program Files/Google/Chrome/Application/chrome.exe" } });
-    const probeFail = probe ? Number((probe.stdout.match(/ต่ำกว่าเกณฑ์:\s*(\d+)/) ?? [])[1] ?? NaN) : null;
-    const line = r.rows.filter((x) => /button-line-login/.test(x.selector));
-    const hero = r.rows.filter((x) => x.hero && !/button-line-login/.test(x.selector));
-    const real = r.rows.filter((x) => !x.hero && !/button-line-login/.test(x.selector));
-    verdict.push({ theme, target: r.target, checked: r.checked, probeFail, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" });
+    const failures = r.rows.filter((x) => x.ratio < x.threshold);
+    const line = failures.filter((x) => ALLOWLIST.some((entry) => entry.matches(x)));
+    const real = failures.filter((x) => !ALLOWLIST.some((entry) => entry.matches(x)));
+    const hero = real.filter((x) => x.hero);
+    const v = { theme, target: r.target, checked: r.checked, coverage: r.coverage, unmeasurable:r.unmeasurable, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
+    verdict.push(v);
+    if (!r.target.includes("#")) probeTasks.push(async () => {
+      const output = await new Promise((resolve, reject) => {
+        const child = spawn("node", [join(here, "contrast-probe.js"), base + route, theme], { env });
+        let text = "";
+        child.stdout.on("data", (chunk) => { text += chunk; });
+        child.stderr.on("data", (chunk) => { text += chunk; });
+        const timer = setTimeout(() => child.kill(), 45000);
+        child.on("error", reject);
+        child.on("exit", (code) => { clearTimeout(timer); code === 0 || code === 1 ? resolve(text) : reject(new Error(`${route}: probe failed — contrast was NOT checked\n${text}`)); });
+      });
+      writeFileSync(join(outDir, `probe-${theme}-${route.replace(/\//g, "") || "home"}.log`), output);
+      const count = output.match(/ต่ำกว่าเกณฑ์:\s*(\d+)/)?.[1];
+      if (count === undefined) throw new Error(`${route}: probe produced no measurement — contrast was NOT checked`);
+      v.probeFail = Number(count);
+    });
   }
 }
+for (let i = 0; i < probeTasks.length; i += 4) await Promise.all(probeTasks.slice(i, i + 4).map((run) => run()));
 const pad = (s, n) => String(s).padEnd(n);
-console.log(pad("theme", 6) + pad("route", 16) + pad("checked", 8) + pad("probe", 6) + pad("scan", 6) + pad("LINE", 5) + pad("hero#449", 9) + pad("REAL", 5) + pad("overflow", 9) + "worst real row");
+console.log(pad("theme", 6) + pad("route", 16) + pad("checked", 8) + pad("probe", 6) + pad("scan", 6) + pad("LINE", 5) + pad("hero", 9) + pad("REAL", 5) + pad("overflow", 9) + "worst real row");
 for (const v of verdict) console.log(pad(v.theme, 6) + pad(v.target, 16) + pad(v.checked, 8) + pad(v.probeFail ?? "-", 6) + pad(v.scanFail, 6) + pad(v.line, 5) + pad(v.hero, 9) + pad(v.real, 5) + pad(v.overflowPx + "px", 9) + v.worst);
 writeFileSync(join(outDir, "sweep-summary.json"), JSON.stringify(verdict, null, 1));
 const bad = verdict.filter((v) => v.real > 0 || v.overflowPx > 0);
-console.log(`\n${bad.length ? "FAIL" : "PASS"}: ${bad.length} route/theme pair(s) with failing text outside the LINE button and the frozen hero blocks (or horizontal overflow)`);
+console.log(`\n${bad.length ? "FAIL" : "PASS"}: ${bad.length} route/theme pair(s) with failing text outside the declared LINE allowlist (including heroes), or horizontal overflow`);
 process.exit(bad.length ? 1 : 0);

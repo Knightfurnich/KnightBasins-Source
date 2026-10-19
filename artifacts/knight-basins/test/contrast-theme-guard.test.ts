@@ -20,7 +20,7 @@ const themeStyles = read("../src/components/ThemeToggle.tsx");
 const block =
   css.slice(css.indexOf("job 465-C · readable text")) +
   "\n" +
-  themeStyles.slice(themeStyles.indexOf("job 465-C · dark theme"), themeStyles.indexOf("export type StorefrontThemeValue"));
+  themeStyles.slice(themeStyles.indexOf("job 465-C · dark theme"), themeStyles.indexOf("job 468-R · hero rule #449"));
 
 const hex = (v: string) => [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
 const lum = ([r, g, b]: number[]) => {
@@ -28,6 +28,78 @@ const lum = ([r, g, b]: number[]) => {
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 };
 const ratio = (a: string, b: string) => { const [hi, lo] = [lum(hex(a)), lum(hex(b))].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+
+describe("468-R hero, labels and independent night-work fee", () => {
+  const dark468 = themeStyles.slice(themeStyles.indexOf("job 468-R · hero rule #449"), themeStyles.indexOf("export type StorefrontThemeValue"));
+  const light468 = css.slice(css.indexOf("job 468-R · pinned text colours only"));
+  it("pins only the light footer owner link to a readable blue without changing its geometry", () => {
+    assert.match(light468, /\[data-theme="light"\] a\.footer-owner-link \{ color: #245c85; \}/);
+    assert.ok(ratio("#245c85", "#dcecf4") >= 4.5);
+  });
+  it("all three dark heroes, headings/emphasis, small copy and links get white text and a dark shadow", () => {
+    assert.match(dark468, /\[data-theme="dark"\] :is\(\.catalog-hero, \.stone-hero, \.quote-heading\)/);
+    for (const selector of ["h1 em", ".eyebrow", ".hero-index span", ".hero-copy", ".quote-date button", "a)"]) assert.ok(dark468.includes(selector), selector);
+    assert.match(dark468, /color: #ffffff !important;/);
+    assert.match(dark468, /text-shadow: 0 0 2px #07111f, 0 0 4px #07111f, 0 1px 6px #07111f, 0 2px 12px #07111f;/);
+    assert.ok(ratio("#ffffff", "#07111f") >= 4.5);
+    const declarations = dark468.match(/\{([^}]+)\}/)?.[1] ?? "";
+    assert.ok(declarations.length > 20);
+    assert.ok(declarations.split(";").filter((x) => x.trim()).every((x) => /^\s*(color|text-shadow):/.test(x)), "hero permits text colour/shadow only");
+  });
+  it("light product labels are pinned without changing dark chips or label geometry", () => {
+    assert.match(light468, /\[data-theme="light"\] \.product-index,\n\[data-theme="light"\] \.art-note \{ color: #34495b; \}/);
+    for (const bg of ["#e7e4dc", "#edf8fc", "#dceef7"]) assert.ok(ratio("#34495b", bg) >= 4.5, bg);
+    assert.match(themeStyles, /background-color: rgba\(11, 19, 36, 0\.88\)/);
+  });
+  it("PROJECT DETAILS and footer meta use readable light-theme text without changing colour tokens", () => {
+    assert.match(light468, /\.quote-main \.eyebrow \{ color: #4b6276; \}/);
+    assert.match(light468, /\.footer-meta \{ color: #4b6276; \}/);
+    for (const bg of ["#e4f2f8", "#f6fbfe"]) assert.ok(ratio("#4b6276", bg) >= 4.5);
+    assert.doesNotMatch(light468 + dark468, /--[\w-]+\s*:/);
+    assert.doesNotMatch(dark468, /dark:/);
+  });
+  it("the actual project-details container gets the approved text-only light override", () => {
+    assert.match(themeStyles, /\[data-theme="light"\] \[data-testid="section-quote-project-details"\] \.eyebrow \{\s*color: #4b6276;\s*\}/);
+  });
+  it("joint-note text has the same approved dark foreground on the pale canvas in both themes", () => {
+    assert.match(themeStyles, /\[data-theme="light"\] \.studio-joint-note,\s*\[data-theme="dark"\] \.studio-joint-note \{\s*color: #000000;\s*\}/);
+  });
+  it("the price guide imports NIGHT_WORK_FEE and never couples the night charge to installation", () => {
+    assert.match(priceGuide, /import \{[^}]*\bNIGHT_WORK_FEE\b[^}]*\} from "@\/data\/catalog"/);
+    assert.match(priceGuide, /formatTHB\(NIGHT_WORK_FEE\)\} \/ คืน/);
+    assert.match(priceGuide, /formatTHB\(INSTALLATION_PRICE\)\} \/ ชุด/);
+    assert.doesNotMatch(priceGuide, /formatTHB\(INSTALLATION_PRICE\)\} \/ คืน/);
+    const expression = priceGuide.match(/\{(formatTHB\([A-Z_]+\))\} \/ คืน/)?.[1];
+    assert.ok(expression);
+    const render = new Function("formatTHB", "NIGHT_WORK_FEE", "INSTALLATION_PRICE", `return ${expression}`);
+    const format = (n: number) => n.toLocaleString("en-US");
+    assert.equal(render(format, 7300, 5100), "7,300");
+    assert.equal(render(format, 7300, 9900), "7,300");
+    assert.equal(render(format, 8600, 5100), "8,600");
+  });
+  it("CI builds then sweeps both widths, fails without Chrome, and allowlists only the unchanged LINE green", () => {
+    const workflow = read("../../../.github/workflows/release-validation.yml");
+    const sweep = read("../../../qa/tools/sweep-467c.mjs");
+    const scanner = read("../../../qa/tools/gradient-scan-465c.mjs");
+    const job = workflow.slice(workflow.indexOf("\n  contrast-sweep:"));
+    assert.match(job, /timeout-minutes: 10/);
+    assert.match(job, /width: \[1440, 390\]/);
+    assert.match(job, /CHROME_BIN: "\/usr\/bin\/google-chrome"/);
+    assert.match(job, /pnpm --filter @workspace\/knight-basins run build/);
+    assert.match(job, /node qa\/tools\/sweep-467c\.mjs/);
+    assert.match(job, /contrast was NOT checked/);
+    assert.match(sweep, /const ALLOWLIST = \[\{/);
+    assert.match(sweep, /row\.fg\.slice\(0, 3\)\.every/);
+    assert.match(sweep, /Math\.abs\(row\.ratio - 2\.26\)/);
+    assert.doesNotMatch(sweep, /filter\(\(x\) => !x\.hero/);
+    assert.match(sweep, /if \(!existsSync\(chrome\)\)/);
+    assert.match(sweep, /Expected 12 sitemap routes/);
+    assert.match(scanner, /required hero\/product-label pixels were NOT checked/);
+    assert.match(scanner, /REQUIRED_LABELS_BY_WIDTH/);
+    assert.match(scanner, /NOT MEASURABLE \/ วัดไม่ได้/);
+    assert.match(scanner, /sampled\.filter\(r=>r\.hero&&r\.ratio==null\)/, "no unmeasurable hero exemption");
+  });
+});
 const classStrings = (src: string) => [...src.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2] ?? "");
 
 describe("A/B pages no longer rely on dead or flipping utilities", () => {
