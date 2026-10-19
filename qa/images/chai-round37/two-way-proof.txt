@@ -1,0 +1,7 @@
+1 rule removed (browser default 50% alpha again): exit=1 | ✖ both themes pin ::placeholder of every input / textarea to --ink-soft at full opacity (disabled an | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+2 colour back to the translucent ink (rgba(18,62,106,.5)): exit=1 | ✖ both themes pin ::placeholder of every input / textarea to --ink-soft at full opacity (disabled an | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+3 opacity dropped to .5: exit=1 | ✖ both themes pin ::placeholder of every input / textarea to --ink-soft at full opacity (disabled an | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+4 light theme left out: exit=1 | ✖ both themes pin ::placeholder of every input / textarea to --ink-soft at full opacity (disabled an | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+5 a rule that also recolours the typed text slips in: exit=1 | ✖ only ::placeholder is changed: the typed text colour, size, font and borders are not touched; no t | AssertionError [ERR_ASSERTION]: selector must target ::placeholder only: [data-theme="light"] input
+6 474-C search placeholder rule loosened: exit=1 | ✖ 9/10 placeholders use --ink-soft at full opacity in both themes (8.86ms) | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+restored: exit 0 ['ℹ pass 98', 'ℹ fail 0']
