@@ -1,0 +1,1042 @@
+[
+ {
+  "id": 1,
+  "label": "บัตรสินค้า ขอบ (unchecked)",
+  "route": "/",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(122,143,168)",
+   "bg": "rgb(22,34,56)",
+   "bg2": "rgb(15,23,42)",
+   "ratio": 4.79,
+   "ratioFace": 4.79,
+   "ratioPage": 5.37
+  },
+  "expectedChai": 4.79,
+  "delta": 0
+ },
+ {
+  "id": 4,
+  "label": "ป้ายจำนวนในเมนู (badge number)",
+  "route": "/",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(122,185,251)",
+   "ratio": 8.97
+  },
+  "expectedChai": 8.97,
+  "delta": 0
+ },
+ {
+  "id": 8,
+  "label": "ไอคอนค้นหา/จัดเรียง (icon vs field)",
+  "route": "/",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97,
+   "opacity": 1
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 9,
+  "label": "placeholder ค้นหา (SKU/สี)",
+  "route": "/",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(68,169,212)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 5.96
+  },
+  "expectedChai": 5.96,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(68,169,212)",
+   "ratio": 6.95
+  },
+  "expectedChai": 6.95,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(122,143,168)",
+   "bg": "rgb(22,34,56)",
+   "bg2": "rgb(22,34,56)",
+   "ratio": 4.79,
+   "ratioFace": 4.79,
+   "ratioPage": 4.79
+  },
+  "expectedChai": 4.79,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(68,169,212)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 5.96
+  },
+  "expectedChai": 4.21,
+  "delta": 1.75
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(68,169,212)",
+   "ratio": 6.95
+  },
+  "expectedChai": 6.95,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "error": "selector not found: .vat-row label input:not(:checked) + span"
+  },
+  "expectedChai": 3.38,
+  "delta": null
+ },
+ {
+  "id": 12,
+  "label": "ปุ่ม LINE (ข้อยกเว้น 2.26)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": "exc",
+  "measured": {
+   "error": "LINE bg not found"
+  },
+  "expectedChai": 2.26,
+  "delta": null
+ },
+ {
+  "id": 472,
+  "label": "กล่องจำนวนใบเสนอราคา (472-C fix)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(232,239,248)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 13.74
+  },
+  "expectedChai": 13.74,
+  "delta": 0
+ },
+ {
+  "id": 10,
+  "label": "placeholder ค้นหาผลงาน",
+  "route": "/portfolio",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 5,
+  "label": "/studio ทำซ้ำ (disabled icon)",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(111,125,145)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 3.78,
+   "opacity": 0.6
+  },
+  "expectedChai": 3.88,
+  "delta": -0.1
+ },
+ {
+  "id": 6,
+  "label": "/studio ย้อนกลับ (enabled icon)",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97,
+   "opacity": 1
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 7,
+  "label": "/studio เลขขั้นตอน (step number)",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 11,
+  "label": "× edge-marker",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(232,239,248)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 13.74
+  },
+  "expectedChai": 4.98,
+  "delta": 8.76
+ },
+ {
+  "id": 1,
+  "label": "บัตรสินค้า ขอบ (unchecked)",
+  "route": "/",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(115,138,158)",
+   "bg": "rgb(254,255,255)",
+   "bg2": "rgb(246,251,254)",
+   "ratio": 3.44,
+   "ratioFace": 3.57,
+   "ratioPage": 3.44
+  },
+  "expectedChai": 3.44,
+  "delta": 0
+ },
+ {
+  "id": 4,
+  "label": "ป้ายจำนวนในเมนู (badge number)",
+  "route": "/",
+  "theme": "light",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(255,255,255)",
+   "bg": "rgb(18,104,179)",
+   "ratio": 5.74
+  },
+  "expectedChai": 5.74,
+  "delta": 0
+ },
+ {
+  "id": 8,
+  "label": "ไอคอนค้นหา/จัดเรียง (icon vs field)",
+  "route": "/",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(253,254,255)",
+   "ratio": 5.07,
+   "opacity": 1
+  },
+  "expectedChai": 5.07,
+  "delta": 0
+ },
+ {
+  "id": 9,
+  "label": "placeholder ค้นหา (SKU/สี)",
+  "route": "/",
+  "theme": "light",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(253,254,255)",
+   "ratio": 5.07
+  },
+  "expectedChai": 5.07,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(65,169,216)",
+   "bg": "rgb(246,251,254)",
+   "ratio": 2.55
+  },
+  "expectedChai": 5.32,
+  "delta": -2.77
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(65,169,216)",
+   "ratio": 4.11
+  },
+  "expectedChai": 4.11,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(115,138,158)",
+   "bg": "rgb(246,251,254)",
+   "bg2": "rgb(246,251,254)",
+   "ratio": 3.44,
+   "ratioFace": 3.44,
+   "ratioPage": 3.44
+  },
+  "expectedChai": 3.44,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(65,169,216)",
+   "bg": "rgb(15,61,102)",
+   "ratio": 4.22
+  },
+  "expectedChai": 4.22,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(65,169,216)",
+   "ratio": 4.11
+  },
+  "expectedChai": 4.11,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "error": "selector not found: .vat-row label input:not(:checked) + span"
+  },
+  "expectedChai": 8.89,
+  "delta": null
+ },
+ {
+  "id": 12,
+  "label": "ปุ่ม LINE (ข้อยกเว้น 2.26)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": "exc",
+  "measured": {
+   "error": "LINE bg not found"
+  },
+  "expectedChai": 2.26,
+  "delta": null
+ },
+ {
+  "id": 472,
+  "label": "กล่องจำนวนใบเสนอราคา (472-C fix)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 10.94
+  },
+  "expectedChai": 10.9,
+  "delta": 0.04
+ },
+ {
+  "id": 10,
+  "label": "placeholder ค้นหาผลงาน",
+  "route": "/portfolio",
+  "theme": "light",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 5.11
+  },
+  "expectedChai": 5.11,
+  "delta": 0
+ },
+ {
+  "id": 5,
+  "label": "/studio ทำซ้ำ (disabled icon)",
+  "route": "/studio",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(121,141,158)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 3.42,
+   "opacity": 0.8
+  },
+  "expectedChai": 3.4,
+  "delta": 0.02
+ },
+ {
+  "id": 6,
+  "label": "/studio ย้อนกลับ (enabled icon)",
+  "route": "/studio",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 5.11,
+   "opacity": 1
+  },
+  "expectedChai": 5.11,
+  "delta": 0
+ },
+ {
+  "id": 7,
+  "label": "/studio เลขขั้นตอน (step number)",
+  "route": "/studio",
+  "theme": "light",
+  "width": 1440,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(251,253,254)",
+   "ratio": 5.01
+  },
+  "expectedChai": 5.01,
+  "delta": 0
+ },
+ {
+  "id": 11,
+  "label": "× edge-marker",
+  "route": "/studio",
+  "theme": "light",
+  "width": 1440,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(251,253,254)",
+   "ratio": 10.73
+  },
+  "expectedChai": 4.98,
+  "delta": 5.75
+ },
+ {
+  "id": 1,
+  "label": "บัตรสินค้า ขอบ (unchecked)",
+  "route": "/",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(122,143,168)",
+   "bg": "rgb(22,34,56)",
+   "bg2": "rgb(15,23,42)",
+   "ratio": 4.79,
+   "ratioFace": 4.79,
+   "ratioPage": 5.37
+  },
+  "expectedChai": 4.79,
+  "delta": 0
+ },
+ {
+  "id": 4,
+  "label": "ป้ายจำนวนในเมนู (badge number)",
+  "route": "/",
+  "theme": "dark",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(122,185,251)",
+   "ratio": 8.97
+  },
+  "expectedChai": 8.97,
+  "delta": 0
+ },
+ {
+  "id": 8,
+  "label": "ไอคอนค้นหา/จัดเรียง (icon vs field)",
+  "route": "/",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97,
+   "opacity": 1
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 9,
+  "label": "placeholder ค้นหา (SKU/สี)",
+  "route": "/",
+  "theme": "dark",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(68,169,212)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 5.96
+  },
+  "expectedChai": 5.96,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(68,169,212)",
+   "ratio": 6.95
+  },
+  "expectedChai": 6.95,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(122,143,168)",
+   "bg": "rgb(22,34,56)",
+   "bg2": "rgb(22,34,56)",
+   "ratio": 4.79,
+   "ratioFace": 4.79,
+   "ratioPage": 4.79
+  },
+  "expectedChai": 4.79,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(68,169,212)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 5.96
+  },
+  "expectedChai": 4.21,
+  "delta": 1.75
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(11,19,36)",
+   "bg": "rgb(68,169,212)",
+   "ratio": 6.95
+  },
+  "expectedChai": 6.95,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "error": "selector not found: .vat-row label input:not(:checked) + span"
+  },
+  "expectedChai": 3.38,
+  "delta": null
+ },
+ {
+  "id": 12,
+  "label": "ปุ่ม LINE (ข้อยกเว้น 2.26)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": "exc",
+  "measured": {
+   "error": "LINE bg not found"
+  },
+  "expectedChai": 2.26,
+  "delta": null
+ },
+ {
+  "id": 472,
+  "label": "กล่องจำนวนใบเสนอราคา (472-C fix)",
+  "route": "/quote",
+  "theme": "dark",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(232,239,248)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 13.74
+  },
+  "expectedChai": 13.74,
+  "delta": 0
+ },
+ {
+  "id": 10,
+  "label": "placeholder ค้นหาผลงาน",
+  "route": "/portfolio",
+  "theme": "dark",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 5,
+  "label": "/studio ทำซ้ำ (disabled icon)",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(111,125,145)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 3.78,
+   "opacity": 0.6
+  },
+  "expectedChai": 3.88,
+  "delta": -0.1
+ },
+ {
+  "id": 6,
+  "label": "/studio ย้อนกลับ (enabled icon)",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97,
+   "opacity": 1
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 7,
+  "label": "/studio เลขขั้นตอน (step number)",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(170,185,204)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 7.97
+  },
+  "expectedChai": 7.97,
+  "delta": 0
+ },
+ {
+  "id": 11,
+  "label": "× edge-marker",
+  "route": "/studio",
+  "theme": "dark",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(232,239,248)",
+   "bg": "rgb(22,34,56)",
+   "ratio": 13.74
+  },
+  "expectedChai": 4.98,
+  "delta": 8.76
+ },
+ {
+  "id": 1,
+  "label": "บัตรสินค้า ขอบ (unchecked)",
+  "route": "/",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(115,138,158)",
+   "bg": "rgb(254,255,255)",
+   "bg2": "rgb(246,251,254)",
+   "ratio": 3.44,
+   "ratioFace": 3.57,
+   "ratioPage": 3.44
+  },
+  "expectedChai": 3.44,
+  "delta": 0
+ },
+ {
+  "id": 4,
+  "label": "ป้ายจำนวนในเมนู (badge number)",
+  "route": "/",
+  "theme": "light",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(255,255,255)",
+   "bg": "rgb(18,104,179)",
+   "ratio": 5.74
+  },
+  "expectedChai": 5.74,
+  "delta": 0
+ },
+ {
+  "id": 8,
+  "label": "ไอคอนค้นหา/จัดเรียง (icon vs field)",
+  "route": "/",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(253,254,255)",
+   "ratio": 5.07,
+   "opacity": 1
+  },
+  "expectedChai": 5.07,
+  "delta": 0
+ },
+ {
+  "id": 9,
+  "label": "placeholder ค้นหา (SKU/สี)",
+  "route": "/",
+  "theme": "light",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(253,254,255)",
+   "ratio": 5.07
+  },
+  "expectedChai": 5.07,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(65,169,216)",
+   "bg": "rgb(246,251,254)",
+   "ratio": 2.55
+  },
+  "expectedChai": 5.32,
+  "delta": -2.77
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(65,169,216)",
+   "ratio": 4.11
+  },
+  "expectedChai": 4.11,
+  "delta": 0
+ },
+ {
+  "id": 2,
+  "label": "checkbox ติดตั้ง — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(115,138,158)",
+   "bg": "rgb(246,251,254)",
+   "bg2": "rgb(246,251,254)",
+   "ratio": 3.44,
+   "ratioFace": 3.44,
+   "ratioPage": 3.44
+  },
+  "expectedChai": 3.44,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — fill vs surface (checked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(65,169,216)",
+   "bg": "rgb(15,61,102)",
+   "ratio": 4.22
+  },
+  "expectedChai": 4.22,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — เครื่องหมายถูก vs fill",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(65,169,216)",
+   "ratio": 4.11
+  },
+  "expectedChai": 4.11,
+  "delta": 0
+ },
+ {
+  "id": 3,
+  "label": "checkbox VAT — ขอบ (unchecked)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "error": "selector not found: .vat-row label input:not(:checked) + span"
+  },
+  "expectedChai": 8.89,
+  "delta": null
+ },
+ {
+  "id": 12,
+  "label": "ปุ่ม LINE (ข้อยกเว้น 2.26)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": "exc",
+  "measured": {
+   "error": "LINE bg not found"
+  },
+  "expectedChai": 2.26,
+  "delta": null
+ },
+ {
+  "id": 472,
+  "label": "กล่องจำนวนใบเสนอราคา (472-C fix)",
+  "route": "/quote",
+  "theme": "light",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 10.94
+  },
+  "expectedChai": 10.9,
+  "delta": 0.04
+ },
+ {
+  "id": 10,
+  "label": "placeholder ค้นหาผลงาน",
+  "route": "/portfolio",
+  "theme": "light",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 5.11
+  },
+  "expectedChai": 5.11,
+  "delta": 0
+ },
+ {
+  "id": 5,
+  "label": "/studio ทำซ้ำ (disabled icon)",
+  "route": "/studio",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(121,141,158)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 3.42,
+   "opacity": 0.8
+  },
+  "expectedChai": 3.4,
+  "delta": 0.02
+ },
+ {
+  "id": 6,
+  "label": "/studio ย้อนกลับ (enabled icon)",
+  "route": "/studio",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(255,255,255)",
+   "ratio": 5.11,
+   "opacity": 1
+  },
+  "expectedChai": 5.11,
+  "delta": 0
+ },
+ {
+  "id": 7,
+  "label": "/studio เลขขั้นตอน (step number)",
+  "route": "/studio",
+  "theme": "light",
+  "width": 390,
+  "crit": 4.5,
+  "measured": {
+   "fg": "rgb(87,113,134)",
+   "bg": "rgb(251,253,254)",
+   "ratio": 5.01
+  },
+  "expectedChai": 5.01,
+  "delta": 0
+ },
+ {
+  "id": 11,
+  "label": "× edge-marker",
+  "route": "/studio",
+  "theme": "light",
+  "width": 390,
+  "crit": 3,
+  "measured": {
+   "fg": "rgb(18,62,105)",
+   "bg": "rgb(251,253,254)",
+   "ratio": 10.73
+  },
+  "expectedChai": 4.98,
+  "delta": 5.75
+ }
+]
