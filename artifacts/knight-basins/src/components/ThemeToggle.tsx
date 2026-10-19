@@ -476,6 +476,14 @@ export const STOREFRONT_THEME_STYLES = `
   color: #ffffff;
 }
 
+/* ─── job 472-C · dark theme: the quantity box of a quote line (- 1 +) ─────────────────────────────────────────────────
+   index.css sets .line-quantity { background: white } (a fixed fill) while the number and the - / + icons (currentColor) use the dark
+   theme text token --ink: #e8eff8 on #ffffff = 1.16. The box follows the card surface here; the number and icons are pinned to --ink
+   (13.74 on --card-paper). The light theme is not touched (its white box with --ink text already reads at 10.9). */
+[data-theme="dark"] .line-quantity { background-color: var(--card-paper); }
+[data-theme="dark"] .line-quantity span,
+[data-theme="dark"] .line-quantity button { color: var(--ink); }
+
 /* ─── job 465-C · dark theme: readable text (C-H). Colours and fills only; no token value assigned. ───────────────────
    --brand-blue turns into the light #7ab9fb here, so every fill that used it with white text fell to ~2.07, and several
    components kept pale fixed fills whose text already uses dark-theme tokens. Plain rules because a { color: inherit }

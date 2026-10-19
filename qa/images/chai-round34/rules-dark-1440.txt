@@ -1,0 +1,7 @@
+theme=dark width=1440 literal-solid rules=339 painted on the swept routes=36 with text below 4.5=6
+  1.36 | .search-field, .sort-field | rgba(255, 255, 255, 0.7) | label "[icon]" rgb(170,185,204) on rgb(212,213,217) | / /stone
+  1.36 | .search-field, .sort-field | rgba(255, 255, 255, 0.82) | label "[icon]" rgb(170,185,204) on rgb(212,213,217) | / /stone
+  1.96 | .studio-progress-step-icon | rgb(251, 253, 254) | span "4" rgb(170,185,204) on rgb(251,253,254) | /studio
+  2 | .studio-draft-toolbar-actions .icon-button | white | button[button-studio-redo] "[icon]" rgb(170,185,204) on rgb(255,255,255) | /studio
+  2.26 | .line-logo-mark | rgb(6, 199, 85) | span "LINE" rgb(255,255,255) on rgb(6,199,85) | / /stone /quote#cart /studio /sketch /network /profile /quote/view
+  3.04 | .studio-edge-marker--upstand | rgb(176, 122, 18) | div "×" rgb(11,19,36) on rgb(130,90,13) | /studio

@@ -1,0 +1,13 @@
+1 revert: dark box back to the fixed white (rule removed): exit=1
+   FAILS: ✖ the dark theme gives the quantity box the card surface and pins the number + icons to --ink (3.9956ms)
+   ['AssertionError [ERR_ASSERTION]: The input did not match the regular expression /\\[data-theme="dark"\\] \\.line-quantity \\{ background-color: var\\(--card-paper\\); \\}/. Input:']
+2 revert: dark box fill set to #ffffff: exit=1
+   FAILS: ✖ the dark theme gives the quantity box the card surface and pins the number + icons to --ink (2.8697ms)
+   ['AssertionError [ERR_ASSERTION]: The input did not match the regular expression /\\[data-theme="dark"\\] \\.line-quantity \\{ background-color: var\\(--card-paper\\); \\}/. Input:']
+3 revert: number/icons no longer pinned to --ink: exit=1
+   FAILS: ✖ the dark theme gives the quantity box the card surface and pins the number + icons to --ink (1.9215ms)
+   ['AssertionError [ERR_ASSERTION]: The input did not match the regular expression /\\[data-theme="dark"\\] \\.line-quantity span,\\n\\[data-theme="dark"\\] \\.line-quantity button \\{ color: var\\(--ink\\); \\}/. Input:']
+4 new fixed white surface added to index.css (nobody decided its dark colour): exit=1
+   FAILS: ✖ every literal white fill in index.css is either audited (qa/images/chai-round34/table-B.md) or has a dark-theme override (11.5621ms)
+   ['AssertionError [ERR_ASSERTION]: a new fixed white fill: decide its dark-theme colour in ThemeToggle.tsx or audit it']
+restored: exit 0 ['ℹ pass 82', 'ℹ fail 0']

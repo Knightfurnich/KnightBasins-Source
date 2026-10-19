@@ -345,3 +345,111 @@ describe("467-C /studio-guide, summary panels, product labels", () => {
     assert.match(sweep, /process\.exit\(bad\.length \? 1 : 0\)/);
   });
 });
+
+/**
+ * job 472-C: the quote-line quantity box (- 1 +). index.css gives .line-quantity a fixed `background: white` while its number and
+ * icons use the theme token --ink, so the dark theme printed #e8eff8 on #ffffff = 1.16 (the contrast probes could not see it: the number
+ * is one character and the icons are SVG). The dark-theme half lives in STOREFRONT_THEME_STYLES; this file pins it and every other
+ * literal white fill of index.css, so a new fixed white surface cannot appear without somebody deciding what the dark theme does with it.
+ */
+describe("472-C quantity box + literal white fills", () => {
+  const dark472 = themeStyles.slice(themeStyles.indexOf("job 472-C · dark theme"), themeStyles.indexOf("export type StorefrontThemeValue"));
+  it("the dark theme gives the quantity box the card surface and pins the number + icons to --ink", () => {
+    assert.match(dark472, /\[data-theme="dark"\] \.line-quantity \{ background-color: var\(--card-paper\); \}/);
+    assert.match(dark472, /\[data-theme="dark"\] \.line-quantity span,\n\[data-theme="dark"\] \.line-quantity button \{ color: var\(--ink\); \}/);
+  });
+  it("measured pairs (browser values): dark #e8eff8 on #162238 and light #123e69 on #ffffff are both >= 4.5; the old dark pair was not", () => {
+    assert.ok(ratio("#e8eff8", "#162238") >= 4.5, "dark after (13.74)");
+    assert.ok(ratio("#123e69", "#ffffff") >= 4.5, "light unchanged (10.94)");
+    assert.ok(ratio("#e8eff8", "#ffffff") < 4.5, "dark before (1.16)");
+  });
+  it("the light theme and the frozen stylesheet are untouched: no light override of the box, the white fill is still in index.css, no dark rule in index.css", () => {
+    assert.ok(!/\[data-theme="light"\] \.line-quantity/.test(themeStyles));
+    assert.match(css, /\.line-quantity \{ border-color: var\(--line\); border-radius: 8px; overflow: hidden; background: white; \}/);
+    assert.ok(!css.includes('data-theme="dark"'));
+  });
+  it("every literal white fill in index.css is either audited (qa/images/chai-round34/table-B.md) or has a dark-theme override", () => {
+    const stripped = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    const white = /background(?:-color)?\s*:\s*(?:white|#fff|#ffffff|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\)|rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*1\s*\))\s*(?:!important)?\s*(?:;|$)/i;
+    const found = new Set<string>();
+    for (const m of stripped.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!white.test(m[2])) continue;
+      for (const part of m[1].split(",")) { const s = part.trim().split("\n").pop()!.trim(); if (s) found.add(s); }
+    }
+    const darkOverrides = new Set([...themeStyles.matchAll(/\[data-theme="dark"\]\s+([^,{]+?)\s*[,{]/g)].map((m) => m[1].trim()));
+    const audited = new Set<string>(AUDITED_LITERAL_WHITE);
+    const unknown = [...found].filter((s) => !darkOverrides.has(s) && !audited.has(s));
+    assert.deepEqual(unknown, [], "a new fixed white fill: decide its dark-theme colour in ThemeToggle.tsx or audit it");
+    assert.ok(found.has(".line-quantity") && darkOverrides.has(".line-quantity"));
+  });
+});
+
+// selectors whose literal white fill was audited in job 472-C (list + measured ratios: qa/images/chai-round34/table-B.md)
+const AUDITED_LITERAL_WHITE = [
+    ".admin-login input",
+    ".admin-manager input:not([type=\"checkbox\"])",
+    ".admin-manager textarea",
+    ".basin-gallery-nav:hover",
+    ".customer-grid input",
+    ".customer-grid select",
+    ".customer-grid textarea",
+    ".customer-grid textarea[data-testid=\"input-customer-address\"]",
+    ".customer-grid textarea[data-testid=\"input-customer-tax-address\"]",
+    ".dimensions-form input",
+    ".formal-qr-column img",
+    ".formal-totals",
+    ".knight-support-actions button",
+    ".knight-support-form",
+    ".knight-support-message--assistant",
+    ".knight-support-panel",
+    ".knight-support-speak-button",
+    ".portfolio-search-bar",
+    ".portfolio-studio-action",
+    ".profile-fields input",
+    ".profile-fields textarea",
+    ".quantity-editor",
+    ".quote-drop-zone",
+    ".quote-format-switch button",
+    ".quote-sheet-type-switch button",
+    ".site-photo-dropzone",
+    ".site-photo-item",
+    ".site-photo-modal-close",
+    ".stock-inventory-page",
+    ".stock-inventory-page .stock-print-table td",
+    ".stock-inventory-page .stock-print-table th",
+    ".stock-inventory-page .stock-table-section",
+    ".stone-price-filters button:hover",
+    ".studio-basin-filters button.is-active",
+    ".studio-basin-filters button:hover",
+    ".studio-basin-orientation-buttons button",
+    ".studio-canvas-quickbar-group button",
+    ".studio-draft-toolbar-actions .icon-button",
+    ".studio-edge-finish-option",
+    ".studio-edge-options",
+    ".studio-guide-contact .studio-guide-contact-line",
+    ".studio-inspector-actions .icon-button",
+    ".studio-join-control-button",
+    ".studio-page--sketch .studio-sketch-analysis-card",
+    ".studio-page--sketch .studio-sketch-edge-badge",
+    ".studio-page--sketch .studio-sketch-panel-badge",
+    ".studio-piece-card",
+    ".studio-piece-tab.is-active",
+    ".studio-placement-selectors button",
+    ".studio-rectangle-select select",
+    ".studio-saved-layout",
+    ".studio-selector-popover",
+    ".studio-selector-trigger",
+    ".studio-sketch-dim-field input",
+    ".studio-stone-price-filters button.is-active",
+    ".studio-stone-price-filters button:hover",
+    ".workshop-check-items .box",
+    ".workshop-photo-card",
+    ".workshop-production-sheet",
+    ".workshop-row-checkbox .box",
+    "body",
+    "body.studio-print-mode .studio-print-layout",
+    "body:has(.stock-inventory-page)",
+    "body:has(.stock-inventory-page) .admin-app",
+    "body:has(.stock-inventory-page) .admin-main",
+    "html:has(.stock-inventory-page)",
+];

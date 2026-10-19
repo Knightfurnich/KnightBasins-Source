@@ -1,0 +1,3127 @@
+{
+ "theme": "light",
+ "width": 1440,
+ "rules": [
+  {
+   "selector": ".line-logo-mark",
+   "value": "rgb(6, 199, 85)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone",
+    "/quote#cart",
+    "/studio",
+    "/sketch",
+    "/network",
+    "/quote/view"
+   ],
+   "count": 7,
+   "worst": {
+    "ratio": 2.26,
+    "text": "LINE",
+    "fg": "255,255,255",
+    "bg": "6,199,85",
+    "el": "span",
+    "route": "/"
+   },
+   "measured": 7
+  },
+  {
+   "selector": ".search-field, .sort-field",
+   "value": "rgba(255, 255, 255, 0.7)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone"
+   ],
+   "count": 3,
+   "worst": {
+    "ratio": 2.75,
+    "text": "[placeholder]",
+    "fg": "18,62,106",
+    "bg": "253,254,255",
+    "el": "label",
+    "route": "/"
+   },
+   "measured": 3
+  },
+  {
+   "selector": ".search-field, .sort-field",
+   "value": "rgba(255, 255, 255, 0.82)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone"
+   ],
+   "count": 3,
+   "worst": {
+    "ratio": 2.75,
+    "text": "[placeholder]",
+    "fg": "18,62,106",
+    "bg": "253,254,255",
+    "el": "label",
+    "route": "/"
+   },
+   "measured": 3
+  },
+  {
+   "selector": ".studio-edge-marker--upstand",
+   "value": "rgb(176, 122, 18)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 3.04,
+    "text": "×",
+    "fg": "11,19,36",
+    "bg": "130,90,13",
+    "el": "div",
+    "route": "/studio"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".portfolio-search-bar",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/portfolio"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.04,
+    "text": "[placeholder]",
+    "fg": "113,128,145",
+    "bg": "255,255,255",
+    "el": "div",
+    "route": "/portfolio"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".filter-tabs",
+   "value": "rgb(231, 243, 249)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.52,
+    "text": "2",
+    "fg": "87,113,134",
+    "bg": "231,243,249",
+    "el": "div",
+    "route": "/"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".stone-price-filters",
+   "value": "rgb(231, 243, 249)",
+   "routes": [
+    "/stone"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.52,
+    "text": "17",
+    "fg": "87,113,134",
+    "bg": "231,243,249",
+    "el": "div",
+    "route": "/stone"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-draft-banner",
+   "value": "rgb(240, 248, 252)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.75,
+    "text": "แบบร่างนี้อยู่ในเบราว์เซอร์เคร",
+    "fg": "87,113,134",
+    "bg": "240,248,252",
+    "el": "div[studio-draft-banner]",
+    "route": "/studio"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".pg-card",
+   "value": "rgb(255, 255, 255)",
+   "media": "",
+   "routes": [
+    "/price-guide"
+   ],
+   "count": 6,
+   "worst": {
+    "ratio": 4.76,
+    "text": "/ ตร.ม.",
+    "fg": "100,116,139",
+    "bg": "255,255,255",
+    "el": "section",
+    "route": "/price-guide"
+   },
+   "measured": 6
+  },
+  {
+   "selector": ".studio-sketch-slot",
+   "value": "rgb(242, 250, 253)",
+   "routes": [
+    "/sketch"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.83,
+    "text": "เพิ่มรูป",
+    "fg": "87,113,134",
+    "bg": "242,250,253",
+    "el": "button[button-add-studio-sketch-0]",
+    "route": "/sketch"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-edge-finish-toolbar",
+   "value": "rgb(243, 250, 255)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.85,
+    "text": "คลิกขอบบนผังเพื่อเปลี่ยน/เอาออ",
+    "fg": "87,113,134",
+    "bg": "243,250,255",
+    "el": "div[studio-edge-toolbar-piece-1792417918121-0]",
+    "route": "/studio"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quote-empty",
+   "value": "rgb(245, 251, 254)",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.89,
+    "text": "ยังไม่ได้เลือกหินสังเคราะห์",
+    "fg": "87,113,134",
+    "bg": "245,251,254",
+    "el": "div[status-stone-empty]",
+    "route": "/quote#cart"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quote-format-panel",
+   "value": "rgb(245, 251, 254)",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 4.89,
+    "text": "US สรุปตามพื้นที่/แผ่น · OF แย",
+    "fg": "87,113,134",
+    "bg": "245,251,254",
+    "el": "section",
+    "route": "/quote#cart"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-progress-step-icon",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 5.01,
+    "text": "4",
+    "fg": "87,113,134",
+    "bg": "251,253,254",
+    "el": "span",
+    "route": "/studio"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".studio-rectangle-editor",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.01,
+    "text": "ติดบัว = ชิดผนังปูน / ขอบเปิด ",
+    "fg": "87,113,134",
+    "bg": "251,253,254",
+    "el": "div",
+    "route": "/studio"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".customer-track-state",
+   "value": "rgba(255, 255, 255, 0.68)",
+   "media": "",
+   "routes": [
+    "/track"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.04,
+    "text": "ลิงก์ติดตามงานของคุณจะมีรหัสเฉ",
+    "fg": "87,113,134",
+    "bg": "252,254,255",
+    "el": "section[status-customer-tracking-no-token]",
+    "route": "/track"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".order-mode-tabs button",
+   "value": "rgba(255, 255, 255, 0.72)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone"
+   ],
+   "count": 4,
+   "worst": {
+    "ratio": 5.05,
+    "text": "แนบภาพให้ทีมขายช่วยดูแบบ",
+    "fg": "87,113,134",
+    "bg": "252,254,255",
+    "el": "button[button-order-mode-sketch]",
+    "route": "/"
+   },
+   "measured": 4
+  },
+  {
+   "selector": ".empty-state",
+   "value": "rgba(255, 255, 255, 0.72)",
+   "routes": [
+    "/quote/view"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.05,
+    "text": "ต้องใช้ลิงก์สาธารณะที่ลงลายมือ",
+    "fg": "87,113,134",
+    "bg": "252,254,255",
+    "el": "div",
+    "route": "/quote/view"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".up-card",
+   "value": "rgba(255, 255, 255, 0.75)",
+   "media": "",
+   "routes": [
+    "/updates"
+   ],
+   "count": 8,
+   "worst": {
+    "ratio": 5.05,
+    "text": "ออกเลขฝั่งเซิร์ฟเวอร์แบบ atomi",
+    "fg": "87,113,134",
+    "bg": "253,254,255",
+    "el": "article",
+    "route": "/updates"
+   },
+   "measured": 8
+  },
+  {
+   "selector": ".handover-state",
+   "value": "rgba(255, 255, 255, 0.7)",
+   "media": "",
+   "routes": [
+    "/handover"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.05,
+    "text": "ลิงก์เอกสารของคุณจะมีรหัสเฉพาะ",
+    "fg": "87,113,134",
+    "bg": "252,254,255",
+    "el": "section[status-digital-handover-no-token]",
+    "route": "/handover"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".mode-switch button",
+   "value": "rgba(255, 255, 255, 0.7)",
+   "routes": [
+    "/stone"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 5.07,
+    "text": "ราคาต่อ ตร.ม. พร้อมติดตั้งและว",
+    "fg": "87,113,134",
+    "bg": "253,254,255",
+    "el": "button[button-stone-installed]",
+    "route": "/stone"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".stone-colors button",
+   "value": "rgba(255, 255, 255, 0.72)",
+   "routes": [
+    "/stone"
+   ],
+   "count": 128,
+   "worst": {
+    "ratio": 5.07,
+    "text": "NA160",
+    "fg": "87,113,134",
+    "bg": "253,254,255",
+    "el": "button[button-stone-color-NA160]",
+    "route": "/stone"
+   },
+   "measured": 128
+  },
+  {
+   "selector": ".mode-switch button, .stone-colors button",
+   "value": "rgba(255, 255, 255, 0.82)",
+   "routes": [
+    "/stone"
+   ],
+   "count": 130,
+   "worst": {
+    "ratio": 5.07,
+    "text": "NA160",
+    "fg": "87,113,134",
+    "bg": "253,254,255",
+    "el": "button[button-stone-color-NA160]",
+    "route": "/stone"
+   },
+   "measured": 130
+  },
+  {
+   "selector": ".sg-tip",
+   "value": "rgb(229, 243, 250)",
+   "media": "",
+   "routes": [
+    "/studio-guide"
+   ],
+   "count": 3,
+   "worst": {
+    "ratio": 5.07,
+    "text": "ระบบจะไม่คำนวณราคาสดระหว่างพิม",
+    "fg": "18,104,179",
+    "bg": "229,243,250",
+    "el": "p",
+    "route": "/studio-guide"
+   },
+   "measured": 3
+  },
+  {
+   "selector": ".product-card",
+   "value": "rgba(255, 255, 255, 0.85)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 30,
+   "worst": {
+    "ratio": 5.08,
+    "text": "หลุมสี่เหลี่ยมมุมมน",
+    "fg": "87,113,134",
+    "bg": "254,255,255",
+    "el": "article[card-product-KF001]",
+    "route": "/"
+   },
+   "measured": 30
+  },
+  {
+   "selector": ".product-card",
+   "value": "rgba(255, 255, 255, 0.88)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 30,
+   "worst": {
+    "ratio": 5.08,
+    "text": "หลุมสี่เหลี่ยมมุมมน",
+    "fg": "87,113,134",
+    "bg": "254,255,255",
+    "el": "article[card-product-KF001]",
+    "route": "/"
+   },
+   "measured": 30
+  },
+  {
+   "selector": ".mode-switch button.is-active",
+   "value": "white",
+   "routes": [
+    "/stone"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.11,
+    "text": "ราคาขายส่งต่อแผ่น ขนาด 0.76 × ",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "button[button-stone-whole-sheet]",
+    "route": "/stone"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quote-format-switch button",
+   "value": "white",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.11,
+    "text": "รายห้อง / จุด",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "button[button-quote-format-of]",
+    "route": "/quote#cart"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quantity-editor, .dimensions-form input, .customer-grid input, .customer-grid textarea",
+   "value": "white",
+   "routes": [
+    "/stone",
+    "/quote#cart"
+   ],
+   "count": 14,
+   "worst": {
+    "ratio": 5.11,
+    "text": "แผ่นมาตรฐาน / 760 × 3680 mm",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "div",
+    "route": "/stone"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".sketch-studio-bridge-cta",
+   "value": "rgb(137, 105, 37)",
+   "routes": [
+    "/sketch"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.11,
+    "text": "[icon]",
+    "fg": "255,255,255",
+    "bg": "137,105,37",
+    "el": "a[link-sketch-to-studio]",
+    "route": "/sketch"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-draft-toolbar-actions .icon-button",
+   "value": "white",
+   "routes": [
+    "/studio"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 5.11,
+    "text": "[icon]",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "button[button-studio-redo]",
+    "route": "/studio"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".studio-piece-card",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.11,
+    "text": "ด้านข้างขวา",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "section",
+    "route": "/studio"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-selector-trigger",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 5.11,
+    "text": "[icon]",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "button[button-open-studio-basin-popover]",
+    "route": "/studio"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".sg-card",
+   "value": "rgb(255, 255, 255)",
+   "media": "",
+   "routes": [
+    "/studio-guide"
+   ],
+   "count": 8,
+   "worst": {
+    "ratio": 5.11,
+    "text": "ได้ครับ กด “บันทึกผังเป็นรูปภา",
+    "fg": "87,113,134",
+    "bg": "255,255,255",
+    "el": "details",
+    "route": "/studio-guide"
+   },
+   "measured": 8
+  },
+  {
+   "selector": ".line-login-button",
+   "value": "rgb(245, 255, 248)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone",
+    "/quote#cart",
+    "/studio",
+    "/sketch",
+    "/network",
+    "/quote/view"
+   ],
+   "count": 7,
+   "worst": {
+    "ratio": 5.12,
+    "text": "เข้าสู่ระบบ",
+    "fg": "8,125,61",
+    "bg": "245,255,248",
+    "el": "button[button-line-login]",
+    "route": "/"
+   },
+   "measured": 7
+  },
+  {
+   "selector": ".product-card-action--studio",
+   "value": "rgb(244, 250, 255)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 30,
+   "worst": {
+    "ratio": 5.46,
+    "text": "🧾 ขอใบเสนอราคาชุดสำเร็จรูป",
+    "fg": "18,104,179",
+    "bg": "244,250,255",
+    "el": "button[button-request-pillar-quote-KF030]",
+    "route": "/"
+   },
+   "measured": 30
+  },
+  {
+   "selector": ".site-header",
+   "value": "rgba(255, 255, 255, 0.9)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone",
+    "/quote#cart",
+    "/studio",
+    "/sketch",
+    "/portfolio",
+    "/price-guide",
+    "/readme",
+    "/network",
+    "/site-prep",
+    "/quote/view"
+   ],
+   "count": 11,
+   "worst": {
+    "ratio": 5.72,
+    "text": "แคตตาล็อก",
+    "fg": "18,104,179",
+    "bg": "254,255,255",
+    "el": "header",
+    "route": "/"
+   },
+   "measured": 11
+  },
+  {
+   "selector": ".site-header",
+   "value": "rgba(255, 255, 255, 0.92)",
+   "media": "",
+   "routes": [
+    "/",
+    "/stone",
+    "/quote#cart",
+    "/studio",
+    "/sketch",
+    "/portfolio",
+    "/price-guide",
+    "/readme",
+    "/network",
+    "/site-prep",
+    "/quote/view"
+   ],
+   "count": 11,
+   "worst": {
+    "ratio": 5.72,
+    "text": "แคตตาล็อก",
+    "fg": "18,104,179",
+    "bg": "254,255,255",
+    "el": "header",
+    "route": "/"
+   },
+   "measured": 11
+  },
+  {
+   "selector": ".filter-tabs button.is-active",
+   "value": "white",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.74,
+    "text": "30",
+    "fg": "18,104,179",
+    "bg": "255,255,255",
+    "el": "button[button-filter-all]",
+    "route": "/"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".stone-price-filters button:hover, .stone-price-filters button.is-active",
+   "value": "white",
+   "routes": [
+    "/stone"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.74,
+    "text": "64",
+    "fg": "18,104,179",
+    "bg": "255,255,255",
+    "el": "button[button-stone-price-filter-all]",
+    "route": "/stone"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quote-share",
+   "value": "rgba(255, 255, 255, 0.5)",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.74,
+    "text": "เปิด LINE",
+    "fg": "18,104,179",
+    "bg": "255,255,255",
+    "el": "div",
+    "route": "/quote#cart"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quote-share",
+   "value": "rgba(255, 255, 255, 0.72)",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.74,
+    "text": "เปิด LINE",
+    "fg": "18,104,179",
+    "bg": "255,255,255",
+    "el": "div",
+    "route": "/quote#cart"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".quote-share",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 5.74,
+    "text": "เปิด LINE",
+    "fg": "18,104,179",
+    "bg": "255,255,255",
+    "el": "div",
+    "route": "/quote#cart"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".nw-card",
+   "value": "rgb(255, 255, 255)",
+   "media": "",
+   "routes": [
+    "/network"
+   ],
+   "count": 3,
+   "worst": {
+    "ratio": 5.93,
+    "text": "Facebook Knight Furnich",
+    "fg": "3,105,161",
+    "bg": "255,255,255",
+    "el": "article[network-card-knight-furnich]",
+    "route": "/network"
+   },
+   "measured": 3
+  },
+  {
+   "selector": ".bg-black\\/60",
+   "value": "color-mix(in srgb, rgb(0, 0, 0) 60%, transparent 40%)",
+   "media": "",
+   "routes": [
+    "/",
+    "/readme"
+   ],
+   "count": 40,
+   "worst": {
+    "ratio": 6.12,
+    "text": "1",
+    "fg": "255,255,255",
+    "bg": "96,98,100",
+    "el": "span",
+    "route": "/"
+   },
+   "measured": 40
+  },
+  {
+   "selector": ".config-summary .button--dark, .quote-summary .button--accent",
+   "value": "rgb(66, 169, 216)",
+   "routes": [
+    "/stone",
+    "/quote#cart"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 6.97,
+    "text": "[icon]",
+    "fg": "11,19,36",
+    "bg": "66,169,216",
+    "el": "a[link-stone-to-quote]",
+    "route": "/stone"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-dropzone-icon",
+   "value": "rgb(220, 239, 247)",
+   "routes": [
+    "/sketch"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 7.14,
+    "text": "[icon]",
+    "fg": "7,81,125",
+    "bg": "220,239,247",
+    "el": "span",
+    "route": "/sketch"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-add-plus",
+   "value": "rgb(220, 239, 247)",
+   "routes": [
+    "/sketch"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 7.14,
+    "text": "+",
+    "fg": "7,81,125",
+    "bg": "220,239,247",
+    "el": "span",
+    "route": "/sketch"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-edge-marker--open-edge",
+   "value": "rgb(37, 134, 83)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 3,
+   "worst": {
+    "ratio": 7.21,
+    "text": "×",
+    "fg": "255,255,255",
+    "bg": "27,99,62",
+    "el": "div",
+    "route": "/studio"
+   },
+   "measured": 3
+  },
+  {
+   "selector": ".product-card-action--portfolio",
+   "value": "rgb(238, 249, 240)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 90,
+   "worst": {
+    "ratio": 7.95,
+    "text": "[icon]",
+    "fg": "31,86,56",
+    "bg": "238,249,240",
+    "el": "button[button-copy-spec-KF030]",
+    "route": "/"
+   },
+   "measured": 90
+  },
+  {
+   "selector": ".pg-icon",
+   "value": "rgb(219, 234, 254)",
+   "media": "",
+   "routes": [
+    "/price-guide"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 8.49,
+    "text": "[icon]",
+    "fg": "30,58,138",
+    "bg": "219,234,254",
+    "el": "div",
+    "route": "/price-guide"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".bg-\\[\\#003366\\]",
+   "value": "rgb(0, 51, 102)",
+   "routes": [
+    "/studio-guide",
+    "/portfolio",
+    "/readme"
+   ],
+   "count": 8,
+   "worst": {
+    "ratio": 8.71,
+    "text": "[icon]",
+    "fg": "255,210,48",
+    "bg": "0,51,102",
+    "el": "div",
+    "route": "/readme"
+   },
+   "measured": 8
+  },
+  {
+   "selector": ".pg-soft",
+   "value": "rgb(241, 245, 249)",
+   "media": "",
+   "routes": [
+    "/price-guide"
+   ],
+   "count": 4,
+   "worst": {
+    "ratio": 9.45,
+    "text": "ขนาดที่วัดเองใช้ประเมินเบื้องต",
+    "fg": "51,65,85",
+    "bg": "241,245,249",
+    "el": "p",
+    "route": "/price-guide"
+   },
+   "measured": 4
+  },
+  {
+   "selector": "[data-theme=\"light\"] small.stone-card-prices, [data-theme=\"dark\"] small.stone-card-prices",
+   "value": "rgb(244, 249, 253)",
+   "routes": [
+    "/stone"
+   ],
+   "count": 64,
+   "worst": {
+    "ratio": 10.11,
+    "text": "แผ่น ฿5,900",
+    "fg": "23,63,107",
+    "bg": "244,249,253",
+    "el": "small",
+    "route": "/stone"
+   },
+   "measured": 64
+  },
+  {
+   "selector": ".studio-edge-finish-option--upstand.is-active",
+   "value": "rgb(255, 247, 228)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 10.25,
+    "text": "🟧 ติดบัว ▲",
+    "fg": "18,62,105",
+    "bg": "255,247,228",
+    "el": "button[button-studio-edge-status-upstand]",
+    "route": "/studio"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".studio-edge-select",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 4,
+   "worst": {
+    "ratio": 10.73,
+    "text": "[icon]",
+    "fg": "18,62,105",
+    "bg": "251,253,254",
+    "el": "button[select-edge-0-right]",
+    "route": "/studio"
+   },
+   "measured": 4
+  },
+  {
+   "selector": ".sg-header",
+   "value": "rgba(255, 255, 255, 0.92)",
+   "media": "",
+   "routes": [
+    "/studio-guide"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 10.91,
+    "text": "[icon]",
+    "fg": "18,62,105",
+    "bg": "254,255,255",
+    "el": "header",
+    "route": "/studio-guide"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".up-header",
+   "value": "rgba(255, 255, 255, 0.92)",
+   "media": "",
+   "routes": [
+    "/updates"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 10.91,
+    "text": "[icon]",
+    "fg": "18,62,105",
+    "bg": "254,255,255",
+    "el": "header",
+    "route": "/updates"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".line-quantity",
+   "value": "white",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 10.94,
+    "text": "[icon]",
+    "fg": "18,62,105",
+    "bg": "255,255,255",
+    "el": "div",
+    "route": "/quote#cart"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".studio-edge-finish-option",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 4,
+   "worst": {
+    "ratio": 10.94,
+    "text": "🟦 ชิดผนัง ║",
+    "fg": "18,62,105",
+    "bg": "255,255,255",
+    "el": "button[button-studio-edge-status-wall-flush]",
+    "route": "/studio"
+   },
+   "measured": 4
+  },
+  {
+   "selector": ".installation-showcase-all-btn",
+   "value": "rgb(0, 51, 102)",
+   "media": "",
+   "routes": [
+    "/",
+    "/readme"
+   ],
+   "count": 2,
+   "worst": {
+    "ratio": 12.61,
+    "text": "[icon]",
+    "fg": "255,255,255",
+    "bg": "0,51,102",
+    "el": "a[link-showcase-all-portfolio]",
+    "route": "/"
+   },
+   "measured": 2
+  },
+  {
+   "selector": ".studio-guide-contact .studio-guide-contact-line",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/studio-guide"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 12.61,
+    "text": "[icon]",
+    "fg": "0,51,102",
+    "bg": "255,255,255",
+    "el": "a[link-studio-guide-contact-line]",
+    "route": "/studio-guide"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".pg-next-cta",
+   "value": "rgb(255, 255, 255)",
+   "media": "",
+   "routes": [
+    "/price-guide"
+   ],
+   "count": 1,
+   "worst": {
+    "ratio": 20.17,
+    "text": "[icon]",
+    "fg": "2,6,23",
+    "bg": "255,255,255",
+    "el": "a[link-price-guide-final-quote]",
+    "route": "/price-guide"
+   },
+   "measured": 1
+  },
+  {
+   "selector": ".hero-line",
+   "value": "rgb(169, 207, 228)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 1,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".product-video-link",
+   "value": "rgba(255, 255, 255, 0.84)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 30,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".product-gallery-badge",
+   "value": "rgba(255, 255, 255, 0.84)",
+   "media": "",
+   "routes": [
+    "/"
+   ],
+   "count": 30,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".bg-\\[\\#1f6fb2\\]",
+   "value": "rgb(31, 111, 178)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#06c755\\]",
+   "value": "rgb(6, 199, 85)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#7a5bb5\\]",
+   "value": "rgb(122, 91, 181)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#07331b\\]",
+   "value": "rgb(7, 51, 27)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#17816d\\]",
+   "value": "rgb(23, 129, 109)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#a24439\\]",
+   "value": "rgb(162, 68, 57)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#b78320\\]",
+   "value": "rgb(183, 131, 32)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#e8f0f6\\]",
+   "value": "rgb(232, 240, 246)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#eef7fb\\]",
+   "value": "rgb(238, 247, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#f2fbf5\\]",
+   "value": "rgb(242, 251, 245)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#fff4e3\\]",
+   "value": "rgb(255, 244, 227)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[\\#fffaf1\\]",
+   "value": "rgb(255, 250, 241)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[rgba\\(249\\,247\\,241\\,0\\.5\\)\\]",
+   "value": "rgba(249, 247, 241, 0.5)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[rgba\\(255\\,255\\,255\\,0\\.72\\)\\]",
+   "value": "rgba(255, 255, 255, 0.72)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[rgba\\(255\\,255\\,255\\,0\\.86\\)\\]",
+   "value": "rgba(255, 255, 255, 0.86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-\\[rgba\\(255\\,255\\,255\\,0\\.92\\)\\]",
+   "value": "rgba(255, 255, 255, 0.92)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-black\\/50",
+   "value": "color-mix(in srgb, rgb(0, 0, 0), transparent)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-black\\/65",
+   "value": "color-mix(in srgb, rgb(0, 0, 0) 65%, transparent 35%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-black\\/80",
+   "value": "color-mix(in srgb, rgb(0, 0, 0) 80%, transparent 20%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-black\\/85",
+   "value": "color-mix(in srgb, rgb(0, 0, 0) 85%, transparent 15%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-black\\/88",
+   "value": "color-mix(in srgb, rgb(0, 0, 0) 88%, transparent 12%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-black\\/90",
+   "value": "color-mix(in srgb, rgb(0, 0, 0) 90%, transparent 10%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-emerald-50\\/70",
+   "value": "color-mix(in srgb, oklch(0.979 0.021 166.113) 70%, transparent 30%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-slate-950\\/65",
+   "value": "color-mix(in srgb, oklch(0.129 0.042 264.695) 65%, transparent 35%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-white\\/60",
+   "value": "color-mix(in srgb, rgb(255, 255, 255) 60%, transparent 40%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-white\\/70",
+   "value": "color-mix(in srgb, rgb(255, 255, 255) 70%, transparent 30%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".bg-white\\/95",
+   "value": "color-mix(in srgb, rgb(255, 255, 255) 95%, transparent 5%)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-header",
+   "value": "rgba(241, 238, 231, 0.86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".filter-tabs",
+   "value": "rgb(229, 224, 214)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".product-art",
+   "value": "rgb(231, 228, 220)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".button--dark:hover",
+   "value": "rgb(60, 80, 86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".button--dark.is-added",
+   "value": "rgb(71, 98, 92)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".button--accent:hover",
+   "value": "rgb(223, 180, 104)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".catalog-freshness-notice",
+   "value": "rgb(237, 245, 241)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-footer",
+   "value": "rgb(229, 243, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".dimensions-form input, .customer-grid input, .customer-grid textarea",
+   "value": "rgba(249, 247, 241, 0.5)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".button--dark:hover",
+   "value": "rgb(14, 85, 151)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".button--accent:hover",
+   "value": "rgb(14, 85, 151)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".config-summary .button--dark",
+   "value": "rgb(69, 169, 216)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".config-summary .button--dark:hover",
+   "value": "rgb(105, 187, 223)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".quote-line:hover",
+   "value": "rgba(229, 244, 251, 0.55)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".customer-grid input, .customer-grid textarea, .dimensions-form input",
+   "value": "white",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 13,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".quote-drop-zone",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".quote-drop-shell.is-over .quote-drop-zone",
+   "value": "rgb(230, 246, 253)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".drop-feedback",
+   "value": "rgb(229, 248, 241)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-login-button",
+   "value": "rgb(242, 255, 247)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-login-button:hover",
+   "value": "rgb(227, 251, 237)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-logout-button",
+   "value": "rgb(255, 245, 245)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-logout-button:hover:not(:disabled)",
+   "value": "rgb(255, 233, 233)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".profile-card",
+   "value": "rgba(255, 255, 255, 0.86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".profile-fields input, .profile-fields textarea",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".form-error",
+   "value": "rgb(255, 243, 240)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".form-success",
+   "value": "rgb(229, 248, 241)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".profile-lock-card",
+   "value": "rgba(255, 255, 255, 0.86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-trigger:hover",
+   "value": "rgb(14, 85, 151)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-panel",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-messages",
+   "value": "rgb(245, 251, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-message--assistant",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-speak-button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-speak-button:hover",
+   "value": "rgb(234, 247, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-actions button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-actions button:hover",
+   "value": "rgb(234, 247, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-pending-slip",
+   "value": "rgb(245, 251, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-form",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".product-video-link:hover",
+   "value": "rgb(25, 74, 123)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".product-gallery-badge:hover",
+   "value": "rgb(25, 74, 123)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".basin-gallery-overlay",
+   "value": "rgba(18, 26, 28, 0.88)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".basin-gallery-nav",
+   "value": "rgba(255, 255, 255, 0.88)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".basin-gallery-nav:hover",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".stone-remove-button:hover, .stone-remove-button:focus-visible",
+   "value": "rgb(255, 247, 244)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-document-label",
+   "value": "rgb(183, 213, 233)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-quote-table th",
+   "value": "rgb(219, 234, 244)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-item-image",
+   "value": "rgba(255, 255, 255, 0.9)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-qr-column img",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-customer-note",
+   "value": "rgb(255, 251, 230)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-totals",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-totals .formal-grand-total",
+   "value": "rgb(237, 245, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-bank-details",
+   "value": "rgb(248, 251, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".owner-workbench",
+   "value": "rgb(243, 248, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-topline",
+   "value": "rgb(13, 49, 88)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-header",
+   "value": "rgba(251, 253, 255, 0.94)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-nav-button:hover",
+   "value": "rgb(230, 242, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-nav-button.is-active",
+   "value": "rgb(251, 253, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-stat",
+   "value": "rgb(251, 253, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-stat--primary",
+   "value": "rgb(25, 74, 123)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-readiness-status",
+   "value": "rgb(255, 248, 233)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-readiness-panel--ready .line-readiness-status",
+   "value": "rgb(238, 250, 246)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-readiness-panel--unavailable .line-readiness-status",
+   "value": "rgb(245, 249, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-readiness-check",
+   "value": "rgb(247, 251, 253)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-card",
+   "value": "rgb(251, 253, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".breakdown-row i",
+   "value": "rgb(107, 185, 216)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".breakdown-row:nth-of-type(4) i",
+   "value": "rgb(212, 170, 91)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".breakdown-row:nth-of-type(5) i",
+   "value": "rgb(142, 168, 186)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".note-rule",
+   "value": "rgb(212, 170, 91)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-text-button",
+   "value": "rgb(251, 253, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".top-basin-art a",
+   "value": "rgb(25, 74, 123)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-rules",
+   "value": "rgb(237, 246, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workbench-mobile-nav",
+   "value": "rgb(237, 246, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".line-login-button:hover",
+   "value": "rgb(232, 250, 239)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".config-summary .button--dark:hover, .quote-summary .button--accent:hover",
+   "value": "rgb(103, 188, 226)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".drop-zone-link:hover",
+   "value": "rgb(14, 85, 151)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".knight-support-messages",
+   "value": "rgb(241, 249, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-sidebar",
+   "value": "rgba(232, 245, 251, 0.5)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".dashboard-ai-badge",
+   "value": "rgba(255, 255, 255, 0.58)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager [role=\"tablist\"]",
+   "value": "rgb(231, 243, 249)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager thead tr",
+   "value": "rgb(241, 248, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager tbody tr:hover",
+   "value": "rgb(242, 249, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-quantity-badge--good",
+   "value": "rgb(234, 246, 241)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-quantity-badge--caution",
+   "value": "rgb(255, 246, 229)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-quantity-badge--empty",
+   "value": "rgb(248, 239, 237)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-copy-button",
+   "value": "rgb(244, 249, 253)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-copy-button:hover",
+   "value": "rgb(232, 244, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-copy-button--copied",
+   "value": "rgb(237, 248, 242)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager .stock-copy-button--error",
+   "value": "rgb(252, 241, 239)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager input:not([type=\"checkbox\"]), .admin-manager textarea",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-manager [data-radix-dialog-content] > div:first-child",
+   "value": "rgb(241, 248, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-login > div > div:last-child",
+   "value": "rgba(255, 255, 255, 0.9)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".admin-login input",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-catalog-change-banner",
+   "value": "rgb(255, 249, 232)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-saved-draft-preview",
+   "value": "rgb(242, 247, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-stone-price-filters",
+   "value": "rgb(231, 243, 249)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-stone-price-filters button:hover, .studio-stone-price-filters button.is-active",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-stone-choice, .studio-basin-choice",
+   "value": "rgb(251, 253, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-choice-art",
+   "value": "rgb(238, 247, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-search input",
+   "value": "rgb(251, 253, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-filters",
+   "value": "rgb(231, 243, 249)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-filters button:hover, .studio-basin-filters button.is-active",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-place-button:hover",
+   "value": "rgb(31, 135, 184)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-stale",
+   "value": "rgb(255, 249, 232)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-stale-row select",
+   "value": "rgb(255, 253, 245)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-canvas-toolbar",
+   "value": "rgb(243, 250, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-piece-tab",
+   "value": "rgb(241, 247, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-piece-tab:hover",
+   "value": "rgb(228, 241, 248)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-piece-tab.is-active",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-piece-dimension-inputs input",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 2,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-edge-select.is-locked",
+   "value": "rgb(241, 245, 249)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-edge-options",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-shape-wizard-depth input, .studio-shape-wizard-leg input",
+   "value": "rgb(251, 253, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-wizard-presets button",
+   "value": "rgb(251, 253, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-wizard-presets button.is-active",
+   "value": "rgb(42, 155, 208)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-dimension-grid input, .studio-inline-field input, .studio-select-label select, .studio-contact-grid input, .studio-contact-grid select, .studio-contact-grid textarea",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/studio",
+    "/sketch"
+   ],
+   "count": 32,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-piece-editor",
+   "value": "rgba(255, 255, 255, 0.68)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-inspector",
+   "value": "rgb(247, 251, 253)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 1,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-rectangle-select select",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-inspector-actions .icon-button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-join-controls",
+   "value": "rgb(244, 249, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-join-control-button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-join-control-button:disabled",
+   "value": "rgb(246, 249, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-join-control-button[aria-pressed=\"true\"]:not(:disabled)",
+   "value": "rgb(229, 244, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-piece-heading input, .studio-rectangle-inputs input, .studio-side-status-grid select, .studio-pricing-inputs input",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/studio"
+   ],
+   "count": 2,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-edge-marker--open-edge",
+   "value": "rgb(182, 69, 62)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-edge-marker--wall-flush",
+   "value": "rgb(40, 109, 146)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-placement-tools",
+   "value": "rgb(247, 251, 253)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-placement-selectors button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-basin-orientation-buttons button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-saved-layout",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-sketch-slot--empty",
+   "value": "rgb(247, 251, 253)",
+   "routes": [
+    "/sketch"
+   ],
+   "count": 2,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-sketch-slot-remove",
+   "value": "rgba(15, 23, 42, 0.65)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-price-tier",
+   "value": "rgb(240, 248, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-stone-comparison-card",
+   "value": "rgba(255, 255, 255, 0.68)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-stone-comparison-card.is-active",
+   "value": "rgba(232, 246, 251, 0.94)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-warning",
+   "value": "rgb(255, 241, 239)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-warning--amber",
+   "value": "rgb(255, 249, 232)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-warning--small",
+   "value": "rgb(255, 244, 227)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-issues-summary",
+   "value": "rgb(255, 249, 232)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-canvas-quickbar",
+   "value": "rgb(251, 253, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-canvas-quickbar-group button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-mobile-estimate-bar",
+   "value": "rgba(255, 255, 255, 0.96)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "body",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "body.studio-print-mode .studio-print-layout",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".formal-grand-total",
+   "value": "rgb(237, 245, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".customer-extra-fields input",
+   "value": "rgb(251, 253, 254)",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 2,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".customer-grid select",
+   "value": "white",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 3,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".customer-grid textarea[data-testid=\"input-customer-tax-address\"], .customer-grid textarea[data-testid=\"input-customer-address\"]",
+   "value": "white",
+   "routes": [
+    "/quote#cart"
+   ],
+   "count": 1,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".site-photo-upload-container",
+   "value": "rgb(248, 251, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-item",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-delete-btn",
+   "value": "rgba(220, 38, 38, 0.85)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-delete-btn:hover",
+   "value": "rgb(220, 38, 38)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-badge",
+   "value": "rgba(15, 23, 42, 0.7)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-dropzone",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-dropzone:hover",
+   "value": "rgb(240, 247, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-modal",
+   "value": "rgba(0, 0, 0, 0.75)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".site-photo-modal-close",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-production-sheet",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".install-deadline",
+   "value": "rgb(255, 243, 224)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-site-grid",
+   "value": "rgb(244, 248, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-special-notes",
+   "value": "rgb(255, 253, 231)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-table th",
+   "value": "rgb(26, 60, 97)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-row-checkbox .box, .workshop-check-items .box",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-photos-section",
+   "value": "rgb(250, 252, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-photo-card",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".workshop-photo-card span",
+   "value": "rgba(15, 23, 42, 0.7)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".quote-sheet-type-switch button",
+   "value": "white",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-lead-sketch-preview-button",
+   "value": "rgb(243, 241, 236)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-lead-sketch-thumbnails button",
+   "value": "rgb(243, 241, 236)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-lead-sketch-lightbox",
+   "value": "rgba(15, 18, 22, 0.82)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-lead-sketch-image-stage",
+   "value": "rgb(243, 241, 236)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".product-card-action--quote:hover",
+   "value": "rgb(13, 85, 151)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".product-card-action--studio:hover",
+   "value": "rgb(232, 244, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".product-card-action--portfolio:hover",
+   "value": "rgb(226, 242, 228)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-piece-canvas .studio-placement > button",
+   "value": "rgba(18, 54, 72, 0.78)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".installation-showcase-lightbox",
+   "value": "rgba(8, 18, 24, 0.86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".installation-showcase-all-btn:hover",
+   "value": "rgb(0, 34, 68)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-dropzone.is-dragging",
+   "value": "rgb(233, 246, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-status",
+   "value": "rgb(239, 248, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-status--success",
+   "value": "rgb(238, 250, 243)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-status--error",
+   "value": "rgb(255, 249, 236)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-analysis-card",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-analysis-preview",
+   "value": "rgb(242, 247, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-shape",
+   "value": "rgb(234, 245, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-shape--L",
+   "value": "rgb(255, 245, 216)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-shape--U",
+   "value": "rgb(243, 237, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-workpiece-card",
+   "value": "rgb(248, 251, 253)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-panel-badge, .studio-page--sketch .studio-sketch-edge-badge",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-panel-badge",
+   "value": "rgb(238, 247, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-edge-badge--upstand",
+   "value": "rgb(255, 248, 228)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-edge-badge--wall-flush",
+   "value": "rgb(242, 247, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-edge-badge--open-edge",
+   "value": "rgb(239, 249, 243)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-edge-badge--closed-edge",
+   "value": "rgb(247, 243, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-cutout-note",
+   "value": "rgb(255, 246, 223)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-page--sketch .studio-sketch-slot--add:hover",
+   "value": "rgb(232, 245, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-sketch-dim-field input",
+   "value": "rgb(255, 255, 255)",
+   "routes": [
+    "/sketch"
+   ],
+   "count": 2,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": ".studio-selector-popover",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-edge-finish-option--wall-flush.is-active",
+   "value": "rgb(234, 246, 252)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-edge-finish-option--open-edge.is-active",
+   "value": "rgb(233, 248, 239)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-edge-finish-option--normal.is-active",
+   "value": "rgb(241, 244, 245)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-edge-marker--normal .studio-edge-marker-action",
+   "value": "rgba(255, 255, 255, 0.65)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-search-clear",
+   "value": "rgb(238, 242, 245)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-search-clear:hover",
+   "value": "rgb(223, 231, 238)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-lightbox-actionbar",
+   "value": "rgb(16, 16, 16)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-line-action",
+   "value": "rgb(6, 199, 85)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-line-action:hover",
+   "value": "rgb(8, 220, 96)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-studio-action",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".portfolio-studio-action:hover",
+   "value": "rgb(233, 242, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".studio-guide-contact .studio-guide-contact-line:hover",
+   "value": "rgba(255, 255, 255, 0.9)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "html:has(.stock-inventory-page)",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "body:has(.stock-inventory-page)",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "body:has(.stock-inventory-page) .admin-app",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "body:has(.stock-inventory-page) .admin-main",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".stock-inventory-page",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".stock-inventory-page .stock-table-section",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".stock-inventory-page .stock-print-table th, .stock-inventory-page .stock-print-table td",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".stock-inventory-page .stock-print-table th",
+   "value": "rgb(233, 238, 241)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .site-header",
+   "value": "rgba(15, 23, 42, 0.94)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .site-footer",
+   "value": "rgb(11, 19, 36)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .order-mode-tabs button.is-active",
+   "value": "rgb(37, 99, 235)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .product-art",
+   "value": "rgb(30, 41, 59)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] :is(.customer-track-state, .handover-state)",
+   "value": "rgb(22, 34, 56)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] :is(.customer-track-state-icon, .handover-state-icon)",
+   "value": "rgb(30, 41, 59)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .studio-stone-choice, [data-theme=\"dark\"] .studio-basin-choice",
+   "value": "rgb(251, 253, 254)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .studio-basin-choice-art, [data-theme=\"dark\"] .studio-canvas-quickbar",
+   "value": "rgb(238, 247, 250)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .formal-quote-sheet, [data-theme=\"dark\"] .formal-quote-sheet *",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .product-card-action--studio:hover",
+   "value": "rgb(34, 63, 95)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .studio-page--sketch .studio-sketch-dropzone.is-dragging",
+   "value": "rgb(30, 58, 86)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .studio-page--sketch .studio-sketch-slot--add:hover",
+   "value": "rgb(34, 63, 95)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .product-index, [data-theme=\"dark\"] .art-note",
+   "value": "rgba(11, 19, 36, 0.88)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".sg-dot--on",
+   "value": "rgb(0, 51, 102)",
+   "media": "",
+   "routes": [
+    "/studio-guide"
+   ],
+   "count": 1,
+   "worst": null,
+   "measured": 0
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .sg-header",
+   "value": "rgba(11, 19, 36, 0.92)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .sg-tip",
+   "value": "rgb(23, 42, 66)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .sg-dot--on",
+   "value": "rgb(122, 185, 251)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".pg-next-cta:hover",
+   "value": "rgb(239, 246, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .pg-soft",
+   "value": "rgb(30, 41, 59)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .pg-icon",
+   "value": "rgb(23, 37, 84)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "[data-theme=\"dark\"] .up-header",
+   "value": "rgba(18, 24, 32, 0.92)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".handover-reference",
+   "value": "rgba(255, 255, 255, 0.68)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".handover-identity-item",
+   "value": "rgba(255, 255, 255, 0.67)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".handover-panel",
+   "value": "rgba(255, 255, 255, 0.7)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": "html, body",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".digital-handover-page",
+   "value": "rgb(255, 255, 255)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".customer-track-reference-card",
+   "value": "rgba(255, 255, 255, 0.62)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".track-panel, .track-contact-card",
+   "value": "rgba(255, 255, 255, 0.68)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".track-gallery-item-overlay",
+   "value": "rgba(255, 255, 255, 0.85)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  },
+  {
+   "selector": ".track-lightbox",
+   "value": "rgba(16, 62, 107, 0.82)",
+   "routes": [],
+   "count": 0,
+   "worst": null
+  }
+ ]
+}

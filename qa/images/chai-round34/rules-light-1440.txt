@@ -1,0 +1,6 @@
+theme=light width=1440 literal-solid rules=339 painted on the swept routes=78 with text below 4.5=5
+  2.26 | .line-logo-mark | rgb(6, 199, 85) | span "LINE" rgb(255,255,255) on rgb(6,199,85) | / /stone /quote#cart /studio /sketch /network /quote/view
+  2.75 | .search-field, .sort-field | rgba(255, 255, 255, 0.7) | label "[placeholder]" rgb(18,62,106) on rgb(253,254,255) | / /stone
+  2.75 | .search-field, .sort-field | rgba(255, 255, 255, 0.82) | label "[placeholder]" rgb(18,62,106) on rgb(253,254,255) | / /stone
+  3.04 | .studio-edge-marker--upstand | rgb(176, 122, 18) | div "×" rgb(11,19,36) on rgb(130,90,13) | /studio
+  4.04 | .portfolio-search-bar | rgb(255, 255, 255) | div "[placeholder]" rgb(113,128,145) on rgb(255,255,255) | /portfolio
