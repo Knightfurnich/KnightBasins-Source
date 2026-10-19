@@ -35,15 +35,10 @@ const entries = [...xml.matchAll(/<url>\s*([\s\S]*?)\s*<\/url>/g)].map((match) =
 // dateTime is not a per-route change date. Applying it to every URL would force
 // fabricated dates on the explicitly preserved /portfolio, /site-prep, /studio
 // and /updates rows. Use the authorized (1)+(2) fallback plus the known floors.
-const confirmedChanges: Record<string, string> = {
-  "/": "2026-10-12",
-  "/stone": "2026-10-13",
-  "/price-guide": "2026-10-13",
-  "/studio-guide": "2026-10-13",
-  "/quote": "2026-10-13",
-  "/sketch": "2026-10-13",
-  "/readme": "2026-10-12",
-};
+// Sole expected-date table, shared with the original 422-B E regression block.
+const confirmedChanges: Record<string, string> = JSON.parse(
+  readFileSync(new URL("../../../qa/sitemap-lastmod-dates.json", import.meta.url), "utf8"),
+);
 
 describe("sitemap lastmod freshness", () => {
   it("keeps the twelve real URLs, order, origin, frequency and priority", () => {
@@ -70,7 +65,13 @@ describe("sitemap lastmod freshness", () => {
   });
 
   it("never predates the confirmed content change for each of the seven affected routes", () => {
+    assert.deepEqual(Object.keys(confirmedChanges).sort(),
+      ["/", "/stone", "/price-guide", "/studio-guide", "/quote", "/sketch", "/readme"].sort(),
+      "The shared table must retain all seven confirmed routes");
     for (const [path, minimum] of Object.entries(confirmedChanges)) {
+      assert.match(minimum, /^\d{4}-\d{2}-\d{2}$/, `${path}: invalid confirmed date format`);
+      assert.equal(new Date(`${minimum}T00:00:00.000Z`).toISOString().slice(0, 10), minimum,
+        `${path}: impossible confirmed calendar date`);
       const entry = entries.find(({ loc }) => loc === `https://knightbasins.com${path}`);
       assert.ok(entry, `Missing confirmed route ${path}`);
       assert.ok(entry.lastmod >= minimum, `${path}: stale lastmod ${entry.lastmod}; confirmed change requires >= ${minimum}`);

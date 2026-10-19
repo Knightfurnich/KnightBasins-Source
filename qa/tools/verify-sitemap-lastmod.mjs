@@ -11,6 +11,7 @@ function run(name, contents, mustPass, error) {
   writeFileSync(file, contents);
   const result = spawnSync(process.execPath, [
     "--experimental-strip-types", "--test",
+    "artifacts/knight-basins/test/customer-facing-consistency.test.ts",
     "artifacts/knight-basins/test/sitemap-lastmod.test.ts",
   ], { cwd: root, encoding: "utf8" });
   console.log(`\n=== ${name}: exit ${result.status} ===\n${result.stdout}${result.stderr}`);

@@ -100,14 +100,18 @@ describe("floating assistant steps aside while a dialog is open (422-B D)", () =
 });
 
 describe("sitemap lastmod tracks what actually shipped (422-B E)", () => {
-  it("pages whose source changed on 2026-10-10 carry that date", () => {
-    const urlsWith = (date: string) =>
-      [...sitemapSource.matchAll(/<url>\s*<loc>([^<]+)<\/loc>[\s\S]*?<lastmod>([^<]+)<\/lastmod>/g)]
-        .filter(([, , d]) => d === date)
-        .map(([, u]) => u);
-    const today = urlsWith("2026-10-10");
+  it("the three originally covered pages carry their exact confirmed deployment date", async () => {
+    const confirmedDates: Record<string, string> = JSON.parse(
+      await readFile(new URL("../../../qa/sitemap-lastmod-dates.json", import.meta.url), "utf8"),
+    );
+    const entries = [...sitemapSource.matchAll(/<url>([\s\S]*?)<\/url>/g)];
     for (const path of ["/", "/stone", "/price-guide"]) {
-      assert.ok(today.includes(`https://knightbasins.com${path}`), `${path} lastmod must be 2026-10-10 (got: ${today.join(" ") || "none"})`);
+      const matching = entries.filter(([, entry]) => entry.includes(`<loc>https://knightbasins.com${path}</loc>`));
+      assert.equal(matching.length, 1, `${path}: expected exactly one sitemap entry`);
+      const dates = [...matching[0][1].matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
+      assert.equal(dates.length, 1, `${path}: expected exactly one lastmod`);
+      assert.equal(typeof confirmedDates[path], "string", `${path}: missing shared expected date`);
+      assert.equal(dates[0][1], confirmedDates[path], `${path}: lastmod must equal its confirmed deployment date`);
     }
   });
 });

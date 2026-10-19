@@ -1,5 +1,44 @@
 # 469-R — sitemap lastmod: source changes and acceptance evidence
 
+## Revision 2 — the existing strict-date guard is aligned, not weakened
+
+Read the owner's **ฉบับแก้ 2** on main
+`76898c955446cc22daf11097712eb060527adc82`. Since the original baseline,
+main changed only KANBAN, QA queue and the ticket; application/test source is
+unchanged. The read-only ticket is not edited by this PR.
+
+The extra authorized edit is confined to the **422-B E** block in
+`test/customer-facing-consistency.test.ts`. Its three original routes still
+require **exact equality**, now with the confirmed dates: no deletion, skip,
+exception, or conversion to a weaker minimum-date assertion. It additionally
+requires exactly one matching URL and one lastmod per route.
+
+Both test files read the **single expected-date table**
+`qa/sitemap-lastmod-dates.json`. The new guard also checks that all seven known
+routes remain in that table and that its dates are valid calendar dates.
+There is no second coded table of the same route/date expectations.
+
+Natural red proof:
+[original PR CI 39212548473](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39212548473),
+head `5f445809b49c1df5bf84fc4b6cd57ea76b664156`: web
+**1517 total / 1507 pass / 1 fail / 9 skipped**; the existing 422-B E assertion
+reported `/ lastmod must be 2026-10-10 (got: none)`.
+The revised exact-head CI and full totals are linked in the PR acceptance
+comment after completion, not inferred from the local run.
+
+Local revision-2 checks: **19 October 2026, 14:30 Asia/Bangkok**, Replit Agent,
+Linux 6.18.57 x86_64, Node 24.13.0. Both authorized test files together:
+**13/13 pass, 0 fail, 0 skipped**; shared-library and frontend typechecks exit 0.
+The reversible proof now runs **both** files against the actual XML and restores
+its bytes after every proof series. Raw output:
+`qa/images/replit-round31/revision2-targeted.log`.
+
+**B: จะยืนยันหลัง deploy.** The owner will repeat production acceptance after
+merging/deploying. Existing pre-merge XML/HTTP evidence below remains explicitly
+pre-deploy; no agent merge/deploy or production database write occurred.
+Keep #609 Draft: after this PR is merged, rebase #609 on the resulting latest
+main and rerun its CI; never merge it using the pre-rebase results.
+
 ## Provenance and scope
 
 - Repository: Knightfurnich/KnightBasins-Source.
@@ -11,7 +50,8 @@
   totals are recorded in the PR acceptance comment and GitHub Checks. This avoids
   claiming that local targeted tests are the full CI suite.
 - Only `public/sitemap.xml` lastmod values, the new
-  `test/sitemap-lastmod.test.ts`, and `qa/**` are submitted.
+  `test/sitemap-lastmod.test.ts`, the specifically authorized 422-B E block in
+  `test/customer-facing-consistency.test.ts`, and `qa/**` are submitted.
 - No robots/LLM/IndexNow files, src, API server, deployment files, workflows,
   prices, business text or database data are changed. No push to main, merge or
   deployment was performed. GitHub operations use the installed connection only.
@@ -49,7 +89,9 @@ The test reads the actual shipped XML. Four tests check:
 2. Exactly one real YYYY-MM-DD calendar date per URL, no future dates in Asia/Bangkok.
    Calendar round-tripping rejects impossible dates such as 2026-02-30.
 3. All seven confirmed routes have lastmod at least their known deployment date.
-   Five uncertain routes retain their values; they are not blanket-dated.
+   The sole date table is shared with the existing block, which retains exact
+   equality for its three routes. Five uncertain routes retain their values;
+   they are not blanket-dated.
 4. A changed declared release requires an explicit review of sitemap dates.
 
 **Authorized fallback for universal release freshness:** `UPDATE_RELEASES` is in
@@ -77,25 +119,26 @@ From the repository root:
 ```sh
 pnpm run typecheck:libs
 cd artifacts/knight-basins
-node --experimental-strip-types --test test/sitemap-lastmod.test.ts
+node --experimental-strip-types --test test/customer-facing-consistency.test.ts test/sitemap-lastmod.test.ts
 pnpm exec tsc -p tsconfig.json --noEmit
 cd ../..
 node qa/tools/verify-sitemap-lastmod.mjs
 ```
 
-- Targeted test: **4 tests / 4 pass / 0 fail / 0 skipped**.
+- Both targeted files: **13 tests / 13 pass / 0 fail / 0 skipped**
+  (including all four new sitemap guard tests).
 - Shared-library and frontend TypeScript checks: **exit 0**.
 - The reversible proof uses the real XML, launches the real test and restores
   byte-for-byte contents in `finally`. Its six runs are:
 
 | Proof | Expected and observed exit | Result |
 |---|---:|---|
-| Candidate | 0 | 4 pass |
-| Revert `/` to stale 2026-10-10 | 1 | `stale lastmod`; 3 pass / 1 fail |
-| Future date | 1 | `future lastmod`; 3 pass / 1 fail |
+| Candidate | 0 | 13 pass |
+| Revert `/` to stale 2026-10-10 | 1 | exact-date and stale-date assertions; 11 pass / 2 fail |
+| Future date | 1 | exact-date and future-date assertions; 11 pass / 2 fail |
 | Impossible 2026-02-30 | 1 | calendar-date failure |
 | Remove one URL | 1 | twelve-URL and required-route failures |
-| Restore candidate | 0 | 4 pass; original bytes restored |
+| Restore candidate | 0 | 13 pass; original bytes restored |
 
 Raw commands/output: `qa/images/replit-round31/reversible-proof.log`,
 `typecheck-libs.log`, `typecheck-web.log`.
@@ -140,8 +183,8 @@ Do not relabel the pre-deploy baseline as post-deploy proof.
 
 ## Five-line summary
 
-Changed: seven confirmed historical lastmod dates; five uncertain routes preserved; one guard plus QA evidence/tools.
-Tests: local guard 4/4, typechecks exit 0, stale/future/calendar/missing-URL red controls and restored green proved.
+Changed: seven confirmed historical lastmod dates; five uncertain routes preserved; the authorized old block keeps strict equality using one shared date table.
+Tests: both local files 13/13, typechecks exit 0; natural-red CI recorded; stale/future/calendar/missing-URL red controls and restored green proved.
 Not yet verified: production equality after an authorized deployment; full CI outcomes live in the PR acceptance comment.
 Risk: until deployment, production intentionally still serves the seven old dates; global release dates do not identify individual page changes.
 Next: review CI/source scope, authorize merge/deploy separately, then run the read-only production checker; no merge/deploy by the agent.
