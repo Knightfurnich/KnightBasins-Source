@@ -1,0 +1,32 @@
+=== /  theme=dark  checked=509  failing(p10 ratio < threshold)=1
+  excluded: 12 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+=== /quote#cart  theme=dark  checked=130  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+=== /studio  theme=dark  checked=125  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421278134-0-top] "ติดบัว" — document.elementFromPoi
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421278134-0-right] "ขอบเปิด" — document.elementFr
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421278134-0-bottom] "ขอบเปิด" — document.elementF
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421278134-0-left] "ขอบเปิด" — document.elementFro
+=== /stone  theme=dark  checked=381  failing(p10 ratio < threshold)=1
+  excluded: 10 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+=== /portfolio  theme=dark  checked=79  failing(p10 ratio < threshold)=0
+  excluded: 13 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+=== /  theme=light  checked=509  failing(p10 ratio < threshold)=1
+  excluded: 12 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+=== /quote#cart  theme=light  checked=130  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+=== /studio  theme=light  checked=125  failing(p10 ratio < threshold)=1
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421394920-0-top] "ติดบัว" — document.elementFromPoi
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421394920-0-right] "ขอบเปิด" — document.elementFr
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421394920-0-bottom] "ขอบเปิด" — document.elementF
+  occluded / มองไม่เห็น @1440: div.studio-piece-rectangle > div.studio-edge-marker > button[studio-edge-marker-rectangle-1792421394920-0-left] "ขอบเปิด" — document.elementFro
+=== /stone  theme=light  checked=381  failing(p10 ratio < threshold)=1
+  excluded: 10 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic
+  2.26  | need 4.5 | solid   | text rgb(255,255,255) on bg~rgb(6,199,85) | 12px | div.header-actions > button[button-line-login] > span.line-logo-mark | "LINE"
+=== /portfolio  theme=light  checked=79  failing(p10 ratio < threshold)=0
+  excluded: 13 text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic

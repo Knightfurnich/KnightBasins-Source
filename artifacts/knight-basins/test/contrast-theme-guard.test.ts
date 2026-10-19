@@ -453,3 +453,64 @@ const AUDITED_LITERAL_WHITE = [
     "body:has(.stock-inventory-page) .admin-main",
     "html:has(.stock-inventory-page)",
 ];
+
+/**
+ * job 474-C: the remaining contrast points, measured in the browser (qa/images/chai-round35/points.mjs) against the per-type criteria:
+ * text / placeholder / numbers 4.5, icons and UI component boundaries 3.0 (WCAG 1.4.11); the LINE green button stays the one approved exception.
+ */
+describe("474-C remaining contrast points", () => {
+  const b474 = themeStyles.slice(themeStyles.indexOf("/* ─── job 474-C"), themeStyles.indexOf("/* ─── job 472-C"));
+  const rule = (sel: string, decl: string) => assert.ok(b474.includes(`${sel} { ${decl} }`), `${sel} { ${decl} }`);
+  it("1 product card boundary: unticked cards get a 3:1 border in both themes (hover too)", () => {
+    rule('[data-theme="dark"] .product-card[aria-checked="false"]', "border-color: #7a8fa8;");
+    rule('[data-theme="dark"] .product-card[aria-checked="false"]:hover', "border-color: #a4b6c9;");
+    assert.ok(b474.includes('[data-theme="light"] .product-card[aria-checked="false"],\n[data-theme="light"] .product-card[aria-checked="false"]:hover { border-color: #738a9e; }'));
+  });
+  it("2/3 check boxes: unticked border, light ticked border, dark tick colour", () => {
+    rule('[data-theme="dark"] :is(.install-toggle, .vat-row label) input:not(:checked) + span', "border-color: #7a8fa8;");
+    rule('[data-theme="light"] .install-toggle input:not(:checked) + span', "border-color: #738a9e;");
+    rule('[data-theme="light"] .install-toggle input:checked + span', "border-color: #1f6f98;");
+    rule('[data-theme="dark"] :is(.install-toggle, .vat-row label) input:checked + span::after', "border-right-color: #0b1324; border-bottom-color: #0b1324;");
+  });
+  it("4 menu badge number is dark on the light-blue badge in the dark theme", () => rule('[data-theme="dark"] :is(.quote-link, .mobile-cart) span', "color: #0b1324;"));
+  it("5/7/8 /studio toolbar + progress numbers + search field follow the card surface; disabled undo/redo is less faded", () => {
+    rule('[data-theme="dark"] .studio-draft-toolbar-actions .icon-button', "background-color: var(--card-paper);");
+    rule('[data-theme="dark"] .studio-draft-toolbar-actions .icon-button:disabled', "opacity: 0.6;");
+    rule('[data-theme="light"] .studio-draft-toolbar-actions .icon-button:disabled', "opacity: 0.8;");
+    rule('[data-theme="dark"] .studio-progress-step:not(.is-done) .studio-progress-step-icon', "background-color: var(--card-paper);");
+    rule('[data-theme="dark"] .search-field', "background-color: var(--card-paper);");
+  });
+  it("9/10 placeholders use --ink-soft at full opacity in both themes", () => {
+    assert.ok(b474.includes('[data-theme="dark"] :is(.search-field, .portfolio-search-bar) input::placeholder,\n[data-theme="light"] :is(.search-field, .portfolio-search-bar) input::placeholder { color: var(--ink-soft); opacity: 1; }'));
+  });
+  it("browser-measured pairs meet their criterion (text 4.5 / icon + boundary 3.0)", () => {
+    const text: Array<[string, string, string]> = [
+      ["badge dark #0b1324 on #7ab9fb (was white 2.07)", "#0b1324", "#7ab9fb"],
+      ["step number dark #aab9cc on #162238 (was on #fbfdfe 1.96)", "#aab9cc", "#162238"],
+      ["search typed text dark #e8eff8 on #162238 (was on the pale field 1.27)", "#e8eff8", "#162238"],
+      ["placeholder light #577186 on #ffffff (was 4.04 / 2.75)", "#577186", "#ffffff"],
+      ["placeholder light #577186 on the field #fdfeff", "#577186", "#fdfeff"],
+      ["placeholder dark #aab9cc on #162238", "#aab9cc", "#162238"],
+    ];
+    for (const [name, fg, bg] of text) assert.ok(ratio(fg, bg) >= 4.5, `${name}: ${ratio(fg, bg).toFixed(2)}`);
+    const ui: Array<[string, string, string]> = [
+      ["card border dark #7a8fa8 on the card face #162238", "#7a8fa8", "#162238"],
+      ["card border dark #7a8fa8 on the page #0f172a", "#7a8fa8", "#0f172a"],
+      ["VAT box dark #7a8fa8 on the summary gradient mean #0f3d66", "#7a8fa8", "#0f3d66"],
+      ["card border light #738a9e on the page #f6fbfe", "#738a9e", "#f6fbfe"],
+      ["card border light #738a9e on the card #feffff", "#738a9e", "#feffff"],
+      ["tick dark #0b1324 on the sky-blue fill #44a9d4", "#0b1324", "#44a9d4"],
+      ["ticked box light border #1f6f98 on the page #f6fbfe", "#1f6f98", "#f6fbfe"],
+      ["toolbar icon dark #aab9cc on #162238", "#aab9cc", "#162238"],
+      ["search icon dark #aab9cc on #162238", "#aab9cc", "#162238"],
+    ];
+    for (const [name, fg, bg] of ui) assert.ok(ratio(fg, bg) >= 3, `${name}: ${ratio(fg, bg).toFixed(2)}`);
+  });
+  it("the approved exception stays: the LINE green button is neither restyled here nor allowed to widen; no token value, no unscoped rule", () => {
+    assert.ok(!/line-logo-mark|line-login-button/.test(b474));
+    assert.ok(!/--[\w-]+\s*:/.test(b474.replace(/\/\*[\s\S]*?\*\//g, "")), "no colour token assigned");
+    const rules = b474.replace(/\/\*[\s\S]*?\*\//g, "").split("}").map((r) => r.trim()).filter(Boolean);
+    for (const r of rules) assert.match(r, /^\[data-theme="(dark|light)"\]/, `unscoped rule: ${r.slice(0, 60)}`);
+    assert.ok(!css.includes('data-theme="dark"'), "the frozen stylesheet stays free of dark-theme rules");
+  });
+});
