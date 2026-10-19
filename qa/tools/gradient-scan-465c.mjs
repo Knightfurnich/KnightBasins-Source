@@ -202,10 +202,12 @@ const HIT_TEST = (rows, width) => `(() => {
   rows.forEach((row,i) => {
     if(row.fixed && scrollY!==0)return;
     const el=window.__contrastTextEls[i];
-    const hit=(x,y)=>{const top=document.elementFromPoint(x,y-scrollY);return {visible:!!top&&(top===el||el.contains(top)),coveringElement:top?label(top):null};};
+    // Chromium can round 899.75 to 900 and return null at a 900px viewport edge.
+    // Hit the integer pixel we sampled, never a subpixel beyond its boundary.
+    const hit=(x,y)=>{const top=document.elementFromPoint(Math.floor(x),Math.floor(y-scrollY));return {visible:!!top&&(top===el||el.contains(top)),coveringElement:top?label(top):null};};
     row.rects.forEach((rc,ri)=>{
       for(const fx of [.2,.5,.8])for(const fy of [.2,.5,.8]){
-        const x=rc.x+rc.w*fx,y=rc.y+rc.h*fy;
+        const x=Math.floor(rc.x+rc.w*fx),y=Math.floor(rc.y+rc.h*fy);
         if(x<0||x>=innerWidth||y<scrollY||y>=scrollY+innerHeight)continue;
         probes.push({row:i,key:ri+":"+fx+":"+fy,x,y,...hit(x,y)});
       }
