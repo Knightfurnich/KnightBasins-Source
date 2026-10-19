@@ -1,4 +1,32 @@
-# 468-R — รายงานบางส่วน / Draft — ยังไม่พร้อม merge
+# 468-R — Contrast acceptance evidence
+
+## Source ล่าสุด — สีตัวอักษรสองจุดและ capture-position occlusion
+
+ผล CI ที่ใช้ตัดสิน source ปัจจุบันอยู่ใน [Checks ของ #609](https://github.com/Knightfurnich/KnightBasins-Source/pull/609/checks)
+และ acceptance comment ล่าสุดใน PR ซึ่งเก็บ immutable run URLs / จำนวนผลจริง.
+ส่วนด้านล่างหัวข้อนี้เป็นประวัติเท่านั้น ไม่ใช่สถานะของ head ปัจจุบัน.
+
+- เจ้าของอนุญาตเพิ่มเฉพาะสี PROJECT DETAILS และข้อความรอยต่อสตูดิโอ.
+  PROJECT DETAILS ใช้ `#4b6276` บน container จริงที่อยู่นอก `.quote-main`;
+  joint note ใช้ `#000000` ทั้งสองธีม เพื่อรองรับ backing สีวัสดุที่เข้มกว่าพื้นแคนวาส.
+  ไม่เปลี่ยนตำแหน่ง สีแคนวาส/วัสดุ ตัวแปรสี หรือ print blocks.
+- แก้สาเหตุผลตกเทียม 1440: floating assistant ทับบางส่วนของ Private Workbench
+  และข้อความการ์ด `/sketch`. การสุ่มพื้นหลังจาก overlay ไม่ใช่ contrast ของ glyph ที่มองเห็น.
+- ตรวจ `document.elementFromPoint` ที่ scroll position ของภาพจริงทุก tile:
+  9 จุดต่อ own-text rectangle พร้อม covering elements; ทุก background sample มี hit-test mask.
+  ส่วนที่ยังเห็นต้องถูกวัดต่อ ไม่ยกเว้นทั้ง selector เมื่อถูกบังเพียงบางส่วน.
+  JSON เก็บทั้ง nine-point evidence และ pixel masks/covering elements/tile positions.
+- Fixed-position text ใช้คู่ภาพ viewport แรกของตัวเอง ไม่ใช้ page backdrop จาก tile อื่น.
+  ไม่มี selector exemption เพิ่ม; hero ที่วัดไม่ได้ยัง fail; LINE-only exception เดิม.
+- Chromium control fixture ตรวจครบ dark/light × 1440/390:
+  fully covered มี 9 จุดยืนยัน; visible bad และ partially-covered bad ยังตก 2.79;
+  visible good / partially-covered good / fixed good ผ่าน 10.72 และยังอยู่ใน measured rows.
+  Fixture อยู่ใน contrast job เท่านั้น; validate-release/unit-tests jobs ไม่เปลี่ยน.
+- CI รัน full 17 targets × 2 themes × 2 widths, และ A4 fixture เดิมที่ 1440.
+  Intentional-red branch เปลี่ยนเพียงสีป้าย “ชิ้นงาน 1” เป็น `#8b9dae`;
+  ใช้ scanner/fixture/CI เดียวกัน ไม่อยู่ใน #609 และไม่สร้าง PR เพิ่ม.
+- จะเปลี่ยน ready เฉพาะเมื่อ exact-head CI ผ่านจริง, intentional-red แดงเฉพาะ Studio label,
+  sweep/overflow/occlusion/A4 ครบ. ไม่ merge/push main/deploy; เดวิดตรวจเองก่อน merge.
 
 ## รอบติดตามล่าสุด — occlusion / Studio / A4 fixture
 
