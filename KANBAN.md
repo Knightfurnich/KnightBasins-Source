@@ -1061,3 +1061,9 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - **บอส:** "เดวิดเปลี่ยนใบงานนี้ มอบหมายให้ชัย เป็นคนทำ" ⇒ เดวิดโอนทั้งใบ (เนื้อหางานเดิมทุกข้อ: `sitemap.xml` lastmod ค้างเก่า + ด่านกันลืม)
 - **ไฟล์:** `qa/job-469-chai-sitemap-lastmod.md` (ใหม่) · ใบเดิม `qa/job-469-boy-sitemap-lastmod.md` ติดป้าย "ถูกโอนให้ชัย" (ห้ามทำซ้ำ)
 - **ยกเว้นขอบเขตให้ชัย (ระบุในใบ):** แตะได้เฉพาะ `artifacts/knight-basins/public/sitemap.xml` (ค่า `<lastmod>` เท่านั้น) + `test/sitemap-lastmod.test.ts` (ใหม่) + `qa/**` · **ยังห้ามแตะ** `src/**` · `artifacts/api-server/**` · `robots.txt` · `llms*.txt` · ไฟล์คีย์ IndexNow · `deploy/**` · `.github/**`
+
+### 18 ต.ค. 69 — **โอนใบ 469 อีกครั้ง: ชัย → รีพิต** ตามคำสั่งบอส ("ลืมไป แก้ไขเปลี่ยนใบงานนี้ ให้รีพิต ทำ")
+- **เส้นทางการโอน:** บอย → ชัย (คำสั่งแรก) → **รีพิต** (คำสั่งที่สอง) ⇒ ใบที่ใช้จริงคือ `qa/job-469-replit-sitemap-lastmod.md`
+- **ใบเดิมติดป้ายถูกโอนทั้งคู่:** `qa/job-469-boy-sitemap-lastmod.md` · `qa/job-469-chai-sitemap-lastmod.md` ⇒ **ห้ามทำซ้ำ**
+- **ยกเว้นขอบเขตให้รีพิต (ระบุในใบ):** แตะได้เฉพาะ `artifacts/knight-basins/public/sitemap.xml` (ค่า `<lastmod>` เท่านั้น) + `artifacts/knight-basins/test/sitemap-lastmod.test.ts` (ใหม่) + `qa/**` · **ใช้ GitHub Connection เท่านั้น** · ห้ามแตะ `src/**` · `artifacts/api-server/**` · `robots.txt` · `llms*.txt` · ไฟล์คีย์ IndexNow · `deploy/**` · `.github/**`
+- **ภาระงานรีพิตตอนนี้ 2 ใบ:** 468-R (Draft PR #609 รอปิดหลักฐานตาม review) + 469-R (sitemap lastmod)
