@@ -42,7 +42,10 @@ and **two consecutive unchanged DOM observations**:
 - `/portfolio`: successful gallery API; photo count equals delivered items.
   A genuine successful empty collection can pass with its actual empty-state
   marker; loading/error states cannot.
-- Other storefront routes: successful catalogue and settled rendered content.
+- Other catalogue-dependent routes: successful catalogue and settled content.
+  Standalone pages do not require an API hook they never mount; `/site-prep`
+  requires its own gallery response, while static pages require settled content
+  with no visible loading indicator.
 - Cart state and lazy-image settling are followed by the same readiness check.
 
 Content mutations or unfinished API work during paired pixel capture also
@@ -65,8 +68,8 @@ controlled state-rendering proof, not a claim that production was changed.
 
 | State | Before (owner log, dark 390) | After (controlled dark 390) | Actual sampled background | Source rule |
 |---|---:|---:|---|---|
-| Gallery error, original full Thai message | 2.91 | **10.51** | rgb(15,23,42) | ThemeToggle.tsx, appended 470-R error foreground #ffb4ab |
-| `small.stone-card-prices`, `แผ่น ฿12,000` | 1.02 | **10.11** | rgb(244,249,253) | ThemeToggle.tsx, appended two-theme price foreground #173f6b and backing #f4f9fd |
+| Gallery error, original full Thai message | 2.91 | **10.51** | rgb(15,23,42) | ThemeToggle.tsx:557–559, error foreground #ffb4ab |
+| `small.stone-card-prices`, `แผ่น ฿12,000` | 1.02 | **10.11** | rgb(244,249,253) | ThemeToggle.tsx:561–565, two-theme price foreground #173f6b and backing #f4f9fd |
 
 Price labels are pinned in **both themes**, including fallback states. Their
 backing colour avoids relying on an inherited dark-theme foreground over a

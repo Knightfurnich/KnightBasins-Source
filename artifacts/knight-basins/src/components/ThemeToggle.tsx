@@ -554,7 +554,7 @@ export const STOREFRONT_THEME_STYLES = `
   text-shadow: 0 0 2px #07111f, 0 0 4px #07111f, 0 1px 6px #07111f, 0 2px 12px #07111f;
 }
 /* 470-R: real gallery error on the dark page; no message or layout change. */
-[data-theme="dark"] p.text-sm.text-\\[\\#a24439\\] {
+[data-theme="dark"] main:has([data-testid="portfolio-heading"]) p.text-sm.text-\\[\\#a24439\\] {
   color: #ffb4ab !important;
 }
 /* Stone swatches keep their pale cards in both themes. Pin text, not tokens. */

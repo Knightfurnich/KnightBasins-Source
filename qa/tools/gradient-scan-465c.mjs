@@ -298,6 +298,8 @@ function notReady(target, detail) {
 async function waitReady(target) {
   const route = target.split("#")[0];
   const storefront = ["/", "/stone", "/portfolio", "/price-guide", "/site-prep", "/studio-guide", "/quote", "/studio", "/sketch", "/readme", "/updates", "/network", "/profile", "/handover", "/track", "/quote/view"].includes(route);
+  // Standalone pages do not mount Storefront's catalogue hook.
+  const needsCatalog = ["/", "/stone", "/quote", "/studio", "/sketch", "/network", "/profile", "/quote/view"].includes(route);
   const deadline = Date.now() + readyTimeout;
   let previous = "", stable = 0, last;
   while (Date.now() < deadline) {
@@ -315,15 +317,19 @@ async function waitReady(target) {
         return codes?.length > 0 && JSON.stringify(codes) === JSON.stringify(actualCodes);
       });
       const loading = /กำลังโหลดคลังภาพ|โหลดคลังภาพไม่สำเร็จ/.test(document.body?.innerText ?? "");
+      const busy = [...document.querySelectorAll(".animate-spin,[aria-busy=true]")].some(n=>{
+        const r=n.getBoundingClientRect(),s=getComputedStyle(n);return r.width>0&&r.height>0&&s.visibility!=="hidden"&&s.display!=="none";
+      });
       const routeOK = ${JSON.stringify(route)} === "/" ? products > 0 && products === catalog?.basins?.filter(x=>x.active !== false).length :
         ${JSON.stringify(route)} === "/stone" ? colors > 0 && prices === colors && matchingStoneSet :
         ${JSON.stringify(route)} === "/portfolio" ? apiOK("/api/portfolio") && !loading &&
           gallery === state?.data["/api/portfolio"]?.items?.length &&
-          (gallery > 0 || /ยังไม่มีภาพในหมวดนี้/.test(document.body?.innerText ?? "")) : true;
+          (gallery > 0 || /ยังไม่มีภาพในหมวดนี้/.test(document.body?.innerText ?? "")) :
+        ${JSON.stringify(route)} === "/site-prep" ? apiOK("/api/portfolio") : true;
       document.querySelectorAll("img").forEach(im => { im.loading = "eager"; });
-      const ok = document.readyState === "complete" && !!state && state.pending === 0 &&
+      const ok = document.readyState === "complete" && !!state && state.pending === 0 && !busy &&
         document.fonts.status === "loaded" && [...document.images].every(im => im.complete) &&
-        (!${storefront} || !!root && apiOK("/api/catalog")) && routeOK;
+        (!${storefront} || !!root) && (!${needsCatalog} || apiOK("/api/catalog")) && routeOK;
       return { ok, pending: state?.pending, responses: state?.responses, products, colors, prices, gallery,
         signature: JSON.stringify([state?.mutations, products, colors, prices, gallery, document.body?.textContent?.length, document.documentElement.scrollHeight]) };
     })()`);

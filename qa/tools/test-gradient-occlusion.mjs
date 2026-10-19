@@ -20,6 +20,16 @@ const cssName = readdirSync(assets).find(n=>n.endsWith(".css"));
 assert.ok(cssName, "Build the actual application CSS before browser controls");
 const compiledStyles = readFileSync(new URL(cssName, assets), "utf8");
 const server = http.createServer((req, res) => {
+  if (req.url === "/api/portfolio") {
+    res.writeHead(200, { "content-type":"application/json" });
+    return res.end(JSON.stringify({items:[{id:1},{id:2}]}));
+  }
+  if (req.url === "/portfolio") {
+    res.writeHead(200, { "content-type":"text/html; charset=utf-8" });
+    return res.end(`<!doctype html><main class="storefront-theme-root"><h1>GALLERY READY CONTROL</h1><div id="photos"></div></main>
+      <script>document.querySelector("main").dataset.theme=localStorage.getItem("knight-storefront-theme");
+      fetch("/api/portfolio").then(r=>r.json()).then(data=>{document.querySelector("#photos").innerHTML=data.items.map(x=>'<button data-testid="portfolio-photo-'+x.id+'">PHOTO '+x.id+'</button>').join("")})</script>`);
+  }
   if (req.url === "/sitemap.xml") {
     res.writeHead(200, { "content-type":"application/xml" });
     return res.end("<urlset>"+["/stone",...Array.from({length:11},(_,i)=>"/fixture-"+i)].map(p=>"<url><loc>https://example.test"+p+"</loc></url>").join("")+"</urlset>");
@@ -47,10 +57,11 @@ const server = http.createServer((req, res) => {
   if (req.url === "/470-colors") {
     res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
     return res.end(`<!doctype html><style>${compiledStyles}</style><style>${themeStyles}</style>
-      <main class="storefront-theme-root" style="padding:20px">
+      <div class="storefront-theme-root" style="padding:20px"><main>
+      <h1 data-testid="portfolio-heading">คลังผลงานติดตั้งจริงทั้งหมด</h1>
       <p class="text-sm text-[#a24439] py-12 text-center">โหลดคลังภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>
-      <div class="stone-colors"><button><small class="stone-card-prices">แผ่น ฿12,000</small></button></div></main>
-      <script>document.querySelector("main").dataset.theme=localStorage.getItem("knight-storefront-theme")</script>`);
+      <div class="stone-colors"><button><small class="stone-card-prices">แผ่น ฿12,000</small></button></div></main></div>
+      <script>document.querySelector(".storefront-theme-root").dataset.theme=localStorage.getItem("knight-storefront-theme")</script>`);
   }
   res.writeHead(200, { "content-type": "text/html" });
   res.end(`<!doctype html><html><head><style>
@@ -137,6 +148,12 @@ try {
   assert.equal(ready.readiness.stableObservations, 2);
   assert.ok(delayed.elapsed >= 1600);
   console.log("PASS delayed API + two-stage DOM: all 3 cards/prices measured, never the stable fallback or partial first card");
+  const portfolio = await run("/portfolio", "portfolio");
+  assert.equal(portfolio.status,0,portfolio.log);
+  const [gallery] = JSON.parse(readFileSync(portfolio.json,"utf8"));
+  assert.equal(gallery.readiness.gallery,2);
+  assert.equal(gallery.readiness.responses["/api/catalog"],undefined);
+  console.log("PASS standalone portfolio: its own gallery API and two photos; no catalogue-hook requirement");
   fixtureMode = "blocked";
   const blocked = await run("/stone", "blocked", "1500");
   assert.equal(blocked.status, 2, blocked.log);
