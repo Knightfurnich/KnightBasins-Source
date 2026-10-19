@@ -6611,3 +6611,4 @@ textarea:focus-visible, [role="tab"]:focus-visible, [draggable="true"]:focus-vis
 [data-theme="light"] .art-note { color: #34495b; }
 [data-theme="light"] .quote-main .eyebrow { color: #4b6276; }
 [data-theme="light"] .footer-meta { color: #4b6276; }
+[data-theme="light"] a.footer-owner-link { color: #245c85; }
