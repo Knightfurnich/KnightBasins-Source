@@ -32,6 +32,10 @@ const ratio = (a: string, b: string) => { const [hi, lo] = [lum(hex(a)), lum(hex
 describe("468-R hero, labels and independent night-work fee", () => {
   const dark468 = themeStyles.slice(themeStyles.indexOf("job 468-R · hero rule #449"), themeStyles.indexOf("export type StorefrontThemeValue"));
   const light468 = css.slice(css.indexOf("job 468-R · pinned text colours only"));
+  it("pins only the light footer owner link to a readable blue without changing its geometry", () => {
+    assert.match(light468, /\[data-theme="light"\] a\.footer-owner-link \{ color: #245c85; \}/);
+    assert.ok(ratio("#245c85", "#dcecf4") >= 4.5);
+  });
   it("all three dark heroes, headings/emphasis, small copy and links get white text and a dark shadow", () => {
     assert.match(dark468, /\[data-theme="dark"\] :is\(\.catalog-hero, \.stone-hero, \.quote-heading\)/);
     for (const selector of ["h1 em", ".eyebrow", ".hero-index span", ".hero-copy", ".quote-date button", "a)"]) assert.ok(dark468.includes(selector), selector);
