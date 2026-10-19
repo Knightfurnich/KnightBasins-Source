@@ -1067,3 +1067,8 @@ web : 1,335 เทสต์ → ผ่าน 1,293 / ตก 0 / ข้าม 42 
 - **ใบเดิมติดป้ายถูกโอนทั้งคู่:** `qa/job-469-boy-sitemap-lastmod.md` · `qa/job-469-chai-sitemap-lastmod.md` ⇒ **ห้ามทำซ้ำ**
 - **ยกเว้นขอบเขตให้รีพิต (ระบุในใบ):** แตะได้เฉพาะ `artifacts/knight-basins/public/sitemap.xml` (ค่า `<lastmod>` เท่านั้น) + `artifacts/knight-basins/test/sitemap-lastmod.test.ts` (ใหม่) + `qa/**` · **ใช้ GitHub Connection เท่านั้น** · ห้ามแตะ `src/**` · `artifacts/api-server/**` · `robots.txt` · `llms*.txt` · ไฟล์คีย์ IndexNow · `deploy/**` · `.github/**`
 - **ภาระงานรีพิตตอนนี้ 2 ใบ:** 468-R (Draft PR #609 รอปิดหลักฐานตาม review) + 469-R (sitemap lastmod)
+
+### 19 ต.ค. 69 — **469-R ฉบับแก้ 2: อนุญาตให้อัปเดตด่านเดิม 422-B E ที่ล็อกวันที่เก่า** (คำถามจาก PR #614)
+- **รีพิตถามถูกต้อง:** `sitemap.xml` lastmod อัปเดตเป็นค่าจริงใหม่ (12–13 ต.ค.) แต่ **ด่านเดิมจากใบ 422-B** ใน `artifacts/knight-basins/test/customer-facing-consistency.test.ts` บล็อก **"sitemap lastmod tracks what actually shipped (422-B E)"** ล็อกว่า `/` `/stone` `/price-guide` ต้องเป็น `2026-10-10` ⇒ CI ของ #614 ตก (`AssertionError: / lastmod must be 2026-10-10 (got: none)`) · รีพิตจึงคง Draft ไม่ฝืน merge
+- **เดวิดตอบ: อนุญาต (ฉบับแก้ 2)** — เพิ่มไฟล์นั้นใน SCOPE **เฉพาะบล็อก 422-B E** · **อัปเดตค่าที่คาดหวังให้ตรงของจริงใหม่** · **ห้ามลบ/ห้ามทำให้การยืนยันอ่อนลง** · **ให้มีตารางวันที่มีที่เดียว** (ไม่เก็บซ้ำสองไฟล์) · พิสูจน์สองทาง (ผลแดงเดิมใน CI = หลักฐานแดงตามธรรมชาติ)
+- **สถานะ PR:** #614 (sitemap lastmod) Draft รออัปเดตด่าน · #609 (คอนทราสต์+footer) Draft — CI เขียวแล้ว มีหลักฐานแดง + A4 รอ rebase + รัน CI ใหม่หลัง 469-R merge (ตามคำกำกับลำดับของเดวิด)

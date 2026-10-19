@@ -1,5 +1,10 @@
 # ใบงาน 469-R (Replit / รีพิต) — **`sitemap.xml` lastmod ค้างเก่า ต้องตรงกับรอบที่แก้จริง + ใส่ด่านกันลืม**
 
+> ### ✏️ ฉบับแก้ 2 (19 ต.ค. 69) — ขยาย SCOPE เพิ่ม "ไฟล์เทสต์เดิมที่ล็อกวันที่เก่า" 1 ไฟล์ (คำถามจาก PR #614)
+> **เหตุ:** ด่านเดิมจากใบ 422-B ในไฟล์ `artifacts/knight-basins/test/customer-facing-consistency.test.ts` บล็อก **"sitemap lastmod tracks what actually shipped (422-B E)"** (บรรทัด ~102–113) ล็อกว่า `/` `/stone` `/price-guide` ต้องมี `lastmod` = `2026-10-10` ⇒ เมื่ออัปเดต `lastmod` เป็นค่าจริงใหม่ (12–13 ต.ค.) **เทสต์เดิมตก** (CI ของ #614: `AssertionError: / lastmod must be 2026-10-10 (got: none)`) — เป็นกรณี "ด่านล็อกความจริงเก่า" ต้อง **อัปเดตด่านให้ตรงความจริงใหม่ในใบเดียวกัน**
+> **แทนที่ข้อความเดิม:** ใน SCOPE ให้ **เพิ่ม** `artifacts/knight-basins/test/customer-facing-consistency.test.ts` **เฉพาะบล็อก 422-B E** · และใน FORBIDDEN ผ่อนเฉพาะไฟล์นี้ (ยังห้ามแตะเทสต์ไฟล์อื่น)
+> **กติกา:** อัปเดต **ค่าที่คาดหวัง** ให้ตรงวันที่ที่ส่งจริงใหม่ · **ห้ามลบ/ห้ามทำให้การยืนยันอ่อนลง** · **ให้มีตารางวันที่มีที่เดียว** (ถ้าด่านใหม่ของใบนี้ล็อกวันเดียวกัน ให้ย้ายมาใช้ตารางเดียว ไม่เก็บซ้ำสองที่) · **พิสูจน์สองทาง:** ผลรันแดงเดิมใน CI ของ #614 = หลักฐานแดงตามธรรมชาติ · คืนค่าใหม่ → เขียว
+
 > ### 🔁 โอนงาน: ชัย → **รีพิต** (บอสสั่ง 18 ต.ค. 69: "แก้ไขเปลี่ยนใบงานนี้ ให้รีพิต ทำ")
 > **ใบเดิมทั้งสองฉบับ (ของบอย และของชัย) ถูกแทนที่ด้วยใบนี้** — เนื้อหางานเหมือนเดิมทุกข้อ เปลี่ยนเจ้าของงานและขอบเขตไฟล์ให้ตรงกับสิทธิ์ของรีพิต · **ห้ามทำซ้ำ**
 > **ยกเว้นขอบเขตให้รีพิต (ระบุออกเสียงตามกติกา):** ปกติ `artifacts/knight-basins/public/**` + `src/**` เป็นของทีม UI (บอย) และ `artifacts/api-server/test/**` เป็นของชัย ⇒ **ใบนี้บอสสั่งให้รีพิตทำ จึงยกเว้นให้แตะได้เฉพาะ `artifacts/knight-basins/public/sitemap.xml` (ค่า `<lastmod>` เท่านั้น) + `artifacts/knight-basins/test/sitemap-lastmod.test.ts` (ใหม่) + `qa/**`** · **ห้ามแตะ** `src/**` · `artifacts/api-server/**` · `deploy/**` · `.github/**`
@@ -42,12 +47,13 @@ GOAL:
 SCOPE (แก้เฉพาะที่ระบุ · path สัมพัทธ์จาก root รีโป):
   - (รีโป) artifacts/knight-basins/public/sitemap.xml      ← A (เฉพาะค่า `<lastmod>`)
   - (รีโป) artifacts/knight-basins/test/sitemap-lastmod.test.ts (ใหม่) ← C
+  - (รีโป) artifacts/knight-basins/test/customer-facing-consistency.test.ts ← **ฉบับแก้ 2** เฉพาะบล็อก `422-B E` (อัปเดตวันที่ที่คาดหวังให้ตรงของจริงใหม่)
   - (รีโป) qa/report-replit-round31-sitemap-lastmod-20261018.md (ใหม่) + qa/images/replit-round31/
   - (รีโป) qa/job-469-replit-sitemap-lastmod.md (อ่าน — ใบนี้)
   - (รีโป) qa/job-422-boy-customer-text-consistency.md                ← อ่าน — ใบเดิมที่กำหนดเรื่อง `lastmod` ตรงรอบ deploy
 
 FORBIDDEN:
-  - ห้ามแตะไฟล์อื่นใน `public/**` (`llms.txt` · `llms-full.txt` · `robots.txt` · ไฟล์คีย์ IndexNow) · ห้ามแตะ `src/**` · `artifacts/api-server/**` · `deploy/**` · `.github/**` · `src/index.css`
+  - ห้ามแตะ **เทสต์ไฟล์อื่น** นอกจาก `test/sitemap-lastmod.test.ts` (ใหม่) และบล็อก 422-B E ใน `test/customer-facing-consistency.test.ts` (ฉบับแก้ 2) · ห้ามแตะไฟล์อื่นใน `public/**` (`llms.txt` · `llms-full.txt` · `robots.txt` · ไฟล์คีย์ IndexNow) · ห้ามแตะ `src/**` · `artifacts/api-server/**` · `deploy/**` · `.github/**` · `src/index.css`
   - ห้ามแก้ `loc` · `changefreq` · `priority` · ลำดับ/จำนวน URL · ห้ามใส่ `lastmod` เป็นวันในอนาคต · ห้ามใส่ทุกหน้าเป็นวันเดียวแบบเหมารวม
   - ห้ามแก้ราคา/ชื่อสี/ขนาด/ข้อความธุรกิจ · ห้ามแตะ production DB · ห้าม commit ความลับ
   - **ใช้ GitHub Connection เท่านั้น** · **ห้าม commit เข้า `main` ตรง · ห้าม merge PR เอง**
