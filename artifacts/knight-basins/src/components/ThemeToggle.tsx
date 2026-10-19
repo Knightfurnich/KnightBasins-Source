@@ -563,6 +563,9 @@ export const STOREFRONT_THEME_STYLES = `
   color: #173f6b !important;
   background-color: #f4f9fd !important;
 }
+/* Intentional CI-only failing colour proof; never merge this branch. */
+[data-theme="dark"] .stone-colors > div:first-child > button[data-testid^="button-stone-color-"] > small.stone-card-prices { color: #8b9dae !important; }
+
 `;
 
 export type StorefrontThemeValue = {

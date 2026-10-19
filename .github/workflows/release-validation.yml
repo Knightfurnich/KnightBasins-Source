@@ -90,8 +90,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        width: [1440, 390]
-        round: [1, 2]
+        width: [390]
+        round: [1]
     env:
       PORT: "5173"
       BASE_PATH: "/"
