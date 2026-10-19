@@ -476,6 +476,20 @@ export const STOREFRONT_THEME_STYLES = `
   color: #ffffff;
 }
 
+/* ─── job 475-C · form-control borders reach 3:1 in both themes (colour only: width, size, radius, text are not touched) ──────
+   Every input / select / textarea drew its 1px edge with the line colour: 1.61 on the dark card face, 1.24-1.28 on white in the light theme
+   (WCAG 1.4.11 asks 3.0 for the boundary of a component). Measured per field in the browser: qa/images/chai-round36/inputs.mjs.
+   The focus state keeps its own brand-blue edge (the rules skip :focus), the admin app and the yellow stale-row warning keep theirs,
+   and the check boxes / radios are handled by 474-C. The search / sort / portfolio-search wrappers draw the edge of their inner field. */
+[data-theme="dark"] :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"], [type="color"]):not(:focus):not(.admin-app *):not(.studio-basin-stale-row select) { border-color: #7a8fa8; }
+[data-theme="light"] :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"], [type="color"]):not(:focus):not(.admin-app *):not(.studio-basin-stale-row select) { border-color: #738a9e; }
+[data-theme="dark"] :is(.search-field, .sort-field, .portfolio-search-bar) { border-color: #7a8fa8; }
+[data-theme="light"] :is(.search-field, .sort-field, .portfolio-search-bar) { border-color: #738a9e; }
+/* the stone / basin pickers of the /sketch result cards have no border at all (border 0, fill = card face: boundary 1.0 in the dark theme).
+   Their edge is drawn as a 1px inset ring: nothing moves (no border width, no size change); David decides if a real border is wanted. */
+[data-theme="dark"] :is(select[data-testid^="select-sketch-stone-"], select[data-testid^="select-sketch-basin-"]) { box-shadow: inset 0 0 0 1px #7a8fa8; }
+[data-theme="light"] :is(select[data-testid^="select-sketch-stone-"], select[data-testid^="select-sketch-basin-"]) { box-shadow: inset 0 0 0 1px #738a9e; }
+
 /* ─── job 474-C · remaining contrast points (colours only: no size, structure, text or token value is touched) ───────────
    Criteria (David, 19 Oct): text / placeholder / numbers 4.5 · icons and UI component boundaries 3.0 · the LINE green button is the one
    approved exception. Every pair below was measured in the browser (qa/images/chai-round35/points.mjs).

@@ -514,3 +514,38 @@ describe("474-C remaining contrast points", () => {
     assert.ok(!css.includes('data-theme="dark"'), "the frozen stylesheet stays free of dark-theme rules");
   });
 });
+
+/**
+ * job 475-C: the boundary of every form control (input / select / textarea) reaches 3:1 (WCAG 1.4.11) in both themes. Measured per field in the
+ * browser (qa/images/chai-round36/inputs.mjs): before, the 1px line colour gave 1.61 (dark, on the card face) and 1.21-1.28 (light, on white).
+ */
+describe("475-C form-control borders", () => {
+  const b475 = themeStyles.slice(themeStyles.indexOf("/* ─── job 475-C"), themeStyles.indexOf("/* ─── job 474-C"));
+  const FIELDS = ':is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"], [type="color"]):not(:focus):not(.admin-app *):not(.studio-basin-stale-row select)';
+  it("dark + light: every field border has its own readable colour (the line colour is no longer what draws the edge)", () => {
+    assert.ok(b475.includes(`[data-theme="dark"] ${FIELDS} { border-color: #7a8fa8; }`));
+    assert.ok(b475.includes(`[data-theme="light"] ${FIELDS} { border-color: #738a9e; }`));
+  });
+  it("the search / sort / portfolio-search wrappers draw the edge of their inner field", () => {
+    assert.ok(b475.includes('[data-theme="dark"] :is(.search-field, .sort-field, .portfolio-search-bar) { border-color: #7a8fa8; }'));
+    assert.ok(b475.includes('[data-theme="light"] :is(.search-field, .sort-field, .portfolio-search-bar) { border-color: #738a9e; }'));
+  });
+  it("the border-less /sketch stone / basin pickers get a 1px inset ring (no width, size or layout change)", () => {
+    assert.ok(b475.includes('[data-theme="dark"] :is(select[data-testid^="select-sketch-stone-"], select[data-testid^="select-sketch-basin-"]) { box-shadow: inset 0 0 0 1px #7a8fa8; }'));
+    assert.ok(b475.includes('[data-theme="light"] :is(select[data-testid^="select-sketch-stone-"], select[data-testid^="select-sketch-basin-"]) { box-shadow: inset 0 0 0 1px #738a9e; }'));
+  });
+  it("browser-measured pairs reach 3.0: dark #7a8fa8 on the card face #162238 / page #0f172a, light #738a9e on white / page #f6fbfe; the old line colours did not", () => {
+    for (const [fg, bg] of [["#7a8fa8", "#162238"], ["#7a8fa8", "#0f172a"], ["#738a9e", "#ffffff"], ["#738a9e", "#f6fbfe"]]) assert.ok(ratio(fg, bg) >= 3, `${fg} on ${bg}: ${ratio(fg, bg).toFixed(2)}`);
+    assert.ok(ratio("#34445b", "#162238") < 3, "dark line colour was 1.61");
+    assert.ok(ratio("#d8e7f0", "#ffffff") < 3, "light line colour was ~1.24");
+  });
+  it("what must not move: only colours (no width/size/padding/radius), no focus override, no token value, every rule scoped, LINE untouched", () => {
+    const body = b475.replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.ok(!/(^|[\s;{])(border-width|border-style|width|height|padding|margin|border-radius|outline)\s*:/.test(body), "colour only");
+    assert.ok(!/--[\w-]+\s*:/.test(body), "no colour token assigned");
+    for (const r of body.split("}").map((x) => x.trim()).filter(Boolean)) assert.match(r, /^\[data-theme="(dark|light)"\]/, `unscoped rule: ${r.slice(0, 60)}`);
+    assert.ok(!/line-logo-mark|line-login-button/.test(b475));
+    assert.ok(b475.includes(":not(:focus)"), "the focus edge keeps its own brand-blue");
+    assert.ok(!css.includes('data-theme="dark"'), "the frozen stylesheet stays free of dark-theme rules");
+  });
+});

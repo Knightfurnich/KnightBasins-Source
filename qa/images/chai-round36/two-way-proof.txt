@@ -1,0 +1,11 @@
+1 dark field border rule removed: exit=1 | ✖ dark + light: every field border has its own readable colour (the line colour is no longer what dr | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+2 dark field border back to the line colour #34445b: exit=1 | ✖ dark + light: every field border has its own readable colour (the line colour is no longer what dr | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+3 light field border rule removed: exit=1 | ✖ dark + light: every field border has its own readable colour (the line colour is no longer what dr | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+4 light field border back to the line colour #d7e5ef: exit=1 | ✖ dark + light: every field border has its own readable colour (the line colour is no longer what dr | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+5 dark search/sort/portfolio wrapper rule removed: exit=1 | ✖ the search / sort / portfolio-search wrappers draw the edge of their inner field (9.7696ms) | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+6 light wrapper rule removed: exit=1 | ✖ the search / sort / portfolio-search wrappers draw the edge of their inner field (5.8366ms) | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+7 dark /sketch picker ring removed: exit=1 | ✖ the border-less /sketch stone / basin pickers get a 1px inset ring (no width, size or layout chang | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+8 light /sketch picker ring removed: exit=1 | ✖ the border-less /sketch stone / basin pickers get a 1px inset ring (no width, size or layout chang | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+9 a border-WIDTH change sneaks in (forbidden: colour only): exit=1 | ✖ what must not move: only colours (no width/size/padding/radius), no focus override, no token value | AssertionError [ERR_ASSERTION]: colour only
+10 focus exclusion removed (would override the focus edge): exit=1 | ✖ dark + light: every field border has its own readable colour (the line colour is no longer what dr | AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+restored: exit 0 ['ℹ pass 94', 'ℹ fail 0']
