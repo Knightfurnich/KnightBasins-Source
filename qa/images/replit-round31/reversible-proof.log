@@ -1,0 +1,234 @@
+
+=== candidate passes: exit 0 ===
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (1.555997ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (16.899477ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.31031ms)
+  ✔ requires a sitemap review when the declared release changes (0.659624ms)
+✔ sitemap lastmod freshness (20.442659ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.955489
+
+
+=== restore the stale home date: MUST FAIL: exit 1 ===
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (3.221444ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (14.535089ms)
+  ✖ never predates the confirmed content change for each of the seven affected routes (1.010256ms)
+  ✔ requires a sitemap review when the declared release changes (0.9889ms)
+✖ sitemap lastmod freshness (21.61652ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.212872
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:72:3
+✖ never predates the confirmed content change for each of the seven affected routes (1.010256ms)
+  AssertionError [ERR_ASSERTION]: /: stale lastmod 2026-10-10; confirmed change requires >= 2026-10-12
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:76:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== future date: MUST FAIL: exit 1 ===
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (1.391061ms)
+  ✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (13.97062ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.203888ms)
+  ✔ requires a sitemap review when the declared release changes (0.565051ms)
+✖ sitemap lastmod freshness (17.21103ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129.548412
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:59:3
+✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (13.97062ms)
+  AssertionError [ERR_ASSERTION]: https://knightbasins.com/: future lastmod 2027-01-01 > 2026-10-19 (Asia/Bangkok)
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:68:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== impossible calendar date: MUST FAIL: exit 1 ===
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.309527ms)
+  ✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (20.506872ms)
+  ✖ never predates the confirmed content change for each of the seven affected routes (1.101418ms)
+  ✔ requires a sitemap review when the declared release changes (2.604159ms)
+✖ sitemap lastmod freshness (28.688095ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 233.272825
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:59:3
+✖ requires one real YYYY-MM-DD calendar date per URL, never in the future (20.506872ms)
+  AssertionError [ERR_ASSERTION]: https://knightbasins.com/: impossible calendar date
+  + actual - expected
+  
+  + '2026-03-02'
+  - '2026-02-30'
+           ^
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:67:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '2026-03-02',
+    expected: '2026-02-30',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:72:3
+✖ never predates the confirmed content change for each of the seven affected routes (1.101418ms)
+  AssertionError [ERR_ASSERTION]: /: stale lastmod 2026-02-30; confirmed change requires >= 2026-10-12
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:76:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== missing URL: MUST FAIL: exit 1 ===
+▶ sitemap lastmod freshness
+  ✖ keeps the twelve real URLs, order, origin, frequency and priority (2.684475ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (14.593197ms)
+  ✖ never predates the confirmed content change for each of the seven affected routes (0.569894ms)
+  ✔ requires a sitemap review when the declared release changes (0.9584ms)
+✖ sitemap lastmod freshness (20.628858ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 203.150321
+
+✖ failing tests:
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:49:3
+✖ keeps the twelve real URLs, order, origin, frequency and priority (2.684475ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 12
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:51:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at node:internal/test_runner/test:1516:71
+      at node:internal/per_context/primordials:466:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:435:3)
+      at node:internal/per_context/primordials:466:9
+      at Array.map (<anonymous>) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 12,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at artifacts/knight-basins/test/sitemap-lastmod.test.ts:72:3
+✖ never predates the confirmed content change for each of the seven affected routes (0.569894ms)
+  AssertionError [ERR_ASSERTION]: Missing confirmed route /
+      at TestContext.<anonymous> (file:///home/runner/workspace/.local/knight469-work/artifacts/knight-basins/test/sitemap-lastmod.test.ts:75:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+
+=== restore candidate: MUST PASS: exit 0 ===
+▶ sitemap lastmod freshness
+  ✔ keeps the twelve real URLs, order, origin, frequency and priority (2.361216ms)
+  ✔ requires one real YYYY-MM-DD calendar date per URL, never in the future (14.210234ms)
+  ✔ never predates the confirmed content change for each of the seven affected routes (0.541945ms)
+  ✔ requires a sitemap review when the declared release changes (0.806028ms)
+✔ sitemap lastmod freshness (19.694892ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 181.157227
+
