@@ -549,3 +549,34 @@ describe("475-C form-control borders", () => {
     assert.ok(!css.includes('data-theme="dark"'), "the frozen stylesheet stays free of dark-theme rules");
   });
 });
+
+/**
+ * job 476-C: every text field's ::placeholder is text (4.5). The browser default is the text colour at 50% alpha (2.74-2.76 on white in the light
+ * theme, measured per field in qa/images/chai-round37/placeholders.mjs); 474-C had pinned only the search fields.
+ */
+describe("476-C placeholders of every text field", () => {
+  const b476 = themeStyles.slice(themeStyles.indexOf("/* ─── job 476-C"), themeStyles.indexOf("/* ─── job 475-C"));
+  const SEL = ":is(input, textarea):not(:disabled):not(.admin-app *)::placeholder";
+  it("both themes pin ::placeholder of every input / textarea to --ink-soft at full opacity (disabled and admin left alone)", () => {
+    assert.ok(b476.includes(`[data-theme="dark"] ${SEL},\n[data-theme="light"] ${SEL} { color: var(--ink-soft); opacity: 1; }`));
+  });
+  it("browser-measured pairs: --ink-soft reaches 4.5 on every field fill; the old 50% ink did not", () => {
+    for (const bg of ["#ffffff", "#fbfdfe", "#fdfeff"]) assert.ok(ratio("#577186", bg) >= 4.5, `light #577186 on ${bg}: ${ratio("#577186", bg).toFixed(2)}`);
+    assert.ok(ratio("#aab9cc", "#162238") >= 4.5, "dark");
+    const half = (c: string, bg: string) => `#${[0, 1, 2].map((i) => Math.round(hex(c)[i] * 0.5 + hex(bg)[i] * 0.5).toString(16).padStart(2, "0")).join("")}`;
+    assert.ok(ratio(half("#123e69", "#ffffff"), "#ffffff") < 4.5, "old: --ink at 50% on white (2.76)");
+  });
+  it("only ::placeholder is changed: the typed text colour, size, font and borders are not touched; no token value; scoped", () => {
+    const body = b476.replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const r of body.split("}").map((x) => x.trim()).filter(Boolean)) {
+      const [selectors, decl] = r.split("{");
+      for (const s of selectors.split(/,\s*\n/).map((x) => x.trim())) assert.ok(s.endsWith("::placeholder") && /^\[data-theme="(dark|light)"\]/.test(s), `selector must target ::placeholder only: ${s}`);
+      assert.ok(/^\s*color: var\(--ink-soft\); opacity: 1;\s*$/.test(decl), `only colour + opacity of the placeholder: ${decl}`);
+    }
+    assert.ok(!/--[\w-]+\s*:/.test(body), "no colour token assigned");
+    assert.ok(!css.includes('data-theme="dark"'), "the frozen stylesheet stays free of dark-theme rules");
+  });
+  it("the 474-C search placeholder rule is still there (not loosened)", () => {
+    assert.ok(themeStyles.includes('[data-theme="dark"] :is(.search-field, .portfolio-search-bar) input::placeholder,\n[data-theme="light"] :is(.search-field, .portfolio-search-bar) input::placeholder { color: var(--ink-soft); opacity: 1; }'));
+  });
+});

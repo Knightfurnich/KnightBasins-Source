@@ -476,6 +476,13 @@ export const STOREFRONT_THEME_STYLES = `
   color: #ffffff;
 }
 
+/* ─── job 476-C · placeholders of every text field are text: 4.5 (colour only; the typed text, size, font and borders are not touched) ──
+   474-C pinned ::placeholder on the search fields only. Every other field kept the browser default: the text colour at 50% alpha
+   (oklab / 0.5) = 2.74-2.76 on white in the light theme (measured per field in the browser: qa/images/chai-round37/placeholders.mjs).
+   --ink-soft at full opacity is 5.1 on white / 5.0 on the field fill and 7.97 on the dark card. Disabled fields and the admin app are left alone. */
+[data-theme="dark"] :is(input, textarea):not(:disabled):not(.admin-app *)::placeholder,
+[data-theme="light"] :is(input, textarea):not(:disabled):not(.admin-app *)::placeholder { color: var(--ink-soft); opacity: 1; }
+
 /* ─── job 475-C · form-control borders reach 3:1 in both themes (colour only: width, size, radius, text are not touched) ──────
    Every input / select / textarea drew its 1px edge with the line colour: 1.61 on the dark card face, 1.24-1.28 on white in the light theme
    (WCAG 1.4.11 asks 3.0 for the boundary of a component). Measured per field in the browser: qa/images/chai-round36/inputs.mjs.
