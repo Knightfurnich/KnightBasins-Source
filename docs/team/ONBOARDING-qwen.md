@@ -25,7 +25,7 @@
 ## 2 · การเชื่อมต่อ GitHub (ส่วนที่ต้องตั้งใหม่รอบนี้)
 
 - **รีโป:** `https://github.com/Knightfurnich/KnightBasins-Source` (branch หลัก `main`) — **รีโปสาธารณะ ⇒ `git clone` เพื่ออ่าน/รันเทสต์ทำได้เลย ไม่ต้องใช้ token**
-- **การ push / เปิด PR ต้องมี token ของตัวเอง** — ชื่อที่ตั้งไว้เดิม: **`qwen-knightbasins`** (fine-grained · สิทธิ์ repo เดียว: Contents + Pull requests) ⇒ **ขอจากบอสหรือเดวิดผ่านช่องทางส่วนตัว** (ห้ามขอ/ส่งในกลุ่มแชท)
+- **การ push / เปิด PR ต้องมี token ของตัวเอง** — ชื่อที่ตั้งไว้เดิม: **`qwen-knightbasins-pc`** (fine-grained · สิทธิ์ repo เดียว: Contents + Pull requests) ⇒ **ขอจากบอสหรือเดวิดผ่านช่องทางส่วนตัว** (ห้ามขอ/ส่งในกลุ่มแชท)
 - ⚠️ **กฎความลับ:** ห้ามพิมพ์ token/คีย์/`.env` ลงแชท รายงาน ล็อก หรือ commit · ถ้า token หลุด ⇒ แจ้งบอสทันทีเพื่อลบและสร้างใหม่
 - **วิธีใช้แบบไม่ให้ค่าหลุด** (แบบเดียวกับที่เดวิดใช้):
   ```bash
@@ -52,12 +52,14 @@
 
 **ขั้นตอนสำหรับบอส (ครั้งเดียว ~4 นาที · ทำใน GitHub ของบอส)**
 1. GitHub → Settings → Developer settings → **Personal access tokens → Fine-grained tokens → Generate new token**
-2. Name: `qwen-knightbasins` · Expiration: ตั้งตามที่บอสต้องการ (แนะนำ 90 วัน แล้วหมุนรอบ)
+2. Name: `qwen-knightbasins-pc` · Expiration: ตั้งตามที่บอสต้องการ (แนะนำ 90 วัน แล้วหมุนรอบ)
 3. Repository access: **Only select repositories → `Knightfurnich/KnightBasins-Source`**
 4. Permissions (Repository): **Contents: Read and write** · **Pull requests: Read and write** · (ไม่ต้องให้สิทธิ์อื่น)
 5. Generate แล้ว **คัดลอกค่า** — GitHub จะแสดงครั้งเดียว
 
 **วิธีส่งถึง Qwen แบบไม่ให้ค่าหลุดในแชท (เลือกอย่างใดอย่างหนึ่ง)**
+> **เครื่องของ Qwen = เครื่อง Windows ของบอส** ⇒ บอสทำเองได้ทันที: เปิด **Notepad** → วางค่า token (บรรทัดเดียว ไม่มีช่องว่าง/อัญประกาศ) → **Save as** → `%USERPROFILE%\knight-token.txt` (เลือก "All files" เพื่อไม่ให้ได้ .txt.txt) → แจ้ง Qwen ว่า "อ่าน token จาก `%USERPROFILE%\knight-token.txt`"
+> แนะนำจำกัดสิทธิ์ไฟล์: คลิกขวา → Properties → Security → เอาเฉพาะบัญชีบอส/ผู้ใช้ที่รัน Qwen (ไม่ต้องแชร์ให้ Everyone)
 - **ก (แนะนำ):** เขียนค่าลง **ไฟล์บนเครื่องที่ Qwen รันอยู่** แล้วให้ Qwen อ่านไฟล์นั้น เช่น `~/.knight/qwen-token` (หรือที่อยู่ที่ตกลงกัน) — Qwen จะอ่านด้วยคำสั่งที่ไม่ echo:
   ```bash
   export KB_TOKEN=$(cat ~/.knight/qwen-token)   # ห้าม echo $KB_TOKEN
