@@ -1,0 +1,6 @@
+
+=== /470-colors  theme=dark  checked=3  failing(p10 ratio < threshold)=0
+  overflow: innerWidth=390 clientWidth=390 scrollWidth=390 -> 0px
+  10.11 | need 4.5 | solid   | text rgb(23,63,107) on bg~rgb(244,249,253) | 11.5px | div.stone-colors > button > small.stone-card-prices | "แผ่น ฿12,000"
+  10.51 | need 4.5 | solid   | text rgb(255,180,171) on bg~rgb(15,23,42) | 14px | div.storefront-theme-root > main > p.text-sm | "โหลดคลังภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+  15.42 | need 3 | solid   | text rgb(232,239,248) on bg~rgb(15,23,42) | 30px | div.storefront-theme-root > main > h1[portfolio-heading] | "คลังผลงานติดตั้งจริงทั้งหมด"

@@ -1,0 +1,389 @@
+[
+ {
+  "target": "/470-colors",
+  "theme": "dark",
+  "width": 390,
+  "readiness": {
+   "ok": true,
+   "pending": 0,
+   "responses": {},
+   "products": 0,
+   "colors": 1,
+   "prices": 1,
+   "gallery": 0,
+   "stableObservations": 2,
+   "timeoutMs": 30000
+  },
+  "overflow": {
+   "innerWidth": 390,
+   "clientWidth": 390,
+   "scrollWidth": 390
+  },
+  "checked": 3,
+  "failing": 0,
+  "capture": {
+   "method": "paired viewport screenshots with capture-position elementFromPoint pixel masks",
+   "viewportWidth": 390,
+   "layoutWidth": 390,
+   "tileY": [
+    0
+   ],
+   "pixelOcclusion": [
+    {
+     "y": 0,
+     "blocked": [],
+     "coveringElements": {}
+    }
+   ]
+  },
+  "coverage": {
+   "heroes": 0,
+   "productLabels": 0,
+   "requiredLabels": [],
+   "requiredMissing": []
+  },
+  "unmeasurable": [],
+  "exclusions": {
+   "covered": 0,
+   "moving": 0,
+   "unpainted": [],
+   "occluded": []
+  },
+  "rows": [
+   {
+    "selector": "div.stone-colors > button > small.stone-card-prices",
+    "fixed": false,
+    "productLabel": false,
+    "hero": false,
+    "text": "แผ่น ฿12,000",
+    "fg": [
+     23,
+     63,
+     107,
+     1
+    ],
+    "shadow": "none",
+    "size": 11.5,
+    "large": false,
+    "rects": [
+     {
+      "x": 29,
+      "y": 180.59375,
+      "w": 77.046875,
+      "h": 15
+     }
+    ],
+    "kind": "solid",
+    "surf": "div.stone-colors > button > small.stone-card-prices",
+    "surfImage": "",
+    "visibilitySamples": [
+     {
+      "row": 2,
+      "key": "0:0.2:0.2",
+      "x": 44,
+      "y": 183,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.2:0.5",
+      "x": 44,
+      "y": 188,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.2:0.8",
+      "x": 44,
+      "y": 192,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.5:0.2",
+      "x": 67,
+      "y": 183,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.5:0.5",
+      "x": 67,
+      "y": 188,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.5:0.8",
+      "x": 67,
+      "y": 192,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.8:0.2",
+      "x": 90,
+      "y": 183,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.8:0.5",
+      "x": 90,
+      "y": 188,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     },
+     {
+      "row": 2,
+      "key": "0:0.8:0.8",
+      "x": 90,
+      "y": 192,
+      "visible": true,
+      "coveringElement": "div.stone-colors > button > small.stone-card-prices"
+     }
+    ],
+    "occluded": false,
+    "coveringElements": [],
+    "ratio": 10.11,
+    "ratioMin": 10.11,
+    "bg": [
+     244,
+     249,
+     253
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.storefront-theme-root > main > p.text-sm",
+    "fixed": false,
+    "productLabel": false,
+    "hero": false,
+    "text": "โหลดคลังภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    "fg": [
+     255,
+     180,
+     171,
+     1
+    ],
+    "shadow": "none",
+    "size": 14,
+    "large": false,
+    "rects": [
+     {
+      "x": 73.90625,
+      "y": 101.59375,
+      "w": 242.171875,
+      "h": 19
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div.storefront-theme-root",
+    "surfImage": "",
+    "visibilitySamples": [
+     {
+      "row": 1,
+      "key": "0:0.2:0.2",
+      "x": 122,
+      "y": 105,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.2:0.5",
+      "x": 122,
+      "y": 111,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.2:0.8",
+      "x": 122,
+      "y": 116,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.5:0.2",
+      "x": 194,
+      "y": 105,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.5:0.5",
+      "x": 194,
+      "y": 111,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.5:0.8",
+      "x": 194,
+      "y": 116,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.8:0.2",
+      "x": 267,
+      "y": 105,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.8:0.5",
+      "x": 267,
+      "y": 111,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     },
+     {
+      "row": 1,
+      "key": "0:0.8:0.8",
+      "x": 267,
+      "y": 116,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > p.text-sm"
+     }
+    ],
+    "occluded": false,
+    "coveringElements": [],
+    "ratio": 10.51,
+    "ratioMin": 10.51,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 4.5
+   },
+   {
+    "selector": "div.storefront-theme-root > main > h1[portfolio-heading]",
+    "fixed": false,
+    "productLabel": false,
+    "hero": false,
+    "text": "คลังผลงานติดตั้งจริงทั้งหมด",
+    "fg": [
+     232,
+     239,
+     248,
+     1
+    ],
+    "shadow": "none",
+    "size": 30,
+    "large": true,
+    "rects": [
+     {
+      "x": 20,
+      "y": 16,
+      "w": 327.15625,
+      "h": 41
+     }
+    ],
+    "kind": "solid",
+    "surf": "body > div.storefront-theme-root",
+    "surfImage": "",
+    "visibilitySamples": [
+     {
+      "row": 0,
+      "key": "0:0.2:0.2",
+      "x": 85,
+      "y": 24,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.2:0.5",
+      "x": 85,
+      "y": 36,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.2:0.8",
+      "x": 85,
+      "y": 48,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.5:0.2",
+      "x": 183,
+      "y": 24,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.5:0.5",
+      "x": 183,
+      "y": 36,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.5:0.8",
+      "x": 183,
+      "y": 48,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.8:0.2",
+      "x": 281,
+      "y": 24,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.8:0.5",
+      "x": 281,
+      "y": 36,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     },
+     {
+      "row": 0,
+      "key": "0:0.8:0.8",
+      "x": 281,
+      "y": 48,
+      "visible": true,
+      "coveringElement": "div.storefront-theme-root > main > h1[portfolio-heading]"
+     }
+    ],
+    "occluded": false,
+    "coveringElements": [],
+    "ratio": 15.42,
+    "ratioMin": 15.42,
+    "bg": [
+     15,
+     23,
+     42
+    ],
+    "threshold": 3
+   }
+  ],
+  "surfaces": []
+ }
+]

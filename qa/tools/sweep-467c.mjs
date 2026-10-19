@@ -12,13 +12,39 @@
  *   SCAN_WIDTH=1440/390: the CI job uses a two-width matrix, each case capped at ten minutes.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); if (i < 0) return d; const v = args[i + 1]; args.splice(i, 2); return v; };
+const compareDir = opt("--compare-rounds", null);
+if (compareDir) {
+  const summaries = [];
+  const walk = dir => { for (const entry of readdirSync(dir, { withFileTypes:true })) {
+    const path=join(dir,entry.name);
+    if(entry.isDirectory()) walk(path);
+    else if(entry.name==="sweep-summary.json") summaries.push(path);
+  }};
+  walk(compareDir);
+  if(summaries.length!==4) throw Error(`Expected four complete same-commit sweep summaries, got ${summaries.length}`);
+  for(const width of [1440,390]){
+    const load = round => {
+      const paths=summaries.filter(p=>p.includes(`contrast-${width}-round${round}/`));
+      if(paths.length!==1)throw Error(`Missing/duplicate ${width} round ${round}`);
+      const data=JSON.parse(readFileSync(paths[0],"utf8"));
+      if(data.length!==34||data.some(r=>r.real||r.overflowPx||!r.readiness?.ok))throw Error(`Incomplete/failing ${width} round ${round}`);
+      return data.map(r=>({theme:r.theme,target:r.target,checked:r.checked,real:r.real,overflowPx:r.overflowPx,
+        occluded:r.occluded,notMeasurable:r.notMeasurable,coverage:r.coverage}));
+    };
+    const first=load(1),second=load(2);
+    if(JSON.stringify(first)!==JSON.stringify(second))throw Error(`${width}: route counts/coverage/verdicts differ across rounds`);
+    for(const r of first)console.log(`STABLE ${width} ${r.theme} ${r.target}: checked=${r.checked} occluded=${r.occluded} notMeasurable=${r.notMeasurable} REAL=${r.real} overflow=${r.overflowPx}`);
+  }
+  console.log("PASS: both widths, 34 pairs each, identical readiness-gated counts, coverage, exclusions and verdicts across two rounds");
+  process.exit(0);
+}
 const sitemapUrl = opt("--sitemap", "https://knightbasins.com/sitemap.xml");
 const outDir = opt("--out", "qa/images/replit-round30/sweep");
 const extra = opt("--extra", "/profile,/handover,/track,/quote/view,/quote#cart").split(",").filter(Boolean);
@@ -58,7 +84,10 @@ for (const theme of ["dark", "light"]) {
     const line = failures.filter((x) => ALLOWLIST.some((entry) => entry.matches(x)));
     const real = failures.filter((x) => !ALLOWLIST.some((entry) => entry.matches(x)));
     const hero = real.filter((x) => x.hero);
-    const v = { theme, target: r.target, checked: r.checked, coverage: r.coverage, unmeasurable:r.unmeasurable, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
+    const v = { theme, target: r.target, checked: r.checked, readiness:r.readiness,
+      occluded:r.unmeasurable.filter(x=>x.status.startsWith("occluded")).length,
+      notMeasurable:r.unmeasurable.filter(x=>!x.status.startsWith("occluded")).length,
+      coverage: r.coverage, unmeasurable:r.unmeasurable, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
     verdict.push(v);
     if (!r.target.includes("#")) probeTasks.push(async () => {
       const output = await new Promise((resolve, reject) => {
@@ -81,6 +110,7 @@ for (let i = 0; i < probeTasks.length; i += 4) await Promise.all(probeTasks.slic
 const pad = (s, n) => String(s).padEnd(n);
 console.log(pad("theme", 6) + pad("route", 16) + pad("checked", 8) + pad("probe", 6) + pad("scan", 6) + pad("LINE", 5) + pad("hero", 9) + pad("REAL", 5) + pad("overflow", 9) + "worst real row");
 for (const v of verdict) console.log(pad(v.theme, 6) + pad(v.target, 16) + pad(v.checked, 8) + pad(v.probeFail ?? "-", 6) + pad(v.scanFail, 6) + pad(v.line, 5) + pad(v.hero, 9) + pad(v.real, 5) + pad(v.overflowPx + "px", 9) + v.worst);
+for (const v of verdict) console.log(`coverage ${v.theme} ${v.target}: checked=${v.checked} occluded=${v.occluded} notMeasurable=${v.notMeasurable}`);
 writeFileSync(join(outDir, "sweep-summary.json"), JSON.stringify(verdict, null, 1));
 const bad = verdict.filter((v) => v.real > 0 || v.overflowPx > 0);
 console.log(`\n${bad.length ? "FAIL" : "PASS"}: ${bad.length} route/theme pair(s) with failing text outside the declared LINE allowlist (including heroes), or horizontal overflow`);
