@@ -92,6 +92,67 @@ their `pinned-dark/light.json` and `.log` files preserve the actual sampled rows
 
 ## C/E — same-commit repetition and genuine red proof
 
+### First complete, successful repeated run
+
+Immutable head `3e805578050219b4c3e4cef17e1ee1c2269ecfde`:
+[green CI run 39229323151](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39229323151).
+Both widths, both rounds and the strict comparison passed. Web:
+**1529 total / 1520 pass / 0 fail / 9 skip**. API:
+**1329 total / 1329 pass / 0 fail / 0 skip**. Both artifact typechecks and the
+shared-lib check/build passed in that run.
+
+Each cell below is **checked / occluded / other unmeasurable**. Values were
+identical in **dark and light, rounds 1 and 2**; every route had **REAL 0** and
+**overflow 0px**, with successful readiness. These are actual archived CI
+summaries, not extrapolated local results:
+
+| Route | 1440 (both themes, both rounds) | 390 (both themes, both rounds) |
+|---|---|---|
+| `/` | 509 / 60 / 0 | 498 / 60 / 0 |
+| `/portfolio` | 79 / 0 / 0 | 72 / 0 / 0 |
+| `/stone` | **381 / 0 / 0** | **333 / 0 / 0** |
+| `/price-guide` | 128 / 1 / 0 | 97 / 1 / 0 |
+| `/site-prep` | 23 / 0 / 0 | 16 / 0 / 0 |
+| `/studio-guide` | 68 / 0 / 0 | 68 / 0 / 0 |
+| `/quote` | 118 / 0 / 0 | 107 / 0 / 0 |
+| `/studio` | 121 / 5 / 0 | 110 / 5 / 0 |
+| `/sketch` | 119 / 0 / 0 | 108 / 0 / 0 |
+| `/readme` | 91 / 0 / 0 | 84 / 0 / 0 |
+| `/updates` | 108 / 0 / 0 | 108 / 0 / 0 |
+| `/network` | 60 / 0 / 0 | 49 / 0 / 0 |
+| `/profile` | 45 / 0 / 0 | 34 / 0 / 0 |
+| `/handover` | 10 / 0 / 0 | 9 / 0 / 0 |
+| `/track` | 11 / 0 / 0 | 10 / 0 / 0 |
+| `/quote/view` | 43 / 0 / 0 | 32 / 0 / 0 |
+| `/quote#cart` | 130 / 0 / 0 | 119 / 0 / 0 |
+
+Raw immutable archives for that run:
+[1440 R1](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39229323151/artifacts/12176218231),
+[1440 R2](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39229323151/artifacts/12176063181),
+[390 R1](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39229323151/artifacts/12176518215),
+[390 R2](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39229323151/artifacts/12176532939).
+
+### Final-source verification and proof-branch provenance
+
+The first intentional-colour run stopped at a capture-time refresh (exit 2)
+and its reduced-width matrix also failed an existing source guard. It is
+**not** counted as genuine colour-red proof.
+
+The final scanner adds the unchanged-refresh/changed-content controls above.
+Its source commit is `5f18a5f6e872fa2c05b0557134a0c89731091833`:
+[same-source CI run 39230538290](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39230538290).
+The companion retains both widths and deliberately changes only the actual
+first stone price foreground to a failing grey, plus running one round:
+`5fd4249b0a24b4bd08070d8463c750a8f9df7b01`,
+[colour-red run 39230540157](https://github.com/Knightfurnich/KnightBasins-Source/actions/runs/39230540157).
+It must fail on a measured visible price row, not on readiness or unit tests.
+
+This report-only evidence addition does not alter the scanner, stylesheet,
+tests or workflow. **Final run conclusions, the genuine red ratio/row, exact
+latest PR head and its complete repeated-run comparison are recorded in the
+[PR #619 acceptance comment](https://github.com/Knightfurnich/KnightBasins-Source/pull/619).**
+No pending run is represented as successful by the run links above.
+
 The contrast matrix runs **1440 and 390 × rounds 1 and 2**, each still capped
 at ten minutes. A separate contrast-only comparison job requires four complete
 34-pair summaries. It checks identical route order, measured counts, coverage,
