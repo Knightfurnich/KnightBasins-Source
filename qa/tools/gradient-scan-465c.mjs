@@ -6,7 +6,8 @@
  * transparent, takes a real full-page screenshot (so gradients, photos, opacity, overlays are all rendered exactly as the
  * customer sees them), and samples the pixels BEHIND each element's text box. The ratio is the WCAG ratio of the text
  * colour over each sampled pixel; the reported value is the 10th-percentile (the worst realistic pixel, ignoring a few
- * anti-aliased outliers). Rows below 4.5 (3.0 for large text) are listed, plus a list of every gradient / photo surface that
+ * anti-aliased outliers). Text uses 4.5 (3.0 for large text); meaningful UI uses
+ * 3.0 under WCAG 1.4.11. Decorative exclusions have an explicit reason.
  * carries text with its status.
  *
  *   node qa/tools/gradient-scan-465c.mjs <baseUrl> <theme: light|dark> <route[#state]> [route[#state] ...]
@@ -21,6 +22,7 @@ import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import zlib from "node:zlib";
+import { classifyContrastRow } from "./contrast-row-policy.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n) => { const i = args.indexOf(n); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
@@ -33,6 +35,7 @@ const undo468 = args.includes("--undo468"); if (undo468) args.splice(args.indexO
 const [base, theme, ...targets] = args;
 const chrome = process.env.CHROME_BIN ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : "/usr/bin/google-chrome");
 const viewport = Number(process.env.SCAN_WIDTH ?? 1440);
+const CART = [{ sku: "KF001", quantity: 2, installationSelected: true }, { sku: "KF009", quantity: 1, installationSelected: false }];
 // Width-specific positive coverage, not a contrast allowlist. Every measurable row still counts.
 // Other product labels are behind photos, or have no recoverable glyph interior at this width;
 // they remain individually recorded as NOT MEASURABLE (with reason), never silently passed.
@@ -109,21 +112,88 @@ const COLLECT = `(() => {
     while (n) { const s = getComputedStyle(n); if (s.backgroundImage && s.backgroundImage !== "none" && !img) img = n; const c = rgba(s.backgroundColor); if (c[3] > 0.5 && !img) return { node: n, kind: "solid" }; if (img) return { node: img, kind: /url\\(/.test(getComputedStyle(img).backgroundImage) ? "image" : "gradient" }; n = n.parentElement; }
     return { node: document.body, kind: "solid" };
   };
-  const out = []; const els = []; let moving = 0;
+  const visibleLabel = el => {
+    const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),parts=[];
+    while(walker.nextNode()){
+      const node=walker.currentNode,parent=node.parentElement;
+      if(!node.textContent.trim()||parent.closest("svg,script,style,[aria-hidden=true]"))continue;
+      const range=document.createRange();range.selectNodeContents(node);
+      const rect=range.getBoundingClientRect(),cs=getComputedStyle(parent);
+      if(rect.width>1&&rect.height>1&&cs.visibility!=="hidden"&&cs.display!=="none"&&parseFloat(cs.opacity)>.0)parts.push(node.textContent.trim());
+    }
+    return parts.join(" ").trim();
+  };
+  const out = []; const els = []; const excluded = []; let moving = 0;
   document.querySelectorAll("body *").forEach((el) => {
-    const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(" ").trim();
-    if (own.length < 3) return;
+    let own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(" ").trim();
+    // aria-hidden on an icon-only button is NOT enough to call it decorative.
+    // Only exclude a companion SVG when it duplicates a visible text label.
+    if(el.matches("svg[aria-hidden=true]")){
+      const host=el.closest("button,[role=button],a,label");
+      const text=host ? visibleLabel(host) : "";
+      if(text && host.getBoundingClientRect().width>0 && getComputedStyle(host).visibility!=="hidden")
+        excluded.push({selector:label(el),category:"decorative",threshold:null,reason:"aria-hidden companion SVG duplicates visible label: "+text.slice(0,48)});
+    }
+    // F: the old own.length < 3 silently lost quantities and every 1–2 character label.
+    // Input values are DOM properties, and SVG-only buttons have NO text nodes.
+    const field = el.matches('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=password]):not([type=range]):not([type=color]),textarea');
+    const input = field && !!el.value;
+    const placeholder = field && !el.value && !!el.placeholder;
+    const icon = el.matches("button,[role=button],a") && !visibleLabel(el) && el.querySelector("svg");
+    const iconText = !!el.closest("button,[role=button]") && /^[×✕✖+−–↶↷⧉↺↻←→‹›]$/.test(own) && visibleLabel(el.closest("button,[role=button]"))===own;
+    const checkbox = el.matches('label > input[type=checkbox] + span,[role=checkbox],label > input[type=radio] + span,[role=radio]');
+    const radio = checkbox && (el.matches("[role=radio]") || el.previousElementSibling?.type==="radio");
+    const control = input ? "input-value" : placeholder ? "placeholder" : icon ? "icon-currentColor" : iconText ? "icon-text" : checkbox ? radio ? "custom-radio" : "custom-checkbox" : null;
+    if (input) own = el.value;
+    if (placeholder) own = el.placeholder;
+    if (icon) own = el.getAttribute("aria-label") || el.getAttribute("title") || "[icon]";
+    if (checkbox) own = "[checkbox " + (el.previousElementSibling?.checked || el.getAttribute("aria-checked")==="true" ? "checked" : "unchecked") + "]";
+    if (!own) return;
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return;
     const s = getComputedStyle(el);
     if (s.visibility === "hidden" || s.display === "none" || parseFloat(s.opacity) < 0.3) return;
     let hidden = false; for (let n = el; n; n = n.parentElement) { const cs = getComputedStyle(n); if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) < 0.3) { hidden = true; break; } }
     if (hidden) return;
-    const size = parseFloat(s.fontSize), bold = parseInt(s.fontWeight, 10) >= 700, large = size >= 24 || (size >= 18.66 && bold);
+    const textStyle = placeholder ? getComputedStyle(el,"::placeholder") : s;
+    const size = parseFloat(textStyle.fontSize), bold = parseInt(textStyle.fontWeight, 10) >= 700, large = size >= 24 || (size >= 18.66 && bold);
     const surf = surface(el);
     // sample only the boxes the element's OWN text occupies (a <label> also contains its <input>; a <button> its icon)
     const rects = [];
     for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim().length) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 1 && q.height > 1) rects.push({ x: q.left + scrollX, y: q.top + scrollY, w: q.width, h: q.height }); }
+    let foreground = s.color;
+    if (input || placeholder) {
+      ctx.font = textStyle.font || s.font;
+      const width = Math.min(ctx.measureText(own).width, r.width - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight));
+      const x = s.textAlign === "center" ? r.left + (r.width-width)/2 : s.textAlign === "right" || s.textAlign === "end" ? r.right-parseFloat(s.paddingRight)-width : r.left+parseFloat(s.paddingLeft)+parseFloat(s.borderLeftWidth);
+      // A textarea paints at its padded top, not the vertically centred input
+      // baseline. Its whole content box covers native wrapping/newlines; paired
+      // glyph differences still discard every empty background pixel.
+      if(el.tagName==="TEXTAREA"){
+        const left=parseFloat(s.paddingLeft)+parseFloat(s.borderLeftWidth),top=parseFloat(s.paddingTop)+parseFloat(s.borderTopWidth);
+        rects.push({x:r.left+scrollX+left,y:r.top+scrollY+top,w:Math.max(1,r.width-left-parseFloat(s.paddingRight)-parseFloat(s.borderRightWidth)),h:Math.max(1,r.height-top-parseFloat(s.paddingBottom)-parseFloat(s.borderBottomWidth))});
+      }else rects.push({x:x+scrollX,y:r.top+scrollY+Math.max(0,(r.height-size*1.3)/2),w:Math.max(1,width),h:Math.min(r.height,size*1.3)});
+      foreground = textStyle.webkitTextFillColor && textStyle.webkitTextFillColor!=="currentcolor" ? textStyle.webkitTextFillColor : textStyle.color;
+    }
+    if (icon) {
+      const b=icon.getBoundingClientRect(), ink=icon.querySelector("path,line,polyline,circle,rect")||icon, cs=getComputedStyle(ink);
+      foreground=cs.stroke!=="none" ? cs.stroke : cs.fill!=="none" ? cs.fill : s.color;
+      rects.push({x:b.left+scrollX,y:b.top+scrollY,w:b.width,h:b.height});
+    }
+    if (checkbox) {
+      const checked=el.previousElementSibling?.checked||el.getAttribute("aria-checked")==="true";
+      const mark=getComputedStyle(el,"::after");
+      foreground=checked && mark.content!=="none" ? mark.borderBottomColor : s.borderTopColor;
+      const inset=checked && mark.content!=="none" ? 4 : 0;
+      // A semantic checkbox can be a selectable card. Its outline is the ink,
+      // not every image/text pixel inside the card.
+      const outline=el.matches("[role=checkbox]") && mark.content==="none";
+      rects.push({x:r.left+scrollX+inset,y:r.top+scrollY+inset,w:Math.max(1,r.width-2*inset),h:outline?Math.max(2,Math.ceil(parseFloat(s.borderTopWidth))+1):Math.max(1,r.height-2*inset)});
+      el.setAttribute("data-contrast-checkbox","");
+    }
+    const ink=rgba(foreground);
+    if(placeholder)ink[3]*=parseFloat(textStyle.opacity);
+    if(control)for(let n=el;n;n=n.parentElement)ink[3]*=parseFloat(getComputedStyle(n).opacity);
     if (!rects.length) return;
     // job 467-C: text scrolled out of an overflow:hidden/auto ancestor (the marquee track, a carousel) is not on screen - skip it
     const q0 = rects[0], cxm = q0.x - scrollX + q0.w / 2, cym = q0.y - scrollY + q0.h / 2; let clipped = false;
@@ -136,8 +206,28 @@ const COLLECT = `(() => {
     el.style.setProperty("--contrast-original-shadow", s.textShadow);
      let fixed = false;
      for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).position === "fixed") { fixed = true; break; }
-     out.push({ selector: label(el), fixed, productLabel: el.matches(".product-index,.art-note"), hero: !!el.closest('.catalog-hero,.stone-hero,.quote-heading'), text: own.slice(0, 48), fg: rgba(s.color), shadow:s.textShadow, size, large, rects,
+     out.push({ selector: label(el), control, disabled:!!el.disabled, shortText: !control && own.length <= 2, stepper: !!el.closest(".line-quantity"), fixed, productLabel: el.matches(".product-index,.art-note"), hero: !!el.closest('.catalog-hero,.stone-hero,.quote-heading'), text: own.slice(0, 48), fg: ink, shadow:s.textShadow, size, large, rects,
       kind: surf.kind, surf: label(surf.node), surfImage: surf.kind === "solid" ? "" : getComputedStyle(surf.node).backgroundImage.slice(0, 90) });
+  });
+  // Borders are a separate UI row, never a reason to lower the input's text or
+  // placeholder threshold. Retain repeated node identity for paired hit tests.
+  document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]),textarea,select').forEach(el=>{
+    const s=getComputedStyle(el),r=el.getBoundingClientRect(),width=parseFloat(s.borderTopWidth),ink=rgba(s.borderTopColor);
+    if(r.width<2||r.height<2||s.visibility==="hidden"||s.display==="none")return;
+    for(let n=el;n;n=n.parentElement){const cs=getComputedStyle(n);if(cs.display==="none"||cs.visibility==="hidden"||parseFloat(cs.opacity)<.3)return;ink[3]*=parseFloat(cs.opacity);}
+    if(!width||s.borderTopStyle==="none"||s.borderTopStyle==="hidden"||ink[3]===0)return;
+    for(let n=el.parentElement;n&&n!==document.body;n=n.parentElement){
+      const cs=getComputedStyle(n),box=n.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+width/2;
+      if((cs.overflowX!=="visible"&&(x<box.left||x>box.right))||(cs.overflowY!=="visible"&&(y<box.top||y>box.bottom)))return;
+      if((cs.overflowX==="auto"||cs.overflowX==="scroll")&&n.scrollWidth>n.clientWidth+2){moving++;return;}
+    }
+    el.setAttribute("data-contrast-input-border","");
+    let fixed=false;for(let n=el;n;n=n.parentElement)if(getComputedStyle(n).position==="fixed")fixed=true;
+    const surf=surface(el);els.push(el);
+    out.push({selector:label(el),control:"input-border",disabled:!!el.disabled,shortText:false,stepper:false,
+      fixed,productLabel:false,hero:false,text:"[input border]",fg:ink,size:0,large:false,
+      rects:[{x:r.left+scrollX+Math.min(r.width/4,8),y:r.top+scrollY,w:Math.max(1,r.width-Math.min(r.width/2,16)),h:Math.max(2,Math.ceil(width)+1)}],
+      kind:surf.kind,surf:label(surf.node),surfImage:surf.kind==="solid"?"":getComputedStyle(surf.node).backgroundImage.slice(0,90)});
   });
    // Retain node identity for hit tests at the ACTUAL capture scroll position.
    // A probe at an unrelated scroll position misses floating overlays.
@@ -147,9 +237,9 @@ const COLLECT = `(() => {
   // behind its text were read from the page behind it. At scrollY=0 a sticky box sits at its natural spot: pin it there as relative.
   document.querySelectorAll("body *").forEach((n) => { if (getComputedStyle(n).position === "sticky") { n.style.setProperty("position", "relative", "important"); n.style.setProperty("top", "auto", "important"); } });
   const style = document.createElement("style"); style.id = "scan-hide-text";
-  style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:var(--contrast-original-shadow,none)!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important}";
+   style.textContent = "*{transition:none!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:var(--contrast-original-shadow,none)!important;caret-color:transparent!important} svg,svg *{visibility:hidden!important} ::placeholder{color:transparent!important} [data-contrast-checkbox],[data-contrast-checkbox]::before,[data-contrast-checkbox]::after,[data-contrast-input-border]{border-color:transparent!important;color:transparent!important;box-shadow:none!important}";
   document.head.appendChild(style);
-    return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: out, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
+    return { ov: { innerWidth: innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }, rows: out, excluded, moving, height: Math.min(document.documentElement.scrollHeight, 60000), width: document.documentElement.clientWidth, theme: (document.querySelector(".storefront-theme-root") || {}).dataset?.theme ?? null };
 })()`;
 
 // ---- page-side: sample pixels behind each element ----
@@ -185,7 +275,7 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
       const a = (row.fixed ? fixedCx : cx).getImageData(x0, y0, w, h).data, b = (row.fixed ? fixedVisCx : cx2).getImageData(x0, y0, w, h).data;
       for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) > 6 || Math.abs(a[i + 1] - b[i + 1]) > 6 || Math.abs(a[i + 2] - b[i + 2]) > 6) diff++;
     }
-    return diff >= 25;
+    return diff >= (row.control || row.shortText ? 1 : 25);
   };
   const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   return rows.map((row, rowIndex) => {
@@ -198,7 +288,7 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
       if (y0 >= img.height) continue;
       const w = Math.max(1, Math.min(img.width - x0, Math.floor(rc.w) - 2 * inset)), h = Math.max(1, Math.min(img.height - y0, Math.floor(rc.h) - 2 * inset));
       const data = (row.fixed ? fixedCx : cx).getImageData(x0, y0, w, h).data;
-      const visible = row.hero || row.productLabel ? (row.fixed ? fixedVisCx : cx2).getImageData(x0,y0,w,h).data : null;
+      const visible = row.hero || row.productLabel || row.control || row.shortText ? (row.fixed ? fixedVisCx : cx2).getImageData(x0,y0,w,h).data : null;
       const step = visible ? 1 : Math.max(1, Math.floor(Math.sqrt((w * h) / 150)));
       for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
         let tile = 0;
@@ -206,7 +296,7 @@ const SAMPLE = (tiles, visTiles, rows, totalHeight) => `(async () => {
         if (masks[tile].has(rowIndex + ":" + (x0 + x) + ":" + (y0 + y))) continue;
         const o = (y * w + x) * 4; const r = data[o], g = data[o + 1], b = data[o + 2];
         if (visible && (Math.max(Math.abs(visible[o]-r),Math.abs(visible[o+1]-g),Math.abs(visible[o+2]-b)) <= 6 ||
-          Math.max(Math.abs(visible[o]-row.fg[0]),Math.abs(visible[o+1]-row.fg[1]),Math.abs(visible[o+2]-row.fg[2])) > 24)) continue;
+          !row.control && Math.max(Math.abs(visible[o]-row.fg[0]),Math.abs(visible[o+1]-row.fg[1]),Math.abs(visible[o+2]-row.fg[2])) > 24)) continue;
         sr += r; sg += g; sb += b; n++;
         const a = row.fg[3]; const fr = row.fg[0] * a + r * (1 - a), fg = row.fg[1] * a + g * (1 - a), fb = row.fg[2] * a + b * (1 - a);
         const l1 = lum(fr, fg, fb), l2 = lum(r, g, b);
@@ -242,7 +332,7 @@ const HIT_TEST = (rows, width) => `(() => {
       const x0=Math.max(0,Math.floor(rc.x)+inset),y0=Math.max(0,Math.floor(rc.y)+inset);
       const w=Math.max(1,Math.min(width-x0,Math.floor(rc.w)-2*inset));
       const h=Math.max(1,Math.floor(rc.h)-2*inset);
-      const step=row.hero||row.productLabel?1:Math.max(1,Math.floor(Math.sqrt(w*h/150)));
+      const step=row.hero||row.productLabel||row.control||row.shortText?1:Math.max(1,Math.floor(Math.sqrt(w*h/150)));
       for(let y=0;y<h;y+=step)for(let x=0;x<w;x+=step){
         const px=x0+x,py=y0+y;
         if(py<scrollY||py>=scrollY+innerHeight)continue;
@@ -262,8 +352,12 @@ async function applyState(state) {
   if (!state || state === "initial") return;
   if (state === "faq") { await ev(`document.querySelectorAll("details").forEach((d) => { d.open = true; })`); await sleep(500); return; } // /studio-guide with every FAQ open
   if (state === "cart") { // /quote with two basin lines in the cart (the summary aside shows totals, VAT row, grand total)
-    await ev(`localStorage.setItem("knight-cart", JSON.stringify([{ sku: "KF001", quantity: 2, installationSelected: true }, { sku: "KF009", quantity: 1, installationSelected: false }])); location.reload();`);
-    await sleep(4000);
+    await ev(`localStorage.setItem("knight-cart", JSON.stringify(${JSON.stringify(CART)})); location.reload();`);
+    const deadline = Date.now() + readyTimeout;
+    while (!(await ev(`document.readyState==="complete" && JSON.stringify(JSON.parse(localStorage.getItem("knight-cart")||"[]"))===${JSON.stringify(JSON.stringify(CART))} && !!window.__contrastLoad`))) {
+      if (Date.now() >= deadline) notReady("/quote#cart", "cart reload timeout");
+      await sleep(100);
+    }
     return;
   }
   if (state === "upload" || state === "cutout" || state === "form") {
@@ -295,7 +389,7 @@ function notReady(target, detail) {
 // Two consecutive unchanged observations are necessary, but never sufficient:
 // required API success, actual cards, loaded fonts/images and no pending fetches
 // are also mandatory. A stable error/empty fallback must not pass.
-async function waitReady(target) {
+async function waitReady(target, cartRequired = false) {
   const route = target.split("#")[0];
   const storefront = ["/", "/stone", "/portfolio", "/price-guide", "/site-prep", "/studio-guide", "/quote", "/studio", "/sketch", "/readme", "/updates", "/network", "/profile", "/handover", "/track", "/quote/view"].includes(route);
   // Standalone pages do not mount Storefront's catalogue hook.
@@ -311,6 +405,14 @@ async function waitReady(target) {
       const catalog = state?.data["/api/catalog"];
       const products = count(".product-card"), colors = count(".stone-colors button:has(> .stone-card-prices)"), prices = count(".stone-card-prices");
       const gallery = count('[data-testid^="portfolio-photo-"]');
+      const expectedCart = ${JSON.stringify(CART)};
+      const cartRows = count('.quote-line[data-testid^="row-quote-"]'), quantityBoxes=count(".quote-line .line-quantity");
+      const cartOK = cartRows === expectedCart.length && quantityBoxes === expectedCart.length &&
+        expectedCart.every(line => {
+          const row=document.querySelector('[data-testid="row-quote-'+line.sku+'"]'),box=row?.querySelector(".line-quantity");
+          return box && box.getBoundingClientRect().width>0 && box.querySelectorAll("button").length===2 &&
+            box.querySelector("span")?.textContent.trim()===String(line.quantity);
+        });
       const actualCodes = [...document.querySelectorAll(".stone-colors button > small:not(.stone-card-prices)")].map(n=>n.textContent.trim()).sort();
       const matchingStoneSet = ["sheetStones", "installedStones"].some(key => {
         const codes = catalog?.[key]?.filter(x=>x.active !== false).map(x=>x.code).sort();
@@ -329,9 +431,10 @@ async function waitReady(target) {
       document.querySelectorAll("img").forEach(im => { im.loading = "eager"; });
       const ok = document.readyState === "complete" && !!state && state.pending === 0 && !busy &&
         document.fonts.status === "loaded" && [...document.images].every(im => im.complete) &&
-        (!${storefront} || !!root) && (!${needsCatalog} || apiOK("/api/catalog")) && routeOK;
+        (!${storefront} || !!root) && (!${needsCatalog} || apiOK("/api/catalog")) && routeOK && (!${cartRequired} || cartOK);
       return { ok, pending: state?.pending, responses: state?.responses, products, colors, prices, gallery,
-        signature: JSON.stringify([state?.mutations, products, colors, prices, gallery, document.body?.textContent?.length, document.documentElement.scrollHeight]) };
+        cart: ${cartRequired} ? {expected:expectedCart.length,rows:cartRows,quantityBoxes,ok:cartOK} : null,
+        signature: JSON.stringify([state?.mutations, products, colors, prices, gallery, cartRows, quantityBoxes, document.body?.textContent?.length, document.documentElement.scrollHeight]) };
     })()`);
     if (last?.ok && last.signature === previous) stable++; else stable = 0;
     if (stable >= 2) return { ...last, stableObservations: stable, timeoutMs: readyTimeout };
@@ -365,7 +468,7 @@ for (const target of targets) {
     scrollTo(0,0);
     document.querySelectorAll("body *").forEach(n=>{if(getComputedStyle(n).position==="sticky"){n.style.setProperty("position","relative","important");n.style.setProperty("top","auto","important");}});
   })()`);
-  const readiness = await waitReady(target);
+  const readiness = await waitReady(target, state === "cart");
   if (undo468) {
     const removed = await ev(`(() => {
       let count=0;
@@ -420,7 +523,7 @@ for (const target of targets) {
   });
   collected.covered = collected.rows.filter(r => r.occluded).length;
   if (process.env.SCAN_SAVE_HIDDEN) writeFileSync(process.env.SCAN_SAVE_HIDDEN, Buffer.from(tiles[0].b64, "base64")); // debug: the first tile of the background-only render the pixels are sampled from
-  const sampled = await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height));
+  const sampled = (await ev(SAMPLE(tiles, visTiles, collected.rows, collected.height))).map(r=>({...r,...classifyContrastRow(r)}));
   // React content must not change between collection and the paired captures.
   const captureLoad = () => ev("({ mutations: window.__contrastLoad?.mutations, pending: window.__contrastLoad?.pending, responses: window.__contrastLoad?.responses })");
   let afterCapture = await captureLoad();
@@ -428,20 +531,26 @@ for (const target of targets) {
   // consumed response, then accept only if the captured DOM never changed.
   // A hung/failed refresh or any content mutation still fails closed.
   if (afterCapture?.pending) {
-    await waitReady(target);
+    await waitReady(target, state === "cart");
     afterCapture = await captureLoad();
   }
   const beforeMutations = JSON.parse(readiness.signature)[0];
   if (afterCapture?.mutations !== beforeMutations || afterCapture?.pending) notReady(target, `data changed during pixel capture: before=${beforeMutations}; after=${JSON.stringify(afterCapture)}`);
   const unpainted = sampled.filter((r) => r.unpainted);
-  const rows = sampled.filter((r) => r.ratio != null).map((r) => ({ ...r, threshold: r.large ? 3 : 4.5 }));
+  const rows = sampled.filter((r) => r.ratio != null);
+  const missingControls=sampled.filter(r=>r.control && !r.occluded && r.ratio==null);
+  if(missingControls.length)notReady(target,"control pixels NOT MEASURABLE: "+JSON.stringify(missingControls.map(r=>({selector:r.selector,control:r.control,unpainted:r.unpainted}))));
+  // A cart with six unmeasured quantity glyphs is NOT a passing cart.
+  if (state === "cart" && rows.filter(r=>r.stepper).length !== CART.length * 3)
+    notReady(target, "cart quantity coverage incomplete: expected " + CART.length * 3 + " measured number/icon rows");
   const failing = rows.filter((r) => r.ratio < r.threshold).sort((a, b) => a.ratio - b.ratio);
   console.log(`\n=== ${target}  theme=${collected.theme}  checked=${rows.length}  failing(p10 ratio < threshold)=${failing.length}`);
   console.log(`  overflow: innerWidth=${collected.ov.innerWidth} clientWidth=${collected.ov.clientWidth} scrollWidth=${collected.ov.scrollWidth} -> ${collected.ov.scrollWidth - collected.ov.clientWidth}px`);
   if (unpainted.length) console.log(`  excluded: ${unpainted.length} text(s) not painted (identical pixels with the text shown and hidden: covered by a photo/overlay) e.g. ${[...new Set(unpainted.map((r) => r.selector.split(" > ").pop()))].slice(0, 4).join(", ")}`);
   if (collected.moving) console.log(`  excluded: ${collected.moving} text(s) inside a horizontally auto-scrolling track (position changes between measure and screenshot) - verify by arithmetic`);
+  for(const r of collected.excluded)console.log("  excluded decorative: "+r.selector+" — "+r.reason);
   for (const r of (showAll ? rows.sort((a, b) => a.ratio - b.ratio) : failing)) {
-    console.log(`  ${String(r.ratio).padEnd(6)}| need ${r.threshold} | ${r.kind.padEnd(8)}| text rgb(${r.fg.slice(0, 3).join(",")}) on bg~rgb(${r.bg.join(",")}) | ${r.size}px | ${r.selector} | "${r.text}"`);
+    console.log(`  ${String(r.ratio).padEnd(6)}| need ${r.threshold} | ${r.category} ${r.criterion} | ${r.kind.padEnd(8)}| text rgb(${r.fg.slice(0, 3).join(",")}) on bg~rgb(${r.bg.join(",")}) | ${r.size}px | ${r.selector} | "${r.text}"`);
   }
   // surfaces (gradient / photo) that carry text
   const surfaces = new Map();
@@ -453,7 +562,11 @@ for (const target of targets) {
     console.log(`  -- gradient / photo surfaces carrying text (${surfaces.size}):`);
     for (const s of surfaces.values()) console.log(`     ${s.kind.padEnd(8)}| worst ratio ${String(s.worst).padEnd(6)}| ${s.texts} text(s) | ${s.surface} | ${s.image}`);
   }
-  const coverage={heroes:rows.filter(r=>r.hero).length,productLabels:rows.filter(r=>r.productLabel).length};
+  const coverage={heroes:rows.filter(r=>r.hero).length,productLabels:rows.filter(r=>r.productLabel).length,
+    inputs:rows.filter(r=>r.control==="input-value").length,icons:rows.filter(r=>r.control==="icon-currentColor"||r.control==="icon-text").length,
+    placeholders:rows.filter(r=>r.control==="placeholder").length,inputBorders:rows.filter(r=>r.control==="input-border").length,
+    text:rows.filter(r=>r.category==="text").length,ui:rows.filter(r=>r.category==="ui").length,decorative:collected.excluded.length,
+    checkboxes:rows.filter(r=>r.control==="custom-checkbox"||r.control==="custom-radio").length,shortText:rows.filter(r=>r.shortText).length,stepper:rows.filter(r=>r.stepper).length};
   const requiredLabels = route === "/" ? REQUIRED_LABELS_BY_WIDTH[viewport].map(sku=>`article[card-product-${sku}] > div.product-art > span.art-note`) : [];
    const occluded = sampled.filter(r=>r.occluded);
    const requiredMissing = [...sampled.filter(r=>r.hero&&r.ratio==null).map(r=>r.selector),
@@ -470,7 +583,7 @@ for (const target of targets) {
   all.push({ target, theme: collected.theme, width:viewport, readiness: { ...readiness, signature: undefined }, overflow: collected.ov, checked: rows.length, failing: failing.length,
      capture:{method:"paired viewport screenshots with capture-position elementFromPoint pixel masks",settled:afterCapture,viewportWidth:viewport,layoutWidth:collected.width,tileY:tiles.map(t=>t.y),
        pixelOcclusion:tiles.map(t=>({y:t.y,blocked:t.blocked,coveringElements:t.covers}))},
-    coverage:{...coverage,requiredLabels,requiredMissing},unmeasurable,
+    coverage:{...coverage,requiredLabels,requiredMissing},excluded:collected.excluded,unmeasurable,
      exclusions:{covered:collected.covered,moving:collected.moving,unpainted,occluded}, rows: showAll ? rows : failing, surfaces: [...surfaces.values()] });
   if(jsonOut)writeFileSync(jsonOut, JSON.stringify(all,null,1));
   if((["/","/stone","/quote"].includes(route)&&!coverage.heroes)||requiredMissing.length){socket.close();proc.kill();throw new Error(`${target}: required hero/product-label pixels were NOT checked: ${JSON.stringify({width:viewport,coverage,missing:requiredMissing})}`);}

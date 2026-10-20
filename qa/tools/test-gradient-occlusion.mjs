@@ -10,6 +10,8 @@ import assert from "node:assert/strict";
 
 const out = mkdtempSync(join(tmpdir(), "contrast-occlusion-"));
 let fixtureMode = "delayed";
+let cartMode = "complete";
+let quantityBackground = "white";
 const themeSource = readFileSync(new URL("../../artifacts/knight-basins/src/components/ThemeToggle.tsx", import.meta.url), "utf8");
 const themeLiteral = themeSource.match(/export const STOREFRONT_THEME_STYLES = `([\s\S]*?)`;/)?.[1];
 assert.ok(themeLiteral, "Read the real application theme stylesheet");
@@ -20,6 +22,54 @@ const cssName = readdirSync(assets).find(n=>n.endsWith(".css"));
 assert.ok(cssName, "Build the actual application CSS before browser controls");
 const compiledStyles = readFileSync(new URL(cssName, assets), "utf8");
 const server = http.createServer((req, res) => {
+  if(req.url==="/471-types"){
+    res.writeHead(200,{"content-type":"text/html; charset=utf-8"});
+    return res.end(`<!doctype html><style>
+      body{margin:24px;background:white;color:#173f6b;font:16px Arial}
+      input,textarea{display:block;width:180px;height:36px;margin:12px;background:white;color:#949494;border:2px solid #949494;font:16px Arial;padding:4px}
+      input::placeholder,textarea::placeholder{color:#949494;opacity:1}
+      textarea{height:90px;padding:10px}
+      button{color:#949494;background:white;border:0;font:16px Arial;padding:8px}
+      svg{width:20px;height:20px}
+      label input{display:none}label span{display:inline-block;width:18px;height:18px;border:2px solid #949494}
+      </style><main class="storefront-theme-root">
+      <input value="17" data-testid="typed-value"><input placeholder="PLACEHOLDER" data-testid="typed-placeholder">
+      <textarea placeholder="MULTILINE PLACEHOLDER WRAPS IN THE CONTENT BOX" data-testid="typed-textarea"></textarea>
+      <button aria-label="Close" data-testid="typed-times">×</button>
+      <span style="color:#949494" data-testid="text-times">×</span>
+      <button aria-label="Search" data-testid="typed-svg"><svg aria-hidden="true" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 12h18M12 3v18"/></svg></button>
+      <button aria-label="Search with title" data-testid="typed-svg-title"><svg aria-hidden="true" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><title>Search</title><path d="M3 12h18M12 3v18"/></svg></button>
+      <button data-testid="typed-label" style="color:#173f6b"><svg aria-hidden="true" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 12h18"/></svg>Save</button>
+      <label><input type="checkbox"><span data-testid="typed-checkbox"></span>Option</label>
+      <label><input type="radio"><span data-testid="typed-radio"></span>Choice</label>
+      <p style="color:#949494;font-size:24px" data-testid="typed-large">LARGE TEXT</p>
+      </main><script>document.querySelector("main").dataset.theme=localStorage.getItem("knight-storefront-theme")</script>`);
+  }
+  if (req.url === "/471-controls" || req.url === "/quote") {
+    res.writeHead(200, {"content-type":"text/html; charset=utf-8"});
+    const glyph = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg>`;
+    return res.end(`<!doctype html><html><head><meta charset="UTF-8"><style>${compiledStyles}\n${themeStyles}
+      /* TEST ONLY: intentionally undo/restore the now-merged 472-C backing. */
+      .storefront-theme-root[data-theme] .control-fixture .line-quantity{background:${quantityBackground}!important}
+      .control-fixture{padding:24px;min-height:300px}
+      .control-fixture .quote-line{display:flex;flex-wrap:wrap}
+      .control-fixture input[type=text]{background:#ffffff;color:#173f6b;font:16px Arial;width:120px;height:36px}
+      </style></head><body><div class="storefront-theme-root"><main class="control-fixture">
+      <h1 class="quote-heading">CONTROL COVERAGE FIXTURE</h1><input type="text" value="17" data-testid="input-value-control">
+      <p data-testid="one-char">7</p><p data-testid="two-char">12</p><div id="cart"></div></main></div>
+      <script>
+      document.querySelector(".storefront-theme-root").dataset.theme=localStorage.getItem("knight-storefront-theme");
+      document.documentElement.dataset.theme=localStorage.getItem("knight-storefront-theme");
+      fetch("/api/catalog").then(r=>r.json()).then(()=>{
+        const cart=JSON.parse(localStorage.getItem("knight-cart")||"[]");
+        document.querySelector("#cart").innerHTML=cart.slice(0,${cartMode === "missing" ? 1 : 2}).map(line=>
+          '<div class="quote-line" data-testid="row-quote-'+line.sku+'"><div class="line-quantity">'+
+          '<button aria-label="ลดจำนวน" data-testid="minus-'+line.sku+'">${glyph}</button>'+
+          '<span data-testid="text-quantity-'+line.sku+'">'+line.quantity+'</span>'+
+          '<button aria-label="เพิ่มจำนวน" data-testid="plus-'+line.sku+'">${glyph}</button></div>'+
+          '<label class="install-toggle"><input type="checkbox" checked><span></span>ติดตั้ง</label></div>').join("");
+      });</script></body></html>`);
+  }
   if (req.url === "/api/refresh-control") {
     return setTimeout(()=>{res.writeHead(200,{"content-type":"application/json"});res.end("{}")},1000);
   }
@@ -110,6 +160,28 @@ const server = http.createServer((req, res) => {
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 try {
+  for(const width of [1440,390]){
+    const json=join(out,"types-"+width+".json");
+    const result=await new Promise((resolve,reject)=>{
+      const child=spawn(process.execPath,[fileURLToPath(new URL("./gradient-scan-465c.mjs",import.meta.url)),`http://127.0.0.1:${server.address().port}`,"light","/471-types","--all","--json",json],{env:{...process.env,SCAN_WIDTH:String(width)},stdio:["ignore","pipe","pipe"]});
+      let log="";child.stdout.on("data",d=>log+=d);child.stderr.on("data",d=>log+=d);child.on("error",reject);child.on("exit",status=>status===0?resolve(log):reject(Error(log)));
+    });
+    const [r]=JSON.parse(readFileSync(json,"utf8"));
+    const row=(id,control)=>{const x=r.rows.find(x=>x.selector.includes("["+id+"]")&&(!control||x.control===control));assert.ok(x,id+" measured: "+result);return x;};
+    for(const id of ["typed-times","typed-svg","typed-svg-title","typed-checkbox","typed-radio"]){
+      const x=row(id);assert.equal(x.category,"ui");assert.equal(x.threshold,3);assert.ok(x.ratio>=3&&x.ratio<4.5,id+" 3.04 UI must pass");
+    }
+    const value=row("typed-value","input-value"),border=row("typed-value","input-border"),placeholder=row("typed-placeholder","placeholder"),textTimes=row("text-times"),textarea=row("typed-textarea","placeholder");
+    for(const x of [value,placeholder,textTimes,textarea]){assert.equal(x.category,"text");assert.equal(x.threshold,4.5);assert.ok(x.ratio<4.5);}
+    assert.equal(border.category,"ui");assert.equal(border.threshold,3);assert.ok(border.ratio>=3);
+    assert.equal(row("typed-large").threshold,3);assert.equal(row("typed-large").category,"text");
+    assert.ok(r.excluded.some(x=>x.category==="decorative"&&x.reason.includes("Save")));
+    assert.ok(!r.excluded.some(x=>x.selector.includes("typed-svg")),"sole meaningful icon with aria-label must stay measured");
+    console.log("PASS revision 2 "+width+": same ~3.04 ink passes UI 3.0, fails text/value/placeholder 4.5; input border separately UI; companion decorative SVG reason retained");
+  }
+  if(process.argv.includes("--classification-only")){
+    server.closeAllConnections();await new Promise(resolve=>server.close(resolve));process.exit(0);
+  }
   for (const width of [1440, 390]) for (const theme of ["dark", "light"]) {
     const json = join(out, `${theme}-${width}.json`);
     const code = await new Promise((resolve, reject) => {
@@ -144,11 +216,11 @@ try {
     assert.ok(result.capture.pixelOcclusion.some(tile => Object.keys(tile.coveringElements).some(name => name.includes("div.overlay"))));
     console.log(`PASS ${theme} ${width}: nine-point occlusion, partial good/bad, fixed text; ratios ${result.rows.map(row => `${row.text}=${row.ratio}`).join("; ")}`);
   }
-  const run = (route, name, timeout = "10000", theme = "dark") => new Promise((resolve, reject) => {
+  const run = (route, name, timeout = "10000", theme = "dark", width = "390") => new Promise((resolve, reject) => {
     const json = join(out, name + ".json"), started = Date.now();
     const child = spawn(process.execPath, [fileURLToPath(new URL("./gradient-scan-465c.mjs", import.meta.url)),
       `http://127.0.0.1:${server.address().port}`, theme, route, "--all", "--json", json, "--ready-timeout", timeout],
-      { env: {...process.env, SCAN_WIDTH:"390"}, stdio:["ignore","pipe","pipe"] });
+      { env: {...process.env, SCAN_WIDTH:width}, stdio:["ignore","pipe","pipe"] });
     let log="";
     child.stdout.on("data", c=>{log+=c;}); child.stderr.on("data", c=>{log+=c;}); child.on("error",reject);
     child.on("exit", status=>resolve({status,log,json,elapsed:Date.now()-started}));
@@ -161,6 +233,42 @@ try {
   assert.equal(ready.readiness.stableObservations, 2);
   assert.ok(delayed.elapsed >= 1600);
   console.log("PASS delayed API + two-stage DOM: all 3 cards/prices measured, never the stable fallback or partial first card");
+  // H: actual paired-pixel scanner sees the exact 472-C bad foreground/backing.
+  // Restore only a test-page CSS rule, never ThemeToggle/App/index.css.
+  for (const width of ["1440", "390"]) {
+    quantityBackground = "white";
+    const bad = await run("/quote#cart", "quantity-bad-"+width, "10000", "dark", width);
+    assert.equal(bad.status,0,bad.log);
+    const [red] = JSON.parse(readFileSync(bad.json,"utf8"));
+    const quantity = red.rows.filter(r=>r.stepper);
+    assert.equal(quantity.length,6);
+    assert.ok(quantity.every(r=>r.ratio<4.5 && Math.abs(r.ratio-1.16)<0.08 && !r.occluded),JSON.stringify(quantity));
+    assert.ok(red.rows.some(r=>r.control==="input-value"&&r.text==="17"&&r.ratio>=4.5));
+    assert.ok(red.rows.some(r=>r.text==="7"&&r.shortText));
+    assert.ok(red.rows.some(r=>r.text==="12"&&r.shortText));
+    assert.equal(red.coverage.checkboxes,2,JSON.stringify(red.unmeasurable));
+    console.log(`PASS F/H dark ${width}: 6 visible stepper rows RED; `+quantity.map(r=>`${r.selector} "${r.text}" ${r.ratio} fg=${r.fg} bg=${r.bg}`).join("; "));
+    quantityBackground = "var(--card-paper)";
+    const good = await run("/quote#cart", "quantity-restored-"+width, "10000", "dark", width);
+    assert.equal(good.status,0,good.log);
+    const [green] = JSON.parse(readFileSync(good.json,"utf8"));
+    assert.equal(green.coverage.stepper,6);
+    assert.ok(green.rows.filter(r=>r.stepper).every(r=>r.ratio>=4.5));
+    console.log(`PASS H dark ${width}: restored test backing; 6 stepper rows GREEN; ratios=`+green.rows.filter(r=>r.stepper).map(r=>r.ratio));
+    quantityBackground = "white";
+    const light = await run("/quote#cart", "quantity-light-"+width, "10000", "light", width);
+    assert.equal(light.status,0,light.log);
+    const [bright] = JSON.parse(readFileSync(light.json,"utf8"));
+    assert.ok(bright.rows.filter(r=>r.stepper).every(r=>r.ratio>=4.5));
+    console.log(`PASS F light ${width}: original white backing still GREEN; 6 stepper rows, input value, checkbox and short-text coverage`);
+  }
+  cartMode = "missing";
+  const missing = await run("/quote#cart", "missing-cart", "1800");
+  assert.equal(missing.status,2,missing.log);
+  assert.match(missing.log,/ยังไม่ได้ตรวจ \(หน้าโหลดไม่จบ: \/quote#cart\)/);
+  assert.equal(existsSync(missing.json),false,"No empty or partial cart may produce a passing result");
+  console.log("PASS G missing seeded cart row: exit 2; "+missing.log.trim());
+  cartMode = "complete";
   const portfolio = await run("/portfolio", "portfolio");
   assert.equal(portfolio.status,0,portfolio.log);
   const [gallery] = JSON.parse(readFileSync(portfolio.json,"utf8"));

@@ -1,0 +1,3996 @@
+[
+  {
+    "target": "/quote#cart",
+    "theme": "dark",
+    "width": 1440,
+    "readiness": {
+      "ok": true,
+      "pending": 0,
+      "responses": {
+        "/api/auth/line/status": 200,
+        "/api/catalog": 200,
+        "/api/support/voice-status": 200
+      },
+      "products": 0,
+      "colors": 0,
+      "prices": 0,
+      "gallery": 0,
+      "cart": {
+        "expected": 2,
+        "rows": 2,
+        "quantityBoxes": 2,
+        "ok": true
+      },
+      "stableObservations": 2,
+      "timeoutMs": 30000
+    },
+    "checked": 177,
+    "coverage": {
+      "heroes": 10,
+      "productLabels": 0,
+      "inputs": 0,
+      "icons": 7,
+      "placeholders": 14,
+      "inputBorders": 18,
+      "text": 149,
+      "ui": 28,
+      "decorative": 8,
+      "checkboxes": 3,
+      "shortText": 5,
+      "stepper": 6,
+      "requiredLabels": [],
+      "requiredMissing": []
+    },
+    "excluded": [
+      {
+        "selector": "main[storefront-main] > a[link-quote-guide] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: อ่านคู่มือการใช้งานก่อนเริ่ม"
+      },
+      {
+        "selector": "div > button[button-inquire-fast-lane] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว"
+      },
+      {
+        "selector": "div.quote-date > button[button-print-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: พิมพ์ใบเสนอราคา"
+      },
+      {
+        "selector": "div.block-header > a[link-add-more] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มรายการ"
+      },
+      {
+        "selector": "div.block-header > a[link-edit-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มหินสังเคราะห์"
+      },
+      {
+        "selector": "div[status-stone-empty] > a[link-empty-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เลือกสีและรูปแบบการสั่งซื้อ"
+      },
+      {
+        "selector": "aside.quote-summary > button[button-generate-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: ออกใบเสนอราคาทางการ"
+      },
+      {
+        "selector": "div.knight-support > button[button-knight-support] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: น้องไนท์"
+      }
+    ],
+    "quantityRows": [
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 36,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 951.96875,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 37,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 38,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 46,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 1053.25,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 47,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 48,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      }
+    ],
+    "remainingFailures": [
+      {
+        "selector": "div[row-quote-KF009] > label.install-toggle > span",
+        "text": "[checkbox unchecked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-name]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-company]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "label.grid > div.relative > input[input-customer-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-phone]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-lineContact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-email]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-preferred-contact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxName]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxId]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxBranch]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-tax-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-site]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-property-type]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-installation-date]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-role]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-notes]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-project]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-purchasing-department]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "nav.main-nav > a[link-quote] > span",
+        "text": "3",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.07
+      },
+      {
+        "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "text": "LINE",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.26
+      },
+      {
+        "selector": "div[row-quote-KF001] > label.install-toggle > span",
+        "text": "[checkbox checked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 2.3
+      },
+      {
+        "selector": "div.vat-row > label > span",
+        "text": "[checkbox checked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 2.3
+      }
+    ]
+  },
+  {
+    "target": "/quote#cart",
+    "theme": "light",
+    "width": 1440,
+    "readiness": {
+      "ok": true,
+      "pending": 0,
+      "responses": {
+        "/api/auth/line/status": 200,
+        "/api/support/voice-status": 200,
+        "/api/catalog": 200
+      },
+      "products": 0,
+      "colors": 0,
+      "prices": 0,
+      "gallery": 0,
+      "cart": {
+        "expected": 2,
+        "rows": 2,
+        "quantityBoxes": 2,
+        "ok": true
+      },
+      "stableObservations": 2,
+      "timeoutMs": 30000
+    },
+    "checked": 177,
+    "coverage": {
+      "heroes": 10,
+      "productLabels": 0,
+      "inputs": 0,
+      "icons": 7,
+      "placeholders": 14,
+      "inputBorders": 18,
+      "text": 149,
+      "ui": 28,
+      "decorative": 8,
+      "checkboxes": 3,
+      "shortText": 5,
+      "stepper": 6,
+      "requiredLabels": [],
+      "requiredMissing": []
+    },
+    "excluded": [
+      {
+        "selector": "main[storefront-main] > a[link-quote-guide] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: อ่านคู่มือการใช้งานก่อนเริ่ม"
+      },
+      {
+        "selector": "div > button[button-inquire-fast-lane] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว"
+      },
+      {
+        "selector": "div.quote-date > button[button-print-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: พิมพ์ใบเสนอราคา"
+      },
+      {
+        "selector": "div.block-header > a[link-add-more] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มรายการ"
+      },
+      {
+        "selector": "div.block-header > a[link-edit-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มหินสังเคราะห์"
+      },
+      {
+        "selector": "div[status-stone-empty] > a[link-empty-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เลือกสีและรูปแบบการสั่งซื้อ"
+      },
+      {
+        "selector": "aside.quote-summary > button[button-generate-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: ออกใบเสนอราคาทางการ"
+      },
+      {
+        "selector": "div.knight-support > button[button-knight-support] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: น้องไนท์"
+      }
+    ],
+    "quantityRows": [
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 46,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.75,
+        "ratioMin": 10.75,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 36,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 951.96875,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 37,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 38,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 1053.25,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 47,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 48,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      }
+    ],
+    "remainingFailures": [
+      {
+        "selector": "div[row-quote-KF009] > label.install-toggle > span",
+        "text": "[checkbox unchecked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.21
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-project]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.24
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-purchasing-department]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.24
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-name]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-company]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "label.grid > div.relative > input[input-customer-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-phone]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-lineContact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-email]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-preferred-contact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxName]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxId]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxBranch]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-tax-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-site]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-property-type]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-installation-date]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-role]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-notes]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "text": "LINE",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.26
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-project]",
+        "text": "เช่น บ้านพักอาศัยสุขุมวิท",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.74
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-purchasing-department]",
+        "text": "ถ้ามี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.74
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-name]",
+        "text": "เช่น คุณนรินทร์",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-company]",
+        "text": "ถ้ามี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "label.grid > div.relative > input[input-customer-address]",
+        "text": "พิมพ์ที่อยู่เต็ม เช่น 99 ถนนสุขุมวิท เขตวัฒนา กร",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-phone]",
+        "text": "0812345678 (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-lineContact]",
+        "text": "@ไอดี หรือชื่อบัญชี (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-email]",
+        "text": "name@company.com (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxName]",
+        "text": "ถ้าต้องการใบกำกับภาษี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxId]",
+        "text": "13 หลัก (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxBranch]",
+        "text": "สำนักงานใหญ่ / ถ้ามี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-tax-address]",
+        "text": "กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-site]",
+        "text": "เช่น ห้องน้ำชั้น 2",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-notes]",
+        "text": "ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      }
+    ]
+  },
+  {
+    "target": "/quote#cart",
+    "theme": "dark",
+    "width": 390,
+    "readiness": {
+      "ok": true,
+      "pending": 0,
+      "responses": {
+        "/api/auth/line/status": 200,
+        "/api/support/voice-status": 200,
+        "/api/catalog": 200
+      },
+      "products": 0,
+      "colors": 0,
+      "prices": 0,
+      "gallery": 0,
+      "cart": {
+        "expected": 2,
+        "rows": 2,
+        "quantityBoxes": 2,
+        "ok": true
+      },
+      "stableObservations": 2,
+      "timeoutMs": 30000
+    },
+    "checked": 167,
+    "coverage": {
+      "heroes": 10,
+      "productLabels": 0,
+      "inputs": 0,
+      "icons": 8,
+      "placeholders": 14,
+      "inputBorders": 18,
+      "text": 138,
+      "ui": 29,
+      "decorative": 8,
+      "checkboxes": 3,
+      "shortText": 5,
+      "stepper": 6,
+      "requiredLabels": [],
+      "requiredMissing": []
+    },
+    "excluded": [
+      {
+        "selector": "div.header-actions > a[link-mobile-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: 3"
+      },
+      {
+        "selector": "main[storefront-main] > a[link-quote-guide] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: อ่านคู่มือการใช้งานก่อนเริ่ม"
+      },
+      {
+        "selector": "div > button[button-inquire-fast-lane] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว"
+      },
+      {
+        "selector": "div.quote-date > button[button-print-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: พิมพ์ใบเสนอราคา"
+      },
+      {
+        "selector": "div.block-header > a[link-add-more] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มรายการ"
+      },
+      {
+        "selector": "div.block-header > a[link-edit-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มหินสังเคราะห์"
+      },
+      {
+        "selector": "div[status-stone-empty] > a[link-empty-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เลือกสีและรูปแบบการสั่งซื้อ"
+      },
+      {
+        "selector": "aside.quote-summary > button[button-generate-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: ออกใบเสนอราคาทางการ"
+      }
+    ],
+    "quantityRows": [
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 269.5,
+            "y": 1279.578125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 29,
+            "key": "0:0.2:0.2",
+            "x": 272,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.2:0.5",
+            "x": 272,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF001] > svg > path"
+          },
+          {
+            "row": 29,
+            "key": "0:0.2:0.8",
+            "x": 272,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.5:0.2",
+            "x": 276,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.5:0.5",
+            "x": 276,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF001] > svg > path"
+          },
+          {
+            "row": 29,
+            "key": "0:0.5:0.8",
+            "x": 276,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.8:0.2",
+            "x": 279,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.8:0.5",
+            "x": 279,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF001] > svg > path"
+          },
+          {
+            "row": 29,
+            "key": "0:0.8:0.8",
+            "x": 279,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 302.796875,
+            "y": 1277.078125,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 30,
+            "key": "0:0.2:0.2",
+            "x": 304,
+            "y": 1280,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.2:0.5",
+            "x": 304,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.2:0.8",
+            "x": 304,
+            "y": 1291,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.5:0.2",
+            "x": 307,
+            "y": 1280,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.5:0.5",
+            "x": 307,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.5:0.8",
+            "x": 307,
+            "y": 1291,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.8:0.2",
+            "x": 309,
+            "y": 1280,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.8:0.5",
+            "x": 309,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.8:0.8",
+            "x": 309,
+            "y": 1291,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 319.5,
+            "y": 1279.578125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 31,
+            "key": "0:0.2:0.2",
+            "x": 322,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 31,
+            "key": "0:0.2:0.5",
+            "x": 322,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.2:0.8",
+            "x": 322,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 31,
+            "key": "0:0.5:0.2",
+            "x": 326,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.5:0.5",
+            "x": 326,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.5:0.8",
+            "x": 326,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.8:0.2",
+            "x": 329,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 31,
+            "key": "0:0.8:0.5",
+            "x": 329,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.8:0.8",
+            "x": 329,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 269.5,
+            "y": 1474.953125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 39,
+            "key": "0:0.2:0.2",
+            "x": 272,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.2:0.5",
+            "x": 272,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 39,
+            "key": "0:0.2:0.8",
+            "x": 272,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.5:0.2",
+            "x": 276,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.5:0.5",
+            "x": 276,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 39,
+            "key": "0:0.5:0.8",
+            "x": 276,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.8:0.2",
+            "x": 279,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.8:0.5",
+            "x": 279,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 39,
+            "key": "0:0.8:0.8",
+            "x": 279,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 302.796875,
+            "y": 1472.453125,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 40,
+            "key": "0:0.2:0.2",
+            "x": 304,
+            "y": 1476,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.5",
+            "x": 304,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.8",
+            "x": 304,
+            "y": 1486,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.2",
+            "x": 307,
+            "y": 1476,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.5",
+            "x": 307,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.8",
+            "x": 307,
+            "y": 1486,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.2",
+            "x": 309,
+            "y": 1476,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.5",
+            "x": 309,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.8",
+            "x": 309,
+            "y": 1486,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 319.5,
+            "y": 1474.953125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 41,
+            "key": "0:0.2:0.2",
+            "x": 322,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.2:0.5",
+            "x": 322,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.2:0.8",
+            "x": 322,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.5:0.2",
+            "x": 326,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.5:0.5",
+            "x": 326,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.5:0.8",
+            "x": 326,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.8:0.2",
+            "x": 329,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.8:0.5",
+            "x": 329,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.8:0.8",
+            "x": 329,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 13.74,
+        "ratioMin": 13.74,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      }
+    ],
+    "remainingFailures": [
+      {
+        "selector": "div[row-quote-KF009] > label.install-toggle > span",
+        "text": "[checkbox unchecked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-name]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-company]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "label.grid > div.relative > input[input-customer-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-phone]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-lineContact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-email]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-preferred-contact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxName]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxId]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxBranch]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-tax-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-site]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-property-type]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-installation-date]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-role]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-notes]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-project]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-purchasing-department]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.61
+      },
+      {
+        "selector": "div.header-actions > a[link-mobile-quote] > span",
+        "text": "3",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.07
+      },
+      {
+        "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "text": "LINE",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.26
+      },
+      {
+        "selector": "div[row-quote-KF001] > label.install-toggle > span",
+        "text": "[checkbox checked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 2.3
+      },
+      {
+        "selector": "div.vat-row > label > span",
+        "text": "[checkbox checked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 2.3
+      }
+    ]
+  },
+  {
+    "target": "/quote#cart",
+    "theme": "light",
+    "width": 390,
+    "readiness": {
+      "ok": true,
+      "pending": 0,
+      "responses": {
+        "/api/auth/line/status": 200,
+        "/api/catalog": 200,
+        "/api/support/voice-status": 200
+      },
+      "products": 0,
+      "colors": 0,
+      "prices": 0,
+      "gallery": 0,
+      "cart": {
+        "expected": 2,
+        "rows": 2,
+        "quantityBoxes": 2,
+        "ok": true
+      },
+      "stableObservations": 2,
+      "timeoutMs": 30000
+    },
+    "checked": 167,
+    "coverage": {
+      "heroes": 10,
+      "productLabels": 0,
+      "inputs": 0,
+      "icons": 8,
+      "placeholders": 14,
+      "inputBorders": 18,
+      "text": 138,
+      "ui": 29,
+      "decorative": 8,
+      "checkboxes": 3,
+      "shortText": 5,
+      "stepper": 6,
+      "requiredLabels": [],
+      "requiredMissing": []
+    },
+    "excluded": [
+      {
+        "selector": "div.header-actions > a[link-mobile-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: 3"
+      },
+      {
+        "selector": "main[storefront-main] > a[link-quote-guide] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: อ่านคู่มือการใช้งานก่อนเริ่ม"
+      },
+      {
+        "selector": "div > button[button-inquire-fast-lane] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: 💬 ให้ทีมโทรกลับ / ขอราคาเร็ว"
+      },
+      {
+        "selector": "div.quote-date > button[button-print-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: พิมพ์ใบเสนอราคา"
+      },
+      {
+        "selector": "div.block-header > a[link-add-more] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มรายการ"
+      },
+      {
+        "selector": "div.block-header > a[link-edit-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เพิ่มหินสังเคราะห์"
+      },
+      {
+        "selector": "div[status-stone-empty] > a[link-empty-stone] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: เลือกสีและรูปแบบการสั่งซื้อ"
+      },
+      {
+        "selector": "aside.quote-summary > button[button-generate-quote] > svg",
+        "category": "decorative",
+        "threshold": null,
+        "reason": "aria-hidden companion SVG duplicates visible label: ออกใบเสนอราคาทางการ"
+      }
+    ],
+    "quantityRows": [
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 269.5,
+            "y": 1279.578125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 29,
+            "key": "0:0.2:0.2",
+            "x": 272,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.2:0.5",
+            "x": 272,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF001] > svg > path"
+          },
+          {
+            "row": 29,
+            "key": "0:0.2:0.8",
+            "x": 272,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.5:0.2",
+            "x": 276,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.5:0.5",
+            "x": 276,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF001] > svg > path"
+          },
+          {
+            "row": 29,
+            "key": "0:0.5:0.8",
+            "x": 276,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.8:0.2",
+            "x": 279,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 29,
+            "key": "0:0.8:0.5",
+            "x": 279,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF001] > svg > path"
+          },
+          {
+            "row": 29,
+            "key": "0:0.8:0.8",
+            "x": 279,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 302.796875,
+            "y": 1277.078125,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 30,
+            "key": "0:0.2:0.2",
+            "x": 304,
+            "y": 1280,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.2:0.5",
+            "x": 304,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.2:0.8",
+            "x": 304,
+            "y": 1291,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.5:0.2",
+            "x": 307,
+            "y": 1280,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.5:0.5",
+            "x": 307,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.5:0.8",
+            "x": 307,
+            "y": 1291,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.8:0.2",
+            "x": 309,
+            "y": 1280,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.8:0.5",
+            "x": 309,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 30,
+            "key": "0:0.8:0.8",
+            "x": 309,
+            "y": 1291,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 319.5,
+            "y": 1279.578125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 31,
+            "key": "0:0.2:0.2",
+            "x": 322,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 31,
+            "key": "0:0.2:0.5",
+            "x": 322,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.2:0.8",
+            "x": 322,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 31,
+            "key": "0:0.5:0.2",
+            "x": 326,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.5:0.5",
+            "x": 326,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.5:0.8",
+            "x": 326,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.8:0.2",
+            "x": 329,
+            "y": 1282,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 31,
+            "key": "0:0.8:0.5",
+            "x": 329,
+            "y": 1286,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF001] > svg > path"
+          },
+          {
+            "row": 31,
+            "key": "0:0.8:0.8",
+            "x": 329,
+            "y": 1289,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 269.5,
+            "y": 1474.953125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 39,
+            "key": "0:0.2:0.2",
+            "x": 272,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.2:0.5",
+            "x": 272,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 39,
+            "key": "0:0.2:0.8",
+            "x": 272,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.5:0.2",
+            "x": 276,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.5:0.5",
+            "x": 276,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 39,
+            "key": "0:0.5:0.8",
+            "x": 276,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.8:0.2",
+            "x": 279,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 39,
+            "key": "0:0.8:0.5",
+            "x": 279,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 39,
+            "key": "0:0.8:0.8",
+            "x": 279,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 302.796875,
+            "y": 1472.453125,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 40,
+            "key": "0:0.2:0.2",
+            "x": 304,
+            "y": 1476,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.5",
+            "x": 304,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.8",
+            "x": 304,
+            "y": 1486,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.2",
+            "x": 307,
+            "y": 1476,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.5",
+            "x": 307,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.8",
+            "x": 307,
+            "y": 1486,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.2",
+            "x": 309,
+            "y": 1476,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.5",
+            "x": 309,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.8",
+            "x": 309,
+            "y": 1486,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "text",
+        "threshold": 4.5,
+        "criterion": "WCAG 1.4.3"
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 319.5,
+            "y": 1474.953125,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 41,
+            "key": "0:0.2:0.2",
+            "x": 322,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.2:0.5",
+            "x": 322,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.2:0.8",
+            "x": 322,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.5:0.2",
+            "x": 326,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.5:0.5",
+            "x": 326,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.5:0.8",
+            "x": 326,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.8:0.2",
+            "x": 329,
+            "y": 1477,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 41,
+            "key": "0:0.8:0.5",
+            "x": 329,
+            "y": 1481,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 41,
+            "key": "0:0.8:0.8",
+            "x": 329,
+            "y": 1485,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "category": "ui",
+        "threshold": 3,
+        "criterion": "WCAG 1.4.11"
+      }
+    ],
+    "remainingFailures": [
+      {
+        "selector": "div[row-quote-KF009] > label.install-toggle > span",
+        "text": "[checkbox unchecked]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.21
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-project]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.24
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-purchasing-department]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.24
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-name]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-company]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "label.grid > div.relative > input[input-customer-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-phone]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-lineContact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-email]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-preferred-contact]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxName]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxId]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxBranch]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-tax-address]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-site]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-property-type]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-installation-date]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label > select[input-customer-role]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-notes]",
+        "text": "[input border]",
+        "category": "ui",
+        "threshold": 3,
+        "ratio": 1.26
+      },
+      {
+        "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "text": "LINE",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.26
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-project]",
+        "text": "เช่น บ้านพักอาศัยสุขุมวิท",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.74
+      },
+      {
+        "selector": "div[section-quote-project-details] > label > input[input-customer-purchasing-department]",
+        "text": "ถ้ามี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.74
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-name]",
+        "text": "เช่น คุณนรินทร์",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-company]",
+        "text": "ถ้ามี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "label.grid > div.relative > input[input-customer-address]",
+        "text": "พิมพ์ที่อยู่เต็ม เช่น 99 ถนนสุขุมวิท เขตวัฒนา กร",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-phone]",
+        "text": "0812345678 (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-lineContact]",
+        "text": "@ไอดี หรือชื่อบัญชี (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-email]",
+        "text": "name@company.com (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxName]",
+        "text": "ถ้าต้องการใบกำกับภาษี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxId]",
+        "text": "13 หลัก (ถ้ามี)",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-taxBranch]",
+        "text": "สำนักงานใหญ่ / ถ้ามี",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-tax-address]",
+        "text": "กรอกเมื่อใช้ที่อยู่ภาษีต่างจากที่อยู่ใบเสนอราคา",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label > input[input-customer-site]",
+        "text": "เช่น ห้องน้ำชั้น 2",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      },
+      {
+        "selector": "div.customer-grid > label.span-2 > textarea[input-customer-notes]",
+        "text": "ถ้ามีรายละเอียดเพิ่มเติมเกี่ยวกับงาน",
+        "category": "text",
+        "threshold": 4.5,
+        "ratio": 2.76
+      }
+    ]
+  }
+]

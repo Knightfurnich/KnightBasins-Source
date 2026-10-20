@@ -1,0 +1,3191 @@
+[
+  {
+    "target": "/quote#cart",
+    "theme": "dark",
+    "width": 1440,
+    "checked": 145,
+    "readiness": {
+      "ok": true,
+      "pending": 0,
+      "responses": {
+        "/api/auth/line/status": 200,
+        "/api/support/voice-status": 200,
+        "/api/catalog": 200
+      },
+      "products": 0,
+      "colors": 0,
+      "prices": 0,
+      "gallery": 0,
+      "cart": {
+        "expected": 2,
+        "rows": 2,
+        "quantityBoxes": 2,
+        "ok": true
+      },
+      "stableObservations": 2,
+      "timeoutMs": 30000
+    },
+    "coverage": {
+      "heroes": 10,
+      "productLabels": 0,
+      "inputs": 0,
+      "icons": 7,
+      "checkboxes": 3,
+      "shortText": 5,
+      "stepper": 6,
+      "requiredLabels": [],
+      "requiredMissing": []
+    },
+    "quantityRows": [
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 46,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.14,
+        "ratioMin": 1.14,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 36,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 951.96875,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 37,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.14,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 38,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 1053.25,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 47,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 48,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      }
+    ],
+    "allFailingRows": [
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 46,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.14,
+        "ratioMin": 1.14,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 36,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 951.96875,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 37,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.14,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 38,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 1053.25,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 47,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 48,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.16,
+        "ratioMin": 1.16,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > label.install-toggle > span",
+        "control": "custom-checkbox",
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "[checkbox unchecked]",
+        "fg": [
+          52,
+          68,
+          91,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 686.359375,
+            "y": 1055.25,
+            "w": 14,
+            "h": 14
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-layout > section.quote-main > div.quote-block",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 50,
+            "key": "0:0.2:0.2",
+            "x": 689,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.2:0.5",
+            "x": 689,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.2:0.8",
+            "x": 689,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.5:0.2",
+            "x": 693,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.5:0.5",
+            "x": 693,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.5:0.8",
+            "x": 693,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.8:0.2",
+            "x": 697,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.8:0.5",
+            "x": 697,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.8:0.8",
+            "x": 697,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.61,
+        "ratioMin": 1.61,
+        "bg": [
+          22,
+          34,
+          56
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "nav.main-nav > a[link-quote] > span",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "3",
+        "fg": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 1045.328125,
+            "y": 29.5,
+            "w": 8.265625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "nav.main-nav > a[link-quote] > span",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 7,
+            "key": "0:0.2:0.2",
+            "x": 1046,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.2:0.5",
+            "x": 1046,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.2:0.8",
+            "x": 1046,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.5:0.2",
+            "x": 1049,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.5:0.5",
+            "x": 1049,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.5:0.8",
+            "x": 1049,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.8:0.2",
+            "x": 1051,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.8:0.5",
+            "x": 1051,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          },
+          {
+            "row": 7,
+            "key": "0:0.8:0.8",
+            "x": 1051,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "nav.main-nav > a[link-quote] > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 2.07,
+        "ratioMin": 2.07,
+        "bg": [
+          122,
+          185,
+          251
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "control": null,
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "LINE",
+        "fg": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "shadow": "none",
+        "size": 12,
+        "large": false,
+        "rects": [
+          {
+            "x": 1271.609375,
+            "y": 30.484375,
+            "w": 28.8125,
+            "h": 16
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 10,
+            "key": "0:0.2:0.2",
+            "x": 1277,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.2:0.5",
+            "x": 1277,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.2:0.8",
+            "x": 1277,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.5:0.2",
+            "x": 1286,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.5:0.5",
+            "x": 1286,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.5:0.8",
+            "x": 1286,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.8:0.2",
+            "x": 1294,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.8:0.5",
+            "x": 1294,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.8:0.8",
+            "x": 1294,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 2.26,
+        "ratioMin": 2.26,
+        "bg": [
+          6,
+          199,
+          85
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > label.install-toggle > span",
+        "control": "custom-checkbox",
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "[checkbox checked]",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 690.359375,
+            "y": 957.96875,
+            "w": 6,
+            "h": 6
+          }
+        ],
+        "kind": "solid",
+        "surf": "div[row-quote-KF001] > label.install-toggle > span",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 40,
+            "key": "0:0.2:0.2",
+            "x": 691,
+            "y": 959,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.5",
+            "x": 691,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.8",
+            "x": 691,
+            "y": 962,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.2",
+            "x": 693,
+            "y": 959,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.5",
+            "x": 693,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.8",
+            "x": 693,
+            "y": 962,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.2",
+            "x": 695,
+            "y": 959,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.5",
+            "x": 695,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.8",
+            "x": 695,
+            "y": 962,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 2.3,
+        "ratioMin": 2.3,
+        "bg": [
+          68,
+          169,
+          212
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div.vat-row > label > span",
+        "control": "custom-checkbox",
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "[checkbox checked]",
+        "fg": [
+          232,
+          239,
+          248,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 1002.3125,
+            "y": 1116.75,
+            "w": 6,
+            "h": 6
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.vat-row > label > span",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 96,
+            "key": "0:0.2:0.2",
+            "x": 1003,
+            "y": 1117,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.2:0.5",
+            "x": 1003,
+            "y": 1119,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.2:0.8",
+            "x": 1003,
+            "y": 1121,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.5:0.2",
+            "x": 1005,
+            "y": 1117,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.5:0.5",
+            "x": 1005,
+            "y": 1119,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.5:0.8",
+            "x": 1005,
+            "y": 1121,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.8:0.2",
+            "x": 1007,
+            "y": 1117,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.8:0.5",
+            "x": 1007,
+            "y": 1119,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.8:0.8",
+            "x": 1007,
+            "y": 1121,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 2.3,
+        "ratioMin": 2.3,
+        "bg": [
+          68,
+          169,
+          212
+        ],
+        "threshold": 4.5
+      }
+    ]
+  },
+  {
+    "target": "/quote#cart",
+    "theme": "light",
+    "width": 1440,
+    "checked": 145,
+    "readiness": {
+      "ok": true,
+      "pending": 0,
+      "responses": {
+        "/api/auth/line/status": 200,
+        "/api/support/voice-status": 200,
+        "/api/catalog": 200
+      },
+      "products": 0,
+      "colors": 0,
+      "prices": 0,
+      "gallery": 0,
+      "cart": {
+        "expected": 2,
+        "rows": 2,
+        "quantityBoxes": 2,
+        "ok": true
+      },
+      "stableObservations": 2,
+      "timeoutMs": 30000
+    },
+    "coverage": {
+      "heroes": 10,
+      "productLabels": 0,
+      "inputs": 0,
+      "icons": 7,
+      "checkboxes": 3,
+      "shortText": 5,
+      "stepper": 6,
+      "requiredLabels": [],
+      "requiredMissing": []
+    },
+    "quantityRows": [
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF009",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 46,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-minus-KF009] > svg > path"
+          },
+          {
+            "row": 46,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.75,
+        "ratioMin": 10.75,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-minus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "ลดจำนวน KF001",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 595.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 36,
+            "key": "0:0.2:0.2",
+            "x": 597,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.5",
+            "x": 597,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.2:0.8",
+            "x": 597,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.2",
+            "x": 601,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.5",
+            "x": 601,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.5:0.8",
+            "x": 601,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.2",
+            "x": 605,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.5",
+            "x": 605,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          },
+          {
+            "row": 36,
+            "key": "0:0.8:0.8",
+            "x": 605,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-minus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "2",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 951.96875,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 37,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 955,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          },
+          {
+            "row": 37,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 966,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > div.line-quantity > button[button-quantity-plus-KF001]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF001",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 954.46875,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF001] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 38,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 957,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          },
+          {
+            "row": 38,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 964,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF001] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]",
+        "control": null,
+        "disabled": false,
+        "shortText": true,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "1",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 628.65625,
+            "y": 1053.25,
+            "w": 8.40625,
+            "h": 18
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 47,
+            "key": "0:0.2:0.2",
+            "x": 630,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.5",
+            "x": 630,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.2:0.8",
+            "x": 630,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.2",
+            "x": 632,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.5",
+            "x": 632,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.5:0.8",
+            "x": 632,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.2",
+            "x": 635,
+            "y": 1056,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.5",
+            "x": 635,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          },
+          {
+            "row": 47,
+            "key": "0:0.8:0.8",
+            "x": 635,
+            "y": 1067,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009]"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF009] > div.line-quantity > button[button-quantity-plus-KF009]",
+        "control": "icon-currentColor",
+        "disabled": false,
+        "shortText": false,
+        "stepper": true,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "เพิ่มจำนวน KF009",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 645.359375,
+            "y": 1055.75,
+            "w": 13,
+            "h": 13
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.quote-block > div[row-quote-KF009] > div.line-quantity",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 48,
+            "key": "0:0.2:0.2",
+            "x": 647,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.5",
+            "x": 647,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.2:0.8",
+            "x": 647,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.2",
+            "x": 651,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.5",
+            "x": 651,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.5:0.8",
+            "x": 651,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.2",
+            "x": 655,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.5",
+            "x": 655,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "button[button-quantity-plus-KF009] > svg > path"
+          },
+          {
+            "row": 48,
+            "key": "0:0.8:0.8",
+            "x": 655,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div.line-quantity > button[button-quantity-plus-KF009] > svg"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 10.94,
+        "ratioMin": 10.94,
+        "bg": [
+          255,
+          255,
+          255
+        ],
+        "threshold": 4.5
+      }
+    ],
+    "allFailingRows": [
+      {
+        "selector": "div[row-quote-KF009] > label.install-toggle > span",
+        "control": "custom-checkbox",
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "[checkbox unchecked]",
+        "fg": [
+          216,
+          231,
+          240,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 686.359375,
+            "y": 1055.25,
+            "w": 14,
+            "h": 14
+          }
+        ],
+        "kind": "solid",
+        "surf": "body",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 50,
+            "key": "0:0.2:0.2",
+            "x": 689,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.2:0.5",
+            "x": 689,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.2:0.8",
+            "x": 689,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.5:0.2",
+            "x": 693,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.5:0.5",
+            "x": 693,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.5:0.8",
+            "x": 693,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.8:0.2",
+            "x": 697,
+            "y": 1058,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.8:0.5",
+            "x": 697,
+            "y": 1062,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          },
+          {
+            "row": 50,
+            "key": "0:0.8:0.8",
+            "x": 697,
+            "y": 1066,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF009] > label.install-toggle > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 1.21,
+        "ratioMin": 1.21,
+        "bg": [
+          246,
+          251,
+          254
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "control": null,
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "LINE",
+        "fg": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "shadow": "none",
+        "size": 12,
+        "large": false,
+        "rects": [
+          {
+            "x": 1271.609375,
+            "y": 30.484375,
+            "w": 28.8125,
+            "h": 16
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.header-actions > button[button-line-login] > span.line-logo-mark",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 10,
+            "key": "0:0.2:0.2",
+            "x": 1277,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.2:0.5",
+            "x": 1277,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.2:0.8",
+            "x": 1277,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.5:0.2",
+            "x": 1286,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.5:0.5",
+            "x": 1286,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.5:0.8",
+            "x": 1286,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.8:0.2",
+            "x": 1294,
+            "y": 33,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.8:0.5",
+            "x": 1294,
+            "y": 38,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          },
+          {
+            "row": 10,
+            "key": "0:0.8:0.8",
+            "x": 1294,
+            "y": 43,
+            "visible": true,
+            "coveringElement": "div.header-actions > button[button-line-login] > span.line-logo-mark"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 2.26,
+        "ratioMin": 2.26,
+        "bg": [
+          6,
+          199,
+          85
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div[row-quote-KF001] > label.install-toggle > span",
+        "control": "custom-checkbox",
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "[checkbox checked]",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 690.359375,
+            "y": 957.96875,
+            "w": 6,
+            "h": 6
+          }
+        ],
+        "kind": "solid",
+        "surf": "div[row-quote-KF001] > label.install-toggle > span",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 40,
+            "key": "0:0.2:0.2",
+            "x": 691,
+            "y": 959,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.5",
+            "x": 691,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.2:0.8",
+            "x": 691,
+            "y": 962,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.2",
+            "x": 693,
+            "y": 959,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.5",
+            "x": 693,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.5:0.8",
+            "x": 693,
+            "y": 962,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.2",
+            "x": 695,
+            "y": 959,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.5",
+            "x": 695,
+            "y": 960,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          },
+          {
+            "row": 40,
+            "key": "0:0.8:0.8",
+            "x": 695,
+            "y": 962,
+            "visible": true,
+            "coveringElement": "div[row-quote-KF001] > label.install-toggle > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 4.11,
+        "ratioMin": 4.11,
+        "bg": [
+          65,
+          169,
+          216
+        ],
+        "threshold": 4.5
+      },
+      {
+        "selector": "div.vat-row > label > span",
+        "control": "custom-checkbox",
+        "disabled": false,
+        "shortText": false,
+        "stepper": false,
+        "fixed": false,
+        "productLabel": false,
+        "hero": false,
+        "text": "[checkbox checked]",
+        "fg": [
+          18,
+          62,
+          105,
+          1
+        ],
+        "shadow": "none",
+        "size": 14,
+        "large": false,
+        "rects": [
+          {
+            "x": 1002.3125,
+            "y": 1116.75,
+            "w": 6,
+            "h": 6
+          }
+        ],
+        "kind": "solid",
+        "surf": "div.vat-row > label > span",
+        "surfImage": "",
+        "visibilitySamples": [
+          {
+            "row": 96,
+            "key": "0:0.2:0.2",
+            "x": 1003,
+            "y": 1117,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.2:0.5",
+            "x": 1003,
+            "y": 1119,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.2:0.8",
+            "x": 1003,
+            "y": 1121,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.5:0.2",
+            "x": 1005,
+            "y": 1117,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.5:0.5",
+            "x": 1005,
+            "y": 1119,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.5:0.8",
+            "x": 1005,
+            "y": 1121,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.8:0.2",
+            "x": 1007,
+            "y": 1117,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.8:0.5",
+            "x": 1007,
+            "y": 1119,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          },
+          {
+            "row": 96,
+            "key": "0:0.8:0.8",
+            "x": 1007,
+            "y": 1121,
+            "visible": true,
+            "coveringElement": "div.vat-row > label > span"
+          }
+        ],
+        "occluded": false,
+        "coveringElements": [],
+        "ratio": 4.11,
+        "ratioMin": 4.11,
+        "bg": [
+          65,
+          169,
+          216
+        ],
+        "threshold": 4.5
+      }
+    ]
+  }
+]
