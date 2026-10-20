@@ -28,27 +28,29 @@ if (compareDir) {
     else if(entry.name==="sweep-summary.json") summaries.push(path);
   }};
   walk(compareDir);
-  if(summaries.length!==4) throw Error(`Expected four complete same-commit sweep summaries, got ${summaries.length}`);
+  if(summaries.length!==6) throw Error(`Expected six complete same-commit sweep summaries, got ${summaries.length}`);
   for(const width of [1440,390]){
     const load = round => {
       const paths=summaries.filter(p=>p.includes(`contrast-${width}-round${round}/`));
       if(paths.length!==1)throw Error(`Missing/duplicate ${width} round ${round}`);
       const data=JSON.parse(readFileSync(paths[0],"utf8"));
       if(data.length!==34||data.some(r=>r.real||r.overflowPx||!r.readiness?.ok))throw Error(`Incomplete/failing ${width} round ${round}`);
+      if(process.env.GITHUB_SHA && data.some(r=>r.commit!==process.env.GITHUB_SHA))throw Error("Sweep commit does not match comparison commit");
       return data.map(r=>({theme:r.theme,target:r.target,checked:r.checked,real:r.real,overflowPx:r.overflowPx,
-        occluded:r.occluded,notMeasurable:r.notMeasurable,coverage:r.coverage}));
+        occluded:r.occluded,notMeasurable:r.notMeasurable,coverage:r.coverage,excluded:r.excluded??[]}));
     };
-    const first=load(1),second=load(2);
-    if(JSON.stringify(first)!==JSON.stringify(second))throw Error(`${width}: route counts/coverage/verdicts differ across rounds`);
+    const first=load(1),second=load(2),third=load(3);
+    if(JSON.stringify(first)!==JSON.stringify(second)||JSON.stringify(first)!==JSON.stringify(third))throw Error(`${width}: route counts/coverage/verdicts differ across rounds`);
     for(const r of first)console.log(`STABLE ${width} ${r.theme} ${r.target}: checked=${r.checked} occluded=${r.occluded} notMeasurable=${r.notMeasurable} REAL=${r.real} overflow=${r.overflowPx}`);
   }
-  console.log("PASS: both widths, 34 pairs each, identical readiness-gated counts, coverage, exclusions and verdicts across two rounds");
+  console.log("PASS: both widths, 34 pairs each, identical readiness-gated counts, coverage, exclusions and verdicts across three rounds");
   process.exit(0);
 }
-const sitemapUrl = opt("--sitemap", "https://knightbasins.com/sitemap.xml");
+const sitemapOption = opt("--sitemap", null);
 const outDir = opt("--out", "qa/images/replit-round30/sweep");
 const extra = opt("--extra", "/profile,/handover,/track,/quote/view,/quote#cart").split(",").filter(Boolean);
 const base = (args[0] ?? "http://localhost:5173").replace(/\/$/, "");
+const sitemapUrl = sitemapOption ?? base + "/sitemap.xml";
 const chrome = process.env.CHROME_BIN ?? "/usr/bin/google-chrome";
 if (!existsSync(chrome)) { console.error(`Chrome unavailable at ${chrome} — contrast was NOT checked`); process.exit(2); }
 mkdirSync(outDir, { recursive: true });
@@ -84,10 +86,10 @@ for (const theme of ["dark", "light"]) {
     const line = failures.filter((x) => ALLOWLIST.some((entry) => entry.matches(x)));
     const real = failures.filter((x) => !ALLOWLIST.some((entry) => entry.matches(x)));
     const hero = real.filter((x) => x.hero);
-    const v = { theme, target: r.target, checked: r.checked, readiness:r.readiness,
+    const v = { commit:process.env.GITHUB_SHA??null, theme, target: r.target, checked: r.checked, readiness:r.readiness,
       occluded:r.unmeasurable.filter(x=>x.status.startsWith("occluded")).length,
       notMeasurable:r.unmeasurable.filter(x=>!x.status.startsWith("occluded")).length,
-      coverage: r.coverage, unmeasurable:r.unmeasurable, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
+      coverage: r.coverage, excluded:r.excluded??[], unmeasurable:r.unmeasurable, probeFail: null, scanFail: r.failing, line: line.length, hero: hero.length, real: real.length, overflow: r.overflow, overflowPx: r.overflow.scrollWidth - r.overflow.clientWidth, worst: real[0] ? `${real[0].ratio} ${real[0].selector} "${real[0].text}"` : "" };
     verdict.push(v);
     if (!r.target.includes("#")) probeTasks.push(async () => {
       const output = await new Promise((resolve, reject) => {

@@ -1,0 +1,22 @@
+PASS revision 2 1440: same ~3.04 ink passes UI 3.0, fails text/value/placeholder 4.5; input border separately UI; companion decorative SVG reason retained
+PASS revision 2 390: same ~3.04 ink passes UI 3.0, fails text/value/placeholder 4.5; input border separately UI; companion decorative SVG reason retained
+PASS dark 1440: nine-point occlusion, partial good/bad, fixed text; ratios VISIBLE LOW CONTRAST CONTROL=2.79; PARTIALLY COVERED FAILING CONTROL=2.79; VISIBLE PASSING CONTROL=10.72; PARTIALLY COVERED PASSING CONTROL=10.72; FIXED PASSING CONTROL=10.72
+PASS light 1440: nine-point occlusion, partial good/bad, fixed text; ratios VISIBLE LOW CONTRAST CONTROL=2.79; PARTIALLY COVERED FAILING CONTROL=2.79; VISIBLE PASSING CONTROL=10.72; PARTIALLY COVERED PASSING CONTROL=10.72; FIXED PASSING CONTROL=10.72
+PASS dark 390: nine-point occlusion, partial good/bad, fixed text; ratios VISIBLE LOW CONTRAST CONTROL=2.79; PARTIALLY COVERED FAILING CONTROL=2.79; VISIBLE PASSING CONTROL=10.72; PARTIALLY COVERED PASSING CONTROL=10.72; FIXED PASSING CONTROL=10.72
+PASS light 390: nine-point occlusion, partial good/bad, fixed text; ratios VISIBLE LOW CONTRAST CONTROL=2.79; PARTIALLY COVERED FAILING CONTROL=2.79; VISIBLE PASSING CONTROL=10.72; PARTIALLY COVERED PASSING CONTROL=10.72; FIXED PASSING CONTROL=10.72
+PASS delayed API + two-stage DOM: all 3 cards/prices measured, never the stable fallback or partial first card
+PASS F/H dark 1440: 6 visible stepper rows RED; div[row-quote-KF001] > div.line-quantity > button[minus-KF001] "ลดจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001] "2" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF001] > div.line-quantity > button[plus-KF001] "เพิ่มจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF009] > div.line-quantity > button[minus-KF009] "ลดจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009] "1" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF009] > div.line-quantity > button[plus-KF009] "เพิ่มจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255
+PASS H dark 1440: restored test backing; 6 stepper rows GREEN; ratios=13.74,13.74,13.74,13.74,13.74,13.74
+PASS F light 1440: original white backing still GREEN; 6 stepper rows, input value, checkbox and short-text coverage
+PASS F/H dark 390: 6 visible stepper rows RED; div[row-quote-KF001] > div.line-quantity > button[minus-KF001] "ลดจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF001] > div.line-quantity > span[text-quantity-KF001] "2" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF001] > div.line-quantity > button[plus-KF001] "เพิ่มจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF009] > div.line-quantity > button[minus-KF009] "ลดจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF009] > div.line-quantity > span[text-quantity-KF009] "1" 1.16 fg=232,239,248,1 bg=255,255,255; div[row-quote-KF009] > div.line-quantity > button[plus-KF009] "เพิ่มจำนวน" 1.16 fg=232,239,248,1 bg=255,255,255
+PASS H dark 390: restored test backing; 6 stepper rows GREEN; ratios=13.74,13.74,13.74,13.74,13.74,13.74
+PASS F light 390: original white backing still GREEN; 6 stepper rows, input value, checkbox and short-text coverage
+PASS G missing seeded cart row: exit 2; ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: /quote#cart) — {"ok":false,"pending":0,"responses":{"/api/catalog":200},"products":0,"colors":0,"prices":0,"gallery":0,"cart":{"expected":2,"rows":1,"quantityBoxes":1,"ok":false},"signature":"[1,0,0,0,0,1,1,1236,900]"}
+PASS standalone portfolio: its own gallery API and two photos; no catalogue-hook requirement
+PASS capture-time refresh: consumed successful response, unchanged captured DOM, pending=0
+PASS capture-time content mutation: exit 2, no stale pixel result
+PASS blocked /api/catalog: exit 2; ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: /stone) — {"ok":false,"pending":1,"responses":{},"products":0,"colors":1,"prices":1,"gallery":0,"cart":null,"signature":"[0,0,1,1,0,0,0,521,900]"}
+PASS full sweep blocked catalogue: exit 2, ยังไม่ได้ตรวจ (หน้าโหลดไม่จบ: /stone)
+PASS real app CSS fixture dark 390: โหลดคลังภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง; ratio=10.51; foreground=255,180,171,1; sampled background=15,23,42
+PASS real app CSS fixture dark 390: แผ่น ฿12,000; ratio=10.11; foreground=23,63,107,1; sampled background=244,249,253
+PASS real app CSS fixture light 390: price ratio=10.11; sampled background=244,249,253

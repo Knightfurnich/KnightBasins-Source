@@ -1,0 +1,74 @@
+sitemap http://127.0.0.1:5189/sitemap.xml: 12 routes -> / /portfolio /stone /price-guide /site-prep /studio-guide /quote /studio /sketch /readme /updates /network
+outside the sitemap: /profile /handover /track /quote/view /quote#cart
+
+theme route           checked probe scan  LINE hero     REAL overflow worst real row
+dark  /               544     1     32    1    0        31   0px      1.61 div.page-wrap > section.product-grid > article[card-product-KF001] "[checkbox unchecked]"
+dark  /portfolio      79      0     0     0    0        0    0px      
+dark  /stone          393     1     2     1    0        1    0px      2.07 nav.main-nav > a[link-quote] > span "0"
+dark  /price-guide    134     0     0     0    0        0    0px      
+dark  /site-prep      24      0     0     0    0        0    0px      
+dark  /studio-guide   68      0     0     0    0        0    0px      
+dark  /quote          128     1     3     1    0        2    0px      2.07 nav.main-nav > a[link-quote] > span "0"
+dark  /studio         137     1     7     1    0        6    0px      1.49 div.studio-draft-toolbar > div.studio-draft-toolbar-actions > button[button-studio-redo] "ทำซ้ำ"
+dark  /sketch         135     1     2     1    0        1    0px      2.07 nav.main-nav > a[link-quote] > span "0"
+dark  /readme         97      0     0     0    0        0    0px      
+dark  /updates        122     0     0     0    0        0    0px      
+dark  /network        62      1     2     1    0        1    0px      2.07 nav.main-nav > a[link-quote] > span "0"
+dark  /profile        47      2     3     2    0        1    0px      2.07 nav.main-nav > a[link-quote] > span "0"
+dark  /handover       10      0     0     0    0        0    0px      
+dark  /track          11      0     0     0    0        0    0px      
+dark  /quote/view     46      1     2     1    0        1    0px      2.07 nav.main-nav > a[link-quote] > span "0"
+dark  /quote#cart     145     -     11    1    0        10   0px      1.14 div[row-quote-KF009] > div.line-quantity > button[button-quantity-minus-KF009] "ลดจำนวน KF009"
+light /               544     1     31    1    0        30   0px      1.21 div.page-wrap > section.product-grid > article[card-product-KF005] "[checkbox unchecked]"
+light /portfolio      79      0     0     0    0        0    0px      
+light /stone          393     1     1     1    0        0    0px      
+light /price-guide    134     0     0     0    0        0    0px      
+light /site-prep      23      0     0     0    0        0    0px      
+light /studio-guide   68      0     0     0    0        0    0px      
+light /quote          128     1     2     1    0        1    0px      4.11 div.vat-row > label > span "[checkbox checked]"
+light /studio         137     1     2     1    0        1    0px      1.6 div.studio-draft-toolbar > div.studio-draft-toolbar-actions > button[button-studio-redo] "ทำซ้ำ"
+light /sketch         135     1     1     1    0        0    0px      
+light /readme         95      0     0     0    0        0    0px      
+light /updates        116     0     0     0    0        0    0px      
+light /network        62      1     1     1    0        0    0px      
+light /profile        47      2     2     2    0        0    0px      
+light /handover       10      0     0     0    0        0    0px      
+light /track          11      0     0     0    0        0    0px      
+light /quote/view     46      1     1     1    0        0    0px      
+light /quote#cart     145     -     4     1    0        3    0px      1.21 div[row-quote-KF009] > label.install-toggle > span "[checkbox unchecked]"
+coverage dark /: checked=544 occluded=60 notMeasurable=1
+coverage dark /portfolio: checked=79 occluded=0 notMeasurable=0
+coverage dark /stone: checked=393 occluded=0 notMeasurable=1
+coverage dark /price-guide: checked=134 occluded=1 notMeasurable=1
+coverage dark /site-prep: checked=24 occluded=0 notMeasurable=4
+coverage dark /studio-guide: checked=68 occluded=0 notMeasurable=0
+coverage dark /quote: checked=128 occluded=0 notMeasurable=1
+coverage dark /studio: checked=137 occluded=9 notMeasurable=1
+coverage dark /sketch: checked=135 occluded=0 notMeasurable=1
+coverage dark /readme: checked=97 occluded=0 notMeasurable=1
+coverage dark /updates: checked=122 occluded=0 notMeasurable=11
+coverage dark /network: checked=62 occluded=0 notMeasurable=1
+coverage dark /profile: checked=47 occluded=0 notMeasurable=1
+coverage dark /handover: checked=10 occluded=0 notMeasurable=0
+coverage dark /track: checked=11 occluded=0 notMeasurable=0
+coverage dark /quote/view: checked=46 occluded=0 notMeasurable=1
+coverage dark /quote#cart: checked=145 occluded=0 notMeasurable=1
+coverage light /: checked=544 occluded=60 notMeasurable=1
+coverage light /portfolio: checked=79 occluded=0 notMeasurable=0
+coverage light /stone: checked=393 occluded=0 notMeasurable=1
+coverage light /price-guide: checked=134 occluded=1 notMeasurable=1
+coverage light /site-prep: checked=23 occluded=0 notMeasurable=5
+coverage light /studio-guide: checked=68 occluded=0 notMeasurable=0
+coverage light /quote: checked=128 occluded=0 notMeasurable=1
+coverage light /studio: checked=137 occluded=9 notMeasurable=1
+coverage light /sketch: checked=135 occluded=0 notMeasurable=1
+coverage light /readme: checked=95 occluded=0 notMeasurable=3
+coverage light /updates: checked=116 occluded=0 notMeasurable=17
+coverage light /network: checked=62 occluded=0 notMeasurable=1
+coverage light /profile: checked=47 occluded=0 notMeasurable=1
+coverage light /handover: checked=10 occluded=0 notMeasurable=0
+coverage light /track: checked=11 occluded=0 notMeasurable=0
+coverage light /quote/view: checked=46 occluded=0 notMeasurable=1
+coverage light /quote#cart: checked=145 occluded=0 notMeasurable=1
+
+FAIL: 13 route/theme pair(s) with failing text outside the declared LINE allowlist (including heroes), or horizontal overflow

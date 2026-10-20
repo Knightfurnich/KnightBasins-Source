@@ -82,7 +82,8 @@ describe("468-R hero, labels and independent night-work fee", () => {
     const sweep = read("../../../qa/tools/sweep-467c.mjs");
     const scanner = read("../../../qa/tools/gradient-scan-465c.mjs");
     const job = workflow.slice(workflow.indexOf("\n  contrast-sweep:"));
-    assert.match(job, /timeout-minutes: 10/);
+    assert.match(job, /timeout-minutes: 35/);
+    assert.match(job, /timeout 10m node qa\/tools\/sweep-467c\.mjs/);
     assert.match(job, /width: \[1440, 390\]/);
     assert.match(job, /CHROME_BIN: "\/usr\/bin\/google-chrome"/);
     assert.match(job, /pnpm --filter @workspace\/knight-basins run build/);
